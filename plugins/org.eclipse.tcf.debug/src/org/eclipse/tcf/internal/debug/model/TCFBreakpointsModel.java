@@ -567,7 +567,7 @@ public class TCFBreakpointsModel {
             cdt_type = cdt_type | ATTR_TYPE_TEMPORARY;
             m.put(ATTR_TYPE, cdt_type);
         }
-        Integer type = (Integer)p.get(IBreakpoints.PROP_TYPE);
+        String type = (String)p.get(IBreakpoints.PROP_TYPE);
         if (type != null) {
             Integer cdt_type = (Integer)m.get(ATTR_TYPE);
             cdt_type = cdt_type != null ? cdt_type : 0;
