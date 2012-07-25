@@ -10,22 +10,33 @@
 package org.eclipse.tcf.debug.test;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.cdt.debug.core.CDIDebugModel;
 import org.eclipse.cdt.debug.core.model.ICBreakpoint;
 import org.eclipse.cdt.debug.core.model.ICBreakpointType;
 import org.eclipse.cdt.debug.core.model.ICLineBreakpoint;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.IBreakpointsListener;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.tcf.debug.test.BreakpointsListener.EventTester;
 import org.eclipse.tcf.debug.test.BreakpointsListener.EventType;
 import org.eclipse.tcf.debug.test.services.RunControlCM.ContextState;
 import org.eclipse.tcf.debug.test.util.Transaction;
+import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
 import org.eclipse.tcf.internal.debug.ui.launch.TCFLaunchContext;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IBreakpoints;
 import org.eclipse.tcf.services.ILineNumbers.CodeArea;
 import org.eclipse.tcf.services.ISymbols.Symbol;
 import org.junit.Assert;
@@ -109,4 +120,65 @@ public class BreakpointsTest extends AbstractTcfUITest
         ICLineBreakpoint bp = createLineBreakpoint(bpCodeArea.file, bpCodeArea.start_line);
     }
 
+    public void testForeignBreakpointCreate() throws Exception {
+        initProcessModel("tcf_test_func0");
+
+        final List<IBreakpoint> addedBps = Collections.synchronizedList(new ArrayList<IBreakpoint>()); 
+        
+        IBreakpointsListener listener = new IBreakpointsListener() {
+            @Override
+            public void breakpointsAdded(IBreakpoint[] breakpoints) {
+                for (IBreakpoint bp : breakpoints) addedBps.add(bp);
+                addedBps.notify();
+            }
+            
+            @Override
+            public void breakpointsChanged(IBreakpoint[] breakpoints, IMarkerDelta[] deltas) {}
+            
+            @Override
+            public void breakpointsRemoved(IBreakpoint[] breakpoints, IMarkerDelta[] deltas) {
+                for (IBreakpoint bp : breakpoints) addedBps.remove(bp);
+            }
+        };
+        DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(listener);
+        try {
+            final String bpId = "testBp";
+            new Transaction<Map<String, Object>[]>() {
+                Map<String, Object> bp = new TreeMap<String, Object>();
+                {
+                    bp.put(IBreakpoints.PROP_LOCATION, "tcf_test_func1");
+                    bp.put(IBreakpoints.PROP_ID, bpId);
+                    bp.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
+                    // Bug 385965: test translation of prop_type attribute
+                    bp.put(IBreakpoints.PROP_TYPE, IBreakpoints.TYPE_HARDWARE);
+                }
+                @Override
+                protected Map<String, Object>[] process() throws InvalidCacheException ,ExecutionException {
+                    fBreakpointsCM.waitContextAdded(this);
+                    validate( fBreakpointsCM.add(bp, this) );
+                    return validate( fBreakpointsCM.waitContextAdded(this) );
+                }}.get(60, TimeUnit.SECONDS);
+    
+            long timeout = System.currentTimeMillis() + 60000;
+            wait: while(System.currentTimeMillis() < timeout) {
+                synchronized(addedBps) {
+                    addedBps.wait(100);
+                    for (IBreakpoint bp : addedBps) {
+                        IMarker marker = bp.getMarker();
+                        if (marker != null && bpId.equals(marker.getAttribute(TCFBreakpointsModel.ATTR_ID))) {
+                            break wait;
+                        }
+                    }
+                }
+            }
+    
+            if (System.currentTimeMillis() > timeout) {
+                Assert.fail("timed out");
+            }
+        } finally {
+            DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(listener);
+        }
+    }
+    
+    
 }
