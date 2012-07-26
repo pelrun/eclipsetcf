@@ -188,14 +188,18 @@
       <perspectiveExtension targetID="org.eclipse.tcf.te.ui.perspective">
       	 <!-- Run/Debug actions should be available -->
          <actionSet id="org.eclipse.debug.ui.launchActionSet"/>
-		 <!-- Register the view shortcuts  -->
+		 <!-- Register the view shortcuts -->
          <viewShortcut id="org.eclipse.tcf.te.ui.views.View"/>
          <viewShortcut id="org.eclipse.debug.ui.DebugView"/>
       </perspectiveExtension>
       
       <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
-		 <!-- Register the view shortcuts  -->
+      	 <!-- Run/Debug actions should be available -->
+         <actionSet id="org.eclipse.debug.ui.launchActionSet"/>
+		 <!-- Register the view shortcuts -->
          <viewShortcut id="org.eclipse.tcf.te.ui.views.View"/>
+         <!-- Register the perspective shortcuts -->
+         <perspectiveShortcut id="org.eclipse.tcf.te.ui.perspective"/>
          <!-- System management view is placed relative to the Project Explorer -->
          <view
                id="org.eclipse.tcf.te.ui.views.View"

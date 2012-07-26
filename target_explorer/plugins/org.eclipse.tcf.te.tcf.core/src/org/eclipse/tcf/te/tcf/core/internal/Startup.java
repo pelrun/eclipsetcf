@@ -28,20 +28,7 @@ public class Startup {
 	/* default */ final static AtomicBoolean STARTED = new AtomicBoolean(false);
 
 	static {
-		// We might get here on shutdown as well, and if TCF has not
-		// been loaded, than we will run into an NPE. Lets double check.
-		if (Protocol.getEventQueue() != null) {
-			// Initialize the framework status by scheduling a simple
-			// runnable to execute and be invoked once the framework
-			// is fully up and usable.
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					// Core framework is scheduling the runnables, means it is started.
-					setStarted(true);
-				}
-			});
-		}
+		setStarted(true);
 	}
 
 	/**
@@ -56,12 +43,15 @@ public class Startup {
 		if (Protocol.getEventQueue() != null) {
 			// Catch IllegalStateException: TCF event dispatcher has shut down
 			try {
-				Protocol.invokeLater(new Runnable() {
+				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
 						if (STARTED.get()) Tcf.start(); else Tcf.stop();
 					}
-				});
+				};
+
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
 			} catch (IllegalStateException e) {
 				if (!STARTED.get() && "TCF event dispatcher has shut down".equals(e.getLocalizedMessage())) { //$NON-NLS-1$
 					// ignore the exception on shutdown

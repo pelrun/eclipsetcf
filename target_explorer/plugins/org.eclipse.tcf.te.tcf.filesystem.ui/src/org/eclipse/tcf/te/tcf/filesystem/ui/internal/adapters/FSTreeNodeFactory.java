@@ -9,8 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters;
 
-import java.util.Map;
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
@@ -18,6 +16,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
@@ -34,8 +33,7 @@ public class FSTreeNodeFactory implements IElementFactory {
 	@Override
 	public IAdaptable createElement(IMemento memento) {
 		String peerId = memento.getString("peerId"); //$NON-NLS-1$
-		Map<String, IPeerModel> peerMap = (Map<String, IPeerModel>) Model.getModel().getAdapter(Map.class);
-		IPeerModel peerModel = peerMap.get(peerId);
+		IPeerModel peerModel = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
 		if(peerModel != null) {
 			String path = memento.getString("path"); //$NON-NLS-1$
 			if(path == null) {

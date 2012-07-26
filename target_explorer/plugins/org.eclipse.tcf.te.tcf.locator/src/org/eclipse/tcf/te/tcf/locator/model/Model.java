@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.locator.model;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.nodes.LocatorModel;
 
 
@@ -68,7 +69,7 @@ public final class Model {
 	 * Initialize the root node. Must be called within the TCF dispatch thread.
 	 */
 	protected static void initialize() {
-		Assert.isTrue(Protocol.isDispatchThread());
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// If locator model is set in the mean while, initialize got
 		// called twice. Return immediately in this case.
@@ -76,6 +77,8 @@ public final class Model {
 
 		// Create the model instance
 		locatorModel = new LocatorModel();
+		// Refresh the model right away
+		locatorModel.getService(ILocatorModelRefreshService.class).refresh();
 		// Start the scanner
 		locatorModel.startScanner(5000, 120000);
 	}

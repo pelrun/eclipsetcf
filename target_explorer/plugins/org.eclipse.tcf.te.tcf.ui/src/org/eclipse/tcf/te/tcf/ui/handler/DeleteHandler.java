@@ -40,7 +40,6 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
@@ -349,25 +348,18 @@ public class DeleteHandler extends AbstractHandler {
 				}
 
 				if (refreshModel) {
-					// Get the locator model
-					final ILocatorModel model = Model.getModel();
-					if (model != null) {
-						// Trigger a refresh of the model
-						final ILocatorModelRefreshService service = model.getService(ILocatorModelRefreshService.class);
-						if (service != null) {
-							// Invoke the callback after the refresh
-							invokeCallback = false;
-							Protocol.invokeLater(new Runnable() {
-								@Override
-								public void run() {
-									// Refresh the model now (must be executed within the TCF dispatch thread)
-									service.refresh();
-									// Invoke the callback
-									callback.done(DeleteHandler.this, Status.OK_STATUS);
-								}
-							});
+					// Trigger a refresh of the model
+					invokeCallback = false;
+					Protocol.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+							// Refresh the model now (must be executed within the TCF dispatch thread)
+							if (service != null) service.refresh();
+							// Invoke the callback
+							callback.done(DeleteHandler.this, Status.OK_STATUS);
 						}
-					}
+					});
 				}
 			}
 		}

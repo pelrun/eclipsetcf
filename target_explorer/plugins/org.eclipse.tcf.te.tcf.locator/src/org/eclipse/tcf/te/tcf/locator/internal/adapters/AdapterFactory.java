@@ -50,8 +50,6 @@ public class AdapterFactory implements IAdapterFactory {
 				return peerModelPersistableURIProvider;
 			}
 			if (IPeerModel.class.equals(adapterType) && adaptableObject instanceof IPeer) {
-				final ILocatorModel model = Model.getModel();
-				if (model != null) {
 					final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
 					final IPeer peer = (IPeer)adaptableObject;
 
@@ -59,6 +57,8 @@ public class AdapterFactory implements IAdapterFactory {
 						@Override
 						public void run() {
 							String id = peer.getID();
+							ILocatorModel model = Model.getModel();
+							Assert.isNotNull(model);
 							IPeerModel candidate = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
 							if (candidate != null) node.set(candidate);
 							else {
@@ -72,7 +72,6 @@ public class AdapterFactory implements IAdapterFactory {
 					else Protocol.invokeAndWait(runnable);
 
 					return node.get();
-				}
 			}
 		}
 		return null;

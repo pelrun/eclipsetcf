@@ -37,7 +37,6 @@ import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
@@ -80,21 +79,15 @@ public class OfflineCommandHandler extends AbstractHandler {
 					}
 				}
 
-				// Get the locator model
-				final ILocatorModel model = Model.getModel();
-				if (model != null) {
-					// Trigger a refresh of the model
-					final ILocatorModelRefreshService service = model.getService(ILocatorModelRefreshService.class);
-					if (service != null) {
-						Protocol.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								// Refresh the model now (must be executed within the TCF dispatch thread)
-								service.refresh();
-							}
-						});
+				// Trigger a refresh of the model
+				Protocol.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+						// Refresh the model now (must be executed within the TCF dispatch thread)
+						if (service != null) service.refresh();
 					}
-				}
+				});
 			}
 		});
 

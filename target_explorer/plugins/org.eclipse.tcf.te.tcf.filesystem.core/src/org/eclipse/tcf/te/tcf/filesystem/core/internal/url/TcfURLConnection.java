@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
@@ -33,6 +32,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFChannelExce
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
@@ -98,19 +98,17 @@ public class TcfURLConnection extends URLConnection {
 		setReadTimeout(DEFAULT_READ_TIMEOUT);
 		setCloseTimeout(DEFAULT_CLOSE_TIMEOUT);
 	}
-	
+
 	/**
 	 * Find the TCF peer with the specified ID.
-	 * 
+	 *
 	 * @param peerId The target peer's ID.
 	 * @return The peer with this ID or null if not found.
 	 */
-	@SuppressWarnings("unchecked")
     private IPeer findPeer(String peerId) {
 		IPeer peer = Protocol.getLocator().getPeers().get(peerId);
 		if(peer == null) {
-			Map<String, IPeerModel> map = (Map<String, IPeerModel>) Model.getModel().getAdapter(Map.class);
-			IPeerModel peerNode = map.get(peerId);
+			IPeerModel peerNode = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
 			if(peerNode != null) peer = peerNode.getPeer();
 		}
 		return peer;

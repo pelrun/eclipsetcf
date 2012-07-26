@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -26,6 +25,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
@@ -38,10 +38,10 @@ public class OpParsePath extends Operation {
 	String path;
 	// The parsing result.
 	FSTreeNode result;
-	
+
 	/**
 	 * Create an instance with a path on a specified target.
-	 * 
+	 *
 	 * @param peer The target peer.
 	 * @param path The path to be parsed.
 	 */
@@ -49,13 +49,12 @@ public class OpParsePath extends Operation {
 		this.peer = peer;
 		this.path = path;
 	}
-	
+
 	/**
 	 * The path of the cache file to be parsed.
-	 * 
+	 *
 	 * @param filePath The local cache's file.
 	 */
-	@SuppressWarnings("unchecked")
     public OpParsePath(String filePath) {
 		String cache_root = CacheManager.getCacheRoot().getAbsolutePath();
 		if (filePath.startsWith(cache_root)) {
@@ -64,8 +63,7 @@ public class OpParsePath extends Operation {
 			if (slash != -1) {
 				String peerId = filePath.substring(0, slash);
 				peerId = peerId.replace(CacheManager.PATH_ESCAPE_CHAR, ':');
-				Map<String, IPeerModel> peers = (Map<String, IPeerModel>) Model.getModel().getAdapter(Map.class);
-				peer = peers.get(peerId);
+				peer = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
 				if (peer != null) {
 					boolean hostWindows = Host.isWindowsHost();
 					boolean windows = TargetPropertyTester.isWindows(peer);
@@ -104,17 +102,17 @@ public class OpParsePath extends Operation {
 			}
 		}
 	}
-	
+
 	/**
 	 * Get the parsing result, which is a node that representing
 	 * a file on the target system.
-	 * 
+	 *
 	 * @return The file system node.
 	 */
 	public FSTreeNode getResult() {
 		return result;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation#run(org.eclipse.core.runtime.IProgressMonitor)
@@ -144,7 +142,7 @@ public class OpParsePath extends Operation {
 			}
 		}
 	}
-	
+
 
 	/**
 	 * Search the path in the children list. If it exists, then search the children of the found

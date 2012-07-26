@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.wizards;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -99,8 +100,9 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 	private void initialize() {
 		// Refresh the information of remote services.
 		ILocatorModel model = Model.getModel();
+		Assert.isNotNull(model);
 		IPeerModel[] peers = model.getPeers();
-		if(peers != null) {
+		if (peers != null) {
 			ILocatorModelPeerNodeQueryService service = model.getService(ILocatorModelPeerNodeQueryService.class);
 			for (IPeerModel peer : peers) {
 				service.queryRemoteServices(peer);

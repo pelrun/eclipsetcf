@@ -181,25 +181,18 @@ public class RenameHandler extends AbstractHandler {
 					if (Protocol.isDispatchThread()) runnable.run();
 					else Protocol.invokeAndWait(runnable);
 
-					// Get the locator model
-					final ILocatorModel model = Model.getModel();
-					if (model != null) {
-						// Trigger a refresh of the model
-						final ILocatorModelRefreshService service = model.getService(ILocatorModelRefreshService.class);
-						if (service != null) {
-							// Invoke the callback after the refresh
-							invokeCallback = false;
-							Protocol.invokeLater(new Runnable() {
-								@Override
-								public void run() {
-									// Refresh the model now (must be executed within the TCF dispatch thread)
-									service.refresh();
-									// Invoke the callback
-									callback.done(RenameHandler.this, Status.OK_STATUS);
-								}
-							});
+					// Trigger a refresh of the model
+					invokeCallback = false;
+					Protocol.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							final ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+							// Refresh the model now (must be executed within the TCF dispatch thread)
+							if (service != null) service.refresh();
+							// Invoke the callback
+							callback.done(RenameHandler.this, Status.OK_STATUS);
 						}
-					}
+					});
 				}
 			}
 		}
@@ -229,6 +222,7 @@ public class RenameHandler extends AbstractHandler {
 				name.set(node.getPeer().getName());
 
 				ILocatorModel model = Model.getModel();
+				Assert.isNotNull(model);
 				IPeerModel[] peers = model.getPeers();
 				for (IPeerModel peer : peers) {
 					if (peer.equals(node)) continue;
