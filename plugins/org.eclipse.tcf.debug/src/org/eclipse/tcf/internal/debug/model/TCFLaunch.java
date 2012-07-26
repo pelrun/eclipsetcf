@@ -387,6 +387,10 @@ public class TCFLaunch extends Launch {
                 if (DebugPlugin.getDefault() != null) fireTerminate();
             }
         });
+        // Log severe exceptions: bug 386067
+        if (error instanceof RuntimeException) {
+            Activator.log("Channel disconnected with error", error);
+        }
     }
 
     protected void runLaunchSequence(Runnable done) {
