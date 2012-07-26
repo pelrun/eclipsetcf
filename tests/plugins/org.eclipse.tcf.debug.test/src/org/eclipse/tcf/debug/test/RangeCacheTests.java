@@ -259,9 +259,10 @@ public class RangeCacheTests extends TestCase {
         for (int i = 50; i < 100; i++) {
             Assert.assertEquals(null, data.get(i));
         }
-        
-        // Check state while waiting for data
-        assertCacheValidWithData(fRangeCache, 0, 50);
+
+        for (int i = 0; i < 50; i++) {
+            Assert.assertEquals(new Integer(i), data.get(i));
+        }
     }
 
     

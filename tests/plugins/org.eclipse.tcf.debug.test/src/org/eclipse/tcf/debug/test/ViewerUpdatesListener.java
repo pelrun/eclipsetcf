@@ -81,7 +81,7 @@ public class ViewerUpdatesListener
     private boolean fStateRestoreComplete;
     private int fContentUpdatesCounter;
     private int fLabelUpdatesCounter;
-    private int fTimeoutInterval = 60000;
+    private int fTimeoutInterval = TIMEOUT_DEFAULT;
 	private long fTimeoutTime;
 	
 	protected Set<TreePath> makeTreePathSet() {

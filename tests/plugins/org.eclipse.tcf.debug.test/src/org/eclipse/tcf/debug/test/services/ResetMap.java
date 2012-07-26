@@ -76,7 +76,7 @@ public class ResetMap {
     public void addValid(String id, String[] childrenIds, IResettable cache) {
         assert Protocol.isDispatchThread();
         
-        if (!clearPending(id, cache)) return;
+        if (clearPending(id, cache)) return;
         
         List<IResettable> list = fValid.get(id);
         if (list == null) {

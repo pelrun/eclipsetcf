@@ -162,7 +162,7 @@ public abstract class AbstractTcfUITest extends AbstractCMTest implements IViewe
 
         // Make sure that delta is posted after launching process so that it doesn't interfere
         // with the waiting for the whole viewer to update after breakpoint hit (below).
-        fDebugViewListener.waitTillFinished(MODEL_CHANGED_COMPLETE| CONTENT_SEQUENCE_COMPLETE | LABEL_SEQUENCE_COMPLETE | LABEL_UPDATES);
+        fDebugViewListener.waitTillFinished(MODEL_CHANGED_COMPLETE| CONTENT_SEQUENCE_COMPLETE | LABEL_SEQUENCE_COMPLETE);
         fDebugViewListener.reset();
 
         runToTestEntry(processInfo, testFunc);
@@ -181,12 +181,17 @@ public abstract class AbstractTcfUITest extends AbstractCMTest implements IViewe
             public String getID() { return topFrameId; }
             public IChannel getChannel() { return channels[0]; }
         };
-        fDebugViewListener.addLabelUpdate(new TreePath(new Object[] { fLaunch, processTCFContext, threadTCFContext, frameTCFContext }));
 
-        fDebugViewListener.waitTillFinished(MODEL_CHANGED_COMPLETE | CONTENT_SEQUENCE_COMPLETE | LABEL_SEQUENCE_COMPLETE | LABEL_UPDATES);
+        VirtualItem topFrameItem = null;
+        long timeout = System.currentTimeMillis() + TIMEOUT_DEFAULT;
+        do {
+            fDebugViewListener.addLabelUpdate(new TreePath(new Object[] { fLaunch, processTCFContext, threadTCFContext, frameTCFContext }));
+            fDebugViewListener.waitTillFinished(MODEL_CHANGED_COMPLETE | CONTENT_SEQUENCE_COMPLETE | LABEL_SEQUENCE_COMPLETE | LABEL_UPDATES);
+            topFrameItem = fDebugViewListener.findElement(
+                new Pattern[] { Pattern.compile(".*"), Pattern.compile(".*"), Pattern.compile(".*" + processInfo.fProcessId + ".*\\(.*[Bb]reakpoint.*"), Pattern.compile(".*")});
+            fDebugViewListener.reset();
+        } while (topFrameItem == null && System.currentTimeMillis() < timeout);
         
-        VirtualItem topFrameItem = fDebugViewListener.findElement(
-            new Pattern[] { Pattern.compile(".*"), Pattern.compile(".*"), Pattern.compile(".*" + processInfo.fProcessId + ".*\\(.*[Bb]reakpoint.*"), Pattern.compile(".*")});
         if (topFrameItem == null) {
             Assert.fail("Top stack frame not found. \n\nDebug view dump: \n:" + fDebugViewViewer.toString());
         }

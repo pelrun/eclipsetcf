@@ -159,7 +159,7 @@ public class BreakpointsTest extends AbstractTcfUITest
                     return validate( fBreakpointsCM.waitContextAdded(this) );
                 }}.get(60, TimeUnit.SECONDS);
     
-            long timeout = System.currentTimeMillis() + 60000;
+            long timeout = System.currentTimeMillis() + TIMEOUT_DEFAULT;
             wait: while(System.currentTimeMillis() < timeout) {
                 synchronized(addedBps) {
                     addedBps.wait(100);

@@ -17,6 +17,8 @@ package org.eclipse.tcf.debug.test;
  */
 public interface IViewerUpdatesListenerConstants {
     
+    public static final int TIMEOUT_DEFAULT = 60000;
+    
     public static final int LABEL_SEQUENCE_COMPLETE =       0X00000001;
     public static final int CONTENT_SEQUENCE_COMPLETE =    0X00000002;
     public static final int CONTENT_SEQUENCE_STARTED =     0X00020000;
