@@ -99,7 +99,7 @@ change in any of the attached contexts.  Adding properties reduces the
 <a href='#propTimeScale'>TimeScale</a>, and <a href='#propTimeUnits'> TimeUnits</a> properties.
 </ul>
 
-<p>The <a href='#propType'>Type</a> property configures whether the breakpoint should be installed as hardware or a software breakpoint.
+<p>The <a href='#propBreakpointType'>BreakpointType</a> property configures whether the breakpoint should be installed as hardware or a software breakpoint.
 
 <p><b>Condition properties</b> contain the <a href='#propEnabled'>Enabled</a> property, the <a href='#propCondition'>Condition</a> and <a href='#propIgnoreCount'>IgnoreCount</a> properties.
 
@@ -161,7 +161,7 @@ A breakpoint service implementation may not change the properties set by the cli
     <dd>If true, the breakpoint is enabled.
     </li>
 
-    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propType'>"Type"</a> : <i>&lt;string&gt;</i></font></b></code>
+    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propBreakpointType'>"BreakpointType"</a> : <i>&lt;string&gt;</i></font></b></code>
     <dd>The breakpoint type
     <dl>
     <ul>
@@ -285,7 +285,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
 <p>The following properties install a hardware breakpoint at address <code>0x1000</code> for all attached contexts:</p>
 <ul>
     <li><code>ID = "1"</code>
-    <li><code>Type = "Hardware"</code>
+    <li><code>BreakpointType = "Hardware"</code>
     <li><code>Location = "0x1000"</code>
 </ul>
 <p>
@@ -302,7 +302,7 @@ The following additional property stops the specified contexts when breakpoint 1
 The following properties set a watchpoint that stops <code>core0</code> when variable <code>fooVar</code> is read from or written to by <code>Core5</code>:
 <ul>
     <li><code>ID = "2"</code>
-    <li><code>Type = "Hardware"</code>
+    <li><code>BreakpointType = "Hardware"</code>
     <li><code>Location = "&fooVar"</code>
     <li><code>Size = 4</code>
     <li><code>AccessMode = 0x01 | 0x02</code>
