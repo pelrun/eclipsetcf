@@ -268,7 +268,7 @@ public class ViewerUpdatesListener
     
     public synchronized boolean isFinished(int flags) {
         if (isTimedOut()) {
-            throw new RuntimeException("Timed Out: " + toString(flags));
+            throw new RuntimeException("Timed Out: " + toString(flags) + "\nViewer:\n" + fViewer.toString());
         }
         
         if (fFailOnRedundantUpdates && !fRedundantUpdates.isEmpty()) {
