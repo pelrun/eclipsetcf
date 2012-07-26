@@ -67,7 +67,7 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	public boolean equals(Object obj) {
 		if (node != null && obj instanceof EditorInput) {
 			return node.equals(((EditorInput)obj).node)
-						&& (id != null ? id.equals(((EditorInput)obj).id) : ((EditorInput)obj).id == null);
+							&& (id != null ? id.equals(((EditorInput)obj).id) : ((EditorInput)obj).id == null);
 		}
 		return super.equals(obj);
 	}
@@ -103,7 +103,9 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	public String getName() {
 		if (name == null && node != null) {
 			ILabelProvider provider = node instanceof IAdaptable ?  (ILabelProvider)((IAdaptable)node).getAdapter(ILabelProvider.class) : null;
-			if (provider == null) provider = (ILabelProvider)Platform.getAdapterManager().getAdapter(node, ILabelProvider.class);
+			if (provider == null) {
+				provider = (ILabelProvider)Platform.getAdapterManager().getAdapter(node, ILabelProvider.class);
+			}
 			name = provider != null ? provider.getText(node) : node.toString();
 		}
 
@@ -117,7 +119,7 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	 */
 	protected CommonViewer getViewer() {
 		if (PlatformUI.getWorkbench() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null
-				&& PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+						&& PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
 			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			IViewPart part = page.findView(IUIConstants.ID_EXPLORER);
 			if (part instanceof CommonNavigator) {
@@ -133,7 +135,9 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	 */
 	@Override
 	public IPersistableElement getPersistable() {
-		// We cannot persist this kind of editor input.
+		if (Platform.getAdapterManager().getAdapter(node, IPersistableElement.class) != null) {
+			return this;
+		}
 		return null;
 	}
 
@@ -142,6 +146,10 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	 */
 	@Override
 	public String getFactoryId() {
+		IPersistableElement adapter = (IPersistableElement)Platform.getAdapterManager().getAdapter(node, IPersistableElement.class);
+		if (adapter != null) {
+			return adapter.getFactoryId();
+		}
 		return null;
 	}
 
@@ -150,6 +158,10 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	 */
 	@Override
 	public void saveState(IMemento memento) {
+		IPersistableElement adapter = (IPersistableElement)Platform.getAdapterManager().getAdapter(node, IPersistableElement.class);
+		if (adapter != null) {
+			adapter.saveState(memento);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -171,7 +183,9 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 
 		// If the adapter can be applied to the node instance, return the node
 		Object adapted = Platform.getAdapterManager().getAdapter(node, adapter);
-		if (adapted != null) return adapted;
+		if (adapted != null) {
+			return adapted;
+		}
 
 		return Platform.getAdapterManager().getAdapter(this, adapter);
 	}

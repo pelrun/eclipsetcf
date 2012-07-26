@@ -9,21 +9,24 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.internal.adapters;
 
-import java.util.Map;
-
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
 
 /**
- * The element factory to create IPeerModel from a memento which is read
- * from an external persistent storage.
+ * The element factory to create an peer model editor input from a memento which is read
+ * from an external persistent storage and holds a peer id.
  */
 public class PeerModelFactory implements IElementFactory {
+
+	protected boolean isModelRefreshed = false;
 
 	/*
 	 * (non-Javadoc)
@@ -32,15 +35,35 @@ public class PeerModelFactory implements IElementFactory {
 	@Override
 	public IAdaptable createElement(IMemento memento) {
 		String peerId = memento.getString("peerId"); //$NON-NLS-1$
-		Map<String, IPeerModel> map = (Map<String, IPeerModel>) Model.getModel().getAdapter(Map.class);
-		IPeerModel node = map.get(peerId);
-		// Make sure the remote services are up to date so 
-		// that content extension could correctly activated!
+		// refresh the model
+		if (!isModelRefreshed) {
+			Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+					if (service != null) {
+						service.refresh();
+						service.refreshStaticPeers();
+					}
+					isModelRefreshed = true;
+				}
+			});
+		}
+		// search the peerId in the models peers
+		IPeerModel[] peerModels = Model.getModel().getPeers();
+		IPeerModel node = null;
+		for (IPeerModel peerModel : peerModels) {
+			if (peerModel.getPeer().getID().equals(peerId)) {
+				node = peerModel;
+				break;
+			}
+		}
+
 		if (node != null) {
 			ILocatorModel model = node.getModel();
 			ILocatorModelPeerNodeQueryService queryService = model.getService(ILocatorModelPeerNodeQueryService.class);
 			queryService.queryRemoteServices(node);
 		}
-		return node;
+		return node != null ? new EditorInput(node) : null;
 	}
 }
