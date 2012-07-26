@@ -3,7 +3,7 @@
 <plugin>
 
 <!-- Extension points -->
-   <extension-point id="eventListeners" name="Event Listener Contributions" schema="schema/eventListeners.exsd"/>
+   <extension-point id="eventListeners" name="%ExtensionPoint.eventListeners.name" schema="schema/eventListeners.exsd"/>
 
 <!-- Eclipse core expressions property tester -->
    <extension point="org.eclipse.core.expressions.propertyTesters">

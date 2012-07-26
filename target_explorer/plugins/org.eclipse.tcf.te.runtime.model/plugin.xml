@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension-point id="factoryDelegates" name="Model Node Factory Delegates" schema="schema/factoryDelegates.exsd"/>
+   <extension-point id="factoryDelegates" name="%ExtensionPoint.factoryDelegates.name" schema="schema/factoryDelegates.exsd"/>
 
 <!-- Model node factory delegate contributions -->
    <extension point="org.eclipse.tcf.te.runtime.model.factoryDelegates">

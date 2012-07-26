@@ -235,7 +235,7 @@
                helpContextId="org.eclipse.tcf.te.ui.views.command_Properties"
                id="properties"
                label="%command.properties.label"
-               mnemonic="r"
+               mnemonic="%command.properties.mnemonic"
                tooltip="%command.properties.tooltip">
                <visibleWhen>
                   <with variable="selection">
@@ -331,13 +331,13 @@
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.quickfilter"
                label="%menu.filter.label"
-               mnemonic="t"
+               mnemonic="%menu.filter.mnemonic"
                style="push">
          </command>
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.resetfilter"
                label="%menu.reset.label"
-               mnemonic="r"
+               mnemonic="%menu.reset.mnemonic"
                style="push">
          </command>
       </menuContribution>
@@ -346,7 +346,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.find"
                label="%menu.find.label"
-               mnemonic="f"
+               mnemonic="%menu.find.mnemonic"
                style="push">
          </command>
       </menuContribution>

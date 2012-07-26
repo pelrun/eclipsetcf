@@ -216,7 +216,7 @@
                helpContextId="org.eclipse.tcf.te.tcf.ui.command_Redirect"
                id="org.eclipse.tcf.te.tcf.ui.commands.redirect"
                label="%command.redirect.label"
-               mnemonic="e"
+               mnemonic="%command.redirect.mnemonic"
                style="push"
                tooltip="%command.redirect.tooltip">
             <visibleWhen checkEnabled="false">
@@ -237,7 +237,7 @@
                helpContextId="org.eclipse.tcf.te.tcf.ui.command_ResetRedirect"
                id="org.eclipse.tcf.te.tcf.ui.commands.resetredirect"
                label="%command.resetredirect.label"
-               mnemonic="s"
+               mnemonic="%command.resetredirect.mnemonic"
                style="push"
                tooltip="%command.resetredirect.tooltip">
             <visibleWhen checkEnabled="false">
@@ -262,7 +262,7 @@
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.delete.label"
-               mnemonic="D"
+               mnemonic="%command.delete.mnemonic"
                style="push"
                tooltip="%command.delete.description">
             <visibleWhen checkEnabled="false">
@@ -282,7 +282,7 @@
                helpContextId="org.eclipse.tcf.te.tcf.ui.command_Offline"
                id="org.eclipse.tcf.te.tcf.ui.commands.offline"
                label="%command.offline.label"
-               mnemonic="f"
+               mnemonic="%command.offline.mnemonic"
                style="push"
                tooltip="%command.offline.tooltip">
             <visibleWhen checkEnabled="true"/>
@@ -296,7 +296,7 @@
                 icon="icons/elcl16/rename.gif"
                 id="org.eclipse.tcf.te.tcf.ui.commands.rename"
                 label="%command.rename.label"
-                mnemonic="R"
+                mnemonic="%command.rename.mnemonic"
                 style="push"
                 tooltip="%command.rename.tooltip">
             <visibleWhen checkEnabled="false">

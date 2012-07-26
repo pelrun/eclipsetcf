@@ -231,7 +231,7 @@
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/cut_edit.gif"
                id="cut"
                label="%command.label.cut"
-               mnemonic="t"
+               mnemonic="%command.cut.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -254,7 +254,7 @@
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/copy_edit.gif"
                id="copy"
                label="%command.label.copy"
-               mnemonic="C"
+               mnemonic="%command.copy.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -277,7 +277,7 @@
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/paste_edit.gif"
                id="paste"
                label="%command.label.paste"
-               mnemonic="P"
+               mnemonic="%command.paste.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -304,7 +304,7 @@
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.label.delete"
-               mnemonic="D"
+               mnemonic="%command.delete.mnemonic"
                style="push"
                tooltip="%command.delete.description">
             <visibleWhen
@@ -487,7 +487,7 @@
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Rename"
                id="rename"
                label="%command.label.rename"
-               mnemonic="R"
+               mnemonic="%command.rename.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -509,7 +509,7 @@
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Move"
                id="move"
                label="%command.label.move"
-               mnemonic="M"
+               mnemonic="%command.move.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -627,8 +627,8 @@
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Cut"
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/cut_edit.gif"
                id="cut"
-               label="%command.label.cut.1"
-               mnemonic="t"
+               label="%command.label.cut"
+               mnemonic="%command.cut.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -655,8 +655,8 @@
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Copy"
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/copy_edit.gif"
                id="copy"
-               label="%command.label.copy.1"
-               mnemonic="C"
+               label="%command.label.copy"
+               mnemonic="%command.copy.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -683,8 +683,8 @@
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Paste"
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/paste_edit.gif"
                id="paste"
-               label="%command.label.paste.1"
-               mnemonic="P"
+               label="%command.label.paste"
+               mnemonic="%command.paste.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -715,7 +715,7 @@
                icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.delete.label"
-               mnemonic="D"
+               mnemonic="%command.delete.mnemonic"
                style="push"
                tooltip="%command.delete.description">
             <visibleWhen checkEnabled="false">
@@ -891,8 +891,8 @@
                commandId="org.eclipse.ui.edit.rename"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Rename"
                id="rename"
-               label="%command.label.rename.1"
-               mnemonic="R"
+               label="%command.label.rename"
+               mnemonic="%command.rename.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -918,8 +918,8 @@
                commandId="org.eclipse.ui.edit.move"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Move"
                id="move"
-               label="%command.label.move.1"
-               mnemonic="M"
+               label="%command.label.move"
+               mnemonic="%command.move.mnemonic"
                style="push">
             <visibleWhen
                   checkEnabled="false">
