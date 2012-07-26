@@ -103,7 +103,8 @@
       </menuContribution>      
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
          <toolbar
-               id="org.eclipse.tcf.te.ui.terminals.toolbar">
+               id="org.eclipse.tcf.te.ui.terminals.toolbar"
+               label="%toolbar.terminal.label">
 	         <command
 	               commandId="org.eclipse.tcf.te.ui.terminals.command.launchToolbar"
 	               helpContextId="org.eclipse.tcf.te.ui.terminals.command_Launch"
