@@ -184,18 +184,20 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         // stack trace does not contain expression parent frame.
         // Return null if waiting for cache update.
         if (prev_value == null) return false;
-        if (parent instanceof TCFNodeStackFrame) {
-            TCFNodeExecContext exe = (TCFNodeExecContext)parent.parent;
+        TCFNode p = parent;
+        while (p instanceof TCFNodeRegister) p = p.parent;
+        if (p instanceof TCFNodeStackFrame) {
+            TCFNodeExecContext exe = (TCFNodeExecContext)p.parent;
             TCFDataCache<TCFContextState> state_cache = exe.getState();
             if (!state_cache.validate(done)) return null;
             TCFContextState state = state_cache.getData();
             if (state == null || !state.is_suspended) return true;
             TCFChildrenStackTrace stack_trace_cache = exe.getStackTrace();
             if (!stack_trace_cache.validate(done)) return null;
-            if (stack_trace_cache.getData().get(parent.id) == null) return true;
+            if (stack_trace_cache.getData().get(p.id) == null) return true;
         }
-        else if (parent instanceof TCFNodeExecContext) {
-            TCFNodeExecContext exe = (TCFNodeExecContext)parent;
+        else if (p instanceof TCFNodeExecContext) {
+            TCFNodeExecContext exe = (TCFNodeExecContext)p;
             TCFDataCache<TCFContextState> state_cache = exe.getState();
             if (!state_cache.validate(done)) return null;
             TCFContextState state = state_cache.getData();
