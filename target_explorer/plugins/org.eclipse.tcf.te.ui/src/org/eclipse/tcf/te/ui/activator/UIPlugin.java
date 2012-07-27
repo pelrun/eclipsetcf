@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.trees.ViewerStateManager;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -49,7 +50,7 @@ public class UIPlugin extends AbstractUIPlugin {
 	/**
 	 * Load the pending images used to animate.
 	 */
-	private void loadPendingImages() {
+	/* default */ void loadPendingImages() {
 		SafeRunner.run(new ISafeRunnable() {
 			@Override
 			public void handleException(Throwable exception) {
@@ -118,7 +119,13 @@ public class UIPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		loadPendingImages();
+		// Images should be loaded in the UI thread
+		DisplayUtil.safeAsyncExec(new Runnable() {
+			@Override
+			public void run() {
+				loadPendingImages();
+			}
+		});
 		// Load the tree viewer's state.
 		ViewerStateManager.getInstance().loadViewerStates();
 	}
