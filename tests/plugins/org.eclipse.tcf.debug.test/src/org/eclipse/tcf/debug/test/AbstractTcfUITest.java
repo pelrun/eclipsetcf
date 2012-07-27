@@ -156,13 +156,9 @@ public abstract class AbstractTcfUITest extends AbstractCMTest implements IViewe
             public IChannel getChannel() { return channels[0]; }
         };
 
-        fDebugViewListener.addLabelUpdate(new TreePath(new Object[] { fLaunch, processTCFContext }));
-        fDebugViewListener.addLabelUpdate(new TreePath(new Object[] { fLaunch, processTCFContext, threadTCFContext }));
-
-
         // Make sure that delta is posted after launching process so that it doesn't interfere
         // with the waiting for the whole viewer to update after breakpoint hit (below).
-        fDebugViewListener.waitTillFinished(MODEL_CHANGED_COMPLETE| CONTENT_SEQUENCE_COMPLETE | LABEL_SEQUENCE_COMPLETE);
+        fDebugViewListener.waitTillFinished(MODEL_CHANGED_COMPLETE| CONTENT_SEQUENCE_COMPLETE);
         fDebugViewListener.reset();
 
         runToTestEntry(processInfo, testFunc);
