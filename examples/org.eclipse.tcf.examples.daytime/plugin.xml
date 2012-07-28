@@ -2,8 +2,11 @@
 <?eclipse version="3.2"?>
 <plugin>
 
-   <extension point="org.eclipse.tcf.startup">
-      <class name="org.eclipse.tcf.internal.examples.daytime.DaytimeServiceProxy"/>
+<!-- TCF service provider contributions -->
+   <extension point="org.eclipse.tcf.serviceProviders">
+      <serviceProvider
+            class="org.eclipse.tcf.internal.examples.daytime.DaytimeServiceProvider">
+      </serviceProvider>
    </extension>
 
 </plugin>

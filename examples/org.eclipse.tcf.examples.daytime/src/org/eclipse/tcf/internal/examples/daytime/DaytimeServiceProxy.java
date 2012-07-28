@@ -14,9 +14,10 @@ package org.eclipse.tcf.internal.examples.daytime;
 import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
-import org.eclipse.tcf.protocol.Protocol;
 
-
+/**
+ * Daytime service proxy implementation.
+ */
 public class DaytimeServiceProxy implements IDaytimeService {
 
     private final IChannel channel;
@@ -52,24 +53,5 @@ public class DaytimeServiceProxy implements IDaytimeService {
                 done.doneGetTimeOfDay(token, error, str);
             }
         }.token;
-    }
-
-    static {
-        /*
-         * Make Daytime Service proxy available to all potential clients by creating
-         * the proxy object every time a TCF communication channel is opened.
-         * Note: extension point "org.eclipse.tcf.startup" is used to load this class
-         * at TCF startup time, so proxy factory is properly activated even if nobody
-         * import directly from this plugin.
-         */
-        Protocol.addChannelOpenListener(new Protocol.ChannelOpenListener() {
-
-            public void onChannelOpen(IChannel channel) {
-                // Check if remote server provides Daytime service
-                if (channel.getRemoteService(IDaytimeService.NAME) == null) return;
-                // Create service proxy
-                channel.setServiceProxy(IDaytimeService.class, new DaytimeServiceProxy(channel));
-            }
-        });
     }
 }
