@@ -18,6 +18,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IElementFactory;
@@ -46,6 +47,24 @@ public class PeerModelFactory implements IElementFactory {
 
 			Assert.isTrue(!Protocol.isDispatchThread());
 			Protocol.invokeAndWait(runnable);
+
+			// If the node is null, this might mean that the peer to restore is a dynamically discovered peer.
+			// In this case, we have to wait a little bit to give the locator service the chance to sync.
+			if (node.get() == null) {
+				// Sleep shortly
+				try { Thread.sleep(300); } catch (InterruptedException e) {}
+
+				// Refresh and try again to query the node
+				Runnable runnable2 = new Runnable() {
+					@Override
+					public void run() {
+						Model.getModel().getService(ILocatorModelRefreshService.class).refresh();
+						node.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId));
+					}
+				};
+
+				Protocol.invokeAndWait(runnable2);
+			}
 
 			if (node.get() != null) {
 				ILocatorModel model = node.get().getModel();
