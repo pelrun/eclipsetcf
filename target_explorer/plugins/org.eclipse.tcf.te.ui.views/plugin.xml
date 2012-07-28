@@ -213,6 +213,22 @@
                visible="false">
          </view>
       </perspectiveExtension>
+
+      <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
+		 <!-- Register the view shortcuts -->
+         <viewShortcut id="org.eclipse.tcf.te.ui.views.View"/>
+         <viewShortcut id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
+         <!-- Register the perspective shortcuts -->
+         <perspectiveShortcut id="org.eclipse.tcf.te.ui.perspective"/>
+         <!-- System management view is placed relative to the Debug View -->
+         <view
+               id="org.eclipse.tcf.te.ui.views.View"
+               minimized="false"
+               relationship="stack"
+               relative="org.eclipse.debug.ui.DebugView"
+               visible="false">
+         </view>
+      </perspectiveExtension>
    </extension>
 
 <!-- Editor contributions -->
