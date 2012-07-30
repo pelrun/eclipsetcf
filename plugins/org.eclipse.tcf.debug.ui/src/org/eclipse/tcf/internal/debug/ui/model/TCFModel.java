@@ -948,6 +948,10 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
         }
     }
 
+    public TCFModelProxy getModelProxy(IPresentationContext ctx) {
+        return model_proxies.get(ctx);
+    }
+
     Collection<TCFModelProxy> getModelProxies() {
         return model_proxies.values();
     }

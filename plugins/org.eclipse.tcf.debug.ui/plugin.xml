@@ -620,6 +620,19 @@
                   class="org.eclipse.tcf.internal.debug.ui.commands.UpdatePolicyMenu"/>
          </menu>
       </menuContribution>
+      <menuContribution
+            locationURI="popup:org.eclipse.debug.ui.RegisterView?after=additions">
+         <menu
+               label="%RegisterVectorDisplay.label">
+            <dynamic
+                  class="org.eclipse.tcf.internal.debug.ui.commands.RegisterVectorDisplayMenu"
+                  id="org.eclipse.tcf.debug.ui.RegisterVectorDisplayMenu">
+            </dynamic>
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
+         </menu>
+      </menuContribution>
    </extension>
 
    <extension

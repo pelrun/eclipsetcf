@@ -13,6 +13,10 @@ package org.eclipse.tcf.internal.debug.ui.model;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
@@ -38,6 +42,8 @@ import org.eclipse.tcf.util.TCFTask;
 
 
 public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchInExpressions, IDetailsProvider {
+
+    public static final String PROPERTY_REG_REPRESENTATION = "PROPERTY_REGISTER_REPRESENTATION";
 
     private final TCFChildrenRegisters children;
     private final TCFData<IRegisters.RegistersContext> context;
@@ -260,23 +266,49 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         return true;
     }
 
+    @SuppressWarnings("unchecked")
+    private boolean getChildren(IPresentationContext ctx, List<TCFNode> list, Runnable done) {
+        AtomicBoolean b = new AtomicBoolean();
+        if (!isRepresentationGroup(b, done)) return false;
+        boolean rep_group = b.get();
+        String rep_id = null;
+        if (rep_group) {
+            Map<String,String> map = (Map<String,String>)ctx.getProperty(
+                    TCFNodeRegister.PROPERTY_REG_REPRESENTATION);
+            if (map != null) rep_id = map.get(id);
+        }
+        for (TCFNode child : children.toArray()) {
+            if (!rep_group || child.id.equals(rep_id)) list.add(child);
+        }
+        return true;
+    }
+
     @Override
     protected boolean getData(IHasChildrenUpdate result, Runnable done) {
-        if (!children.validate(done)) return false;
-        result.setHasChilren(children.size() > 0);
+        List<TCFNode> list = new ArrayList<TCFNode>();
+        if (!getChildren(result.getPresentationContext(), list, done)) return false;
+        result.setHasChilren(list.size() > 0);
         return true;
     }
 
     @Override
     protected boolean getData(IChildrenCountUpdate result, Runnable done) {
-        if (!children.validate(done)) return false;
-        result.setChildCount(children.size());
+        List<TCFNode> list = new ArrayList<TCFNode>();
+        if (!getChildren(result.getPresentationContext(), list, done)) return false;
+        result.setChildCount(list.size());
         return true;
     }
 
     @Override
     protected boolean getData(IChildrenUpdate result, Runnable done) {
-        return children.getData(result, done);
+        List<TCFNode> list = new ArrayList<TCFNode>();
+        if (!getChildren(result.getPresentationContext(), list, done)) return false;
+        int r_offset = result.getOffset();
+        int r_length = result.getLength();
+        for (int n = r_offset; n < r_offset + r_length && n < list.size(); n++) {
+            result.setChild(list.get(n), n);
+        }
+        return true;
     }
 
     @Override
@@ -651,5 +683,44 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             if (index > r.index) return +1;
         }
         return id.compareTo(n.id);
+    }
+
+    /**
+     * Check if this register has multiple representations.
+     */
+    public boolean isRepresentationGroup(AtomicBoolean res, Runnable done) {
+        res.set(false);
+        HashSet<Integer> offsets = new HashSet<Integer>();
+        if (!children.validate(done)) return false;
+        for (TCFNode child_node : children.toArray()) {
+            TCFNodeRegister child_reg = (TCFNodeRegister)child_node;
+            if (!child_reg.context.validate(done)) return false;
+            IRegisters.RegistersContext ctx = child_reg.context.getData();
+            if (ctx == null) continue;
+            int offs = ctx.getOffset();
+            if (offs >= 0) {
+                if (!offsets.add(Integer.valueOf(offs))) {
+                    res.set(true);
+                    return true;
+                }
+                continue;
+            }
+            // TODO: checking grand children should not be needed
+            if (!child_reg.children.validate(done)) return false;
+            for (TCFNode grand_child_node : child_reg.children.toArray()) {
+                TCFNodeRegister grand_child_reg = (TCFNodeRegister)grand_child_node;
+                if (!grand_child_reg.context.validate(done)) return false;
+                ctx = grand_child_reg.context.getData();
+                if (ctx == null) continue;
+                offs = ctx.getOffset();
+                if (offs >= 0) {
+                    if (!offsets.add(Integer.valueOf(offs))) {
+                        res.set(true);
+                        return true;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }

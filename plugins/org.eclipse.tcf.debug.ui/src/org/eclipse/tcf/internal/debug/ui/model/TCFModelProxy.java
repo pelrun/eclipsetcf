@@ -235,7 +235,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      * @param node - a model node that changed.
      * @param flags - flags that describe the change, see IModelDelta
      */
-    void addDelta(TCFNode node, int flags) {
+    public void addDelta(TCFNode node, int flags) {
         assert Protocol.isDispatchThread();
         assert installed && !disposed;
         if (flags == 0) return;
@@ -249,7 +249,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      * Request node to be expanded in the view.
      * @param node - a model node that will become expanded.
      */
-    void expand(TCFNode node) {
+    public void expand(TCFNode node) {
         Object input = getInput();
         IPresentationContext ctx = getPresentationContext();
         while (node != null && node != input) {
