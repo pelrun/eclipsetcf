@@ -14,10 +14,9 @@ import java.util.concurrent.ExecutionException;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.tcf.te.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 
 /**
  * The asynchronous callback collector is an extension to the asynchronous callback handler. The
@@ -118,7 +117,9 @@ public class AsyncCallbackCollector extends AsyncCallbackHandler {
 	public AsyncCallbackCollector(ICallback callback, ICallbackInvocationDelegate delegate) {
 		super();
 
-		if (callback != null) Assert.isNotNull(delegate);
+		if (callback != null) {
+			Assert.isNotNull(delegate);
+		}
 
 		// We have to add our master callback to the list of callback to avoid that
 		// the collector is running empty to early!
@@ -165,11 +166,7 @@ public class AsyncCallbackCollector extends AsyncCallbackHandler {
 			delegate.invoke(new Runnable() {
 				@Override
 				public void run() {
-					Throwable error = getError();
-					IStatus status = new Status((error != null ? (error instanceof OperationCanceledException ? IStatus.CANCEL : IStatus.ERROR) : IStatus.OK),
-									CoreBundleActivator.getUniqueIdentifier() != null ? CoreBundleActivator.getUniqueIdentifier() : "", //$NON-NLS-1$
-									0, (error != null ? error.getMessage() : null), error);
-					callback.done(this, status);
+					callback.done(this, StatusHelper.getStatus(getError()));
 				}
 			});
 		}
