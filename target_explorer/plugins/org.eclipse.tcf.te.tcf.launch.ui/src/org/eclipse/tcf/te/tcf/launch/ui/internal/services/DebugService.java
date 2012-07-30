@@ -68,6 +68,9 @@ public class DebugService extends AbstractService implements IDebugService {
 				if (delegate != null) {
 					// create an empty launch configuration specification to initialize all attributes with their default defaults.
 					ILaunchSpecification launchSpec = delegate.getLaunchSpecification(launchConfigType.getIdentifier(), launchSelection);
+					for (String key : data.getProperties().keySet()) {
+						launchSpec.addAttribute(key, data.getProperty(key));
+					}
 					delegate.validate(launchSpec);
 					if (launchSpec != null && launchSpec.isValid()) {
 						ILaunchConfiguration[] launchConfigs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(launchConfigType);
