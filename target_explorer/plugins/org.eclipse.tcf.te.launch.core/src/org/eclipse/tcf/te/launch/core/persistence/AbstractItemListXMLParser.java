@@ -22,7 +22,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.launch.core.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.osgi.framework.Bundle;
@@ -114,15 +113,11 @@ public abstract class AbstractItemListXMLParser<ItemType> extends DefaultHandler
 
 			// The item encoded string is in last data
 			if (lastType != null && lastData != null) {
-				Class<IModelNode> clazz = null;
+				Class<?> clazz = null;
 				try {
-					clazz = (Class<IModelNode>)CoreBundleActivator.getContext().getBundle().loadClass(lastType);
-				} catch (ClassNotFoundException e) {
-					if (Platform.inDebugMode()) {
-						IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(),
-										"Launch framework internal error: " + e.getLocalizedMessage(), e); //$NON-NLS-1$
-						Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-					}
+					clazz = CoreBundleActivator.getContext().getBundle().loadClass(lastType);
+				}
+				catch (ClassNotFoundException e) {
 				}
 
 				// If the class could not be loaded by our own bundle class loader, try to find
@@ -144,8 +139,9 @@ public abstract class AbstractItemListXMLParser<ItemType> extends DefaultHandler
 
 					if (bundle != null) {
 						try {
-							clazz = (Class<IModelNode>)bundle.loadClass(lastType);
-						} catch (ClassNotFoundException e) {
+							clazz = bundle.loadClass(lastType);
+						}
+						catch (ClassNotFoundException e) {
 							if (Platform.inDebugMode()) {
 								IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
 												"Launch framework internal error: " + e.getLocalizedMessage(), e); //$NON-NLS-1$
