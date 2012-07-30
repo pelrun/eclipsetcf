@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 
-import org.eclipse.cdt.debug.internal.core.ICWatchpointTarget;
+import org.eclipse.cdt.debug.core.ICWatchpointTarget;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExpression;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ISymbols;
@@ -20,7 +20,6 @@ import org.eclipse.tcf.util.TCFTask;
 /**
  * TCF "Add Watchpoint" target implementation.
  */
-@SuppressWarnings("restriction")
 public class TCFWatchpointTarget implements ICWatchpointTarget {
 
     private final TCFNodeExpression fNode;

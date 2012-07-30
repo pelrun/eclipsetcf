@@ -16,7 +16,7 @@ import org.eclipse.cdt.debug.core.model.IReverseStepOverHandler;
 import org.eclipse.cdt.debug.core.model.IReverseToggleHandler;
 import org.eclipse.cdt.debug.core.model.ISteppingModeTarget;
 import org.eclipse.cdt.debug.core.model.IUncallHandler;
-import org.eclipse.cdt.debug.internal.core.ICWatchpointTarget;
+import org.eclipse.cdt.debug.core.ICWatchpointTarget;
 import org.eclipse.cdt.debug.internal.ui.disassembly.dsf.IDisassemblyBackend;
 import org.eclipse.cdt.debug.ui.IPinProvider;
 import org.eclipse.cdt.ui.text.c.hover.ICEditorTextHover;

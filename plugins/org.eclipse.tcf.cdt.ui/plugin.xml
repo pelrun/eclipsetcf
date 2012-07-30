@@ -31,7 +31,7 @@
          <adapter type="org.eclipse.cdt.debug.core.model.IReverseResumeHandler"/>
          <adapter type="org.eclipse.cdt.debug.core.model.IUncallHandler"/>
          <adapter type="org.eclipse.cdt.debug.ui.IPinProvider"/>
-         <adapter type="org.eclipse.cdt.debug.internal.core.ICWatchpointTarget"/>
+         <adapter type="org.eclipse.cdt.debug.core.ICWatchpointTarget"/>
          <adapter type="org.eclipse.tcf.internal.debug.ui.model.ISourceNotFoundPresentation"/>
       </factory>
     </extension>
