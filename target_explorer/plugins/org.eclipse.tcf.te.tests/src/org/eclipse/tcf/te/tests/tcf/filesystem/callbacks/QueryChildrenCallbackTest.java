@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.callbacks.QueryDoneOpenChannel;
@@ -28,7 +29,7 @@ public class QueryChildrenCallbackTest extends FSPeerTestCase {
 		final Callback callback = new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
-				statusRef.set(status);
+				statusRef.set(status != null ? status : Status.OK_STATUS);
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new QueryDoneOpenChannel(testRoot,callback));
@@ -42,7 +43,7 @@ public class QueryChildrenCallbackTest extends FSPeerTestCase {
 		final Callback callback = new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
-				statusRef.set(status);
+				statusRef.set(status != null ? status : Status.OK_STATUS);
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new RefreshStateDoneOpenChannel(testFile, callback));
