@@ -84,7 +84,7 @@ public class TCFDebugPreferencePage extends FieldEditorPreferencePage implements
 
         BooleanFieldEditor delayStackEditor = new BooleanFieldEditor(
                 TCFPreferences.PREF_DELAY_STACK_UPDATE_UNTIL_LAST_STEP,
-                "Delay stack trace update util last step",
+                "Delay stack trace update until last step",
                 group);
 
         delayStackEditor.fillIntoGrid(group, 3);
