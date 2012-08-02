@@ -5,7 +5,8 @@
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * Wind River Systems - initial API and implementation
+ * Wind River Systems          - initial API and implementation
+ * Anna Dushistova(Montavista) - [386484]Allow file transfer from target to host into existing directories
  *******************************************************************************/
 
 package org.eclipse.tcf.te.tcf.filesystem.core.services;
@@ -134,14 +135,16 @@ public class FileTransferService {
         final IFileSystem.FileAttrs[] attrs = new IFileSystem.FileAttrs[1];
 
         // Create necessary parent directory structure on host side
-        boolean rc = hostPath.removeLastSegments(1).toFile().mkdirs();
-        if (!rc) {
-        	IOException e = new IOException(NLS.bind(Messages.FileTransferService_error_mkdirFailed, hostPath.removeLastSegments(1).toOSString()));
-        	result = StatusHelper.getStatus(e);
-            if (callback != null) callback.done(peer, result);
-            return;
+        boolean rc = hostPath.removeLastSegments(1).toFile().exists();
+        if(!rc){
+        	rc = hostPath.removeLastSegments(1).toFile().mkdirs();
+        	if (!rc) {
+        		IOException e = new IOException(NLS.bind(Messages.FileTransferService_error_mkdirFailed, hostPath.removeLastSegments(1).toOSString()));
+        		result = StatusHelper.getStatus(e);
+        		if (callback != null) callback.done(peer, result);
+        		return;
+        	}
         }
-
         // If the host file is a directory, append the remote file name
         if (hostPath.toFile().isDirectory()) {
             hostPath = item.getHostPath().append(targetPath.lastSegment());
