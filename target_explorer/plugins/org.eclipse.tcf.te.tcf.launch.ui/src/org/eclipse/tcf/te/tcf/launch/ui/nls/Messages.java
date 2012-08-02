@@ -45,4 +45,12 @@ public class Messages extends NLS {
 	public static String AddEditFileTransferDialog_options_label;
 	public static String AddEditFileTransferDialog_toHost_checkbox;
 	public static String AddEditFileTransferDialog_toTarget_checkbox;
+
+	public static String LaunchConfigurationAdvancedTabSection_title;
+	public static String LaunchConfigurationAdvancedTabSection_group_label;
+	public static String LaunchConfigurationAdvancedTabSection_lineseparator_label;
+	public static String LaunchConfigurationAdvancedTabSection_lineseparator_default;
+	public static String LaunchConfigurationAdvancedTabSection_lineseparator_lf;
+	public static String LaunchConfigurationAdvancedTabSection_lineseparator_crlf;
+	public static String LaunchConfigurationAdvancedTabSection_lineseparator_cr;
 }

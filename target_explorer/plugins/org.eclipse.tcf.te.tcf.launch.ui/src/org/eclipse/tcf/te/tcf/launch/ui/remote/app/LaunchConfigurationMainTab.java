@@ -40,6 +40,10 @@ public class LaunchConfigurationMainTab extends AbstractLaunchContextMainTab {
 		LaunchConfigurationMainTabSection section = new LaunchConfigurationMainTabSection(form, panel);
 		section.getSection().setLayoutData(new GridData(GridData.FILL_BOTH));
 		form.addPart(section);
+
+		LaunchConfigurationAdvancedTabSection advSection = new LaunchConfigurationAdvancedTabSection(form, panel);
+		advSection.getSection().setLayoutData(new GridData(GridData.FILL_BOTH));
+		form.addPart(advSection);
 	}
 
 	/* (non-Javadoc)

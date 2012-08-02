@@ -109,33 +109,38 @@ public class LaunchProcessStep extends AbstractTcfLaunchStep {
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ATTACH, Boolean.TRUE);
 		}
 
-		// Launch the process
+		// Determine the active peer
+		final IPeer peer = getActivePeerModel(fullQualifiedId, data).getPeer();
+
+		// Fill in the launch attributes
 		IPropertiesContainer container = new PropertiesContainer();
 		container.setProperties(launchAttributes);
 
-		final IPeer peer = getActivePeerModel(fullQualifiedId, data).getPeer();
+		// If the line separator setting is not set explicitly, try to determine it automatically (local host only).
+		if (container.getProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR) == null) {
+			// Determine if the launch is on local host. If yes, we can preset the
+			// line ending character.
+			final AtomicBoolean isLocalhost = new AtomicBoolean();
 
-		// Determine if the launch is on local host. If yes, we can preset the
-		// line ending character.
-		final AtomicBoolean isLocalhost = new AtomicBoolean();
-
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(peer.getTransportName())
-								|| ITransportTypes.TRANSPORT_TYPE_SSL.equals(peer.getTransportName())) {
-					isLocalhost.set(IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST)));
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(peer.getTransportName())
+									|| ITransportTypes.TRANSPORT_TYPE_SSL.equals(peer.getTransportName())) {
+						isLocalhost.set(IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST)));
+					}
 				}
+			};
+
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+
+			if (isLocalhost.get()) {
+				container.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, Host.isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF);
 			}
-		};
-
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
-
-		if (isLocalhost.get()) {
-			container.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, Host.isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF);
 		}
 
+		// Launch the process
 		launcher.launch(peer, container, new Callback(callback) {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
