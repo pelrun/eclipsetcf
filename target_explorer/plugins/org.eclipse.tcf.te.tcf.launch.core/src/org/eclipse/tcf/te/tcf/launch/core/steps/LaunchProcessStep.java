@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.launch.core.steps;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -19,6 +20,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
@@ -26,10 +29,14 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.runtime.utils.Host;
+import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
+import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
 import org.eclipse.tcf.te.tcf.launch.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ICommonTCFLaunchAttributes;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.IRemoteAppLaunchAttributes;
@@ -105,7 +112,31 @@ public class LaunchProcessStep extends AbstractTcfLaunchStep {
 		// Launch the process
 		IPropertiesContainer container = new PropertiesContainer();
 		container.setProperties(launchAttributes);
-		launcher.launch(getActivePeerModel(fullQualifiedId, data).getPeer(), container, new Callback(callback) {
+
+		final IPeer peer = getActivePeerModel(fullQualifiedId, data).getPeer();
+
+		// Determine if the launch is on local host. If yes, we can preset the
+		// line ending character.
+		final AtomicBoolean isLocalhost = new AtomicBoolean();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(peer.getTransportName())
+								|| ITransportTypes.TRANSPORT_TYPE_SSL.equals(peer.getTransportName())) {
+					isLocalhost.set(IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST)));
+				}
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		if (isLocalhost.get()) {
+			container.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, Host.isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF);
+		}
+
+		launcher.launch(peer, container, new Callback(callback) {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
 				Object result = getResult();
