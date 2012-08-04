@@ -9,7 +9,11 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.navigator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
@@ -32,8 +36,19 @@ public class ContentProviderDelegate implements ICommonContentProvider {
 		Object[] children = NO_ELEMENTS;
 
 		if (parentElement == null || parentElement instanceof IRoot) {
-			// Return all contributed categories if there are any
-			return CategoriesExtensionPointManager.getInstance().getCategories(false);
+			// Get all contributed categories if there are any
+			ICategory[] categories = CategoriesExtensionPointManager.getInstance().getCategories(false);
+			// Filter out possible hidden categories
+			List<ICategory> filtered = new ArrayList<ICategory>();
+			for (ICategory category : categories) {
+				String key = category.getId() + ".hide"; //$NON-NLS-1$
+				if (UIPlugin.getScopedPreferences().getBoolean(key) || Boolean.getBoolean(key)) {
+					continue;
+				}
+				filtered.add(category);
+			}
+
+			children = filtered.toArray(new ICategory[filtered.size()]);
 		}
 
 		return children;
