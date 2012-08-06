@@ -29,13 +29,13 @@
 	
 	<properties>
 		<!-- Define version id's to be used in the plugins section -->
-		<tycho-version>0.14.1</tycho-version>
+		<tycho-version>0.15.0</tycho-version>
 		<maven-resources-version>2.5</maven-resources-version>
 		<maven-antrun-version>1.7</maven-antrun-version>
 		<gmaven-version>1.4</gmaven-version>
 		<exec-maven-version>1.2.1</exec-maven-version>
-		<findbugs-version>2.4.1-SNAPSHOT</findbugs-version>
-		<jacoco-version>0.5.6.201201232323</jacoco-version>
+		<findbugs-version>2.5.2</findbugs-version>
+		<jacoco-version>0.5.10-SNAPSHOT</jacoco-version>
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
@@ -183,6 +183,14 @@
 					<version>${tycho-version}</version>
 					<configuration>
 						<strictBinIncludes>false</strictBinIncludes>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-p2-repository-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<finalName>${project.artifactId}</finalName>
 					</configuration>
 				</plugin>
 				<plugin>
