@@ -22,7 +22,7 @@
 		<module>../pom.xml</module>
 
 		<!-- The test module executing the tests -->
-		<module>plugins/org.eclipse.tcf.te.tests</module>
+		<module>plugins/org.eclipse.tcf.te.tests/pom-tests.xml</module>
 	</modules>
 
 	<build>
