@@ -135,7 +135,7 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	 */
 	@Override
 	public IPersistableElement getPersistable() {
-		if (Platform.getAdapterManager().getAdapter(node, IPersistableElement.class) != null) {
+		if (getFactoryId() != null) {
 			return this;
 		}
 		return null;

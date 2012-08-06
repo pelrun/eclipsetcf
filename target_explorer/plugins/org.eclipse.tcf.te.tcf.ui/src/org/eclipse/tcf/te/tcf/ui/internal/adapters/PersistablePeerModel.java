@@ -19,13 +19,16 @@ import org.eclipse.ui.IPersistableElement;
 public class PersistablePeerModel implements IPersistableElement {
 	// The peer model to be persisted.
 	private IPeerModel peerModel;
+	private boolean isStatic;
 
 	/**
 	 * Constructor
 	 */
 	public PersistablePeerModel(IPeerModel peerModel) {
 		this.peerModel = peerModel;
-    }
+		String value = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+		isStatic = value != null && Boolean.parseBoolean(value.trim());
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -33,7 +36,9 @@ public class PersistablePeerModel implements IPersistableElement {
 	 */
 	@Override
 	public void saveState(IMemento memento) {
-		memento.putString("peerId", peerModel.getPeerId()); //$NON-NLS-1$
+		if (isStatic) {
+			memento.putString("peerId", peerModel.getPeerId()); //$NON-NLS-1$
+		}
 	}
 
 	/*
@@ -42,6 +47,9 @@ public class PersistablePeerModel implements IPersistableElement {
 	 */
 	@Override
 	public String getFactoryId() {
-		return "org.eclipse.tcf.te.ui.views.peerFactory"; //$NON-NLS-1$
+		if (isStatic) {
+			return "org.eclipse.tcf.te.ui.views.peerFactory"; //$NON-NLS-1$
+		}
+		return null;
 	}
 }
