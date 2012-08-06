@@ -30,25 +30,23 @@ public final class FSModel implements ITreeNodeModel {
 	 * @return The file system model connected this peer model.
 	 */
 	public static FSModel getFSModel(final IPeerModel peerModel) {
-		if (peerModel != null) {
-			if (Protocol.isDispatchThread()) {
-				FSModel model = (FSModel) peerModel.getProperty(FSMODEL_KEY);
-				if (model == null) {
-					model = new FSModel(peerModel);
-					peerModel.setProperty(FSMODEL_KEY, model);
-				}
-				return model;
-			}
-			final FSModel[] result = new FSModel[1];
-			Protocol.invokeAndWait(new Runnable() {
+			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					result[0] = getFSModel(peerModel);
+					if (peerModel != null) {
+						FSModel model = (FSModel) peerModel.getProperty(FSMODEL_KEY);
+						if (model == null) {
+							model = new FSModel(peerModel);
+							peerModel.setProperty(FSMODEL_KEY, model);
+						}
+					}
 				}
-			});
-			return result[0];
-		}
-		return null;
+			};
+
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+
+		return peerModel != null ? (FSModel)peerModel.getProperty(FSMODEL_KEY) : null;
 	}
 
 	// The root node of the peer model
@@ -57,7 +55,7 @@ public final class FSModel implements ITreeNodeModel {
 	/**
 	 * Create a File System Model.
 	 */
-	private FSModel(IPeerModel peerNode) {
+	/* default */ FSModel(IPeerModel peerNode) {
 		this.peerNode = peerNode;
 	}
 
@@ -79,7 +77,7 @@ public final class FSModel implements ITreeNodeModel {
 	 *
 	 * @param peerNode The peer.
 	 */
-	FSTreeNode createRoot() {
+	/* default */ FSTreeNode createRoot() {
 		if (Protocol.isDispatchThread()) {
 			return createRootNode(peerNode);
 		}
@@ -97,7 +95,7 @@ public final class FSModel implements ITreeNodeModel {
 
 	/**
 	 * Create a root node for the peer.
-	 * 
+	 *
 	 * @param peerNode The peer.
 	 * @return The root file system node.
 	 */
@@ -108,10 +106,10 @@ public final class FSModel implements ITreeNodeModel {
 		node.name = Messages.FSTreeNodeContentProvider_rootNode_label;
 	    return node;
     }
-	
+
 	/**
 	 * Create a file node under the folder specified folder using the new name.
-	 * 
+	 *
 	 * @param name The file's name.
 	 * @param folder The parent folder.
 	 * @return The file tree node.
@@ -122,7 +120,7 @@ public final class FSModel implements ITreeNodeModel {
 
 	/**
 	 * Create a folder node under the folder specified folder using the new name.
-	 * 
+	 *
 	 * @param name The folder's name.
 	 * @param folder The parent folder.
 	 * @return The folder tree node.
@@ -133,7 +131,7 @@ public final class FSModel implements ITreeNodeModel {
 
 	/**
 	 * Create a tree node under the folder specified folder using the new name.
-	 * 
+	 *
 	 * @param name The tree node's name.
 	 * @param type The new node's type.
 	 * @param folder The parent folder.
