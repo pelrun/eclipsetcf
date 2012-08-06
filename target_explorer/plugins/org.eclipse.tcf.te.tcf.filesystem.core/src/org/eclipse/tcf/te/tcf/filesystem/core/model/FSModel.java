@@ -30,23 +30,24 @@ public final class FSModel implements ITreeNodeModel {
 	 * @return The file system model connected this peer model.
 	 */
 	public static FSModel getFSModel(final IPeerModel peerModel) {
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					if (peerModel != null) {
-						FSModel model = (FSModel) peerModel.getProperty(FSMODEL_KEY);
-						if (model == null) {
-							model = new FSModel(peerModel);
-							peerModel.setProperty(FSMODEL_KEY, model);
-						}
+		final AtomicReference<FSModel> model = new AtomicReference<FSModel>();
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (peerModel != null) {
+					model.set((FSModel) peerModel.getProperty(FSMODEL_KEY));
+					if (model.get() == null) {
+						model.set(new FSModel(peerModel));
+						peerModel.setProperty(FSMODEL_KEY, model.get());
 					}
 				}
-			};
+			}
+		};
 
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
 
-		return peerModel != null ? (FSModel)peerModel.getProperty(FSMODEL_KEY) : null;
+		return model.get();
 	}
 
 	// The root node of the peer model
