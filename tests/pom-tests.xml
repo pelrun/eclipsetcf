@@ -18,18 +18,10 @@
 	<name>TCF Unit Tests, Master</name>
 
 	<modules>
-		<!-- List the modules where we need the class files to create the report -->
-		<module>../plugins/org.eclipse.tcf</module>
-		<module>../plugins/org.eclipse.tcf.core</module>
-		<module>../plugins/org.eclipse.tcf.debug</module>
-		<module>../plugins/org.eclipse.tcf.debug.ui</module>
-		<module>../plugins/org.eclipse.tcf.cdt.ui</module>
-
-		<module>../features/org.eclipse.tcf.feature</module>
-		<module>../features/org.eclipse.tcf.sdk.feature</module>
-		<module>../features/org.eclipse.tcf.cdt.feature</module>
-		<module>../features/org.eclipse.tcf.cdt.sdk.feature</module>
-
+		<!-- The modules the test module depends on -->
+		<module>../pom.xml</module>
+		<module>../target_explorer/plugins/org.eclipse.tcf.te.tests</module>
+		
 		<!-- The test module executing the tests -->
 		<module>plugins/org.eclipse.tcf.debug.test</module>
 	</modules>
