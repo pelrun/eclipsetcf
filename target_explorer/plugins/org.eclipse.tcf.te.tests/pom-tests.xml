@@ -35,7 +35,7 @@
 					<testClass>org.eclipse.tcf.te.tests.suites.AllTests</testClass>
 					<useUIHarness>true</useUIHarness>
 					<useUIThread>true</useUIThread>
-	  			    <debugPort>8003</debugPort>
+<!--	  			    <debugPort>8003</debugPort> -->
 					<product>org.eclipse.platform.ide</product>
 					<argLine>${tycho.testArgLine} ${ui.test.vmargs}</argLine>
 					<application>org.eclipse.ui.ide.workbench</application>
