@@ -40,25 +40,24 @@ public class ProcessModel implements ITreeNodeModel{
 	 * @return The process model representing the process.
 	 */
 	public static ProcessModel getProcessModel(final IPeerModel peerModel) {
-		if (peerModel != null) {
-			if (Protocol.isDispatchThread()) {
-				ProcessModel model = (ProcessModel) peerModel.getProperty(PROCESS_ROOT_KEY);
-				if (model == null) {
-					model = new ProcessModel(peerModel);
-					peerModel.setProperty(PROCESS_ROOT_KEY, model);
+		final AtomicReference<ProcessModel> model = new AtomicReference<ProcessModel>();
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (peerModel != null) {
+					model.set((ProcessModel) peerModel.getProperty(PROCESS_ROOT_KEY));
+					if (model.get() == null) {
+						model.set(new ProcessModel(peerModel));
+						peerModel.setProperty(PROCESS_ROOT_KEY, model.get());
+					}
 				}
-				return model;
 			}
-			final AtomicReference<ProcessModel> reference = new AtomicReference<ProcessModel>();
-			Protocol.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					reference.set(getProcessModel(peerModel));
-				}
-			});
-			return reference.get();
-		}
-		return null;
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		return model.get();
 	}
 
 	/**
@@ -67,7 +66,7 @@ public class ProcessModel implements ITreeNodeModel{
 	 * @param peerModel The peer model which this process belongs to.
 	 * @return The root process node.
 	 */
-	static ProcessTreeNode createRootNode(IPeerModel peerModel) {
+	/* default */ static ProcessTreeNode createRootNode(IPeerModel peerModel) {
 		ProcessTreeNode node = new ProcessTreeNode();
 		node.type = "ProcRootNode"; //$NON-NLS-1$
 		node.peerNode = peerModel;
@@ -88,7 +87,7 @@ public class ProcessModel implements ITreeNodeModel{
 	/**
 	 * Create a File System Model.
 	 */
-	ProcessModel(IPeerModel peerModel) {
+	/* default */ ProcessModel(IPeerModel peerModel) {
 		this.peerModel = peerModel;
 		this.stopped = true;
 	}
