@@ -40,7 +40,7 @@ import org.eclipse.debug.core.model.IMemoryBlockRetrievalExtension;
 import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupDirector;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
-import org.eclipse.debug.internal.ui.viewers.model.ITreeModelViewer;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.ITreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IColumnPresentation;
@@ -142,7 +142,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * keeping the cache in a coherent state,
  * and feeding UI with up-to-date data.
  */
-@SuppressWarnings("restriction")
 public class TCFModel implements IElementContentProvider, IElementLabelProvider, IViewerInputProvider,
         IModelProxyFactory, IColumnPresentationFactory, ITCFSourceDisplay, ISuspendTrigger, IElementMementoProvider {
 

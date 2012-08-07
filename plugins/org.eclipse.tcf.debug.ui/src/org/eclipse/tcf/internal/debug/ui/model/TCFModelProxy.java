@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.debug.internal.ui.viewers.model.ITreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.InternalTreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.InternalVirtualTreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
@@ -27,13 +26,13 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelDelta;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelProxy;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.ITreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerUpdateListener;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.ModelDelta;
 import org.eclipse.debug.internal.ui.viewers.provisional.AbstractModelProxy;
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.viewers.TreePath;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
@@ -59,6 +58,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     private final LinkedList<TCFNode> selection = new LinkedList<TCFNode>();
     private final Set<String> auto_expand_set = new HashSet<String>();
 
+    private ITreeModelViewer viewer;
     private boolean posted;
     private boolean installed;
     private boolean disposed;
@@ -194,17 +194,18 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     }
 
     @Override
-    public void installed(Viewer viewer) {
+    public void initialize(ITreeModelViewer viewer) {
         if (isDisposed()) return;
-        super.installed(viewer);
+        this.viewer = viewer;
+        super.initialize(viewer);
+        enable_auto_expand =
+                IDebugUIConstants.ID_DEBUG_VIEW.equals(getPresentationContext().getId()) &&
+                viewer instanceof InternalTreeModelViewer;
+        viewer.addViewerUpdateListener(update_listener);
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
                 assert !installed;
                 assert !disposed;
-                enable_auto_expand =
-                        IDebugUIConstants.ID_DEBUG_VIEW.equals(getPresentationContext().getId()) &&
-                        getViewer() instanceof InternalTreeModelViewer;
-                ((ITreeModelViewer)getViewer()).addViewerUpdateListener(update_listener);
                 model.onProxyInstalled(TCFModelProxy.this);
                 installed = true;
             }
@@ -216,16 +217,15 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         if (isDisposed()) return;
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
+                assert installed;
                 assert !disposed;
-                if (installed) {
-                    model.onProxyDisposed(TCFModelProxy.this);
-                    ((ITreeModelViewer)getViewer()).removeViewerUpdateListener(update_listener);
-                    launch.removePendingClient(update_listener);
-                    launch.removePendingClient(TCFModelProxy.this);
-                }
+                model.onProxyDisposed(TCFModelProxy.this);
+                launch.removePendingClient(update_listener);
+                launch.removePendingClient(TCFModelProxy.this);
                 disposed = true;
             }
         });
+        viewer.removeViewerUpdateListener(update_listener);
         super.dispose();
     }
 
@@ -285,7 +285,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      * @return view input object.
      */
     Object getInput() {
-        return getViewer().getInput();
+        return viewer.getInput();
     }
 
     public void post() {
@@ -438,9 +438,8 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             asyncExec(new Runnable() {
                 public void run() {
                     if (save_expand_state != null && save_expand_state.size() > 0) {
-                        Viewer viewer = getViewer();
                         if (viewer instanceof InternalTreeModelViewer) {
-                            InternalTreeModelViewer tree_viwer = (InternalTreeModelViewer)getViewer();
+                            InternalTreeModelViewer tree_viwer = (InternalTreeModelViewer)viewer;
                             final Set<String> expanded = new HashSet<String>();
                             for (TCFNode node : save_expand_state) {
                                 if (tree_viwer.getExpandedState(node)) expanded.add(node.id);
@@ -472,11 +471,11 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 asyncExec(new Runnable() {
                     boolean found;
                     public void run() {
-                        if (getViewer() instanceof InternalTreeModelViewer) {
-                            found = ((InternalTreeModelViewer)getViewer()).findElementIndex(TreePath.EMPTY, launch) >= 0;
+                        if (viewer instanceof InternalTreeModelViewer) {
+                            found = ((InternalTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
                         }
-                        else if (getViewer() instanceof InternalVirtualTreeModelViewer) {
-                            found = ((InternalVirtualTreeModelViewer)getViewer()).findElementIndex(TreePath.EMPTY, launch) >= 0;
+                        else if (viewer instanceof InternalVirtualTreeModelViewer) {
+                            found = ((InternalVirtualTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
                         }
                         Protocol.invokeLater(new Runnable() {
                             public void run() {
