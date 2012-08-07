@@ -29,14 +29,15 @@ public class QueryChildrenCallbackTest extends ProcessesTestCase {
 		final Callback callback = new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
+				Assert.isNotNull(statusRef);
 				statusRef.set(status);
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new QueryDoneOpenChannel(processRoot,callback));
 		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
-		assertTrue(statusRef.get().isOK());
+		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
-	
+
 	public void testRefreshChildren() throws Exception {
 		Assert.isNotNull(processRoot);
 		processRoot.childrenQueryRunning = true;
@@ -44,12 +45,13 @@ public class QueryChildrenCallbackTest extends ProcessesTestCase {
 		final Callback callback = new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
+				Assert.isNotNull(statusRef);
 				statusRef.set(status);
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new RefreshChildrenDoneOpenChannel(processRoot,callback));
 		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
-		assertTrue(statusRef.get().isOK());
+		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
 
 	public void testRefresh() throws Exception {
@@ -59,11 +61,12 @@ public class QueryChildrenCallbackTest extends ProcessesTestCase {
 		final Callback callback = new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
+				Assert.isNotNull(statusRef);
 				statusRef.set(status);
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new RefreshDoneOpenChannel(processRoot, callback));
 		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
-		assertTrue(statusRef.get().isOK());
+		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
 }
