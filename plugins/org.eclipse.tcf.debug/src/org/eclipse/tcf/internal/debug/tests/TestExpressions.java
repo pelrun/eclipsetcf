@@ -487,7 +487,6 @@ class TestExpressions implements ITCFTest,
                             l.error = error;
                             l.props = props;
                             global_var_location.put(id, l);
-                            List<Object> cmds = (List<Object>)props.get(ISymbols.LOC_VALUE_CMDS);
                             if (error != null) {
                                 if (error instanceof IErrorReport &&
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
@@ -496,11 +495,17 @@ class TestExpressions implements ITCFTest,
                                 }
                                 exit(error);
                             }
-                            else if (cmds == null || cmds.size() == 0) {
-                                exit(new Exception("Invalid symbol location info"));
+                            else if (props == null) {
+                                exit(new Exception("Invalid symbol location info: props = null"));
                             }
                             else {
-                                runTest();
+                                List<Object> cmds = (List<Object>)props.get(ISymbols.LOC_VALUE_CMDS);
+                                if (cmds == null || cmds.size() == 0) {
+                                    exit(new Exception("Invalid symbol location info: ValueCmds = null"));
+                                }
+                                else {
+                                    runTest();
+                                }
                             }
                         }
                     });
