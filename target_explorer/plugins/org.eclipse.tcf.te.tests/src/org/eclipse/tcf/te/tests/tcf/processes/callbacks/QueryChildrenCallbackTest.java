@@ -34,7 +34,7 @@ public class QueryChildrenCallbackTest extends ProcessesTestCase {
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new QueryDoneOpenChannel(processRoot,callback));
-		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
+		waitAndDispatch(300000, callback.getDoneConditionTester(new NullProgressMonitor()));
 		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
 
@@ -50,7 +50,7 @@ public class QueryChildrenCallbackTest extends ProcessesTestCase {
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new RefreshChildrenDoneOpenChannel(processRoot,callback));
-		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
+		waitAndDispatch(300000, callback.getDoneConditionTester(new NullProgressMonitor()));
 		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
 
@@ -66,7 +66,7 @@ public class QueryChildrenCallbackTest extends ProcessesTestCase {
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new RefreshDoneOpenChannel(processRoot, callback));
-		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
+		waitAndDispatch(300000, callback.getDoneConditionTester(new NullProgressMonitor()));
 		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
 }
