@@ -21,7 +21,7 @@
 		<sdk-version>3.8.0</sdk-version>
 		<te-version>1.1.0</te-version>
 		
-		<ui.test.vmargs>-Xmx512m -XX:MaxPermSize=256m</ui.test.vmargs>
+		<ui.test.vmargs>-client -Xint -Xmx512m -XX:MaxPermSize=256m</ui.test.vmargs>
 	</properties>
 
 	<build>
@@ -35,7 +35,7 @@
 					<testClass>org.eclipse.tcf.te.tests.suites.AllTests</testClass>
 					<useUIHarness>true</useUIHarness>
 					<useUIThread>true</useUIThread>
-	  			    <debugPort>8003</debugPort>
+<!--	  			    <debugPort>8003</debugPort> -->
 					<product>org.eclipse.platform.ide</product>
 					<argLine>${tycho.testArgLine} ${ui.test.vmargs}</argLine>
 					<application>org.eclipse.ui.ide.workbench</application>
