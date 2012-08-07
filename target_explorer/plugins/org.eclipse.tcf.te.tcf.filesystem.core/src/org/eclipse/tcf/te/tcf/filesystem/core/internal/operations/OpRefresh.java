@@ -39,7 +39,7 @@ public class OpRefresh extends Operation {
 	public OpRefresh(FSTreeNode node) {
 		this.node = node;
 	}
-	
+
 	/**
 	 * Create an FSRefresh to refresh the specified nodes and its descendants.
 	 *
@@ -56,7 +56,7 @@ public class OpRefresh extends Operation {
 	@Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		super.run(monitor);
-		if (node.childrenQueried || node.isFile()) {
+		if (node != null && (node.childrenQueried || node.isFile())) {
 			IChannel channel = null;
 			try {
 				channel = openChannel(node.peerNode.getPeer());
@@ -83,7 +83,7 @@ public class OpRefresh extends Operation {
 			monitor.done();
 		}
 	}
-	
+
 	/**
 	 * Refresh the specified node and its children recursively using the file system service.
 	 *
@@ -171,11 +171,11 @@ public class OpRefresh extends Operation {
 	public int getTotalWork() {
 		return count(node);
 	}
-	
+
 	/**
-	 * Count the nodes that should be refreshed under 
+	 * Count the nodes that should be refreshed under
 	 * the specified directory.
-	 * 
+	 *
 	 * @param node The specified directory.
 	 * @return the total count of the qualified nodes.
 	 */
