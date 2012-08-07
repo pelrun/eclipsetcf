@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.osgi.util.NLS;
@@ -33,20 +34,22 @@ import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
  */
 public abstract class OpCreate extends Operation {
 	// The folder in which a file/folder is going to be created.
-	protected FSTreeNode folder;
+	final protected FSTreeNode folder;
 	// The node that is created after the operation.
 	protected FSTreeNode node;
 	// The name of the node to be created.
-	protected String name;
+	final protected String name;
 
 	/**
 	 * Create an FSCreate instance with the specified folder and the name of the new node.
 	 *
-	 * @param folder The folder in which the new node is going to be created.
-	 * @param name The new node's name.
+	 * @param folder The folder in which the new node is going to be created. Must not be <code>null</code>.
+	 * @param name The new node's name. Must not be <code>null</code>.
 	 */
 	public OpCreate(FSTreeNode folder, String name) {
+		Assert.isNotNull(folder);
 		this.folder = folder;
+		Assert.isNotNull(name);
 		this.name = name;
 	}
 

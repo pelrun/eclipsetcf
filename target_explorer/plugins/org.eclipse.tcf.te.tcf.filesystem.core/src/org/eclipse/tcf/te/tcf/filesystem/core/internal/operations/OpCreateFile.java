@@ -29,8 +29,8 @@ public class OpCreateFile extends OpCreate {
 	/**
 	 * Create an instance to create a file with the name in the folder.
 	 *
-	 * @param folder The folder in which the file is to be created.
-	 * @param name The new file's name.
+	 * @param folder The folder in which the file is to be created. Must not be <code>null</code>.
+	 * @param name The new file's name. Must not be <code>null</code>.
 	 */
 	public OpCreateFile(FSTreeNode folder, String name) {
 		super(folder, name);
