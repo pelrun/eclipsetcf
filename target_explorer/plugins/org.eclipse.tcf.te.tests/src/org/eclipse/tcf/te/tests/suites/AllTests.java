@@ -67,6 +67,6 @@ public class AllTests {
 		suite.addTest(ModelTestCase.getTestSuite());
 
 		AllFileSystemTests.addTests(suite);
-		AllProcessTests.addTests(suite);
+//		AllProcessTests.addTests(suite);
 	}
 }
