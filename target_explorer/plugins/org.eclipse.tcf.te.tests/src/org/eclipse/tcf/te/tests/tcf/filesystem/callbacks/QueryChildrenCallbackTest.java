@@ -29,12 +29,13 @@ public class QueryChildrenCallbackTest extends FSPeerTestCase {
 		final Callback callback = new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
+				Assert.isNotNull(statusRef);
 				statusRef.set(status != null ? status : Status.OK_STATUS);
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new QueryDoneOpenChannel(testRoot,callback));
 		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
-		assertTrue(statusRef.get().isOK());
+		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
 	public void testRefreshState() throws Exception {
 		Assert.isNotNull(testFile);
@@ -43,11 +44,12 @@ public class QueryChildrenCallbackTest extends FSPeerTestCase {
 		final Callback callback = new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
+				Assert.isNotNull(statusRef);
 				statusRef.set(status != null ? status : Status.OK_STATUS);
             }
 		};
 		Tcf.getChannelManager().openChannel(peer, null, new RefreshStateDoneOpenChannel(testFile, callback));
 		waitAndDispatch(0, callback.getDoneConditionTester(new NullProgressMonitor()));
-		assertTrue(statusRef.get().isOK());
+		assertTrue(statusRef.get() != null && statusRef.get().isOK());
 	}
 }
