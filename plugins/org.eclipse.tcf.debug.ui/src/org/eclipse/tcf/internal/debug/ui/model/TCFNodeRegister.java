@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.services.IRegisters;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
@@ -113,6 +114,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                             if (ch >= 'A' && ch <= 'Z') continue;
                             if (ch >= 'a' && ch <= 'z') continue;
                             if (ch >= '0' && ch <= '9') continue;
+                            if (ch == '_') continue;
                             need_quotes = true;
                             break;
                         }
@@ -226,7 +228,13 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                     bf.append('\n');
                 }
                 int l = bf.length();
+                Number addr = ctx.getMemoryAddress();
+                if (addr != null) {
+                    bf.append("Address: ", SWT.BOLD);
+                    bf.append(JSON.toBigInteger(addr).toString(16));
+                }
                 if (ctx.isReadable()) {
+                    if (l < bf.length()) bf.append(", ");
                     bf.append("readable");
                 }
                 if (ctx.isReadOnce()) {
@@ -370,9 +378,9 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 }
             }
         }
-        boolean changed = false;
         next_value = value.getData();
         if (prev_value != null && next_value != null) {
+            boolean changed = false;
             if (prev_value.length != next_value.length) {
                 changed = true;
             }
@@ -381,12 +389,12 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                     if (prev_value[i] != next_value[i]) changed = true;
                 }
             }
-        }
-        if (changed) {
-            result.setBackground(rgb_highlight, 0);
-            if (cols != null) {
-                for (int i = 1; i < cols.length; i++) {
-                    result.setBackground(rgb_highlight, i);
+            if (changed) {
+                result.setBackground(rgb_highlight, 0);
+                if (cols != null) {
+                    for (int i = 1; i < cols.length; i++) {
+                        result.setBackground(rgb_highlight, i);
+                    }
                 }
             }
         }

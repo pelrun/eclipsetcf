@@ -865,9 +865,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner {
             }
         }
         else if (IDebugUIConstants.ID_REGISTER_VIEW.equals(view_id)) {
-            if (!run_context.validate(done)) return false;
-            IRunControl.RunControlContext ctx = run_context.getData();
-            if (ctx != null && ctx.hasState()) children = children_regs;
+            children = children_regs;
         }
         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(view_id)) {
             if (!run_context.validate(done)) return false;
@@ -940,9 +938,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner {
             }
         }
         else if (IDebugUIConstants.ID_REGISTER_VIEW.equals(view_id)) {
-            if (!run_context.validate(done)) return false;
-            IRunControl.RunControlContext ctx = run_context.getData();
-            if (ctx != null && ctx.hasState()) children = children_regs;
+            children = children_regs;
         }
         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(view_id)) {
             if (!run_context.validate(done)) return false;
@@ -1007,9 +1003,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner {
             }
         }
         else if (IDebugUIConstants.ID_REGISTER_VIEW.equals(view_id)) {
-            if (!run_context.validate(done)) return false;
-            IRunControl.RunControlContext ctx = run_context.getData();
-            if (ctx != null && ctx.hasState()) children = children_regs;
+            children = children_regs;
         }
         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(view_id)) {
             if (!run_context.validate(done)) return false;
