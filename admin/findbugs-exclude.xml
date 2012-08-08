@@ -189,6 +189,7 @@
 		<Or>
 			<Class name="org.eclipse.tcf.te.core.async.AsyncCallbackCollector"/>
 			<Class name="org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState"/>
+			<Class name="org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl"/>
 		</Or>
 	</Match>
 	

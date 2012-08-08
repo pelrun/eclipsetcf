@@ -83,16 +83,17 @@ public class ProcessOutputReaderThread extends Thread {
 	 * @param timeout Timeout in milliseconds to wait for (maximum).
 	 */
 	public void waitForFinish(long timeout) {
-		if (finished) return;
-
-		waiting = true;
-		synchronized (waiterSemaphore) {
-			try {
-				waiterSemaphore.wait(timeout);
-			} catch (InterruptedException e) {
-				// just end the wait
+		if (!finished) {
+			waiting = true;
+			synchronized (waiterSemaphore) {
+				try {
+					waiterSemaphore.wait(timeout);
+				} catch (InterruptedException e) {
+					// just end the wait
+				}
 			}
 		}
+		return;
 	}
 
 	/**
