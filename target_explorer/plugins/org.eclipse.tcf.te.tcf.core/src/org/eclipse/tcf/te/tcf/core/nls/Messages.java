@@ -98,4 +98,6 @@ public class Messages extends NLS {
 
 	public static String ValueAddLauncher_launch_command;
 	public static String CallbackMonitor_AllTasksFinished;
+
+	public static String MonitorTask_TimeoutError;
 }

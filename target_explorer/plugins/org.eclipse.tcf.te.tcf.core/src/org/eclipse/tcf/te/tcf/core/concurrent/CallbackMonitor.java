@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Timer;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
@@ -96,44 +97,76 @@ import org.eclipse.tcf.te.tcf.core.nls.Messages;
  * </pre>
  */
 public class CallbackMonitor {
+	// The default timeout value is one minute.
+	private static final long DEFAULT_TIMEOUT = 60 * 1000L;
 	// The callback which is invoked after all the locks are unlocked.
 	private ICallback callback;
 	// The lock map containing the keys and the corresponding running results.
 	private Map<Object, IStatus> locks;
 	
 	/**
-	 * Create a callback monitor with the specified callback.
+	 * Create a callback monitor with the specified callback with a default timeout.
 	 * 
 	 * @param callback The callback to be invoked after all the locks being unlocked.
 	 */
 	public CallbackMonitor(ICallback callback) {
-		Assert.isNotNull(callback);
-		this.callback = callback;
-		this.locks = Collections.synchronizedMap(new HashMap<Object, IStatus>());
+		this(callback, DEFAULT_TIMEOUT);
 	}
 	
 	/**
-	 * Create a callback monitor with the specified callback and the keys.
+	 * Create a callback monitor with the specified callback with a timeout. If
+	 * the timeout is zero, then it will block forever until all locks are released.
 	 * 
 	 * @param callback The callback to be invoked after all the locks being unlocked.
-	 * @param keys The keys to lock and unlock the locks.
+	 * @param timeout The timeout value.
 	 */
-	public CallbackMonitor(ICallback callback, Object... keys) {
+	public CallbackMonitor(ICallback callback, long timeout) {
 		Assert.isNotNull(callback);
 		this.callback = callback;
 		this.locks = Collections.synchronizedMap(new HashMap<Object, IStatus>());
-		for (Object key : keys) {
-			this.locks.put(key, null);
+		if (timeout > 0) {
+			new Timer().schedule(new MonitorTask(callback, timeout), timeout, timeout);
 		}
 	}
 	
+	/**
+	 * Create a callback monitor with the specified callback and the keys with a default
+	 * timeout.
+	 * 
+	 * @param callback The callback to be invoked after all the locks being unlocked.
+	 * @param keys The keys to lock and unlock the locks.
+	 * @param timeout The timeout value.
+	 */
+	public CallbackMonitor(ICallback callback, Object...keys) {
+		this(callback, DEFAULT_TIMEOUT, keys);
+	}
+	
+	/**
+	 * Create a callback monitor with the specified callback and the keys and a timeout. If
+	 * the timeout is zero, then it will block forever until all locks are released.
+	 * 
+	 * @param callback The callback to be invoked after all the locks being unlocked.
+	 * @param keys The keys to lock and unlock the locks.
+	 * @param timeout The timeout value.
+	 */
+	public CallbackMonitor(ICallback callback, long timeout, Object... keys) {
+		Assert.isNotNull(callback);
+		this.callback = callback;
+		this.locks = Collections.synchronizedMap(new HashMap<Object, IStatus>());
+		lock(keys);
+		if (timeout > 0) {
+			new Timer().schedule(new MonitorTask(callback, timeout), timeout, timeout);
+		}
+	}
+
 	/**
 	 * Add multiple locks with the specified keys.
 	 * 
 	 * @param keys The keys whose locks are added.
 	 */
-	public synchronized void lock(Object... keys) {
+	public void lock(Object... keys) {
 		for(Object key : keys) {
+			Assert.isNotNull(key);
 			this.locks.put(key, null);
 		}
 	}
@@ -143,7 +176,7 @@ public class CallbackMonitor {
 	 * 
 	 * @param key The key whose lock is added.
 	 */
-	public synchronized void lock(Object key) {
+	public void lock(Object key) {
 		Assert.isNotNull(key);
 		this.locks.put(key, null);
 	}
@@ -155,13 +188,15 @@ public class CallbackMonitor {
 	 * 
 	 * @param key The key to unlock its lock.
 	 */
-	public synchronized void unlock(Object key, IStatus status) {
+	public void unlock(Object key, IStatus status) {
 		Assert.isNotNull(key);
 		Assert.isNotNull(status);
 		locks.put(key, status);
 		IStatus current = getCurrentStatus();
-		if (current != null) {
-			callback.done(this, current);
+		synchronized (callback) {
+			if (current != null && !callback.isDone()) {
+				callback.done(this, current);
+			}
 		}
 	}
 
@@ -172,10 +207,12 @@ public class CallbackMonitor {
 	 */
 	private synchronized IStatus getCurrentStatus() {
 		List<IStatus> list = new ArrayList<IStatus>();
-		for (Entry<Object, IStatus>entry : locks.entrySet()) {
-			IStatus status = entry.getValue();
-			if (status == null) return null;
-			list.add(status);
+		synchronized (locks) {
+			for (Entry<Object, IStatus> entry : locks.entrySet()) {
+				IStatus status = entry.getValue();
+				if (status == null) return null;
+				list.add(status);
+			}
 		}
 		IStatus[] children = list.toArray(new IStatus[list.size()]); 
 		return new MultiStatus(CoreBundleActivator.getUniqueIdentifier(), 0, children, Messages.CallbackMonitor_AllTasksFinished, null);
