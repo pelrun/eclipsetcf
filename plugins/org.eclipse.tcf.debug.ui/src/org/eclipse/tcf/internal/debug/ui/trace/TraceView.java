@@ -368,6 +368,7 @@ public class TraceView extends ViewPart implements Protocol.ChannelOpenListener 
         final String tool_tip = getPageToolTipText(c);
         parent.getDisplay().asyncExec(new Runnable() {
             public void run() {
+                if (parent.isDisposed()) return;
                 showTabs();
                 p.tab = new CTabItem(tabs, SWT.NONE);
                 tab2page.put(p.tab, p);
@@ -505,7 +506,7 @@ public class TraceView extends ViewPart implements Protocol.ChannelOpenListener 
             no_data = null;
             b = true;
         }
-        if (tabs == null) {
+        if (tabs == null && !parent.isDisposed()) {
             tabs = new CTabFolder(parent, SWT.FLAT | SWT.CLOSE);
             ColorRegistry reg = JFaceResources.getColorRegistry();
             Color c1 = reg.get("org.eclipse.ui.workbench.ACTIVE_TAB_BG_START"); //$NON-NLS-1$
