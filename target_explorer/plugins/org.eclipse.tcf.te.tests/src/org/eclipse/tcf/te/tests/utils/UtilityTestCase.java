@@ -54,6 +54,7 @@ public class UtilityTestCase extends CoreTestCase {
 		// Use the Linux agent to test the ELF utilities
 		IPath path =  getDataLocation("agent", true, true); //$NON-NLS-1$
 		assertNotNull("Unexpected null value from getDataLocation()", path); //$NON-NLS-1$
+		path = path.append("agent"); //$NON-NLS-1$
 		assertTrue("Test ELF file does not exist or is not readable", path.toFile().canRead()); //$NON-NLS-1$
 
 		Exception error = null;
