@@ -123,16 +123,22 @@
 		</Or>
 	</Match>
 
-	<!-- Ignore UW_UNCOND_WAIT in InputStreamMonitor -->
+	<!-- Ignore UW_UNCOND_WAIT -->
 	<Match>
 		<Bug pattern="UW_UNCOND_WAIT"/>
-		<Class name="org.eclipse.tcf.te.ui.terminals.streams.InputStreamMonitor"/>
+		<Or>
+			<Class name="org.eclipse.tcf.te.ui.terminals.streams.InputStreamMonitor"/>
+			<Class name="org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread"/>
+		</Or>
 	</Match>
 	
 	<!-- Ignore BC_UNCONFIRMED_CAST -->
 	<Match>
 		<Bug pattern="BC_UNCONFIRMED_CAST"/>
-		<Package name="~org\.eclipse\.tcf\.te\.ui\.trees"/>
+		<Or>
+			<Package name="~org\.eclipse\.tcf\.te\.ui\.trees"/>
+			<Class name="org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl"/>
+		</Or>
 	</Match>
 
 	<!-- Ignore BC_UNCONFIRMED_CAST_OF_RETURN_VALUE -->
