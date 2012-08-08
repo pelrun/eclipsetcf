@@ -103,7 +103,7 @@ public class Parser {
     	StringTokenizer tokenizer = new StringTokenizer(arguments, " "); //$NON-NLS-1$
     	while (tokenizer.hasMoreTokens()) {
     		String tok = tokenizer.nextToken();
-    		if (tok == null || "".equals(tok.trim())) continue; //$NON-NLS-1$
+    		if ("".equals(tok.trim())) continue; //$NON-NLS-1$
 
     		if (tok.equals("null")) { //$NON-NLS-1$
     			token.addArgument(null);

@@ -134,6 +134,21 @@
 		<Bug pattern="BC_UNCONFIRMED_CAST"/>
 		<Package name="~org\.eclipse\.tcf\.te\.ui\.trees"/>
 	</Match>
+
+	<!-- Ignore BC_UNCONFIRMED_CAST_OF_RETURN_VALUE -->
+	<Match>
+		<Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+		<Or>
+			<Class name="org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorControl"/>
+			<Class name="org.eclipse.tcf.te.runtime.stepper.extensions.manager.StepGroupExtensionPointManager"/>
+			<Class name="org.eclipse.tcf.te.tcf.core.util.ExceptionUtils"/>
+		</Or>
+	</Match>
+
+	<!-- Ignore RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE -->
+	<Match>
+		<Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+	</Match>
 	
 	<!-- Ignore DMI_HARDCODED_ABSOLUTE_FILENAME in Host -->
 	<Match>
@@ -166,6 +181,15 @@
 	<Match>
 		<Bug pattern="FE_FLOATING_POINT_EQUALITY"/>
 		<Class name="org.eclipse.tcf.te.runtime.properties.PropertiesContainer"/>
+	</Match>
+
+	<!-- Ignore IS2_INCONSISTENT_SYNC -->
+	<Match>
+		<Bug pattern="IS2_INCONSISTENT_SYNC"/>
+		<Or>
+			<Class name="org.eclipse.tcf.te.core.async.AsyncCallbackCollector"/>
+			<Class name="org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState"/>
+		</Or>
 	</Match>
 	
 	<!-- Filters for org.eclipse.tcf bundle -->

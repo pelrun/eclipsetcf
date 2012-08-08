@@ -156,7 +156,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 		IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchSpec);
 		String processPath = (String)launchSpec.getAttribute(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, null);
 		String name = getDefaultLaunchName((contexts != null && contexts.length > 0 ? contexts[0] : null), processPath);
-		return name != null && name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchSpec);
+		return name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchSpec);
 	}
 
 	/* (non-Javadoc)
@@ -167,7 +167,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 		IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchConfig);
 		String processPath = DefaultPersistenceDelegate.getAttribute(launchConfig, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, (String)null);
 		String name = getDefaultLaunchName((contexts != null && contexts.length > 0 ? contexts[0] : null), processPath);
-		return name != null && name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchConfig);
+		return name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchConfig);
 	}
 
 	private String getDefaultLaunchName(IModelNode context, String processPath) {

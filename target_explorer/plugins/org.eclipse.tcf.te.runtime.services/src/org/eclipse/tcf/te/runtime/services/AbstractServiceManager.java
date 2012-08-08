@@ -351,7 +351,7 @@ public abstract class AbstractServiceManager {
 		Assert.isNotNull(serviceType);
 
 		Collection<ServiceProxy> proxies = services.values();
-		if (proxies != null && !proxies.isEmpty()) {
+		if (!proxies.isEmpty()) {
 			List<ServiceProxy> candidates = new ArrayList<ServiceProxy>();
 			boolean isInterface = serviceType.isInterface();
 			for (ServiceProxy proxy : proxies) {
@@ -391,7 +391,7 @@ public abstract class AbstractServiceManager {
 
 		Collection<ServiceProxy> proxies = services.values();
 		List<IService> services = new ArrayList<IService>();
-		if (proxies != null && !proxies.isEmpty()) {
+		if (!proxies.isEmpty()) {
 			List<ServiceProxy> candidates = new ArrayList<ServiceProxy>();
 			for (ServiceProxy proxy : proxies) {
 				if (proxy.isMatching(serviceType) && proxy.isEnabled(context)) {
@@ -433,7 +433,7 @@ public abstract class AbstractServiceManager {
 
 		// Get all service contributions
 		Collection<ServiceProxy> proxies = services.values();
-		if (proxies != null && !proxies.isEmpty()) {
+		if (!proxies.isEmpty()) {
 			for (ServiceProxy proxy : proxies) {
 				if (proxy.isMatching(serviceTypeName) && proxy.isEnabled(context)) {
 					return true;

@@ -700,7 +700,7 @@ public final class SWTControlUtil {
 			if (image == null || image.getImageData().data == null) {
 				Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 				image = makeShot(shell, checked||grayed, grayed, enabled);
-				if (image != null && image.getImageData().data != null) {
+				if (image.getImageData().data != null) {
 					JFaceResources.getImageRegistry().put(key, image);
 				}
 			}

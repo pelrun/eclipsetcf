@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationListener;
@@ -125,8 +126,8 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 						attributes.remove(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS);
 						attributes.remove(ICommonLaunchAttributes.ATTR_UUID);
 						attributes.remove(ICommonLaunchAttributes.ATTR_LAST_LAUNCHED);
-						for (String key : attributes.keySet()) {
-							launchSpec.addAttribute(key, attributes.get(key), true);
+						for (Entry<String, String> entry : attributes.entrySet()) {
+							launchSpec.addAttribute(entry.getKey(), entry.getValue(), true);
 						}
 					}
 					catch (Exception e) {
@@ -147,7 +148,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 	public String getDefaultLaunchName(ILaunchSpecification launchSpec) {
 		IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchSpec);
 		String name = getDefaultLaunchName((contexts != null && contexts.length > 0 ? contexts[0] : null));
-		return name != null && name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchSpec);
+		return name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchSpec);
 	}
 
 	/* (non-Javadoc)
@@ -157,7 +158,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 	public String getDefaultLaunchName(ILaunchConfiguration launchConfig) {
 		IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchConfig);
 		String name = getDefaultLaunchName((contexts != null && contexts.length > 0 ? contexts[0] : null));
-		return name != null && name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchConfig);
+		return name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchConfig);
 	}
 
 	private String getDefaultLaunchName(IModelNode context) {

@@ -40,9 +40,7 @@ public class Messages extends NLS {
 		if (key != null) {
 			try {
 				Field field = Messages.class.getDeclaredField(key);
-				if (field != null) {
-					return (String)field.get(null);
-				}
+				return (String)field.get(null);
 			} catch (Exception e) { /* ignored on purpose */ }
 		}
 

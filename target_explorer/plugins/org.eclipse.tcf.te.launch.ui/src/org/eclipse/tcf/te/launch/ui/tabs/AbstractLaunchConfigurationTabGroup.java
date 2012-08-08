@@ -138,7 +138,8 @@ public abstract class AbstractLaunchConfigurationTabGroup extends org.eclipse.de
 				String launchMode = getLaunchConfigurationDialog().getMode();
 				ILaunchSelection launchSelection = LaunchSelectionManager.getInstance().getLaunchSelection(launchConfigType, launchMode, null);
 				ILaunchManagerDelegate delegate = LaunchManager.getInstance().getLaunchManagerDelegate(launchConfigType, launchMode);
-				if (delegate != null && launchSelection != null) {
+				Assert.isNotNull(delegate);
+				if (launchSelection != null) {
 					// create an empty launch configuration specification to initialize all
 					// attributes with their default defaults.
 					ILaunchSpecification launchSpec = delegate.getLaunchSpecification(launchConfigTypeId, launchSelection);

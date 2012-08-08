@@ -98,7 +98,7 @@ public class AsyncCallbackHandler {
 					Iterator<?> iterator = callbacks.iterator();
 					System.err.println("Remaining adders: "); //$NON-NLS-1$
 					while (iterator.hasNext()) {
-						Exception adder = (Exception) callbackAdders.get(iterator.next());
+						Throwable adder = callbackAdders.get(iterator.next());
 						adder.printStackTrace();
 						System.err.println("*****"); //$NON-NLS-1$
 					}

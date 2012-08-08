@@ -116,7 +116,7 @@ public class TraceHandler {
 			if (slotId != null || clazz != null) {
 				if (clazz != null) {
 					String name = clazz instanceof Class<?> ? ((Class<?>)clazz).getSimpleName() : clazz.getClass().getSimpleName();
-					debug.append((name != null && name.trim().length() > 0) ? name.trim() : clazz instanceof Class<?> ? ((Class<?>)clazz).getName() : clazz.getClass().getName());
+					debug.append(name.trim().length() > 0 ? name.trim() : clazz instanceof Class<?> ? ((Class<?>)clazz).getName() : clazz.getClass().getName());
 				}
 				if (slotId != null) {
 					debug.append(" at "); //$NON-NLS-1$

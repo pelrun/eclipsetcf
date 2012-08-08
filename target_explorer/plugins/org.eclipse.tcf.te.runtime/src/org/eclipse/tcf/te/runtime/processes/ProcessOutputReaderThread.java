@@ -73,7 +73,7 @@ public class ProcessOutputReaderThread extends Thread {
 	 *
 	 * @return <code>true</code> if the thread is finished, <code>false</code> otherwise.
 	 */
-	public synchronized boolean isFinished() {
+	public boolean isFinished() {
 		return finished;
 	}
 
@@ -83,11 +83,10 @@ public class ProcessOutputReaderThread extends Thread {
 	 * @param timeout Timeout in milliseconds to wait for (maximum).
 	 */
 	public void waitForFinish(long timeout) {
+		if (finished) return;
+
+		waiting = true;
 		synchronized (waiterSemaphore) {
-			if (finished) {
-				return;
-			}
-			waiting = true;
 			try {
 				waiterSemaphore.wait(timeout);
 			} catch (InterruptedException e) {
@@ -152,7 +151,7 @@ public class ProcessOutputReaderThread extends Thread {
 	 * Called when the process finished and no more input is available. May be overridden by
 	 * subclasses to extend functionality.
 	 */
-	protected synchronized void finish() {
+	protected void finish() {
 		finished = true;
 		if (waiting) {
 			waiting = false;

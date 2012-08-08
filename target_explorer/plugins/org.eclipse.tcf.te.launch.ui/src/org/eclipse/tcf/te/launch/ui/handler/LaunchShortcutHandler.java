@@ -54,10 +54,11 @@ public class LaunchShortcutHandler extends AbstractHandler implements ILaunchSho
 		try {
 			ILaunchSelection launchSelection = LaunchSelectionManager.getInstance().getLaunchSelection(launchConfigType, mode, null);
 			ILaunchManagerDelegate delegate = LaunchManager.getInstance().getLaunchManagerDelegate(launchConfigType, mode);
-			if (delegate != null && launchSelection != null) {
+			Assert.isNotNull(delegate);
+			if (launchSelection != null) {
 				// create an empty launch configuration specification to initialize all attributes with their default defaults.
 				ILaunchSpecification launchSpec = delegate.getLaunchSpecification(launchConfigType.getIdentifier(), launchSelection);
-				// initialize the new launch config.
+				// initialize the new launch configuration.
 				// ignore validation result of launch spec - init as much attributes as possible
 				if (launchSpec != null) {
 					ILaunchConfiguration[] launchConfigs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(launchConfigType);

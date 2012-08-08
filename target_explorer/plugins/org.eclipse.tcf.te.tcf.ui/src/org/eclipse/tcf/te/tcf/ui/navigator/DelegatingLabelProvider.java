@@ -96,7 +96,7 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			}
 
 			String label = builder.toString();
-			if (label != null && !"".equals(label.trim())) { //$NON-NLS-1$
+			if (!"".equals(label.trim())) { //$NON-NLS-1$
 				return label;
 			}
 		} else if (element instanceof PeerRedirectorGroupNode) {
@@ -205,7 +205,7 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 
 			label = builder.toString();
 
-			if (label != null && !"".equals(label.trim()) && !"<noname>".equals(label.trim())) { //$NON-NLS-1$ //$NON-NLS-2$
+			if (!"".equals(label.trim()) && !"<noname>".equals(label.trim())) { //$NON-NLS-1$ //$NON-NLS-2$
 				return label;
 			}
 		}

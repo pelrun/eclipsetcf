@@ -513,9 +513,9 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 				synchronized (this) {
 					// Mark the runnable definitely stopped
 					stopped = true;
-					// Invoke the callback directly, if any
-					if (callback != null) callback.done(this, Status.OK_STATUS);
 				}
+				// Invoke the callback directly, if any
+				if (callback != null) callback.done(this, Status.OK_STATUS);
 
 				return;
 			}

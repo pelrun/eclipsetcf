@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.launch.core.internal;
 
 import java.util.EventObject;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -61,8 +62,8 @@ public class EventListenerDelegate implements IEventListener {
 							attributes.remove(ICommonLaunchAttributes.ATTR_UUID);
 							attributes.remove(ICommonLaunchAttributes.ATTR_LAST_LAUNCHED);
 							final ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
-							for (String key : attributes.keySet()) {
-								LaunchConfigHelper.addLaunchConfigAttribute(wc, key, attributes.get(key));
+							for (Entry<String, String> entry : attributes.entrySet()) {
+								LaunchConfigHelper.addLaunchConfigAttribute(wc, entry.getKey(), entry.getValue());
 							}
 							ExecutorsUtil.executeInUI(new Runnable() {
 								@Override

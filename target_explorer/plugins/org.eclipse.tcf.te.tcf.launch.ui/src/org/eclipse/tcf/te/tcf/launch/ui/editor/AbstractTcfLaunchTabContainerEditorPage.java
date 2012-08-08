@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.launch.ui.editor;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
@@ -63,7 +64,8 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 		ILaunchConfigurationWorkingCopy wc = null;
 		if (peerModel != null) {
 			IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
-			if (service != null && service.getProperty(peerModel, PROP_LAUNCH_CONFIG_WC) instanceof ILaunchConfigurationWorkingCopy) {
+			Assert.isNotNull(service);
+			if (service.getProperty(peerModel, PROP_LAUNCH_CONFIG_WC) instanceof ILaunchConfigurationWorkingCopy) {
 				wc = (ILaunchConfigurationWorkingCopy)service.getProperty(peerModel, PROP_LAUNCH_CONFIG_WC);
 			}
 			else {

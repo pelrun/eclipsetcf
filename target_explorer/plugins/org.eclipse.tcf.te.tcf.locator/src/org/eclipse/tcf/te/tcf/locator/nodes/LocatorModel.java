@@ -333,13 +333,12 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		}
 
 		IScanner scanner = getScanner();
+		Assert.isNotNull(scanner);
 
-		if (scanner != null) {
-			// Pass on the schedule parameter
-			Map<String, Object> config = new HashMap<String, Object>(scanner.getConfiguration());
-			config.put(IScanner.PROP_SCHEDULE, Long.valueOf(schedule));
-			scanner.setConfiguration(config);
-		}
+		// Pass on the schedule parameter
+		Map<String, Object> config = new HashMap<String, Object>(scanner.getConfiguration());
+		config.put(IScanner.PROP_SCHEDULE, Long.valueOf(schedule));
+		scanner.setConfiguration(config);
 
 		// The default scanner implementation is a job.
 		// -> schedule here if it is a job
