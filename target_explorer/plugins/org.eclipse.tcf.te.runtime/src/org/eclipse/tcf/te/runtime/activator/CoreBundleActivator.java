@@ -9,7 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.activator;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
+import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -59,6 +64,17 @@ public class CoreBundleActivator implements BundleActivator {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = bundleContext;
+
+		// Fire up the IPAddressUtil initialization
+		Job job = new Job("IPAddressUtil-init-job") { //$NON-NLS-1$
+
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				IPAddressUtil.getInstance();
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
 	}
 
 	/* (non-Javadoc)

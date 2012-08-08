@@ -56,40 +56,46 @@ public class IPAddressUtil {
 	private final Set<String> fNonLocalHostAddresses = new HashSet<String>();
 	private String fCanonicalAddress = null;
 
+	private boolean initialized = false;
+
 	IPAddressUtil() {
 		initializeHostCache();
 	}
 
 	private synchronized void initializeHostCache() {
-		// first, add the known interfaces. This is the only safe method to get
-		// the _real_ IP addresses, and get _all_ of them.
-		addLocalAddressesByInterface();
-		try {
-			// Add what Java thinks is the local host.
-			InetAddress localHostJava = InetAddress.getLocalHost();
-			// Do _not_ add the address that Java thinks the local host has,
-			// since it may be wrong! This is due to the method Java uses:
-			// it takes the host _name_ and does a reverse name lookup
-			// to get the address. This may be _wrong_ in case the DNS server
-			// points to a different (or outdated) address for the name.
-			// In reality, _only_ the addresses given by our own interfaces
-			// are correct! (As obtained by addLocalAddressesByInterface()).
-			// addLocalAddress(localHostJava);
+		if (!initialized) {
+			// first, add the known interfaces. This is the only safe method to get
+			// the _real_ IP addresses, and get _all_ of them.
+			addLocalAddressesByInterface();
+			try {
+				// Add what Java thinks is the local host.
+				InetAddress localHostJava = InetAddress.getLocalHost();
+				// Do _not_ add the address that Java thinks the local host has,
+				// since it may be wrong! This is due to the method Java uses:
+				// it takes the host _name_ and does a reverse name lookup
+				// to get the address. This may be _wrong_ in case the DNS server
+				// points to a different (or outdated) address for the name.
+				// In reality, _only_ the addresses given by our own interfaces
+				// are correct! (As obtained by addLocalAddressesByInterface()).
+				// addLocalAddress(localHostJava);
 
-			// Add what Java thinks is the local host name.
-			// The local host name correct in the sense that it is configured
-			// locally and thus known locally. Note that in case of DNS inconsistency,
-			// DNS servers will return a _different_ address for the name than the
-			// local one, in this case the host name will be added as non-local.
-			addHostName(localHostJava.getHostName());
-		} catch (UnknownHostException e) {
-			/* no error */
+				// Add what Java thinks is the local host name.
+				// The local host name correct in the sense that it is configured
+				// locally and thus known locally. Note that in case of DNS inconsistency,
+				// DNS servers will return a _different_ address for the name than the
+				// local one, in this case the host name will be added as non-local.
+				addHostName(localHostJava.getHostName());
+			} catch (UnknownHostException e) {
+				/* no error */
+			}
+			// finally, add the "localhost" special host name since it might not be covered
+			// by the methods above (we cannot get all names for a given address, only the other way round).
+			addHostName("localhost"); //$NON-NLS-1$
+			// and initialize the "canonical hostname" cache.
+			getCanonicalAddress();
+			// mark as initialized
+			initialized = true;
 		}
-		// finally, add the "localhost" special host name since it might not be covered
-		// by the methods above (we cannot get all names for a given address, only the other way round).
-		addHostName("localhost"); //$NON-NLS-1$
-		// and initialize the "canonical hostname" cache.
-		getCanonicalAddress();
 	}
 
 	/**
