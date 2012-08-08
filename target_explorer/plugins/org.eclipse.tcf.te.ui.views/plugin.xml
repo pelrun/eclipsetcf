@@ -189,7 +189,6 @@
       	 <!-- Run/Debug actions should be available -->
          <actionSet id="org.eclipse.debug.ui.launchActionSet"/>
 		 <!-- Register the view shortcuts -->
-         <viewShortcut id="org.eclipse.tcf.te.ui.views.View"/>
          <viewShortcut id="org.eclipse.debug.ui.DebugView"/>
          <viewShortcut id="org.eclipse.ui.views.PropertySheet"/>
          <!-- Register the perspective shortcuts -->
@@ -199,11 +198,6 @@
       <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
       	 <!-- Run/Debug actions should be available -->
          <actionSet id="org.eclipse.debug.ui.launchActionSet"/>
-		 <!-- Register the view shortcuts -->
-         <viewShortcut id="org.eclipse.tcf.te.ui.views.View"/>
-         <viewShortcut id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
-         <!-- Register the perspective shortcuts -->
-         <perspectiveShortcut id="org.eclipse.tcf.te.ui.perspective"/>
          <!-- System management view is placed relative to the Project Explorer -->
          <view
                id="org.eclipse.tcf.te.ui.views.View"
@@ -215,11 +209,6 @@
       </perspectiveExtension>
 
       <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
-		 <!-- Register the view shortcuts -->
-         <viewShortcut id="org.eclipse.tcf.te.ui.views.View"/>
-         <viewShortcut id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
-         <!-- Register the perspective shortcuts -->
-         <perspectiveShortcut id="org.eclipse.tcf.te.ui.perspective"/>
          <!-- System management view is placed relative to the Debug View -->
          <view
                id="org.eclipse.tcf.te.ui.views.View"
@@ -228,6 +217,13 @@
                relative="org.eclipse.debug.ui.DebugView"
                visible="false">
          </view>
+      </perspectiveExtension>
+      
+      <perspectiveExtension targetID="*">
+		 <!-- Register the view shortcuts -->
+         <viewShortcut id="org.eclipse.tcf.te.ui.views.View"/>
+         <!-- Register the perspective shortcuts -->
+         <perspectiveShortcut id="org.eclipse.tcf.te.ui.perspective"/>
       </perspectiveExtension>
    </extension>
 

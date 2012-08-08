@@ -21,6 +21,9 @@
 <!-- Perspective extension contributions -->    
    <extension point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="*">
+		 <!-- Register the view shortcuts  -->
+         <viewShortcut id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
+         <!-- Place the Terminals view relative to the Task List view -->
          <view
                id="org.eclipse.tcf.te.ui.terminals.TerminalsView"
                minimized="false"
@@ -28,11 +31,6 @@
                relative="org.eclipse.ui.views.TaskList"
                visible="false">
          </view>
-      </perspectiveExtension>
-      
-      <perspectiveExtension targetID="org.eclipse.tcf.te.ui.perspective">
-		 <!-- Register the view shortcuts  -->
-         <viewShortcut id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
       </perspectiveExtension>
    </extension>
 
