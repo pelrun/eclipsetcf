@@ -85,7 +85,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.core.Command;
+import org.eclipse.tcf.debug.ui.ITCFModel;
 import org.eclipse.tcf.debug.ui.ITCFSourceDisplay;
+import org.eclipse.tcf.debug.ui.ITCFPresentationProvider;
 import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupParticipant;
@@ -142,7 +144,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * keeping the cache in a coherent state,
  * and feeding UI with up-to-date data.
  */
-public class TCFModel implements IElementContentProvider, IElementLabelProvider, IViewerInputProvider,
+public class TCFModel implements ITCFModel, IElementContentProvider, IElementLabelProvider, IViewerInputProvider,
         IModelProxyFactory, IColumnPresentationFactory, ITCFSourceDisplay, ISuspendTrigger, IElementMementoProvider {
 
     /** The id of the expression hover presentation context */
@@ -196,6 +198,8 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
 
     private final List<ISuspendTriggerListener> suspend_trigger_listeners =
         new LinkedList<ISuspendTriggerListener>();
+
+    final List<ITCFPresentationProvider> view_request_listeners;
 
     private int display_source_generation;
     private int suspend_trigger_generation;
@@ -689,6 +693,16 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
         };
         listener.propertyChange(null);
         prefs.addPropertyChangeListener(listener);
+        List<ITCFPresentationProvider> l = new ArrayList<ITCFPresentationProvider>();
+        for (ITCFPresentationProvider p : TCFPresentationProvider.getPresentationProviders()) {
+            try {
+                if (p.onModelCreated(this)) l.add(p);
+            }
+            catch (Throwable x) {
+                Activator.log("Unhandled exception in a presentation provider", x);
+            }
+        }
+        view_request_listeners = l.size() > 0 ? l : null;
     }
 
     /**
@@ -956,6 +970,16 @@ public class TCFModel implements IElementContentProvider, IElementLabelProvider,
     }
 
     void dispose() {
+        if (view_request_listeners != null) {
+            for (ITCFPresentationProvider p : view_request_listeners) {
+                try {
+                    p.onModelDisposed(this);
+                }
+                catch (Throwable x) {
+                    Activator.log("Unhandled exception in a presentation provider", x);
+                }
+            }
+        }
         launch.removeActionsListener(actions_listener);
         expr_manager.removeExpressionListener(expressions_listener);
         for (TCFConsole c : process_consoles.values()) c.close();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -83,7 +83,7 @@ abstract class StepCommand implements IDebugCommandHandler {
     }
 
     public final void canExecute(final IEnabledStateRequest monitor) {
-        new TCFRunnable(monitor) {
+        new TCFRunnable(model, monitor) {
             public void run() {
                 if (done) return;
                 if (!monitor.isCanceled()) {
@@ -98,7 +98,7 @@ abstract class StepCommand implements IDebugCommandHandler {
     }
 
     public final boolean execute(final IDebugCommandRequest monitor) {
-        new TCFRunnable(monitor) {
+        new TCFRunnable(model, monitor) {
             public void run() {
                 if (done) return;
                 Set<IRunControl.RunControlContext> set = new HashSet<IRunControl.RunControlContext>();

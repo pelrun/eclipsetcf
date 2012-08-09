@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -99,15 +99,15 @@ public class DropToFrameCommand implements IDropToFrameHandler {
     }
 
     public void canExecute(final IEnabledStateRequest request) {
-        final Object[] elements = request.getElements();
-        if (elements.length != 1 || !(elements[0] instanceof TCFNodeStackFrame)) {
-            request.setEnabled(false);
-            request.done();
-            return;
-        }
-        final TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
-        new TCFRunnable(request) {
+        new TCFRunnable(model, request) {
             public void run() {
+                Object[] elements = request.getElements();
+                if (elements.length != 1 || !(elements[0] instanceof TCFNodeStackFrame)) {
+                    request.setEnabled(false);
+                    done();
+                    return;
+                }
+                TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
                 if (frameNode.getFrameNo() < 1) {
                     request.setEnabled(false);
                     done();
@@ -150,15 +150,15 @@ public class DropToFrameCommand implements IDropToFrameHandler {
     }
 
     public boolean execute(final IDebugCommandRequest request) {
-        final Object[] elements = request.getElements();
-        if (elements.length != 1 || !(elements[0] instanceof TCFNodeStackFrame)) {
-            request.setStatus(Status.CANCEL_STATUS);
-            request.done();
-            return false;
-        }
-        final TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
-        new TCFRunnable(request) {
+        new TCFRunnable(model, request) {
             public void run() {
+                Object[] elements = request.getElements();
+                if (elements.length != 1 || !(elements[0] instanceof TCFNodeStackFrame)) {
+                    request.setStatus(Status.CANCEL_STATUS);
+                    done();
+                    return;
+                }
+                final TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
                 int frameNo = frameNode.getFrameNo();
                 if (frameNo < 1) {
                     request.setStatus(Status.CANCEL_STATUS);
@@ -174,6 +174,7 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                 if (state_data == null || !state_data.is_suspended) {
                     request.setStatus(Status.CANCEL_STATUS);
                     done();
+                    return;
                 }
                 if (!exeNode.getStackTrace().validate(this)) return;
                 Map<String, TCFNode> stack = exeNode.getStackTrace().getData();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,11 +32,14 @@ import org.eclipse.tcf.util.TCFDataCache;
 
 public class TerminateCommand implements ITerminateHandler {
 
+    private final TCFModel model;
+
     public TerminateCommand(TCFModel model) {
+        this.model = model;
     }
 
     public void canExecute(final IEnabledStateRequest monitor) {
-        new TCFRunnable(monitor) {
+        new TCFRunnable(model, monitor) {
             public void run() {
                 if (done) return;
                 Object[] elements = monitor.getElements();
@@ -78,7 +81,7 @@ public class TerminateCommand implements ITerminateHandler {
     }
 
     public boolean execute(final IDebugCommandRequest monitor) {
-        new TCFRunnable(monitor) {
+        new TCFRunnable(model, monitor) {
             public void run() {
                 if (done) return;
                 Object[] elements = monitor.getElements();

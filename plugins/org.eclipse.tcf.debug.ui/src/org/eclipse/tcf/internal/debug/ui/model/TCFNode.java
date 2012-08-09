@@ -214,7 +214,7 @@ public abstract class TCFNode extends PlatformObject implements ITCFObject, Comp
      * @param update - children count update request.
      */
     final void update(final IChildrenCountUpdate update) {
-        new TCFRunnable(update) {
+        new TCFRunnable(model, update) {
             public void run() {
                 if (!done) {
                     if (!update.isCanceled()) {
@@ -237,7 +237,7 @@ public abstract class TCFNode extends PlatformObject implements ITCFObject, Comp
      * @param update - children update request.
      */
     final void update(final IChildrenUpdate update) {
-        new TCFRunnable(update) {
+        new TCFRunnable(model, update) {
             public void run() {
                 if (!done) {
                     if (!update.isCanceled()) {
@@ -257,7 +257,7 @@ public abstract class TCFNode extends PlatformObject implements ITCFObject, Comp
      * @param update - "has children" update request.
      */
     final void update(final IHasChildrenUpdate update) {
-        new TCFRunnable(update) {
+        new TCFRunnable(model, update) {
             public void run() {
                 if (!done) {
                     if (!update.isCanceled()) {
@@ -280,7 +280,7 @@ public abstract class TCFNode extends PlatformObject implements ITCFObject, Comp
      * @param update - label update request.
      */
     final void update(final ILabelUpdate update) {
-        new TCFRunnable(update) {
+        new TCFRunnable(model, update) {
             public void run() {
                 if (!done) {
                     if (!update.isCanceled()) {
@@ -305,7 +305,7 @@ public abstract class TCFNode extends PlatformObject implements ITCFObject, Comp
      * @param update - input update request.
      */
     final void update(final IViewerInputUpdate update) {
-        new TCFRunnable(update) {
+        new TCFRunnable(model, update) {
             public void run() {
                 if (!done) {
                     if (!update.isCanceled()) {

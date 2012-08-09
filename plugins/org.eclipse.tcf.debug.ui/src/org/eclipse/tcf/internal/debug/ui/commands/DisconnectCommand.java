@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,7 +28,7 @@ public class DisconnectCommand implements IDisconnectHandler {
     }
 
     public void canExecute(final IEnabledStateRequest monitor) {
-        new TCFRunnable(monitor) {
+        new TCFRunnable(model, monitor) {
             public void run() {
                 monitor.setEnabled(model.getLaunch().canDisconnect());
                 monitor.setStatus(Status.OK_STATUS);
@@ -38,7 +38,7 @@ public class DisconnectCommand implements IDisconnectHandler {
     }
 
     public boolean execute(final IDebugCommandRequest monitor) {
-        new TCFRunnable(monitor) {
+        new TCFRunnable(model, monitor) {
             public void run() {
                 try {
                     model.getLaunch().closeChannel();
