@@ -9,7 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.core.va;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,12 +99,16 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 		IPath dir = path.removeLastSegments(1);
 		String cmd = Host.isWindowsHost() ? path.toOSString() : "./" + path.lastSegment(); //$NON-NLS-1$
 
+		// Determine a free port to use by the value-add. We must
+		// avoid to launch the value-add at the default port 1534.
+		int port = getFreePort();
+
 		// Build up the command
 		List<String> command = new ArrayList<String>();
 		command.add(cmd);
 		addToCommand(command, "-I180"); //$NON-NLS-1$
 		addToCommand(command, "-S"); //$NON-NLS-1$
-		addToCommand(command, "-sTCP::;ValueAdd=1"); //$NON-NLS-1$
+		addToCommand(command, "-sTCP::" + (port != -1 ? Integer.valueOf(port) : "") + ";ValueAdd=1"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// Enable logging?
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.VA_LOGGING_ENABLE)) {
@@ -152,6 +158,23 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 		Assert.isNotNull(command);
 		Assert.isNotNull(arg);
 		command.add(arg);
+	}
+
+	/**
+	 * Determine a free port to use.
+	 *
+	 * @return A free port or <code>-1</code>.
+	 */
+	protected int getFreePort() {
+		int port = -1;
+
+		try {
+			ServerSocket socket = new ServerSocket(0);
+			port = socket.getLocalPort();
+			socket.close();
+		} catch (IOException e) { /* ignored on purpose */ }
+
+		return port;
 	}
 
 }
