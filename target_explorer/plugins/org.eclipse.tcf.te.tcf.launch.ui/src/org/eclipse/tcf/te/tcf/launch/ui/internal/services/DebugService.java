@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.launch.ui.internal.services;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchManager;
@@ -20,6 +21,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.launch.core.lm.LaunchManager;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchManagerDelegate;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
+import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.selection.LaunchSelection;
 import org.eclipse.tcf.te.launch.core.selection.RemoteSelectionContext;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ILaunchSelection;
@@ -77,10 +79,27 @@ public class DebugService extends AbstractService implements IDebugService {
 						launchConfigs = delegate.getMatchingLaunchConfigurations(launchSpec, launchConfigs);
 
 						ILaunchConfiguration config = launchConfigs != null && launchConfigs.length > 0 ? launchConfigs[0] : null;
-						config = LaunchManager.getInstance().createOrUpdateLaunchConfiguration(config, launchSpec);
 
-						delegate.validate(ILaunchManager.DEBUG_MODE, config);
-						DebugUITools.launch(config, ILaunchManager.DEBUG_MODE);
+						boolean skip = false;
+						if (config != null) {
+
+							ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
+							for (ILaunch launch : launches) {
+								if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH)) {
+									IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
+									if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
+										skip = true;
+									}
+								}
+							}
+						}
+
+						if (!skip) {
+							config = LaunchManager.getInstance().createOrUpdateLaunchConfiguration(config, launchSpec);
+
+							delegate.validate(ILaunchManager.DEBUG_MODE, config);
+							DebugUITools.launch(config, ILaunchManager.DEBUG_MODE);
+						}
 					}
 				}
 				callback.done(this, Status.OK_STATUS);
