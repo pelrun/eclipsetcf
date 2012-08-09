@@ -29,13 +29,9 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
@@ -66,17 +62,8 @@ public class OfflineCommandHandler extends AbstractHandler {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
 				if (status.getSeverity() == IStatus.ERROR) {
-					// Fill in the status handler custom data
-					IPropertiesContainer data = new PropertiesContainer();
-					data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.OfflineCommandHandler_error_title);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.MESSAGE_MAKEOFFLINE_FAILED);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
-
-					// Get the status handler
-					IStatusHandler[] handler = StatusHandlerManager.getInstance().getHandler(selection);
-					if (handler.length > 0) {
-						handler[0].handleStatus(status, data, null);
-					}
+					StatusHandlerUtil.handleStatus(status, selection, null,
+													Messages.OfflineCommandHandler_error_title, IContextHelpIds.MESSAGE_MAKEOFFLINE_FAILED, OfflineCommandHandler.this, null);
 				}
 
 				// Trigger a refresh of the model

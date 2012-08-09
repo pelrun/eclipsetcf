@@ -20,9 +20,7 @@ import java.util.List;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -58,13 +56,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.views.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.views.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.views.scriptpad.actions.CopyAction;
@@ -564,20 +558,9 @@ public class ScriptPad extends ViewPart implements ISelectionProvider, Selection
 				text.setText(buffer.toString());
 				markDirty(false);
 			} catch (IOException e) {
-				IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-											NLS.bind(Messages.ScriptPad_error_openFile, file, e.getLocalizedMessage()), e);
-
-				IStatusHandler[] handlers = StatusHandlerManager.getInstance().getHandler(this);
-				if (handlers.length > 0) {
-					IPropertiesContainer data = new PropertiesContainer();
-					data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.ScriptPad_error_title);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.SCRIPT_PAD_ERROR_OPEN_FILE);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
-
-					handlers[0].handleStatus(status, data, null);
-				} else {
-					UIPlugin.getDefault().getLog().log(status);
-				}
+				String template = NLS.bind(Messages.ScriptPad_error_openFile, file, Messages.ScriptPad_error_possibleCause);
+				StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), this, template,
+												Messages.ScriptPad_error_title, IContextHelpIds.SCRIPT_PAD_ERROR_OPEN_FILE, this, null);
 			} finally {
 				if (reader != null) try { reader.close(); } catch (IOException e) { /* ignored on purpose */ }
 			}
@@ -604,20 +587,9 @@ public class ScriptPad extends ViewPart implements ISelectionProvider, Selection
 				writer.write(content);
 				markDirty(false);
 			} catch (Exception e) {
-				IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-											NLS.bind(Messages.ScriptPad_error_saveFile, file, e.getLocalizedMessage()), e);
-
-				IStatusHandler[] handlers = StatusHandlerManager.getInstance().getHandler(this);
-				if (handlers.length > 0) {
-					IPropertiesContainer data = new PropertiesContainer();
-					data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.ScriptPad_error_title);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.SCRIPT_PAD_ERROR_OPEN_FILE);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
-
-					handlers[0].handleStatus(status, data, null);
-				} else {
-					UIPlugin.getDefault().getLog().log(status);
-				}
+				String template = NLS.bind(Messages.ScriptPad_error_saveFile, file, Messages.ScriptPad_error_possibleCause);
+				StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), this, template,
+												Messages.ScriptPad_error_title, IContextHelpIds.SCRIPT_PAD_ERROR_SAVE_FILE, this, null);
 			} finally {
 				if (writer != null) try { writer.close(); } catch (IOException e) { /* ignored on purpose */ }
 			}

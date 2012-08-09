@@ -20,8 +20,6 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -29,14 +27,12 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
@@ -44,7 +40,6 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshSe
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
-import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.dialogs.RedirectAgentSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -175,21 +170,9 @@ public class RedirectHandler extends AbstractHandler {
 				}
 			});
 		} catch (IOException e) {
-			// Create the status
-			IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-							Messages.RedirectHandler_error_redirectFailed, e);
-
-			// Fill in the status handler custom data
-			IPropertiesContainer data = new PropertiesContainer();
-			data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.RedirectHandler_error_title);
-			data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.MESSAGE_REDIRECT_FAILED);
-			data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
-
-			// Get the status handler
-			IStatusHandler[] handler = StatusHandlerManager.getInstance().getHandler(peerModel);
-			if (handler.length > 0) {
-				handler[0].handleStatus(status, data, null);
-			}
+			String template = NLS.bind(Messages.RedirectHandler_error_redirectFailed, Messages.PossibleCause);
+			StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), peerModel, template,
+											Messages.RedirectHandler_error_title, IContextHelpIds.MESSAGE_REDIRECT_FAILED, this, null);
 		}
 	}
 }

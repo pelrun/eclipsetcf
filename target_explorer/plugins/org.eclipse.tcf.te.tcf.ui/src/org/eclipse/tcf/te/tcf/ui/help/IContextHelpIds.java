@@ -17,7 +17,7 @@ import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 public interface IContextHelpIds {
 
 	/**
-	 * TCF UI plug-in common context help id prefix.
+	 * UI plug-in common context help id prefix.
 	 */
 	public final static String PREFIX = UIPlugin.getUniqueIdentifier() + "."; //$NON-NLS-1$
 
@@ -73,4 +73,9 @@ public interface IContextHelpIds {
 	 * Offline command handler: Make offline operation failed.
 	 */
 	public final static String MESSAGE_MAKEOFFLINE_FAILED = PREFIX + ".status.messageMakeOfflineFailed"; //$NON-NLS-1$
+
+	/**
+	 * Overview editor: Save operation failed.
+	 */
+	public final static String MESSAGE_SAVE_FAILED = PREFIX + ".status.messageSaveFailed"; //$NON-NLS-1$
 }

@@ -9,12 +9,23 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.editor;
 
+import java.io.IOException;
+
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.AttributesSection;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.GeneralInformationSection;
@@ -169,5 +180,51 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage impl
 
 		// Apply the message to the form
 		form.setMessage(message, messageType);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#postDoSave(org.eclipse.core.runtime.IProgressMonitor)
+	 */
+	@Override
+	public void postDoSave(IProgressMonitor monitor) {
+		// If necessary, write the changed peer attributes
+		final Object input = getEditorInputNode();
+		if (input instanceof IPeerModel) {
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					try {
+						// Get the persistence service
+						IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
+						if (uRIPersistenceService == null) {
+							throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
+						}
+						// Save the peer node to the new persistence storage
+						uRIPersistenceService.write(((IPeerModel)input).getPeer(), null);
+					} catch (IOException e) {
+						// Build up the message template
+						String template = NLS.bind(Messages.OverviewEditorPage_error_save, ((IPeerModel)input).getName(), Messages.PossibleCause);
+						// Handle the status
+						StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), input, template, null, IContextHelpIds.MESSAGE_SAVE_FAILED, OverviewEditorPage.this, null);
+					}
+				}
+			};
+			Assert.isTrue(!Protocol.isDispatchThread());
+			Protocol.invokeAndWait(runnable);
+
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					// Trigger a change event for the original data node
+					((IPeerModel)input).fireChangeEvent("properties", null, ((IPeerModel)input).getProperties()); //$NON-NLS-1$
+					// And make sure the editor tabs are updated
+					((IPeerModel)input).fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
+				}
+			});
+
+			// Force a scan of the peer
+			ScannerRunnable runnable2 = new ScannerRunnable(null, ((IPeerModel)input));
+			Protocol.invokeLater(runnable2);
+		}
 	}
 }

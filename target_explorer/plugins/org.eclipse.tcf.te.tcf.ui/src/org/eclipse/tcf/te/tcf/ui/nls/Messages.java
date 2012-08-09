@@ -49,7 +49,10 @@ public class Messages extends NLS {
 
 	// **** Declare externalized string id's down here *****
 
+	public static String PossibleCause;
+
 	public static String OverviewEditorPage_title;
+	public static String OverviewEditorPage_error_save;
 
 	public static String GeneralInformationSection_title;
 	public static String GeneralInformationSection_description;
@@ -60,6 +63,7 @@ public class Messages extends NLS {
 	public static String GeneralInformationSection_state_1;
 	public static String GeneralInformationSection_state_2;
 	public static String GeneralInformationSection_state_3;
+	public static String GeneralInformationSection_error_delete;
 
 	public static String LabelProviderDelegate_state_0;
 	public static String LabelProviderDelegate_state_1;

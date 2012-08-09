@@ -32,6 +32,11 @@ public interface IContextHelpIds {
 	public final static String SCRIPT_PAD_ERROR_OPEN_FILE = PREFIX + "ScriptPadErrorOpenFile"; //$NON-NLS-1$
 
 	/**
+	 * Script Pad error: save failed
+	 */
+	public final static String SCRIPT_PAD_ERROR_SAVE_FILE = PREFIX + "ScriptPadErrorSaveFile"; //$NON-NLS-1$
+
+	/**
 	 * Script Pad error: script play failed
 	 */
 	public final static String SCRIPT_PAD_ERROR_PLAY_FAILED = PREFIX + "ScriptPadErrorPlayFailed"; //$NON-NLS-1$

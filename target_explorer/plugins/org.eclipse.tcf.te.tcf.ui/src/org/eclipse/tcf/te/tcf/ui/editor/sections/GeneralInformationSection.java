@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
@@ -30,6 +31,8 @@ import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodePropert
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
@@ -37,6 +40,7 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerIdControl;
 import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerNameControl;
+import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
@@ -351,7 +355,7 @@ public class GeneralInformationSection extends AbstractSection {
 		// Extract the data into the original data node
 		extractData(od);
 
-		// If the name changed, trigger a save of the data
+		// If the name changed, trigger a delete of the old data
 		if (!oldName.equals(wc.getStringProperty(IPeer.ATTR_NAME))) {
 			try {
 				// Get the persistence service
@@ -365,19 +369,12 @@ public class GeneralInformationSection extends AbstractSection {
 					oldData.put(key, odc.getStringProperty(key));
 				}
 				uRIPersistenceService.delete(new Peer(oldData), null);
-				// Save the peer node to the new persistence storage
-				uRIPersistenceService.write(od.getPeer(), null);
 			} catch (IOException e) {
-				// Pass on to the editor page
+				// Build up the message template
+				String template = NLS.bind(Messages.GeneralInformationSection_error_delete, oldName, Messages.PossibleCause);
+				// Handle the status
+				StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), od, template, null, IContextHelpIds.MESSAGE_DELETE_FAILED, GeneralInformationSection.this, null);
 			}
-
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					// Trigger a change event for the original data node
-					od.fireChangeEvent("properties", null, od.getProperties()); //$NON-NLS-1$
-				}
-			});
 		}
 	}
 

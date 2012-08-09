@@ -35,6 +35,7 @@ public class Messages extends NLS {
 	public static String Monitor_Console_name_with_peer;
 
 	public static String ScriptPad_error_title;
+	public static String ScriptPad_error_possibleCause;
 	public static String ScriptPad_error_openFile;
 	public static String ScriptPad_error_saveFile;
 }

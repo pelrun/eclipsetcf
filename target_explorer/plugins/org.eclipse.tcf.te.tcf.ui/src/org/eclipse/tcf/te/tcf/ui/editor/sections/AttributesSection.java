@@ -9,7 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.editor.sections;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,9 +24,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
@@ -321,31 +318,6 @@ public class AttributesSection extends AbstractSection {
 
 		// Extract the data into the original data node
 		extractData(od);
-
-		// If the working copy and the original data copy differs at this point,
-		// the data changed really and we have to write the peer to the persistence
-		// storage.
-		if (!odc.equals(wc)) {
-			try {
-				// Get the persistence service
-				IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
-				if (uRIPersistenceService == null) {
-					throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
-				}
-				// Save the peer node to the new persistence storage
-				uRIPersistenceService.write(od.getPeer(), null);
-			} catch (IOException e) {
-				// Pass on to the editor page
-			}
-
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					// Trigger a change event for the original data node
-					od.fireChangeEvent("properties", null, od.getProperties()); //$NON-NLS-1$
-				}
-			});
-		}
 	}
 
 	/**

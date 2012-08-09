@@ -33,17 +33,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
-import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.views.Managers;
@@ -330,21 +326,9 @@ public class DeleteHandler extends AbstractHandler {
 						op.execute();
 					}
 				} catch (Exception e) {
-					// Create the status
-					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-									Messages.DeleteHandler_error_deleteFailed, e);
-
-					// Fill in the status handler custom data
-					IPropertiesContainer data = new PropertiesContainer();
-					data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.DeleteHandler_error_title);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.MESSAGE_DELETE_FAILED);
-					data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
-
-					// Get the status handler
-					IStatusHandler[] handler = StatusHandlerManager.getInstance().getHandler(selection);
-					if (handler.length > 0) {
-						handler[0].handleStatus(status, data, null);
-					}
+					String template = NLS.bind(Messages.DeleteHandler_error_deleteFailed, Messages.PossibleCause);
+					StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), selection, template,
+													Messages.DeleteHandler_error_title, IContextHelpIds.MESSAGE_DELETE_FAILED, this, null);
 				}
 
 				if (refreshModel) {

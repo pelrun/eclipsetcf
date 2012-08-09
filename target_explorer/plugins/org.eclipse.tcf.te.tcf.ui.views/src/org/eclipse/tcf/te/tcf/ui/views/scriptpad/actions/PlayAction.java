@@ -21,9 +21,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.tcf.core.scripting.interfaces.IScriptLauncherProperties;
 import org.eclipse.tcf.te.tcf.core.scripting.launcher.ScriptLauncher;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -137,15 +135,8 @@ public class PlayAction extends Action implements IViewActionDelegate, IActionDe
 		    		actionProxy.setEnabled(enabled && !running);
 
 		    		if (status != null && (status.getSeverity() == IStatus.ERROR || status.getSeverity() == IStatus.WARNING)) {
-		    			IStatusHandler[] handler = StatusHandlerManager.getInstance().getHandler(view);
-		    			if (handler != null && handler.length > 0) {
-		    				IPropertiesContainer data = new PropertiesContainer();
-		    				data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.ScriptPad_error_title);
-		    				data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.SCRIPT_PAD_ERROR_PLAY_FAILED);
-		    				data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, view);
-
-		    				handler[0].handleStatus(status, data, null);
-		    			}
+						StatusHandlerUtil.handleStatus(status, view, null,
+														Messages.ScriptPad_error_title, IContextHelpIds.SCRIPT_PAD_ERROR_PLAY_FAILED, this, null);
 		    		}
         		}
         	});

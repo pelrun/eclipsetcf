@@ -32,14 +32,11 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
-import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -47,7 +44,6 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
-import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.dialogs.RenameDialog;
@@ -158,21 +154,9 @@ public class RenameHandler extends AbstractHandler {
 									});
 
 								} catch (IOException e) {
-									// Create the status
-									IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-																Messages.RenameHandler_error_renameFailed, e);
-
-									// Fill in the status handler custom data
-									IPropertiesContainer data = new PropertiesContainer();
-									data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.RenameHandler_error_title);
-									data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.MESSAGE_RENAME_FAILED);
-									data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
-
-									// Get the status handler
-									IStatusHandler[] handler = StatusHandlerManager.getInstance().getHandler(selection);
-									if (handler.length > 0) {
-										handler[0].handleStatus(status, data, null);
-									}
+									String template = NLS.bind(Messages.RenameHandler_error_renameFailed, Messages.PossibleCause);
+									StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), selection, template,
+																	Messages.RenameHandler_error_title, IContextHelpIds.MESSAGE_RENAME_FAILED, this, null);
 								}
 							}
 						}
