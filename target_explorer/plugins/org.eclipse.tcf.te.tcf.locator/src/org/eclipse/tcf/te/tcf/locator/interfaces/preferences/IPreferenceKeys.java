@@ -21,11 +21,6 @@ public interface IPreferenceKeys {
 	public final String PREFIX = "te.tcf.locator.core."; //$NON-NLS-1$
 
 	/**
-	 * If set to <code>true</code>, peers having the same agent id are filtered.
-	 */
-	public final String PREF_FILTER_BY_AGENT_ID = PREFIX + "model.filter.agentid"; //$NON-NLS-1$
-
-	/**
 	 * If set, the preference is defining a list of root locations where
 	 * to lookup the static peer definitions. The single entries in the list
 	 * are separated by the system dependent path separator character.
