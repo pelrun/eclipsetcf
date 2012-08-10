@@ -27,25 +27,25 @@ public interface ITCFModel {
      * @return IChannel interface.
      */
     IChannel getChannel();
-    
+
     /**
      * Get display that is used by this model.
      * @return Display object.
      */
     Display getDisplay();
-    
+
     /**
      * Get launch object associated with this model.
      * @return Launch object.
      */
     Launch getLaunch();
-    
+
     /**
      * Get model object with given ID.
      * @param id - TCF ID of remote object.
      * @return ITCFObject interface or null - if model does not include such object.
      * Note that the model is built lazily (on demand): getNode() can return null even if
-     * "id" is valid ID of existing remote object. 
+     * "id" is valid ID of existing remote object.
      */
     ITCFObject getNode(String id);
 }

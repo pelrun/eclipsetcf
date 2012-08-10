@@ -17,7 +17,7 @@ import org.eclipse.tcf.protocol.Protocol;
 
 /**
  * TCFRunnable is a wrapper for IRequest.
- * It implements Runnable interface and is used by TCFModel to handle the request. 
+ * It implements Runnable interface and is used by TCFModel to handle the request.
  */
 public abstract class TCFRunnable implements Runnable {
 

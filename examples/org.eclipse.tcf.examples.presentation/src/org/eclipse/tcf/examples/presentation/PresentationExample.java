@@ -25,37 +25,37 @@ import org.eclipse.tcf.debug.ui.ITCFPresentationProvider;
 @SuppressWarnings("restriction")
 public class PresentationExample implements ITCFPresentationProvider {
 
-	@Override
-	public boolean onModelCreated(ITCFModel model) {
-		/* true means we want to listen for UI requests on this model */
-		return true;
-	}
+    @Override
+    public boolean onModelCreated(ITCFModel model) {
+        /* true means we want to listen for UI requests on this model */
+        return true;
+    }
 
-	@Override
-	public void onModelDisposed(ITCFModel model) {
-	}
+    @Override
+    public void onModelDisposed(ITCFModel model) {
+    }
 
-	@Override
-	public boolean updateStarted(IRequest request) {
-		/* true means we want the model to start handling of this request */
-		return true;
-	}
+    @Override
+    public boolean updateStarted(IRequest request) {
+        /* true means we want the model to start handling of this request */
+        return true;
+    }
 
-	@Override
-	public boolean updateComplete(IRequest request) {
-		if (request instanceof ILabelUpdate) {
-			ILabelUpdate update = (ILabelUpdate)request;
-			String id = update.getPresentationContext().getId();
-			if (IDebugUIConstants.ID_REGISTER_VIEW.equals(id)) {
-				/* This request is for label in the Registers view.
-				 * Let's override the default icon with something else.
-				 */
-				ImageDescriptor image = DebugUITools.getImageDescriptor(
-						IDebugUIConstants.IMG_OBJS_VARIABLE);
-				update.setImageDescriptor(image, 0);
-			}
-		}
-		/* true means we want the model to finish handling of this request */
-		return true;
-	}
+    @Override
+    public boolean updateComplete(IRequest request) {
+        if (request instanceof ILabelUpdate) {
+            ILabelUpdate update = (ILabelUpdate)request;
+            String id = update.getPresentationContext().getId();
+            if (IDebugUIConstants.ID_REGISTER_VIEW.equals(id)) {
+                /* This request is for label in the Registers view.
+                 * Let's override the default icon with something else.
+                 */
+                ImageDescriptor image = DebugUITools.getImageDescriptor(
+                        IDebugUIConstants.IMG_OBJS_VARIABLE);
+                update.setImageDescriptor(image, 0);
+            }
+        }
+        /* true means we want the model to finish handling of this request */
+        return true;
+    }
 }
