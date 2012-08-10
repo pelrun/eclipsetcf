@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+
 /**
  * The service to refresh the parent locator model from remote.
  */
@@ -17,8 +19,10 @@ public interface ILocatorModelRefreshService extends ILocatorModelService {
 	/**
 	 * Refreshes the list of known peers from the local locator service
 	 * and update the locator model.
+	 *
+	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
 	 */
-	public void refresh();
+	public void refresh(ICallback callback);
 
 	/**
 	 * Refreshes the list of static peers only and merge them with the peers

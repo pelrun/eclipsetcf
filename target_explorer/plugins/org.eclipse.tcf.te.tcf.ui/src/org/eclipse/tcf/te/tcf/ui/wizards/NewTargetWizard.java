@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -26,6 +27,7 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -126,27 +128,30 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 				public void run() {
 					ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
 					// Refresh the model now (must be executed within the TCF dispatch thread)
-					if (service != null) service.refresh();
-
-					// Get the peer model node from the model and select it in the tree
-					final IPeerModel peerNode = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
-					if (peerNode != null) {
-						// Refresh the viewer
-						ViewsUtil.refresh(IUIConstants.ID_EXPLORER);
-						// Create the selection
-						ISelection selection = new StructuredSelection(peerNode);
-						// Set the selection
-						ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, selection);
-						// And open the properties on the selection
-						if (isOpenPropertiesOnPerformFinish()) ViewsUtil.openProperties(selection);
-						// Allow subclasses to add logic to the performFinish().
-						DisplayUtil.safeAsyncExec(new Runnable() {
-							@Override
-							public void run() {
-								postPerformFinish(peerNode);
+					if (service != null) service.refresh(new Callback() {
+						@Override
+						protected void internalDone(Object caller, IStatus status) {
+							// Get the peer model node from the model and select it in the tree
+							final IPeerModel peerNode = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
+							if (peerNode != null) {
+								// Refresh the viewer
+								ViewsUtil.refresh(IUIConstants.ID_EXPLORER);
+								// Create the selection
+								ISelection selection = new StructuredSelection(peerNode);
+								// Set the selection
+								ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, selection);
+								// And open the properties on the selection
+								if (isOpenPropertiesOnPerformFinish()) ViewsUtil.openProperties(selection);
+								// Allow subclasses to add logic to the performFinish().
+								DisplayUtil.safeAsyncExec(new Runnable() {
+									@Override
+									public void run() {
+										postPerformFinish(peerNode);
+									}
+								});
 							}
-						});
-					}
+						}
+					});
 				}
 			});
 		} catch (IOException e) {

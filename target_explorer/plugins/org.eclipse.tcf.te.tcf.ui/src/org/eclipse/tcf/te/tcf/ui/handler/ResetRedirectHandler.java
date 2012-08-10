@@ -106,7 +106,7 @@ public class ResetRedirectHandler extends AbstractHandler {
 				Protocol.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						Model.getModel().getService(ILocatorModelRefreshService.class).refresh();
+						Model.getModel().getService(ILocatorModelRefreshService.class).refresh(null);
 					}
 				});
 			} catch (IOException e) {

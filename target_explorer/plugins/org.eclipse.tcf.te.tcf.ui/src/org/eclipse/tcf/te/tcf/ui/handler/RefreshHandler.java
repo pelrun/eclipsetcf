@@ -99,8 +99,12 @@ public class RefreshHandler extends AbstractHandler {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						finModel.getService(ILocatorModelRefreshService.class).refresh();
-						innerCallback.done(this, Status.OK_STATUS);
+						finModel.getService(ILocatorModelRefreshService.class).refresh(new Callback() {
+							@Override
+							protected void internalDone(Object caller, IStatus status) {
+								innerCallback.done(this, Status.OK_STATUS);
+							}
+						});
 					}
 				};
 				Protocol.invokeLater(runnable);

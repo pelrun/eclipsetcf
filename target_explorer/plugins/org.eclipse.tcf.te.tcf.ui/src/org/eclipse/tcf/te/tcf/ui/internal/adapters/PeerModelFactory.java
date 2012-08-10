@@ -58,7 +58,7 @@ public class PeerModelFactory implements IElementFactory {
 				Runnable runnable2 = new Runnable() {
 					@Override
 					public void run() {
-						Model.getModel().getService(ILocatorModelRefreshService.class).refresh();
+						Model.getModel().getService(ILocatorModelRefreshService.class).refresh(null);
 						node.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId));
 					}
 				};

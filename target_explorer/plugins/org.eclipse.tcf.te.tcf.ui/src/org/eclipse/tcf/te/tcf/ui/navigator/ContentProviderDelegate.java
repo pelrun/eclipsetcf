@@ -443,7 +443,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
 		final ILocatorModel model = Model.getModel();
 
 		// Create and attach the model listener if not yet done
@@ -462,7 +462,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					model.getService(ILocatorModelRefreshService.class).refresh();
+					model.getService(ILocatorModelRefreshService.class).refresh(null);
 				}
 			});
 		}

@@ -24,9 +24,11 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -62,11 +64,29 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		super(parentModel);
 	}
 
+	/**
+	 * Asynchronously invoke the callback within the TCF dispatch thread.
+	 *
+	 * @param callback The callback to invoke or <code>null</code>.
+	 */
+	protected final void invokeCallback(final ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		if (callback != null) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+				}
+			});
+		}
+	}
+
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.services.ILocatorModelRefreshService#refresh()
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService#refresh(org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void refresh() {
+	public void refresh(final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the parent locator model
@@ -74,11 +94,13 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 
 		// If the parent model is already disposed, the service will drop out immediately
 		if (model.isDisposed()) {
+			invokeCallback(callback);
 			return;
 		}
 
 		// If the TCF framework isn't initialized yet, the service will drop out immediately
 		if (!Tcf.isRunning()) {
+			invokeCallback(callback);
 			return;
 		}
 
@@ -105,6 +127,9 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		for (IPeerModel oldChild : oldChildren) {
 			model.getService(ILocatorModelUpdateService.class).remove(oldChild);
 		}
+
+		// Invoke the callback
+		invokeCallback(callback);
 	}
 
 	/**

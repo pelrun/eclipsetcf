@@ -339,9 +339,13 @@ public class DeleteHandler extends AbstractHandler {
 						public void run() {
 							ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
 							// Refresh the model now (must be executed within the TCF dispatch thread)
-							if (service != null) service.refresh();
-							// Invoke the callback
-							callback.done(DeleteHandler.this, Status.OK_STATUS);
+							if (service != null) service.refresh(new Callback() {
+								@Override
+								protected void internalDone(Object caller, IStatus status) {
+									// Invoke the callback
+									callback.done(DeleteHandler.this, Status.OK_STATUS);
+								}
+							});
 						}
 					});
 				}

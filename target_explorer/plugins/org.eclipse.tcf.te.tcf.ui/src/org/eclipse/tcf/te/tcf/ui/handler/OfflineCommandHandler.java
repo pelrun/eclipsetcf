@@ -72,7 +72,7 @@ public class OfflineCommandHandler extends AbstractHandler {
 					public void run() {
 						ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
 						// Refresh the model now (must be executed within the TCF dispatch thread)
-						if (service != null) service.refresh();
+						if (service != null) service.refresh(null);
 					}
 				});
 			}

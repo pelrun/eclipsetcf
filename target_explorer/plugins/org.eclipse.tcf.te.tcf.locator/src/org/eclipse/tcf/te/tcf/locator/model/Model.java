@@ -78,7 +78,7 @@ public final class Model {
 		// Create the model instance
 		locatorModel = new LocatorModel();
 		// Refresh the model right away
-		locatorModel.getService(ILocatorModelRefreshService.class).refresh();
+		locatorModel.getService(ILocatorModelRefreshService.class).refresh(null);
 		// Start the scanner
 		locatorModel.startScanner(5000, 120000);
 	}
