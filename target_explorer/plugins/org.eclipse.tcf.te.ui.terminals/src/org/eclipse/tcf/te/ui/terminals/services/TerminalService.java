@@ -75,7 +75,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 		String title = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TITLE);
 		Object data = properties.getProperty(ITerminalsConnectorConstants.PROP_DATA);
 
-		// Normalize the terminal console view id
+		// Normalize the terminals console view id
 		id = normalizeId(id, data);
 		// Normalize the terminal console tab title
 		title = normalizeTitle(title, data);
@@ -115,7 +115,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 	 * @param id The terminals view id or <code>null</code>.
 	 * @param data The custom data object or <code>null</code>.
 	 *
-	 * @return The normalized terminal console view id.
+	 * @return The normalized terminals console view id.
 	 */
 	protected String normalizeId(String id, Object data) {
 		return id != null ? id : IUIConstants.ID;
@@ -173,8 +173,10 @@ public class TerminalService extends AbstractService implements ITerminalService
 		executeServiceOperation(properties, new TerminalServiceRunnable() {
 			@Override
 			public void run(String id, String title, ITerminalConnector connector, Object data, ICallback callback) {
+				// Determine if a new terminal tab shall be enforced
+				boolean forceNew = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW);
 				// Open the new console
-				ConsoleManager.getInstance().openConsole(id, title, connector, data, true);
+				ConsoleManager.getInstance().openConsole(id, title, connector, data, true, forceNew);
 				// Invoke the callback
 				if (callback != null) {
 					callback.done(this, Status.OK_STATUS);

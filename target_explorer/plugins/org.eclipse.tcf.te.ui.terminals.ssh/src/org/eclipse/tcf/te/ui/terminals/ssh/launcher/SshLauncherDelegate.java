@@ -13,6 +13,7 @@ package org.eclipse.tcf.te.ui.terminals.ssh.launcher;
 import java.text.DateFormat;
 import java.util.Date;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -51,10 +52,18 @@ public class SshLauncherDelegate extends AbstractLauncherDelegate {
 	 */
 	@Override
 	public void execute(IPropertiesContainer properties, ICallback callback) {
+		Assert.isNotNull(properties);
+
 		// Set the terminal tab title
 		String terminalTitle = getTerminalTitle(properties);
 		if (terminalTitle != null) {
 			properties.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
+		}
+
+		// For SSH terminals, force a new terminal tab each time it is launched,
+		// if not set otherwise from outside
+		if (properties.getProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW) == null) {
+			properties.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
 		}
 
 		// Get the terminal service

@@ -36,7 +36,7 @@ import org.eclipse.ui.IWorkbenchActionConstants;
  */
 @SuppressWarnings("restriction")
 public class TabFolderMenuHandler extends PlatformObject {
-	// Reference to the parent terminal console view
+	// Reference to the parent terminals console view
 	private final ITerminalsView parentView;
 	// Reference to the tab folder context menu manager
 	private MenuManager contextMenuManager;
@@ -73,7 +73,7 @@ public class TabFolderMenuHandler extends PlatformObject {
 	/**
 	 * Constructor.
 	 *
-	 * @param parentView The parent terminal console view. Must not be <code>null</code>.
+	 * @param parentView The parent terminals console view. Must not be <code>null</code>.
 	 */
 	public TabFolderMenuHandler(ITerminalsView parentView) {
 		super();
@@ -82,9 +82,9 @@ public class TabFolderMenuHandler extends PlatformObject {
 	}
 
 	/**
-	 * Returns the parent terminal console view.
+	 * Returns the parent terminals console view.
 	 *
-	 * @return The parent terminal console view instance.
+	 * @return The parent terminals console view instance.
 	 */
 	protected final ITerminalsView getParentView() {
 		return parentView;

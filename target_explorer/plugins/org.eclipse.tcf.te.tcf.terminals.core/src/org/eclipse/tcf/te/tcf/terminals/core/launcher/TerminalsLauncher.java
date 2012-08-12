@@ -405,6 +405,7 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 			PropertiesContainer props = new PropertiesContainer();
 			props.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.terminals"); //$NON-NLS-1$
 			props.setProperty(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
+			props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
 			// Set the terminal tab title
 			String terminalTitle = getTerminalTitle();
 			if (terminalTitle != null) {

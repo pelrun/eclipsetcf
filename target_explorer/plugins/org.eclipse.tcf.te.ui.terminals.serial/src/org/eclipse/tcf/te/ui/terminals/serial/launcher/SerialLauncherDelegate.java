@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.terminals.serial.launcher;
 import java.text.DateFormat;
 import java.util.Date;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -50,6 +51,8 @@ public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 	 */
 	@Override
 	public void execute(IPropertiesContainer properties, ICallback callback) {
+		Assert.isNotNull(properties);
+
 		// Set the terminal tab title
 		String terminalTitle = getTerminalTitle(properties);
 		if (terminalTitle != null) {

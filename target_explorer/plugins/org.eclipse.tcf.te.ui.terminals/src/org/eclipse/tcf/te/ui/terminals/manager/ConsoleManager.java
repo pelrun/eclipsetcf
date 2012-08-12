@@ -66,7 +66,7 @@ public class ConsoleManager {
 			List<IViewReference> references = new ArrayList<IViewReference>(Arrays.asList(page.getViewReferences()));
 			for (IViewReference reference : oldReferences) {
 				if (references.contains(reference)) continue;
-				// Previous visible terminal console view reference, make visible again
+				// Previous visible terminals console view reference, make visible again
 				try {
 					page.showView(reference.getId(), reference.getSecondaryId(), IWorkbenchPage.VIEW_VISIBLE);
 				} catch (PartInitException e) { /* Failure on part instantiation is ignored */ }
@@ -134,7 +134,9 @@ public class ConsoleManager {
 	 * <p>
 	 * <b>Note:</b> The method must be called within the UI thread.
 	 *
-	 * @param id The terminals console view id or <code>null</code> to show the default terminal console view.
+	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
+	 * @param secondaryId The terminals console view secondary id or <code>null</code>.
+	 *
 	 * @return The console view instance if available or <code>null</code> otherwise.
 	 */
 	public ITerminalsView findConsoleView(String id, String secondaryId) {
@@ -146,7 +148,7 @@ public class ConsoleManager {
 		IWorkbenchPage page = getActiveWorkbenchPage();
 		if (page != null) {
 			// Look for the view
-			IViewPart part=getTerminalsViewWithSecondaryId(id != null ? id : IUIConstants.ID, secondaryId);
+			IViewPart part = getTerminalsViewWithSecondaryId(id != null ? id : IUIConstants.ID, secondaryId);
 			// Check the interface
 			if (part instanceof ITerminalsView) {
 				view = (ITerminalsView)part;
@@ -289,11 +291,11 @@ public class ConsoleManager {
 	}
 
 	/**
-	 * Show the terminal console view specified by the given id.
+	 * Show the terminals console view specified by the given id.
 	 * <p>
 	 * <b>Note:</b> The method must be called within the UI thread.
 	 *
-	 * @param id The terminal console view id or <code>null</code> to show the default terminal console view.
+	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
 	 */
 	public IViewPart showConsoleView(String id, String secondaryId) {
 		Assert.isNotNull(Display.findDisplay(Thread.currentThread()));
@@ -317,9 +319,9 @@ public class ConsoleManager {
 	}
 
 	/**
-	 * Bring the terminal console view, specified by the given id, to the top of the view stack.
+	 * Bring the terminals console view, specified by the given id, to the top of the view stack.
 	 *
-	 * @param id The terminal console view id or <code>null</code> to show the default terminal console view.
+	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
 	 * @param activate If <code>true</code> activate the console view.
 	 */
 	private IViewPart bringToTop(String id, boolean activate) {
@@ -384,13 +386,14 @@ public class ConsoleManager {
 	 * <p>
 	 * <b>Note:</b> The method must be called within the UI thread.
 	 *
-	 * @param id The terminal console view id or <code>null</code> to show the default terminal console view.
+	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
 	 * @param title The console title. Must not be <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.
 	 * @param activate If <code>true</code> activate the console view.
+	 * @param forceNew If <code>true</code> a new console tab is created even if another one matches the criteria.
 	 */
-	public void openConsole(String id, String title, ITerminalConnector connector, Object data, boolean activate) {
+	public void openConsole(String id, String title, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
 		Assert.isNotNull(Display.findDisplay(Thread.currentThread()));
@@ -411,8 +414,8 @@ public class ConsoleManager {
 
 		CTabItem item = findConsole(id, secId, title, connector, data);
 
-		// If no existing console exist -> Create the tab item
-		if (item == null) {
+		// If no existing console exist or forced -> Create the tab item
+		if (item == null || forceNew) {
 			// If configured, check all existing tab items if they are associated
 			// with terminated consoles
 			if (UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_REMOVE_TERMINATED_TERMINALS)) {
@@ -443,7 +446,8 @@ public class ConsoleManager {
 	 * <b>Note:</b> The method must be called within the UI thread.
 	 * <b>Note:</b> The method will handle unified console titles itself.
 	 *
-	 * @param id The terminal console view id or <code>null</code> to show the default terminal console view.
+	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
+	 * @param secondaryId The terminals console view secondary id or <code>null</code>.
 	 * @param title The console title. Must not be <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.
@@ -471,7 +475,7 @@ public class ConsoleManager {
 	 * <p>
 	 * <b>Note:</b> The method will handle unified console titles itself.
 	 *
-	 * @param id The terminal console view id or <code>null</code> to show the default terminal console view.
+	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
 	 * @param title The console title. Must not be <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.

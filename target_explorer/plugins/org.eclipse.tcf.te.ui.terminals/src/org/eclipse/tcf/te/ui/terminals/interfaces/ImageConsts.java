@@ -45,7 +45,7 @@ public interface ImageConsts {
     public final static String  IMAGE_DIR_EVIEW = "eview16/"; //$NON-NLS-1$
 
     /**
-     * The key to access the terminal consoles view image.
+     * The key to access the terminals console view image.
      */
     public static final String VIEW_Terminals = "TerminalsView"; //$NON-NLS-1$
 

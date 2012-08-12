@@ -40,7 +40,7 @@ import org.eclipse.ui.IWorkbenchActionConstants;
  */
 @SuppressWarnings("restriction")
 public class TabFolderToolbarHandler extends PlatformObject {
-	// Reference to the parent terminal console view
+	// Reference to the parent terminals console view
 	private final ITerminalsView parentView;
 	// Reference to the toolbar manager
 	private IToolBarManager toolbarManager;
@@ -77,7 +77,7 @@ public class TabFolderToolbarHandler extends PlatformObject {
 	/**
 	 * Constructor.
 	 *
-	 * @param parentView The parent terminal console view. Must not be <code>null</code>.
+	 * @param parentView The parent terminals console view. Must not be <code>null</code>.
 	 */
 	public TabFolderToolbarHandler(ITerminalsView parentView) {
 		super();
@@ -86,9 +86,9 @@ public class TabFolderToolbarHandler extends PlatformObject {
 	}
 
 	/**
-	 * Returns the parent terminal console view.
+	 * Returns the parent terminals console view.
 	 *
-	 * @return The terminal console view instance.
+	 * @return The terminals console view instance.
 	 */
 	protected final ITerminalsView getParentView() {
 		return parentView;

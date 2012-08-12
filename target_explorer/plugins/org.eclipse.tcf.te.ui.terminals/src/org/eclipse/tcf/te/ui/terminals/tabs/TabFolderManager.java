@@ -211,7 +211,7 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	/**
 	 * Constructor.
 	 *
-	 * @param parentView The parent terminal console view. Must not be <code>null</code>.
+	 * @param parentView The parent terminals console view. Must not be <code>null</code>.
 	 */
 	public TabFolderManager(ITerminalsView parentView) {
 		super();
@@ -498,9 +498,9 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		for (CTabItem item : tabFolder.getItems()) {
 			// Get the tab item title
 			titles.add(item.getText());
-			// Make the proposal unique be appending (<n>) against all known titles.
-			while (titles.contains(title)) title = proposal + " (" + index++ + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 		}
+		// Make the proposal unique be appending (<n>) against all known titles.
+		while (titles.contains(title)) title = proposal + " (" + ++index + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 
 		return title;
 	}

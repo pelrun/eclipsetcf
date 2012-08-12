@@ -311,18 +311,7 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 
 			// Disconnect from the stream
 			if (svcStreams != null) {
-				svcStreams.disconnect(streamId, new IStreams.DoneDisconnect() {
-					@Override
-                    @SuppressWarnings("synthetic-access")
-					public void doneDisconnect(IToken token, Exception error) {
-						synchronized (this) {
-							// Mark the runnable definitely stopped
-							stopped = true;
-						}
-						// Disconnect is done, ignore any error, invoke the callback
-						if (getCallback() != null) getCallback().done(this, Status.OK_STATUS);
-					}
-				});
+				disconnect(svcStreams, streamId);
 			} else {
 				synchronized (this) {
 					// Mark the runnable definitely stopped
@@ -371,6 +360,36 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 
 			// Block until some data is received
 			return task.get();
+		}
+
+		/**
+		 * Disconnects from the stream.
+		 *
+		 * @param service The streams service. Must not be <code>null</code>.
+		 * @param streamId The stream id. Must not be <code>null</code>.
+		 */
+		protected final void disconnect(final IStreams service, final String streamId) {
+			Assert.isNotNull(service);
+			Assert.isNotNull(streamId);
+			Assert.isTrue(!Protocol.isDispatchThread());
+
+			Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					service.disconnect(streamId, new IStreams.DoneDisconnect() {
+						@Override
+	                    @SuppressWarnings("synthetic-access")
+						public void doneDisconnect(IToken token, Exception error) {
+							synchronized (this) {
+								// Mark the runnable definitely stopped
+								stopped = true;
+							}
+							// Disconnect is done, ignore any error, invoke the callback
+							if (getCallback() != null) getCallback().done(this, Status.OK_STATUS);
+						}
+					});
+				}
+			});
 		}
 
 		/**
@@ -560,25 +579,7 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 
 			// Disconnect from the stream
 			if (svcStreams != null) {
-				// Write EOS first
-				svcStreams.eos(streamId, new IStreams.DoneEOS() {
-					@Override
-					public void doneEOS(IToken token, Exception error) {
-						// Disconnect now
-						svcStreams.disconnect(streamId, new IStreams.DoneDisconnect() {
-							@Override
-		                    @SuppressWarnings("synthetic-access")
-							public void doneDisconnect(IToken token, Exception error) {
-								synchronized (this) {
-									// Mark the runnable definitely stopped
-									stopped = true;
-								}
-								// Disconnect is done, ignore any error, invoke the callback
-								if (getCallback() != null) getCallback().done(this, Status.OK_STATUS);
-							}
-						});
-					}
-				});
+				disconnect(svcStreams, streamId);
 			} else {
 				synchronized (this) {
 					// Mark the runnable definitely stopped
@@ -628,7 +629,44 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 			// Execute the write
 			task.get();
 		}
-	}
+
+		/**
+		 * Disconnects from the stream.
+		 *
+		 * @param service The streams service. Must not be <code>null</code>.
+		 * @param streamId The stream id. Must not be <code>null</code>.
+		 */
+		protected final void disconnect(final IStreams service, final String streamId) {
+			Assert.isNotNull(service);
+			Assert.isNotNull(streamId);
+			Assert.isTrue(!Protocol.isDispatchThread());
+
+			Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					// Write EOS first
+					service.eos(streamId, new IStreams.DoneEOS() {
+						@Override
+						public void doneEOS(IToken token, Exception error) {
+							// Disconnect now
+							service.disconnect(streamId, new IStreams.DoneDisconnect() {
+								@Override
+			                    @SuppressWarnings("synthetic-access")
+								public void doneDisconnect(IToken token, Exception error) {
+									synchronized (this) {
+										// Mark the runnable definitely stopped
+										stopped = true;
+									}
+									// Disconnect is done, ignore any error, invoke the callback
+									if (getCallback() != null) getCallback().done(this, Status.OK_STATUS);
+								}
+							});
+						}
+					});
+				}
+			});
+		}
+}
 
 	/**
 	 * Constructor.

@@ -31,6 +31,11 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_DATA = "data"; //$NON-NLS-1$
 
 	/**
+	 * Property: Flag to force a new terminal tab.
+	 */
+	public static final String PROP_FORCE_NEW = "forceNew"; //$NON-NLS-1$
+
+	/**
 	 * Property: Terminals connector type id.
 	 */
 	public static final String PROP_CONNECTOR_TYPE_ID = "connector.type.id"; //$NON-NLS-1$

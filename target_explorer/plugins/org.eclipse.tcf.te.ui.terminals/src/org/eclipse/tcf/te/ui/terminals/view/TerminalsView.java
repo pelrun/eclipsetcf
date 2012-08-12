@@ -390,7 +390,7 @@ public class TerminalsView extends ViewPart implements ITerminalsView {
 	}
 
 	/**
-	 * Returns the context help id associated with the terminal console view instance.
+	 * Returns the context help id associated with the terminals console view instance.
 	 * <p>
 	 * <b>Note:</b> The default implementation returns the view id as context help id.
 	 *
