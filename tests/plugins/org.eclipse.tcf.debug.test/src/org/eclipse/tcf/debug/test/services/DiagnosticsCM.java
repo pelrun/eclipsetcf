@@ -12,6 +12,7 @@ package org.eclipse.tcf.debug.test.services;
 
 import org.eclipse.tcf.debug.test.util.ICache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.services.IDiagnostics.ISymbol;
@@ -22,7 +23,8 @@ import org.eclipse.tcf.services.IDiagnostics.ISymbol;
 public class DiagnosticsCM extends AbstractCacheManager{
     private IDiagnostics fService;
     
-    public DiagnosticsCM(IDiagnostics service) {
+    public DiagnosticsCM(IChannel channel, IDiagnostics service) {
+        super(channel);
         fService = service;
     }
     
@@ -33,6 +35,7 @@ public class DiagnosticsCM extends AbstractCacheManager{
 
     public ICache<String> echo(final String msg, Object clientId) {
         class MyCache extends TokenCache<String> implements IDiagnostics.DoneEcho {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.echo(msg, this);
@@ -49,6 +52,7 @@ public class DiagnosticsCM extends AbstractCacheManager{
     
     public ICache<String[]> getTestList() {
         class MyCache extends TokenCache<String[]> implements IDiagnostics.DoneGetTestList {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.getTestList(this);
@@ -65,6 +69,7 @@ public class DiagnosticsCM extends AbstractCacheManager{
     
     public ICache<String> runTest(final String name, Object clientId) {
         class MyCache extends TokenCache<String> implements IDiagnostics.DoneRunTest {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.runTest(name, this);
@@ -81,6 +86,7 @@ public class DiagnosticsCM extends AbstractCacheManager{
 
     public ICache<Object> cancelTest(final String context_id, Object clientId) {
         class MyCache extends TokenCache<Object> implements IDiagnostics.DoneCancelTest {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.cancelTest(context_id, this);
@@ -119,6 +125,7 @@ public class DiagnosticsCM extends AbstractCacheManager{
     
     public ICache<IDiagnostics.ISymbol> getSymbol(final String context_id, final String symbol_name) {
         class MyCache extends TokenCache<IDiagnostics.ISymbol> implements IDiagnostics.DoneGetSymbol {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.getSymbol(context_id, symbol_name, this);

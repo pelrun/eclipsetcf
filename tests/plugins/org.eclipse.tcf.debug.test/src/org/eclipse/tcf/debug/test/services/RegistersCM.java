@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.eclipse.tcf.debug.test.util.ICache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IRegisters;
 import org.eclipse.tcf.services.IRegisters.RegistersContext;
@@ -29,7 +30,8 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
     private final ResetMap fRunControlStateResetMap = new ResetMap();
     private final ResetMap fRegistersMap = new ResetMap();
     
-    public RegistersCM(IRegisters service, IRunControl runControl) {
+    public RegistersCM(IChannel channel, IRegisters service, IRunControl runControl) {
+        super(channel);
         fService = service;
         fRunControl = runControl;
         fRunControl.addListener(this);
@@ -43,6 +45,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
 
     public ICache<String[]> getChildren(final String id) {
         class MyCache extends TokenCache<String[]> implements IRegisters.DoneGetChildren {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.getChildren(id, this);
@@ -61,6 +64,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
 
     public ICache<RegistersContext> getContext(final String id) {
         class MyCache extends TokenCache<RegistersContext> implements IRegisters.DoneGetContext {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.getContext(id, this);
@@ -79,6 +83,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
     
     public ICache<byte[]> getContextValue(final RegistersContext context) {
         class MyCache extends TokenCache<byte[]> implements IRegisters.DoneGet {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return context.get(this);
@@ -120,6 +125,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
     
     public ICache<Object> setContextValue(final RegistersContext context, Object clientKey, final byte[] value) {
         class MyCache extends TokenCache<Object> implements IRegisters.DoneSet {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return context.set(value, this);

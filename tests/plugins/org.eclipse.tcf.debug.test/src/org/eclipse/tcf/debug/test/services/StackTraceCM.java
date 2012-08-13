@@ -23,6 +23,7 @@ import org.eclipse.tcf.debug.test.util.RangeCache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
 import org.eclipse.tcf.debug.test.util.Transaction;
 import org.eclipse.tcf.debug.test.util.TransactionCache;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemory.MemoryContext;
@@ -120,7 +121,8 @@ public class StackTraceCM extends AbstractCacheManager {
         }
     };
     
-    public StackTraceCM(IStackTrace service, RunControlCM runControlCM, IMemory memory, IMemoryMap memoryMap) {
+    public StackTraceCM(IChannel channel, IStackTrace service, RunControlCM runControlCM, IMemory memory, IMemoryMap memoryMap) {
+        super(channel);
         fService = service;
         fRunControlCM = runControlCM;
         fRunControlCM.getService().addListener(fRunControlListener);
@@ -142,6 +144,8 @@ public class StackTraceCM extends AbstractCacheManager {
         class MyCache extends TransactionCache<String[]> {
 
             class InnerCache extends TokenCache<String[]> implements IStackTrace.DoneGetChildren {
+                InnerCache() { super(fChannel); }
+                
                 @Override
                 protected IToken retrieveToken() {
                     return fService.getChildren(id, this);
@@ -214,6 +218,8 @@ public class StackTraceCM extends AbstractCacheManager {
         
         class MyCache extends TransactionCache<StackTraceContext[]> {
             class InnerCache extends TokenCache<StackTraceContext[]> implements IStackTrace.DoneGetContext {
+                InnerCache() { super(fChannel); }
+                
                 @Override
                 protected IToken retrieveToken() {
                     return fService.getContext(ids, this);

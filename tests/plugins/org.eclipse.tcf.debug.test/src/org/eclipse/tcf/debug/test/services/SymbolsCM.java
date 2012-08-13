@@ -18,6 +18,7 @@ import org.eclipse.tcf.debug.test.util.AbstractCache;
 import org.eclipse.tcf.debug.test.util.ICache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
 import org.eclipse.tcf.debug.test.util.TransactionCache;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IMemoryMap.MemoryMapListener;
@@ -38,7 +39,8 @@ public class SymbolsCM extends AbstractCacheManager {
     private IMemoryMap fMemoryMap;
     private RunControlCM fRunControlCM;
     
-    public SymbolsCM(ISymbols service, RunControlCM runControl, IMemoryMap memoryMap) {
+    public SymbolsCM(IChannel channel, ISymbols service, RunControlCM runControl, IMemoryMap memoryMap) {
+        super(channel);
         fService = service;
         fRunControlCM = runControl;
         fRunControlCM.addListener(fRunControlListener);
@@ -103,6 +105,7 @@ public class SymbolsCM extends AbstractCacheManager {
     private class InnerChildrenCache extends TokenCache<String[]> implements ISymbols.DoneGetChildren {
         private final String fId;
         public InnerChildrenCache(String id) {
+            super(fChannel);
             fId = id;
         }
         
@@ -131,6 +134,8 @@ public class SymbolsCM extends AbstractCacheManager {
         class MyCache extends TransactionCache<Symbol> {
 
             class InnerCache extends TokenCache<Symbol> implements ISymbols.DoneGetContext{
+                InnerCache() { super(fChannel); }
+                
                 @Override
                 protected IToken retrieveToken() {
                     return fService.getContext(id, this);
@@ -162,6 +167,8 @@ public class SymbolsCM extends AbstractCacheManager {
     public ICache<Map<String, Object>> getLocationInfo(final String symbol_id) {
 
         class InnerCache extends TokenCache<Map<String,Object>> implements ISymbols.DoneGetLocationInfo {
+            InnerCache() { super(fChannel); }
+            
             @Override
             protected IToken retrieveToken() {
                 return fService.getLocationInfo(symbol_id, this);
@@ -216,6 +223,7 @@ public class SymbolsCM extends AbstractCacheManager {
         private final String fName;
         
         public InnerFindCache(String id, Number ip, String name) {
+            super(fChannel);
             fId = id;
             fIp = ip;
             fName = name;
@@ -276,6 +284,7 @@ public class SymbolsCM extends AbstractCacheManager {
         private final Number fAddr;
         
         public InnerFindByAddrCache(String id, Number addr) {
+            super(fChannel);
             fId = id;
             fAddr = addr;
         }

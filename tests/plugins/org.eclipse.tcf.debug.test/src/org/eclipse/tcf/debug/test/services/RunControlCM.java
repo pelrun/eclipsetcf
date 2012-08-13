@@ -23,6 +23,7 @@ import org.eclipse.tcf.debug.test.util.DataCallback;
 import org.eclipse.tcf.debug.test.util.ICache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
 import org.eclipse.tcf.debug.test.util.Transaction;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IRunControl.DoneCommand;
@@ -39,7 +40,8 @@ public class RunControlCM extends AbstractCacheManager implements RunControlList
     private final ResetMap fChildrenResetMap = new ResetMap();
     private final List<RunControlListener> fListeners = new ArrayList<RunControlListener>();
     
-    public RunControlCM(IRunControl service) {
+    public RunControlCM(IChannel channel, IRunControl service) {
+        super(channel);
         fService = service;
         fService.addListener(this);
     }
@@ -83,6 +85,8 @@ public class RunControlCM extends AbstractCacheManager implements RunControlList
     }
     
     private abstract class RunControlTokenCache<V> extends TokenCache<V> {
+        RunControlTokenCache() { super(fChannel); }
+            
         abstract protected String getId();
         
         protected void set(IToken token, V data, Throwable error) {
@@ -94,6 +98,7 @@ public class RunControlCM extends AbstractCacheManager implements RunControlList
     private class ChildrenCache extends TokenCache<String[]> implements IRunControl.DoneGetChildren {
         private final String fId;
         public ChildrenCache(String id) {
+            super(fChannel);
             fId = id;
         }
         
@@ -138,6 +143,7 @@ public class RunControlCM extends AbstractCacheManager implements RunControlList
             private final RunControlContext fContext;
             
             public InnerContextStateCache(RunControlContext context) {
+                super(fChannel);
                 fContext = context;
             }
             
@@ -230,7 +236,9 @@ public class RunControlCM extends AbstractCacheManager implements RunControlList
         }
     }
 
-    private abstract static class DoneCommandCache extends TokenCache<Object> implements DoneCommand {
+    private abstract class DoneCommandCache extends TokenCache<Object> implements DoneCommand {
+        DoneCommandCache() { super(fChannel); }
+        
         public void doneCommand(IToken token, Exception error) {
             set(token, null, error);
         }

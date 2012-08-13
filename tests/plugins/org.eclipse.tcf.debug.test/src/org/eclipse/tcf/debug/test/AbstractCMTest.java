@@ -219,14 +219,14 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
     }
 
     protected void setUpServiceListeners() throws Exception{
-        fRunControlCM = new RunControlCM(rc);
-        fDiagnosticsCM = new DiagnosticsCM(diag);
-        fBreakpointsCM = new BreakpointsCM(bp);
-        fStackTraceCM = new StackTraceCM(stk, fRunControlCM, fMemory, fMemoryMap);
-        fSymbolsCM = new SymbolsCM(syms, fRunControlCM, fMemoryMap);
-        fLineNumbersCM = new LineNumbersCM(fLineNumbers, fMemoryMap, fRunControlCM);
-        fRegistersCM = new RegistersCM(fRegisters, rc);
-        fProcessesCM = new ProcessesCM(fProcesses);
+        fRunControlCM = new RunControlCM(channels[0], rc);
+        fDiagnosticsCM = new DiagnosticsCM(channels[0], diag);
+        fBreakpointsCM = new BreakpointsCM(channels[0], bp);
+        fStackTraceCM = new StackTraceCM(channels[0], stk, fRunControlCM, fMemory, fMemoryMap);
+        fSymbolsCM = new SymbolsCM(channels[0], syms, fRunControlCM, fMemoryMap);
+        fLineNumbersCM = new LineNumbersCM(channels[0], fLineNumbers, fMemoryMap, fRunControlCM);
+        fRegistersCM = new RegistersCM(channels[0], fRegisters, rc);
+        fProcessesCM = new ProcessesCM(channels[0], fProcesses);
     }
 
     protected void tearDownServiceListeners() throws Exception{

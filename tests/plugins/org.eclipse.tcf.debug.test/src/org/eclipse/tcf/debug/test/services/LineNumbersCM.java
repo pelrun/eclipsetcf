@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import org.eclipse.tcf.debug.test.util.ICache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
 import org.eclipse.tcf.debug.test.util.TransactionCache;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.ILineNumbers.CodeArea;
@@ -34,7 +35,8 @@ public class LineNumbersCM extends AbstractCacheManager {
     private IMemoryMap fMemoryMap;
     private RunControlCM fRunControlCM;
 
-    public LineNumbersCM(ILineNumbers lineNumbers, IMemoryMap memMap, RunControlCM runControlCM) {
+    public LineNumbersCM(IChannel channel, ILineNumbers lineNumbers, IMemoryMap memMap, RunControlCM runControlCM) {
+        super(channel);
         fService = lineNumbers;
         fMemoryMap = memMap;
         fMemoryMap.addListener(fMemoryMapListener);
@@ -95,6 +97,7 @@ public class LineNumbersCM extends AbstractCacheManager {
 
     private ICache<CodeArea[]> doMapToSource(final String mem_id, final Number start_address, final Number end_address) {
         class MyCache extends TokenCache<CodeArea[]> implements ILineNumbers.DoneMapToSource {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.mapToSource(mem_id, start_address, end_address, this);
@@ -159,6 +162,7 @@ public class LineNumbersCM extends AbstractCacheManager {
     
     private ICache<CodeArea[]> doMapToMemory(final String mem_id, final String file, final int line, final int column) {
         class MyCache extends TokenCache<CodeArea[]> implements ILineNumbers.DoneMapToMemory {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.mapToMemory(mem_id, file, line, column, this);

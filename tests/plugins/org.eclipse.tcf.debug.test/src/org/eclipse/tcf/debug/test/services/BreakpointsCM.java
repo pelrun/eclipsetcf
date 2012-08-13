@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.eclipse.tcf.debug.test.util.ICache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IBreakpoints;
 
@@ -24,7 +25,8 @@ public class BreakpointsCM extends AbstractCacheManager implements IBreakpoints.
 
     private IBreakpoints fService;
     
-    public BreakpointsCM(IBreakpoints service) {
+    public BreakpointsCM(IChannel channel, IBreakpoints service) {
+        super (channel);
         fService = service;
         fService.addListener(this);
     }
@@ -36,7 +38,8 @@ public class BreakpointsCM extends AbstractCacheManager implements IBreakpoints.
         super.dispose();
     }
 
-    private abstract static class DoneCommandCache extends TokenCache<Object> implements IBreakpoints.DoneCommand {
+    private abstract class DoneCommandCache extends TokenCache<Object> implements IBreakpoints.DoneCommand {
+        DoneCommandCache() { super(fChannel); }
         public void doneCommand(IToken token, Exception error) {
             set(token, null, error);
         }
@@ -115,6 +118,7 @@ public class BreakpointsCM extends AbstractCacheManager implements IBreakpoints.
     }
     
     private class IDsCache extends TokenCache<String[]> implements IBreakpoints.DoneGetIDs {            
+        IDsCache() { super(fChannel); }
         @Override
         protected IToken retrieveToken() {
             return fService.getIDs(this);
@@ -146,6 +150,7 @@ public class BreakpointsCM extends AbstractCacheManager implements IBreakpoints.
         String fId;
         
         public PropertiesCache(String id) {
+            super(fChannel);
             fId = id;
         }
         
@@ -183,6 +188,7 @@ public class BreakpointsCM extends AbstractCacheManager implements IBreakpoints.
         String fId;
         
         public StatusCache(String id) {
+            super(fChannel);
             fId = id;
         }
         
@@ -212,7 +218,8 @@ public class BreakpointsCM extends AbstractCacheManager implements IBreakpoints.
     }
 
     public ICache<Map<String,Object>> getCapabilities(final String id) {
-        class MyCache extends TokenCache<Map<String,Object>> implements IBreakpoints.DoneGetCapabilities {            
+        class MyCache extends TokenCache<Map<String,Object>> implements IBreakpoints.DoneGetCapabilities { 
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.getCapabilities(id, this);

@@ -12,12 +12,15 @@ package org.eclipse.tcf.debug.test.services;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.eclipse.tcf.protocol.IChannel;
+
 public class AbstractCacheManager {
 
     protected Map<Key<?>, Object> fMap = new LinkedHashMap<Key<?>, Object>();
+    protected final IChannel fChannel;
 
-    public AbstractCacheManager() {
-        super();
+    public AbstractCacheManager(IChannel channel) {
+        fChannel = channel;
     }
 
     public void dispose() {

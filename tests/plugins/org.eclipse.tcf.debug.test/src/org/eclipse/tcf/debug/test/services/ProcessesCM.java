@@ -12,6 +12,7 @@ package org.eclipse.tcf.debug.test.services;
 
 import org.eclipse.tcf.debug.test.util.ICache;
 import org.eclipse.tcf.debug.test.util.TokenCache;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
@@ -24,7 +25,8 @@ public class ProcessesCM extends AbstractCacheManager implements IProcesses.Proc
     private IProcesses fService;
     private final ResetMap fResetMap = new ResetMap();
     
-    public ProcessesCM(IProcesses service) {
+    public ProcessesCM(IChannel channel, IProcesses service) {
+        super(channel);
         fService = service;
         fService.addListener(this);
     }
@@ -37,6 +39,7 @@ public class ProcessesCM extends AbstractCacheManager implements IProcesses.Proc
 
     public ICache<String[]> getChildren(final String id, final boolean attached_only) {
         class MyCache extends TokenCache<String[]> implements IProcesses.DoneGetChildren {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.getChildren(id, attached_only, this);
@@ -74,6 +77,7 @@ public class ProcessesCM extends AbstractCacheManager implements IProcesses.Proc
 
     public ICache<ProcessContext> getContext(final String id) {
         class MyCache extends TokenCache<ProcessContext> implements IProcesses.DoneGetContext {
+            MyCache() { super(fChannel); }
             @Override
             protected IToken retrieveToken() {
                 return fService.getContext(id, this);
