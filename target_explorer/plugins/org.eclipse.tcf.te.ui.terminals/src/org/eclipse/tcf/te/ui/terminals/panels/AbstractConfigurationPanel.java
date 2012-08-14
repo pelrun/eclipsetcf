@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.terminals.panels;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,9 +22,13 @@ import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -50,11 +55,17 @@ import org.eclipse.ui.ide.IDEEncoding;
 public abstract class AbstractConfigurationPanel extends AbstractWizardConfigurationPanel implements IConfigurationPanel {
 	private static final String LAST_HOST_TAG = "lastHost";//$NON-NLS-1$
 	private static final String HOSTS_TAG = "hosts";//$NON-NLS-1$
+	private static final String ENCODINGS_TAG = "encodings"; //$NON-NLS-1$
 
 	// The sub-controls
 	/* default */ Combo hostCombo;
 	private Button deleteHostButton;
-	private Combo encodingCombo;
+	/* default */ Combo encodingCombo;
+
+	// The last selected encoding
+	/* default */ String lastSelectedEncoding;
+	// The last entered custom encodings
+	/* default */ final List<String> encodingHistory = new ArrayList<String>();
 
 	// The selection
 	private ISelection selection;
@@ -112,6 +123,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 */
 	@Override
 	public void doRestoreWidgetValues(IDialogSettings settings, String idPrefix) {
+		Assert.isNotNull(settings);
 
 		String[] hosts = settings.getArray(HOSTS_TAG);
 		if (hosts != null) {
@@ -154,9 +166,25 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 				fillSettingsForHost(hostCombo.getText());
 			}
 		}
+
+		encodingHistory.clear();
+		String[] encodings = settings.getArray(ENCODINGS_TAG);
+		if (encodings != null && encodings.length > 0) {
+			encodingHistory.addAll(Arrays.asList(encodings));
+			for (String encoding : encodingHistory) {
+				SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
+			}
+		}
 	}
 
-	protected HashMap<String, String> deSerialize(String hostString) {
+	/**
+	 * Decode the host settings from the given string.
+	 *
+	 * @param hostString The encoded host settings. Must not be <code>null</code>.
+	 * @return The decoded host settings.
+	 */
+	private HashMap<String, String> deSerialize(String hostString) {
+		Assert.isNotNull(hostString);
 		HashMap<String, String> attr = new HashMap<String, String>();
 
 		if (hostString.length() != 0) {
@@ -170,7 +198,16 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		return attr;
 	}
 
-	protected void serialize(Map<String, String> hostEntry, StringBuffer hostString) {
+	/**
+	 * Encode the host settings to a string.
+	 *
+	 * @param hostEntry The host settings. Must not be <code>null</code>.
+	 * @param hostString The host string to encode to. Must not be <code>null</code>.
+	 */
+	private void serialize(Map<String, String> hostEntry, StringBuilder hostString) {
+		Assert.isNotNull(hostEntry);
+		Assert.isNotNull(hostString);
+
 		if (hostEntry.keySet().size() != 0) {
 			Iterator<Entry<String, String>> nextHostAttr = hostEntry.entrySet().iterator();
 			while (nextHostAttr.hasNext()) {
@@ -192,7 +229,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		String[] hosts = new String[hostSettingsMap.keySet().size()];
 		int i = 0;
 		while (nextHost.hasNext()) {
-			StringBuffer hostString = new StringBuffer();
+			StringBuilder hostString = new StringBuilder();
 			String host = nextHost.next();
 			hostString.append(host + "|");//$NON-NLS-1$
 			Map<String, String> hostEntry = hostSettingsMap.get(host);
@@ -207,6 +244,10 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 				if (host != null) settings.put(LAST_HOST_TAG, host);
 			}
 		}
+
+		if (!encodingHistory.isEmpty()) {
+			settings.put(ENCODINGS_TAG, encodingHistory.toArray(new String[encodingHistory.size()]));
+		}
 	}
 
 	protected abstract void saveSettingsForHost(boolean add);
@@ -219,11 +260,13 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		// noop by default
 	}
 
-	protected String getHostFromCombo() {
-		if (hostCombo != null) {
-			return hostCombo.getText();
-		}
-		return null;
+	/**
+	 * Returns the selected host from the hosts combo widget.
+	 *
+	 * @return The selected host or <code>null</code>.
+	 */
+	protected final String getHostFromCombo() {
+		return SWTControlUtil.getText(hostCombo);
 	}
 
 	protected void removeSettingsForHost(String host) {
@@ -232,6 +275,11 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		}
 	}
 
+	/**
+	 * Returns the list of host names of the persisted hosts.
+	 *
+	 * @return The list of host names.
+	 */
 	private List<String> getHostList() {
 		List<String> hostList = new ArrayList<String>();
 		hostList.addAll(hostSettingsMap.keySet());
@@ -363,7 +411,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 * @param parent The parent composite. Must not be <code>null</code>.
 	 * @param separator If <code>true</code>, a separator will be added before the controls.
 	 */
-	protected void createEncodingUI(Composite parent, boolean separator) {
+	protected void createEncodingUI(final Composite parent, boolean separator) {
 		Assert.isNotNull(parent);
 
 		if (separator) {
@@ -382,6 +430,48 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 
 		encodingCombo = new Combo(panel, SWT.READ_ONLY);
 		encodingCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		encodingCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (Messages.AbstractConfigurationPanel_encoding_custom.equals(SWTControlUtil.getText(encodingCombo))) {
+					InputDialog dialog = new InputDialog(parent.getShell(),
+														 Messages.AbstractConfigurationPanel_encoding_custom_title,
+														 Messages.AbstractConfigurationPanel_encoding_custom_message,
+														 null,
+														 new IInputValidator() {
+															@Override
+															public String isValid(String newText) {
+																boolean valid = false;
+																try {
+																	if (newText != null && !"".equals(newText)) { //$NON-NLS-1$
+																		valid = Charset.isSupported(newText);
+																	}
+																} catch (IllegalCharsetNameException e) { /* ignored on purpose */ }
+
+																if (!valid) {
+																	return newText != null && !"".equals(newText) ? Messages.AbstractConfigurationPanel_encoding_custom_error : ""; //$NON-NLS-1$ //$NON-NLS-2$
+																}
+																return null;
+															}
+														});
+					if (dialog.open() == Window.OK) {
+						String encoding = dialog.getValue();
+						SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
+						SWTControlUtil.select(encodingCombo, SWTControlUtil.indexOf(encodingCombo, encoding));
+						lastSelectedEncoding = SWTControlUtil.getText(encodingCombo);
+
+						// Remember the last 5 custom encodings entered
+						if (!encodingHistory.contains(encoding)) {
+							if (encodingHistory.size() == 5) encodingHistory.remove(4);
+							encodingHistory.add(encoding);
+						}
+
+					} else {
+						SWTControlUtil.select(encodingCombo, SWTControlUtil.indexOf(encodingCombo, lastSelectedEncoding));
+					}
+				}
+			}
+		});
 
 		fillEncodingCombo();
 	}
@@ -402,11 +492,20 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			if (eclipseEncoding != null && !encodings.contains(eclipseEncoding)) encodings.add(eclipseEncoding);
 
 			// The default host (Java VM) encoding
-			String hostEncoding = Charset.defaultCharset().displayName();
+			//
+			// Note: We do not use Charset.defaultCharset().displayName() here as it returns the bit
+			//       unusual name "windows-1252" on Windows. As there is no access to the "historical"
+			//       name "Cp1252" stored in MS1252.class, stick to the older way of retrieving an encoding.
+			String hostEncoding = new java.io.InputStreamReader(new java.io.ByteArrayInputStream(new byte[0])).getEncoding();
 			if (!encodings.contains(hostEncoding)) encodings.add(hostEncoding);
+
+			// The "Other..." encoding
+			encodings.add(Messages.AbstractConfigurationPanel_encoding_custom);
 
 			SWTControlUtil.setItems(encodingCombo, encodings.toArray(new String[encodings.size()]));
 			SWTControlUtil.select(encodingCombo, 0);
+
+			lastSelectedEncoding = SWTControlUtil.getText(encodingCombo);
 		}
 	}
 

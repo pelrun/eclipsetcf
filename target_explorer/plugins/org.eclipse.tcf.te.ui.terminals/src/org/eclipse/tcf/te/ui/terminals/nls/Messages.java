@@ -36,6 +36,10 @@ public class Messages extends NLS {
 	public static String AbstractConfigurationPanel_deleteButtonTooltip;
 	public static String AbstractConfigurationPanel_hosts;
 	public static String AbstractConfigurationPanel_encoding;
+	public static String AbstractConfigurationPanel_encoding_custom;
+	public static String AbstractConfigurationPanel_encoding_custom_title;
+	public static String AbstractConfigurationPanel_encoding_custom_message;
+	public static String AbstractConfigurationPanel_encoding_custom_error;
 
 	public static String TabTerminalListener_consoleTerminated;
 
