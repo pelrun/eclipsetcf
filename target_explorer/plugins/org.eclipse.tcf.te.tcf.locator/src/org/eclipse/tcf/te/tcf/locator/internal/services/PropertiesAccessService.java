@@ -86,7 +86,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					value.set(peerModel.getProperty(key));
+					Object val = peerModel.getProperty(key);
+					value.set(val);
 				}
 			};
 

@@ -101,5 +101,6 @@ public class CheckServiceStep extends AbstractTcfLaunchStep {
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		// nothing to do, check is done in validateExecute.
+		callback.done(this, Status.OK_STATUS);
 	}
 }

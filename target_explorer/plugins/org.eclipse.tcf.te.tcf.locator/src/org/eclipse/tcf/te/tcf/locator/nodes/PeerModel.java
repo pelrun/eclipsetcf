@@ -68,7 +68,7 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	 */
 	@Override
 	protected final boolean checkThreadAccess() {
-	    return Protocol.isDispatchThread();
+		return Protocol.isDispatchThread();
 	}
 
 	/* (non-Javadoc)
@@ -92,15 +92,23 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	 */
 	@Override
 	public String getPeerId() {
-	    return peerId;
+		return peerId;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.model.ModelNode#getName()
+	 */
+	@Override
+	public String getName() {
+		return getPeer().getName();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel#getRemotePeerId()
 	 */
-    @Override
+	@Override
 	public String getRemotePeerId() {
-    	// If the peer is a remote peer by itself, than we return getPeerId()
+		// If the peer is a remote peer by itself, than we return getPeerId()
 		if ("RemotePeer".equals(getPeer().getClass().getSimpleName())) { //$NON-NLS-1$
 			return getPeerId();
 		}
@@ -114,10 +122,14 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 			}
 		};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
+		if (Protocol.isDispatchThread()) {
+			runnable.run();
+		}
+		else {
+			Protocol.invokeAndWait(runnable);
+		}
 
-	    return remotePeerId.get();
+		return remotePeerId.get();
 	}
 
 	/* (non-Javadoc)
@@ -144,7 +156,7 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 			// Pipe and Loop transport does not require additional attributes
 		}
 
-	    return complete;
+		return complete;
 	}
 
 	/* (non-Javadoc)
@@ -163,8 +175,12 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 			}
 		};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
+		if (Protocol.isDispatchThread()) {
+			runnable.run();
+		}
+		else {
+			Protocol.invokeAndWait(runnable);
+		}
 
 		return object.get() != null ? object.get() : super.getAdapter(adapter);
 	}
@@ -211,8 +227,12 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 			}
 		};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
+		if (Protocol.isDispatchThread()) {
+			runnable.run();
+		}
+		else {
+			Protocol.invokeAndWait(runnable);
+		}
 
 		buffer.append(", " + super.toString()); //$NON-NLS-1$
 		return buffer.toString();
@@ -226,7 +246,7 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 		if (obj instanceof PeerModel) {
 			return getPeerId().equals(((PeerModel)obj).getPeerId());
 		}
-	    return super.equals(obj);
+		return super.equals(obj);
 	}
 
 	/* (non-Javadoc)
@@ -234,7 +254,7 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	 */
 	@Override
 	public int hashCode() {
-	    return getPeerId().hashCode();
+		return getPeerId().hashCode();
 	}
 
 	/* (non-Javadoc)
@@ -277,8 +297,8 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	@Override
 	public boolean isVisible() {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-	    return getPeer() != null && getPeer().getAttributes().containsKey(IPeerModelProperties.PROP_VISIBLE)
-	    				? Boolean.valueOf(getPeer().getAttributes().get(IPeerModelProperties.PROP_VISIBLE)).booleanValue()
-	    				: true;
+		return getPeer() != null && getPeer().getAttributes().containsKey(IPeerModelProperties.PROP_VISIBLE)
+						? Boolean.valueOf(getPeer().getAttributes().get(IPeerModelProperties.PROP_VISIBLE)).booleanValue()
+										: true;
 	}
 }

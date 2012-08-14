@@ -35,9 +35,6 @@ import org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.IAttachLaunchAttributes;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.IPeerModelProperties;
@@ -162,16 +159,10 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 	}
 
 	private String getDefaultLaunchName(IModelNode context) {
-		String name = ""; //$NON-NLS-1$
 		if (context != null) {
-			IPropertiesAccessService service = ServiceManager.getInstance().getService(context, IPropertiesAccessService.class);
-			Object dnsName = service != null ? service.getProperty(context, "dns.name.transient") : null; //$NON-NLS-1$
-			String ctxName = service != null ? (String)service.getTargetAddress(context).get(IPropertiesAccessServiceConstants.PROP_ADDRESS) : null;
-			ctxName = dnsName != null && dnsName.toString().trim().length() > 0 ? dnsName.toString().trim() : ctxName;
-
-			name = ctxName != null ? ctxName : ""; //$NON-NLS-1$
+			return context.getName();
 		}
-		return name.trim();
+		return ""; //$NON-NLS-1$
 	}
 
 	/* (non-Javadoc)
