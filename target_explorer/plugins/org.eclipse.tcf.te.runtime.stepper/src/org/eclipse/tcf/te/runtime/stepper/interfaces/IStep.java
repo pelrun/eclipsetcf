@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.stepper.interfaces;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -63,4 +65,16 @@ public interface IStep extends IExecutableExtension {
 	 * @return The list of required context step or context step group id's or an empty list.
 	 */
 	public String[] getDependencies();
+
+	/**
+	 * Set additional parameters for this step
+	 * @param parameters
+	 */
+	public void setParameters(Map<String,String> parameters);
+
+	/**
+	 * Returns a map of additional parameters given through the parameters section in the Reference section of a StepGroups.
+	 * @return The parameters of an empty Map.
+	 */
+	public Map<String,String> getParameters();
 }

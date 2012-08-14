@@ -9,6 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.expressions.PropertyTester;
@@ -49,8 +52,12 @@ public class LocatorModelPropertyTester extends PropertyTester {
 					}
 				};
 
-				if (Protocol.isDispatchThread()) runnable.run();
-				else Protocol.invokeAndWait(runnable);
+				if (Protocol.isDispatchThread()) {
+					runnable.run();
+				}
+				else {
+					Protocol.invokeAndWait(runnable);
+				}
 			}
 
 			return result.get();
@@ -82,23 +89,31 @@ public class LocatorModelPropertyTester extends PropertyTester {
 		if ("isStaticPeer".equals(property)) { //$NON-NLS-1$
 			String value = node.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
 			boolean isStaticPeer = value != null && Boolean.parseBoolean(value.trim());
-			if (expectedValue instanceof Boolean) return ((Boolean) expectedValue).booleanValue() == isStaticPeer;
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isStaticPeer;
+			}
 		}
 
 		if ("isRedirected".equals(property)) { //$NON-NLS-1$
 			boolean isRedirected = node.getPeer() instanceof PeerRedirector;
-			if (expectedValue instanceof Boolean) return ((Boolean) expectedValue).booleanValue() == isRedirected;
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isRedirected;
+			}
 		}
 
 		if ("isProxy".equals(property)) { //$NON-NLS-1$
 			boolean isProxy = node.getPeer().getAttributes().containsKey("Proxy"); //$NON-NLS-1$
-			if (expectedValue instanceof Boolean) return ((Boolean) expectedValue).booleanValue() == isProxy;
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isProxy;
+			}
 		}
 
 		if ("isValueAdd".equals(property)) { //$NON-NLS-1$
 			String value = node.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
 			boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
-			if (expectedValue instanceof Boolean) return ((Boolean) expectedValue).booleanValue() == isValueAdd;
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isValueAdd;
+			}
 		}
 
 		if ("isOfType".equals(property)) { //$NON-NLS-1$
@@ -111,13 +126,23 @@ public class LocatorModelPropertyTester extends PropertyTester {
 		if ("hasAttribute".equals(property)) { //$NON-NLS-1$
 			String name = args != null && args.length > 0 ? (String)args[0] : null;
 			boolean hasAttribute = name != null && !"".equals(name) ? node.getPeer().getAttributes().containsKey(name) : false; //$NON-NLS-1$
-			if (expectedValue instanceof Boolean) return ((Boolean) expectedValue).booleanValue() == hasAttribute;
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == hasAttribute;
+			}
 		}
 
 		if ("isAttribute".equals(property)) { //$NON-NLS-1$
 			String name = args != null && args.length > 0 ? (String)args[0] : null;
 			String value = name != null && !"".equals(name) ? node.getPeer().getAttributes().get(name) : null; //$NON-NLS-1$
-			if (expectedValue != null) return expectedValue.toString().equals(value);
+			if (expectedValue != null) {
+				return expectedValue.toString().equals(value);
+			}
+		}
+
+		if ("hasOfflineService".equals(property)) { //$NON-NLS-1$
+			String services = node.getPeer().getAttributes().get(IPeerModelProperties.PROP_OFFLINE_SERVICES);
+			List<String> list = services != null ? Arrays.asList(services.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
+			return list.contains(expectedValue);
 		}
 
 		return false;

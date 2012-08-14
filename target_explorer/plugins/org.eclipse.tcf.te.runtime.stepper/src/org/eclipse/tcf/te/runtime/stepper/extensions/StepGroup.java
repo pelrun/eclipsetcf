@@ -73,6 +73,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		private boolean singleton;
 		private final List<String> dependencies = new ArrayList<String>();
 		private Expression expression;
+		private Map<String,String> parameters = new HashMap<String, String>();
 
 		/**
 		 * Returns the id of the referenced step or step group.
@@ -190,6 +191,15 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 			return expression;
 		}
 
+		/**
+		 * Returns the parameters for the step.
+		 * 
+		 * @return The parameters or an empty Map.
+		 */
+		public Map<String,String> getParameters() {
+			return parameters;
+		}
+
 		/* (non-Javadoc)
 		 * @see org.eclipse.core.runtime.IExecutableExtension#setInitializationData(org.eclipse.core.runtime.IConfigurationElement, java.lang.String, java.lang.Object)
 		 */
@@ -268,6 +278,14 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 				expression = ExpressionConverter.getDefault().perform(enablements[0]);
 			}
 
+			// Read the sub elements of the extension
+			IConfigurationElement[] params = config.getChildren("parameter"); //$NON-NLS-1$
+			// The "paramter" element is the only expected one
+			if (params != null && params.length > 0) {
+				for (IConfigurationElement parameter : params) {
+					parameters.put(parameter.getAttribute("name"), parameter.getAttribute("value")); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
 		}
 
 		/* (non-Javadoc)
@@ -313,6 +331,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 			buffer.append(", hidden = " + isHidden()); //$NON-NLS-1$
 			buffer.append(", disable = " + isDisable()); //$NON-NLS-1$
 			buffer.append(", singleton = " + isSingleton()); //$NON-NLS-1$
+			buffer.append(", parameters = " + getParameters()); //$NON-NLS-1$
 			return buffer.toString();
 		}
 	}
@@ -589,7 +608,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		// If this step group is based on another step group, we have to get the resolved
 		// steps from there first.
 		if (getBaseOn() != null) {
-			IStepGroup baseStepGroup = getStepGroup(getBaseOn());
+			IStepGroup baseStepGroup = StepperManager.getInstance().getStepGroupExtManager().getStepGroup(getBaseOn(), true);
 			// If the base step group cannot be found, that's an error. We cannot continue
 			// without the base group.
 			if (baseStepGroup == null) {
@@ -608,10 +627,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		// Now process the references and modify the steps list accordingly
 		for (ReferenceSubElement reference : getReferences()) {
 			// Get the step or step group for the referenced id. Try the steps first.
-			IExecutableExtension candidate = getStep(reference.getId());
-			if (candidate == null) {
-				candidate = getStepGroup(reference.getId());
-			}
+			IExecutableExtension candidate = getCandidate(reference.getId(), reference);
 
 			// If the candidate is null here, that's an error as a referenced step is missing.
 			if (candidate == null) {
@@ -781,11 +797,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 
 		String[] dependencies = step.getDependencies();
 		for (String dependency : dependencies) {
-			// Get the step or step group. Try the steps first.
-			IExecutableExtension candidate = getStep(dependency);
-			if (candidate == null) {
-				candidate = getStepGroup(dependency);
-			}
+			IExecutableExtension candidate = getCandidate(dependency, null);
 
 			// If the candidate is null here, that's an error as a required step or step group is missing.
 			if (candidate == null) {
@@ -800,27 +812,20 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 	}
 
 	/**
-	 * Convenience method returning a unique instance of the step
-	 * identified by the given id.
-	 *
-	 * @param id The step id. Must not be <code>null</code>.
-	 * @return The step instance or <code>null</code>.
+	 * Returns a candidate for the given reference.
+	 * @param reference The refrence.
+	 * @return The candidate. Can be either an IStep or IStepGroup.
 	 */
-	protected IStep getStep(String id) {
+	protected IExecutableExtension getCandidate(String id, ReferenceSubElement reference) {
 		Assert.isNotNull(id);
-		return StepperManager.getInstance().getStepExtManager().getStep(id, true);
-	}
-
-	/**
-	 * Convenience method returning a unique instance of the step
-	 * group identified by the given id.
-	 *
-	 * @param id The step id. Must not be <code>null</code>.
-	 * @return The step group instance or <code>null</code>.
-	 */
-	protected IStepGroup getStepGroup(String id) {
-		Assert.isNotNull(id);
-		return StepperManager.getInstance().getStepGroupExtManager().getStepGroup(id, true);
+		IExecutableExtension candidate = StepperManager.getInstance().getStepExtManager().getStep(id, true);
+		if (candidate == null) {
+			candidate = StepperManager.getInstance().getStepGroupExtManager().getStepGroup(id, true);
+		}
+		else if (reference != null && candidate instanceof IStep) {
+			((IStep)candidate).setParameters(reference.getParameters());
+		}
+		return candidate;
 	}
 
 	/**

@@ -73,6 +73,11 @@ public interface IPeerModelProperties {
 	public static final String PROP_TYPE = "Type"; //$NON-NLS-1$
 
 	/**
+	 * Property: List of TCF services the peer would have when it goes online (comma separated list).
+	 */
+	public static final String PROP_OFFLINE_SERVICES = "OfflineServices"; //$NON-NLS-1$
+
+	/**
 	 * Property: The peer visible state.
 	 */
 	public static final String PROP_VISIBLE = "Visible"; //$NON-NLS-1$

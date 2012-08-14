@@ -10,7 +10,10 @@
 package org.eclipse.tcf.te.runtime.stepper.extensions;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -37,6 +40,9 @@ import org.eclipse.tcf.te.runtime.stepper.nls.Messages;
 public abstract class AbstractStep extends ExecutableExtension implements IExtendedStep {
 	// List of string id's of the step dependencies.
 	private final List<String> dependencies = new ArrayList<String>();
+
+	// Map of parameters of the step reference
+	private Map<String,String> parameters = new HashMap<String,String>();
 
 	/**
 	 * The suffix to append to the full qualified step id to
@@ -130,6 +136,27 @@ public abstract class AbstractStep extends ExecutableExtension implements IExten
 	@Override
 	public String[] getDependencies() {
 		return dependencies.toArray(new String[dependencies.size()]);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#setParameters(java.util.Map)
+	 */
+	@Override
+	public void setParameters(Map<String,String> parameters) {
+		if (parameters != null) {
+			this.parameters = parameters;
+		}
+		else {
+			this.parameters = Collections.EMPTY_MAP;
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#getParameters()
+	 */
+	@Override
+	public Map<String, String> getParameters() {
+		return parameters;
 	}
 
 	/**

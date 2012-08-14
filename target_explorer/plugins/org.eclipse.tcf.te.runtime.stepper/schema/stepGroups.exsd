@@ -51,6 +51,30 @@ A step group bundles a set of single steps and/or other step groups into a more 
       </complexType>
    </element>
 
+   <element name="parameter1">
+      <annotation>
+         <documentation>
+            A parameter for an &lt;code&gt;IExecutableExtension&lt;/code&gt;.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="name" type="string" use="required">
+            <annotation>
+               <documentation>
+                  &lt;p&gt;The parameter name.&lt;/p&gt;
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="value" type="string" use="required">
+            <annotation>
+               <documentation>
+                  &lt;p&gt;The parameter value.&lt;/p&gt;
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
    <element name="stepGroup">
       <annotation>
          <documentation>
@@ -192,6 +216,7 @@ The step group iterator implementation class can be specified either by the iter
          <sequence>
             <element ref="requires" minOccurs="0" maxOccurs="unbounded"/>
             <element ref="enablement" minOccurs="0" maxOccurs="1"/>
+            <element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="id" type="string" use="required">
             <annotation>

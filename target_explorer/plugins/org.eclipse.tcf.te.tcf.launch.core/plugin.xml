@@ -46,7 +46,10 @@
                   </adapt>
                   <and>
                      <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
+                     <or>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
+                     </or>
                   </and>
                </or>
             </with>
@@ -67,8 +70,14 @@
                   </adapt>
                   <and>
                      <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
-                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                     <or>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
+                     </or>
+                     <or>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                     </or>
                   </and>
                </or>
             </with>
@@ -85,7 +94,10 @@
             <with variable="context">
                <and>
                   <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                  <or>
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                  </or>
                </and>
             </with>
          </enablement>
@@ -110,6 +122,19 @@
             iterator="org.eclipse.tcf.te.launch.core.steps.iterators.LaunchContextIterator">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.openChannelStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.launch.core.checkServiceStep">
+               <parameter name="remoteService" value="RunControl"/>
+               <enablement>
+                  <with variable="context">
+                     <not>
+                        <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
+                     </not>
+                  </with>
+               </enablement>
+            </reference>
+            <reference id="org.eclipse.tcf.te.tcf.launch.core.checkServiceStep">
+               <parameter name="remoteService" value="Processes"/>
+            </reference>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.fileTransferStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.launchProcessStep"/>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.resumeContextStep">
@@ -143,22 +168,23 @@
             label="%LaunchStepGroup.FileTransfer.name"
             iterator="org.eclipse.tcf.te.tcf.launch.core.steps.iterators.FileTransferIterator">
          <references>
+            <reference id="org.eclipse.tcf.te.tcf.launch.core.checkServiceStep">
+               <parameter name="remoteService" value="FileSystem"/>
+            </reference>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.fileTransferStep"/>
          </references>
       </stepGroup>
+      
       <stepGroup
             id="org.eclipse.tcf.te.tcf.launch.type.attach.stepGroup"
             label="%LaunchStepGroup.Attach.name"
             iterator="org.eclipse.tcf.te.launch.core.steps.iterators.LaunchContextIterator">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.openChannelStep"/>
-            <reference id="org.eclipse.tcf.te.tcf.launch.core.attachDebuggerStep">
-               <enablement>
-                  <with variable="context">
-                     <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
-                  </with>
-               </enablement>
+            <reference id="org.eclipse.tcf.te.tcf.launch.core.checkServiceStep">
+               <parameter name="remoteService" value="RunControl"/>
             </reference>
+            <reference id="org.eclipse.tcf.te.tcf.launch.core.attachDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.closeChannelStep"/>
          </references>
       </stepGroup>
@@ -171,6 +197,12 @@
             class="org.eclipse.tcf.te.tcf.launch.core.steps.OpenChannelStep"
             label="%LaunchStep.OpenChannel.name"/>
       <step
+            id="org.eclipse.tcf.te.tcf.launch.core.checkServiceStep"
+            class="org.eclipse.tcf.te.tcf.launch.core.steps.CheckServiceStep"
+            label="%LaunchStep.CheckService.name">
+         <requires id="org.eclipse.tcf.te.tcf.launch.core.openChannelStep"/>
+      </step>
+      <step
             id="org.eclipse.tcf.te.tcf.launch.core.fileTransferStep"
             class="org.eclipse.tcf.te.tcf.launch.core.steps.FileTransferStep"
             label="%LaunchStep.FileTransfer.name">
@@ -179,13 +211,11 @@
       <step
             id="org.eclipse.tcf.te.tcf.launch.core.launchProcessStep"
             class="org.eclipse.tcf.te.tcf.launch.core.steps.LaunchProcessStep"
-            label="%LaunchStep.LaunchProcess.name">
-      </step>
+            label="%LaunchStep.LaunchProcess.name"/>
       <step
             id="org.eclipse.tcf.te.tcf.launch.core.attachDebuggerStep"
             class="org.eclipse.tcf.te.tcf.launch.core.steps.AttachDebuggerStep"
-            label="%LaunchStep.AttachDebugger.name">
-      </step>
+            label="%LaunchStep.AttachDebugger.name"/>
       <step
             id="org.eclipse.tcf.te.tcf.launch.core.resumeContextStep"
             class="org.eclipse.tcf.te.tcf.launch.core.steps.ResumeContextStep"

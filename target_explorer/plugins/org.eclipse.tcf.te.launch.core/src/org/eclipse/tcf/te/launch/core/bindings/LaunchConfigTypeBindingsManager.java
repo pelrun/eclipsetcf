@@ -34,9 +34,6 @@ import org.eclipse.tcf.te.launch.core.lm.internal.ExtensionPointManager;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ILaunchSelection;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext;
 import org.eclipse.tcf.te.runtime.extensions.ExtensionPointComparator;
-import org.eclipse.tcf.te.runtime.stepper.StepperManager;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroup;
 
 
 /**
@@ -162,28 +159,6 @@ public class LaunchConfigTypeBindingsManager {
 			return binding.getStepGroupId(mode);
 		}
 		return null;
-	}
-
-	/**
-	 * Get the registered step group identified by the specified unique id.
-	 *
-	 * @param id The step group id. Must not be <code>null</code>.
-	 * @return The step group or <code>null</code>, if no step group is registered for the specified id.
-	 */
-	public IStepGroup getStepGroup(String id) {
-		Assert.isNotNull(id);
-		return StepperManager.getInstance().getStepGroupExtManager().getStepGroup(id, true);
-	}
-
-	/**
-	 * Get the registered step identified by the specified unique id.
-	 *
-	 * @param id The launch step id. Must not be <code>null</code>.
-	 * @return The launch step or <code>null</code> if no step is registered for the specified id.
-	 */
-	public IStep getStep(String id) {
-		Assert.isNotNull(id);
-		return StepperManager.getInstance().getStepExtManager().getStep(id, true);
 	}
 
 	/*
