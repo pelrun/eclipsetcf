@@ -175,8 +175,10 @@ public class TerminalService extends AbstractService implements ITerminalService
 			public void run(String id, String title, ITerminalConnector connector, Object data, ICallback callback) {
 				// Determine if a new terminal tab shall be enforced
 				boolean forceNew = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW);
+				// Determine the terminal encoding
+				String encoding = properties.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
 				// Open the new console
-				ConsoleManager.getInstance().openConsole(id, title, connector, data, true, forceNew);
+				ConsoleManager.getInstance().openConsole(id, title, encoding, connector, data, true, forceNew);
 				// Invoke the callback
 				if (callback != null) {
 					callback.done(this, Status.OK_STATUS);

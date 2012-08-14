@@ -26,6 +26,11 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_TITLE = "title"; //$NON-NLS-1$
 
 	/**
+	 * Property: The encoding of the terminal tab to open.
+	 */
+	public static final String PROP_ENCODING = "encoding"; //$NON-NLS-1$
+
+	/**
 	 * Property: Custom data object to associate with the terminal tab.
 	 */
 	public static final String PROP_DATA = "data"; //$NON-NLS-1$

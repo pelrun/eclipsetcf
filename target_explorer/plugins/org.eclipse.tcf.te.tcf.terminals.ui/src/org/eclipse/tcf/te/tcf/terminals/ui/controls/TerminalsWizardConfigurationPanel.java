@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.terminals.serial.controls;
+package org.eclipse.tcf.te.tcf.terminals.ui.controls;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -19,24 +19,21 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
-import org.eclipse.tcf.te.ui.controls.wire.serial.SerialLinePanel;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
- * Serial wizard configuration panel implementation.
+ * Terminals (TCF) wizard configuration panel implementation.
  */
-public class SerialWizardConfigurationPanel extends AbstractConfigurationPanel implements IDataExchangeNode {
-
-	private SerialLinePanel serialSettingsPage;
+public class TerminalsWizardConfigurationPanel extends AbstractConfigurationPanel implements IDataExchangeNode {
 
 	/**
 	 * Constructor.
 	 *
 	 * @param parentControl The parent control. Must not be <code>null</code>!
 	 */
-	public SerialWizardConfigurationPanel(BaseDialogPageControl parentControl) {
+	public TerminalsWizardConfigurationPanel(BaseDialogPageControl parentControl) {
 	    super(parentControl);
     }
 
@@ -53,11 +50,8 @@ public class SerialWizardConfigurationPanel extends AbstractConfigurationPanel i
 		// Create the host selection combo
 		if (isWithoutSelection()) createHostsUI(panel, true);
 
-		serialSettingsPage = new SerialLinePanel(new BaseDialogPageControl(), true, true, true);
-		serialSettingsPage.setupPanel(panel, toolkit);
-
 		// Create the encoding selection combo
-		createEncodingUI(panel, true);
+		createEncodingUI(panel, false);
 
 		setControl(panel);
 	}
@@ -83,13 +77,13 @@ public class SerialWizardConfigurationPanel extends AbstractConfigurationPanel i
 	 */
 	@Override
     public void extractData(IPropertiesContainer data) {
-    	// set the terminal connector id for serial
-    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.serial.SerialConnector");
+    	// set the terminal connector id for terminals (TCF)
+    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tcf.te.tcf.terminals.ui.TerminalsConnector");
 
-    	// set the connector type for serial
-    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.serial");
+    	// set the connector type for terminals (TCF)
+    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.terminals");
 
-    	serialSettingsPage.extractData(data);
+    	// Extract the encoding
 		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
     }
 
@@ -112,7 +106,7 @@ public class SerialWizardConfigurationPanel extends AbstractConfigurationPanel i
 	 */
 	@Override
     public boolean isValid(){
-		return serialSettingsPage.isValid();
+		return isEncodingValid();
 	}
 
 	/* (non-Javadoc)
@@ -121,8 +115,6 @@ public class SerialWizardConfigurationPanel extends AbstractConfigurationPanel i
 	@Override
     public void doSaveWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-		serialSettingsPage.doSaveWidgetValues(settings, idPrefix);
-
 		String encoding = getEncoding();
 		if (encoding != null) {
 			settings.put(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix), encoding);
@@ -135,7 +127,6 @@ public class SerialWizardConfigurationPanel extends AbstractConfigurationPanel i
 	@Override
     public void doRestoreWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-		serialSettingsPage.doRestoreWidgetValues(settings, idPrefix);
 		String encoding = settings.get(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix));
 		if (encoding != null && encoding.trim().length() > 0) {
 			setEncoding(encoding);

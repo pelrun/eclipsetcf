@@ -388,12 +388,13 @@ public class ConsoleManager {
 	 *
 	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
 	 * @param title The console title. Must not be <code>null</code>.
+	 * @param encoding The terminal encoding or <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.
 	 * @param activate If <code>true</code> activate the console view.
 	 * @param forceNew If <code>true</code> a new console tab is created even if another one matches the criteria.
 	 */
-	public void openConsole(String id, String title, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
+	public void openConsole(String id, String title, String encoding, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
 		Assert.isNotNull(Display.findDisplay(Thread.currentThread()));
@@ -423,7 +424,7 @@ public class ConsoleManager {
 			}
 
 			// Create a new tab item
-			item = manager.createTabItem(title, connector, data);
+			item = manager.createTabItem(title, encoding, connector, data);
 		}
 		// If still null, something went wrong
 		if (item == null) {

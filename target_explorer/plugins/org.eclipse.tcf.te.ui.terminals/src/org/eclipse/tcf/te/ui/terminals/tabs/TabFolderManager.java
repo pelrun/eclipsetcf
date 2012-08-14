@@ -50,7 +50,6 @@ import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDEEncoding;
 
 /**
  * Terminals tab folder manager.
@@ -284,13 +283,14 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 * Creates a new tab item with the given title and connector.
 	 *
 	 * @param title The tab title. Must not be <code>null</code>.
+	 * @param encoding The terminal encoding or <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.
 	 *
 	 * @return The created tab item or <code>null</code> if failed.
 	 */
 	@SuppressWarnings("unused")
-	public CTabItem createTabItem(String title, ITerminalConnector connector, Object data) {
+	public CTabItem createTabItem(String title, String encoding, ITerminalConnector connector, Object data) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
 
@@ -326,8 +326,8 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 			ITerminalViewControl terminal = TerminalViewControlFactory.makeControl(doCreateTerminalTabTerminalListener(item), composite, new ITerminalConnector[] { connector }, true);
 			// Add the "selection" listener to the terminal control
 			new TerminalControlSelectionListener(terminal);
-			// Use the default Eclipse IDE encoding setting to configure the terminals encoding
-			try { terminal.setEncoding(IDEEncoding.getResourceEncoding()); } catch (UnsupportedEncodingException e) { /* ignored on purpose */ }
+			// Configure the terminal encoding
+			try { terminal.setEncoding(encoding); } catch (UnsupportedEncodingException e) { /* ignored on purpose */ }
 			// Associated the terminal with the tab item
 			item.setData(terminal);
 			// Associated the custom data node with the tab item (if any)

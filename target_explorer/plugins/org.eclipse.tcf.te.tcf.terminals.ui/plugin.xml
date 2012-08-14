@@ -23,7 +23,7 @@
 <!-- Terminals launcher delegate contributions -->
    <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
       <delegate
-            class="org.eclipse.tcf.te.tcf.terminals.ui.launcher.LauncherDelegate"
+            class="org.eclipse.tcf.te.tcf.terminals.ui.launcher.TerminalsLauncherDelegate"
             id="org.eclipse.tcf.te.ui.terminals.launcher.tcf"
             label="%launcherDelegate.label">
             <enablement>

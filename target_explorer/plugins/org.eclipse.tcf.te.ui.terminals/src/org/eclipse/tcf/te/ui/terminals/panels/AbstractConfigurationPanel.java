@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.panels;
 
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -39,6 +42,7 @@ import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.ide.IDEEncoding;
 
 /**
  * Abstract terminal configuration panel implementation.
@@ -46,11 +50,16 @@ import org.eclipse.ui.ISharedImages;
 public abstract class AbstractConfigurationPanel extends AbstractWizardConfigurationPanel implements IConfigurationPanel {
 	private static final String LAST_HOST_TAG = "lastHost";//$NON-NLS-1$
 	private static final String HOSTS_TAG = "hosts";//$NON-NLS-1$
+
+	// The sub-controls
+	/* default */ Combo hostCombo;
+	private Button deleteHostButton;
+	private Combo encodingCombo;
+
 	// The selection
 	private ISelection selection;
-	protected Map<String, Map<String, String>> hostSettingsMap;
-	protected Combo hostCombo;
-	private Button deleteHostButton;
+	// A map containing the settings per host
+	protected final Map<String, Map<String, String>> hostSettingsMap = new HashMap<String, Map<String, String>>();
 
 	/**
 	 * Constructor.
@@ -59,8 +68,6 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 */
 	public AbstractConfigurationPanel(BaseDialogPageControl parentControl) {
 		super(parentControl);
-
-		hostSettingsMap = new HashMap<String, Map<String, String>>();
 	}
 
 	/* (non-Javadoc)
@@ -88,12 +95,10 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		ISelection selection = getSelection();
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
-			IPropertiesAccessService service = ServiceManager.getInstance()
-			                .getService(element, IPropertiesAccessService.class);
+			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
 			if (service != null) {
 				Map<String, String> props = service.getTargetAddress(element);
-				if (props != null && props
-				                .containsKey(IPropertiesAccessServiceConstants.PROP_ADDRESS)) {
+				if (props != null && props.containsKey(IPropertiesAccessServiceConstants.PROP_ADDRESS)) {
 					return props.get(IPropertiesAccessServiceConstants.PROP_ADDRESS);
 				}
 			}
@@ -102,6 +107,9 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel#doRestoreWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
+	 */
 	@Override
 	public void doRestoreWidgetValues(IDialogSettings settings, String idPrefix) {
 
@@ -129,7 +137,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		}
 		else {
 			if (hostCombo != null) {
-				fillCombo();
+				fillHostCombo();
 				String lastHost = settings.get(LAST_HOST_TAG);
 				if (lastHost != null) {
 					int index = hostCombo.indexOf(lastHost);
@@ -175,6 +183,9 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel#doSaveWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
+	 */
 	@Override
 	public void doSaveWidgetValues(IDialogSettings settings, String idPrefix) {
 		Iterator<String> nextHost = hostSettingsMap.keySet().iterator();
@@ -227,7 +238,10 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		return hostList;
 	}
 
-	public void fillCombo() {
+	/**
+	 * Fill the host combo with the stored per host setting names.
+	 */
+	protected void fillHostCombo() {
 		if (hostCombo != null) {
 			hostCombo.removeAll();
 			List<String> hostList = getHostList();
@@ -270,7 +284,15 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		return true;
 	}
 
-	protected void createHostsUI(Composite parent) {
+	/**
+	 * Create the host selection combo.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 * @param separator If <code>true</code>, a separator will be added after the controls.
+	 */
+	protected void createHostsUI(Composite parent, boolean separator) {
+		Assert.isNotNull(parent);
+
 		if (isWithoutSelection() && isWithHostList()) {
 			Composite comboComposite = new Composite(parent, SWT.NONE);
 			GridLayout layout = new GridLayout(3, false);
@@ -302,8 +324,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			// deleteHostButton.setText(Messages.AbstractConfigurationPanel_delete);
 
 			ISharedImages workbenchImages = UIPlugin.getDefault().getWorkbench().getSharedImages();
-			deleteHostButton.setImage(workbenchImages
-			                .getImageDescriptor(ISharedImages.IMG_TOOL_DELETE).createImage());
+			deleteHostButton.setImage(workbenchImages.getImageDescriptor(ISharedImages.IMG_TOOL_DELETE).createImage());
 
 			deleteHostButton.setToolTipText(Messages.AbstractConfigurationPanel_deleteButtonTooltip);
 			deleteHostButton.addSelectionListener(new SelectionListener() {
@@ -314,7 +335,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 					if (host != null && host.length() != 0) {
 						removeSettingsForHost(host);
 						removeSecurePassword(host);
-						fillCombo();
+						fillHostCombo();
 						SWTControlUtil.select(hostCombo, 0);
 						host = getHostFromCombo();
 						if (host != null && host.length() != 0) {
@@ -328,8 +349,101 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 					widgetSelected(e);
 				}
 			});
-			Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
-			separator.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+			if (separator) {
+				Label sep = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+				sep.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			}
+		}
+	}
+
+	/**
+	 * Create the encoding selection combo.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 * @param separator If <code>true</code>, a separator will be added before the controls.
+	 */
+	protected void createEncodingUI(Composite parent, boolean separator) {
+		Assert.isNotNull(parent);
+
+		if (separator) {
+			Label sep = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+			sep.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		}
+
+		Composite panel = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout(2, false);
+		layout.marginHeight = 0; layout.marginWidth = 0;
+		panel.setLayout(layout);
+		panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+		Label label = new Label(panel, SWT.HORIZONTAL);
+		label.setText(Messages.AbstractConfigurationPanel_encoding);
+
+		encodingCombo = new Combo(panel, SWT.READ_ONLY);
+		encodingCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+		fillEncodingCombo();
+	}
+
+	/**
+	 * Fill the encoding combo.
+	 */
+	protected void fillEncodingCombo() {
+		if (encodingCombo != null) {
+			List<String> encodings = new ArrayList<String>();
+
+			// Some hard-coded encodings
+			encodings.add("Default (ISO-8859-1)"); //$NON-NLS-1$
+			encodings.add("UTF-8"); //$NON-NLS-1$
+
+			// The default Eclipse encoding (configured in the preferences)
+			String eclipseEncoding = IDEEncoding.getResourceEncoding();
+			if (eclipseEncoding != null && !encodings.contains(eclipseEncoding)) encodings.add(eclipseEncoding);
+
+			// The default host (Java VM) encoding
+			String hostEncoding = Charset.defaultCharset().displayName();
+			if (!encodings.contains(hostEncoding)) encodings.add(hostEncoding);
+
+			SWTControlUtil.setItems(encodingCombo, encodings.toArray(new String[encodings.size()]));
+			SWTControlUtil.select(encodingCombo, 0);
+		}
+	}
+
+	/**
+	 * Select the encoding.
+	 *
+	 * @param encoding The encoding. Must not be <code>null</code>.
+	 */
+	protected void setEncoding(String encoding) {
+		Assert.isNotNull(encoding);
+
+		int index = SWTControlUtil.indexOf(encodingCombo, encoding);
+		if (index != -1) SWTControlUtil.select(encodingCombo, index);
+		else SWTControlUtil.setText(encodingCombo, encoding);
+	}
+
+	/**
+	 * Returns the selected encoding.
+	 *
+	 * @return The selected encoding or <code>null</code>.
+	 */
+	protected String getEncoding() {
+		String encoding = SWTControlUtil.getText(encodingCombo);
+		return encoding != null && encoding.startsWith("Default") ? null : encoding; //$NON-NLS-1$
+	}
+
+	/**
+	 * Returns if or if not the selected encoding is supported.
+	 *
+	 * @return <code>True</code> if the selected encoding is supported.
+	 */
+	protected boolean isEncodingValid() {
+		try {
+			String encoding = getEncoding();
+			return Charset.isSupported(encoding != null ? encoding : "ISO-8859-1"); //$NON-NLS-1$
+		} catch (IllegalCharsetNameException e) {
+			return false;
 		}
 	}
 }

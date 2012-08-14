@@ -58,9 +58,8 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
 		panel.setLayoutData(data);
 
-		if(isWithoutSelection()){
-			createHostsUI(panel);
-		}
+		// Create the host selection combo
+		if (isWithoutSelection()) createHostsUI(panel, true);
 
 		TelnetConnector conn = new TelnetConnector();
 		telnetSettings = (TelnetSettings) conn.getTelnetSettings();
@@ -69,6 +68,9 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 		telnetSettings.setHost(getSelectionHost());
 		// MWE otherwise we don't get a valid default selection of the combo
 		telnetSettings.setNetworkPort(NetworkPortMap.PROP_VALUETELNET);
+
+		// Create the encoding selection combo
+		createEncodingUI(panel, true);
 
 		setControl(panel);
 	}
@@ -103,6 +105,7 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 		data.setProperty(ITerminalsConnectorConstants.PROP_IP_HOST,telnetSettings.getHost());
 		data.setProperty(ITerminalsConnectorConstants.PROP_IP_PORT, telnetSettings.getNetworkPort());
 		data.setProperty(ITerminalsConnectorConstants.PROP_TIMEOUT, telnetSettings.getTimeout());
+		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
     }
 
 	/* (non-Javadoc)
@@ -110,9 +113,9 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 	 */
 	@Override
 	protected void fillSettingsForHost(String host){
-		if(host!=null && host.length()!=0){
-			if(hostSettingsMap.containsKey(host)){
-				Map<String, String> hostSettings=hostSettingsMap.get(host);
+		if (host != null && host.length() != 0){
+			if (hostSettingsMap.containsKey(host)){
+				Map<String, String> hostSettings = hostSettingsMap.get(host);
 				if (hostSettings.get(ITerminalsConnectorConstants.PROP_IP_HOST) != null) {
 					telnetSettings.setHost(hostSettings.get(ITerminalsConnectorConstants.PROP_IP_HOST));
 				}
@@ -122,7 +125,10 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 				if (hostSettings.get(ITerminalsConnectorConstants.PROP_TIMEOUT) != null) {
 					telnetSettings.setTimeout(hostSettings.get(ITerminalsConnectorConstants.PROP_TIMEOUT));
 				}
-			} else{
+				if (hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING) != null) {
+					setEncoding(hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING));
+				}
+			} else {
 				telnetSettings.setHost(getSelectionHost());
 				// MWE otherwise we don't get a valid default selection of the combo
 				telnetSettings.setNetworkPort(NetworkPortMap.PROP_VALUETELNET);
@@ -137,18 +143,20 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 	 */
 	@Override
 	protected void saveSettingsForHost(boolean add){
-		String host=getHostFromSettings();
-		if(host!=null && host.length()!=0){
-			if(hostSettingsMap.containsKey(host)){
+		String host = getHostFromSettings();
+		if(host != null && host.length() != 0) {
+			if (hostSettingsMap.containsKey(host)) {
 				Map<String, String> hostSettings=hostSettingsMap.get(host);
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_HOST, telnetSettings.getHost());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(telnetSettings.getNetworkPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(telnetSettings.getTimeout()));
-			} else if(add){
+				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+			} else if (add) {
 				Map<String, String> hostSettings=new HashMap<String, String>();
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_HOST, telnetSettings.getHost());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(telnetSettings.getNetworkPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(telnetSettings.getTimeout()));
+				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
 				hostSettingsMap.put(host, hostSettings);
 			}
 		}
@@ -159,7 +167,7 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 	 */
 	@Override
     public boolean isValid(){
-		return telnetSettingsPage.validateSettings();
+		return isEncodingValid() && telnetSettingsPage.validateSettings();
 	}
 
 	/* (non-Javadoc)

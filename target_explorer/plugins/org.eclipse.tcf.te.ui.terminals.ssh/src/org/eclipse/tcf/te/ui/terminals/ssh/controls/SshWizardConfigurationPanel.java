@@ -61,9 +61,8 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
 		panel.setLayoutData(data);
 
-		if(isWithoutSelection()){
-			createHostsUI(panel);
-		}
+		// Create the host selection combo
+		if (isWithoutSelection()) createHostsUI(panel, true);
 
 		SshConnector conn = new SshConnector();
 		sshSettings = (SshSettings) conn.getSshSettings();
@@ -71,6 +70,9 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		sshSettings.setUser(getDefaultUser());
 		sshSettingsPage = conn.makeSettingsPage();
 		sshSettingsPage.createControl(panel);
+
+		// Create the encoding selection combo
+		createEncodingUI(panel, true);
 
 		setControl(panel);
 	}
@@ -117,6 +119,7 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		data.setProperty(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, sshSettings.getKeepalive());
 		data.setProperty(ITerminalsConnectorConstants.PROP_SSH_PASSWORD, sshSettings.getPassword());
 		data.setProperty(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
+		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
     }
 
 	/* (non-Javadoc)
@@ -124,9 +127,9 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 */
 	@Override
 	protected void fillSettingsForHost(String host){
-		if(host!=null && host.length()!=0){
-			if(hostSettingsMap.containsKey(host)){
-				Map<String, String> hostSettings=hostSettingsMap.get(host);
+		if (host != null && host.length() != 0){
+			if (hostSettingsMap.containsKey(host)){
+				Map<String, String> hostSettings = hostSettingsMap.get(host);
 				if (hostSettings.get(ITerminalsConnectorConstants.PROP_IP_HOST) != null) {
 					sshSettings.setHost(hostSettings.get(ITerminalsConnectorConstants.PROP_IP_HOST));
 				}
@@ -146,6 +149,9 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				if (password != null) {
 					sshSettings.setPassword(password);
 				}
+				if (hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING) != null) {
+					setEncoding(hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING));
+				}
 			} else {
 				sshSettings.setHost(getSelectionHost());
 				sshSettings.setUser(getDefaultUser());
@@ -164,31 +170,36 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
     	super.doSaveWidgetValues(settings, idPrefix);
     }
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#saveSettingsForHost(boolean)
+	 */
 	@Override
 	protected void saveSettingsForHost(boolean add){
-		String host=getHostFromSettings();
-		if(host!=null && host.length()!=0){
-			if(hostSettingsMap.containsKey(host)){
-				Map<String, String> hostSettings=hostSettingsMap.get(host);
+		String host = getHostFromSettings();
+		if (host != null && host.length() != 0) {
+			if (hostSettingsMap.containsKey(host)){
+				Map<String, String> hostSettings = hostSettingsMap.get(host);
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_HOST, sshSettings.getHost());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(sshSettings.getPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(sshSettings.getTimeout()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, Integer.toString(sshSettings.getKeepalive()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
+				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
 
-				if(sshSettings.getPassword()!=null && sshSettings.getPassword().length()!=0){
+				if (sshSettings.getPassword() != null && sshSettings.getPassword().length() != 0){
 					saveSecurePassword(host, sshSettings.getPassword());
 				}
-			} else if(add){
-				Map<String, String> hostSettings=new HashMap<String, String>();
+			} else if (add) {
+				Map<String, String> hostSettings = new HashMap<String, String>();
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_HOST, sshSettings.getHost());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(sshSettings.getPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(sshSettings.getTimeout()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, Integer.toString(sshSettings.getKeepalive()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
+				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
 				hostSettingsMap.put(host, hostSettings);
 
-				if(sshSettings.getPassword()!=null && sshSettings.getPassword().length()!=0){
+				if (sshSettings.getPassword() != null && sshSettings.getPassword().length() != 0){
 					saveSecurePassword(host, sshSettings.getPassword());
 				}
 			}
@@ -272,7 +283,7 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 */
 	@Override
     public boolean isValid(){
-		return sshSettingsPage.validateSettings();
+		return isEncodingValid() && sshSettingsPage.validateSettings();
 	}
 
 	/* (non-Javadoc)
