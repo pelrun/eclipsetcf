@@ -17,12 +17,14 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -42,6 +44,7 @@ import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.events.SelectionChangedBroadcastEvent;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ImageConsts;
+import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.tm.internal.terminal.control.ITerminalListener;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.control.TerminalViewControlFactory;
@@ -728,6 +731,7 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 * Fire the selection changed event to the registered listeners.
 	 */
 	protected void fireSelectionChanged() {
+		updateStatusLine();
 		fireSelectionChanged(getSelection());
 	}
 
@@ -799,5 +803,27 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 */
 	protected BroadcastedSelectionChangedEventListener doCreateBroadcastedSelectionChangedEventListener(TabFolderManager parent) {
 		return new BroadcastedSelectionChangedEventListener(parent);
+	}
+
+	/**
+	 * Update the parent view status line.
+	 */
+	protected void updateStatusLine() {
+		String message = null;
+		IStatusLineManager manager = parentView.getViewSite().getActionBars().getStatusLineManager();
+
+		CTabItem item = getActiveTabItem();
+		if (item != null && !item.isDisposed()) {
+			ITerminalViewControl terminal = (ITerminalViewControl)item.getData();
+			if (terminal != null && !terminal.isDisposed()) {
+				String encoding = terminal.getEncoding();
+				if (encoding == null || "ISO-8859-1".equals(encoding)) { //$NON-NLS-1$
+					encoding = "Default (ISO-8859-1)"; //$NON-NLS-1$
+				}
+				message = NLS.bind(Messages.TabFolderManager_encoding, encoding);
+			}
+		}
+
+		manager.setMessage(message);
 	}
 }
