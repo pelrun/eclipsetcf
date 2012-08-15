@@ -49,12 +49,12 @@ public class TCFChildrenContextQuery extends TCFChildren {
             ILaunchConfiguration launchConfig = model.getLaunch().getLaunchConfiguration();
             if (launchConfig != null) {
                 Set<String> set = new HashSet<String>();
-                String sessionId = launchConfig.getName();
+                String launch_name = launchConfig.getName();
                 for (String context : filter) {
-                    int slashPos = context.indexOf('/');
-                    if (slashPos > 0 && context.length() > slashPos + 1) {
-                        if ( sessionId.equals(context.substring(0, slashPos)) ) {
-                            set.add(context.substring(slashPos + 1));
+                    int i = context.indexOf('/');
+                    if (i > 0 && context.length() > i + 1) {
+                        if (launch_name.equals(context.substring(0, i))) {
+                            set.add(context.substring(i + 1));
                         }
                     }
                 }

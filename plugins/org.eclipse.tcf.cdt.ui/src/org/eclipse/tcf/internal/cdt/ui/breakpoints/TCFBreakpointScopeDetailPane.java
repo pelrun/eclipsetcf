@@ -12,8 +12,10 @@ package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -56,7 +58,11 @@ import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildrenContextQuery;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModelManager;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IRunControl;
+import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.ui.IWorkbenchPartSite;
 
 /**
@@ -135,11 +141,11 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
         implements IElementContentProvider, IElementLabelProvider, IModelProxyFactory
     {
         private final String fQuery;
-        private Set<String> fContexts;
+        private final Set<String> fScope;
 
         public ContextQueryElement(String query, Set<String> contexts) {
             fQuery = query;
-            fContexts = contexts;
+            fScope = contexts;
         }
 
         @Override
@@ -148,15 +154,15 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
                 ContextQueryElement element = (ContextQueryElement)other;
                 return ((fQuery == null && element.fQuery == null) ||
                         (fQuery != null && fQuery.equals(element.fQuery))) &&
-                       ((fContexts == null && element.fContexts == null) ||
-                        (fContexts != null && fContexts.equals(element.fContexts)));
+                       ((fScope == null && element.fScope == null) ||
+                        (fScope != null && fScope.equals(element.fScope)));
             }
             return false;
         }
 
         @Override
         public int hashCode() {
-            return (fQuery != null ? fQuery.hashCode() : 0) + (fContexts != null ? fContexts.hashCode() : 0);
+            return (fQuery != null ? fQuery.hashCode() : 0) + (fScope != null ? fScope.hashCode() : 0);
         }
 
         public void update(IChildrenCountUpdate[] updates) {
@@ -202,8 +208,9 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
                     for (TCFLaunch launch : getTCFLaunches()) {
                         TCFModel model = modelManager.getModel(launch);
                         if (model != null && model.getRootNode() != null) {
-                            TCFChildrenContextQuery.Descendants des = TCFChildrenContextQuery.getDescendants(
-                                    model.getRootNode(), fQuery, fContexts, this);
+                            TCFChildrenContextQuery.Descendants des =
+                                    TCFChildrenContextQuery.getDescendants(
+                                    model.getRootNode(), fQuery, fScope, this);
                             if (des == null) return;
                             if (des.map != null && des.map.size() > 0) filteredLaunches.add(launch);
                         }
@@ -217,15 +224,36 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
         private void getQueryFilteredContexts (final ILabelUpdate update) {
             Protocol.invokeLater( new Runnable() {
                 public void run() {
-                    TCFModelManager modelManager = TCFModelManager.getModelManager();
+                    Map<String,String> node_names = new HashMap<String,String>();
+                    TCFModelManager model_manager = TCFModelManager.getModelManager();
                     Set<String> descendants = new HashSet<String>();
                     for (TCFLaunch launch : getTCFLaunches()) {
-                        TCFModel model = modelManager.getModel(launch);
-                        if (model != null && model.getRootNode() != null) {
-                            TCFChildrenContextQuery.Descendants des = TCFChildrenContextQuery.getDescendants(
-                                    model.getRootNode(), fQuery, fContexts, this);
-                            if (des == null) return;
-                            if (des.map != null) descendants.addAll(des.map.keySet());
+                        TCFModel model = model_manager.getModel(launch);
+                        if (model == null || model.getRootNode() == null) continue;
+                        TCFChildrenContextQuery.Descendants des =
+                                TCFChildrenContextQuery.getDescendants(
+                                model.getRootNode(), fQuery, fScope, this);
+                        if (des == null) return;
+                        if (des.map != null) descendants.addAll(des.map.keySet());
+                        if (fScope == null) continue;
+                        String launch_name = launch.getLaunchConfiguration().getName();
+                        for (String id : fScope) {
+                            /* 'id' format is <launch name>/<context ID> */
+                            if (node_names.containsKey(id)) continue;
+                            int i = id.indexOf('/');
+                            if (i < 0) continue;
+                            if (!launch_name.equals(id.substring(0, i))) continue;
+                            TCFNode node = model.getNode(id.substring(i + 1));
+                            if (node instanceof TCFNodeExecContext) {
+                                TCFDataCache<IRunControl.RunControlContext> ctx_cache =
+                                        ((TCFNodeExecContext)node).getRunContext();
+                                if (!ctx_cache.validate(this)) return;
+                                IRunControl.RunControlContext ctx_data = ctx_cache.getData();
+                                if (ctx_data != null) {
+                                    String name = ctx_data.getName();
+                                    if (name != null) node_names.put(id, name);
+                                }
+                            }
                         }
                     }
 
@@ -237,13 +265,21 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
                     if (fQuery != null) {
                         label.append("Filter: ");
                         label.append(fQuery);
-                        if (fContexts != null) {
+                        if (fScope != null) {
                             label.append(", ");
                         }
                     }
-                    if (fContexts != null) {
+                    if (fScope != null) {
+                        int cnt = 0;
                         label.append("Contexts: ");
-                        label.append(fContexts);
+                        label.append('[');
+                        for (String id : fScope) {
+                            if (cnt > 0) label.append(',');
+                            String name = node_names.get(id);
+                            label.append(name != null ? name : id);
+                            cnt++;
+                        }
+                        label.append(']');
                     }
                     update.setLabel(label.toString(), 0);
                     update.setImageDescriptor(ImageCache.getImageDescriptor(ImageCache.IMG_BREAKPOINT_SCOPE), 0);
@@ -255,9 +291,11 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
         private void done(List<TCFLaunch> launches, IViewerUpdate update) {
             if (update instanceof IHasChildrenUpdate) {
                 ((IHasChildrenUpdate)update).setHasChilren(!launches.isEmpty());
-            } else if (update instanceof IChildrenCountUpdate) {
+            }
+            else if (update instanceof IChildrenCountUpdate) {
                 ((IChildrenCountUpdate)update).setChildCount(launches.size());
-            } else if (update instanceof IChildrenUpdate) {
+            }
+            else if (update instanceof IChildrenUpdate) {
                 IChildrenUpdate childrenUpdate = (IChildrenUpdate)update;
                 int updateStart = childrenUpdate.getOffset();
                 int updateEnd = childrenUpdate.getOffset() + childrenUpdate.getLength();
