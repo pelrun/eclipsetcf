@@ -12,8 +12,10 @@ package org.eclipse.tcf.te.ui.terminals.tabs;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
@@ -70,6 +72,11 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 * List of selection changed listeners.
 	 */
 	private final List<ISelectionChangedListener> selectionChangedListeners = new ArrayList<ISelectionChangedListener>();
+
+	/**
+	 * Map of tab command input field handler per tab item
+	 */
+	private final Map<CTabItem, TabCommandFieldHandler> commandFieldHandler = new HashMap<CTabItem, TabCommandFieldHandler>();
 
 	/**
 	 * The terminal control selection listener implementation.
@@ -280,6 +287,11 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		if (broadcastedSelectionChangedEventListener != null) {
 			EventManager.getInstance().removeEventListener(broadcastedSelectionChangedEventListener);
 		}
+		// Dispose the tab command field handler
+		for (TabCommandFieldHandler handler : commandFieldHandler.values()) {
+			handler.dispose();
+		}
+		commandFieldHandler.clear();
 	}
 
 	/**
@@ -326,7 +338,7 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 			tabFolder.getParent().layout(true);
 
 			// Create the terminal control
-			ITerminalViewControl terminal = TerminalViewControlFactory.makeControl(doCreateTerminalTabTerminalListener(item), composite, new ITerminalConnector[] { connector }, true);
+			ITerminalViewControl terminal = TerminalViewControlFactory.makeControl(doCreateTerminalTabTerminalListener(this, item), composite, new ITerminalConnector[] { connector }, true);
 			// Add the "selection" listener to the terminal control
 			new TerminalControlSelectionListener(terminal);
 			// Configure the terminal encoding
@@ -527,12 +539,14 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	/**
 	 * Creates a new terminal console tab terminal listener instance.
 	 *
+	 * @param tabFolderManager The tab folder manager. Must not be <code>null</code>.
 	 * @param item The tab item. Must not be <code>null</code>.
+	 *
 	 * @return The terminal listener instance.
 	 */
-	protected ITerminalListener doCreateTerminalTabTerminalListener(CTabItem item) {
+	protected ITerminalListener doCreateTerminalTabTerminalListener(TabFolderManager tabFolderManager, CTabItem item) {
 		Assert.isNotNull(item);
-		return new TabTerminalListener(item);
+		return new TabTerminalListener(tabFolderManager, item);
 	}
 
 	/**
@@ -683,6 +697,37 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns the command input field handler for the given tab item.
+	 *
+	 * @param item The tab item or <code>null</code>.
+	 * @return The command input field handler or <code>null</code>.
+	 */
+	public final TabCommandFieldHandler getTabCommandFieldHandler(CTabItem item) {
+		// Null items or disposed items cannot be matched
+		if (item == null || item.isDisposed()) return null;
+
+		TabCommandFieldHandler handler = commandFieldHandler.get(item);
+		if (handler == null) {
+			handler = new TabCommandFieldHandler(this, item);
+			commandFieldHandler.put(item, handler);
+		}
+		return handler;
+	}
+
+	/**
+	 * Dispose the command input field handler for the given tab item.
+	 *
+	 * @param item The tab item or <code>null</code>.
+	 */
+	protected void disposeTabCommandFieldHandler(CTabItem item) {
+		// Null items or disposed items cannot be matched
+		if (item == null || item.isDisposed()) return;
+
+		TabCommandFieldHandler handler = commandFieldHandler.remove(item);
+		if (handler != null) handler.dispose();
 	}
 
 	/* (non-Javadoc)

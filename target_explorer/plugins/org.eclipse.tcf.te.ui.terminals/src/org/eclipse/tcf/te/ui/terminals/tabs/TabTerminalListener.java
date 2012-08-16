@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.terminals.tabs;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Display;
@@ -24,15 +25,19 @@ import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
  */
 @SuppressWarnings("restriction")
 public class TabTerminalListener implements ITerminalListener {
+	/* default */ final TabFolderManager tabFolderManager;
 	private final CTabItem tabItem;
 
 	/**
 	 * Constructor.
 	 *
+	 * @param tabFolderManager The parent tab folder manager. Must not be <code>null</code>.
 	 * @param tabItem The parent tab item. Must not be <code>null</code>.
 	 */
-	public TabTerminalListener(CTabItem tabItem) {
+	public TabTerminalListener(TabFolderManager tabFolderManager, CTabItem tabItem) {
 		super();
+		Assert.isNotNull(tabFolderManager);
+		this.tabFolderManager = tabFolderManager;
 		Assert.isNotNull(tabItem);
 		this.tabItem = tabItem;
 	}
@@ -55,12 +60,22 @@ public class TabTerminalListener implements ITerminalListener {
 		final CTabItem item = getTabItem();
 		if (item == null || item.isDisposed()) return;
 
-		// Update the tab item title
+		// Run asynchronously in the display thread
 		item.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
+				// Update the tab item title
 				String newTitle = getTerminalConsoleTabTitle(state);
 				if (newTitle != null) item.setText(newTitle);
+
+				// Turn off the command field (if necessary)
+				TabCommandFieldHandler handler = tabFolderManager.getTabCommandFieldHandler(item);
+				if (handler != null && handler.hasCommandInputField()) {
+					handler.setCommandInputField(false);
+					ISelectionProvider provider = tabFolderManager.getParentView().getViewSite().getSelectionProvider();
+					Assert.isNotNull(provider);
+					provider.setSelection(provider.getSelection());
+				}
 			}
 		});
 	}

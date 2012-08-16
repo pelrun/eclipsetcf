@@ -53,6 +53,8 @@ public class TabDisposeListener implements DisposeListener {
 			// Get the terminal control (if any) from the tab item
 			Object candidate = ((CTabItem)e.getSource()).getData();
 			if (candidate instanceof ITerminalViewControl) ((ITerminalViewControl)candidate).disposeTerminal();
+			// Dispose the command input field handler
+			parentTabFolderManager.disposeTabCommandFieldHandler((CTabItem)e.getSource());
 
 			// If all items got removed, we have to switch back to the empty page control
 			if (parentTabFolderManager.getTabFolder() != null && parentTabFolderManager.getTabFolder().getItemCount() == 0) {

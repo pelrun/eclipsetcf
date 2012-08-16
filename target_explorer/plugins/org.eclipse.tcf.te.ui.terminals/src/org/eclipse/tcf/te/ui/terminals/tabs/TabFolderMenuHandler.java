@@ -22,6 +22,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tcf.te.ui.terminals.actions.TabScrollLockAction;
+import org.eclipse.tcf.te.ui.terminals.actions.ToggleCommandFieldAction;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.control.actions.AbstractTerminalAction;
@@ -29,6 +30,7 @@ import org.eclipse.tm.internal.terminal.control.actions.TerminalActionClearAll;
 import org.eclipse.tm.internal.terminal.control.actions.TerminalActionCopy;
 import org.eclipse.tm.internal.terminal.control.actions.TerminalActionPaste;
 import org.eclipse.tm.internal.terminal.control.actions.TerminalActionSelectAll;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 import org.eclipse.ui.IWorkbenchActionConstants;
 
 /**
@@ -191,12 +193,34 @@ public class TabFolderMenuHandler extends PlatformObject {
 			protected ITerminalViewControl getTarget() {
 				return getActiveTerminalViewControl();
 			}
+
+			/* (non-Javadoc)
+			 * @see org.eclipse.tm.internal.terminal.control.actions.TerminalActionPaste#updateAction(boolean)
+			 */
+			@Override
+			public void updateAction(boolean aboutToShow) {
+			    super.updateAction(aboutToShow);
+			    if (getTarget() != null && getTarget().getState() != TerminalState.CONNECTED) {
+			    	setEnabled(false);
+			    }
+			}
 		});
 
 		// Create and add the select all action
 		add(new TerminalActionSelectAll() {
 			/* (non-Javadoc)
 			 * @see org.eclipse.tcf.internal.terminal.control.actions.AbstractTerminalAction#getTarget()
+			 */
+			@Override
+			protected ITerminalViewControl getTarget() {
+				return getActiveTerminalViewControl();
+			}
+		});
+
+		// Create and add the toggle command input field action
+		add (new ToggleCommandFieldAction(getParentView()) {
+			/* (non-Javadoc)
+			 * @see org.eclipse.tm.internal.terminal.control.actions.AbstractTerminalAction#getTarget()
 			 */
 			@Override
 			protected ITerminalViewControl getTarget() {

@@ -15,6 +15,7 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.control.actions.AbstractTerminalAction;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 
 /**
  * Terminal console tab scroll lock action.
@@ -53,6 +54,6 @@ public class TabScrollLockAction extends AbstractTerminalAction {
 	 */
 	@Override
 	public void updateAction(boolean aboutToShow) {
-		setEnabled(getTarget() != null && aboutToShow);
+		setEnabled(aboutToShow && getTarget() != null && getTarget().getState() == TerminalState.CONNECTED);
 	}
 }

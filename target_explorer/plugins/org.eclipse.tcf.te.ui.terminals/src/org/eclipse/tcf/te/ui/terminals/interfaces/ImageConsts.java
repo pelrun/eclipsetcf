@@ -79,4 +79,18 @@ public interface ImageConsts {
      */
     public static final String  ACTION_PinTerminal_Hover = "PinTerminalAction_hover"; //$NON-NLS-1$
 
+    /**
+     * The key to access the toggle command field action image (enabled).
+     */
+    public static final String  ACTION_ToggleCommandField_Enabled = "ToggleCommandField_enabled"; //$NON-NLS-1$
+
+    /**
+     * The key to access the toggle command field action image (disabled).
+     */
+    public static final String  ACTION_ToggleCommandField_Disabled = "ToggleCommandField_disabled"; //$NON-NLS-1$
+
+    /**
+     * The key to access the toggle command field action image (hover).
+     */
+    public static final String  ACTION_ToggleCommandField_Hover = "ToggleCommandField_hover"; //$NON-NLS-1$
 }
