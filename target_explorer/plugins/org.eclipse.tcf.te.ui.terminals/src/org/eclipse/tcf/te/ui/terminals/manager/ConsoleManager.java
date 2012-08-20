@@ -394,21 +394,20 @@ public class ConsoleManager {
 	 * @param activate If <code>true</code> activate the console view.
 	 * @param forceNew If <code>true</code> a new console tab is created even if another one matches the criteria.
 	 */
-	public void openConsole(String id, String title, String encoding, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
+	public CTabItem openConsole(String id, String title, String encoding, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
 		Assert.isNotNull(Display.findDisplay(Thread.currentThread()));
 
-		// make the consoles view visible
-		IViewPart part=bringToTop(id, activate);
-		if(part==null){
-			return;
-		}
+		// Make the consoles view visible
+		IViewPart part = bringToTop(id, activate);
+		if (!(part instanceof ITerminalsView)) return null;
+		// Cast to the correct type
 		ITerminalsView view = (ITerminalsView)part;
 
 		// Get the tab folder manager associated with the view
 		TabFolderManager manager = (TabFolderManager)view.getAdapter(TabFolderManager.class);
-		if (manager == null) return;
+		if (manager == null) return null;
 
 		// Lookup an existing console first
 		String secId=((IViewSite)part.getSite()).getSecondaryId();
@@ -427,9 +426,7 @@ public class ConsoleManager {
 			item = manager.createTabItem(title, encoding, connector, data);
 		}
 		// If still null, something went wrong
-		if (item == null) {
-			return;
-		}
+		if (item == null) return null;
 
 		// Make the item the active console
 		manager.bringToTop(item);
@@ -437,8 +434,11 @@ public class ConsoleManager {
 		// Show the tab folder page
 		view.switchToTabFolderControl();
 
-		// make sure the terminals view has the focus after opening a new terminal
+		// Make sure the terminals view has the focus after opening a new terminal
 		view.setFocus();
+
+		// Return the tab item of the opened console
+		return item;
 	}
 
 	/**

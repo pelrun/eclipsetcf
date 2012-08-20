@@ -21,6 +21,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.serial.controls.SerialWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.serial.nls.Messages;
@@ -29,6 +30,8 @@ import org.eclipse.tcf.te.ui.terminals.serial.nls.Messages;
  * Serial launcher delegate implementation.
  */
 public class SerialLauncherDelegate extends AbstractLauncherDelegate {
+	// The serial terminal connection memento handler
+	private final IMementoHandler mementoHandler = new SerialMementoHandler();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#needsUserConfiguration()
@@ -83,5 +86,16 @@ public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 			return NLS.bind(Messages.SerialLauncherDelegate_terminalTitle, new String[]{port, date});
 		}
 		return Messages.SerialLauncherDelegate_terminalTitle_default;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
+	 */
+	@Override
+	public Object getAdapter(Class adapter) {
+		if (IMementoHandler.class.equals(adapter)) {
+			return mementoHandler;
+		}
+	    return super.getAdapter(adapter);
 	}
 }

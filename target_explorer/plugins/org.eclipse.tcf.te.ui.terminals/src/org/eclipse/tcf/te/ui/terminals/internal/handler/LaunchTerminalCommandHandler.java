@@ -18,6 +18,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.internal.dialogs.LaunchTerminalSettingsDialog;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
@@ -36,7 +37,7 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 		String commandId=event.getCommand().getId();
 		// "org.eclipse.tcf.te.ui.terminals.command.launchToolbar"
 		// "org.eclipse.tcf.te.ui.terminals.command.launch"
-		
+
 		// Get the active shell
 		Shell shell = HandlerUtil.getActiveShell(event);
 		// Get the current selection
@@ -47,13 +48,13 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 				// Get the terminal settings from the dialog
 				IPropertiesContainer properties = dialog.getSettings();
 				if (properties != null) {
-					String delegateId = properties.getStringProperty("delegateId"); //$NON-NLS-1$
+					String delegateId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
 					Assert.isNotNull(delegateId);
 					ILauncherDelegate delegate = LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false);
 					Assert.isNotNull(delegateId);
 					delegate.execute(properties, null);
 				}
-			}			
+			}
 		} else {
 			// Check if the dialog needs to be shown at all
 			ILauncherDelegate[] delegates = LauncherDelegateManager.getInstance().getApplicableLauncherDelegates(selection);
@@ -65,7 +66,7 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 					// Get the terminal settings from the dialog
 					IPropertiesContainer properties = dialog.getSettings();
 					if (properties != null) {
-						String delegateId = properties.getStringProperty("delegateId"); //$NON-NLS-1$
+						String delegateId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
 						Assert.isNotNull(delegateId);
 						ILauncherDelegate delegate = LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false);
 						Assert.isNotNull(delegateId);
@@ -77,9 +78,9 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 				IPropertiesContainer properties = new PropertiesContainer();
 
 				// Store the id of the selected delegate
-				properties.setProperty("delegateId", delegate.getId()); //$NON-NLS-1$
+				properties.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
 				// Store the selection
-				properties.setProperty("selection", selection); //$NON-NLS-1$
+				properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 
 				// Execute
 				delegate.execute(properties, null);

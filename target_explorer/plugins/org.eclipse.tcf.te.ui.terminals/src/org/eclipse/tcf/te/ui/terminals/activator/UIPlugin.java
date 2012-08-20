@@ -11,14 +11,28 @@
 package org.eclipse.tcf.te.ui.terminals.activator;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ImageConsts;
+import org.eclipse.tcf.te.ui.terminals.view.TerminalsView;
+import org.eclipse.tcf.te.ui.terminals.view.TerminalsViewMementoHandler;
+import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchListener;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -26,6 +40,7 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
+@SuppressWarnings("restriction")
 public class UIPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static UIPlugin plugin;
@@ -33,6 +48,8 @@ public class UIPlugin extends AbstractUIPlugin {
 	private static volatile ScopedEclipsePreferences scopedPreferences;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
+	// The workbench listener instance
+	private IWorkbenchListener listener;
 
 	/**
 	 * The constructor
@@ -88,6 +105,60 @@ public class UIPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+
+		// Create and register the workbench listener instance
+		listener = new IWorkbenchListener() {
+
+			@Override
+			public boolean preShutdown(IWorkbench workbench, boolean forced) {
+				/*
+				 * The terminal tabs to save to the views memento on shutdown can
+				 * be determined only _before_ the saveState(memento) method of the
+				 * view is called. Within saveState, it is already to late and the
+				 * terminals might be in CLOSED state already. This depends on the
+				 * terminal type and the corresponding connector implementation.
+				 *
+				 * To be safe, we determine the still opened terminals on shutdown
+				 * separately here in the preShutdown.
+				 */
+				final List<CTabItem> saveables = new ArrayList<CTabItem>();
+
+				// Get the "Terminals" view
+				IViewReference ref = workbench.getActiveWorkbenchWindow().getActivePage().findViewReference(IUIConstants.ID);
+				IViewPart part = ref != null ? ref.getView(false) : null;
+				if (part instanceof TerminalsView) {
+					// Get the tab folder
+					CTabFolder tabFolder = (CTabFolder)((TerminalsView)part).getAdapter(CTabFolder.class);
+					if (tabFolder != null && !tabFolder.isDisposed()) {
+						// Get the list of tab items
+						CTabItem[] items = tabFolder.getItems();
+						// Loop the tab items and find the still connected ones
+						for (CTabItem item : items) {
+							// Ignore disposed items
+							if (item.isDisposed()) continue;
+							// Get the terminal view control
+							ITerminalViewControl terminal = (ITerminalViewControl)item.getData();
+							if (terminal == null || terminal.getState() != TerminalState.CONNECTED) {
+								continue;
+							}
+							// Still connected -> Add to the list
+							saveables.add(item);
+						}
+					}
+
+					// Push the determined saveable items to the memento handler
+					TerminalsViewMementoHandler mementoHandler = (TerminalsViewMementoHandler)((TerminalsView)part).getAdapter(TerminalsViewMementoHandler.class);
+					if (mementoHandler != null) mementoHandler.setSaveables(saveables);
+				}
+
+				return true;
+			}
+
+			@Override
+			public void postShutdown(IWorkbench workbench) {
+			}
+		};
+		PlatformUI.getWorkbench().addWorkbenchListener(listener);
 	}
 
 	/* (non-Javadoc)
@@ -98,6 +169,7 @@ public class UIPlugin extends AbstractUIPlugin {
 		plugin = null;
 		scopedPreferences = null;
 		traceHandler = null;
+		if (listener != null) { PlatformUI.getWorkbench().removeWorkbenchListener(listener); listener = null; }
 		super.stop(context);
 	}
 

@@ -22,6 +22,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.ssh.controls.SshWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.ssh.nls.Messages;
@@ -30,6 +31,8 @@ import org.eclipse.tcf.te.ui.terminals.ssh.nls.Messages;
  * SSH launcher delegate implementation.
  */
 public class SshLauncherDelegate extends AbstractLauncherDelegate {
+	// The SSH terminal connection memento handler
+	private final IMementoHandler mementoHandler = new SshMementoHandler();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#needsUserConfiguration()
@@ -91,5 +94,16 @@ public class SshLauncherDelegate extends AbstractLauncherDelegate {
 			return NLS.bind(Messages.SshLauncherDelegate_terminalTitle, new String[]{user, host, date});
 		}
 		return Messages.SshLauncherDelegate_terminalTitle_default;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
+	 */
+	@Override
+	public Object getAdapter(Class adapter) {
+		if (IMementoHandler.class.equals(adapter)) {
+			return mementoHandler;
+		}
+	    return super.getAdapter(adapter);
 	}
 }

@@ -36,9 +36,19 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_DATA = "data"; //$NON-NLS-1$
 
 	/**
+	 * Property: External selection to associate with the terminal tab.
+	 */
+	public static final String PROP_SELECTION = "selection"; //$NON-NLS-1$
+
+	/**
 	 * Property: Flag to force a new terminal tab.
 	 */
 	public static final String PROP_FORCE_NEW = "forceNew"; //$NON-NLS-1$
+
+	/**
+	 * Property: Terminals launcher delegate id.
+	 */
+	public static final String PROP_DELEGATE_ID = "delegateId"; //$NON-NLS-1$
 
 	/**
 	 * Property: Terminals connector type id.

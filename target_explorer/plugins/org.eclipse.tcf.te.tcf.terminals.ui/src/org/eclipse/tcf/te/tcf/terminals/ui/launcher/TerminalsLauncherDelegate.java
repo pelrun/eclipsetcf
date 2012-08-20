@@ -18,18 +18,22 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsLauncher;
 import org.eclipse.tcf.te.tcf.terminals.core.launcher.TerminalsLauncher;
 import org.eclipse.tcf.te.tcf.terminals.ui.controls.TerminalsWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 
 /**
  * Terminals (TCF) launcher delegate implementation.
  */
 public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
+	// The Terminals (TCF) terminal connection memento handler
+	private final IMementoHandler mementoHandler = new TerminalsMementoHandler();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#getPanel(org.eclipse.tcf.te.ui.controls.BaseDialogPageControl)
@@ -55,7 +59,7 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 		Assert.isNotNull(properties);
 
 		// Get the selection from the properties
-		ISelection selection = (ISelection)properties.getProperty("selection"); //$NON-NLS-1$
+		ISelection selection = (ISelection)properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION);
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection)selection).getFirstElement();
 			if (element instanceof IPeerModel) {
@@ -79,5 +83,16 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 			}
 
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
+	 */
+	@Override
+	public Object getAdapter(Class adapter) {
+		if (IMementoHandler.class.equals(adapter)) {
+			return mementoHandler;
+		}
+	    return super.getAdapter(adapter);
 	}
 }

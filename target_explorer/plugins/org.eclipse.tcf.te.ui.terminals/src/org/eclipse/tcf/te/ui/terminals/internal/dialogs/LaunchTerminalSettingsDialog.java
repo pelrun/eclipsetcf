@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
@@ -348,9 +349,9 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     	data = new PropertiesContainer();
 
     	// Store the id of the selected delegate
-    	data.setProperty("delegateId", label2delegate.get(terminals.getText()).getId()); //$NON-NLS-1$
+    	data.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, label2delegate.get(terminals.getText()).getId());
     	// Store the selection
-    	data.setProperty("selection", selection); //$NON-NLS-1$
+    	data.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 
     	// Store the delegate specific settings
     	if (panel instanceof IDataExchangeNode) {

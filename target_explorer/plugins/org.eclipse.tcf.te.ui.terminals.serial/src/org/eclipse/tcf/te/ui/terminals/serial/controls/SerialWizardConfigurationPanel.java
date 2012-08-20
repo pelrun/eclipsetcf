@@ -84,10 +84,10 @@ public class SerialWizardConfigurationPanel extends AbstractConfigurationPanel i
 	@Override
     public void extractData(IPropertiesContainer data) {
     	// set the terminal connector id for serial
-    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.serial.SerialConnector");
+    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.serial.SerialConnector"); //$NON-NLS-1$
 
     	// set the connector type for serial
-    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.serial");
+    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.serial"); //$NON-NLS-1$
 
     	serialSettingsPage.extractData(data);
 		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());

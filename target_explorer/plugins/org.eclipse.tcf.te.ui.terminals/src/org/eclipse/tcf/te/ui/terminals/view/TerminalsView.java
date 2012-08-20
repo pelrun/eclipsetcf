@@ -39,8 +39,10 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderManager;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderMenuHandler;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderToolbarHandler;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
@@ -64,6 +66,8 @@ public class TerminalsView extends ViewPart implements ITerminalsView {
 	private Control emptyPageControl;
 	// Whether this terminal is pinned.
 	private boolean pinned = false;
+	// The view's memento handler
+	private final TerminalsViewMementoHandler mementoHandler = new TerminalsViewMementoHandler();
 
 	/**
 	 * "dummy" transfer just to store the information needed for the DnD
@@ -288,8 +292,7 @@ public class TerminalsView extends ViewPart implements ITerminalsView {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
 	 */
 	@Override
@@ -313,8 +316,16 @@ public class TerminalsView extends ViewPart implements ITerminalsView {
 		super.dispose();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.ViewPart#init(org.eclipse.ui.IViewSite, org.eclipse.ui.IMemento)
+	 */
+	@Override
+	public void init(IViewSite site, IMemento memento) throws PartInitException {
+	    super.init(site, memento);
+	    restoreState(memento);
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
@@ -559,14 +570,17 @@ public class TerminalsView extends ViewPart implements ITerminalsView {
 		if (CTabFolder.class.isAssignableFrom(adapter)) {
 			return tabFolderControl;
 		}
-		else if (TabFolderManager.class.isAssignableFrom(adapter)) {
+		if (TabFolderManager.class.isAssignableFrom(adapter)) {
 			return tabFolderManager;
 		}
-		else if (TabFolderMenuHandler.class.isAssignableFrom(adapter)) {
+		if (TabFolderMenuHandler.class.isAssignableFrom(adapter)) {
 			return tabFolderMenuHandler;
 		}
-		else if (TabFolderToolbarHandler.class.isAssignableFrom(adapter)) {
+		if (TabFolderToolbarHandler.class.isAssignableFrom(adapter)) {
 			return tabFolderToolbarHandler;
+		}
+		if (TerminalsViewMementoHandler.class.isAssignableFrom(adapter)) {
+			return mementoHandler;
 		}
 
 		return super.getAdapter(adapter);
@@ -586,5 +600,25 @@ public class TerminalsView extends ViewPart implements ITerminalsView {
 	@Override
 	public boolean isPinned() {
 		return pinned;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.ViewPart#saveState(org.eclipse.ui.IMemento)
+	 */
+	@Override
+	public void saveState(IMemento memento) {
+		super.saveState(memento);
+	    if (memento == null) return;
+	    mementoHandler.saveState(this, memento);
+	}
+
+	/**
+	 * Restore the view state from the given memento.
+	 *
+	 * @param memento The memento or <code>null</code>.
+	 */
+	public void restoreState(IMemento memento) {
+		if (memento == null) return;
+		mementoHandler.restoreState(this, memento);
 	}
 }

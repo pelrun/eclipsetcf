@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.terminals.services;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
@@ -178,11 +179,12 @@ public class TerminalService extends AbstractService implements ITerminalService
 				// Determine the terminal encoding
 				String encoding = properties.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
 				// Open the new console
-				ConsoleManager.getInstance().openConsole(id, title, encoding, connector, data, true, forceNew);
+				CTabItem item = ConsoleManager.getInstance().openConsole(id, title, encoding, connector, data, true, forceNew);
+				// Associate the original terminal properties with the tab item.
+				// This makes it easier to persist the connection data within the memento handler
+				if (item != null) item.setData("properties", properties); //$NON-NLS-1$
 				// Invoke the callback
-				if (callback != null) {
-					callback.done(this, Status.OK_STATUS);
-				}
+				if (callback != null) callback.done(this, Status.OK_STATUS);
 			}
 		}, callback);
 	}
@@ -200,9 +202,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 				// Close the console
 				ConsoleManager.getInstance().closeConsole(id, title, connector, data);
 				// Invoke the callback
-				if (callback != null) {
-					callback.done(this, Status.OK_STATUS);
-				}
+				if (callback != null) callback.done(this, Status.OK_STATUS);
 			}
 		}, callback);
 	}
@@ -220,9 +220,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 				// Close the console
 				ConsoleManager.getInstance().terminateConsole(id, title, connector, data);
 				// Invoke the callback
-				if (callback != null) {
-					callback.done(this, Status.OK_STATUS);
-				}
+				if (callback != null) callback.done(this, Status.OK_STATUS);
 			}
 		}, callback);
 	}

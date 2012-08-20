@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.ui.terminals.interfaces;
 
 import org.eclipse.core.expressions.Expression;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.extensions.IExecutableExtension;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -18,7 +19,7 @@ import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 /**
  * Terminal launcher delegate.
  */
-public interface ILauncherDelegate extends IExecutableExtension {
+public interface ILauncherDelegate extends IExecutableExtension, IAdaptable {
 
 	/**
 	 * Returns the enablement expression.

@@ -403,8 +403,13 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 		if (terminal != null) {
 			// Create the terminal streams settings
 			PropertiesContainer props = new PropertiesContainer();
-			props.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.terminals"); //$NON-NLS-1$
-			props.setProperty(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
+			// Copy over the common terminal properties passed in by the global properties
+			props.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID));
+			props.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID));
+			props.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID));
+			props.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, properties.getProperty(ITerminalsConnectorConstants.PROP_ENCODING));
+			props.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION));
+			// Force creation of new terminal tabs if connecting to the same agent again
 			props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
 			// Set the terminal tab title
 			String terminalTitle = getTerminalTitle();

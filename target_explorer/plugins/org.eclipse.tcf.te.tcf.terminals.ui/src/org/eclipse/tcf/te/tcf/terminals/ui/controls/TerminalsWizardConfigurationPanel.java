@@ -78,10 +78,10 @@ public class TerminalsWizardConfigurationPanel extends AbstractConfigurationPane
 	@Override
     public void extractData(IPropertiesContainer data) {
     	// set the terminal connector id for terminals (TCF)
-    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tcf.te.tcf.terminals.ui.TerminalsConnector");
+    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tcf.te.tcf.terminals.ui.TerminalsConnector"); //$NON-NLS-1$
 
     	// set the connector type for terminals (TCF)
-    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.terminals");
+    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.terminals"); //$NON-NLS-1$
 
     	// Extract the encoding
 		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
