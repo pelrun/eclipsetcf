@@ -410,9 +410,14 @@ public class ConsoleManager {
 		if (manager == null) return null;
 
 		// Lookup an existing console first
-		String secId=((IViewSite)part.getSite()).getSecondaryId();
-
+		String secId = ((IViewSite)part.getSite()).getSecondaryId();
 		CTabItem item = findConsole(id, secId, title, connector, data);
+
+		// Switch to the tab folder page _before_ calling TabFolderManager#createItem(...).
+		// The createItem(...) method invokes the corresponding connect and this may take
+		// a while if connecting to a remote host. To allow a "Connecting..." decoration,
+		// the tab folder page needs to be visible.
+		view.switchToTabFolderControl();
 
 		// If no existing console exist or forced -> Create the tab item
 		if (item == null || forceNew) {
@@ -430,9 +435,6 @@ public class ConsoleManager {
 
 		// Make the item the active console
 		manager.bringToTop(item);
-
-		// Show the tab folder page
-		view.switchToTabFolderControl();
 
 		// Make sure the terminals view has the focus after opening a new terminal
 		view.setFocus();

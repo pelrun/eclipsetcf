@@ -861,11 +861,17 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		if (item != null && !item.isDisposed()) {
 			ITerminalViewControl terminal = (ITerminalViewControl)item.getData();
 			if (terminal != null && !terminal.isDisposed()) {
+				StringBuilder buffer = new StringBuilder();
+				buffer.append(terminal.getState().toString());
+				buffer.append(" - "); //$NON-NLS-1$
+
 				String encoding = terminal.getEncoding();
 				if (encoding == null || "ISO-8859-1".equals(encoding)) { //$NON-NLS-1$
 					encoding = "Default (ISO-8859-1)"; //$NON-NLS-1$
 				}
-				message = NLS.bind(Messages.TabFolderManager_encoding, encoding);
+				buffer.append(NLS.bind(Messages.TabFolderManager_encoding, encoding));
+
+				message = buffer.toString();
 			}
 		}
 

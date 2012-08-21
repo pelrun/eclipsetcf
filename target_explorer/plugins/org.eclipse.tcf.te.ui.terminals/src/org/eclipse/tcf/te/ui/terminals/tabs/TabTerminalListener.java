@@ -27,6 +27,7 @@ import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 public class TabTerminalListener implements ITerminalListener {
 	/* default */ final TabFolderManager tabFolderManager;
 	private final CTabItem tabItem;
+	private final String tabItemTitle;
 
 	/**
 	 * Constructor.
@@ -40,6 +41,9 @@ public class TabTerminalListener implements ITerminalListener {
 		this.tabFolderManager = tabFolderManager;
 		Assert.isNotNull(tabItem);
 		this.tabItem = tabItem;
+
+		// Remember the original tab item title
+		tabItemTitle = tabItem.getText();
 	}
 
 	/**
@@ -70,11 +74,16 @@ public class TabTerminalListener implements ITerminalListener {
 
 				// Turn off the command field (if necessary)
 				TabCommandFieldHandler handler = tabFolderManager.getTabCommandFieldHandler(item);
-				if (handler != null && handler.hasCommandInputField()) {
+				if (TerminalState.CLOSED.equals(state) && handler != null && handler.hasCommandInputField()) {
 					handler.setCommandInputField(false);
+					// Trigger a selection changed event to update the action enablements
+					// and the status line
 					ISelectionProvider provider = tabFolderManager.getParentView().getViewSite().getSelectionProvider();
 					Assert.isNotNull(provider);
 					provider.setSelection(provider.getSelection());
+				} else {
+					// Update the status line
+					tabFolderManager.updateStatusLine();
 				}
 			}
 		});
@@ -82,6 +91,7 @@ public class TabTerminalListener implements ITerminalListener {
 
 	// The pattern will not change over the session life-time
 	private static final Pattern TERMINAL_TITLE_TERMINATED_PATTERN = Pattern.compile(Messages.TabTerminalListener_consoleTerminated.replaceAll("\\{[0-9]+\\}", ".*")); //$NON-NLS-1$ //$NON-NLS-2$
+	private static final Pattern TERMINAL_TITLE_CONNECTING_PATTERN = Pattern.compile(Messages.TabTerminalListener_consoleConnecting.replaceAll("\\{[0-9]+\\}", ".*")); //$NON-NLS-1$ //$NON-NLS-2$
 
 	/**
 	 * Returns the title to set to the terminal console tab for the given state.
@@ -113,6 +123,17 @@ public class TabTerminalListener implements ITerminalListener {
 			} else {
 				newTitle = oldTitle;
 			}
+		}
+		else if (TerminalState.CONNECTING.equals(state)) {
+			// Avoid multiple decorations of the connecting state
+			if (!TERMINAL_TITLE_CONNECTING_PATTERN.matcher(oldTitle).matches()) {
+				newTitle = NLS.bind(Messages.TabTerminalListener_consoleConnecting, oldTitle);
+			} else {
+				newTitle = oldTitle;
+			}
+		}
+		else if (TerminalState.CONNECTED.equals(state)) {
+			newTitle = tabItemTitle;
 		}
 
 		return newTitle != null && !newTitle.equals(oldTitle) ? newTitle : null;

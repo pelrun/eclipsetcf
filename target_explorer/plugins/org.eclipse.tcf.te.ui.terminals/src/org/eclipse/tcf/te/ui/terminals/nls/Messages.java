@@ -42,6 +42,7 @@ public class Messages extends NLS {
 	public static String AbstractConfigurationPanel_encoding_custom_error;
 
 	public static String TabTerminalListener_consoleTerminated;
+	public static String TabTerminalListener_consoleConnecting;
 
 	public static String PinTerminalAction_menu;
 	public static String PinTerminalAction_toolTip;
