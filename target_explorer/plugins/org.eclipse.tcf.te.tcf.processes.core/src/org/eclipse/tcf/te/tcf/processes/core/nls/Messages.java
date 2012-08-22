@@ -42,18 +42,24 @@ public class Messages extends NLS {
 	public static String ProcessLauncher_cause_subscribeFailed;
 	public static String ProcessLauncher_cause_startFailed;
 	public static String ProcessLauncher_cause_ioexception;
+	public static String ProcessLauncher_state_connected;
+	public static String ProcessLauncher_state_connecting;
+	public static String ProcessLauncher_state_closed;
 
 	public static String ProcessStreamReaderRunnable_error_readFailed;
 	public static String ProcessStreamWriterRunnable_error_writeFailed;
 	public static String ProcessStreamReaderRunnable_error_appendFailed;
 
 	public static String PendingOperation_label;
+
 	public static String ProcessLabelProvider_RootNodeLabel;
+
 	public static String AttachStep_error_connect;
 	public static String AttachStep_error_attach;
 	public static String AttachStep_error_getContext;
 	public static String AttachStep_error_openChannel;
 	public static String AttachStep_error_title;
+
 	public static String DetachStep_error_title;
 	public static String DetachStep_error_disconnect;
 	public static String DetachStep_error_getContext;

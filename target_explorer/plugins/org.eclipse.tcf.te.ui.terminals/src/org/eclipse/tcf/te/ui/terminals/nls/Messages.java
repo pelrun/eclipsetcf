@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.nls;
 
+import java.lang.reflect.Field;
+
 import org.eclipse.osgi.util.NLS;
 
 /**
@@ -28,6 +30,24 @@ public class Messages extends NLS {
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
 	}
 
+	/**
+	 * Returns the corresponding string for the given externalized strings
+	 * key or <code>null</code> if the key does not exist.
+	 *
+	 * @param key The externalized strings key or <code>null</code>.
+	 * @return The corresponding string or <code>null</code>.
+	 */
+	public static String getString(String key) {
+		if (key != null) {
+			try {
+				Field field = Messages.class.getDeclaredField(key);
+				return (String)field.get(null);
+			} catch (Exception e) { /* ignored on purpose */ }
+		}
+
+		return null;
+	}
+
 	// **** Declare externalized string id's down here *****
 
 	public static String AbstractAction_error_commandExecutionFailed;
@@ -41,7 +61,7 @@ public class Messages extends NLS {
 	public static String AbstractConfigurationPanel_encoding_custom_message;
 	public static String AbstractConfigurationPanel_encoding_custom_error;
 
-	public static String TabTerminalListener_consoleTerminated;
+	public static String TabTerminalListener_consoleClosed;
 	public static String TabTerminalListener_consoleConnecting;
 
 	public static String PinTerminalAction_menu;
@@ -74,4 +94,7 @@ public class Messages extends NLS {
 	public static String LaunchTerminalSettingsDialog_error_invalidSettings;
 
 	public static String TabFolderManager_encoding;
+	public static String TabFolderManager_state_connected;
+	public static String TabFolderManager_state_connecting;
+	public static String TabFolderManager_state_closed;
 }

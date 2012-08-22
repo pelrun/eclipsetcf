@@ -40,6 +40,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.events.AbstractEventListener;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
@@ -862,7 +863,8 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 			ITerminalViewControl terminal = (ITerminalViewControl)item.getData();
 			if (terminal != null && !terminal.isDisposed()) {
 				StringBuilder buffer = new StringBuilder();
-				buffer.append(terminal.getState().toString());
+
+				buffer.append(state2msg(item, terminal.getState()));
 				buffer.append(" - "); //$NON-NLS-1$
 
 				String encoding = terminal.getEncoding();
@@ -876,5 +878,32 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		}
 
 		manager.setMessage(message);
+	}
+
+	/**
+	 * Returns the string representation of the given terminal state.
+	 *
+	 * @param item The tab folder item. Must not be <code>null</code>.
+	 * @param state The terminal state. Must not be <code>null</code>.
+	 *
+	 * @return The string representation.
+	 */
+	protected String state2msg(CTabItem item, TerminalState state) {
+		Assert.isNotNull(item);
+		Assert.isNotNull(state);
+
+		// Determine the terminal properties of the tab folder
+		IPropertiesContainer properties = (IPropertiesContainer)item.getData("properties"); //$NON-NLS-1$
+
+		// Get he current terminal state as string
+		String stateStr = state.toString();
+		// Lookup a matching text representation of the state
+		String key = "TabFolderManager_state_" + stateStr.replaceAll("\\.", " ").trim().toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		String stateMsg = null;
+		if (properties != null) stateMsg = properties.getStringProperty(key);
+		if (stateMsg == null) stateMsg = Messages.getString(key);
+		if (stateMsg == null) stateMsg = stateStr;
+
+		return stateMsg;
 	}
 }

@@ -540,6 +540,11 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					// The custom data object is the process launcher itself
 					props.setProperty(ITerminalsConnectorConstants.PROP_DATA, this);
 
+					// Initialize the process specific terminal state text representations
+					props.setProperty("TabFolderManager_state_connected", Messages.ProcessLauncher_state_connected); //$NON-NLS-1$
+					props.setProperty("TabFolderManager_state_connecting", Messages.ProcessLauncher_state_connecting); //$NON-NLS-1$
+					props.setProperty("TabFolderManager_state_closed", Messages.ProcessLauncher_state_closed); //$NON-NLS-1$
+
 					// Open the console
 					terminal.openConsole(props, null);
 				}

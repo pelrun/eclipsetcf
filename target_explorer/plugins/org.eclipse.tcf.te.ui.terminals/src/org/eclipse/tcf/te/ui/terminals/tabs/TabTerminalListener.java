@@ -9,8 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.tabs;
 
-import java.util.regex.Pattern;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.osgi.util.NLS;
@@ -89,10 +87,6 @@ public class TabTerminalListener implements ITerminalListener {
 		});
 	}
 
-	// The pattern will not change over the session life-time
-	private static final Pattern TERMINAL_TITLE_TERMINATED_PATTERN = Pattern.compile(Messages.TabTerminalListener_consoleTerminated.replaceAll("\\{[0-9]+\\}", ".*")); //$NON-NLS-1$ //$NON-NLS-2$
-	private static final Pattern TERMINAL_TITLE_CONNECTING_PATTERN = Pattern.compile(Messages.TabTerminalListener_consoleConnecting.replaceAll("\\{[0-9]+\\}", ".*")); //$NON-NLS-1$ //$NON-NLS-2$
-
 	/**
 	 * Returns the title to set to the terminal console tab for the given state.
 	 * <p>
@@ -117,20 +111,10 @@ public class TabTerminalListener implements ITerminalListener {
 		String newTitle = null;
 
 		if (TerminalState.CLOSED.equals(state)) {
-			// Avoid multiple decorations of the closed state
-			if (!TERMINAL_TITLE_TERMINATED_PATTERN.matcher(oldTitle).matches()) {
-				newTitle = NLS.bind(Messages.TabTerminalListener_consoleTerminated, oldTitle);
-			} else {
-				newTitle = oldTitle;
-			}
+			newTitle = NLS.bind(Messages.TabTerminalListener_consoleClosed, tabItemTitle, tabFolderManager.state2msg(item, state));
 		}
 		else if (TerminalState.CONNECTING.equals(state)) {
-			// Avoid multiple decorations of the connecting state
-			if (!TERMINAL_TITLE_CONNECTING_PATTERN.matcher(oldTitle).matches()) {
-				newTitle = NLS.bind(Messages.TabTerminalListener_consoleConnecting, oldTitle);
-			} else {
-				newTitle = oldTitle;
-			}
+			newTitle = NLS.bind(Messages.TabTerminalListener_consoleConnecting, tabItemTitle, tabFolderManager.state2msg(item, state));
 		}
 		else if (TerminalState.CONNECTED.equals(state)) {
 			newTitle = tabItemTitle;
