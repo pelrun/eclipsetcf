@@ -7,6 +7,7 @@
  * Contributors:
  * Wind River Systems          - initial API and implementation
  * Anna Dushistova(Montavista) - [386484]Allow file transfer from target to host into existing directories
+ * Anna Dushistova(Montavista) - [387819]File Transfer stopped working
  *******************************************************************************/
 
 package org.eclipse.tcf.te.tcf.filesystem.core.services;
@@ -253,6 +254,7 @@ public class FileTransferService {
         final FileAttrs[] attrs = new FileAttrs[1];
 
         // Check the target destination directory
+        
         fileSystem.stat(targetPath.toString(), new IFileSystem.DoneStat() {
             @Override
             public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
@@ -261,7 +263,7 @@ public class FileTransferService {
             }
         });
         // If we get the attributes back, the name at least exist in the target file system
-        if (error[0] != null || (attrs[0] != null && attrs[0].isDirectory())) {
+        if (attrs[0] != null && attrs[0].isDirectory()) {
             targetPath = targetPath.append(item.getHostPath().lastSegment());
         }
 
