@@ -13,7 +13,9 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.utils.Host;
@@ -64,13 +66,24 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 		properties.setProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE, true);
 
 		// Launch the process
-		launcher.launch(peer, properties, null);
-
-		// Give the process time to execute and to finish
-		waitAndDispatch(5000);
+		launcher.launch(peer, properties, new Callback() {
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				if (status.getSeverity() != IStatus.OK && status.getSeverity() != IStatus.INFO) {
+					System.out.println("ProcessLauncherTestCase: launch returned with status:\n" + status.toString()); //$NON-NLS-1$
+				}
+			}
+		});
 
 		// Read the output from the proxy
-		String output = proxy.getOutputReader().getOutput();
+		String output = null;
+		int counter = 20;
+		while (counter > 0) {
+			output = proxy.getOutputReader().getOutput();
+			if (output != null && !"".equals(output.trim())) break; //$NON-NLS-1$
+			waitAndDispatch(2000);
+			counter--;
+		}
 		assertEquals("Unexpected output from HelloWorld test application.", "Hello World", output != null ? output.trim() : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
