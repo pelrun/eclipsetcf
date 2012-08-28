@@ -9,10 +9,34 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.core.model.runtime.services;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
+import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 
 /**
@@ -34,13 +58,52 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 */
 	@Override
 	public void refresh(ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		refresh(NONE, callback);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService#refresh(int, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void refresh(int flags, ICallback callback) {
+	public void refresh(final int flags, final ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Get the parent model
+		final IRuntimeModel model = getModel();
+
+		// If the parent model is already disposed, the service will drop out immediately
+		if (model.isDisposed()) {
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
+
+		// Get the list of old children (update node instances where possible)
+		final List<IProcessContextNode> oldChildren = model.getChildren(IProcessContextNode.class);
+
+		// Refresh the process contexts from the agent
+		refreshContextChildren(oldChildren, model, null, new Callback() {
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				final AtomicBoolean isDisposed = new AtomicBoolean();
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						isDisposed.set(model.isDisposed());
+					}
+				};
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+
+				if (!isDisposed.get()) {
+					// If there are remaining old children, remove them from the model (non-recursive)
+					for (IProcessContextNode oldChild : oldChildren) model.getService(IModelUpdateService.class).remove(oldChild);
+				}
+
+				// Invoke the callback
+				if (callback != null) callback.done(this, Status.OK_STATUS);
+			}
+		});
 	}
 
 	/* (non-Javadoc)
@@ -48,6 +111,8 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 */
 	@Override
 	public void refresh(IModelNode node, ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		refresh(node, NONE, callback);
 	}
 
 	/* (non-Javadoc)
@@ -55,6 +120,251 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 */
 	@Override
 	public void refresh(IModelNode node, int flags, ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Get the parent model
+		final IRuntimeModel model = getModel();
+
+		// If the parent model is already disposed, the service will drop out immediately
+		if (model.isDisposed() || !(node instanceof IProcessContextNode)) {
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
+
+		// Perform the refresh of the node
+		doRefresh(model, node, flags, callback);
 	}
 
+	/**
+	 * Performs the refresh of the given model node.
+	 *
+	 * @param model The runtime model. Must not be <code>null</code>.
+	 * @param node  The node. Must not be <code>null</code>.
+	 * @param flags The flags. See the defined constants for details.
+	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
+	 */
+	protected void doRefresh(final IRuntimeModel model, final IModelNode node, final int flags, final ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(model);
+		Assert.isNotNull(node);
+
+		// Refresh the process context from the agent
+		refreshContext(model, node, new Callback() {
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				if (status.getSeverity() == IStatus.ERROR) {
+					if (callback != null) callback.done(caller, status);
+					return;
+				}
+
+				// Get the list of old children (update node instances where possible)
+				final List<IProcessContextNode> oldChildren = ((IProcessContextNode)node).getChildren(IProcessContextNode.class);
+
+				// Refresh the children of the process context node from the agent
+				refreshContextChildren(oldChildren, model, (IProcessContextNode)node, new Callback() {
+					@Override
+					protected void internalDone(Object caller, IStatus status) {
+						final AtomicBoolean isDisposed = new AtomicBoolean();
+						Runnable runnable = new Runnable() {
+							@Override
+							public void run() {
+								isDisposed.set(model.isDisposed());
+							}
+						};
+						if (Protocol.isDispatchThread()) runnable.run();
+						else Protocol.invokeAndWait(runnable);
+
+						if (!isDisposed.get()) {
+							// If there are remaining old children, remove them from the parent node (recursive)
+							for (IProcessContextNode oldChild : oldChildren) ((IProcessContextNode)node).remove(oldChild, true);
+						}
+
+						// Invoke the callback
+						if (callback != null) callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+					}
+				});
+			}
+		});
+	}
+
+	/**
+	 * Process the given map of process contexts and update the given model.
+	 *
+	 * @param contexts The map of contexts to process. Must not be <code>null</code>.
+	 * @param oldChildren The list of old children. Must not be <code>null</code>.
+	 * @param model The model. Must not be <code>null</code>.
+	 * @param parent The parent context node or <code>null</code>.
+	 */
+	protected void processContexts(Map<UUID, IProcessContextNode> contexts, List<IProcessContextNode> oldChildren, IModel model, IProcessContextNode parent) {
+		Assert.isNotNull(contexts);
+		Assert.isNotNull(oldChildren);
+		Assert.isNotNull(model);
+
+		for (Entry<UUID, IProcessContextNode> entry : contexts.entrySet()) {
+			// Get the context instance for the current id
+			IProcessContextNode candidate = entry.getValue();
+			// Try to find an existing context node first
+			IModelNode[] nodes = model.getService(IModelLookupService.class).lkupModelNodesById(candidate.getProcessContext().getID());
+			// If found, update the context node properties from the new one
+			if (nodes.length > 0) {
+				for (IModelNode node : nodes) {
+					model.getService(IModelUpdateService.class).update(node, candidate);
+					oldChildren.remove(node);
+				}
+			} else {
+				if (parent == null) {
+					model.getService(IModelUpdateService.class).add(candidate);
+				} else {
+					parent.add(candidate);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Refresh the given process context node.
+	 *
+	 * @param model The runtime model. Must not be <code>null</code>.
+	 * @param node  The node. Must not be <code>null</code>.
+	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
+	 */
+	protected void refreshContext(final IRuntimeModel model, final IModelNode node, final ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(model);
+		Assert.isNotNull(node);
+
+		// Get an open channel
+		IModelChannelService channelService = getModel().getService(IModelChannelService.class);
+		channelService.openChannel(new IModelChannelService.DoneOpenChannel() {
+			@Override
+			public void doneOpenChannel(Throwable error, final IChannel channel) {
+				if (error == null) {
+					final IProcesses service = channel.getRemoteService(IProcesses.class);
+					Assert.isNotNull(service);
+					final String contextId = ((IProcessContextNode)node).getProcessContext().getID();
+					service.getContext(contextId, new IProcesses.DoneGetContext() {
+
+						@Override
+						public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
+							if (error == null) {
+								((IProcessContextNode)node).setProcessContext(context);
+								callback.done(this, Status.OK_STATUS);
+							}
+							else {
+								callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+							}
+						}
+					});
+				} else {
+					callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+				}
+			}
+		});
+	}
+
+	/**
+	 * Refresh the children of the given Systems context node.
+	 *
+	 * @param oldChildren The list of old children. Must not be <code>null</code>.
+	 * @param model The model. Must not be <code>null</code>.
+	 * @param parent The parent context node or <code>null</code>.
+	 * @param callback The callback to invoke at the end of the operation. Must not be <code>null</code>.
+	 */
+	protected void refreshContextChildren(final List<IProcessContextNode> oldChildren, final IModel model, final IProcessContextNode parent, final ICallback callback) {
+		Assert.isNotNull(oldChildren);
+		Assert.isNotNull(model);
+		Assert.isNotNull(callback);
+
+		// Make sure that the callback is invoked even for unexpected cases
+		try {
+			// The map of contexts created from the agents response
+			final Map<UUID, IProcessContextNode> contexts = new HashMap<UUID, IProcessContextNode>();
+
+			// Get an open channel
+			IModelChannelService channelService = getModel().getService(IModelChannelService.class);
+			channelService.openChannel(new IModelChannelService.DoneOpenChannel() {
+				@Override
+				public void doneOpenChannel(Throwable error, final IChannel channel) {
+					if (error == null) {
+						// Determine the parent context id
+						String parentContextId = null;
+						if (parent != null && parent.getProcessContext() != null) parentContextId = parent.getProcessContext().getID();
+
+						// Get the Systems service and query the configuration id's
+						final IProcesses service = channel.getRemoteService(IProcesses.class);
+						Assert.isNotNull(service);
+						service.getChildren(parentContextId, false, new IProcesses.DoneGetChildren() {
+							@Override
+							public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
+								if (error == null) {
+									final AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
+										@Override
+                                        protected void internalDone(Object caller, IStatus status) {
+											Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+											if (status.getSeverity() == IStatus.OK) {
+												// Process the read system contexts
+												if (!contexts.isEmpty()) processContexts(contexts, oldChildren, model, parent);
+												callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+											} else {
+												callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), status.getMessage(), status.getException()));
+											}
+										}
+									}, new CallbackInvocationDelegate());
+
+									// Loop the returned context id's and query the context data
+									for (String id : context_ids) {
+										final String contextId = id;
+										final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+										service.getContext(contextId, new IProcesses.DoneGetContext() {
+											@Override
+											public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
+												if (error == null) {
+													final IProcessContextNode node = createContextNodeFrom(context);
+													Assert.isNotNull(node);
+													contexts.put(node.getUUID(), node);
+													innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+												}
+												else {
+													innerCallback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+												}
+											}
+										});
+									}
+
+									collector.initDone();
+								} else {
+									callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+								}
+							}
+						});
+					} else {
+						callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+					}
+
+				}
+			});
+		} catch (Throwable e) {
+			callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), e.getLocalizedMessage(), e));
+		}
+	}
+
+	/**
+	 * Create a context node instance from the given process context.
+	 *
+	 * @param context The process context. Must not be <code>null</code>.
+	 * @return The context node instance.
+	 */
+	public IProcessContextNode createContextNodeFrom(IProcesses.ProcessContext context) {
+		Assert.isNotNull(context);
+
+		// Create a context node and associate the given context
+		IProcessContextNode node = getModel().getFactory().newInstance(IProcessContextNode.class);
+		node.setProcessContext(context);
+
+		// Re-create the context properties from the context
+		node.setProperty(IProcessContextNodeProperties.PROPERTY_ID, context.getID());
+		node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
+
+		return node;
+	}
 }
