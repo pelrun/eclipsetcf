@@ -85,6 +85,9 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 			counter--;
 		}
 		assertEquals("Unexpected output from HelloWorld test application.", "Hello World", output != null ? output.trim() : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+
+		// Dispose the launcher at the end
+		launcher.dispose();
 	}
 
 	//***** END SECTION: Single test methods *****
