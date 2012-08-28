@@ -9,8 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.core.model.runtime;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.contexts.AsyncRefreshableCtxAdapter;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
@@ -55,6 +60,11 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 
 	// The runtime model needs asynchronous refreshes
 	private final IAsyncRefreshableCtx refreshableCtxAdapter = new AsyncRefreshableCtxAdapter();
+
+	// The auto-refresh interval in seconds
+	/* default */ int interval = 0;
+	// The auto-refresh timer
+	/* default */ Timer timer = null;
 
 	/**
 	 * Constructor.
@@ -163,5 +173,72 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	public IPeerModel getPeerModel() {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
 		return peerModel;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel#setAutoRefreshInterval(int)
+	 */
+	@Override
+	public final void setAutoRefreshInterval(int interval) {
+		// Normalize the interval
+		if (interval < 0) interval = 0;
+		// Remember the old value (for the change event)
+		final int oldInterval = this.interval;
+		// Apply the new interval
+		this.interval = interval;
+		// If the interval has changed, start/stop the auto-refresh and send a change notification
+		if (oldInterval != interval) {
+			// Get the auto-refresh started if not yet scheduled
+			if (interval != 0 && timer == null) {
+				// Create the timer task to schedule
+				final TimerTask task = new TimerTask() {
+					@Override
+					public void run() {
+						// Drop out of the interval has been set to 0 in the meanwhile
+						if (RuntimeModel.this.interval == 0) return;
+						final TimerTask task = this;
+						// Refresh the model
+						RuntimeModel.this.getService(IModelRefreshService.class).refresh(new Callback() {
+							@Override
+							protected void internalDone(Object caller, IStatus status) {
+								// Re-schedule ourself if the interval is still > 0
+								if (RuntimeModel.this.interval > 0 && timer != null) {
+									timer.schedule(task, RuntimeModel.this.interval);
+								}
+							}
+						});
+					}
+				};
+
+				// Create the timer
+				timer = new Timer();
+				timer.schedule(task, this.interval);
+			} else if (interval == 0 && timer != null) {
+				timer.cancel();
+				timer = null;
+			}
+
+			// Signal the change to the auto-refresh interval
+			fireChangeEvent("autoRefreshInterval", Integer.valueOf(oldInterval), Integer.valueOf(interval)); //$NON-NLS-1$
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel#getAutoRefreshInterval()
+	 */
+	@Override
+	public final int getAutoRefreshInterval() {
+	    return interval;
+	}
+
+	protected void startAutoRefresh() {
+
+	}
+
+	/**
+	 * Stops the auto-refresh if scheduled.
+	 */
+	protected void stopAutoRefresh() {
+
 	}
 }

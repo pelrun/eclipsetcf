@@ -24,4 +24,19 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
  */
 public interface IRuntimeModel extends IModel, IPeerModelProvider {
 
+	/**
+	 * Set the auto-refresh interval in seconds.
+	 * <p>
+	 * <b>Note:</b> If the interval is set to 0, than auto-refresh is disabled.
+	 *
+	 * @param interval The auto-refresh interval in seconds.
+	 */
+	public void setAutoRefreshInterval(int interval);
+
+	/**
+	 * Returns the auto-refresh interval in seconds.
+	 *
+	 * @param The auto-refresh interval in seconds.
+	 */
+	public int getAutoRefreshInterval();
 }
