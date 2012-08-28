@@ -77,9 +77,9 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 
 		// Read the output from the proxy
 		String output = null;
-		int counter = 20;
+		int counter = 21;
 		while (counter > 0) {
-			output = proxy.getOutputReader().getOutput();
+			output = proxy.getOutputReader() != null ? proxy.getOutputReader().getOutput() : null;
 			if (output != null && !"".equals(output.trim())) break; //$NON-NLS-1$
 			waitAndDispatch(2000);
 			counter--;
