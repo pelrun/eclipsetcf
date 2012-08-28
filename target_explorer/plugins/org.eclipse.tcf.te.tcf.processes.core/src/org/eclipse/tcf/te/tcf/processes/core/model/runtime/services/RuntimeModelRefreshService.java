@@ -23,6 +23,8 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.ISysMonitor;
+import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -241,14 +243,27 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 				if (error == null) {
 					final IProcesses service = channel.getRemoteService(IProcesses.class);
 					Assert.isNotNull(service);
+					final ISysMonitor sysMonService = channel.getRemoteService(ISysMonitor.class);
+					Assert.isNotNull(sysMonService);
 					final String contextId = ((IProcessContextNode)node).getProcessContext().getID();
 					service.getContext(contextId, new IProcesses.DoneGetContext() {
-
 						@Override
 						public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
 							if (error == null) {
 								((IProcessContextNode)node).setProcessContext(context);
-								callback.done(this, Status.OK_STATUS);
+
+								sysMonService.getContext(contextId, new ISysMonitor.DoneGetContext() {
+									@Override
+									public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
+										if (error == null) {
+											((IProcessContextNode)node).setSysMonitorContext(context);
+											callback.done(this, Status.OK_STATUS);
+										}
+										else {
+											callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+										}
+									}
+								});
 							}
 							else {
 								callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
@@ -263,7 +278,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	}
 
 	/**
-	 * Refresh the children of the given Systems context node.
+	 * Refresh the children of the given process context node.
 	 *
 	 * @param oldChildren The list of old children. Must not be <code>null</code>.
 	 * @param model The model. Must not be <code>null</code>.
@@ -293,6 +308,8 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 						// Get the Systems service and query the configuration id's
 						final IProcesses service = channel.getRemoteService(IProcesses.class);
 						Assert.isNotNull(service);
+						final ISysMonitor sysMonService = channel.getRemoteService(ISysMonitor.class);
+						Assert.isNotNull(sysMonService);
 						service.getChildren(parentContextId, false, new IProcesses.DoneGetChildren() {
 							@Override
 							public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
@@ -322,6 +339,21 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 													final IProcessContextNode node = createContextNodeFrom(context);
 													Assert.isNotNull(node);
 													contexts.put(node.getUUID(), node);
+
+													final ICallback innerCallback2 = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+													sysMonService.getContext(contextId, new ISysMonitor.DoneGetContext() {
+														@Override
+														public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
+															if (error == null) {
+																node.setSysMonitorContext(context);
+																innerCallback2.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+															}
+															else {
+																innerCallback2.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+															}
+														}
+													});
+
 													innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
 												}
 												else {
