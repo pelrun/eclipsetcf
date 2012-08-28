@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+<!-- Model node factory delegate contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.model.factoryDelegates">
+      <delegate
+            class="org.eclipse.tcf.te.tcf.processes.core.model.internal.factory.ModelNodeFactoryDelegate"
+            id="org.eclipse.tcf.te.tcf.processes.core.model.factory.delegate">
+         <nodeType class="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+      </delegate>
+   </extension>
+
+</plugin>
