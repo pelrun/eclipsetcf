@@ -113,4 +113,18 @@ public class TCFBreakpointThreadFilterPage extends PropertyPage {
             scopeCategory.setFilter(fFilterExtension.getPropertiesFilter(), fFilterExtension.getRawContextIds());
         }
     }
+    
+    @Override
+    public void setVisible(boolean visible) {
+        if (visible) {
+            if (fFilterExtension != null) {
+                fFilterExtension.initialize(getPreferenceStore());
+                fThreadFilterEditor.setInitialCheckedState();
+                fThreadFilterEditor.setupScopeExpressionCombo();
+            }
+        } else {
+            doStore();
+        }
+        super.setVisible(visible);
+    }
 }

@@ -38,6 +38,8 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -489,7 +491,11 @@ public class TCFThreadFilterEditor {
         }
     }
 
-    private void setupScopeExpressionCombo(IDialogSettings settings, String bpContextQuery, Combo comboBox) {
+    void setupScopeExpressionCombo() {
+        if (scopeExprCombo == null) return;
+        
+        IDialogSettings settings = getDialogSettings(false);
+        String bpContextQuery = getBPFilterExpression();
         String [] expresionList = null;
         if ( settings != null ) {
             expresionList = settings.getArray(Messages.TCFThreadFilterQueryExpressionStore);
@@ -511,8 +517,8 @@ public class TCFThreadFilterEditor {
                     }
                 }
                 if (found != -1) {
-                    comboBox.setItems(copyList);
-                    comboBox.select(found);
+                    scopeExprCombo.setItems(copyList);
+                    scopeExprCombo.select(found);
                 }
                 else {
                     int pad = 0;
@@ -524,20 +530,20 @@ public class TCFThreadFilterEditor {
                         setList[0] = bpContextQuery;
                     }
                     System.arraycopy(copyList, 0, setList, pad, copyList.length);
-                    comboBox.setItems(setList);
+                    scopeExprCombo.setItems(setList);
                     if (bpContextQuery != null) {
-                        comboBox.select(0);
+                        scopeExprCombo.select(0);
                     }
                 }
             }
             else if (bpContextQuery != null) {
-                comboBox.setItems(new String[]{bpContextQuery});
-                comboBox.select(0);
+                scopeExprCombo.setItems(new String[]{bpContextQuery});
+                scopeExprCombo.select(0);
             }
         }
         else if (bpContextQuery != null) {
-            comboBox.setItems(new String[]{bpContextQuery});
-            comboBox.select(0);
+            scopeExprCombo.setItems(new String[]{bpContextQuery});
+            scopeExprCombo.select(0);
         }
     }
 
@@ -563,7 +569,6 @@ public class TCFThreadFilterEditor {
         twoColumnLayout.horizontalSpan = 2;
         GridData comboGridData = new GridData(SWT.FILL,0, true, false);
         comboGridData .horizontalIndent = 5;
-        IDialogSettings settings= getDialogSettings(false);
         FieldDecoration fieldDecoration = FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR);
 
         Label epressionLabel = new Label(parent, SWT.NONE);
@@ -573,13 +578,18 @@ public class TCFThreadFilterEditor {
         scopeExprCombo = new Combo(parent,SWT.DROP_DOWN);
         scopeExprCombo.setLayoutData(comboGridData);
         scopeExprCombo.addModifyListener(new ExpressionModifier());
+        scopeExprCombo.addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                scopeExprCombo = null;
+            }
+        });
         scopeExpressionDecoration = new ControlDecoration(scopeExprCombo, SWT.LEFT, parent);
         scopeExpressionDecoration.hide();
         scopeExpressionDecoration.setDescriptionText(Messages.TCFThreadFilterEditorFormatError);
         scopeExpressionDecoration.setImage(fieldDecoration.getImage());
 
-        String bpContextQuery = getBPFilterExpression();
-        setupScopeExpressionCombo(settings, bpContextQuery, scopeExprCombo);
+        setupScopeExpressionCombo();
         Button selectExpression = new Button(parent, SWT.PUSH);
         selectExpression.setText(Messages.TCFThreadFilterQueryButtonEdit);
         selectExpression.setLayoutData(new GridData(SWT.RIGHT,0, false, false));
@@ -595,6 +605,7 @@ public class TCFThreadFilterEditor {
         fThreadViewer.addCheckStateListener(fCheckHandler);
         fThreadViewer.getTree().setLayoutData(data);
         fThreadViewer.getTree().setFont(parent.getFont());
+        
         fThreadViewer.setContentProvider(fContentProvider);
         fThreadViewer.setLabelProvider(new ThreadFilterLabelProvider());
         fThreadViewer.setInput(DebugPlugin.getDefault().getLaunchManager());
@@ -652,8 +663,11 @@ public class TCFThreadFilterEditor {
         return fThreadViewer;
     }
 
-    protected final String getScopeExpression() {
-        return  scopeExprCombo.getText();
+    protected String getScopeExpression() {
+        if (scopeExprCombo != null) {
+            return  scopeExprCombo.getText();
+        }
+        return null;
     }
 
     /**
