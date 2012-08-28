@@ -482,7 +482,7 @@
 	<extension
          point="org.eclipse.cdt.debug.ui.breakpointContribution">
       <breakpointEditors
-           debugModelId="org.eclipse.tcf.debug" markerType="org.eclipse.cdt.debug.core.cLineBreakpointMarker">>
+           debugModelId="org.eclipse.tcf.debug" markerType="org.eclipse.cdt.debug.core.commonCLineBreakpointMarker">>
          <attribute
                fieldEditorFactory="org.eclipse.tcf.internal.cdt.ui.breakpoints.HardwareFieldEditorFactory"
                label="Hardware"
