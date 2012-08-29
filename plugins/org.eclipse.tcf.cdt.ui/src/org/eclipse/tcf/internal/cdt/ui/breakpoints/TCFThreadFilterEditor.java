@@ -493,7 +493,7 @@ public class TCFThreadFilterEditor {
 
     void setupScopeExpressionCombo() {
         if (scopeExprCombo == null) return;
-        
+
         IDialogSettings settings = getDialogSettings(false);
         String bpContextQuery = getBPFilterExpression();
         String [] expresionList = null;
@@ -605,7 +605,7 @@ public class TCFThreadFilterEditor {
         fThreadViewer.addCheckStateListener(fCheckHandler);
         fThreadViewer.getTree().setLayoutData(data);
         fThreadViewer.getTree().setFont(parent.getFont());
-        
+
         fThreadViewer.setContentProvider(fContentProvider);
         fThreadViewer.setLabelProvider(new ThreadFilterLabelProvider());
         fThreadViewer.setInput(DebugPlugin.getDefault().getLaunchManager());
