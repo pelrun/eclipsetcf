@@ -70,7 +70,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private final TCFData<IExpressions.Value> value;
     private final TCFData<ISymbols.Symbol> type;
     private final TCFData<String> type_name;
-    private final TCFData<String> string;
+    private final TCFData<StyledStringBuffer> string;
     private final TCFData<String> expression_text;
     private final TCFChildrenSubExpressions children;
     private final boolean is_empty;
@@ -369,7 +369,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 return true;
             }
         };
-        string = new TCFData<String>(channel) {
+        string = new TCFData<StyledStringBuffer>(channel) {
             ISymbols.Symbol base_type_data;
             BigInteger addr;
             byte[] buf;
@@ -401,7 +401,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             // c-string: read until character = 0
                             if (type_data.getTypeClass() == ISymbols.TypeClass.array) {
                                 byte[] data = value_data.getValue();
-                                set(null, null, toASCIIString(data, 0, data.length, '"'));
+                                StyledStringBuffer bf = new StyledStringBuffer();
+                                bf.append(toASCIIString(data, 0, data.length, '"'), StyledStringBuffer.MONOSPACED);
+                                set(null, null, bf);
                                 return true;
                             }
                             // pointer, read c-string data from memory
@@ -417,7 +419,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     case cardinal:
                         if (type_data.getSize() == 1) {
                             byte[] data = value_data.getValue();
-                            set(null, null, toASCIIString(data, 0, data.length, '\''));
+                            StyledStringBuffer bf = new StyledStringBuffer();
+                            bf.append(toASCIIString(data, 0, data.length, '\''), StyledStringBuffer.MONOSPACED);
+                            set(null, null, bf);
                             return true;
                         }
                         break;
@@ -439,8 +443,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                         if (i < const_bytes.length) ok = const_bytes[i] == data[i];
                                         else ok = data[i] == 0;
                                     }
-                                    if (ok) {
-                                        set(null, null, const_data.getName());
+                                    if (ok && const_data.getName() != null) {
+                                        StyledStringBuffer bf = new StyledStringBuffer();
+                                        bf.append(const_data.getName());
+                                        set(null, null, bf);
                                         return true;
                                     }
                                 }
@@ -506,12 +512,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     }
                     command = mem_space_data.get(addr.add(BigInteger.valueOf(offs)), 1, buf, offs, 1, 0, new IMemory.DoneMemory() {
                         public void doneMemory(IToken token, MemoryError error) {
-                            if (error != null) {
-                                if (offs == 0) set(command, error, null);
-                                else set(command, null, toASCIIString(buf, 0, offs, '"'));
+                            if (error != null && offs == 0) {
+                                set(command, error, null);
                             }
-                            else if (buf[offs] == 0 || offs >= 2048) {
-                                set(command, null, toASCIIString(buf, 0, offs, '"'));
+                            else if (buf[offs] == 0 || offs >= 2048 || error != null) {
+                                StyledStringBuffer bf = new StyledStringBuffer();
+                                bf.append(toASCIIString(buf, 0, offs, '"'), StyledStringBuffer.MONOSPACED);
+                                set(command, null, bf);
                             }
                             else if (command == token) {
                                 command = null;
@@ -543,7 +550,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 if (!appendCompositeValueText(bf, 1, base_type_data, buf,
                         0, size, base_type_data.isBigEndian(), this)) return false;
                 bf.append('}');
-                set(null, null, bf.toString());
+                set(null, null, bf);
                 return true;
             }
         };
@@ -1106,7 +1113,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             }
             else {
                 if (cols == null) {
-                    String s = getPrettyExpression(done);
+                    StyledStringBuffer s = getPrettyExpression(done);
                     if (s == null) return false;
                     result.setLabel(name + " = " + s, 0);
                 }
@@ -1127,9 +1134,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             setLabel(result, null, i, 10);
                         }
                         else if (c.equals(TCFColumnPresentationExpression.COL_VALUE)) {
-                            String s = getPrettyExpression(done);
+                            StyledStringBuffer s = getPrettyExpression(done);
                             if (s == null) return false;
-                            result.setLabel(s, i);
+                            result.setLabel(s.toString(), i);
                         }
                     }
                 }
@@ -1206,27 +1213,35 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         }
     }
 
-    private String getPrettyExpression(Runnable done) {
+    private StyledStringBuffer getPrettyExpression(Runnable done) {
         for (ITCFPrettyExpressionProvider p : TCFPrettyExpressionProvider.getProviders()) {
             TCFDataCache<String> c = p.getText(this);
             if (c != null) {
                 if (!c.validate(done)) return null;
-                if (c.getError() == null && c.getData() != null) return c.getData();
+                if (c.getError() == null && c.getData() != null) {
+                    StyledStringBuffer bf = new StyledStringBuffer();
+                    bf.append(c.getData(), StyledStringBuffer.MONOSPACED);
+                    return bf;
+                }
             }
         }
         if (!value.validate(done)) return null;
         if (!string.validate(done)) return null;
-        if (string.getData() != null) return string.getData();
         StyledStringBuffer bf = new StyledStringBuffer();
-        IExpressions.Value v = value.getData();
-        if (v != null) {
-            byte[] data = v.getValue();
-            if (data != null) {
-                if (!appendValueText(bf, 1, v.getTypeID(),
-                        data, 0, data.length, v.isBigEndian(), done)) return null;
+        if (string.getData() != null) {
+            bf.append(string.getData());
+        }
+        else {
+            IExpressions.Value v = value.getData();
+            if (v != null) {
+                byte[] data = v.getValue();
+                if (data != null) {
+                    if (!appendValueText(bf, 1, v.getTypeID(),
+                            data, 0, data.length, v.isBigEndian(), done)) return null;
+                }
             }
         }
-        return bf.toString();
+        return bf;
     }
 
     private boolean appendArrayValueText(StyledStringBuffer bf, int level, ISymbols.Symbol type,
@@ -1362,10 +1377,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             return true;
         }
         if (level == 0) {
-            String s = getPrettyExpression(done);
+            StyledStringBuffer s = getPrettyExpression(done);
             if (s == null) return false;
             if (s.length() > 0) {
-                bf.append(s, StyledStringBuffer.MONOSPACED);
+                bf.append(s);
                 bf.append('\n');
             }
             else if (string.getError() != null) {
@@ -1385,7 +1400,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     appendNumericValueText(bf, type_class, data, offs, size, big_endian);
                 }
                 else if (type_data.getTypeClass() == ISymbols.TypeClass.cardinal) {
-                    bf.append("0x");
+                    bf.append("0x", StyledStringBuffer.MONOSPACED);
                     bf.append(toNumberString(16, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
                 }
                 else {
@@ -1399,13 +1414,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     appendNumericValueText(bf, type_class, data, offs, size, big_endian);
                 }
                 else {
-                    bf.append("0x");
+                    bf.append("0x", StyledStringBuffer.MONOSPACED);
                     bf.append(toNumberString(16, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
                 }
                 break;
             case array:
-                if (!appendArrayValueText(bf, level, type_data, data, offs, size, big_endian, done)) return false;
-                if (level == 0) bf.append('\n');
+                if (level > 0) {
+                    if (!appendArrayValueText(bf, level, type_data, data, offs, size, big_endian, done)) return false;
+                }
                 break;
             case composite:
                 if (level > 0) {
