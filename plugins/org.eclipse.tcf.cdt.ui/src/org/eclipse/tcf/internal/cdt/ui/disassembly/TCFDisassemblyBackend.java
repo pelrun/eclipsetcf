@@ -527,9 +527,29 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 }
                 big_endian = mem.isBigEndian();
                 addr_bits = mem.getAddressSize() * 8;
+
+                int accessSize = 0;
+                BigInteger bit = new BigInteger("1");
+                BigInteger mem_end = bit.shiftLeft(addr_bits);
+                mem_end = mem_end.subtract(bit);
+
+                if (startAddress.compareTo(mem_end) > 0) {
+                    fCallback.setUpdatePending(false);
+                    return;
+                }
+
+                BigInteger requestedLineEndAddr = startAddress.add(BigInteger.valueOf(linesHint * mem.getAddressSize()));
+
+                if (requestedLineEndAddr.compareTo(mem_end) > 0) {
+                    accessSize = mem_end.subtract(startAddress).intValue() + 1;
+                }
+                else {
+                    accessSize = linesHint * mem.getAddressSize();
+                }
+
                 if (!done_disassembly) {
                     Map<String, Object> params = new HashMap<String, Object>();
-                    disass.disassemble(mem.getID(), startAddress, linesHint * 4, params, new DoneDisassemble() {
+                    disass.disassemble(mem.getID(), startAddress, accessSize, params, new DoneDisassemble() {
                         @Override
                         public void doneDisassemble(IToken token, final Throwable error, IDisassemblyLine[] res) {
                             if (execContext != fExecContext) return;
