@@ -9,8 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -228,7 +230,33 @@ public class ContentProviderDelegate implements ITreeContentProvider {
 			if (refreshable != null && refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.PENDING)) {
 				hasChildren = true;
 			} else {
-				hasChildren = context.hasChildren();
+				// We need the real children list to determine if we have children
+				final Object[] children = getChildren(context);
+				if (children.length == 1 && children[0] instanceof IProcessContextNode) {
+					// Apply the single thread filter
+					final AtomicBoolean selected = new AtomicBoolean();
+					Runnable runnable = new Runnable() {
+						@Override
+						public void run() {
+							IProcessContextNode child = (IProcessContextNode)children[0];
+							if (context.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
+								if (context.getName() != null) {
+									selected.set(!context.getName().equals(child.getName()));
+								}
+								else if (child.getName() != null) {
+									selected.set(!child.getName().equals(context.getName()));
+								}
+							}
+						}
+					};
+
+					Assert.isTrue(!Protocol.isDispatchThread());
+					Protocol.invokeAndWait(runnable);
+
+					hasChildren = selected.get();
+				} else {
+					hasChildren = children.length > 0;
+				}
 			}
 		}
 		else if (element instanceof IPeerModel) {

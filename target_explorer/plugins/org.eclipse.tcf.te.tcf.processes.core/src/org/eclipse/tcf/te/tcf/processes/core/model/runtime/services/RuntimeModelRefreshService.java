@@ -27,8 +27,15 @@ import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.runtime.model.PendingOperationModelNode;
+import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryState;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
@@ -41,6 +48,7 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNod
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode.TYPE;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.processes.core.model.nodes.PendingOperationNode;
 
 /**
  * Runtime model refresh service implementation.
@@ -85,7 +93,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 		final List<IProcessContextNode> oldChildren = model.getChildren(IProcessContextNode.class);
 
 		// Refresh the process contexts from the agent
-		refreshContextChildren(oldChildren, model, null, new Callback() {
+		refreshContextChildren(oldChildren, model, null, 2, new Callback() {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
 				final AtomicBoolean isDisposed = new AtomicBoolean();
@@ -164,7 +172,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 				final List<IProcessContextNode> oldChildren = ((IProcessContextNode)node).getChildren(IProcessContextNode.class);
 
 				// Refresh the children of the process context node from the agent
-				refreshContextChildren(oldChildren, model, (IProcessContextNode)node, new Callback() {
+				refreshContextChildren(oldChildren, model, (IProcessContextNode)node, 2, new Callback() {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						final AtomicBoolean isDisposed = new AtomicBoolean();
@@ -275,9 +283,10 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 * @param oldChildren The list of old children. Must not be <code>null</code>.
 	 * @param model The model. Must not be <code>null</code>.
 	 * @param parent The parent context node or <code>null</code>.
+	 * @param depth Until which depth the tree gets refreshed.
 	 * @param callback The callback to invoke at the end of the operation. Must not be <code>null</code>.
 	 */
-	protected void refreshContextChildren(final List<IProcessContextNode> oldChildren, final IModel model, final IProcessContextNode parent, final ICallback callback) {
+	protected void refreshContextChildren(final List<IProcessContextNode> oldChildren, final IModel model, final IProcessContextNode parent, final int depth, final ICallback callback) {
 		Assert.isNotNull(oldChildren);
 		Assert.isNotNull(model);
 		Assert.isNotNull(callback);
@@ -344,10 +353,43 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 																node.setProcessContext(context);
 																if (context != null) node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
 
-																// Refresh the children of the node
-//																List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
-//																refreshContextChildren(oldChildren, model, node, innerCallback);
-																innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+																// Get the asynchronous refresh context adapter
+																final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
+
+																// Refresh the children of the node if the depth is still larger than 0
+																if (depth - 1 > 0 && (refreshable == null || !refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS))) {
+																	if (refreshable != null) {
+																		// Mark the refresh as in progress
+																		refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
+																		// Create a new pending operation node and associate it with the refreshable
+																		PendingOperationModelNode pendingNode = new PendingOperationNode();
+																		pendingNode.setParent(node);
+																		refreshable.setPendingOperationNode(pendingNode);
+																	}
+
+																	// Don't send change events while refreshing
+																	final boolean changed = node.setChangeEventsEnabled(false);
+																	// Initiate the refresh
+																	List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
+																	refreshContextChildren(oldChildren, model, node, depth - 1, new Callback() {
+																		@Override
+                                                                        protected void internalDone(Object caller, IStatus status) {
+																			// Mark the refresh as done
+																			refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
+																			// Reset the pending operation node
+																			refreshable.setPendingOperationNode(null);
+																			// Re-enable the change events if they had been enabled before
+																			if (changed) node.setChangeEventsEnabled(true);
+																			// Trigger a refresh of the view content
+																			ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
+																			EventManager.getInstance().fireEvent(event);
+																			// Finally invoke the callback
+																			innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+																		}
+																	});
+																} else {
+																	innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+																}
 															}
 														});
 													} else {
