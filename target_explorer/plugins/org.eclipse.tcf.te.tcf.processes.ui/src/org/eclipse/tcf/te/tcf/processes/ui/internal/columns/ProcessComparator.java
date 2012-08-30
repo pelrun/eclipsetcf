@@ -14,20 +14,22 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
 
 /**
  * The comparator for the tree column "name".
  */
-public class ProcessComparator implements Comparator<ProcessTreeNode> , Serializable {
+public class ProcessComparator implements Comparator<IProcessContextNode> , Serializable {
     private static final long serialVersionUID = 1L;
-    private static ProcessLabelProvider labelProvider = new ProcessLabelProvider();
-	/*
-	 * (non-Javadoc)
+    private static LabelProvider labelProvider = new LabelProviderDelegate();
+
+	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public int compare(ProcessTreeNode node1, ProcessTreeNode node2) {
+	public int compare(IProcessContextNode node1, IProcessContextNode node2) {
 		if (node1 == null && node2 == null) return 0;
 		if (node1 != null && node2 == null) return 1;
 		if (node1 == null && node2 != null) return -1;

@@ -12,9 +12,10 @@ package org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.tabbed.BaseTitledSection;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -25,19 +26,19 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  */
 public class BasicContextSection extends BaseTitledSection {
 	// The process context to be displayed.
-	protected ISysMonitor.SysMonitorContext context;
+	/* default */ ISysMonitor.SysMonitorContext context;
 	// The text field for the executable file.
-	protected Text fileText;
+	private Text fileText;
 	// The text field for the working directory.
-	protected Text workDirText;
+	private Text workDirText;
 	// The text field for the root directory.
-	protected Text rootText;
+	private Text rootText;
 	// The state of the process.
-	protected Text stateText;
+	private Text stateText;
 	// The owner of the process.
-	protected Text userText;
+	private Text userText;
 	// The owner group of the process.
-	protected Text groupText;
+	private Text groupText;
 
 	/*
 	 * (non-Javadoc)
@@ -60,9 +61,18 @@ public class BasicContextSection extends BaseTitledSection {
 	 */
 	@Override
     protected void updateInput(IPeerModelProvider input) {
-        Assert.isTrue(input instanceof ProcessTreeNode);
-        ProcessTreeNode node = (ProcessTreeNode) input;
-        context = node.context;
+        Assert.isTrue(input instanceof IProcessContextNode);
+        final IProcessContextNode node = (IProcessContextNode) input;
+
+        Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				context = node.getSysMonitorContext();
+			}
+		};
+
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
     }
 
 	/*

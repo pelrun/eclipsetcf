@@ -72,6 +72,5 @@ public class AllTests {
 		suite.addTest(ProcessLauncherTestCase.getTestSuite());
 
 		AllFileSystemTests.addTests(suite);
-		AllProcessTests.addTests(suite);
 	}
 }

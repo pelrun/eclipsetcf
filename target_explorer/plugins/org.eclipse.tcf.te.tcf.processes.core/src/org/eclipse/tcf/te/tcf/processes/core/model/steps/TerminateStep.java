@@ -20,15 +20,17 @@ import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IContextHelpIds;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.nls.Messages;
 
 /**
@@ -44,13 +46,14 @@ public class TerminateStep {
 	 * @param node The context node. Must not be <code>null</code>.
 	 * @param callback The callback to invoke once the operation completed, or <code>null</code>.
 	 */
-	public void executeTerminate(final ProcessTreeNode node, final ICallback callback) {
+	public void executeTerminate(final IProcessContextNode node, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 
 		// If the context is not attached, there is nothing to do
-		if (node.pContext != null) {
-			if (node.peerNode != null) {
+		if (node.getProcessContext() != null) {
+			IPeerModel peerNode = (IPeerModel)node.getAdapter(IPeerModel.class);
+			if (peerNode != null) {
 				doTerminate(node, callback);
 			} else {
 				onError(node, Messages.DetachStep_error_disconnect, null, callback);
@@ -70,18 +73,21 @@ public class TerminateStep {
 	 * @param node The context node. Must not be <code>null</code>.
 	 * @param callback The callback to invoke once the operation completed, or<code>null</code>.
 	 */
-	protected void doTerminate(final ProcessTreeNode node, final ICallback callback) {
+	protected void doTerminate(final IProcessContextNode node, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 
+		// Determine the peer model node
+		final IPeerModel peerNode = (IPeerModel)node.getAdapter(IPeerModel.class);
+
 		// Open a channel
-		Tcf.getChannelManager().openChannel(node.peerNode.getPeer(), null, new IChannelManager.DoneOpenChannel() {
+		Tcf.getChannelManager().openChannel(peerNode.getPeer(), null, new IChannelManager.DoneOpenChannel() {
 			@Override
 			public void doneOpenChannel(final Throwable error, final IChannel channel) {
 				if (error == null) {
 					final IProcesses service = channel.getRemoteService(IProcesses.class);
 					if (service != null) {
-						service.getContext(node.pContext.getID(), new IProcesses.DoneGetContext() {
+						service.getContext(node.getStringProperty(IModelNode.PROPERTY_ID), new IProcesses.DoneGetContext() {
 							@Override
 							public void doneGetContext(IToken token, Exception error, ProcessContext context) {
 								if (error == null && context != null) {
@@ -89,23 +95,22 @@ public class TerminateStep {
 										@Override
 										public void doneCommand(IToken token, Exception error) {
 											if (error == null) {
-												// We are terminated now, trigger a refresh of the node
 												onDone(callback);
 											} else {
-												onError(node, Messages.DetachStep_error_detach, error, callback);
+												onError(node, Messages.TerminateStep_error_terminate, error, callback);
 											}
 										}
 									});
 								} else {
-									onError(node, Messages.DetachStep_error_getContext, error, callback);
+									onError(node, Messages.TerminateStep_error_getContext, error, callback);
 								}
 							}
 						});
 					} else {
-						onError(node, Messages.DetachStep_error_disconnect, null, callback);
+						onError(node, Messages.TerminateStep_error_terminate, null, callback);
 					}
 				} else {
-					onError(node, Messages.DetachStep_error_openChannel, error, callback);
+					onError(node, Messages.TerminateStep_error_openChannel, error, callback);
 				}
 			}
 		});
@@ -140,7 +145,7 @@ public class TerminateStep {
 				IStatusHandler[] handlers = StatusHandlerManager.getInstance().getHandler(context);
 				if (handlers.length > 0) {
 					IPropertiesContainer data = new PropertiesContainer();
-					data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.DetachStep_error_title);
+					data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.TerminateStep_error_title);
 					data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.MESSAGE_DETACH_FAILED);
 					data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
 

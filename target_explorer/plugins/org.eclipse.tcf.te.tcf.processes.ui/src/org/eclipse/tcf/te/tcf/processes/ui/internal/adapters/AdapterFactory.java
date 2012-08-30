@@ -12,10 +12,10 @@ package org.eclipse.tcf.te.tcf.processes.ui.internal.adapters;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
-import org.eclipse.tcf.te.tcf.processes.ui.internal.columns.ProcessLabelProvider;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.search.ProcessSearchable;
-import org.eclipse.tcf.te.ui.interfaces.ILazyLoader;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 
 /**
@@ -23,24 +23,33 @@ import org.eclipse.tcf.te.ui.interfaces.ISearchable;
  */
 public class AdapterFactory implements IAdapterFactory {
 	// The adapter for ILabelProvider.class
-	private ILabelProvider labelProvider = new ProcessLabelProvider();
+	private ILabelProvider labelProvider = new LabelProviderDelegate();
+
+	private static final Class<?>[] CLASSES = new Class[] {
+		ILabelProvider.class,
+		IPeerModel.class,
+		ISearchable.class
+	};
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapter(java.lang.Object, java.lang.Class)
 	 */
 	@Override
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
-		if (adaptableObject instanceof ProcessTreeNode) {
+		if (adaptableObject instanceof IProcessContextNode) {
 			if (ILabelProvider.class.equals(adapterType)) {
 				return labelProvider;
 			}
 			if (IPeerModel.class.equals(adapterType)) {
-				return ((ProcessTreeNode)adaptableObject).peerNode;
+				return ((IProcessContextNode) adaptableObject).getAdapter(adapterType);
 			}
-			if(ILazyLoader.class.equals(adapterType)) {
-				return new ProcessTreeNodeLoader((ProcessTreeNode)adaptableObject);
+			if (ISearchable.class.equals(adapterType)) {
+				return new ProcessSearchable();
 			}
-			if(ISearchable.class.equals(adapterType)) {
+		}
+
+		if (adaptableObject instanceof IRuntimeModel) {
+			if (ISearchable.class.equals(adapterType)) {
 				return new ProcessSearchable();
 			}
 		}
@@ -52,12 +61,7 @@ public class AdapterFactory implements IAdapterFactory {
 	 */
 	@Override
 	public Class[] getAdapterList() {
-		return new Class<?>[] {
-						ILabelProvider.class,
-						IPeerModel.class,
-						ILazyLoader.class,
-						ISearchable.class
-					};
+		return CLASSES;
 	}
 
 }

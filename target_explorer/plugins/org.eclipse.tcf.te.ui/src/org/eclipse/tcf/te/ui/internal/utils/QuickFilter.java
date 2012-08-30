@@ -27,10 +27,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.ui.interfaces.ISchedulableEvent;
+
 /**
- * A quick filter is a viewer filter that selects elements, 
- * which has the specified name pattern, under a certain tree path.
- * Other elements outside of this tree path is ignored.
+ * A quick filter is a viewer filter that selects elements, which has the specified name pattern,
+ * under a certain tree path. Other elements outside of this tree path is ignored.
  */
 public class QuickFilter extends TablePatternFilter implements PropertyChangeListener {
 	// The tree viewer to filter.
@@ -49,10 +49,10 @@ public class QuickFilter extends TablePatternFilter implements PropertyChangeLis
 		this.root = root;
 		this.addPropertyChangeListener(this);
 	}
-	
+
 	/**
 	 * Show the pop up dialog for the specified root path.
-	 *  
+	 *
 	 * @param global If the filter is a global one.
 	 */
 	public void showFilterPopup(boolean global) {
@@ -65,38 +65,38 @@ public class QuickFilter extends TablePatternFilter implements PropertyChangeLis
 		popup.open();
 		popup.getShell().setLocation(location);
 	}
-	
+
 	/**
 	 * Compute the best location of the pop up dialog.
-	 * 
+	 *
 	 * @return The best location of the pop up dialog.
 	 */
 	private Point computePopupLocation() {
-	    Point location = null;
+		Point location = null;
 		if (!global) {
-		    TreeItem[] items = viewer.getTree().getSelection();
-		    if (items != null && items.length > 0) {
-		    	for(TreeItem item : items) {
-		    		viewer.getTree().showItem(item);
-		    	}
-		    	TreeItem item = items[0];
-		    	Rectangle bounds = item.getBounds();
-		    	location = new Point(bounds.x, bounds.y-bounds.height);
-		    }
-		    else {
-		    	location = new Point(0, -viewer.getTree().getItemHeight());
-		    }
+			TreeItem[] items = viewer.getTree().getSelection();
+			if (items != null && items.length > 0) {
+				for (TreeItem item : items) {
+					viewer.getTree().showItem(item);
+				}
+				TreeItem item = items[0];
+				Rectangle bounds = item.getBounds();
+				location = new Point(bounds.x, bounds.y - bounds.height);
+			}
+			else {
+				location = new Point(0, -viewer.getTree().getItemHeight());
+			}
 		}
 		else {
 			location = new Point(0, -viewer.getTree().getItemHeight());
 		}
 		location = viewer.getTree().toDisplay(location);
-	    return location;
-    }
-	
+		return location;
+	}
+
 	/**
 	 * Adjust the position of the pop up when the tree viewer has changed.
-	 * 
+	 *
 	 * @param popshell The shell of the pop up dialog.
 	 */
 	void adjustPopup(Shell popshell) {
@@ -108,98 +108,95 @@ public class QuickFilter extends TablePatternFilter implements PropertyChangeLis
 			}
 		}
 	}
-	
+
 	/**
-	 * Subclass PropertyChangeEvent and implement ISchedulable to provide
-	 * an event which should be scheduled when the key stroke pauses for
-	 * a certain time.
+	 * Subclass PropertyChangeEvent and implement ISchedulable to provide an event which should be
+	 * scheduled when the key stroke pauses for a certain time.
 	 */
 	private static class QuickFilterEvent extends PropertyChangeEvent implements ISchedulableEvent {
-        private static final long serialVersionUID = 1L;
-        // Remember the last time of a property change event caused by a key stroke
+		private static final long serialVersionUID = 1L;
+		// Remember the last time of a property change event caused by a key stroke
 		private static long last_enqueue;
 		// Maximum delay before the event should be scheduled.
 		private static final long MAXIMUM_DELAY = 300L;
 		// The effective tree viewer;
 		private TreeViewer viewer;
-		
+
 		/**
 		 * Constructor inherited.
-		 * 
+		 *
 		 * @param source
 		 * @param propertyName
 		 * @param oldValue
 		 * @param newValue
 		 */
-        public QuickFilterEvent(TreeViewer viewer, Object source, String propertyName, Object oldValue, Object newValue) {
-	        super(source, propertyName, oldValue, newValue);
-	        this.viewer = viewer;
-        }
-        
-        /*
-         * (non-Javadoc)
-         * @see org.eclipse.tcf.te.ui.interfaces.ISchedulable#eventQueued()
-         */
+		public QuickFilterEvent(TreeViewer viewer, Object source, String propertyName, Object oldValue, Object newValue) {
+			super(source, propertyName, oldValue, newValue);
+			this.viewer = viewer;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.tcf.te.ui.interfaces.ISchedulable#eventQueued()
+		 */
 		@Override
-        public synchronized void eventQueued() {
+		public synchronized void eventQueued() {
 			last_enqueue = System.currentTimeMillis();
-        }
-		
-		/*
-		 * (non-Javadoc)
+		}
+
+		/* (non-Javadoc)
 		 * @see org.eclipse.tcf.te.ui.interfaces.ISchedulable#isSchedulable()
 		 */
 		@Override
-        public boolean isSchedulable() {
-	        return System.currentTimeMillis() - last_enqueue > MAXIMUM_DELAY;
-        }
+		public boolean isSchedulable() {
+			return System.currentTimeMillis() - last_enqueue > MAXIMUM_DELAY;
+		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.eclipse.tcf.te.ui.interfaces.ISchedulable#isApplicable(org.eclipse.jface.viewers.TreeViewer)
+		/* (non-Javadoc)
+		 * @see org.eclipse.tcf.te.ui.interfaces.ISchedulableEvent#isApplicable(org.eclipse.jface.viewers.TreeViewer)
 		 */
 		@Override
-        public boolean isApplicable(TreeViewer viewer) {
-	        return this.viewer == viewer;
-        }
+		public boolean isApplicable(TreeViewer viewer) {
+			return this.viewer == viewer;
+		}
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
 	 */
 	@Override
-    public void propertyChange(PropertyChangeEvent evt) {
+	public void propertyChange(PropertyChangeEvent evt) {
 		Object element = root.getLastSegment();
-	    element = element == null ? viewer.getInput() : element;
-		if(element != null) {
+		element = element == null ? viewer.getInput() : element;
+		if (element != null) {
 			IPropertyChangeProvider provider = getPropertyChangeProvider(element);
-			if(provider!=null) {
+			if (provider != null) {
 				provider.firePropertyChange(new QuickFilterEvent(viewer, element, evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()));
+			} else {
+				viewer.refresh(element, true);
 			}
 		}
-    }
+	}
 
 	/**
 	 * Get an adapter of IPropertyChangeProvider from the specified element.
-	 * 
+	 *
 	 * @param element The element to get the adapter from.
 	 * @return The element's adapter or null if does not adapt to IPropertyChangeProvider.
 	 */
 	private IPropertyChangeProvider getPropertyChangeProvider(Object element) {
 		IPropertyChangeProvider provider = null;
-		if(element instanceof IPropertyChangeProvider) {
+		if (element instanceof IPropertyChangeProvider) {
 			provider = (IPropertyChangeProvider) element;
 		}
-		if(provider == null && element instanceof IAdaptable) {
-			provider = (IPropertyChangeProvider) ((IAdaptable)element).getAdapter(IPropertyChangeProvider.class);
+		if (provider == null && element instanceof IAdaptable) {
+			provider = (IPropertyChangeProvider) ((IAdaptable) element).getAdapter(IPropertyChangeProvider.class);
 		}
-		if(provider == null && element != null) {
+		if (provider == null && element != null) {
 			provider = (IPropertyChangeProvider) Platform.getAdapterManager().getAdapter(element, IPropertyChangeProvider.class);
 		}
-	    return provider;
-    }
-	
+		return provider;
+	}
+
 	/**
 	 * Reset the tree viewer to the original view by removing this filter.
 	 */
@@ -212,10 +209,9 @@ public class QuickFilter extends TablePatternFilter implements PropertyChangeLis
 		setPattern(null);
 	}
 
-
 	/**
 	 * If the current viewer is being filtered.
-	 * 
+	 *
 	 * @return true if it has this filter.
 	 */
 	private boolean isFiltering() {
@@ -230,9 +226,8 @@ public class QuickFilter extends TablePatternFilter implements PropertyChangeLis
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.dialogs.TablePatternFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.internal.utils.TablePatternFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
@@ -242,19 +237,19 @@ public class QuickFilter extends TablePatternFilter implements PropertyChangeLis
 
 	/**
 	 * If the current parent element should be selected for matching.
-	 * 
+	 *
 	 * @param parentElement The parent element.
 	 * @return true if it should continue matching.
 	 */
 	private boolean shouldSelect(Object parentElement) {
-	    Object rootElement = parentElement instanceof TreePath ? root : 
-	    	(root.getSegmentCount() == 0 ? viewer.getInput() : root.getLastSegment());
-	    return parentElement.equals(rootElement);
-    }
+		Object rootElement = parentElement instanceof TreePath ? root : (root.getSegmentCount() == 0 ? viewer
+		                .getInput() : root.getLastSegment());
+		return parentElement.equals(rootElement);
+	}
 
 	/**
 	 * If the element is being filtered.
-	 * 
+	 *
 	 * @param path The element to be checked.
 	 * @return true if it is filtering.
 	 */

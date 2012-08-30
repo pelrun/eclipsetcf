@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
@@ -21,7 +22,8 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
@@ -33,7 +35,7 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  */
 public class AdvancedPropertiesSection extends AbstractPropertySection {
 	// The properties map.
-	protected Map<String, Object> properties;
+	/* default */ Map<String, Object> properties;
 
 	// The table control to display the properties.
 	private TableViewer viewer;
@@ -75,14 +77,19 @@ public class AdvancedPropertiesSection extends AbstractPropertySection {
         super.setInput(part, selection);
         Assert.isTrue(selection instanceof IStructuredSelection);
         Object input = ((IStructuredSelection) selection).getFirstElement();
-        Assert.isTrue(input instanceof ProcessTreeNode);
-        ProcessTreeNode node = (ProcessTreeNode) input;
-        if(node.context != null) {
-        	properties = node.context.getProperties();
-        }
-        else {
-        	properties = null;
-        }
+        Assert.isTrue(input instanceof IProcessContextNode);
+        final IProcessContextNode node = (IProcessContextNode) input;
+        final AtomicReference<Map<String, Object>> props = new AtomicReference<Map<String,Object>>();
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				props.set(node.getSysMonitorContext().getProperties());
+			}
+		};
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
+
+        properties = props.get();
     }
 
 	/*

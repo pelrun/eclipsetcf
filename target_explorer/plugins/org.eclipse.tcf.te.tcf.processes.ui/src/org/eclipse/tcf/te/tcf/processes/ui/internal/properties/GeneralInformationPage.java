@@ -9,6 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.properties;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.swt.SWT;
@@ -18,7 +21,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.ISysMonitor;
+import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.ui.dialogs.PropertyPage;
 
@@ -27,7 +34,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
  */
 public class GeneralInformationPage extends PropertyPage {
 
-	private ProcessTreeNode node;
+	/* default */ IProcessContextNode node;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.PreferencePage#createContents(org.eclipse.swt.widgets.Composite)
@@ -35,23 +42,37 @@ public class GeneralInformationPage extends PropertyPage {
     @Override
 	protected Control createContents(Composite parent) {
 		IAdaptable element = getElement();
-		Assert.isTrue(element instanceof ProcessTreeNode);
+		Assert.isTrue(element instanceof IProcessContextNode);
 
-		node = (ProcessTreeNode) element;
+		node = (IProcessContextNode) element;
+
+		final Map<String, Object> props = new HashMap<String, Object>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				props.putAll(node.getProcessContext().getProperties());
+				props.putAll(node.getSysMonitorContext().getProperties());
+				props.put(IModelNode.PROPERTY_TYPE, node.getType().toString());
+			}
+		};
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
+
 		Composite page = new Composite(parent, SWT.NONE);
 		GridLayout gridLayout = new GridLayout(2, false);
 		page.setLayout(gridLayout);
-		
-		createField(Messages.GeneralInformationPage_Name, node.name, page); 
-		createField(Messages.GeneralInformationPage_Type, node.type, page); 
-		createField(Messages.GeneralInformationPage_State, node.state, page); 
-		createField(Messages.GeneralInformationPage_User, node.username, page); 
+
+		createField(Messages.GeneralInformationPage_Name, props.get(IProcesses.PROP_NAME), page);
+		createField(Messages.GeneralInformationPage_Type, props.get(IModelNode.PROPERTY_TYPE), page);
+		createField(Messages.GeneralInformationPage_State, props.get(ISysMonitor.PROP_STATE), page);
+		createField(Messages.GeneralInformationPage_User, props.get(ISysMonitor.PROP_USERNAME), page);
 		createSeparator(page);
-		createField(Messages.GeneralInformationPage_ProcessID, Long.valueOf(node.pid), page); 
-		createField(Messages.GeneralInformationPage_ParentPID, Long.valueOf(node.ppid), page); 
-		createField(Messages.GeneralInformationPage_InternalPID, node.id, page); 
-		createField(Messages.GeneralInformationPage_InternalPPID, node.parentId, page); 
-		
+		createField(Messages.GeneralInformationPage_ProcessID, props.get(ISysMonitor.PROP_PID), page);
+		createField(Messages.GeneralInformationPage_ParentPID, props.get(ISysMonitor.PROP_PPID), page);
+		createField(Messages.GeneralInformationPage_InternalPID, props.get(IProcesses.PROP_ID), page);
+		createField(Messages.GeneralInformationPage_InternalPPID, props.get(IProcesses.PROP_PARENTID), page);
+
 		return page;
 	}
 	/**
@@ -88,9 +109,9 @@ public class GeneralInformationPage extends PropertyPage {
 		data.verticalAlignment = SWT.TOP;
 		data.widthHint = 300;
 		data.grabExcessHorizontalSpace = true;
-		data.horizontalAlignment = GridData.FILL;		
+		data.horizontalAlignment = GridData.FILL;
 		txt.setLayoutData(data);
 		txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		txt.setText(value == null ? "" : value.toString()); //$NON-NLS-1$
-	}	
+	}
 }

@@ -9,6 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.search;
 
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -20,7 +23,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 
@@ -33,7 +37,7 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 	private static final int OPTION_NOT_REMEMBER = 0;
 	private static final int OPTION_BY_ME = 1;
 	private static final int OPTION_SPECIFIED = 2;
-	
+
 	// The choice selected
 	private int choice;
 	// The specified user when "Specify user" is selected.
@@ -59,7 +63,7 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 		};
 		Composite modifiedComp = createSection(parent, Messages.ProcessUserSearchable_WhoStarted);
 		modifiedComp.setLayout(new GridLayout(2, false));
-		
+
 		fBtnUserNotRem = new Button(modifiedComp, SWT.RADIO);
 		fBtnUserNotRem.setText(Messages.ProcessUserSearchable_DontRemember);
 		fBtnUserNotRem.setSelection(true);
@@ -74,13 +78,13 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 		data.horizontalSpan = 2;
 		fBtnUserMe.setLayoutData(data);
 		fBtnUserMe.addSelectionListener(l);
-		
+
 		fBtnUserSpecified = new Button(modifiedComp, SWT.RADIO);
 		fBtnUserSpecified.setText(Messages.ProcessUserSearchable_SpecifyUser);
 		data = new GridData();
 		fBtnUserSpecified.setLayoutData(data);
 		fBtnUserSpecified.addSelectionListener(l);
-		
+
 		Composite cmpUser = new Composite(modifiedComp, SWT.NONE);
 		GridLayout layout = new GridLayout(2, false);
 		layout.marginWidth = 0;
@@ -90,7 +94,7 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 		cmpUser.setLayout(layout);
 		data = new GridData();
 		cmpUser.setLayoutData(data);
-		
+
 		txtUser = new BaseEditBrowseTextControl(null);
 		txtUser.setIsGroup(false);
 		txtUser.setHasHistory(false);
@@ -133,7 +137,7 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 
 	/**
 	 * The method handling the selection event.
-	 * 
+	 *
 	 * @param e The selection event.
 	 */
 	protected void optionChecked(SelectionEvent e) {
@@ -154,22 +158,34 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 		}
 		fireOptionChanged();
     }
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchMatcher#match(java.lang.Object)
 	 */
 	@Override
     public boolean match(Object element) {
-		if (element instanceof ProcessTreeNode) {
-			ProcessTreeNode process = (ProcessTreeNode) element;
+		if (element instanceof IProcessContextNode) {
+			final IProcessContextNode node = (IProcessContextNode) element;
+
+			final AtomicReference<String> username = new AtomicReference<String>();
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					username.set(node.getSysMonitorContext().getUserName());
+				}
+			};
+
+			Assert.isTrue(!Protocol.isDispatchThread());
+			Protocol.invokeAndWait(runnable);
+
 			switch (choice) {
 			case OPTION_NOT_REMEMBER:
 				return true;
 			case OPTION_BY_ME:
-				return process.isAgentOwner();
+				return System.getProperty("user.name").equals(username.get()); //$NON-NLS-1$
 			case OPTION_SPECIFIED:
-				return user == null ? process.username == null : user.equals(process.username);
+				return user == null ? username.get() == null : user.equals(username.get());
 			}
 		}
 		return false;

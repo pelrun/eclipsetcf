@@ -8,7 +8,7 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.tcf.processes.ui.internal.pages;
+package org.eclipse.tcf.te.tcf.processes.ui.editor;
 
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;

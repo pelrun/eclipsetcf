@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.properties;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
@@ -20,7 +21,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed.MapContentProvider;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed.MapEntryLabelProvider;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
@@ -37,20 +39,26 @@ public class AdvancedPropertiesPage extends PropertyPage {
     @Override
 	protected Control createContents(Composite parent) {
 		IAdaptable element = getElement();
-		Assert.isTrue(element instanceof ProcessTreeNode);
+		Assert.isTrue(element instanceof IProcessContextNode);
 
-		ProcessTreeNode node = (ProcessTreeNode) element;
-		Map<String, Object> properties = null;
-		if(node.context != null) {
-			properties = node.context.getProperties();
-		}
-        
+		final IProcessContextNode node = (IProcessContextNode) element;
+		final Map<String, Object> props = new HashMap<String, Object>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				props.putAll(node.getSysMonitorContext().getProperties());
+			}
+		};
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
+
 		Composite page = new Composite(parent, SWT.NONE);
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 10;
 		layout.marginWidth = 10;
 		page.setLayout(layout);
-		
+
 		TableViewer viewer = new TableViewer(page, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
 		Table table = viewer.getTable();
 		TableColumn column = new TableColumn(table, SWT.LEFT);
@@ -63,10 +71,8 @@ public class AdvancedPropertiesPage extends PropertyPage {
 		table.setLinesVisible(true);
 	    viewer.setContentProvider(new MapContentProvider());
 	    viewer.setLabelProvider(new MapEntryLabelProvider());
-	    if(properties != null) {
-	    	viewer.setInput(properties);
-	    }
-	    
+    	viewer.setInput(props);
+
 		return page;
 	}
 }

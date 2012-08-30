@@ -10,8 +10,8 @@
 package org.eclipse.tcf.te.tcf.processes.ui.internal.search;
 
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
-import org.eclipse.tcf.te.tcf.processes.ui.internal.columns.ProcessLabelProvider;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
 import org.eclipse.tcf.te.ui.interfaces.ISearchMatcher;
 import org.eclipse.tcf.te.ui.utils.StringMatcher;
 /**
@@ -25,13 +25,13 @@ public class ProcessNodeGeneralMatcher implements ISearchMatcher {
 	// The string matcher for matching.
 	private StringMatcher fStringMatcher;
 	// The label provider used to get a text for a process.
-	private ILabelProvider labelProvider = new ProcessLabelProvider();
+	private ILabelProvider labelProvider = new LabelProviderDelegate();
 	// The current target names.
 	private String fTargetName;
-	
+
 	/**
 	 * Constructor with options.
-	 * 
+	 *
 	 * @param caseSensitive
 	 * @param matchPrecise
 	 * @param targetName
@@ -52,16 +52,14 @@ public class ProcessNodeGeneralMatcher implements ISearchMatcher {
 	@Override
 	public boolean match(Object context) {
 		if (context == null) return false;
-		if (context instanceof ProcessTreeNode) {
-			ProcessTreeNode node = (ProcessTreeNode) context;
-			if (!node.isSystemRoot()) {
-				String text = labelProvider.getText(node);
-				if (text != null) {
-					if (fMatchPrecise) {
-						return fCaseSensitive ? text.equals(fTargetName) : text.equalsIgnoreCase(fTargetName);
-					}
-					return fStringMatcher.match(text);
+		if (context instanceof IProcessContextNode) {
+			IProcessContextNode node = (IProcessContextNode) context;
+			String text = labelProvider.getText(node);
+			if (text != null) {
+				if (fMatchPrecise) {
+					return fCaseSensitive ? text.equals(fTargetName) : text.equalsIgnoreCase(fTargetName);
 				}
+				return fStringMatcher.match(text);
 			}
 		}
 		return false;

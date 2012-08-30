@@ -11,25 +11,42 @@ package org.eclipse.tcf.te.tcf.processes.ui.internal.columns;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
  * The comparator for the tree column "user".
  */
-public class UserComparator implements Comparator<ProcessTreeNode> , Serializable {
+public class UserComparator implements Comparator<IProcessContextNode> , Serializable {
     private static final long serialVersionUID = 1L;
-	/*
-	 * (non-Javadoc)
+
+	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public int compare(ProcessTreeNode o1, ProcessTreeNode o2) {
-		if (o1.username == null) {
-			if (o2.username == null) return 0;
+	public int compare(final IProcessContextNode o1, final IProcessContextNode o2) {
+		final AtomicReference<String> username1 = new AtomicReference<String>();
+		final AtomicReference<String> username2 = new AtomicReference<String>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				username1.set(o1.getSysMonitorContext().getUserName());
+				username2.set(o2.getSysMonitorContext().getUserName());
+			}
+		};
+
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
+
+		if (username1.get() == null) {
+			if (username2.get() == null) return 0;
 			return -1;
 		}
-		if (o2.username == null) return 1;
-		return o1.username.compareTo(o2.username);
+		if (username2.get() == null) return 1;
+		return username1.get().compareTo(username2.get());
 	}
 }

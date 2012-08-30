@@ -20,7 +20,14 @@ public interface IProcessContextNode extends IContainerModelNode {
 	/**
 	 * Process context node types
 	 */
-	public enum TYPE { Root, Folder, File }
+	public enum TYPE { Process, Thread }
+
+	/**
+	 * Set the type of the context node.
+	 *
+	 * @param type The context node type. Must not be <code>null</code>.
+	 */
+	public void setType(TYPE type);
 
 	/**
 	 * Returns the type of the context node.

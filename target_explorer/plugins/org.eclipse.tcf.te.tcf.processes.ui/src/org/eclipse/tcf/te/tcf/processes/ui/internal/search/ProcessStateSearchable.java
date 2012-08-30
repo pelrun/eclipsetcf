@@ -9,6 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.search;
 
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -17,7 +20,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 
 /**
@@ -41,14 +45,14 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 	// UI elements for input
 	private Button fBtnNotRem;
 	private Button fBtnSpecified;
-	
+
 	private Button fBtnR;
 	private Button fBtnS;
 	private Button fBtnD;
 	private Button fBtnZ;
 	private Button fBtnT;
 	private Button fBtnW;
-	
+
 	// The flags indicating if a certain state is included.
 	private boolean fIncludeR;
 	private boolean fIncludeS;
@@ -56,10 +60,10 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 	private boolean fIncludeZ;
 	private boolean fIncludeT;
 	private boolean fIncludeW;
-	
+
 	// The current selected states expressed in the above characters.
 	private String fStates;
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
@@ -74,62 +78,62 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 		};
 		Composite stateComposite = createSection(parent, Messages.ProcessStateSearchable_SectionChooseState);
 		stateComposite.setLayout(new GridLayout());
-		
+
 		fBtnNotRem = new Button(stateComposite, SWT.RADIO);
 		fBtnNotRem.setText(Messages.ProcessStateSearchable_NotSure);
 		fBtnNotRem.setSelection(true);
 		GridData data = new GridData();
 		fBtnNotRem.setLayoutData(data);
 		fBtnNotRem.addSelectionListener(l);
-		
+
 		fBtnSpecified = new Button(stateComposite, SWT.RADIO);
 		fBtnSpecified.setText(Messages.ProcessStateSearchable_SpecifyState);
 		data = new GridData();
 		fBtnSpecified.setLayoutData(data);
 		fBtnSpecified.addSelectionListener(l);
-		
+
 		Composite cmpStates = new Composite(stateComposite, SWT.NONE);
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		cmpStates.setLayoutData(data);
 		GridLayout layout = new GridLayout(3, true);
 		layout.marginLeft = 20;
 		cmpStates.setLayout(layout);
-		
+
 		fBtnR = new Button(cmpStates, SWT.CHECK);
 		fBtnR.setText(Messages.ProcessStateSearchable_StateRunning);
 		fBtnR.setEnabled(false);
 		data = new GridData();
 		fBtnR.setLayoutData(data);
 		fBtnR.addSelectionListener(l);
-		
+
 		fBtnS = new Button(cmpStates, SWT.CHECK);
 		fBtnS.setText(Messages.ProcessStateSearchable_StateSleeping);
 		fBtnS.setEnabled(false);
 		data = new GridData();
 		fBtnS.setLayoutData(data);
 		fBtnS.addSelectionListener(l);
-		
+
 		fBtnD = new Button(cmpStates, SWT.CHECK);
 		fBtnD.setText(Messages.ProcessStateSearchable_StateWaiting);
 		fBtnD.setEnabled(false);
 		data = new GridData();
 		fBtnD.setLayoutData(data);
 		fBtnD.addSelectionListener(l);
-		
+
 		fBtnZ = new Button(cmpStates, SWT.CHECK);
 		fBtnZ.setText(Messages.ProcessStateSearchable_StateZombie);
 		fBtnZ.setEnabled(false);
 		data = new GridData();
 		fBtnZ.setLayoutData(data);
 		fBtnZ.addSelectionListener(l);
-		
+
 		fBtnT = new Button(cmpStates, SWT.CHECK);
 		fBtnT.setText(Messages.ProcessStateSearchable_StateTraced);
 		fBtnT.setEnabled(false);
 		data = new GridData();
 		fBtnT.setLayoutData(data);
 		fBtnT.addSelectionListener(l);
-		
+
 		fBtnW = new Button(cmpStates, SWT.CHECK);
 		fBtnW.setText(Messages.ProcessStateSearchable_StatePaging);
 		fBtnW.setEnabled(false);
@@ -153,7 +157,7 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 
 	/**
 	 * The method handling the selection event.
-	 * 
+	 *
 	 * @param e The selection event.
 	 */
 	protected void optionChecked(SelectionEvent e) {
@@ -193,11 +197,11 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 		}
 		fireOptionChanged();
     }
-	
+
 	/**
 	 * Get the current state strings expressed in the character set
 	 * mentioned above.
-	 * 
+	 *
 	 * @return A string that contains all the selected states.
 	 */
 	private String getSelectedStates() {
@@ -226,7 +230,7 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 	/**
 	 * Enable the state buttons using the specified
 	 * enablement flag.
-	 * 
+	 *
 	 * @param enabled the enablement flag.
 	 */
 	private void setButtonStates(boolean enabled) {
@@ -237,23 +241,34 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 	    fBtnT.setEnabled(enabled);
 	    fBtnW.setEnabled(enabled);
     }
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchMatcher#match(java.lang.Object)
 	 */
 	@Override
     public boolean match(Object element) {
-		if (element instanceof ProcessTreeNode) {
+		if (element instanceof IProcessContextNode) {
 			switch (choice) {
 			case OPTION_NOT_REMEMBER:
 				return true;
 			case OPTION_SPECIFIED:
-				ProcessTreeNode node = (ProcessTreeNode) element;
-				String state = node.state;
-				if(state != null && state.length() > 0) {
-					state = state.toUpperCase();
-					return fStates.indexOf(state) != -1;
+				final IProcessContextNode node = (IProcessContextNode) element;
+
+				final AtomicReference<String> state = new AtomicReference<String>();
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						state.set(node.getSysMonitorContext().getState());
+					}
+				};
+
+				Assert.isTrue(!Protocol.isDispatchThread());
+				Protocol.invokeAndWait(runnable);
+
+				if(state.get() != null && state.get().length() > 0) {
+					state.set(state.get().toUpperCase());
+					return fStates.indexOf(state.get()) != -1;
 				}
 			}
 		}

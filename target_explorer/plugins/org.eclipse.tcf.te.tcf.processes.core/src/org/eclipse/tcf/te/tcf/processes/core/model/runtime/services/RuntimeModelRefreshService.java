@@ -38,6 +38,7 @@ import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
 import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode.TYPE;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 
@@ -206,7 +207,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 			// Get the context instance for the current id
 			IProcessContextNode candidate = entry.getValue();
 			// Try to find an existing context node first
-			IModelNode[] nodes = model.getService(IModelLookupService.class).lkupModelNodesById(candidate.getProcessContext().getID());
+			IModelNode[] nodes = model.getService(IModelLookupService.class).lkupModelNodesById(candidate.getStringProperty(IModelNode.PROPERTY_ID));
 			// If found, update the context node properties from the new one
 			if (nodes.length > 0) {
 				for (IModelNode node : nodes) {
@@ -245,29 +246,20 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 					Assert.isNotNull(service);
 					final ISysMonitor sysMonService = channel.getRemoteService(ISysMonitor.class);
 					Assert.isNotNull(sysMonService);
-					final String contextId = ((IProcessContextNode)node).getProcessContext().getID();
-					service.getContext(contextId, new IProcesses.DoneGetContext() {
+					final String contextId = ((IProcessContextNode)node).getStringProperty(IModelNode.PROPERTY_ID);
+					sysMonService.getContext(contextId, new ISysMonitor.DoneGetContext() {
 						@Override
-						public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
-							if (error == null) {
-								((IProcessContextNode)node).setProcessContext(context);
+						public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
+							((IProcessContextNode)node).setSysMonitorContext(context);
 
-								sysMonService.getContext(contextId, new ISysMonitor.DoneGetContext() {
-									@Override
-									public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
-										if (error == null) {
-											((IProcessContextNode)node).setSysMonitorContext(context);
-											callback.done(this, Status.OK_STATUS);
-										}
-										else {
-											callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
-										}
-									}
-								});
-							}
-							else {
-								callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
-							}
+							// Get the process context
+							service.getContext(contextId, new IProcesses.DoneGetContext() {
+								@Override
+								public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
+									((IProcessContextNode)node).setProcessContext(context);
+									callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+								}
+							});
 						}
 					});
 				} else {
@@ -303,67 +295,72 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 					if (error == null) {
 						// Determine the parent context id
 						String parentContextId = null;
-						if (parent != null && parent.getProcessContext() != null) parentContextId = parent.getProcessContext().getID();
+						if (parent != null && parent.getProcessContext() != null) parentContextId = parent.getStringProperty(IModelNode.PROPERTY_ID);
 
 						// Get the Systems service and query the configuration id's
 						final IProcesses service = channel.getRemoteService(IProcesses.class);
 						Assert.isNotNull(service);
 						final ISysMonitor sysMonService = channel.getRemoteService(ISysMonitor.class);
 						Assert.isNotNull(sysMonService);
-						service.getChildren(parentContextId, false, new IProcesses.DoneGetChildren() {
+						sysMonService.getChildren(parentContextId, new ISysMonitor.DoneGetChildren() {
 							@Override
 							public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
 								if (error == null) {
-									final AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
-										@Override
-                                        protected void internalDone(Object caller, IStatus status) {
-											Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-											if (status.getSeverity() == IStatus.OK) {
-												// Process the read system contexts
-												if (!contexts.isEmpty()) processContexts(contexts, oldChildren, model, parent);
-												callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
-											} else {
-												callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), status.getMessage(), status.getException()));
-											}
-										}
-									}, new CallbackInvocationDelegate());
-
-									// Loop the returned context id's and query the context data
-									for (String id : context_ids) {
-										final String contextId = id;
-										final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
-										service.getContext(contextId, new IProcesses.DoneGetContext() {
+									if (context_ids != null && context_ids.length > 0) {
+										final AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
 											@Override
-											public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
-												if (error == null) {
-													final IProcessContextNode node = createContextNodeFrom(context);
-													Assert.isNotNull(node);
-													contexts.put(node.getUUID(), node);
-
-													final ICallback innerCallback2 = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
-													sysMonService.getContext(contextId, new ISysMonitor.DoneGetContext() {
-														@Override
-														public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
-															if (error == null) {
-																node.setSysMonitorContext(context);
-																innerCallback2.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
-															}
-															else {
-																innerCallback2.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
-															}
-														}
-													});
-
-													innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
-												}
-												else {
-													innerCallback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+											protected void internalDone(Object caller, IStatus status) {
+												Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+												if (status.getSeverity() == IStatus.OK) {
+													// Process the read process contexts
+													if (!contexts.isEmpty()) processContexts(contexts, oldChildren, model, parent);
+													callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+												} else {
+													callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), status.getMessage(), status.getException()));
 												}
 											}
-										});
-									}
+										}, new CallbackInvocationDelegate());
 
-									collector.initDone();
+										// Loop the returned context id's and query the context data
+										for (String id : context_ids) {
+											final String contextId = id;
+											final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+											sysMonService.getContext(contextId, new ISysMonitor.DoneGetContext() {
+												@Override
+												public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
+													// Ignore errors. Some of the context might be OS context we do not have
+													// permissions to read the properties from.
+													if (context != null) {
+														final IProcessContextNode node = createContextNodeFrom(context);
+														Assert.isNotNull(node);
+														node.setType(parent == null ? TYPE.Process : TYPE.Thread);
+														contexts.put(node.getUUID(), node);
+
+														// Query the corresponding process context
+														service.getContext(contextId, new IProcesses.DoneGetContext() {
+															@Override
+															public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
+																// Errors are ignored
+																node.setProcessContext(context);
+																if (context != null) node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
+
+																// Refresh the children of the node
+//																List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
+//																refreshContextChildren(oldChildren, model, node, innerCallback);
+																innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+															}
+														});
+													} else {
+														innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+													}
+												}
+											});
+										}
+
+										collector.initDone();
+									} else {
+										callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+									}
 								} else {
 									callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
 								}
@@ -383,19 +380,18 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	/**
 	 * Create a context node instance from the given process context.
 	 *
-	 * @param context The process context. Must not be <code>null</code>.
+	 * @param context The system monitor context. Must not be <code>null</code>.
 	 * @return The context node instance.
 	 */
-	public IProcessContextNode createContextNodeFrom(IProcesses.ProcessContext context) {
+	public IProcessContextNode createContextNodeFrom(SysMonitorContext context) {
 		Assert.isNotNull(context);
 
 		// Create a context node and associate the given context
 		IProcessContextNode node = getModel().getFactory().newInstance(IProcessContextNode.class);
-		node.setProcessContext(context);
+		node.setSysMonitorContext(context);
 
 		// Re-create the context properties from the context
 		node.setProperty(IProcessContextNodeProperties.PROPERTY_ID, context.getID());
-		node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
 
 		return node;
 	}

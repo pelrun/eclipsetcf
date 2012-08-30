@@ -65,4 +65,9 @@ public class Messages extends NLS {
 	public static String DetachStep_error_getContext;
 	public static String DetachStep_error_detach;
 	public static String DetachStep_error_openChannel;
+
+	public static String TerminateStep_error_title;
+	public static String TerminateStep_error_terminate;
+	public static String TerminateStep_error_getContext;
+	public static String TerminateStep_error_openChannel;
 }

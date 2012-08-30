@@ -13,38 +13,34 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
  * The property tester for a process tree node.
  */
 public class ProcessPropertyTester extends PropertyTester {
-	
-	/*
-	 * (non-Javadoc)
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String, java.lang.Object[], java.lang.Object)
 	 */
 	@Override
 	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
-		if(receiver instanceof ProcessTreeNode) {
-			final ProcessTreeNode node = (ProcessTreeNode) receiver;
-			if(property.equals("isSystemRoot")) { //$NON-NLS-1$
-				return "ProcRootNode".equals(node.type); //$NON-NLS-1$
-			}
-			else 	if ("isAttached".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
+		if (receiver instanceof IProcessContextNode) {
+			final IProcessContextNode node = (IProcessContextNode) receiver;
+			if ("isAttached".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
 				final AtomicBoolean isAttached = new AtomicBoolean();
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						if (node.pContext != null) {
-							isAttached.set(node.pContext.isAttached());
+						if (node.getProcessContext() != null) {
+							isAttached.set(node.getProcessContext().isAttached());
 						}
 					}
 				};
 				if (Protocol.isDispatchThread()) runnable.run();
 				else Protocol.invokeAndWait(runnable);
 
-				return ((Boolean)expectedValue).booleanValue() == isAttached.get();
+				return ((Boolean) expectedValue).booleanValue() == isAttached.get();
 			}
 		}
 		return false;

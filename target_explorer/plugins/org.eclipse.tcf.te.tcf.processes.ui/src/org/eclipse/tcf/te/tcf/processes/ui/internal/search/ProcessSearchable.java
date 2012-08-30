@@ -11,19 +11,19 @@ package org.eclipse.tcf.te.tcf.processes.ui.internal.search;
 
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
-import org.eclipse.tcf.te.tcf.processes.ui.internal.columns.ProcessLabelProvider;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.utils.CompositeSearchable;
 
 /**
- * The ISearchable adapter for a ProcessTreeNode which creates a UI for the user to 
+ * The ISearchable adapter for a ProcessTreeNode which creates a UI for the user to
  * input the matching condition and returns a matcher to do the matching.
  */
 public class ProcessSearchable extends CompositeSearchable {
 	// The label provider used to get a text for a process.
-	ILabelProvider labelProvider = new ProcessLabelProvider();
-	
+	ILabelProvider labelProvider = new LabelProviderDelegate();
+
 	/**
 	 * Constructor
 	 */
@@ -46,11 +46,7 @@ public class ProcessSearchable extends CompositeSearchable {
 	 */
 	@Override
     public String getSearchMessage(Object rootElement) {
-		if(rootElement == null) {
-			return Messages.ProcessSearchable_PromptFindInProcessList;
-		}
-		ProcessTreeNode rootNode = (ProcessTreeNode) rootElement;
-		if(rootNode.isSystemRoot()) {
+		if (rootElement == null || rootElement instanceof IRuntimeModel) {
 			return Messages.ProcessSearchable_PromptFindInProcessList;
 		}
 		String message = Messages.ProcessSearchable_PromptFindUnderProcess;
@@ -61,16 +57,12 @@ public class ProcessSearchable extends CompositeSearchable {
 
 	/**
 	 * Get a name representation for each process node.
-	 * 
+	 *
 	 * @param rootElement The root element whose name is being retrieved.
 	 * @return The node's name.
 	 */
 	private String getElementName(Object rootElement) {
-		if(rootElement == null) {
-			return Messages.ProcessSearchable_ProcessList;
-		}
-		ProcessTreeNode rootNode = (ProcessTreeNode) rootElement;
-		if(rootNode.isSystemRoot()) {
+		if(rootElement == null || rootElement instanceof IRuntimeModel) {
 			return Messages.ProcessSearchable_ProcessList;
 		}
 		return labelProvider.getText(rootElement);

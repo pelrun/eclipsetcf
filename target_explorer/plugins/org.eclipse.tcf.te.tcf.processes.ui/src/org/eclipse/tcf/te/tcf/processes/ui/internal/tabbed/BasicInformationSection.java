@@ -12,8 +12,10 @@ package org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.tabbed.BaseTitledSection;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -23,16 +25,20 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  * The property section to display the basic information of a process.
  */
 public class BasicInformationSection extends BaseTitledSection {
-	// The process tree node to be displayed.
-	protected ProcessTreeNode node;
+	// The system monitor context for the selected process node.
+	/* default */ ISysMonitor.SysMonitorContext context;
+	// The process name
+	/* default */ String nodeName;
+	// The node type
+	/* default */ String nodeType;
 	// The text field for the name of the process.
-	protected Text nameText;
+	private Text nameText;
 	// The text field for the type of the process.
-	protected Text typeText;
+	private Text typeText;
 	// The text field for the state of the process.
-	protected Text stateText;
-	// The text field for the ownere of the process.
-	protected Text userText;
+	private Text stateText;
+	// The text field for the owner of the process.
+	private Text userText;
 
 	/*
 	 * (non-Javadoc)
@@ -53,8 +59,20 @@ public class BasicInformationSection extends BaseTitledSection {
 	 */
 	@Override
     protected void updateInput(IPeerModelProvider input) {
-        Assert.isTrue(input instanceof ProcessTreeNode);
-        this.node = (ProcessTreeNode) input;
+        Assert.isTrue(input instanceof IProcessContextNode);
+        final IProcessContextNode node = (IProcessContextNode) input;
+
+        Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				context = node.getSysMonitorContext();
+				nodeName = node.getName();
+				nodeType = node.getType().toString();
+			}
+		};
+
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
     }
 
 	/*
@@ -63,10 +81,10 @@ public class BasicInformationSection extends BaseTitledSection {
 	 */
 	@Override
     public void refresh() {
-		SWTControlUtil.setText(nameText, node != null && node.name != null ? node.name : Messages.ProcessLabelProvider_RootNodeLabel);
-		SWTControlUtil.setText(typeText, node != null && node.type != null ? node.type : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(stateText, node != null && node.state != null ? node.state : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(userText, node != null && node.username != null ? node.username : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(nameText, nodeName != null ? nodeName: ""); //$NON-NLS-1$
+		SWTControlUtil.setText(typeText, nodeType != null ? nodeType : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(stateText, context != null && context.getState() != null ? context.getState() : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(userText, context != null && context.getUserName() != null ? context.getUserName() : ""); //$NON-NLS-1$
 		super.refresh();
     }
 

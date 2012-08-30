@@ -11,20 +11,37 @@ package org.eclipse.tcf.te.tcf.processes.ui.internal.columns;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicLong;
 
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
  * The comparator for the tree column "PPID".
  */
-public class PPIDComparator implements Comparator<ProcessTreeNode>, Serializable {
+public class PPIDComparator implements Comparator<IProcessContextNode>, Serializable {
     private static final long serialVersionUID = 1L;
-	/*
-	 * (non-Javadoc)
+
+	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public int compare(ProcessTreeNode o1, ProcessTreeNode o2) {
-		return o1.ppid == o2.ppid ? 0 : (o1.ppid < o2.ppid ? -1 : 1);
+	public int compare(final IProcessContextNode o1, final IProcessContextNode o2) {
+		final AtomicLong ppid1 = new AtomicLong();
+		final AtomicLong ppid2 = new AtomicLong();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				ppid1.set(o1.getSysMonitorContext().getPPID());
+				ppid2.set(o2.getSysMonitorContext().getPPID());
+			}
+		};
+
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
+
+		return ppid1.get() == ppid2.get() ? 0 : (ppid1.get() < ppid2.get() ? -1 : 1);
 	}
 }

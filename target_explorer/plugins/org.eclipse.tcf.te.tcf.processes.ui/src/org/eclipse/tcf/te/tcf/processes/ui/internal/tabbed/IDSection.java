@@ -12,8 +12,10 @@ package org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.tabbed.BaseTitledSection;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -23,19 +25,18 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  * The property section to display the IDs of a process.
  */
 public class IDSection extends BaseTitledSection {
-	// The process tree node selected.
-	protected ProcessTreeNode node;
+	// The system monitor context for the selected process node.
+	/* default */ ISysMonitor.SysMonitorContext context;
 	// The text field to display the process id.
-	protected Text pidText;
+	private Text pidText;
 	// The text field to display the parent process id.
-	protected Text ppidText;
+	private Text ppidText;
 	// The  text field to display the internal process id.
-	protected Text ipidText;
+	private Text ipidText;
 	// The text field to display the internal parent process id.
-	protected Text ippidText;
+	private Text ippidText;
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.tabbed.BaseTitledSection#createControls(org.eclipse.swt.widgets.Composite, org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage)
 	 */
 	@Override
@@ -53,25 +54,33 @@ public class IDSection extends BaseTitledSection {
 	 */
 	@Override
     protected void updateInput(IPeerModelProvider input) {
-        Assert.isTrue(input instanceof ProcessTreeNode);
-        this.node = (ProcessTreeNode) input;
+        Assert.isTrue(input instanceof IProcessContextNode);
+        final IProcessContextNode node = (IProcessContextNode) input;
+
+        Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				context = node.getSysMonitorContext();
+			}
+		};
+
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.ui.views.properties.tabbed.AbstractPropertySection#refresh()
 	 */
 	@Override
     public void refresh() {
-		SWTControlUtil.setText(pidText, node != null ? Long.toString(node.pid) : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(ppidText, node != null ? Long.toString(node.ppid) : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(ipidText, node != null && node.id != null ? node.id : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(ippidText, node != null && node.parentId != null ? node.parentId : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(pidText, context != null && context.getPID() >= 0 ? Long.toString(context.getPID()) : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(ppidText, context != null && context.getPPID() >= 0 ? Long.toString(context.getPPID()) : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(ipidText, context != null && context.getID() != null ? context.getID() : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(ippidText, context != null && context.getParentID() != null ? context.getParentID() : ""); //$NON-NLS-1$
 		super.refresh();
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.tabbed.BaseTitledSection#getText()
 	 */
 	@Override

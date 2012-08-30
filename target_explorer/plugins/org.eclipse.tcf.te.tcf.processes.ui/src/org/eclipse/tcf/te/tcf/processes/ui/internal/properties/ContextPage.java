@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.properties;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.swt.SWT;
@@ -18,8 +20,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.ui.dialogs.PropertyPage;
 
@@ -34,33 +38,43 @@ public class ContextPage extends PropertyPage {
     @Override
 	protected Control createContents(Composite parent) {
 		IAdaptable element = getElement();
-		Assert.isTrue(element instanceof ProcessTreeNode);
+		Assert.isTrue(element instanceof IProcessContextNode);
 
-		ProcessTreeNode node = (ProcessTreeNode) element;
+		final IProcessContextNode node = (IProcessContextNode) element;
 		Composite page = new Composite(parent, SWT.NONE);
 		GridLayout gridLayout = new GridLayout(2, false);
 		page.setLayout(gridLayout);
-		
-		SysMonitorContext context = node.context;
-		createField(Messages.ContextPage_File, context == null ? null : context.getFile(), page); 
-		createField(Messages.ContextPage_WorkHome, context == null ? null : context.getCurrentWorkingDirectory(), page); 
-		createField(Messages.ContextPage_Root, context == null ? null : context.getRoot(), page); 
-		createField(Messages.ContextPage_State, context == null ? null : context.getState(), page); 
-		createField(Messages.ContextPage_Group, context == null ? null : context.getGroupName(), page); 
+
+		final AtomicReference<ISysMonitor.SysMonitorContext> ctx = new AtomicReference<ISysMonitor.SysMonitorContext>();
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				ctx.set(node.getSysMonitorContext());
+			}
+		};
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
+
+		SysMonitorContext context = ctx.get();
+		createField(Messages.ContextPage_File, context == null ? null : context.getFile(), page);
+		createField(Messages.ContextPage_WorkHome, context == null ? null : context.getCurrentWorkingDirectory(), page);
+		createField(Messages.ContextPage_Root, context == null ? null : context.getRoot(), page);
+		createField(Messages.ContextPage_State, context == null ? null : context.getState(), page);
+		createField(Messages.ContextPage_Group, context == null ? null : context.getGroupName(), page);
 		createSeparator(page);
-		createField(Messages.ContextPage_ID, context == null ? null : context.getID(), page); 
-		createField(Messages.ContextPage_ParentID, context == null ? null : context.getParentID(), page); 
-		createField(Messages.ContextPage_GroupID, context == null ? null : Long.valueOf(context.getPGRP()), page); 
-		createField(Messages.ContextPage_PID, context == null ? null : Long.valueOf(context.getPID()), page); 
-		createField(Messages.ContextPage_PPID, context == null ? null : Long.valueOf(context.getPPID()), page); 
-		createField(Messages.ContextPage_TTYGRPID, context == null ? null : Long.valueOf(context.getTGID()), page); 
-		createField(Messages.ContextPage_TracerPID, context == null ? null : Long.valueOf(context.getTracerPID()), page); 
-		createField(Messages.ContextPage_UserID, context == null ? null : Long.valueOf(context.getUID()), page); 
-		createField(Messages.ContextPage_UserGRPID, context == null ? null : Long.valueOf(context.getUGID()), page); 
+		createField(Messages.ContextPage_ID, context == null ? null : context.getID(), page);
+		createField(Messages.ContextPage_ParentID, context == null ? null : context.getParentID(), page);
+		createField(Messages.ContextPage_GroupID, context == null || context.getPGRP() < 0 ? null : Long.valueOf(context.getPGRP()), page);
+		createField(Messages.ContextPage_PID, context == null || context.getPID() < 0 ? null : Long.valueOf(context.getPID()), page);
+		createField(Messages.ContextPage_PPID, context == null || context.getPPID() < 0 ? null : Long.valueOf(context.getPPID()), page);
+		createField(Messages.ContextPage_TTYGRPID, context == null || context.getTGID() < 0 ? null : Long.valueOf(context.getTGID()), page);
+		createField(Messages.ContextPage_TracerPID, context == null || context.getTracerPID() < 0 ? null : Long.valueOf(context.getTracerPID()), page);
+		createField(Messages.ContextPage_UserID, context == null || context.getUID() < 0 ? null : Long.valueOf(context.getUID()), page);
+		createField(Messages.ContextPage_UserGRPID, context == null || context.getUGID() < 0 ? null : Long.valueOf(context.getUGID()), page);
 		createSeparator(page);
-		createField(Messages.ContextPage_Virtual, context == null ? null : Long.valueOf(context.getVSize()), page); 
-		createField(Messages.ContextPage_Pages, context == null ? null : Long.valueOf(context.getPSize()), page); 
-		createField(Messages.ContextPage_Resident, context == null ? null : Long.valueOf(context.getRSS()), page); 
+		createField(Messages.ContextPage_Virtual, context == null || context.getVSize() < 0 ? null : Long.valueOf(context.getVSize()), page);
+		createField(Messages.ContextPage_Pages, context == null || context.getPSize() < 0 ? null : Long.valueOf(context.getPSize()), page);
+		createField(Messages.ContextPage_Resident, context == null || context.getRSS() < 0 ? null : Long.valueOf(context.getRSS()), page);
 
 		return page;
 	}
@@ -98,9 +112,9 @@ public class ContextPage extends PropertyPage {
 		data.verticalAlignment = SWT.TOP;
 		data.widthHint = 300;
 		data.grabExcessHorizontalSpace = true;
-		data.horizontalAlignment = GridData.FILL;		
+		data.horizontalAlignment = GridData.FILL;
 		txt.setLayoutData(data);
 		txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		txt.setText(value == null ? "" : value.toString()); //$NON-NLS-1$
-	}	
+	}
 }

@@ -18,11 +18,10 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
-import org.eclipse.tcf.services.ISysMonitor;
-import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
@@ -31,9 +30,12 @@ import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IContextHelpIds;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.nls.Messages;
 
 /**
@@ -49,18 +51,19 @@ public class AttachStep {
 	 * @param node The context. Must not be <code>null</code>.
 	 * @param callback The callback to invoke once the operation completed, or<code>null</code>.
 	 */
-	public void executeAttach(final ProcessTreeNode node, final ICallback callback) {
+	public void executeAttach(final IProcessContextNode node, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 
 		// If the context is already attached, there is nothing to do
-		if (node.pContext != null && !node.pContext.isAttached()) {
-			if (node.peerNode != null) {
+		if (node.getProcessContext() != null && !node.getProcessContext().isAttached()) {
+			IPeerModel peerNode = (IPeerModel)node.getAdapter(IPeerModel.class);
+			if (peerNode != null) {
 				// Determine the debug service to attach to the peer node
-				IDebugService dbgService = ServiceManager.getInstance().getService(node.peerNode, IDebugService.class, false);
+				IDebugService dbgService = ServiceManager.getInstance().getService(peerNode, IDebugService.class, false);
 				if (dbgService != null) {
 					// Attach to the peer node first
-					dbgService.attach(node.peerNode, new PropertiesContainer(), new Callback() {
+					dbgService.attach(peerNode, new PropertiesContainer(), new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							callback.setProperty("launch", getProperty("launch")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -81,7 +84,7 @@ public class AttachStep {
 				onError(node, Messages.AttachStep_error_connect, null, callback);
 			}
 		} else {
-			if (node.pContext == null) {
+			if (node.getProcessContext() == null) {
 				onError(node, Messages.AttachStep_error_connect, null, callback);
 			} else {
 				onDone(callback);
@@ -94,22 +97,24 @@ public class AttachStep {
 	 * <p>
 	 * <b>Note:</b> This method must be called from within the TCF dispatch thread.
 	 *
-	 * @param model The runtime model instance. Must not be <code>null</code>.
 	 * @param node The context node. Must not be <code>null</code>.
 	 * @param callback The callback to invoke once the operation completed, or<code>null</code>.
 	 */
-	protected void doAttach(final ProcessTreeNode node, final ICallback callback) {
+	protected void doAttach(final IProcessContextNode node, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 
+		// Determine the peer model node
+		final IPeerModel peerNode = (IPeerModel)node.getAdapter(IPeerModel.class);
+
 		// Open a channel
-		Tcf.getChannelManager().openChannel(node.peerNode.getPeer(), null, new IChannelManager.DoneOpenChannel() {
+		Tcf.getChannelManager().openChannel(peerNode.getPeer(), null, new IChannelManager.DoneOpenChannel() {
 			@Override
 			public void doneOpenChannel(final Throwable error, final IChannel channel) {
 				if (error == null) {
 					final IProcesses service = channel.getRemoteService(IProcesses.class);
 					if (service != null) {
-						service.getContext(node.pContext.getID(), new IProcesses.DoneGetContext() {
+						service.getContext(node.getStringProperty(IModelNode.PROPERTY_ID), new IProcesses.DoneGetContext() {
 							@Override
 							public void doneGetContext(IToken token, Exception error, ProcessContext context) {
 								if (error == null && context != null) {
@@ -118,25 +123,14 @@ public class AttachStep {
 										public void doneCommand(IToken token, Exception error) {
 											if (error == null) {
 												// We are attached now, trigger a refresh of the node
-												ISysMonitor monService = channel.getRemoteService(ISysMonitor.class);
-												if (monService != null) {
-													monService.getContext(node.id, new ISysMonitor.DoneGetContext() {
-														@Override
-														public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
-															node.updateSysMonitorContext(context);
-
-															service.getContext(node.pContext.getID(), new IProcesses.DoneGetContext() {
-																@Override
-																public void doneGetContext(IToken token, Exception error, ProcessContext context) {
-																	node.setProcessContext(context);
-																	onDone(callback);
-																}
-															});
-														}
-													});
-												} else {
-													onDone(callback);
-												}
+												IModel model = node.getParent(IModel.class);
+												Assert.isNotNull(model);
+												model.getService(IModelRefreshService.class).refresh(node, new Callback() {
+													@Override
+                                                    protected void internalDone(Object caller, IStatus status) {
+														onDone(callback);
+													}
+												});
 											} else {
 												onError(node, Messages.AttachStep_error_attach, error, callback);
 											}

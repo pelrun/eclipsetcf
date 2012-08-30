@@ -12,10 +12,13 @@ package org.eclipse.tcf.te.tcf.processes.core.model.nodes;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
+import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.contexts.AsyncRefreshableCtxAdapter;
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx;
@@ -30,11 +33,14 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNod
 /**
  * A process context node implementation.
  */
-public class ProcessContextNode extends ContainerModelNode implements IProcessContextNode {
+public class ProcessContextNode extends ContainerModelNode implements IProcessContextNode, IPeerModelProvider, IFilterable {
 	// Reference to the agent side process context object
 	private IProcesses.ProcessContext pContext = null;
 	// Reference to the agent side system monitor context object
 	private ISysMonitor.SysMonitorContext sContext = null;
+
+	// The node type
+	private TYPE type = TYPE.Process;
 
 	// Context nodes needs asynchronous refreshes
 	private final IAsyncRefreshableCtx refreshableCtxAdapter = new AsyncRefreshableCtxAdapter();
@@ -65,8 +71,28 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 	public String getName() {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
 		// If the node is associated with an agent side context, take the name
-		// from the agent side context
+		// from the agent side context first
 		String name = pContext != null ? pContext.getName() : null;
+
+		// If the name is empty or the same as the context ID -> reset
+		if (name != null && ("".equals(name.trim()) || name.equals(pContext.getID()))) { //$NON-NLS-1$
+			name = null;
+		}
+
+		// Take the last part of the image name if available
+		String file = sContext != null ? sContext.getFile() : null;
+		if (file != null && !"".equals(file)) { //$NON-NLS-1$
+			IPath path = new Path(file);
+			// If it is a typical Windows path with a drive letter, take only the
+			// last segment. In all other cases, take "file" as it is
+			if (path.getDevice() != null && path.getDevice().endsWith(":") && path.getDevice().length() == 2) { //$NON-NLS-1$
+				name = path.lastSegment();
+			} else {
+				name = file;
+			}
+		}
+
+		// Fallback to the context ID
 		if (name == null || "".equals(name.trim())) name = pContext != null ? pContext.getID() : null; //$NON-NLS-1$
 
 		// Fallback to the local node properties
@@ -77,11 +103,20 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode#setType(org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode.TYPE)
+	 */
+	@Override
+	public void setType(TYPE type) {
+		Assert.isNotNull(type);
+		this.type = type;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode#getType()
 	 */
     @Override
     public TYPE getType() {
-	    return null;
+	    return type;
     }
 
 	/* (non-Javadoc)
@@ -118,6 +153,14 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
     public SysMonitorContext getSysMonitorContext() {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
 	    return sContext;
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider#getPeerModel()
+     */
+    @Override
+    public IPeerModel getPeerModel() {
+        return (IPeerModel)getAdapter(IPeerModel.class);
     }
 
 	/* (non-Javadoc)
@@ -208,7 +251,9 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 			public void run() {
 				StringBuilder buffer = new StringBuilder(toString.get());
 				buffer.deleteCharAt(buffer.length() - 1);
-				buffer.append(", context properties="); //$NON-NLS-1$
+				buffer.append(", system monitor properties="); //$NON-NLS-1$
+				buffer.append(getSysMonitorContext() != null ? getSysMonitorContext().toString() : "{}"); //$NON-NLS-1$
+				buffer.append(", process properties="); //$NON-NLS-1$
 				buffer.append(getProcessContext() != null ? getProcessContext().toString() : "{}"); //$NON-NLS-1$
 				buffer.append("}"); //$NON-NLS-1$
 				toString.set(buffer.toString());

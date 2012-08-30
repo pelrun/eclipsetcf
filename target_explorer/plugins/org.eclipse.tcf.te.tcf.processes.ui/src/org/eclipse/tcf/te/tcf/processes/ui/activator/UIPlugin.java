@@ -14,6 +14,7 @@ import java.net.URL;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.tcf.te.runtime.model.MessageModelNode;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -82,6 +83,9 @@ public class UIPlugin extends AbstractUIPlugin {
 		registry.put(ImageConsts.OBJ_Process_Root, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "process_polling.png"); //$NON-NLS-1$
 		registry.put(ImageConsts.PM_POLLING, ImageDescriptor.createFromURL(url));
+
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "pending.gif"); //$NON-NLS-1$
+		registry.put(MessageModelNode.OBJECT_MESSAGE_PENDING_ID, ImageDescriptor.createFromURL(url));
 	}
 
 	/**

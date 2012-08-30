@@ -9,40 +9,56 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.filters;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.tcf.te.tcf.processes.core.model.ProcessTreeNode;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
- * The filter to filter out the single thread of a process which has the same name
- * and id with its parent process.
+ * The filter to filter out the single thread of a process which has the same name and id with its
+ * parent process.
  */
 public class SingleThreadFilter extends ViewerFilter {
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public boolean select(Viewer viewer, Object parentElement, Object element) {
-		if(parentElement instanceof TreePath) {
-			parentElement = ((TreePath)parentElement).getLastSegment();
+	public boolean select(final Viewer viewer, Object parentElement, Object element) {
+		if (parentElement instanceof TreePath) {
+			parentElement = ((TreePath) parentElement).getLastSegment();
 		}
-		if(parentElement instanceof ProcessTreeNode && element instanceof ProcessTreeNode) {
-			ProcessTreeNode parent = (ProcessTreeNode) parentElement;
-			ProcessTreeNode child = (ProcessTreeNode) element;
-			if(parent.getChildren().size() == 1) {
-				if(parent.pid == child.pid) {
-					if (parent.name != null) {
-						return !parent.name.equals(child.name);
+		if (parentElement instanceof IProcessContextNode && element instanceof IProcessContextNode) {
+			final AtomicBoolean selected = new AtomicBoolean();
+			final Object pe = parentElement;
+			final Object e = element;
+
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					IProcessContextNode parent = (IProcessContextNode)pe;
+					IProcessContextNode child = (IProcessContextNode)e;
+					if (parent.getChildren().length == 1) {
+						if (parent.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
+							if (parent.getName() != null) {
+								selected.set(!parent.getName().equals(child.getName()));
+							}
+							else if (child.getName() != null) {
+								selected.set(!child.getName().equals(parent.getName()));
+							}
+						}
 					}
-					else if (child.name != null) {
-						return !child.name.equals(parent.name);
-					}
-					return false;
 				}
-			}
+			};
+
+			Assert.isTrue(!Protocol.isDispatchThread());
+			Protocol.invokeAndWait(runnable);
+
+			return selected.get();
 		}
 		return true;
 	}

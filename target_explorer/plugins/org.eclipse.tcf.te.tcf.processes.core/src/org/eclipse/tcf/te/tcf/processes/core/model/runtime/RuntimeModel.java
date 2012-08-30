@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.contexts.AsyncRefreshableCtxAdapter;
@@ -39,7 +40,7 @@ import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModel
 /**
  * Model implementation dealing with Processes at runtime.
  */
-public final class RuntimeModel extends ContainerModelNode implements IRuntimeModel {
+public final class RuntimeModel extends ContainerModelNode implements IRuntimeModel, IFilterable {
 	// Flag to mark the model disposed
 	private boolean disposed;
 
