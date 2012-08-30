@@ -16,6 +16,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.core.async.AsyncCallbackHandler;
@@ -78,7 +79,12 @@ public class ProcessModelTestCase extends TcfTestCase {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				final AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
+				final AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
+					@Override
+					protected void internalDone(Object caller, IStatus status) {
+						callback.done(caller, status != null ? status : Status.OK_STATUS);
+					}
+				}, new CallbackInvocationDelegate());
 
 				// Refresh the whole model from the top
 				final ICallback c1 = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
