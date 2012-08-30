@@ -75,6 +75,7 @@ public class ProcessModelTestCase extends TcfTestCase {
 				handler.removeCallback(this);
 			}
 		};
+		handler.addCallback(callback);
 
 		Runnable runnable = new Runnable() {
 			@Override
