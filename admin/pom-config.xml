@@ -35,7 +35,7 @@
 		<gmaven-version>1.4</gmaven-version>
 		<exec-maven-version>1.2.1</exec-maven-version>
 		<findbugs-version>2.5.2</findbugs-version>
-		<jacoco-version>0.5.8.201207111220</jacoco-version>
+		<jacoco-version>0.5.7</jacoco-version>
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
