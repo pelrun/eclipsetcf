@@ -389,8 +389,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 
 		// If the peer node is for local host, we ignore all peers not being
 		// associated with the loopback address.
-		if (IPAddressUtil.getInstance().isLocalHost(peerIP)
-				&& !IPAddressUtil.getInstance().isSameHost(loopback, peerIP)) {
+		if (IPAddressUtil.getInstance().isLocalHost(peerIP) && !loopback.equals(peerIP)) {
 			// Not loopback address -> drop the peer
 			result = null;
 
