@@ -92,6 +92,7 @@
                   class="org.eclipse.tcf.te.ui.trees.TreeViewerSorter">
             </commonSorter>
       </navigatorContent>
+
       <commonFilter
             activeByDefault="true"
             class="org.eclipse.tcf.te.tcf.processes.ui.internal.filters.SingleThreadFilter"
@@ -99,6 +100,7 @@
             name="%commonFilter.singlethread.name"
             visibleInUI="false">
       </commonFilter>
+
    </extension>
 
 <!-- Editor page contributions -->
@@ -548,8 +550,8 @@
                width="100">
          </column>
       </columnContribution>
-      <filterContribution
-            viewerId="org.eclipse.tcf.te.ui.controls.viewer.processes">
+      
+      <filterContribution viewerId="org.eclipse.tcf.te.ui.controls.viewer.processes">
          <filter
                class="org.eclipse.tcf.te.tcf.processes.ui.internal.filters.SingleThreadFilter"
                description="%singlethreadfilter.description"

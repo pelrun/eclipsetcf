@@ -51,6 +51,8 @@ public class SingleThreadFilter extends ViewerFilter {
 								selected.set(!child.getName().equals(parent.getName()));
 							}
 						}
+					} else {
+						selected.set(true);
 					}
 				}
 			};
