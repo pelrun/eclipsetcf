@@ -27,7 +27,6 @@ import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
-import org.eclipse.tcf.te.tests.tcf.processes.launcher.ProcessLauncherTestCase;
 
 /**
  * Process model test cases.
@@ -44,7 +43,7 @@ public class ProcessModelTestCase extends TcfTestCase {
 		TestSuite testSuite = new TestSuite("Test TCF process monitor model"); //$NON-NLS-1$
 
 			// add ourself to the test suite
-			testSuite.addTestSuite(ProcessLauncherTestCase.class);
+			testSuite.addTestSuite(ProcessModelTestCase.class);
 
 		return testSuite;
 	}
