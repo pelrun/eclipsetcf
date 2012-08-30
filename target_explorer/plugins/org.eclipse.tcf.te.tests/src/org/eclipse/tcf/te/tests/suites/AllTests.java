@@ -19,6 +19,7 @@ import org.eclipse.tcf.te.tests.statushandler.StatusHandlerTestCase;
 import org.eclipse.tcf.te.tests.stepper.StepperTests;
 import org.eclipse.tcf.te.tests.tcf.launch.TcfLaunchTests;
 import org.eclipse.tcf.te.tests.tcf.processes.launcher.ProcessLauncherTestCase;
+import org.eclipse.tcf.te.tests.tcf.processes.model.ProcessModelTestCase;
 import org.eclipse.tcf.te.tests.tcf.tests.TcfCoreTests;
 import org.eclipse.tcf.te.tests.utils.UtilityTestCase;
 
@@ -69,6 +70,7 @@ public class AllTests {
 		suite.addTest(ModelTestCase.getTestSuite());
 		suite.addTest(UtilityTestCase.getTestSuite());
 		suite.addTest(org.eclipse.tcf.te.tests.tcf.model.ModelTestCase.getTestSuite());
+		suite.addTest(ProcessModelTestCase.getTestSuite());
 		suite.addTest(ProcessLauncherTestCase.getTestSuite());
 
 		AllFileSystemTests.addTests(suite);
