@@ -15,7 +15,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreeViewerListener;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
@@ -32,6 +36,7 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationN
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.nodes.PendingOperationNode;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 
 
 /**
@@ -39,6 +44,9 @@ import org.eclipse.tcf.te.tcf.processes.core.model.nodes.PendingOperationNode;
  */
 public class ContentProviderDelegate implements ITreeContentProvider {
 	private final static Object[] NO_ELEMENTS = new Object[0];
+
+	// Reference to the tree listener
+	/* default */ ITreeViewerListener listener = null;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
@@ -287,6 +295,22 @@ public class ContentProviderDelegate implements ITreeContentProvider {
 	 */
 	@Override
     public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		// Initialize the tree listener if necessary
+		if (listener == null && viewer instanceof TreeViewer) {
+			final TreeViewer treeViewer = (TreeViewer) viewer;
+
+			listener = new TreeViewerListener();
+			treeViewer.addTreeListener(listener);
+			treeViewer.getTree().addDisposeListener(new DisposeListener() {
+				@Override
+				public void widgetDisposed(DisposeEvent e) {
+					if (listener != null) {
+						treeViewer.removeTreeListener(listener);
+						listener = null;
+					}
+				}
+			});
+		}
 	}
 
 	/**

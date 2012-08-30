@@ -11,10 +11,15 @@ package org.eclipse.tcf.te.tcf.processes.ui.editor;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.ITreeViewerListener;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
 import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
@@ -27,6 +32,8 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	private ILabelDecorator decorator = new ProcessMonitorTitleDecorator();
 	// The event listener instance
 	private ProcessMonitorEventListener listener = null;
+	// Reference to the tree listener
+	/* default */ ITreeViewerListener treeListener = null;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#dispose()
@@ -84,6 +91,22 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	    	listener = new ProcessMonitorEventListener(treeControl);
 	    	EventManager.getInstance().addEventListener(listener, ChangeEvent.class);
 	    }
+
+		if (listener == null && treeControl.getViewer() instanceof TreeViewer) {
+			final TreeViewer treeViewer = (TreeViewer) treeControl.getViewer();
+
+			treeListener = new TreeViewerListener();
+			treeViewer.addTreeListener(treeListener);
+			treeViewer.getTree().addDisposeListener(new DisposeListener() {
+				@Override
+				public void widgetDisposed(DisposeEvent e) {
+					if (treeListener != null) {
+						treeViewer.removeTreeListener(treeListener);
+						treeListener = null;
+					}
+				}
+			});
+		}
 
 	    return treeControl;
 	}

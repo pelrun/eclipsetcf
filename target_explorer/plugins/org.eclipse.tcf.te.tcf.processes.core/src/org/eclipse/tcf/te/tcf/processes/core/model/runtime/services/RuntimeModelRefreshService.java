@@ -304,7 +304,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 					if (error == null) {
 						// Determine the parent context id
 						String parentContextId = null;
-						if (parent != null && parent.getProcessContext() != null) parentContextId = parent.getStringProperty(IModelNode.PROPERTY_ID);
+						if (parent != null) parentContextId = parent.getStringProperty(IModelNode.PROPERTY_ID);
 
 						// Get the Systems service and query the configuration id's
 						final IProcesses service = channel.getRemoteService(IProcesses.class);

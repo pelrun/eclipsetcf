@@ -11,8 +11,11 @@ package org.eclipse.tcf.te.tcf.processes.core.model.runtime.services;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 
 /**
@@ -60,6 +63,19 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 
 		for (String key : src.getProperties().keySet()) {
 			dstNodeChanged |= dst.setProperty(key, src.getProperty(key));
+		}
+
+		IAsyncRefreshableCtx dstRefreshable = (IAsyncRefreshableCtx)dst.getAdapter(IAsyncRefreshableCtx.class);
+		IAsyncRefreshableCtx srcRefreshable = (IAsyncRefreshableCtx)src.getAdapter(IAsyncRefreshableCtx.class);
+		if (dstRefreshable != null && srcRefreshable != null) {
+			dstRefreshable.setPendingOperationNode(srcRefreshable.getPendingOperationNode());
+			dstRefreshable.setQueryState(QueryType.CONTEXT, srcRefreshable.getQueryState(QueryType.CONTEXT));
+			dstRefreshable.setQueryState(QueryType.CHILD_LIST, srcRefreshable.getQueryState(QueryType.CHILD_LIST));
+		}
+
+		if (dst instanceof IProcessContextNode && src instanceof IProcessContextNode) {
+			((IProcessContextNode)dst).setSysMonitorContext(((IProcessContextNode)src).getSysMonitorContext());
+			((IProcessContextNode)dst).setProcessContext(((IProcessContextNode)src).getProcessContext());
 		}
 
 		// Re-enable the change events
