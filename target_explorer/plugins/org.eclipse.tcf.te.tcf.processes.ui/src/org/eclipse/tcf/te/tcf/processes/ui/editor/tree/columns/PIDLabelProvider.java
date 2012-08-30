@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.columns;
+package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 
 import java.util.concurrent.atomic.AtomicLong;
 

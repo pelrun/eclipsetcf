@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.filters;
+package org.eclipse.tcf.te.tcf.processes.ui.filters;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

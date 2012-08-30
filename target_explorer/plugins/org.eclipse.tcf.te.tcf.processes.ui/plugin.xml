@@ -37,7 +37,7 @@
 <!-- Eclipse core expressions property tester -->
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
-            class="org.eclipse.tcf.te.tcf.processes.ui.internal.testers.ProcessPropertyTester"
+            class="org.eclipse.tcf.te.tcf.processes.ui.internal.PropertyTester"
             id="org.eclipse.tcf.te.tcf.processes.ui.propertytester.process"
             namespace="org.eclipse.tcf.te.tcf.processes.ui.model"
             properties="isAttached"
@@ -95,7 +95,7 @@
 
       <commonFilter
             activeByDefault="true"
-            class="org.eclipse.tcf.te.tcf.processes.ui.internal.filters.SingleThreadFilter"
+            class="org.eclipse.tcf.te.tcf.processes.ui.filters.SingleThreadFilter"
             id="org.eclipse.tcf.te.tcf.processes.ui.navigator.filter.singleThread"
             name="%commonFilter.singlethread.name"
             visibleInUI="false">
@@ -496,7 +496,7 @@
       </viewer>
       <columnContribution viewerId="org.eclipse.tcf.te.ui.controls.viewer.processes">
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.ProcessComparator"
+               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.ProcessComparator"
                id="name"
                labelProvider="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate"
                moveable="true"
@@ -506,9 +506,9 @@
                width="250">
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.PIDComparator"
+               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PIDComparator"
                id="pid"
-               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.PIDLabelProvider"
+               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PIDLabelProvider"
                moveable="true"
                name="%column.name.pid"
                resizable="true"
@@ -517,9 +517,9 @@
                width="50">
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.PPIDComparator"
+               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PPIDComparator"
                id="ppid"
-               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.PPIDLabelProvider"
+               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PPIDLabelProvider"
                moveable="true"
                name="%column.name.ppid"
                resizable="true"
@@ -528,9 +528,9 @@
                width="50">
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.StateComparator"
+               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.StateComparator"
                id="state"
-               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.StateLabelProvider"
+               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.StateLabelProvider"
                moveable="true"
                name="%column.name.state"
                resizable="true"
@@ -539,9 +539,9 @@
                width="50">
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.UserComparator"
+               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.UserComparator"
                id="user"
-               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.internal.columns.UserLabelProvider"
+               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.UserLabelProvider"
                moveable="true"
                name="%column.name.user"
                resizable="true"
@@ -553,7 +553,7 @@
       
       <filterContribution viewerId="org.eclipse.tcf.te.ui.controls.viewer.processes">
          <filter
-               class="org.eclipse.tcf.te.tcf.processes.ui.internal.filters.SingleThreadFilter"
+               class="org.eclipse.tcf.te.tcf.processes.ui.filters.SingleThreadFilter"
                description="%singlethreadfilter.description"
                enabled="true"
                id="org.eclipse.tcf.te.tcf.processes.ui.navigator.filter.singleThread"

@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.columns;
+package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,9 +19,9 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNod
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 
 /**
- * The label provider for the tree column "state".
+ * The label provider for the tree column "user".
  */
-public class StateLabelProvider extends LabelProvider {
+public class UserLabelProvider extends LabelProvider {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
@@ -35,19 +35,19 @@ public class StateLabelProvider extends LabelProvider {
 		if (element instanceof IProcessContextNode) {
 			final IProcessContextNode node = (IProcessContextNode)element;
 
-			final AtomicReference<String> state = new AtomicReference<String>();
+			final AtomicReference<String> username = new AtomicReference<String>();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					state.set(node.getSysMonitorContext().getState());
+					username.set(node.getSysMonitorContext().getUserName());
 				}
 			};
 
 			Assert.isTrue(!Protocol.isDispatchThread());
 			Protocol.invokeAndWait(runnable);
 
-			if (state.get() != null) return state.get();
+			if (username.get() != null) return username.get();
 		}
 
 		return ""; //$NON-NLS-1$

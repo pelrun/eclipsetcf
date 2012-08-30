@@ -13,7 +13,7 @@ package org.eclipse.tcf.te.tcf.processes.ui.editor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.tcf.te.tcf.processes.ui.interfaces.ImageConsts;
+import org.eclipse.tcf.te.tcf.processes.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 
 /**

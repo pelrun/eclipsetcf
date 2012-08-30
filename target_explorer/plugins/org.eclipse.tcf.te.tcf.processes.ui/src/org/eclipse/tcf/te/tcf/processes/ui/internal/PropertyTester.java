@@ -7,18 +7,17 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.testers;
+package org.eclipse.tcf.te.tcf.processes.ui.internal;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
  * The property tester for a process tree node.
  */
-public class ProcessPropertyTester extends PropertyTester {
+public class PropertyTester extends org.eclipse.core.expressions.PropertyTester {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String, java.lang.Object[], java.lang.Object)

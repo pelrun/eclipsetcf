@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.interfaces;
+package org.eclipse.tcf.te.tcf.processes.ui.internal;
 
 /**
  * Image registry constants.

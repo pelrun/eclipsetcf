@@ -7,20 +7,20 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.columns;
+package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 
 import java.io.Serializable;
 import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
- * The comparator for the tree column "state".
+ * The comparator for the tree column "PPID".
  */
-public class StateComparator implements Comparator<IProcessContextNode> , Serializable {
+public class PPIDComparator implements Comparator<IProcessContextNode>, Serializable {
     private static final long serialVersionUID = 1L;
 
 	/* (non-Javadoc)
@@ -28,25 +28,20 @@ public class StateComparator implements Comparator<IProcessContextNode> , Serial
 	 */
 	@Override
 	public int compare(final IProcessContextNode o1, final IProcessContextNode o2) {
-		final AtomicReference<String> state1 = new AtomicReference<String>();
-		final AtomicReference<String> state2 = new AtomicReference<String>();
+		final AtomicLong ppid1 = new AtomicLong();
+		final AtomicLong ppid2 = new AtomicLong();
 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				state1.set(o1.getSysMonitorContext().getState());
-				state2.set(o2.getSysMonitorContext().getState());
+				ppid1.set(o1.getSysMonitorContext().getPPID());
+				ppid2.set(o2.getSysMonitorContext().getPPID());
 			}
 		};
 
 		Assert.isTrue(!Protocol.isDispatchThread());
 		Protocol.invokeAndWait(runnable);
 
-		if (state1.get() == null) {
-			if (state2.get() == null) return 0;
-			return -1;
-		}
-		if (state2.get() == null) return 1;
-		return state1.get().compareTo(state2.get());
+		return ppid1.get() == ppid2.get() ? 0 : (ppid1.get() < ppid2.get() ? -1 : 1);
 	}
 }

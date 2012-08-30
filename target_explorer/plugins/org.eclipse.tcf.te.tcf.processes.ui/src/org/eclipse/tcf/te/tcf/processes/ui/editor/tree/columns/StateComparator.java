@@ -7,20 +7,20 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.columns;
+package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 
 import java.io.Serializable;
 import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
- * The comparator for the tree column "PID".
+ * The comparator for the tree column "state".
  */
-public class PIDComparator implements Comparator<IProcessContextNode>, Serializable {
+public class StateComparator implements Comparator<IProcessContextNode> , Serializable {
     private static final long serialVersionUID = 1L;
 
 	/* (non-Javadoc)
@@ -28,20 +28,25 @@ public class PIDComparator implements Comparator<IProcessContextNode>, Serializa
 	 */
 	@Override
 	public int compare(final IProcessContextNode o1, final IProcessContextNode o2) {
-		final AtomicLong pid1 = new AtomicLong();
-		final AtomicLong pid2 = new AtomicLong();
+		final AtomicReference<String> state1 = new AtomicReference<String>();
+		final AtomicReference<String> state2 = new AtomicReference<String>();
 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				pid1.set(o1.getSysMonitorContext().getPID());
-				pid2.set(o2.getSysMonitorContext().getPID());
+				state1.set(o1.getSysMonitorContext().getState());
+				state2.set(o2.getSysMonitorContext().getState());
 			}
 		};
 
 		Assert.isTrue(!Protocol.isDispatchThread());
 		Protocol.invokeAndWait(runnable);
 
-		return pid1.get() == pid2.get() ? 0 : (pid1.get() < pid2.get() ? -1 : 1);
+		if (state1.get() == null) {
+			if (state2.get() == null) return 0;
+			return -1;
+		}
+		if (state2.get() == null) return 1;
+		return state1.get().compareTo(state2.get());
 	}
 }

@@ -7,9 +7,9 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.columns;
+package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -19,9 +19,9 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNod
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 
 /**
- * The label provider for the tree column "user".
+ * The label provider for the tree column "PPID".
  */
-public class UserLabelProvider extends LabelProvider {
+public class PPIDLabelProvider extends LabelProvider {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
@@ -35,21 +35,21 @@ public class UserLabelProvider extends LabelProvider {
 		if (element instanceof IProcessContextNode) {
 			final IProcessContextNode node = (IProcessContextNode)element;
 
-			final AtomicReference<String> username = new AtomicReference<String>();
+			final AtomicLong ppid = new AtomicLong();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					username.set(node.getSysMonitorContext().getUserName());
+					ppid.set(node.getSysMonitorContext().getPPID());
 				}
 			};
 
 			Assert.isTrue(!Protocol.isDispatchThread());
 			Protocol.invokeAndWait(runnable);
 
-			if (username.get() != null) return username.get();
+			return ppid.get() >= 0 ? Long.toString(ppid.get()) : ""; //$NON-NLS-1$
 		}
 
-		return ""; //$NON-NLS-1$
+		return super.getText(element);
 	}
 }
