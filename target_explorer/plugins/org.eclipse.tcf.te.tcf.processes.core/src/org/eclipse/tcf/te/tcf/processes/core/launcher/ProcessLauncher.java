@@ -526,12 +526,16 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 						props.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 					}
 
+					// Get the process output listener list from the properties
+					Object value = properties.getProperty(PROP_PROCESS_OUTPUT_LISTENER);
+					StreamsDataReceiver.Listener[] listeners = value instanceof StreamsDataReceiver.Listener[] ? (StreamsDataReceiver.Listener[]) value : null;
+
 					// Create and store the streams which will be connected to the terminals stdin
 					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDIN, connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
 					// Create and store the streams the terminal will see as stdout
-					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }));
+					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, listeners));
 					// Create and store the streams the terminal will see as stderr
-					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }));
+					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
 
 					// Copy the terminal properties
 					props.setProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO));
@@ -552,9 +556,9 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				// Create and connect the streams which will be connected to the terminals stdin
 				streamsProxy.connectInputStreamMonitor(connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
 				// Create and store the streams the terminal will see as stdout
-				streamsProxy.connectOutputStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }));
+				streamsProxy.connectOutputStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, null));
 				// Create and store the streams the terminal will see as stderr
-				streamsProxy.connectErrorStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }));
+				streamsProxy.connectErrorStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
 			}
 		}
 
@@ -662,10 +666,11 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 *
 	 * @param streamsListener The streams listener. Must not be <code>null</code>.
 	 * @param streamIds The stream id's. Must not be <code>null</code>.
+	 * @param listeners A set of listeners to register to the streams data receiver or <code>null</code>.
 	 *
 	 * @return The local input stream instance or <code>null</code>.
 	 */
-	protected InputStream connectRemoteInputStream(IStreams.StreamsListener streamsListener, String[] streamIds) {
+	protected InputStream connectRemoteInputStream(IStreams.StreamsListener streamsListener, String[] streamIds, StreamsDataReceiver.Listener[] listeners) {
 		Assert.isNotNull(streamsListener);
 		Assert.isNotNull(streamIds);
 
@@ -679,6 +684,14 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		// If the input stream creation succeeded, connect the data receiver
 		if (stream != null) {
 			StreamsDataReceiver receiver = new StreamsDataReceiver(new OutputStreamWriter(remoteStreamDataReceiverStream), streamIds);
+
+			// Register the listeners if given
+			if (listeners != null && listeners.length > 0) {
+				for (StreamsDataReceiver.Listener listener : listeners) {
+					receiver.addListener(listener);
+				}
+			}
+
 			// Register the data receiver to the streams listener
 			if (getStreamsListener() instanceof ProcessStreamsListener) {
 				((ProcessStreamsListener)getStreamsListener()).registerDataReceiver(receiver);

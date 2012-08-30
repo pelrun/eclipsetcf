@@ -380,9 +380,11 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 					// Get the writer
 					Writer writer = receiver.getWriter();
 					// Append the data
-					writer.append(data);
+					writer.write(data);
 					// And flush it
 					writer.flush();
+					// Notify potential listeners
+					receiver.notifyListener(data);
 				} catch (IOException e) {
 					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(1, null)) {
 						IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(),

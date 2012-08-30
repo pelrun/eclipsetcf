@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
 
 /**
  * Interface to be implemented by classes providing a remote process launcher.
@@ -84,6 +85,13 @@ public interface IProcessLauncher extends IAdaptable {
 	 * The property type is {@link String}.
 	 */
 	public static String PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE = "process.redirectToFile"; //$NON-NLS-1$
+
+	/**
+	 * Property denoting a set of listeners listening to the process output.
+	 * <p>
+	 * The property type is an array of {@link StreamsDataReceiver#Listener}.
+	 */
+	public static String PROP_PROCESS_OUTPUT_LISTENER = "process.listener.output"; //$NON-NLS-1$
 
 	/**
 	 * Property denoting the full name of the target connection the launcher got invoked for.
