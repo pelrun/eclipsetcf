@@ -29,7 +29,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.debug.ui.ITCFObject;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
@@ -40,6 +39,7 @@ import org.eclipse.ui.IWorkbenchPropertyPage;
 public class HardwareFieldEditor extends FieldEditor {
 
     private Composite fParent;
+    private final String HARDWARE = "Hardware"; //$NON-NLS-1$
 
     /**
      * The previously selected, or "before", value.
@@ -52,7 +52,7 @@ public class HardwareFieldEditor extends FieldEditor {
     private Button checkBox;
 
     public HardwareFieldEditor(Composite parent) {
-        super(ICBreakpointType.TYPE, "Hardware", parent);
+        super(ICBreakpointType.TYPE, "", parent);
         fParent = parent;
     }
 
@@ -147,9 +147,8 @@ public class HardwareFieldEditor extends FieldEditor {
      * (non-Javadoc) Method declared on FieldEditor.
      */
     protected void doFillIntoGrid(Composite parent, int numColumns) {
-        getLabelControl(parent);
-        numColumns--;
         checkBox = getChangeControl(parent);
+        checkBox.setText(HARDWARE);
         GridData gd = new GridData();
         gd.horizontalSpan = numColumns;
         checkBox.setLayoutData(gd);
@@ -257,7 +256,7 @@ public class HardwareFieldEditor extends FieldEditor {
      * (non-Javadoc) Method declared on FieldEditor.
      */
     public int getNumberOfControls() {
-        return 2;
+        return 1;
     }
 
     /*
@@ -274,10 +273,6 @@ public class HardwareFieldEditor extends FieldEditor {
      */
     public void setLabelText(String text) {
         super.setLabelText(text);
-        Label label = getLabelControl();
-        if (label == null && checkBox != null) {
-            checkBox.setText(text);
-        }
     }
 
     /**
