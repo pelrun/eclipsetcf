@@ -170,10 +170,14 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 		Image decoratedImage = null;
 
 		if (image != null && element instanceof IPeerModel) {
-			AbstractImageDescriptor descriptor = new PeerImageDescriptor(UIPlugin.getDefault().getImageRegistry(),
-							image,
-							(IPeerModel)element);
-			decoratedImage = UIPlugin.getSharedImage(descriptor);
+			String value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+			boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+			if (!isStatic) {
+				AbstractImageDescriptor descriptor = new PeerImageDescriptor(UIPlugin.getDefault().getImageRegistry(),
+								image,
+								(IPeerModel)element);
+				decoratedImage = UIPlugin.getSharedImage(descriptor);
+			}
 		}
 
 		return decoratedImage;
@@ -225,8 +229,12 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 		Assert.isNotNull(peerModel);
 		Assert.isTrue(Protocol.isDispatchThread());
 
+		String value = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+		boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+
 		int state = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);
-		if (state > IPeerModelProperties.STATE_UNKNOWN) {
+		if (state > IPeerModelProperties.STATE_UNKNOWN
+				&& (!isStatic || state == IPeerModelProperties.STATE_CONNECTED)) {
 			builder.append(" ["); //$NON-NLS-1$
 			builder.append(Messages.getString("LabelProviderDelegate_state_" + state)); //$NON-NLS-1$
 			builder.append("]"); //$NON-NLS-1$

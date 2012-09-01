@@ -373,6 +373,11 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		Assert.isNotNull(node);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
+		// Skip static peer IP address validation
+		String value = node.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+		boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+		if (isStatic) return node;
+
 		// Get the peer from the peer node
 		IPeer peer = node.getPeer();
 
