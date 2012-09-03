@@ -11,6 +11,8 @@ package org.eclipse.tcf.te.runtime.persistence.internal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.core.expressions.EvaluationContext;
@@ -146,7 +148,51 @@ public class PersistenceDelegateBindingExtensionPointManager extends AbstractExt
 			}
 		}
 
+		// Sort the applicable bindings by priority
+		Collections.sort(applicable, new SortByPriority());
+
 		return applicable.toArray(new PersistenceDelegateBinding[applicable.size()]);
+	}
+
+	/**
+	 * Persistence delegate binding sort by priority comparator implementation.
+	 */
+	/* default */ static class SortByPriority implements Comparator<PersistenceDelegateBinding> {
+
+		/* (non-Javadoc)
+		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		 */
+        @Override
+        public int compare(PersistenceDelegateBinding o1, PersistenceDelegateBinding o2) {
+
+        	if (o1 != null && o2 != null) {
+        		String p1 = o1.getPriority();
+        		if (p1 == null || "".equals(p1)) p1 = "normal"; //$NON-NLS-1$ //$NON-NLS-2$
+        		String p2 = o2.getPriority();
+        		if (p2 == null || "".equals(p1)) p2 = "normal"; //$NON-NLS-1$ //$NON-NLS-2$
+
+        		int i1 = 0;
+        		if ("lowest".equalsIgnoreCase(p1)) i1 = -3; //$NON-NLS-1$
+        		if ("lower".equalsIgnoreCase(p1)) i1 = -2; //$NON-NLS-1$
+        		if ("low".equalsIgnoreCase(p1)) i1 = -1; //$NON-NLS-1$
+        		if ("high".equalsIgnoreCase(p1)) i1 = 1; //$NON-NLS-1$
+        		if ("higher".equalsIgnoreCase(p1)) i1 = 2; //$NON-NLS-1$
+        		if ("highest".equalsIgnoreCase(p1)) i1 = 3; //$NON-NLS-1$
+
+        		int i2 = 0;
+        		if ("lowest".equalsIgnoreCase(p2)) i2 = -3; //$NON-NLS-1$
+        		if ("lower".equalsIgnoreCase(p2)) i2 = -2; //$NON-NLS-1$
+        		if ("low".equalsIgnoreCase(p2)) i2 = -1; //$NON-NLS-1$
+        		if ("high".equalsIgnoreCase(p2)) i2 = 1; //$NON-NLS-1$
+        		if ("higher".equalsIgnoreCase(p2)) i2 = 2; //$NON-NLS-1$
+        		if ("highest".equalsIgnoreCase(p2)) i2 = 3; //$NON-NLS-1$
+
+        		if (i1 < i2) return 1;
+        		if (i1 > i2) return -1;
+        	}
+
+	        return 0;
+        }
 	}
 
 	/**

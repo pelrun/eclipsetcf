@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -33,8 +34,8 @@ public class LocatorModelPropertyTester extends PropertyTester {
 	 */
 	@Override
 	public boolean test(final Object receiver, final String property, final Object[] args, final Object expectedValue) {
-		// The receiver is expected to be a peer model node
-		if (receiver instanceof IPeerModel) {
+		// The receiver is expected to be a peer model node or a peer
+		if (receiver instanceof IPeerModel || receiver instanceof IPeer) {
 			final AtomicBoolean result = new AtomicBoolean();
 
 			// If we have to test for local or remote services, we have to handle it special
@@ -48,7 +49,11 @@ public class LocatorModelPropertyTester extends PropertyTester {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						result.set(testPeerModel((IPeerModel) receiver, property, args, expectedValue));
+						if (receiver instanceof IPeerModel) {
+							result.set(testPeerModel((IPeerModel) receiver, property, args, expectedValue));
+						} else {
+							result.set(testPeer((IPeer) receiver, property, args, expectedValue));
+						}
 					}
 				};
 
@@ -141,6 +146,89 @@ public class LocatorModelPropertyTester extends PropertyTester {
 
 		if ("hasOfflineService".equals(property)) { //$NON-NLS-1$
 			String services = node.getPeer().getAttributes().get(IPeerModelProperties.PROP_OFFLINE_SERVICES);
+			List<String> list = services != null ? Arrays.asList(services.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
+			return list.contains(expectedValue);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Test the specific peer properties.
+	 *
+	 * @param node The peer. Must not be <code>null</code>.
+	 * @param property The property to test.
+	 * @param args The property arguments.
+	 * @param expectedValue The expected value.
+	 *
+	 * @return <code>True</code> if the property to test has the expected value, <code>false</code>
+	 *         otherwise.
+	 */
+	protected boolean testPeer(IPeer node, String property, Object[] args, Object expectedValue) {
+		Assert.isNotNull(node);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		if ("name".equals(property)) { //$NON-NLS-1$
+			if (node.getName() != null && node.getName().equals(expectedValue)) {
+				return true;
+			}
+		}
+
+		if ("isStaticPeer".equals(property)) { //$NON-NLS-1$
+			String value = node.getAttributes().get("static.transient"); //$NON-NLS-1$
+			boolean isStaticPeer = value != null && Boolean.parseBoolean(value.trim());
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isStaticPeer;
+			}
+		}
+
+		if ("isRedirected".equals(property)) { //$NON-NLS-1$
+			boolean isRedirected = node instanceof PeerRedirector;
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isRedirected;
+			}
+		}
+
+		if ("isProxy".equals(property)) { //$NON-NLS-1$
+			boolean isProxy = node.getAttributes().containsKey("Proxy"); //$NON-NLS-1$
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isProxy;
+			}
+		}
+
+		if ("isValueAdd".equals(property)) { //$NON-NLS-1$
+			String value = node.getAttributes().get("ValueAdd"); //$NON-NLS-1$
+			boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isValueAdd;
+			}
+		}
+
+		if ("isOfType".equals(property)) { //$NON-NLS-1$
+			String value = node.getAttributes().get(IPeerModelProperties.PROP_TYPE);
+			if (expectedValue instanceof String) {
+				return value != null ? ((String)expectedValue).equals(value) : ((String)expectedValue).equalsIgnoreCase("null"); //$NON-NLS-1$
+			}
+		}
+
+		if ("hasAttribute".equals(property)) { //$NON-NLS-1$
+			String name = args != null && args.length > 0 ? (String)args[0] : null;
+			boolean hasAttribute = name != null && !"".equals(name) ? node.getAttributes().containsKey(name) : false; //$NON-NLS-1$
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == hasAttribute;
+			}
+		}
+
+		if ("isAttribute".equals(property)) { //$NON-NLS-1$
+			String name = args != null && args.length > 0 ? (String)args[0] : null;
+			String value = name != null && !"".equals(name) ? node.getAttributes().get(name) : null; //$NON-NLS-1$
+			if (expectedValue != null) {
+				return expectedValue.toString().equals(value);
+			}
+		}
+
+		if ("hasOfflineService".equals(property)) { //$NON-NLS-1$
+			String services = node.getAttributes().get(IPeerModelProperties.PROP_OFFLINE_SERVICES);
 			List<String> list = services != null ? Arrays.asList(services.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			return list.contains(expectedValue);
 		}

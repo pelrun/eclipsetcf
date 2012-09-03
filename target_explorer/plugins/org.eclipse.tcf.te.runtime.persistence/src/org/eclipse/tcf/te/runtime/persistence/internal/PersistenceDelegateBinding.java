@@ -23,6 +23,8 @@ public class PersistenceDelegateBinding extends ExecutableExtension {
 	private String delegateId;
 	// The converted expression
 	private Expression expression;
+	// The binding priority
+	private String priority;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.extensions.ExecutableExtension#doSetInitializationData(org.eclipse.core.runtime.IConfigurationElement, java.lang.String, java.lang.Object)
@@ -37,6 +39,9 @@ public class PersistenceDelegateBinding extends ExecutableExtension {
 		if (delegateId == null || "".equals(delegateId.trim())) { //$NON-NLS-1$
 			throw createMissingMandatoryAttributeException("delegateId", config.getContributor().getName()); //$NON-NLS-1$
 		}
+
+		// Initialize the priority field
+		priority = config != null ? config.getAttribute("priority") : null; //$NON-NLS-1$
 
 		// Read the sub elements of the extension
 		IConfigurationElement[] children = config != null ? config.getChildren() : null;
@@ -53,6 +58,15 @@ public class PersistenceDelegateBinding extends ExecutableExtension {
 	 */
 	public String getDelegateId() {
 		return delegateId;
+	}
+
+	/**
+	 * Returns the priority of this binding.
+	 *
+	 * @return The priority or <code>null</code>.
+	 */
+	public String getPriority() {
+		return priority;
 	}
 
 	/**

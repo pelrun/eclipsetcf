@@ -11,6 +11,14 @@
             properties="name,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isStaticPeer,isRedirected,isProxy,isValueAdd,isOfType"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
       </propertyTester>
+
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.locator.internal.LocatorModelPropertyTester"
+            id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester2"
+            namespace="org.eclipse.tcf.te.tcf.locator"
+            properties="name,hasOfflineService,hasAttribute,isAttribute,isStaticPeer,isRedirected,isProxy,isValueAdd,isOfType"
+            type="org.eclipse.tcf.protocol.IPeer">
+      </propertyTester>
    </extension>
 
 <!-- Persistence delegate contributions -->
