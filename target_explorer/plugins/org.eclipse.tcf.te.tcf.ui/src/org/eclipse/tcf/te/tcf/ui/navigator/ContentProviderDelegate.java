@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ITreePathContentProvider;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
@@ -69,22 +70,24 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	// returned children.
 	private final boolean showInvisible;
 
-	/**
-     * Constructor.
-     */
-    public ContentProviderDelegate() {
-    	this(false);
-    }
+	INavigatorFilterService navFilterService = null;
 
-    /**
-     * Constructor.
-     *
-     * @param showInvisible If <code>true</code>, {@link #getChildren(Object)} will include invisible nodes too.
-     */
-    public ContentProviderDelegate(boolean showInvisible) {
-    	super();
-    	this.showInvisible = showInvisible;
-    }
+	/**
+	 * Constructor.
+	 */
+	public ContentProviderDelegate() {
+		this(false);
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param showInvisible If <code>true</code>, {@link #getChildren(Object)} will include invisible nodes too.
+	 */
+	public ContentProviderDelegate(boolean showInvisible) {
+		super();
+		this.showInvisible = showInvisible;
+	}
 
 	/**
 	 * Determines if the given peer model node is a proxy or a value-add.
@@ -117,7 +120,9 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 		boolean filtered = false;
 
 		filtered |= isProxyOrValueAdd(peerModel) && UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_HIDE_PROXIES_AND_VALUEADDS);
-		if (!showInvisible) filtered |= !peerModel.isVisible();
+		if (!showInvisible) {
+			filtered |= !peerModel.isVisible();
+		}
 
 		return filtered;
 	}
@@ -393,25 +398,15 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	 */
 	@Override
 	public boolean hasChildren(Object element) {
-		boolean hasChildren = false;
+		Object[] children = getChildren(element);
 
-		if (element instanceof ILocatorModel) {
-			hasChildren = ((ILocatorModel)element).getPeers().length > 0;
-		}
-		else if (element instanceof IPeerModel) {
-			List<IPeerModel> children = Model.getModel().getChildren(((IPeerModel)element).getPeerId());
-			hasChildren = children != null && children.size() > 0;
-		}
-		else if (element instanceof PeerRedirectorGroupNode) {
-			List<IPeerModel> children = Model.getModel().getChildren(((PeerRedirectorGroupNode)element).peerId);
-			hasChildren = children != null && children.size() > 0;
-		}
-		else if (element instanceof ICategory) {
-			Object[] children = getChildren(element);
-			hasChildren = children != null && children.length > 0;
+		if (children != null && children.length > 0 && navFilterService != null) {
+			for (ViewerFilter filter : navFilterService.getVisibleFilters(true)) {
+				children = filter.filter(null, element, children);
+			}
 		}
 
-		return hasChildren;
+		return children != null && children.length > 0;
 	}
 
 	/* (non-Javadoc)
@@ -477,16 +472,15 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 
 		// Make sure that the hidden "Redirected Peers" filter is active
 		INavigatorContentService cs = config.getService();
-		INavigatorFilterService fs = cs != null ? cs.getFilterService() : null;
-		if (fs != null && !fs.isActive(REDIRECT_PEERS_FILTER_ID)) {
-			if (fs instanceof NavigatorFilterService) {
-				final NavigatorFilterService navFilterService = (NavigatorFilterService)fs;
-				navFilterService.addActiveFilterIds(new String[] { REDIRECT_PEERS_FILTER_ID });
+		navFilterService = cs != null ? cs.getFilterService() : null;
+		if (navFilterService != null && !navFilterService.isActive(REDIRECT_PEERS_FILTER_ID)) {
+			if (navFilterService instanceof NavigatorFilterService) {
+				((NavigatorFilterService)navFilterService).addActiveFilterIds(new String[] { REDIRECT_PEERS_FILTER_ID });
 				// Do the update view asynchronous to avoid reentrant viewer calls
 				DisplayUtil.safeAsyncExec(new Runnable() {
 					@Override
 					public void run() {
-						navFilterService.updateViewer();
+						((NavigatorFilterService)navFilterService).updateViewer();
 					}
 				});
 			}
