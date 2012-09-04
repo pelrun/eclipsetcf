@@ -68,6 +68,11 @@ public interface IPeerModelProperties {
 	public static final int STATE_ERROR = 3;
 
 	/**
+	 * Peer state: Peer is waiting to become ready.
+	 */
+	public static final int STATE_WAITING_FOR_READY = 4;
+
+	/**
 	 * Property: The peer type.
 	 */
 	public static final String PROP_TYPE = "Type"; //$NON-NLS-1$

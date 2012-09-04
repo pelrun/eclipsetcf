@@ -130,8 +130,10 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 
 		// Set the peer state property
 		int counter = peerNode.getIntProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER);
-		peerNode.setProperty(IPeerModelProperties.PROP_STATE, counter > 0 ? IPeerModelProperties.STATE_CONNECTED : IPeerModelProperties.STATE_REACHABLE);
-		peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, null);
+		if (!peerNode.isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY)) {
+			peerNode.setProperty(IPeerModelProperties.PROP_STATE, counter > 0 ? IPeerModelProperties.STATE_CONNECTED : IPeerModelProperties.STATE_REACHABLE);
+			peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, null);
+		}
 
 		if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 			// Keep the channel open as long as the query for the remote peers is running.
@@ -330,9 +332,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			boolean changed = peerNode.setChangeEventsEnabled(false);
 
 			peerNode.setProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER, null);
-			boolean timeout = error instanceof SocketTimeoutException || (error instanceof ConnectException && error.getMessage() != null && error.getMessage().startsWith("Connection timed out:")); //$NON-NLS-1$
-			peerNode.setProperty(IPeerModelProperties.PROP_STATE, timeout ? IPeerModelProperties.STATE_NOT_REACHABLE : IPeerModelProperties.STATE_ERROR);
-			peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, error instanceof SocketTimeoutException ? null : error);
+			if (!peerNode.isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY)) {
+				boolean timeout = error instanceof SocketTimeoutException || (error instanceof ConnectException && error.getMessage() != null && error.getMessage().startsWith("Connection timed out:")); //$NON-NLS-1$
+				peerNode.setProperty(IPeerModelProperties.PROP_STATE, timeout ? IPeerModelProperties.STATE_NOT_REACHABLE : IPeerModelProperties.STATE_ERROR);
+				peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, error instanceof SocketTimeoutException ? null : error);
+			}
 
 			// Clear out previously determined services
 			ILocatorModel model = (ILocatorModel)peerNode.getAdapter(ILocatorModel.class);

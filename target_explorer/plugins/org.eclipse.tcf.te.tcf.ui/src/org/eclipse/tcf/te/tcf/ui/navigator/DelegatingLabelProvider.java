@@ -234,7 +234,8 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 
 		int state = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);
 		if (state > IPeerModelProperties.STATE_UNKNOWN
-				&& (!isStatic || state == IPeerModelProperties.STATE_CONNECTED)) {
+				&& (!isStatic || state == IPeerModelProperties.STATE_CONNECTED
+							  || state == IPeerModelProperties.STATE_WAITING_FOR_READY)) {
 			builder.append(" ["); //$NON-NLS-1$
 			builder.append(Messages.getString("LabelProviderDelegate_state_" + state)); //$NON-NLS-1$
 			builder.append("]"); //$NON-NLS-1$

@@ -33,6 +33,8 @@ import org.eclipse.ui.services.IEvaluationService;
 public final class EditorEventListener extends AbstractEventListener implements IDisposable {
 	// Reference to the parent editor
 	private final Editor editor;
+	// Flag to remember the disposed state
+	private boolean disposed = false;
 
 	/**
      * Constructor.
@@ -55,6 +57,7 @@ public final class EditorEventListener extends AbstractEventListener implements 
      */
     @Override
     public void dispose() {
+    	disposed = true;
     	EventManager.getInstance().removeEventListener(this);
     }
 
@@ -63,6 +66,9 @@ public final class EditorEventListener extends AbstractEventListener implements 
 	 */
 	@Override
 	public void eventFired(EventObject event) {
+		// Do nothing if already disposed
+		if (disposed) return;
+
 		// Ignore everything not being a change event
 		if (!(event instanceof ChangeEvent)) return;
 
