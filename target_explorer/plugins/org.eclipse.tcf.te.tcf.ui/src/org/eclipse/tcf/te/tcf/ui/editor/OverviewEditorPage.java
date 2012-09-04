@@ -217,8 +217,6 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage impl
 				public void run() {
 					// Trigger a change event for the original data node
 					((IPeerModel)input).fireChangeEvent("properties", null, ((IPeerModel)input).getProperties()); //$NON-NLS-1$
-					// And make sure the editor tabs are updated
-					((IPeerModel)input).fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
 				}
 			});
 

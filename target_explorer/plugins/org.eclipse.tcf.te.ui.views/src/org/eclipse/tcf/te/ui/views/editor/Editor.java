@@ -396,4 +396,14 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
     public String getContributorId() {
 	    return IUIConstants.TABBED_PROPERTIES_CONTRIBUTOR_ID;
     }
+
+    /**
+     * Fires a property changed event.
+     *
+     * @param propertyId the id of the property that changed
+     */
+    @Override
+    public final void firePropertyChange(final int propertyId) {
+    	super.firePropertyChange(propertyId);
+    }
 }

@@ -51,8 +51,6 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	/* default */ IChannel channel = null;
 	// Mark if the used channel is a shared channel instance
 	/* default */ boolean sharedChannel = false;
-	// The state of the peer node at the point of time the runnable starts execution
-	private int oldState = IPeerModelProperties.STATE_UNKNOWN;
 
 	/**
 	 * Constructor.
@@ -97,8 +95,6 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 
 		if (isProxy || isValueAdd) return;
 
-		// Remember the peer node state
-		oldState = peerNode.getIntProperty(IPeerModelProperties.PROP_STATE);
 		// Do not open a channel to incomplete peer nodes
 		if (peerNode.isComplete()) {
 			// Check if there is a shared channel available which is still in open state
@@ -131,16 +127,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 
 		// Turn off change notifications temporarily
 		boolean changed = peerNode.setChangeEventsEnabled(false);
-		// Flag to set for refreshing the editor tab list
-		boolean refreshEditorTabs = false;
 
 		// Set the peer state property
 		int counter = peerNode.getIntProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER);
 		peerNode.setProperty(IPeerModelProperties.PROP_STATE, counter > 0 ? IPeerModelProperties.STATE_CONNECTED : IPeerModelProperties.STATE_REACHABLE);
 		peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, null);
-		// If the old state had been one of the error states before, and is now changed to
-		// either reachable or connected, the editor tabs needs refreshment.
-		refreshEditorTabs = oldState != IPeerModelProperties.STATE_CONNECTED && oldState != IPeerModelProperties.STATE_REACHABLE;
 
 		if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 			// Keep the channel open as long as the query for the remote peers is running.
@@ -318,10 +309,6 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			peerNode.setChangeEventsEnabled(true);
 			peerNode.fireChangeEvent("properties", null, peerNode.getProperties()); //$NON-NLS-1$
 		}
-
-		if (refreshEditorTabs) {
-			peerNode.fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
-		}
 	}
 
 	/* (non-Javadoc)
@@ -363,12 +350,6 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			if (changed) {
 				peerNode.setChangeEventsEnabled(true);
 				peerNode.fireChangeEvent("properties", null, peerNode.getProperties()); //$NON-NLS-1$
-			}
-
-			// If the old state had been one of the reachable states before, and is now changed to
-			// either not reachable or error, the editor tabs needs refreshment.
-			if (oldState != IPeerModelProperties.STATE_NOT_REACHABLE && oldState != IPeerModelProperties.STATE_ERROR) {
-				peerNode.fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
 			}
 		}
 	}

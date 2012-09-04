@@ -20,7 +20,9 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.events.AbstractEventListener;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.tracing.ITraceIds;
+import org.eclipse.ui.ISources;
 import org.eclipse.ui.forms.editor.IFormPage;
+import org.eclipse.ui.services.IEvaluationService;
 
 /**
  * Editor event listener implementation.
@@ -90,17 +92,23 @@ public final class EditorEventListener extends AbstractEventListener implements 
 			return;
 		}
 
-		if ("editor.refreshTab".equals(changeEvent.getEventId())) { //$NON-NLS-1$
-			editor.updatePageList();
-		} else {
-			// Update the active page content by calling IFormPage#setActive(boolean)
-			Object page = editor.getSelectedPage();
-			if (page instanceof IFormPage) {
-				((IFormPage)page).setActive(((IFormPage)page).isActive());
-			}
+		// Refresh the page list. Changing editor input element properties
+		// may effect the page list.
+		editor.updatePageList();
 
-			// Update the editor part name
-			editor.updatePartName();
+		// Update the active page content by calling IFormPage#setActive(boolean)
+		Object page = editor.getSelectedPage();
+		if (page instanceof IFormPage) {
+			((IFormPage)page).setActive(((IFormPage)page).isActive());
+		}
+
+		// Update the editor part name
+		editor.updatePartName();
+
+		// Request a re-evaluation if all expressions referring the "activeEditorInput" source.
+		IEvaluationService service = (IEvaluationService)editor.getSite().getService(IEvaluationService.class);
+		if (service != null) {
+			service.requestEvaluation(ISources.ACTIVE_EDITOR_INPUT_NAME);
 		}
 	}
 }
