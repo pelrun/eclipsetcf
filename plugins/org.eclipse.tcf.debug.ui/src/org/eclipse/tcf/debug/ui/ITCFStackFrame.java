@@ -18,6 +18,8 @@ import org.eclipse.tcf.util.TCFDataCache;
  * that represent a function call stack frame on a remote target.
  * A visual element in a debugger view can be adapted to this interface -
  * if the element represents a stack frame.
+ * 
+ * @noimplement
  */
 public interface ITCFStackFrame {
 

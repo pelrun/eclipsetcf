@@ -18,6 +18,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * A visual element in the debugger view can be adapted to this interface -
  * if the element represents a remote TCF object.
  * Clients can use this interface to open source text editor.
+ * 
+ * @noimplement
  */
 public interface ITCFSourceDisplay extends ISourceDisplay {
 

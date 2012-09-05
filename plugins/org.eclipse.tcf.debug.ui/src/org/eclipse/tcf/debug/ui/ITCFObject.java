@@ -19,6 +19,8 @@ import org.eclipse.tcf.protocol.IChannel;
  * if the element represents a remote TCF object.
  * Clients can get communication channel and ID of the object,
  * and use them to access the object through TCF service interfaces.
+ * 
+ * @noimplement
  */
 public interface ITCFObject extends IAdaptable {
 
