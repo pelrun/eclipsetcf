@@ -215,7 +215,7 @@ public class TCFNodeStackFrame extends TCFNode {
         return address;
     }
 
-    TCFChildren getRegisters() {
+    public TCFChildren getRegisters() {
         return children_regs;
     }
 
