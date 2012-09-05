@@ -225,6 +225,10 @@ public class BreakpointDetailPaneTest extends AbstractTcfUITest
                 escaped.append('\\');
             } 
             escaped.append(c);
+            // Make spaces optional:
+            if (c == ' ') {
+                escaped.append("*");
+            }
         }
         return escaped.toString();
     }

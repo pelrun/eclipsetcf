@@ -30,6 +30,7 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.debug.test.util.Transaction;
+import org.eclipse.tcf.debug.ui.ITCFModel;
 import org.eclipse.tcf.debug.ui.ITCFObject;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.te.tests.interfaces.IConfigurationProperties;
@@ -148,12 +149,18 @@ public abstract class AbstractTcfUITest extends AbstractCMTest implements IViewe
         final TestProcessInfo processInfo = startProcess();
 
         ITCFObject processTCFContext = new ITCFObject() {
-            public String getID() { return processInfo.fProcessId; }
-            public IChannel getChannel() { return channels[0]; }
+            @Override public String getID() { return processInfo.fProcessId; }
+            @Override public IChannel getChannel() { return channels[0]; }
+            @Override public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) { return null; }
+            @Override public ITCFModel getModel()  { return null; }
+            @Override public ITCFObject getParent()  { return null; }
         };
         ITCFObject threadTCFContext = new ITCFObject() {
-            public String getID() { return processInfo.fThreadId; }
-            public IChannel getChannel() { return channels[0]; }
+            @Override public String getID() { return processInfo.fThreadId; }
+            @Override public IChannel getChannel() { return channels[0]; }
+            @Override public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) { return null; }
+            @Override public ITCFModel getModel()  { return null; }
+            @Override public ITCFObject getParent()  { return null; }
         };
 
         // Make sure that delta is posted after launching process so that it doesn't interfere
@@ -174,8 +181,11 @@ public abstract class AbstractTcfUITest extends AbstractCMTest implements IViewe
         }.get();
 
         ITCFObject frameTCFContext = new ITCFObject() {
-            public String getID() { return topFrameId; }
-            public IChannel getChannel() { return channels[0]; }
+            @Override public String getID() { return topFrameId; }
+            @Override public IChannel getChannel() { return channels[0]; }
+            @Override public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) { return null; }
+            @Override public ITCFModel getModel()  { return null; }
+            @Override public ITCFObject getParent()  { return null; }
         };
 
         VirtualItem topFrameItem = null;
