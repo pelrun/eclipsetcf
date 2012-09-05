@@ -75,15 +75,17 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 			}
 		});
 
-		// Read the output from the proxy
-		String output = null;
-		int counter = 21;
+		// Wait for the output reader to finish
+		int counter = 80;
 		while (counter > 0) {
-			output = proxy.getOutputReader() != null ? proxy.getOutputReader().getOutput() : null;
-			if (output != null && !"".equals(output.trim())) break; //$NON-NLS-1$
-			waitAndDispatch(2000);
+			if (proxy.getOutputReader() != null && proxy.getOutputReader().isFinished()) break;
+			waitAndDispatch(500);
 			counter--;
 		}
+		assertTrue("Process output reader thread not finished.", proxy.getOutputReader() != null ? proxy.getOutputReader().isFinished() : true); //$NON-NLS-1$
+
+		// Read the output from the reader
+		String output = proxy.getOutputReader() != null ? proxy.getOutputReader().getOutput() : null;
 		assertEquals("Unexpected output from HelloWorld test application.", "Hello World", output != null ? output.trim() : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// Dispose the launcher at the end

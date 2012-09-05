@@ -13,6 +13,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.eclipse.tcf.te.runtime.activator.CoreBundleActivator;
 
@@ -24,7 +28,9 @@ import org.eclipse.tcf.te.runtime.activator.CoreBundleActivator;
 public class ProcessOutputReaderThread extends Thread {
 	// Prefix for any output produced
 	private String prefix;
-	// reader instances to wrap the input streams
+	// The input stream instances as passed in
+	private InputStream[] streams;
+	// The reader instances to wrap the input streams
 	private BufferedReader[] reader;
 	// String buffer to collect the read lines
 	private StringBuffer lines;
@@ -58,6 +64,9 @@ public class ProcessOutputReaderThread extends Thread {
 		} else {
 			this.prefix = prefix;
 		}
+
+		// Set the input streams
+		this.streams = streams;
 
 		// connect to a stream reader
 		reader = new BufferedReader[streams.length];
@@ -167,7 +176,7 @@ public class ProcessOutputReaderThread extends Thread {
 	 *
 	 * @return Total number of bytes read, or -1 if EOF reached.
 	 */
-	public synchronized int readAvailableInput(BufferedReader reader) {
+	protected synchronized int readAvailableInput(BufferedReader reader) {
 		if (reader != null) {
 			int bytesRead = 0;
 			try {
@@ -208,6 +217,28 @@ public class ProcessOutputReaderThread extends Thread {
 					continue;
 				}
 				int bytesRead = readAvailableInput(reader[i]);
+
+				// If readAvailableInput(...) returns 0 and the stream read is a PipedInputStream,
+				// we need to know if the stream got closed by the writer
+				if (bytesRead == 0 && streams[i] instanceof PipedInputStream) {
+					PipedInputStream in = (PipedInputStream)streams[i];
+					try {
+	                    final Field f = in.getClass().getDeclaredField("closedByWriter"); //$NON-NLS-1$
+	    				AccessController.doPrivileged(new PrivilegedAction<Object>() {
+	    					@Override
+	    					public Object run() {
+	    						f.setAccessible(true);
+	    						return null;
+	    					}
+	    				});
+	    				// If the piped input stream is closed from the writer
+	    				// side, in example because EOF received on writer side,
+	    				// close the stream from the reader side too.
+	    				if (f.getBoolean(in)) bytesRead = -1;
+                    }
+                    catch (Exception e) { /* ignored on purpose */ }
+				}
+
 				// is EOF for the current stream
 				if (bytesRead == -1) {
 					try { reader[i].close(); } catch (IOException e) { /* ignored on purpose */ }
