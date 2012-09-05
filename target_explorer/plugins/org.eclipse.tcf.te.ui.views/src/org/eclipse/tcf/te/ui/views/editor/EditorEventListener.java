@@ -99,22 +99,25 @@ public final class EditorEventListener extends AbstractEventListener implements 
 		}
 
 		// Refresh the page list. Changing editor input element properties
-		// may effect the page list.
+		// may effect the page list -> Update in any case.
 		editor.updatePageList();
 
-		// Update the active page content by calling IFormPage#setActive(boolean)
-		Object page = editor.getSelectedPage();
-		if (page instanceof IFormPage) {
-			((IFormPage)page).setActive(((IFormPage)page).isActive());
-		}
+		// If the event is a "editor.refreshTab" event, skip the rest
+		if (!"editor.refreshTab".equals(changeEvent.getEventId())) { //$NON-NLS-1$
+			// Update the active page content by calling IFormPage#setActive(boolean)
+			Object page = editor.getSelectedPage();
+			if (page instanceof IFormPage) {
+				((IFormPage)page).setActive(((IFormPage)page).isActive());
+			}
 
-		// Update the editor part name
-		editor.updatePartName();
+			// Update the editor part name
+			editor.updatePartName();
 
-		// Request a re-evaluation if all expressions referring the "activeEditorInput" source.
-		IEvaluationService service = (IEvaluationService)editor.getSite().getService(IEvaluationService.class);
-		if (service != null) {
-			service.requestEvaluation(ISources.ACTIVE_EDITOR_INPUT_NAME);
+			// Request a re-evaluation if all expressions referring the "activeEditorInput" source.
+			IEvaluationService service = (IEvaluationService)editor.getSite().getService(IEvaluationService.class);
+			if (service != null) {
+				service.requestEvaluation(ISources.ACTIVE_EDITOR_INPUT_NAME);
+			}
 		}
 	}
 }

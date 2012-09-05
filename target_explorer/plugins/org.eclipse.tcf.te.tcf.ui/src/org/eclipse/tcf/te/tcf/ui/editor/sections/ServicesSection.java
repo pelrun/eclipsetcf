@@ -164,7 +164,16 @@ public class ServicesSection extends AbstractSection {
 			}
 		});
 
-		if (needQueryServices.get()) {
+		boolean fireRefreshTabs = needQueryServices.get();
+
+		String value = odc.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES);
+		fireRefreshTabs |= value != null && !value.equals(SWTControlUtil.getText(local));
+		SWTControlUtil.setText(local, value != null ? value : ""); //$NON-NLS-1$
+		value = odc.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+		fireRefreshTabs |= value != null && !value.equals(SWTControlUtil.getText(remote));
+		SWTControlUtil.setText(remote, value != null ? value : ""); //$NON-NLS-1$
+
+		if (fireRefreshTabs) {
 			// Fire a change event to trigger the editor refresh
 			od.fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
 		}
