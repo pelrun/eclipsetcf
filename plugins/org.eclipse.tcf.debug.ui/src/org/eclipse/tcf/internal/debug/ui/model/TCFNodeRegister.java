@@ -33,6 +33,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.debug.ui.ITCFRegister;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
@@ -42,7 +43,7 @@ import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
 
 
-public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchInExpressions, IDetailsProvider {
+public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchInExpressions, IDetailsProvider, ITCFRegister {
 
     public static final String PROPERTY_REG_REPRESENTATION = "PROPERTY_REGISTER_REPRESENTATION";
 

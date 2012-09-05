@@ -15,18 +15,17 @@ public interface ITCFDebugUIConstants {
     /**
      * View ID for a view that shows contexts filtered according to view properties.
      */
-    public final static String ID_CONTEXT_QUERY_VIEW = "org.eclipse.tcf.debug.ui.ContextQueryView";
+    final static String ID_CONTEXT_QUERY_VIEW = "org.eclipse.tcf.debug.ui.ContextQueryView";
 
     /**
      * Property of a view presentation context which holds a query string, that is
      * used to select a sub-set of contexts.
      */
-    public final static String PROP_CONTEXT_QUERY = "query";
+    final static String PROP_CONTEXT_QUERY = "query";
 
     /**
      * Property of a view presentation context which holds a set of strings,
      * that are used to select a sub-set of contexts.
      */
-    public final static String PROP_FILTER_CONTEXTS = "contexts";
-
+    final static String PROP_FILTER_CONTEXTS = "contexts";
 }

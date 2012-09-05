@@ -25,11 +25,11 @@ public interface ITCFExpression extends ITCFObject {
      * Get expression properties cache.
      * @return The expression properties cache.
      */
-    public TCFDataCache<IExpressions.Expression> getExpression();
+    TCFDataCache<IExpressions.Expression> getExpression();
 
     /**
      * Get expression value cache.
      * @return The expression value cache.
      */
-    public TCFDataCache<IExpressions.Value> getValue();
+    TCFDataCache<IExpressions.Value> getValue();
 }

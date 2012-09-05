@@ -31,6 +31,7 @@ import org.eclipse.debug.ui.memory.IMemoryRenderingSite;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.tcf.debug.ui.ITCFDebugUIConstants;
+import org.eclipse.tcf.debug.ui.ITCFExecContext;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
@@ -48,7 +49,7 @@ import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.ui.IWorkbenchPart;
 
-public class TCFNodeExecContext extends TCFNode implements ISymbolOwner {
+public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExecContext {
 
     private final TCFChildrenExecContext children_exec;
     private final TCFChildrenStackTrace children_stack;

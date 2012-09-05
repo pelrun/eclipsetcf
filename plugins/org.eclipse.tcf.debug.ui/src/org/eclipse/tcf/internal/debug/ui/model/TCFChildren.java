@@ -17,13 +17,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
+import org.eclipse.tcf.debug.ui.ITCFChildren;
+import org.eclipse.tcf.debug.ui.ITCFObject;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.util.TCFDataCache;
 
 /**
  * TCFChildren is a concrete type of TCF data cache that is used to cache a list of children.
  */
-public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
+public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> implements ITCFChildren {
 
     private final int pool_margin;
     private final Map<String,TCFNode> node_pool = new LinkedHashMap<String,TCFNode>(32, 0.75f, true);
@@ -33,6 +35,7 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
     private static final TCFNode[] EMPTY_NODE_ARRAY = new TCFNode[0];
 
     private TCFNode[] array;
+    private Map<String,ITCFObject> obj_map;
 
     TCFChildren(TCFNode node) {
         super(node.channel);
@@ -69,6 +72,7 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
         node_pool.remove(id);
         if (isValid()) {
             array = null;
+            obj_map = null;
             Map<String,TCFNode> data = getData();
             if (data != null) data.remove(id);
         }
@@ -101,6 +105,7 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
     @Override
     public void set(IToken token, Throwable error, Map<String,TCFNode> data) {
         array = null;
+        obj_map = null;
         if (isDisposed()) {
             // A command can return data after the cache element has been disposed.
             // Just ignore the data in such case.
@@ -124,6 +129,7 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
     public void reset(Map<String,TCFNode> data) {
         assert !isDisposed();
         array = null;
+        obj_map = null;
         if (data != null) {
             super.reset(data);
             addToPool(data);
@@ -140,6 +146,7 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
     public void reset() {
         super.reset();
         array = null;
+        obj_map = null;
     }
 
     /**
@@ -149,6 +156,7 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
     public void cancel() {
         super.cancel();
         array = null;
+        obj_map = null;
     }
 
     /**
@@ -163,6 +171,7 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
         node_pool.put(n.id, n);
         if (isValid()) {
             array = null;
+            obj_map = null;
             Map<String,TCFNode> data = getData();
             if (data != null) data.put(n.id, n);
         }
@@ -201,6 +210,20 @@ public abstract class TCFChildren extends TCFDataCache<Map<String,TCFNode>> {
         array = data.values().toArray(new TCFNode[data.size()]);
         Arrays.sort(array);
         return array;
+    }
+
+    /**
+     * Return current children nodes as a map of ITCFObject.
+     * @return map of ITCFObject.
+     */
+    public Map<String,ITCFObject> getChildren() {
+        assert isValid();
+        if (obj_map != null) return obj_map;
+        Map<String,TCFNode> data = getData();
+        obj_map = new HashMap<String,ITCFObject>();
+        if (data == null) return obj_map;
+        for (TCFNode n : data.values()) obj_map.put(n.id, n);
+        return obj_map;
     }
 
     /**

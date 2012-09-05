@@ -21,6 +21,7 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationCont
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputUpdate;
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.tcf.debug.ui.ITCFStackFrame;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
@@ -33,7 +34,7 @@ import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
 
-public class TCFNodeStackFrame extends TCFNode {
+public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
 
     private int frame_no;
     private boolean trace_limit;

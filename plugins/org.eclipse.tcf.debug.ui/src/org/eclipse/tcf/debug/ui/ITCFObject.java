@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.debug.ui;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.IChannel;
 
 /**
@@ -19,17 +20,29 @@ import org.eclipse.tcf.protocol.IChannel;
  * Clients can get communication channel and ID of the object,
  * and use them to access the object through TCF service interfaces.
  */
-public interface ITCFObject {
+public interface ITCFObject extends IAdaptable {
 
     /**
      * Get TCF ID of the object.
      * @return TCF ID
      */
-    public String getID();
+    String getID();
 
     /**
      * Get IChannel of the debug model that owns this object.
      * @return IChannel object
      */
-    public IChannel getChannel();
+    IChannel getChannel();
+
+    /**
+     * Get TCF debug model that owns this object.
+     * @return ITCFModel interface
+     */
+    ITCFModel getModel();
+
+    /**
+     * Get parent object.
+     * @return parent object or null if the object is a root
+     */
+    ITCFObject getParent();
 }
