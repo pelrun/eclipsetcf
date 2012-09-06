@@ -598,7 +598,9 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                                         public void doneGetContext(IToken token, Exception error, ISymbols.Symbol context) {
                                             BigInteger nextAddress = null;
                                             if (error == null && context != null) {
-                                                if (context.getTypeClass().equals(ISymbols.TypeClass.function)) {
+                                                if (context.getTypeClass().equals(ISymbols.TypeClass.function) && 
+                                                    context.getAddress() != null && context.getSize() >= 0) 
+                                                {
                                                     symbolList.add(context);
                                                     nextAddress = JSON.toBigInteger(context.getAddress()).add(BigInteger.valueOf(context.getSize()));
                                                 }
@@ -800,6 +802,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     private FunctionOffset getFunctionOffset(BigInteger address, ISymbols.Symbol[] symbols) {
         if (symbols != null) {
             for (ISymbols.Symbol symbol : symbols) {
+                if (symbol.getAddress() == null) continue;
                 BigInteger symbolAddress = JSON.toBigInteger(symbol.getAddress());
                 BigInteger offset = address.subtract(symbolAddress);
                 switch (offset.compareTo(BigInteger.ZERO)) {

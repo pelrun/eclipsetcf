@@ -108,7 +108,9 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                         TCFDataCache<ISymbols.Symbol> sym_cache = model.getSymbolInfoCache(ref.symbol_id);
                         if (!sym_cache.validate(this)) return false;
                         ISymbols.Symbol sym_data = sym_cache.getData();
-                        if (sym_data != null) func_start = n.equals(JSON.toBigInteger(sym_data.getAddress()));
+                        if (sym_data != null && sym_data.getAddress() != null) {
+                            func_start = n.equals(JSON.toBigInteger(sym_data.getAddress()));
+                        }
                     }
                     if (!func_start) n = n.subtract(BigInteger.valueOf(1));
                 }
