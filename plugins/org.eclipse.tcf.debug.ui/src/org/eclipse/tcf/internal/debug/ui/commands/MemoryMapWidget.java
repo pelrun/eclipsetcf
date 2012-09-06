@@ -77,9 +77,9 @@ public class MemoryMapWidget {
         "File offset/section",
     };
 
-    private final TCFModel model;
-    private final IChannel channel;
-    private final TCFNode selection;
+    private TCFModel model;
+    private IChannel channel;
+    private TCFNode selection;
 
     private Combo ctx_text;
     private Table map_table;
@@ -192,6 +192,15 @@ public class MemoryMapWidget {
     }
 
     public MemoryMapWidget(Composite composite, TCFNode node) {
+        setTCFNode(node);
+        createContextText(composite);
+        createMemoryMapTable(composite);
+    }
+
+    public boolean setTCFNode(TCFNode node) {
+        if (node == null && selection == null || node != null && node.equals(selection)) {
+            return false;
+        }
         if (node != null) {
             model = node.getModel();
             channel = node.getChannel();
@@ -202,8 +211,7 @@ public class MemoryMapWidget {
             channel = null;
             selection = null;
         }
-        createContextText(composite);
-        createMemoryMapTable(composite);
+        return true;
     }
 
     public String getMemoryMapID() {
