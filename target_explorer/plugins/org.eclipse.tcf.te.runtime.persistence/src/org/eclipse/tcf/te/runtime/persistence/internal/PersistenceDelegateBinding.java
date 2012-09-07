@@ -25,6 +25,8 @@ public class PersistenceDelegateBinding extends ExecutableExtension {
 	private Expression expression;
 	// The binding priority
 	private String priority;
+	// The overwrite
+	private String overwrites;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.extensions.ExecutableExtension#doSetInitializationData(org.eclipse.core.runtime.IConfigurationElement, java.lang.String, java.lang.Object)
@@ -36,19 +38,20 @@ public class PersistenceDelegateBinding extends ExecutableExtension {
 		// Initialize the delegate id field by reading the <delegate> extension attribute.
 		// Throws an exception if the id is empty or null.
 		delegateId = config != null ? config.getAttribute("delegateId") : null; //$NON-NLS-1$
-		if (delegateId == null || "".equals(delegateId.trim())) { //$NON-NLS-1$
+		if (delegateId == null || "".equals(delegateId.trim())) //$NON-NLS-1$
 			throw createMissingMandatoryAttributeException("delegateId", config.getContributor().getName()); //$NON-NLS-1$
-		}
 
 		// Initialize the priority field
 		priority = config != null ? config.getAttribute("priority") : null; //$NON-NLS-1$
 
+		// Initialize the overwrite field
+		overwrites = config != null ? config.getAttribute("overwrite") : null; //$NON-NLS-1$
+
 		// Read the sub elements of the extension
 		IConfigurationElement[] children = config != null ? config.getChildren() : null;
 		// The "enablement" element is the only expected one
-		if (children != null && children.length > 0) {
+		if (children != null && children.length > 0)
 			expression = ExpressionConverter.getDefault().perform(children[0]);
-		}
 	}
 
 	/**
@@ -67,6 +70,15 @@ public class PersistenceDelegateBinding extends ExecutableExtension {
 	 */
 	public String getPriority() {
 		return priority;
+	}
+
+	/**
+	 * Returns the overwrite(s) of this binding.
+	 *
+	 * @return The overwrite(s) or <code>null</code>.
+	 */
+	public String[] getOverwrites() {
+		return overwrites != null && overwrites.trim().length() > 0 ? overwrites.trim().split("\\s*,\\s*") : null; //$NON-NLS-1$
 	}
 
 	/**

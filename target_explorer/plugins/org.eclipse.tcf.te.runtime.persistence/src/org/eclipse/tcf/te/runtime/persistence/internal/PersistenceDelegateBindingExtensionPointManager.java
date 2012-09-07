@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.runtime.persistence.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -108,48 +109,48 @@ public class PersistenceDelegateBindingExtensionPointManager extends AbstractExt
 			// The binding is applicable by default if no expression is specified.
 			boolean isApplicable = enablement == null;
 
-			if (enablement != null) {
-				if (context != null) {
-					// Set the default variable to the delegate context.
-					EvaluationContext evalContext = new EvaluationContext(null, context);
-					evalContext.addVariable("context", context); //$NON-NLS-1$
-					if (context instanceof Class) {
-						evalContext.addVariable("contextClass", ((Class<?>)context).getName()); //$NON-NLS-1$
-					}
-					else {
-						evalContext.addVariable("contextClass", context.getClass().getName()); //$NON-NLS-1$
-					}
-					evalContext.addVariable("container", container); //$NON-NLS-1$
-					if (container instanceof Class) {
-						evalContext.addVariable("containerClass", ((Class<?>)container).getName()); //$NON-NLS-1$
-					}
-					else {
-						evalContext.addVariable("containerClass", container.getClass().getName()); //$NON-NLS-1$
-					}
-					// Allow plugin activation
-					evalContext.setAllowPluginActivation(true);
-					// Evaluate the expression
-					try {
-						isApplicable = enablement.evaluate(evalContext).equals(EvaluationResult.TRUE);
-					} catch (CoreException e) {
-						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-										e.getLocalizedMessage(), e);
-						Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-					}
-				} else {
-					// The enablement is false by definition if no delegate context is given.
-					isApplicable = false;
+			if (enablement != null) if (context != null) {
+				// Set the default variable to the delegate context.
+				EvaluationContext evalContext = new EvaluationContext(null, context);
+				evalContext.addVariable("context", context); //$NON-NLS-1$
+				if (context instanceof Class) evalContext.addVariable("contextClass", ((Class<?>)context).getName()); //$NON-NLS-1$
+				else evalContext.addVariable("contextClass", context.getClass().getName()); //$NON-NLS-1$
+				evalContext.addVariable("container", container); //$NON-NLS-1$
+				if (container instanceof Class) evalContext.addVariable("containerClass", ((Class<?>)container).getName()); //$NON-NLS-1$
+				else evalContext.addVariable("containerClass", container.getClass().getName()); //$NON-NLS-1$
+				// Allow plugin activation
+				evalContext.setAllowPluginActivation(true);
+				// Evaluate the expression
+				try {
+					isApplicable = enablement.evaluate(evalContext).equals(EvaluationResult.TRUE);
+				} catch (CoreException e) {
+					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
+									e.getLocalizedMessage(), e);
+					Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
 				}
 			}
+			else // The enablement is false by definition if no delegate context is given.
+				isApplicable = false;
 
 			// Add the binding if applicable
-			if (isApplicable) {
-				applicable.add(binding);
-			}
+			if (isApplicable) applicable.add(binding);
 		}
 
 		// Sort the applicable bindings by priority
 		Collections.sort(applicable, new SortByPriority());
+
+		if (applicable.size() > 1) {
+			List<PersistenceDelegateBinding> overwritten = new ArrayList<PersistenceDelegateBinding>();
+			for (PersistenceDelegateBinding candidate : applicable)
+				for (PersistenceDelegateBinding overwriter : applicable) {
+					String[] overwrites = overwriter.getOverwrites();
+					if (overwrites != null && Arrays.asList(overwrites).contains(candidate.getId()))
+						overwritten.add(candidate);
+				}
+
+			for (PersistenceDelegateBinding toRemove : overwritten)
+				applicable.remove(toRemove);
+		}
 
 		return applicable.toArray(new PersistenceDelegateBinding[applicable.size()]);
 	}
@@ -162,37 +163,37 @@ public class PersistenceDelegateBindingExtensionPointManager extends AbstractExt
 		/* (non-Javadoc)
 		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 		 */
-        @Override
-        public int compare(PersistenceDelegateBinding o1, PersistenceDelegateBinding o2) {
+		@Override
+		public int compare(PersistenceDelegateBinding o1, PersistenceDelegateBinding o2) {
 
-        	if (o1 != null && o2 != null) {
-        		String p1 = o1.getPriority();
-        		if (p1 == null || "".equals(p1)) p1 = "normal"; //$NON-NLS-1$ //$NON-NLS-2$
-        		String p2 = o2.getPriority();
-        		if (p2 == null || "".equals(p1)) p2 = "normal"; //$NON-NLS-1$ //$NON-NLS-2$
+			if (o1 != null && o2 != null) {
+				String p1 = o1.getPriority();
+				if (p1 == null || "".equals(p1)) p1 = "normal"; //$NON-NLS-1$ //$NON-NLS-2$
+				String p2 = o2.getPriority();
+				if (p2 == null || "".equals(p1)) p2 = "normal"; //$NON-NLS-1$ //$NON-NLS-2$
 
-        		int i1 = 0;
-        		if ("lowest".equalsIgnoreCase(p1)) i1 = -3; //$NON-NLS-1$
-        		if ("lower".equalsIgnoreCase(p1)) i1 = -2; //$NON-NLS-1$
-        		if ("low".equalsIgnoreCase(p1)) i1 = -1; //$NON-NLS-1$
-        		if ("high".equalsIgnoreCase(p1)) i1 = 1; //$NON-NLS-1$
-        		if ("higher".equalsIgnoreCase(p1)) i1 = 2; //$NON-NLS-1$
-        		if ("highest".equalsIgnoreCase(p1)) i1 = 3; //$NON-NLS-1$
+				int i1 = 0;
+				if ("lowest".equalsIgnoreCase(p1)) i1 = -3; //$NON-NLS-1$
+				if ("lower".equalsIgnoreCase(p1)) i1 = -2; //$NON-NLS-1$
+				if ("low".equalsIgnoreCase(p1)) i1 = -1; //$NON-NLS-1$
+				if ("high".equalsIgnoreCase(p1)) i1 = 1; //$NON-NLS-1$
+				if ("higher".equalsIgnoreCase(p1)) i1 = 2; //$NON-NLS-1$
+				if ("highest".equalsIgnoreCase(p1)) i1 = 3; //$NON-NLS-1$
 
-        		int i2 = 0;
-        		if ("lowest".equalsIgnoreCase(p2)) i2 = -3; //$NON-NLS-1$
-        		if ("lower".equalsIgnoreCase(p2)) i2 = -2; //$NON-NLS-1$
-        		if ("low".equalsIgnoreCase(p2)) i2 = -1; //$NON-NLS-1$
-        		if ("high".equalsIgnoreCase(p2)) i2 = 1; //$NON-NLS-1$
-        		if ("higher".equalsIgnoreCase(p2)) i2 = 2; //$NON-NLS-1$
-        		if ("highest".equalsIgnoreCase(p2)) i2 = 3; //$NON-NLS-1$
+				int i2 = 0;
+				if ("lowest".equalsIgnoreCase(p2)) i2 = -3; //$NON-NLS-1$
+				if ("lower".equalsIgnoreCase(p2)) i2 = -2; //$NON-NLS-1$
+				if ("low".equalsIgnoreCase(p2)) i2 = -1; //$NON-NLS-1$
+				if ("high".equalsIgnoreCase(p2)) i2 = 1; //$NON-NLS-1$
+				if ("higher".equalsIgnoreCase(p2)) i2 = 2; //$NON-NLS-1$
+				if ("highest".equalsIgnoreCase(p2)) i2 = 3; //$NON-NLS-1$
 
-        		if (i1 < i2) return 1;
-        		if (i1 > i2) return -1;
-        	}
+				if (i1 < i2) return 1;
+				if (i1 > i2) return -1;
+			}
 
-	        return 0;
-        }
+			return 0;
+		}
 	}
 
 	/**
@@ -205,9 +206,7 @@ public class PersistenceDelegateBindingExtensionPointManager extends AbstractExt
 		Collection<ExecutableExtensionProxy<PersistenceDelegateBinding>> persistenceDelegateBindings = getExtensions().values();
 		for (ExecutableExtensionProxy<PersistenceDelegateBinding> persistenceDelegateBinding : persistenceDelegateBindings) {
 			PersistenceDelegateBinding instance = persistenceDelegateBinding.getInstance();
-			if (instance != null && !contributions.contains(instance)) {
-				contributions.add(instance);
-			}
+			if (instance != null && !contributions.contains(instance)) contributions.add(instance);
 		}
 
 		return contributions.toArray(new PersistenceDelegateBinding[contributions.size()]);
