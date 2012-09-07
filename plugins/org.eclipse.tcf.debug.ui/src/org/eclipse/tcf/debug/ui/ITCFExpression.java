@@ -18,7 +18,7 @@ import org.eclipse.tcf.util.TCFDataCache;
  * that represent a remote expression.
  * A visual element in a debugger view can be adapted to this interface -
  * if the element represents a remote TCF expression.
- * 
+ *
  * @noimplement
  */
 public interface ITCFExpression extends ITCFObject {

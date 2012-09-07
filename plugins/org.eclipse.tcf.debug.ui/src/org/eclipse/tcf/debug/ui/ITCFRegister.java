@@ -18,7 +18,7 @@ import org.eclipse.tcf.util.TCFDataCache;
  * that represent a register on a remote target.
  * A visual element in a debugger view can be adapted to this interface -
  * if the element represents a register.
- * 
+ *
  * @noimplement
  */
 public interface ITCFRegister extends ITCFObject {

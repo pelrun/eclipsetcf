@@ -15,7 +15,7 @@ import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.util.TCFDataCache;
 
 /**
- * 
+ *
  * @noimplement
  */
 public interface ITCFExecContext extends ITCFObject {

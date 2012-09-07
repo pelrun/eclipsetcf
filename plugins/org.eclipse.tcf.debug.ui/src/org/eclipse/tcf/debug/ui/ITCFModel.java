@@ -19,7 +19,7 @@ import org.eclipse.tcf.protocol.IChannel;
  * The main job of the model is caching remote data,
  * keeping the cache in a coherent state,
  * and feeding UI with up-to-date data.
- * 
+ *
  * @noimplement
  */
 public interface ITCFModel {
