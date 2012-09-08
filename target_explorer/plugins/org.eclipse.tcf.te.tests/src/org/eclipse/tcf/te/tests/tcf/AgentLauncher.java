@@ -79,7 +79,7 @@ public class AgentLauncher extends ProcessLauncher implements IDisposable {
 		process = Runtime.getRuntime().exec(new String[] { cmd, "-S" }, null, dir.toFile()); //$NON-NLS-1$
 
 		// Launch the process output reader
-		outputReader = new ProcessOutputReaderThread(null, new InputStream[] { process.getInputStream() });
+		outputReader = new ProcessOutputReaderThread(path.lastSegment(), new InputStream[] { process.getInputStream() });
 		outputReader.start();
 	}
 

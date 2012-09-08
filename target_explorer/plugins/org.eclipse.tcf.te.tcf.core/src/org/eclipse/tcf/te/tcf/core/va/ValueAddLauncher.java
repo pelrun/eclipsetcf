@@ -141,7 +141,7 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 		process = Runtime.getRuntime().exec(command.toArray(new String[command.size()]), null, dir.toFile());
 
 		// Launch the process output reader
-		outputReader = new ProcessOutputReaderThread(null, new InputStream[] { process.getInputStream() });
+		outputReader = new ProcessOutputReaderThread(path.lastSegment(), new InputStream[] { process.getInputStream() });
 		outputReader.start();
 	}
 
