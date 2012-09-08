@@ -58,6 +58,8 @@ public class DebugService extends AbstractService implements IDebugService {
 	}
 
 	protected void internalAttach(final Object context, final IPropertiesContainer data, final ICallback callback) {
+		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		Assert.isNotNull(context);
 		Assert.isNotNull(data);
 		Assert.isNotNull(callback);
