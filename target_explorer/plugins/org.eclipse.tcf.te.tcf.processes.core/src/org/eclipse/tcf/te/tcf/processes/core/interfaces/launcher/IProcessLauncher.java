@@ -103,6 +103,10 @@ public interface IProcessLauncher extends IAdaptable {
 	/**
 	 * Launch a remote process defined by the given launch properties at the target specified by the
 	 * given peer.
+	 * <p>
+	 * <b>Note:</b> If the target is supporting the extended process service (IProcessesV1), than the
+	 * <code>IProcessesV1.START_*</code> launch parameter will passed on to the extended process service
+	 * launch command if and as set in <code>params</code>.
 	 *
 	 * @param peer The peer. Must not be <code>null</code>.
 	 * @param params The remote process properties. Must not be <code>null</code>.

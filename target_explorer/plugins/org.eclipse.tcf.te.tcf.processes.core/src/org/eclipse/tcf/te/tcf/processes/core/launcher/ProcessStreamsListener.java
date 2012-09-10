@@ -765,8 +765,8 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 	 */
 	@Override
     public void created(String streamType, String streamId, String contextId) {
-		// We ignore any other stream type than IProcesses.NAME
-		if (!IProcesses.NAME.equals(streamType)) return;
+		// We ignore any other stream type than the associated process service name
+		if (!svcProcessesName.equals(streamType)) return;
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("New remote process stream created: streamId='" + streamId + "', contextId='" + contextId + "'", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -836,8 +836,8 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 	 */
 	@Override
     public void disposed(String streamType, String streamId) {
-		// We ignore any other stream type than IProcesses.NAME
-		if (!IProcesses.NAME.equals(streamType)) return;
+		// We ignore any other stream type than the associated process service name
+		if (!svcProcessesName.equals(streamType)) return;
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("Remote process stream disposed: streamId='" + streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$

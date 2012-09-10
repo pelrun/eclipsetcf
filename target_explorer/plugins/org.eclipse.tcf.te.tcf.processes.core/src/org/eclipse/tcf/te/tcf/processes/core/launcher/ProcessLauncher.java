@@ -410,7 +410,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 				// Get the process and streams services. Try the V1 processes service first
 				// before falling back to the standard processes service.
-//				svcProcesses = channel.getRemoteService(IProcessesV1.class);
+				svcProcesses = channel.getRemoteService(IProcessesV1.class);
 				if (svcProcesses == null) svcProcesses = channel.getRemoteService(IProcesses.class);
 				if (svcProcesses == null) {
 					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
