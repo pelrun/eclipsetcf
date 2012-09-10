@@ -25,6 +25,7 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
@@ -47,6 +48,8 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 	/* default */ IChannel channel;
 	// The streams service instance
 	/* default */ IStreams svcStreams;
+	// The processes service name
+	/* default */ String svcProcessesName;
 	// The remote process context
 	private IProcesses.ProcessContext context;
 	// The list of registered stream data receivers
@@ -624,6 +627,7 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 		Assert.isNotNull(parent);
 		this.channel = parent.getChannel();
 		this.svcStreams = parent.getSvcStreams();
+		this.svcProcessesName = parent.getSvcProcesses() instanceof IProcessesV1 ? IProcessesV1.NAME : IProcesses.NAME;
 	}
 
 	/**
@@ -651,7 +655,7 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 			protected void internalDone(final Object caller, final IStatus status) {
 				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 				// Unsubscribe the streams listener from the service
-				svcStreams.unsubscribe(IProcesses.NAME, finStreamsListener, new IStreams.DoneUnsubscribe() {
+				svcStreams.unsubscribe(svcProcessesName, finStreamsListener, new IStreams.DoneUnsubscribe() {
 					@Override
                     public void doneUnsubscribe(IToken token, Exception error) {
 						// Loop all registered listeners and close them

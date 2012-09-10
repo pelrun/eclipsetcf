@@ -42,6 +42,7 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
+import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
@@ -407,8 +408,10 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					return;
 				}
 
-				// Get the process and streams services
-				svcProcesses = channel.getRemoteService(IProcesses.class);
+				// Get the process and streams services. Try the V1 processes service first
+				// before falling back to the standard processes service.
+//				svcProcesses = channel.getRemoteService(IProcessesV1.class);
+				if (svcProcesses == null) svcProcesses = channel.getRemoteService(IProcesses.class);
 				if (svcProcesses == null) {
 					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
 									NLS.bind(Messages.ProcessLauncher_error_missingRequiredService, IProcesses.class.getName()),
@@ -455,7 +458,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			streamsListener = createStreamsListener();
 			// If available, we need to subscribe to the streams.
 			if (streamsListener != null) {
-				getSvcStreams().subscribe(IProcesses.NAME, streamsListener, new IStreams.DoneSubscribe() {
+				getSvcStreams().subscribe(getSvcProcesses() instanceof IProcessesV1 ? IProcessesV1.NAME : IProcesses.NAME, streamsListener, new IStreams.DoneSubscribe() {
 					@Override
 					public void doneSubscribe(IToken token, Exception error) {
 						// In case the subscribe to the stream fails, we pass on
@@ -810,26 +813,58 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		boolean attach = properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ATTACH);
 
 		// Launch the remote process
-		getSvcProcesses().start(processCWD, processPath, processArgs, processEnv, attach, new IProcesses.DoneStart() {
-			@Override
-			public void doneStart(IToken token, Exception error, ProcessContext process) {
-				if (error != null) {
-					// Construct the error message to show to the user
-					String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
-									properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH),
-									makeString((String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS)));
-					message += NLS.bind(Messages.ProcessLauncher_error_possibleCause,
-									error.getLocalizedMessage() != null ? error.getLocalizedMessage() : Messages.ProcessLauncher_cause_startFailed);
+		if (getSvcProcesses() instanceof IProcessesV1) {
+			// Fill in the process launch parameter
+            Map<String, Object> params = new HashMap<String, Object>();
 
-					// Construct the status object
-					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, error);
-					invokeCallback(status, null);
-				} else {
-					// Register the process context to the listener
-					onProcessLaunchDone(process);
+            params.put(IProcessesV1.START_ATTACH, Boolean.valueOf(attach));
+            params.put(IProcessesV1.START_ATTACH_CHILDREN, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_ATTACH_CHILDREN)));
+            params.put(IProcessesV1.START_STOP_AT_ENTRY, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_STOP_AT_ENTRY)));
+            params.put(IProcessesV1.START_STOP_AT_MAIN, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_STOP_AT_MAIN)));
+            params.put(IProcessesV1.START_USE_TERMINAL, Boolean.TRUE);
+
+            ((IProcessesV1)getSvcProcesses()).start(processCWD, processPath, processArgs, processEnv, params, new IProcesses.DoneStart() {
+				@Override
+				public void doneStart(IToken token, Exception error, ProcessContext process) {
+					if (error != null) {
+						// Construct the error message to show to the user
+						String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
+												  properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH),
+												  makeString((String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS)));
+						message += NLS.bind(Messages.ProcessLauncher_error_possibleCause,
+										error.getLocalizedMessage() != null ? error.getLocalizedMessage() : Messages.ProcessLauncher_cause_startFailed);
+
+						// Construct the status object
+						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, error);
+						invokeCallback(status, null);
+					} else {
+						// Register the process context to the listener
+						onProcessLaunchDone(process);
+					}
 				}
-			}
-		});
+			});
+		} else {
+			getSvcProcesses().start(processCWD, processPath, processArgs, processEnv, attach, new IProcesses.DoneStart() {
+				@Override
+				public void doneStart(IToken token, Exception error, ProcessContext process) {
+					if (error != null) {
+						// Construct the error message to show to the user
+						String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
+												  properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH),
+												  makeString((String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS)));
+						message += NLS.bind(Messages.ProcessLauncher_error_possibleCause,
+										error.getLocalizedMessage() != null ? error.getLocalizedMessage() : Messages.ProcessLauncher_cause_startFailed);
+
+						// Construct the status object
+						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, error);
+						invokeCallback(status, null);
+					} else {
+						// Register the process context to the listener
+						onProcessLaunchDone(process);
+					}
+				}
+			});
+		}
 	}
 
 	/**
