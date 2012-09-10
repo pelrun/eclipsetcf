@@ -23,6 +23,7 @@ import org.eclipse.debug.core.ILaunchConfigurationListener;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.core.TransientPeer;
+import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.launch.core.lm.delegates.DefaultLaunchManagerDelegate;
@@ -68,6 +69,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 		super.updateLaunchConfigAttributes(wc, launchSpec);
 
 		wc.setAttribute(IAttachLaunchAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		wc.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
 		copySpecToConfig(launchSpec, wc);
 
 		wc.rename(getDefaultLaunchName(wc));
@@ -81,6 +83,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 		super.initLaunchConfigAttributes(wc, launchSpec);
 
 		wc.setAttribute(IAttachLaunchAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		wc.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
 		copySpecToConfig(launchSpec, wc);
 
 		wc.rename(getDefaultLaunchName(wc));
