@@ -598,8 +598,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                                         public void doneGetContext(IToken token, Exception error, ISymbols.Symbol context) {
                                             BigInteger nextAddress = null;
                                             if (error == null && context != null) {
-                                                if (context.getTypeClass().equals(ISymbols.TypeClass.function) && 
-                                                    context.getAddress() != null && context.getSize() >= 0) 
+                                                if (context.getTypeClass().equals(ISymbols.TypeClass.function) &&
+                                                    context.getAddress() != null && context.getSize() >= 0)
                                                 {
                                                     symbolList.add(context);
                                                     nextAddress = JSON.toBigInteger(context.getAddress()).add(BigInteger.valueOf(context.getSize()));
