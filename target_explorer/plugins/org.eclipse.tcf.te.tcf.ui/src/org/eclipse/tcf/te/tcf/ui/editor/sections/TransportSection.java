@@ -238,6 +238,8 @@ public class TransportSection extends AbstractSection {
 			}
 		}
 
+		// Re-evaluate the dirty state
+		dataChanged(null);
 		// Adjust the control enablement
 		updateEnablement();
 	}

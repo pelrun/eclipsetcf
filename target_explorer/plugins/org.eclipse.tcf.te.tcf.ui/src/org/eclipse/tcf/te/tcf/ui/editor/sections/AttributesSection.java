@@ -227,6 +227,8 @@ public class AttributesSection extends AbstractSection {
 			tablePart.setAttributes(attributes);
 		}
 
+		// Re-evaluate the dirty state
+		dataChanged(null);
 		// Adjust the control enablement
 		updateEnablement();
 	}
