@@ -29,6 +29,12 @@ public interface ImageConsts {
     public final static String  IMAGE_DIR_EVIEW = "eview16/"; //$NON-NLS-1$
 
     /**
+     * The directory where to load disabled toolbar images from,
+     * relative to the image root directory.
+     */
+    public final static String  IMAGE_DIR_DTOOL = "dtool16/"; //$NON-NLS-1$
+
+    /**
      * The directory where to load enabled toolbar images from,
      * relative to the image root directory.
      */
@@ -61,4 +67,14 @@ public interface ImageConsts {
      * The key to access the favorites category image.
      */
     public static final String FAVORITES = "Favorites"; //$NON-NLS-1$
+
+    /**
+     * The key to access the apply image (disabled).
+     */
+    public static final String APPLY_DISABLED = "Apply.Disabled"; //$NON-NLS-1$
+
+    /**
+     * The key to access the apply image (enabled).
+     */
+    public static final String APPLY_ENABLED = "Apply.Enabled"; //$NON-NLS-1$
 }

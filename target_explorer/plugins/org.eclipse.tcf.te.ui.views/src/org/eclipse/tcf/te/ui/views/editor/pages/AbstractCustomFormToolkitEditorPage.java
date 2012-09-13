@@ -14,6 +14,7 @@ import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
@@ -23,13 +24,21 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
+import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.ISources;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
@@ -48,35 +57,40 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	// Reference to the toolbar manager to release menu contributions for
 	private IToolBarManager manager = null;
 
+	// Reference to the "Apply" button
+	/* default */ Button applyButton;
+	// Reference to the dirty state listener
+	private IPropertyListener dirtyListener = null;
+
 	// The default help action class definition
 	static protected class HelpAction extends Action {
 		/* default */ final String helpID;
 
 		/**
-         * Constructor.
-         *
-         * @param helpID The context help id. Must not be <code>null</code>.
-         */
-        public HelpAction(String helpID) {
-        	super(Messages.AbstractCustomFormToolkitEditorPage_HelpAction_label, IAction.AS_PUSH_BUTTON);
-        	Assert.isNotNull(helpID);
-        	this.helpID = helpID;
-        	setToolTipText(Messages.AbstractCustomFormToolkitEditorPage_HelpAction_tooltip);
-        	setImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.HELP));
-        }
+		 * Constructor.
+		 *
+		 * @param helpID The context help id. Must not be <code>null</code>.
+		 */
+		public HelpAction(String helpID) {
+			super(Messages.AbstractCustomFormToolkitEditorPage_HelpAction_label, IAction.AS_PUSH_BUTTON);
+			Assert.isNotNull(helpID);
+			this.helpID = helpID;
+			setToolTipText(Messages.AbstractCustomFormToolkitEditorPage_HelpAction_tooltip);
+			setImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.HELP));
+		}
 
-        /* (non-Javadoc)
-         * @see org.eclipse.jface.action.Action#run()
-         */
-        @Override
-        public void run() {
-        	PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-        		@Override
-        		public void run() {
-        			PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpID);
-        		}
-        	});
-        }
+		/* (non-Javadoc)
+		 * @see org.eclipse.jface.action.Action#run()
+		 */
+		@Override
+		public void run() {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpID);
+				}
+			});
+		}
 	}
 
 	// The default "Show In System Management" view action
@@ -84,51 +98,51 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		private final AbstractCustomFormToolkitEditorPage parentPage;
 
 		/**
-         * Constructor.
-         */
-        public ShowInSystemManagementAction(AbstractCustomFormToolkitEditorPage parentPage) {
-        	super(Messages.AbstractCustomFormToolkitEditorPage_ShowInSystemManagementCommandAction_label, IAction.AS_PUSH_BUTTON);
-        	setToolTipText(Messages.AbstractCustomFormToolkitEditorPage_ShowInSystemManagementCommandAction_tooltip);
-        	setImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.VIEW));
+		 * Constructor.
+		 */
+		public ShowInSystemManagementAction(AbstractCustomFormToolkitEditorPage parentPage) {
+			super(Messages.AbstractCustomFormToolkitEditorPage_ShowInSystemManagementCommandAction_label, IAction.AS_PUSH_BUTTON);
+			setToolTipText(Messages.AbstractCustomFormToolkitEditorPage_ShowInSystemManagementCommandAction_tooltip);
+			setImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.VIEW));
 
-        	Assert.isNotNull(parentPage);
-        	this.parentPage = parentPage;
-        }
+			Assert.isNotNull(parentPage);
+			this.parentPage = parentPage;
+		}
 
-        /* (non-Javadoc)
-         * @see org.eclipse.jface.action.Action#run()
-         */
-        @Override
-        public void run() {
-    		ICommandService service = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
-    		Command command = service != null ? service.getCommand("org.eclipse.tcf.te.ui.command.showIn.systemManagement") : null; //$NON-NLS-1$
-    		if (command != null && command.isDefined() && command.isEnabled()) {
-    			try {
-    				ISelection selection = new StructuredSelection(parentPage.getEditorInputNode());
-    				EvaluationContext ctx = new EvaluationContext(null, selection);
-    				ctx.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
-    				ctx.addVariable(ISources.ACTIVE_MENU_SELECTION_NAME, selection);
-    				ctx.addVariable(ISources.ACTIVE_WORKBENCH_WINDOW_NAME, parentPage.getSite().getWorkbenchWindow());
-    				ctx.addVariable(ISources.ACTIVE_PART_ID_NAME, parentPage.getSite().getId());
-    				ctx.addVariable(ISources.ACTIVE_PART_NAME, parentPage.getSite().getPart());
-    				ctx.addVariable(ISources.ACTIVE_SITE_NAME, parentPage.getSite());
-    				ctx.addVariable(ISources.ACTIVE_SHELL_NAME, parentPage.getSite().getShell());
-    				ctx.setAllowPluginActivation(true);
+		/* (non-Javadoc)
+		 * @see org.eclipse.jface.action.Action#run()
+		 */
+		@Override
+		public void run() {
+			ICommandService service = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
+			Command command = service != null ? service.getCommand("org.eclipse.tcf.te.ui.command.showIn.systemManagement") : null; //$NON-NLS-1$
+			if (command != null && command.isDefined() && command.isEnabled()) {
+				try {
+					ISelection selection = new StructuredSelection(parentPage.getEditorInputNode());
+					EvaluationContext ctx = new EvaluationContext(null, selection);
+					ctx.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
+					ctx.addVariable(ISources.ACTIVE_MENU_SELECTION_NAME, selection);
+					ctx.addVariable(ISources.ACTIVE_WORKBENCH_WINDOW_NAME, parentPage.getSite().getWorkbenchWindow());
+					ctx.addVariable(ISources.ACTIVE_PART_ID_NAME, parentPage.getSite().getId());
+					ctx.addVariable(ISources.ACTIVE_PART_NAME, parentPage.getSite().getPart());
+					ctx.addVariable(ISources.ACTIVE_SITE_NAME, parentPage.getSite());
+					ctx.addVariable(ISources.ACTIVE_SHELL_NAME, parentPage.getSite().getShell());
+					ctx.setAllowPluginActivation(true);
 
-    				ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
-    				Assert.isNotNull(pCmd);
-    				IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
-    				Assert.isNotNull(handlerSvc);
-    				handlerSvc.executeCommandInContext(pCmd, null, ctx);
-    			} catch (Exception e) {
-    				// If the platform is in debug mode, we print the exception to the log view
-    				if (Platform.inDebugMode()) {
-    					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), e.getLocalizedMessage(), e);
-    					UIPlugin.getDefault().getLog().log(status);
-    				}
-    			}
-    		}
-        }
+					ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
+					Assert.isNotNull(pCmd);
+					IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+					Assert.isNotNull(handlerSvc);
+					handlerSvc.executeCommandInContext(pCmd, null, ctx);
+				} catch (Exception e) {
+					// If the platform is in debug mode, we print the exception to the log view
+					if (Platform.inDebugMode()) {
+						IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), e.getLocalizedMessage(), e);
+						UIPlugin.getDefault().getLog().log(status);
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -154,6 +168,9 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 */
 	@Override
 	public void dispose() {
+		// Dispose the dirty state listener
+		if (dirtyListener != null) { getEditor().removePropertyListener(dirtyListener); dirtyListener = null; }
+
 		// Get the menu service and release the toolbar manager
 		if (manager instanceof ContributionManager) {
 			IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
@@ -184,6 +201,38 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 
 		// Do create the content of the form now
 		doCreateFormContent(managedForm.getForm().getBody(), getFormToolkit());
+
+		if (hasApplyButton()) {
+			applyButton = new Button(managedForm.getForm().getBody(), SWT.PUSH);
+			applyButton.setText(Messages.AbstractCustomFormToolkitEditorPage_ApplyAction_label);
+			applyButton.setImage(UIPlugin.getImage(ImageConsts.APPLY_ENABLED));
+			applyButton.setBackground(managedForm.getForm().getBackground());
+
+			GridData layoutData = new GridData(SWT.END, SWT.END, false, false);
+			layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(applyButton, 15);
+			applyButton.setLayoutData(layoutData);
+
+			applyButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					if (isDirty()) {
+						doSave(new NullProgressMonitor());
+					}
+				}
+			});
+
+			dirtyListener = new IPropertyListener() {
+				@Override
+				public void propertyChanged(Object source, int propId) {
+					if (propId == IEditorPart.PROP_DIRTY) {
+						boolean dirty = getEditor().isDirty();
+						applyButton.setEnabled(dirty);
+					}
+				}
+			};
+			getEditor().addPropertyListener(dirtyListener);
+			applyButton.setEnabled(getEditor().isDirty());
+		}
 
 		// Re-arrange the controls
 		managedForm.reflow(true);
@@ -300,11 +349,22 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	}
 
 	/**
+	 * Returns if or of not the page has an apply button on the right bottom corner.
+	 * <p>
+	 * <b>Note:</b> The default return by this method is <code>false</code>.
+	 *
+	 * @return <code>true</code> if there should be an apply button.
+	 */
+	protected boolean hasApplyButton() {
+		return false;
+	}
+
+	/**
 	 * Creates the "Show In System Management" action.
 	 *
 	 * @return The action or <code>null</code>.
 	 */
-    protected Action doCreateShowInSystemManagementAction() {
+	protected Action doCreateShowInSystemManagementAction() {
 		return new ShowInSystemManagementAction(this);
 	}
 
