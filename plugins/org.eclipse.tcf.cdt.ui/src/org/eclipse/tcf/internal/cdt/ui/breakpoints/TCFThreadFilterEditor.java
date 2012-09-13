@@ -502,7 +502,7 @@ public class TCFThreadFilterEditor {
             if ( expresionList != null ) {
                 int index;
                 // Find if there is a null entry.
-                for(index = 0; index < expresionList.length; index++) {
+                for (index = 0; index < expresionList.length; index++) {
                     String member = expresionList[index];
                     if (member == null || member.length() == 0) {
                         break;
@@ -677,9 +677,7 @@ public class TCFThreadFilterEditor {
      */
     protected void setInitialCheckedState() {
         TCFBreakpointScopeExtension filterExtension = fPage.getFilterExtension();
-        if (filterExtension == null) {
-            return;
-        }
+        if (filterExtension == null) return;
         String[] ctxIds = filterExtension.getThreadFilters();
 
         // expand all to realize tree items
@@ -690,14 +688,16 @@ public class TCFThreadFilterEditor {
             for (ILaunch launch : launches) {
                 fCheckHandler.checkLaunch(launch, true);
             }
-        } else if (ctxIds.length != 0) {
+        }
+        else if (ctxIds.length != 0) {
             for (int i = 0; i < ctxIds.length; i++) {
                 String id = ctxIds[i];
                 Context ctx = getContext(id);
                 if (ctx != null) {
                     fCheckHandler.checkContext(ctx, true);
                     fCheckHandler.updateParentCheckState(ctx);
-                } else if (id.indexOf('/') < 0) {
+                }
+                else if (id.indexOf('/') < 0) {
                     for (Context context : fContexts) {
                         if (id.equals(context.fId)) {
                             fCheckHandler.checkContext(context, true);
@@ -729,7 +729,7 @@ public class TCFThreadFilterEditor {
         if (list == null) {
             list = new String[20];
         }
-        for(int i=0; i < list.length; i++) {
+        for (int i = 0; i < list.length; i++) {
             String member = list[i];
             if (member != null && member.equals(scopedExpression)) {
                 return;
@@ -747,7 +747,7 @@ public class TCFThreadFilterEditor {
     }
 
     protected void doStore() {
-        IDialogSettings settings= getDialogSettings(true);
+        IDialogSettings settings = getDialogSettings(true);
         String scopedExpression = getScopeExpression();
         if (scopedExpression.length() != 0)
             updateExpressionsDialogSettings(settings, scopedExpression);
@@ -757,7 +757,7 @@ public class TCFThreadFilterEditor {
 
         CheckboxTreeViewer viewer = getThreadViewer();
         Object[] elements = viewer.getCheckedElements();
-        String[] threadIds;
+        String[] threadIds = null;
         List<String> checkedIds = new ArrayList<String>();
         for (int i = 0; i < elements.length; ++i) {
             if (elements[i] instanceof Context) {
@@ -767,14 +767,9 @@ public class TCFThreadFilterEditor {
                 }
             }
         }
-        if (checkedIds.size() == fContexts.size()) {
-            threadIds = null;
-        }
-        else {
+        if (checkedIds.size() != fContexts.size()) {
             threadIds = checkedIds.toArray(new String[checkedIds.size()]);
         }
-        filterExtension = fPage.getFilterExtension();
-        if (filterExtension == null) return;
         filterExtension.setThreadFilter(threadIds);
     }
 
