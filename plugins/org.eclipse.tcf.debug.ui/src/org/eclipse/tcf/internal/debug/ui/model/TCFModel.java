@@ -40,7 +40,6 @@ import org.eclipse.debug.core.model.IMemoryBlockRetrievalExtension;
 import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupDirector;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
-import org.eclipse.debug.internal.ui.viewers.model.provisional.ITreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IColumnPresentation;
@@ -58,6 +57,7 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelProxyFactor
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelSelectionPolicy;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelSelectionPolicyFactory;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.ITreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputUpdate;
 import org.eclipse.debug.ui.DebugUITools;
@@ -86,8 +86,8 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.debug.ui.ITCFModel;
-import org.eclipse.tcf.debug.ui.ITCFSourceDisplay;
 import org.eclipse.tcf.debug.ui.ITCFPresentationProvider;
+import org.eclipse.tcf.debug.ui.ITCFSourceDisplay;
 import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupParticipant;
@@ -294,8 +294,6 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private final Map<String,String> cast_to_type_map = new HashMap<String,String>();
 
     private final Map<String,Object> context_map = new HashMap<String,Object>();
-
-    private final Set<String> expanded_nodes = new HashSet<String>();
 
     private final Map<IWorkbenchPart,TCFNode> pins = new HashMap<IWorkbenchPart,TCFNode>();
     private final Map<IWorkbenchPart,TCFSnapshot> locks = new HashMap<IWorkbenchPart,TCFSnapshot>();
@@ -914,7 +912,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             action_results.remove(id);
             Object o = context_map.remove(id);
             if (o instanceof CreateNodeRunnable) ((CreateNodeRunnable)o).onContextRemoved();
-            expanded_nodes.remove(id);
+            for (TCFModelProxy proxy : model_proxies.values()) {
+                proxy.clearAutoExpandStack(id);
+            }
             if (mem_blocks_update != null) mem_blocks_update.changeset.remove(id);
         }
 
@@ -1529,14 +1529,16 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         if (node.isDisposed()) return;
         runSuspendTrigger(node);
         if (reason == null) return;
-        if (reason.equals(IRunControl.REASON_USER_REQUEST)) return;
         for (TCFModelProxy proxy : model_proxies.values()) {
             if (proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) {
+                boolean user_request =
+                    reason.equals(IRunControl.REASON_USER_REQUEST) ||
+                    reason.equals(IRunControl.REASON_STEP) ||
+                    reason.equals(IRunControl.REASON_CONTAINER) ||
+                    delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
+                if (proxy.getAutoExpandNode(node.id, user_request)) proxy.expand(node);
+                if (reason.equals(IRunControl.REASON_USER_REQUEST)) continue;
                 proxy.setSelection(node);
-                if (reason.equals(IRunControl.REASON_STEP)) continue;
-                if (reason.equals(IRunControl.REASON_CONTAINER)) continue;
-                if (delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0) continue;
-                if (expanded_nodes.add(node.id)) proxy.expand(node);
             }
             if (reason.equals(IRunControl.REASON_BREAKPOINT)) {
                 IWorkbenchPart part = proxy.getPresentationContext().getPart();

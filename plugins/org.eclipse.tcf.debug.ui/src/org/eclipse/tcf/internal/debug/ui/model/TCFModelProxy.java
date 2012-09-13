@@ -11,16 +11,17 @@
 package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.debug.internal.ui.viewers.model.InternalTreeModelViewer;
-import org.eclipse.debug.internal.ui.viewers.model.InternalVirtualTreeModelViewer;
+import org.eclipse.debug.internal.ui.viewers.model.IInternalTreeModelViewer;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelDelta;
@@ -32,7 +33,10 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerUpdateList
 import org.eclipse.debug.internal.ui.viewers.model.provisional.ModelDelta;
 import org.eclipse.debug.internal.ui.viewers.provisional.AbstractModelProxy;
 import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.jface.viewers.ITreeViewerListener;
+import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
@@ -44,10 +48,10 @@ import org.eclipse.tcf.protocol.Protocol;
  * Model proxy listeners are debuggers views.
  */
 @SuppressWarnings("restriction")
-public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Runnable {
+public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Runnable, ITreeViewerListener {
 
     private static final TCFNode[] EMPTY_NODE_ARRAY = new TCFNode[0];
-
+    private static boolean is_linux = "Linux".equals(System.getProperty("os.name"));
     private final TCFModel model;
     private final TCFLaunch launch;
     private final Display display;
@@ -57,6 +61,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     private final Set<ModelDelta> content_deltas = new HashSet<ModelDelta>();
     private final LinkedList<TCFNode> selection = new LinkedList<TCFNode>();
     private final Set<String> auto_expand_set = new HashSet<String>();
+    private Map<String, Boolean> expanded_nodes = Collections.synchronizedMap(new TreeMap<String, Boolean>());
 
     private ITreeModelViewer viewer;
     private boolean posted;
@@ -200,8 +205,11 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         super.initialize(viewer);
         enable_auto_expand =
                 IDebugUIConstants.ID_DEBUG_VIEW.equals(getPresentationContext().getId()) &&
-                viewer instanceof InternalTreeModelViewer;
+                viewer instanceof IInternalTreeModelViewer;
         viewer.addViewerUpdateListener(update_listener);
+        if (is_linux && viewer instanceof TreeViewer) {
+            ((TreeViewer)viewer).addTreeListener(this);
+        }
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
                 assert !installed;
@@ -226,6 +234,9 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             }
         });
         viewer.removeViewerUpdateListener(update_listener);
+        if (is_linux && viewer instanceof TreeViewer) {
+            ((TreeViewer)viewer).removeTreeListener(this);
+        }
         super.dispose();
     }
 
@@ -278,6 +289,44 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         if (selection.size() > 0 && selection.getLast() == node) return;
         selection.add(node);
         expand(node.getParent(getPresentationContext()));
+    }
+
+    /**
+     * Returns true if node should be be expanded upon the first suspended event.
+     * If the given context ID is seen for the first time, the node should be
+     * expanded unless the event was caused by user request.  In the latter case
+     * the node should not be expanded.
+     * <p>
+     * Note: As a workaround for bug 208939 on Linux, the auto-expansion is
+     * enabled even after the first suspend event.  User collapse/expand actions
+     * are tracked to determine whether a given node should be expanded.
+     * </p>
+     * @param id Id of execution node to check.
+     * @param user_request Flag whether the state is requested in response
+     * to a user-requested suspend event.
+     */
+    boolean getAutoExpandNode(String id, boolean user_request) {
+        Boolean expand = null;
+        synchronized(expanded_nodes) {
+            expand = expanded_nodes.get(id);
+            if (expand == null) {
+                if (user_request) {
+                    expand = Boolean.FALSE;
+                }
+                else {
+                    expand = Boolean.TRUE;
+                    expanded_nodes.put(id, is_linux);
+                }
+            }
+        }
+        return expand;
+    }
+
+    /**
+     * Clear auto-expand info when a node is removed.
+     */
+    void clearAutoExpandStack(String id) {
+        expanded_nodes.remove(id) ;
     }
 
     /**
@@ -438,8 +487,8 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             asyncExec(new Runnable() {
                 public void run() {
                     if (save_expand_state != null && save_expand_state.size() > 0) {
-                        if (viewer instanceof InternalTreeModelViewer) {
-                            InternalTreeModelViewer tree_viwer = (InternalTreeModelViewer)viewer;
+                        if (viewer instanceof IInternalTreeModelViewer) {
+                            IInternalTreeModelViewer tree_viwer = (IInternalTreeModelViewer)viewer;
                             final Set<String> expanded = new HashSet<String>();
                             for (TCFNode node : save_expand_state) {
                                 if (tree_viwer.getExpandedState(node)) expanded.add(node.id);
@@ -471,11 +520,8 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 asyncExec(new Runnable() {
                     boolean found;
                     public void run() {
-                        if (viewer instanceof InternalTreeModelViewer) {
-                            found = ((InternalTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
-                        }
-                        else if (viewer instanceof InternalVirtualTreeModelViewer) {
-                            found = ((InternalVirtualTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
+                        if (viewer instanceof IInternalTreeModelViewer) {
+                            found = ((IInternalTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
                         }
                         Protocol.invokeLater(new Runnable() {
                             public void run() {
@@ -564,6 +610,23 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         postDelta();
         if (!posted && pending_node == null) {
             launch.removePendingClient(this);
+        }
+    }
+
+    @Override
+    public void treeCollapsed(TreeExpansionEvent event) {
+        updateExpandStack(event, false);
+    }
+
+    @Override
+    public void treeExpanded(TreeExpansionEvent event) {
+        updateExpandStack(event, true);
+    }
+
+    private void updateExpandStack(TreeExpansionEvent event, final boolean expand) {
+        if (event.getElement() instanceof TCFNodeExecContext) {
+            TCFNodeExecContext node = (TCFNodeExecContext)event.getElement();
+            if (model == node.getModel()) expanded_nodes.put(node.id, expand);
         }
     }
 }
