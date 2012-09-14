@@ -183,13 +183,14 @@ The value-add implementation class must be specified either by the class attribu
          <meta.section type="apiinfo"/>
       </appinfo>
       <documentation>
-         The provider of a service must implement &lt;samp&gt;org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd&lt;/samp&gt;.
+         The provider of a value-add must implement &lt;samp&gt;org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd&lt;/samp&gt;.
       </documentation>
    </annotation>
 
+
    <annotation>
       <appinfo>
-         <meta.section type="implementation"/>
+         <meta.section type="copyright"/>
       </appinfo>
       <documentation>
          Copyright (c) 2011 Wind River Systems, Inc. and others.
@@ -201,6 +202,5 @@ of the Eclipse Public License v1.0 which accompanies this distribution, and is
 available at http://www.eclipse.org/legal/epl-v10.html.
       </documentation>
    </annotation>
-
 
 </schema>

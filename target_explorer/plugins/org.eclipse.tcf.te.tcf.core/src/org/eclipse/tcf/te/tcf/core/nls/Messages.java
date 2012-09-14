@@ -95,7 +95,11 @@ public class Messages extends NLS {
 	public static String AbstractExternalValueAdd_output;
 
 	public static String ValueAddLauncher_launch_command;
+
 	public static String CallbackMonitor_AllTasksFinished;
 
 	public static String MonitorTask_TimeoutError;
+
+	public static String Extension_error_invalidProtocolStateChangeListener;
+	public static String Extension_error_invalidChannelStateChangeListener;
 }

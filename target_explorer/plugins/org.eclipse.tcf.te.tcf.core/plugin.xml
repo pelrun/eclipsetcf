@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension-point id="listeners" name="%ExtensionPoint.listeners.name" schema="schema/listeners.exsd"/>
    <extension-point id="valueadds" name="%ExtensionPoint.valueadds.name" schema="schema/valueadds.exsd"/>
    <extension-point id="valueaddBindings" name="%ExtensionPoint.valueaddBindings.name" schema="schema/valueaddBindings.exsd"/>
 

@@ -2,6 +2,43 @@
 <?eclipse version="3.4"?>
 <plugin>
 
+<!-- Protocol state change listener contributions -->
+   <extension point="org.eclipse.tcf.te.tcf.core.listeners">
+      <protocolStateChangeListener
+            class="org.eclipse.tcf.te.tcf.locator.listener.ProtocolStateChangeListener"
+            id="org.eclipse.tcf.te.tcf.locator.protocolStateChangeListener">
+      </protocolStateChangeListener>
+   </extension>
+
+<!-- Adapter factory contributions -->
+   <extension point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"
+            class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
+         <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
+      </factory>
+      <factory
+            adaptableType="org.eclipse.tcf.protocol.IPeer"
+            class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
+         <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+      </factory>
+      <factory
+            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider"
+            class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
+         <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
+      </factory>
+   </extension>
+
+<!-- Model node factory delegate contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.model.factoryDelegates">
+      <delegate
+            class="org.eclipse.tcf.te.tcf.locator.internal.ModelNodeFactoryDelegate"
+            id="org.eclipse.tcf.te.tcf.locator.model.factory.delegate">
+         <nodeType class="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+      </delegate>
+   </extension>
+
 <!-- Eclipse core expressions property tester -->
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
@@ -65,26 +102,6 @@
       </binding>
    </extension>
 
-<!-- Adapter factory contributions -->
-   <extension point="org.eclipse.core.runtime.adapters">
-      <factory
-            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"
-            class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
-         <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
-      </factory>
-      <factory
-            adaptableType="org.eclipse.tcf.protocol.IPeer"
-            class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
-         <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
-         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-      </factory>
-      <factory
-            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider"
-            class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
-         <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
-      </factory>
-   </extension>
-   
 <!-- Service contributions -->
    <extension point="org.eclipse.tcf.te.runtime.services.services">
       <service
@@ -97,15 +114,6 @@
             <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
          </enablement>
       </service>
-   </extension>
-
-<!-- Model node factory delegate contributions -->
-   <extension point="org.eclipse.tcf.te.runtime.model.factoryDelegates">
-      <delegate
-            class="org.eclipse.tcf.te.tcf.locator.internal.ModelNodeFactoryDelegate"
-            id="org.eclipse.tcf.te.tcf.locator.model.factory.delegate">
-         <nodeType class="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-      </delegate>
    </extension>
 
 </plugin>

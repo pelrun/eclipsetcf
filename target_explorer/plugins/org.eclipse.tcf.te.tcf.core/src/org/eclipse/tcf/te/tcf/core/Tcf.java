@@ -13,17 +13,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdapterManager;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IExtensionRegistry;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.protocol.Protocol.ChannelOpenListener;
+import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.internal.ChannelManager;
 import org.eclipse.tcf.te.tcf.core.internal.Startup;
 import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IChannelOpenListener;
 import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IChannelStateChangeListener;
 import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IProtocolStateChangeListener;
+import org.eclipse.tcf.te.tcf.core.nls.Messages;
 
 
 /**
@@ -190,6 +200,42 @@ public final class Tcf {
 			tcf.channelOpenListener = new org.eclipse.tcf.te.tcf.core.listeners.ChannelOpenListener();
 			Protocol.addChannelOpenListener(tcf.channelOpenListener);
 		}
+
+		// Create and register listeners contributed via extension point
+        IExtensionRegistry registry = Platform.getExtensionRegistry();
+        IExtensionPoint point = registry.getExtensionPoint("org.eclipse.tcf.te.tcf.core.listeners"); //$NON-NLS-1$
+        if (point != null) {
+            IExtension[] extensions = point.getExtensions();
+            for (IExtension extension : extensions) {
+                IConfigurationElement[] elements = extension.getConfigurationElements();
+                for (IConfigurationElement element : elements) {
+                    if ("protocolStateChangeListener".equals(element.getName())) { //$NON-NLS-1$
+                        try {
+                            // Create the protocol state change listener instance
+                            IProtocolStateChangeListener listener = (IProtocolStateChangeListener)element.createExecutableExtension("class"); //$NON-NLS-1$
+                            if (listener != null) addProtocolStateChangeListener(listener);
+                        } catch (CoreException e) {
+                            IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
+                                                        NLS.bind(Messages.Extension_error_invalidProtocolStateChangeListener, element.getDeclaringExtension().getUniqueIdentifier()),
+                                                        e);
+                            Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
+                        }
+                    }
+                    else if ("channelStateChangeListener".equals(element.getName())) { //$NON-NLS-1$
+                        try {
+                            // Create the channel state change listener instance
+                            IChannelStateChangeListener listener = (IChannelStateChangeListener)element.createExecutableExtension("class"); //$NON-NLS-1$
+                            if (listener != null) addChannelStateChangeListener(listener);
+                        } catch (CoreException e) {
+                            IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
+                                                        NLS.bind(Messages.Extension_error_invalidChannelStateChangeListener, element.getDeclaringExtension().getUniqueIdentifier()),
+                                                        e);
+                            Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
+                        }
+                    }
+                }
+            }
+        }
 
 		// Signal (asynchronously) to interested listeners that we've started up
 		final IProtocolStateChangeListener[] listeners = tcf.protocolStateChangeListeners.toArray(new IProtocolStateChangeListener[tcf.protocolStateChangeListeners.size()]);
