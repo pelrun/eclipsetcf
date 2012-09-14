@@ -14,7 +14,6 @@ import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
@@ -24,21 +23,13 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
-import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.ISources;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
@@ -56,11 +47,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	private CustomFormToolkit toolkit = null;
 	// Reference to the toolbar manager to release menu contributions for
 	private IToolBarManager manager = null;
-
-	// Reference to the "Apply" button
-	/* default */ Button applyButton;
-	// Reference to the dirty state listener
-	private IPropertyListener dirtyListener = null;
 
 	// The default help action class definition
 	static protected class HelpAction extends Action {
@@ -168,9 +154,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 */
 	@Override
 	public void dispose() {
-		// Dispose the dirty state listener
-		if (dirtyListener != null) { getEditor().removePropertyListener(dirtyListener); dirtyListener = null; }
-
 		// Get the menu service and release the toolbar manager
 		if (manager instanceof ContributionManager) {
 			IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
@@ -201,38 +184,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 
 		// Do create the content of the form now
 		doCreateFormContent(managedForm.getForm().getBody(), getFormToolkit());
-
-		if (hasApplyButton()) {
-			applyButton = new Button(managedForm.getForm().getBody(), SWT.PUSH);
-			applyButton.setText(Messages.AbstractCustomFormToolkitEditorPage_ApplyAction_label);
-			applyButton.setImage(UIPlugin.getImage(ImageConsts.APPLY_ENABLED));
-			applyButton.setBackground(managedForm.getForm().getBackground());
-
-			GridData layoutData = new GridData(SWT.END, SWT.END, false, false);
-			layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(applyButton, 15);
-			applyButton.setLayoutData(layoutData);
-
-			applyButton.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					if (isDirty()) {
-						doSave(new NullProgressMonitor());
-					}
-				}
-			});
-
-			dirtyListener = new IPropertyListener() {
-				@Override
-				public void propertyChanged(Object source, int propId) {
-					if (propId == IEditorPart.PROP_DIRTY) {
-						boolean dirty = getEditor().isDirty();
-						applyButton.setEnabled(dirty);
-					}
-				}
-			};
-			getEditor().addPropertyListener(dirtyListener);
-			applyButton.setEnabled(getEditor().isDirty());
-		}
 
 		// Re-arrange the controls
 		managedForm.reflow(true);
@@ -345,17 +296,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 * @return <code>True</code> if the action is visible in the form toolbar, <code>false</code> otherwise.
 	 */
 	protected boolean hasShowInSystemMangementAction() {
-		return false;
-	}
-
-	/**
-	 * Returns if or of not the page has an apply button on the right bottom corner.
-	 * <p>
-	 * <b>Note:</b> The default return by this method is <code>false</code>.
-	 *
-	 * @return <code>true</code> if there should be an apply button.
-	 */
-	protected boolean hasApplyButton() {
 		return false;
 	}
 
