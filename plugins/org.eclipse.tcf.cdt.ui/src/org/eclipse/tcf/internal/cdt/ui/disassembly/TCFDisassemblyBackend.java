@@ -161,7 +161,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
         public void contextResumed(String context) {
             if (fExecContext.getID().equals(context)) {
-                fCallback.handleTargetResumed();
+                handleContextResumed();
             }
         }
 
@@ -185,7 +185,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             String id = fExecContext.getID();
             for (String contextId : context_ids) {
                 if (id.equals(contextId)) {
-                    fCallback.handleTargetResumed();
+                    handleContextResumed();
                     return;
                 }
             }
@@ -196,6 +196,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     private IDisassemblyPartCallback fCallback;
+    private volatile boolean fSuspended;
     private volatile TCFNodeExecContext fExecContext;
     private volatile TCFNodeExecContext fMemoryContext;
     private volatile TCFNodeStackFrame fActiveFrame;
@@ -234,32 +235,14 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         return fExecContext != null;
     }
 
-    public SetDebugContextResult setDebugContext(IAdaptable context) {
-        TCFNodeStackFrame frame = null;
+    public SetDebugContextResult setDebugContext(final IAdaptable context) {
         TCFNodeExecContext thread = null;
         SetDebugContextResult result = new SetDebugContextResult();
         if (context instanceof TCFNodeExecContext) {
             thread = (TCFNodeExecContext)context;
-            IChannel channel = thread.getChannel();
-            try {
-                final TCFNodeExecContext ctx = thread;
-                frame = new TCFTask<TCFNodeStackFrame>(channel) {
-                    public void run() {
-                        TCFChildrenStackTrace stack = ctx.getStackTrace();
-                        if (!stack.validate(this)) return;
-                        done(stack.getTopFrame());
-                    }
-                }.getE();
-            }
-            catch (Error x) {
-                if (channel.getState() == IChannel.STATE_OPEN) throw x;
-                frame = null;
-            }
-            if (frame == null) thread = null;
         }
         else if (context instanceof TCFNodeStackFrame) {
-            frame = (TCFNodeStackFrame)context;
-            thread = (TCFNodeExecContext)frame.getParent();
+            thread = (TCFNodeExecContext)((TCFNodeStackFrame)context).getParent();
         }
 
         if (fExecContext != thread) {
@@ -267,22 +250,41 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             fSuspendCount++;
             if (fExecContext != null) removeListeners(fExecContext);
             fExecContext = thread;
-            if (thread != null) addListeners(thread);
+            if (fExecContext != null) addListeners(fExecContext);
         }
+
+        fSuspended = false;
+        fMemoryContext = null;
+        fActiveFrame = null;
         if (fExecContext != null) {
-            fMemoryContext = new TCFTask<TCFNodeExecContext>(fExecContext.getChannel()) {
-                public void run() {
-                    TCFDataCache<TCFNodeExecContext> cache = fExecContext.getMemoryNode();
-                    if (!cache.validate(this)) return;
-                    done(cache.getData());
-                }
-            }.getE();
+            IChannel channel = thread.getChannel();
+            try {
+                 new TCFTask<Object>(fExecContext.getChannel()) {
+                    public void run() {
+                        TCFDataCache<TCFNodeExecContext> mem_cache = fExecContext.getMemoryNode();
+                        if (!mem_cache.validate(this)) return;
+                        TCFDataCache<TCFContextState> state_cache = fExecContext.getState();
+                        if (!state_cache.validate(this)) return;
+                        if (context instanceof TCFNodeExecContext) {
+                            TCFChildrenStackTrace stack = ((TCFNodeExecContext)context).getStackTrace();
+                            if (!stack.validate(this)) return;
+                            fActiveFrame = stack.getTopFrame();
+                        }
+                        else if (context instanceof TCFNodeStackFrame) {
+                            fActiveFrame = (TCFNodeStackFrame)context;
+                        }
+                        TCFContextState state_data = state_cache.getData();
+                        fSuspended = state_data != null && state_data.is_suspended;
+                        fMemoryContext = mem_cache.getData();
+                        done(null);
+                    }
+                }.getE();
+            }
+            catch (Error x) {
+                if (channel.getState() == IChannel.STATE_OPEN) throw x;
+            }
         }
-        else {
-            fMemoryContext = null;
-        }
-        fActiveFrame = frame;
-        result.sessionId = thread != null ? thread.getID() : null;
+        result.sessionId = fExecContext != null ? fExecContext.getID() : null;
 
         if (!result.contextChanged && fActiveFrame != null) {
             fCallback.asyncExec(new Runnable() {
@@ -323,15 +325,23 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
     private void handleContextSuspended(BigInteger pc) {
         fSuspendCount++;
+        fSuspended = true;
         fSuspendAddress = pc;
         fCallback.handleTargetSuspended();
     }
+
+    private void handleContextResumed() {
+        fSuspended = false;
+        fCallback.handleTargetResumed();
+    }
+
     private void handleSessionEnded() {
         clearDebugContext();
         fCallback.handleTargetEnded();
     }
 
     public void clearDebugContext() {
+        fSuspended = false;
         if (fExecContext != null) {
             removeListeners(fExecContext);
         }
@@ -403,33 +413,15 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
     public int getFrameLevel() {
         if (fActiveFrame == null) return -1;
-        Integer level = new TCFTask<Integer>() {
+        return new TCFTask<Integer>() {
             public void run() {
                 done(fActiveFrame != null ? fActiveFrame.getFrameNo() : -1);
             }
         }.getE();
-        return level != null ? level.intValue() : -1;
     }
 
     public boolean isSuspended() {
-        if (fExecContext == null) return false;
-        Boolean suspended = new TCFTask<Boolean>(fExecContext.getChannel()) {
-            public void run() {
-                if (fExecContext == null) {
-                    done(null);
-                    return;
-                }
-                TCFDataCache<TCFContextState> stateCache = fExecContext.getState();
-                if (!stateCache.validate(this)) return;
-                TCFContextState state = stateCache.getData();
-                if (state != null) {
-                    done(state.is_suspended);
-                    return;
-                }
-                done(null);
-            }
-        }.getE();
-        return suspended != null ? suspended.booleanValue() : false;
+        return fSuspended;
     }
 
     public boolean hasFrameContext() {
@@ -439,45 +431,39 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     public String getFrameFile() {
         final TCFNodeStackFrame frame = fActiveFrame;
         if (frame == null) return null;
-        String file = new TCFTask<String>(frame.getChannel()) {
+        return new TCFTask<String>(frame.getChannel()) {
             public void run() {
-                if (frame != fActiveFrame) {
-                    done(null);
-                    return;
-                }
-                TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
-                if (!sourceRefCache.validate(this)) return;
-                TCFSourceRef sourceRef = sourceRefCache.getData();
-                if (sourceRef != null && sourceRef.area != null) {
-                    done(TCFSourceLookupParticipant.toFileName(sourceRef.area));
-                    return;
+                if (frame == fActiveFrame) {
+                    TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
+                    if (!sourceRefCache.validate(this)) return;
+                    TCFSourceRef sourceRef = sourceRefCache.getData();
+                    if (sourceRef != null && sourceRef.area != null) {
+                        done(TCFSourceLookupParticipant.toFileName(sourceRef.area));
+                        return;
+                    }
                 }
                 done(null);
             }
         }.getE();
-        return file;
     }
 
     public int getFrameLine() {
         final TCFNodeStackFrame frame = fActiveFrame;
         if (frame == null) return -1;
-        Integer line = new TCFTask<Integer>(frame.getChannel()) {
+        return new TCFTask<Integer>(frame.getChannel()) {
             public void run() {
-                if (frame != fActiveFrame) {
-                    done(null);
-                    return;
+                if (frame == fActiveFrame) {
+                    TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
+                    if (!sourceRefCache.validate(this)) return;
+                    TCFSourceRef sourceRef = sourceRefCache.getData();
+                    if (sourceRef != null && sourceRef.area != null) {
+                        done(sourceRef.area.start_line);
+                        return;
+                    }
                 }
-                TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
-                if (!sourceRefCache.validate(this)) return;
-                TCFSourceRef sourceRef = sourceRefCache.getData();
-                if (sourceRef != null && sourceRef.area != null) {
-                    done(sourceRef.area.start_line);
-                    return;
-                }
-                done(null);
+                done(-1);
             }
         }.getE();
-        return line != null ? line.intValue() : -1;
     }
 
     public void retrieveDisassembly(final BigInteger startAddress,
@@ -974,9 +960,6 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         return TCFSourceLookupDirector.lookup(ctx.getModel().getLaunch(), ctx.getID(), file);
     }
 
-    /*
-     * @see org.eclipse.cdt.debug.internal.ui.disassembly.dsf.AbstractDisassemblyBackend#evaluateAddressExpression(java.lang.String, boolean)
-     */
     @Override
     public BigInteger evaluateAddressExpression(String expression, boolean suppressError) {
         String value = evaluateExpression(expression);
@@ -986,7 +969,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             }
             catch (NumberFormatException e) {
                 if (!suppressError) {
-                    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "Error", "Expression does not evaluate to an address");
+                    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(),
+                            "Error", "Expression does not evaluate to an address");
                 }
             }
         }
