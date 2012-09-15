@@ -571,17 +571,37 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             else action_results.put(id, reason);
         }
 
-        public void onContextActionDone(TCFAction action) {
-            String id = action.getContextID();
-            active_actions.remove(id);
-            TCFNode node = getNode(id);
-            if (node instanceof TCFNodeExecContext) {
-                ((TCFNodeExecContext)node).onContextActionDone();
-            }
-            setDebugViewSelection(id2node.get(id), "Action");
-            for (TCFModelProxy p : model_proxies.values()) p.post();
-            annotation_manager.updateAnnotations(null, launch);
-            TCFNodePropertySource.refresh(node);
+        public void onContextActionDone(final TCFAction action) {
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    TCFContextState state_data = null;
+                    String id = action.getContextID();
+                    TCFNode node = getNode(id);
+                    if (node instanceof TCFNodeExecContext) {
+                        TCFDataCache<TCFContextState> state_cache = ((TCFNodeExecContext)node).getState();
+                        if (!state_cache.validate(this)) return;
+                        state_data = state_cache.getData();
+                    }
+                    if (active_actions.get(id) == action) {
+                        active_actions.remove(id);
+                        if (node instanceof TCFNodeExecContext) {
+                            ((TCFNodeExecContext)node).onContextActionDone();
+                            if (state_data != null && state_data.is_suspended) {
+                                String reason = action_results.get(id);
+                                if (reason == null) reason = state_data.suspend_reason;
+                                setDebugViewSelection(id2node.get(id), reason);
+                            }
+                        }
+                        for (TCFModelProxy p : model_proxies.values()) p.post();
+                        annotation_manager.updateAnnotations(null, launch);
+                        TCFNodePropertySource.refresh(node);
+                    }
+                    launch.removePendingClient(this);
+                }
+            };
+            launch.addPendingClient(r);
+            Protocol.invokeLater(r);
         }
     };
 

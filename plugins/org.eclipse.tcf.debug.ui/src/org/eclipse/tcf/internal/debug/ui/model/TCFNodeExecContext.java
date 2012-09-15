@@ -1476,7 +1476,8 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     }
 
     void onContextActionDone() {
-        if (!state.isValid() || state.getData() == null || state.getData().is_suspended) {
+        assert state.isValid();
+        if (state.getData() == null || state.getData().is_suspended) {
             resumed_cnt++;
             resume_pending = false;
             resumed_by_action = false;
