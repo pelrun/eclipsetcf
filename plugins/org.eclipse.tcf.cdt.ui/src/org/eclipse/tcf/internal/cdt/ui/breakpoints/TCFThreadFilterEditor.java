@@ -13,7 +13,6 @@ package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +86,7 @@ public class TCFThreadFilterEditor {
         Context(IRunControl.RunControlContext ctx, Context parent) {
             this(ctx, parent.fSessionId);
         }
+
         Context(IRunControl.RunControlContext ctx, String sessionId) {
             String name = ctx.getName() != null ? ctx.getName() : ctx.getID();
             fName = name;
@@ -94,7 +94,7 @@ public class TCFThreadFilterEditor {
             fScopeId = sessionId != null ? sessionId + '/' + ctx.getID() : ctx.getID();
             fId = ctx.getID();
             fParentId = ctx.getParentID();
-            fIsContainer = ctx.isContainer();
+            fIsContainer = !ctx.hasState();
         }
     }
 
@@ -109,7 +109,8 @@ public class TCFThreadFilterEditor {
                 Context ctx = (Context) element;
                 checkContext(ctx, checked);
                 updateParentCheckState(ctx);
-            } else if (element instanceof ILaunch) {
+            }
+            else if (element instanceof ILaunch) {
                 checkLaunch((ILaunch) element, checked);
             }
         }
@@ -153,7 +154,8 @@ public class TCFThreadFilterEditor {
                 parent = getLaunch(thread);
                 if (parent == null) return;
                 threads = syncGetContainers((TCFLaunch) parent);
-            } else {
+            }
+            else {
                 threads = syncGetThreads((Context) parent);
             }
             int checkedNumber = 0;
@@ -161,17 +163,20 @@ public class TCFThreadFilterEditor {
             for (int i = 0; i < threads.length; i++) {
                 if (getThreadViewer().getGrayed(threads[i])) {
                     ++grayedNumber;
-                } else if (getThreadViewer().getChecked(threads[i])) {
+                }
+                else if (getThreadViewer().getChecked(threads[i])) {
                     ++checkedNumber;
                 }
             }
             if (checkedNumber + grayedNumber == 0) {
                 getThreadViewer().setChecked(parent, false);
                 getThreadViewer().setGrayed(parent, false);
-            } else if (checkedNumber == threads.length) {
+            }
+            else if (checkedNumber == threads.length) {
                 getThreadViewer().setChecked(parent, true);
                 getThreadViewer().setGrayed(parent, false);
-            } else {
+            }
+            else {
                 getThreadViewer().setGrayChecked(parent, true);
             }
             if (parent instanceof Context) {
@@ -232,7 +237,8 @@ public class TCFThreadFilterEditor {
                 Context ctx = (Context) element;
                 if (ctx.fParentId == null) {
                     return DebugPlugin.getDefault().getLaunchManager();
-                } else {
+                }
+                else {
                     return getContainer(ctx);
                 }
             }
@@ -262,7 +268,8 @@ public class TCFThreadFilterEditor {
                 Context ctx = (Context) element;
                 if (ctx.fIsContainer) {
                     return DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_DEBUG_TARGET);
-                } else {
+                }
+                else {
                     return DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_THREAD_RUNNING);
                 }
             }
@@ -775,38 +782,31 @@ public class TCFThreadFilterEditor {
 
     private Context[] syncGetContainers(final TCFLaunch launch) {
         Context[] result = fContainersPerLaunch.get(launch);
-        if (result != null) {
-            return result;
-        }
+        if (result != null) return result;
         final String launchCfgName = launch.getLaunchConfiguration().getName();
         result = new TCFTask<Context[]>(launch.getChannel()) {
             public void run() {
                 List<Context> containers = new ArrayList<Context>();
                 TCFChildren children = TCFModelManager.getModelManager().getRootNode(launch).getChildren();
                 if (!children.validate(this)) return;
-                Map<String, TCFNode> childMap = children.getData();
-                for (TCFNode node : childMap.values()) {
-                    if (node instanceof TCFNodeExecContext) {
-                        TCFNodeExecContext exeCtx = (TCFNodeExecContext) node;
-                        TCFDataCache<IRunControl.RunControlContext> runCtxCache = exeCtx.getRunContext();
-                        if (!runCtxCache.validate(this)) return;
-                        IRunControl.RunControlContext runCtx = runCtxCache.getData();
-                        containers.add(new Context(runCtx, launchCfgName));
-                    }
+                for (TCFNode node : children.toArray()) {
+                    TCFNodeExecContext exeCtx = (TCFNodeExecContext) node;
+                    TCFDataCache<IRunControl.RunControlContext> runCtxCache = exeCtx.getRunContext();
+                    if (!runCtxCache.validate(this)) return;
+                    IRunControl.RunControlContext runCtx = runCtxCache.getData();
+                    containers.add(new Context(runCtx, launchCfgName));
                 }
                 done(containers.toArray(new Context[containers.size()]));
             }
         }.getE();
-        fContexts.addAll(Arrays.asList(result));
         fContainersPerLaunch.put(launch, result);
+        fContexts.addAll(Arrays.asList(result));
         return result;
     }
 
     private Context[] syncGetThreads(final Context container) {
         Context[] result = fContextsPerContainer.get(container);
-        if (result != null) {
-            return result;
-        }
+        if (result != null) return result;
         final TCFLaunch launch = getLaunch(container);
         result = new TCFTask<Context[]>(launch.getChannel()) {
             public void run() {
@@ -814,17 +814,12 @@ public class TCFThreadFilterEditor {
                 TCFModel model = TCFModelManager.getModelManager().getModel(launch);
                 TCFChildren children = ((TCFNodeExecContext) model.getNode(container.fId)).getChildren();
                 if (!children.validate(this)) return;
-                Collection<TCFNode> childNodes = children.getData().values();
-                TCFNode[] nodes = childNodes.toArray(new TCFNode[childNodes.size()]);
-                Arrays.sort(nodes);
-                for (TCFNode node : nodes) {
-                    if (node instanceof TCFNodeExecContext) {
-                        TCFNodeExecContext exeCtx = (TCFNodeExecContext) node;
-                        TCFDataCache<IRunControl.RunControlContext> runCtxCache = exeCtx.getRunContext();
-                        if (!runCtxCache.validate(this)) return;
-                        IRunControl.RunControlContext runCtx = runCtxCache.getData();
-                        contexts.add(new Context(runCtx, container));
-                    }
+                for (TCFNode node : children.toArray()) {
+                    TCFNodeExecContext exeCtx = (TCFNodeExecContext) node;
+                    TCFDataCache<IRunControl.RunControlContext> runCtxCache = exeCtx.getRunContext();
+                    if (!runCtxCache.validate(this)) return;
+                    IRunControl.RunControlContext runCtx = runCtxCache.getData();
+                    contexts.add(new Context(runCtx, container));
                 }
                 done(contexts.toArray(new Context[contexts.size()]));
             }
