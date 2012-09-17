@@ -1068,6 +1068,10 @@ public class TCFLaunch extends Launch {
         return connecting;
     }
 
+    public boolean isConnected() {
+        return channel != null && !connecting && !disconnected;
+    }
+
     public void onDetach(String prs_id) {
         if (disconnecting) return;
         if (process == null) return;
@@ -1337,7 +1341,8 @@ public class TCFLaunch extends Launch {
             connecting = true;
             if (channel.getState() == IChannel.STATE_OPEN) {
                 listener.onChannelOpened();
-            } else if (channel.getState() != IChannel.STATE_OPENING) {
+            }
+            else if (channel.getState() != IChannel.STATE_OPENING) {
                 throw new IOException("Channel is in invalid state");
             }
         }

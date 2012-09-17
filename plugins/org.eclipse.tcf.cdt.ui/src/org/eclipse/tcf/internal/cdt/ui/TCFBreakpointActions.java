@@ -278,13 +278,9 @@ public class TCFBreakpointActions {
         model_manager.addListener(launch_listener);
         rc_listeners = new HashMap<TCFLaunch,RunControlListener>();
         // handle already connected launches
-        for (ILaunch launch : DebugPlugin.getDefault().getLaunchManager().getLaunches()) {
-            if (launch instanceof TCFLaunch) {
-                TCFLaunch tcf_launch = (TCFLaunch)launch;
-                if (!tcf_launch.isDisconnected() && !tcf_launch.isConnecting()) {
-                    launch_listener.onConnected(tcf_launch, model_manager.getModel(tcf_launch));
-                }
-            }
+        for (TCFModel model : model_manager.getModels()) {
+            TCFLaunch launch = model.getLaunch();
+            if (launch.isConnected()) launch_listener.onConnected(launch, model);
         }
     }
 

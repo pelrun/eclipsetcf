@@ -227,16 +227,15 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
                     Map<String,String> node_names = new HashMap<String,String>();
                     TCFModelManager model_manager = TCFModelManager.getModelManager();
                     Set<String> descendants = new HashSet<String>();
-                    for (TCFLaunch launch : getTCFLaunches()) {
-                        TCFModel model = model_manager.getModel(launch);
-                        if (model == null || model.getRootNode() == null) continue;
+                    for (TCFModel model : model_manager.getModels()) {
+                        if (!model.getLaunch().isConnected()) continue;
                         TCFChildrenContextQuery.Descendants des =
                                 TCFChildrenContextQuery.getDescendants(
                                 model.getRootNode(), fQuery, fScope, this);
                         if (des == null) return;
                         if (des.map != null) descendants.addAll(des.map.keySet());
                         if (fScope == null) continue;
-                        String launch_name = launch.getLaunchConfiguration().getName();
+                        String launch_name = model.getLaunch().getLaunchConfiguration().getName();
                         for (String id : fScope) {
                             /* 'id' format is <launch name>/<context ID> */
                             if (node_names.containsKey(id)) continue;

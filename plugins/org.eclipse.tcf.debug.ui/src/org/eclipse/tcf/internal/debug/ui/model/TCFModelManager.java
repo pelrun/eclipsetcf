@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -149,6 +150,11 @@ public class TCFModelManager {
 
     public void removeListener(ModelManagerListener l) {
         listeners.remove(l);
+    }
+
+    public Collection<TCFModel> getModels() {
+        assert Protocol.isDispatchThread();
+        return models.values();
     }
 
     public TCFModel getModel(TCFLaunch launch) {
