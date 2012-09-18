@@ -29,13 +29,13 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputUpdat
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.debug.ui.memory.IMemoryRenderingSite;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.tcf.debug.ui.ITCFDebugUIConstants;
 import org.eclipse.tcf.debug.ui.ITCFExecContext;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
 import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
@@ -1045,7 +1045,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         StringBuffer label = new StringBuffer();
         Throwable error = run_context.getError();
         if (error != null) {
-            result.setForeground(new RGB(255, 0, 0), 0);
+            result.setForeground(ColorCache.rgb_error, 0);
             label.append(id);
             label.append(": ");
             label.append(TCFModel.getErrorMessage(error, false));
@@ -1060,7 +1060,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     label.append(des.map.size());
                     label.append(") ");
                 }
-                if (!des.include_parent) result.setForeground(new RGB(128, 128, 128), 0);
+                if (!des.include_parent) result.setForeground(ColorCache.rgb_disabled, 0);
             }
             IRunControl.RunControlContext ctx = run_context.getData();
             if (ctx == null) {

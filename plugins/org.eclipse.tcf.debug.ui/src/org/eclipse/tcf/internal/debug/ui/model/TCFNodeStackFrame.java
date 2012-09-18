@@ -20,11 +20,11 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelDelta;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputUpdate;
 import org.eclipse.debug.ui.IDebugUIConstants;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.tcf.debug.ui.ITCFStackFrame;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
@@ -413,7 +413,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
             }
             if (error != null) {
                 if (state == null || state.is_suspended) {
-                    result.setForeground(new RGB(255, 0, 0), 0);
+                    result.setForeground(ColorCache.rgb_error, 0);
                     if (bf.length() > 0) bf.append(": ");
                     bf.append(TCFModel.getErrorMessage(error, false));
                 }

@@ -25,6 +25,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.protocol.Protocol;
 
 /**
@@ -38,7 +39,6 @@ class TCFSnapshot {
     private final HashMap<TCFNode,PresentationData> cache = new HashMap<TCFNode,PresentationData>();
 
     private final String[] columns;
-    private final RGB rgb_stalled = new RGB(128, 128, 128);
 
     private boolean ignore_bg_color = true;
 
@@ -277,7 +277,7 @@ class TCFSnapshot {
         String[] ids_data = columns;
         if (ids_update != ids_data && !Arrays.equals(ids_update, ids_data)) {
             int n = ids_update == null ? 1 : ids_update.length;
-            for (int i = 0; i < n; i++) update.setBackground(rgb_stalled, i);
+            for (int i = 0; i < n; i++) update.setBackground(ColorCache.rgb_stalled, i);
         }
         else {
             if (data.label != null) {
@@ -297,7 +297,7 @@ class TCFSnapshot {
             }
             if (data.isStalled()) {
                 int n = ids_update == null ? 1 : ids_update.length;
-                for (int i = 0; i < n; i++) update.setForeground(rgb_stalled, i);
+                for (int i = 0; i < n; i++) update.setForeground(ColorCache.rgb_stalled, i);
             }
             else {
                 if (data.fg_color != null) {

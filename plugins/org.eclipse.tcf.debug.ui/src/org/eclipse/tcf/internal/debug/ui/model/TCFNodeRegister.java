@@ -31,10 +31,10 @@ import org.eclipse.jface.viewers.ICellModifier;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.debug.ui.ITCFRegister;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
@@ -55,10 +55,6 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
 
     private byte[] prev_value;
     private byte[] next_value;
-
-    private static final RGB
-        rgb_error = new RGB(192, 0, 0),
-        rgb_highlight = new RGB(255, 255, 128);
 
     private int index;
 
@@ -219,8 +215,8 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         if (!context.validate(done)) return false;
         if (!value.validate(done)) return false;
         int pos = bf.length();
-        bf.append(context.getError(), rgb_error);
-        if (bf.length() == pos) bf.append(value.getError(), rgb_error);
+        bf.append(context.getError(), ColorCache.rgb_error);
+        if (bf.length() == pos) bf.append(value.getError(), ColorCache.rgb_error);
         if (bf.length() == pos) {
             IRegisters.RegistersContext ctx = context.getData();
             if (ctx != null) {
@@ -338,7 +334,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             for (int i = 0; i < cols.length; i++) {
                 String c = cols[i];
                 if (ctx == null) {
-                    result.setForeground(rgb_error, i);
+                    result.setForeground(ColorCache.rgb_error, i);
                     result.setLabel("N/A", i);
                 }
                 else if (c.equals(TCFColumnPresentationRegister.COL_NAME)) {
@@ -391,10 +387,10 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 }
             }
             if (changed) {
-                result.setBackground(rgb_highlight, 0);
+                result.setBackground(ColorCache.rgb_highlight, 0);
                 if (cols != null) {
                     for (int i = 1; i < cols.length; i++) {
-                        result.setBackground(rgb_highlight, i);
+                        result.setBackground(ColorCache.rgb_highlight, i);
                     }
                 }
             }
@@ -409,7 +405,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         if (error == null) error = value.getError();
         byte[] data = value.getData();
         if (error != null || ctx == null) {
-            result.setForeground(rgb_error, col);
+            result.setForeground(ColorCache.rgb_error, col);
             result.setLabel("N/A", col);
         }
         else if (data != null) {

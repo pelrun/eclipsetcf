@@ -16,9 +16,9 @@ import java.util.Map;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.ILabelUpdate;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.tcf.core.ErrorReport;
 import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext.MemoryRegion;
 import org.eclipse.tcf.protocol.JSON;
@@ -31,9 +31,6 @@ import org.eclipse.tcf.util.TCFDataCache;
 public class TCFNodeModule extends TCFNode implements IDetailsProvider {
 
     private final TCFData<MemoryRegion> region;
-
-    private static final RGB
-        rgb_error = new RGB(192, 0, 0);
 
     protected TCFNodeModule(final TCFNodeExecContext parent, String id, final int index) {
         super(parent, id);
@@ -145,12 +142,12 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
                         Map<String,Object> map = (Map<String,Object>)sym_data.props.get("FileError");
                         if (map != null) {
                             String msg = TCFModel.getErrorMessage(new ErrorReport("", map), false);
-                            bf.append("Symbol file error: ", SWT.BOLD).append(msg, SWT.ITALIC, null, rgb_error).append('\n');
+                            bf.append("Symbol file error: ", SWT.BOLD).append(msg, SWT.ITALIC, null, ColorCache.rgb_error).append('\n');
                         }
                     }
                     if (sym_data.error != null) bf.append("Symbol file error: ", SWT.BOLD).append(
                             TCFModel.getErrorMessage(sym_data.error, false),
-                            SWT.ITALIC, null, rgb_error).append('\n');
+                            SWT.ITALIC, null, ColorCache.rgb_error).append('\n');
                 }
             }
             String section = r.getSectionName();

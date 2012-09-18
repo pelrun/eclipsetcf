@@ -18,9 +18,9 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementLabelProv
 import org.eclipse.debug.internal.ui.viewers.model.provisional.ILabelUpdate;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.tcf.debug.ui.ITCFDebugUIConstants;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildrenContextQuery;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
@@ -63,7 +63,7 @@ class TCFLaunchLabelProvider implements IElementLabelProvider {
         Throwable error = launch.getError();
         if (error != null) {
             status += ": " + TCFModel.getErrorMessage(error, false);
-            result.setForeground(new RGB(255, 0, 0), 0);
+            result.setForeground(ColorCache.rgb_error, 0);
         }
         else if (launch.isExited()) {
             status += ": All exited or detached";
