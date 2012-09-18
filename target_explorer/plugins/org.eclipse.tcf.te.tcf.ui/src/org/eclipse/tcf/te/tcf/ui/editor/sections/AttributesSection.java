@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
@@ -120,7 +121,9 @@ public class AttributesSection extends AbstractSection {
 		section.setText(Messages.AttributesSection_title);
 		section.setDescription(Messages.AttributesSection_description);
 
-		section.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		if (section.getParent().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		}
 
 		// Create the section client
 		Composite client = createClientContainer(section, 2, toolkit);

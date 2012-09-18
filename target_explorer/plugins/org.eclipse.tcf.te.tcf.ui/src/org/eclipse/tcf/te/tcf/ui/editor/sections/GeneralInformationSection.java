@@ -115,7 +115,9 @@ public class GeneralInformationSection extends AbstractSection {
 		section.setText(Messages.GeneralInformationSection_title);
 		section.setDescription(Messages.GeneralInformationSection_description);
 
-		section.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		if (section.getParent().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		}
 
 		// Create the section client
 		Composite client = createClientContainer(section, 2, toolkit);

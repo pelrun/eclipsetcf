@@ -64,7 +64,9 @@ public class LaunchConfigurationAdvancedTabSection extends AbstractSection imple
 
 		// Configure the section
 		section.setText(Messages.LaunchConfigurationAdvancedTabSection_title);
-		section.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL, SWT.CENTER, true, false));
+		if (section.getParent().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL, SWT.CENTER, true, false));
+		}
 
 		// Create the section client
 		Composite client = createClientContainer(section, 1, toolkit);

@@ -250,7 +250,9 @@ public class CustomFormToolkit extends PlatformObject {
 		}
 
 		section.setLayout(new GridLayout());
-		section.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (scrolledForm.getBody().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+		}
 
 		// Create an associate an expansion listener to the expandable form
 		section.addExpansionListener(new IExpansionListener() {
@@ -335,7 +337,9 @@ public class CustomFormToolkit extends PlatformObject {
 
 		// Configure the layout
 		section.setLayout(new GridLayout());
-		section.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (scrolledForm.getBody().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+		}
 
 		// Create the client area the caller can use as parent for the control
 		Composite client = getFormToolkit().createComposite(section);
@@ -380,7 +384,9 @@ public class CustomFormToolkit extends PlatformObject {
 
 		// Configure the layout
 		section.setLayout(new GridLayout());
-		section.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (parent.getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+		}
 
 		// Create the client area the caller can use as parent for the control
 		Composite client = getFormToolkit().createComposite(section);

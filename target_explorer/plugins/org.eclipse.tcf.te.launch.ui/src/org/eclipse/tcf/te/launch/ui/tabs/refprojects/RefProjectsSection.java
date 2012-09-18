@@ -45,6 +45,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -141,7 +142,9 @@ public class RefProjectsSection extends AbstractTableSection implements ILaunchC
 		section.setText(Messages.ReferencedProjectsSection_title);
 		section.setDescription(Messages.ReferencedProjectsSection_description);
 
-		section.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL, SWT.CENTER, true, true));
+		if (section.getParent().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL, SWT.CENTER, true, true));
+		}
 
 		Composite client = createClientContainer(section, 2, toolkit);
 		client.setBackground(section.getBackground());

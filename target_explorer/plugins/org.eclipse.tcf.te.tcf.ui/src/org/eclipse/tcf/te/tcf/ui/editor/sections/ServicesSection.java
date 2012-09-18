@@ -70,7 +70,9 @@ public class ServicesSection extends AbstractSection {
 		section.setText(Messages.ServicesSection_title);
 		section.setDescription(Messages.ServicesSection_description);
 
-		section.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		if (section.getParent().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		}
 
 		// Create the section client
 		Composite client = createClientContainer(section, 1, toolkit);

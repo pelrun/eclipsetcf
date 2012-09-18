@@ -14,6 +14,7 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.ui.IEditorPart;
@@ -65,7 +66,9 @@ public abstract class AbstractFormTextSection extends AbstractSection implements
 		// Configure the section
 		section.setText(getSectionTitle());
 
-		section.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		if (section.getParent().getLayout() instanceof GridLayout) {
+			section.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		}
 
 		// Create the section client
 		Composite client = toolkit.createComposite(section, SWT.NONE);
