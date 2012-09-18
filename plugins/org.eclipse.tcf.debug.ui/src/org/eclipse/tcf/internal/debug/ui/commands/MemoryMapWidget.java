@@ -354,7 +354,6 @@ public class MemoryMapWidget {
                         table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 editRegion(r);
-                notifyModifyListeners();
             }
         });
         final MenuItem item_edit = new MenuItem(menu, SWT.PUSH);
@@ -409,10 +408,12 @@ public class MemoryMapWidget {
         if (new MemoryMapItemDialog(map_table.getShell(), image, props, enable_editing).open() == Window.OK && enable_editing) {
             ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(id);
             if (lst != null) {
-                int n = lst.indexOf(r);
-                if (n >= 0) {
-                    lst.set(n, new TCFMemoryRegion(props));
-                    table_viewer.refresh();
+                for (int n = 0; n < lst.size(); n++) {
+                    if (lst.get(n) == r) {
+                        lst.set(n, new TCFMemoryRegion(props));
+                        table_viewer.refresh();
+                        notifyModifyListeners();
+                    }
                 }
             }
         }
