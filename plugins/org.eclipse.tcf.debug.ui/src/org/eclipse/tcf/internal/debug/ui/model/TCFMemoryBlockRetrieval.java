@@ -271,7 +271,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                         MemoryByte[] res = mem_data.data;
                         if (units < mem_data.data.length) {
                             res = new MemoryByte[(int)units];
-                            System.arraycopy(mem_data, offs, res, 0, res.length);
+                            System.arraycopy(mem_data.data, offs, res, 0, res.length);
                         }
                         setHistoryFlags();
                         done(res);
