@@ -335,7 +335,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 }
                 else {
                     expand = Boolean.TRUE;
-                    expanded_nodes.put(id, is_linux);
+                    if (id != null) expanded_nodes.put(id, is_linux);
                 }
             }
         }
@@ -346,7 +346,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      * Clear auto-expand info when a node is removed.
      */
     void clearAutoExpandStack(String id) {
-        expanded_nodes.remove(id) ;
+        if (id != null) expanded_nodes.remove(id) ;
     }
 
     /**
