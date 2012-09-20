@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNodeProvider;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
+import org.eclipse.ui.ISources;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -28,6 +29,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
+import org.eclipse.ui.services.IEvaluationService;
 
 /**
  * Abstract UI event listener updating the main view.
@@ -83,6 +85,12 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 			} else {
 				viewer.refresh();
 			}
+
+			// Request a re-evaluation if all expressions referring the "selection" source.
+			IEvaluationService service = (IEvaluationService)viewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
+			if (service != null) {
+				service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
+			}
 		}
 	}
 
@@ -105,6 +113,12 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 			scheduleUpdateJob(node, viewer);
 		} else {
 			viewer.update(node, null);
+
+			// Request a re-evaluation if all expressions referring the "selection" source.
+			IEvaluationService service = (IEvaluationService)viewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
+			if (service != null) {
+				service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
+			}
 		}
 	}
 
@@ -248,6 +262,12 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 						} else {
 							parentViewer.refresh(node);
 						}
+
+						// Request a re-evaluation if all expressions referring the "selection" source.
+						IEvaluationService service = (IEvaluationService)parentViewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
+						if (service != null) {
+							service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
+						}
 					}
 				}
 			};
@@ -282,6 +302,12 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 							parentViewer.refresh();
 						} else {
 							parentViewer.update(node, null);
+						}
+
+						// Request a re-evaluation if all expressions referring the "selection" source.
+						IEvaluationService service = (IEvaluationService)parentViewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
+						if (service != null) {
+							service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
 						}
 					}
 				}
