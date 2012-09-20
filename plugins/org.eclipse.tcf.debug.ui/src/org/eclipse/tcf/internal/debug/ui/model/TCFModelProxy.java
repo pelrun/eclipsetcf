@@ -75,7 +75,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
     private final Runnable timer = new Runnable() {
 
-        @Override
         public void run() {
             posted = false;
             if (pending_node != null) return;
@@ -103,45 +102,36 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
         IStatus status;
 
-        @Override
         public Object getElement() {
             return null;
         }
 
-        @Override
         public TreePath getElementPath() {
             return null;
         }
 
-        @Override
         public IPresentationContext getPresentationContext() {
             return TCFModelProxy.this.getPresentationContext();
         }
 
-        @Override
         public Object getViewerInput() {
             return TCFModelProxy.this.getInput();
         }
 
-        @Override
         public void cancel() {
         }
 
-        @Override
         public void done() {
         }
 
-        @Override
         public IStatus getStatus() {
             return status;
         }
 
-        @Override
         public boolean isCanceled() {
             return false;
         }
 
-        @Override
         public void setStatus(IStatus status) {
             this.status = status;
         }
@@ -151,7 +141,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
         int count;
 
-        @Override
         public void setChildCount(int count) {
             this.count = count;
         }
@@ -167,17 +156,14 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             this.children = length == 0 ? EMPTY_NODE_ARRAY : new TCFNode[length];
         }
 
-        @Override
         public int getLength() {
             return length;
         }
 
-        @Override
         public int getOffset() {
             return 0;
         }
 
-        @Override
         public void setChild(Object child, int offset) {
             children[offset] = (TCFNode)child;
         }
@@ -185,22 +171,18 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
     private final IViewerUpdateListener update_listener = new IViewerUpdateListener() {
 
-        @Override
         public void viewerUpdatesBegin() {
             if (!model.getWaitForViewsUpdateAfterStep()) return;
             launch.addPendingClient(this);
         }
 
-        @Override
         public void viewerUpdatesComplete() {
             launch.removePendingClient(this);
         }
 
-        @Override
         public void updateStarted(IViewerUpdate update) {
         }
 
-        @Override
         public void updateComplete(IViewerUpdate update) {
         }
     };
@@ -216,7 +198,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         display = model.getDisplay();
     }
 
-    @Override
     public void initialize(ITreeModelViewer viewer) {
         if (isDisposed()) return;
         this.viewer = viewer;
@@ -229,7 +210,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             ((TreeViewer)viewer).addTreeListener(this);
         }
         Protocol.invokeAndWait(new Runnable() {
-            @Override
             public void run() {
                 assert !installed;
                 assert !disposed;
@@ -239,11 +219,9 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         });
     }
 
-    @Override
     public void dispose() {
         if (isDisposed()) return;
         Protocol.invokeAndWait(new Runnable() {
-            @Override
             public void run() {
                 assert installed;
                 assert !disposed;
@@ -475,7 +453,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     }
 
     private final Comparator<IModelDelta> delta_comparator = new Comparator<IModelDelta>() {
-        @Override
         public int compare(IModelDelta o1, IModelDelta o2) {
             int f1 = o1.getFlags();
             int f2 = o2.getFlags();
@@ -506,7 +483,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             final Set<TCFNode> save_expand_state = auto_expand_removed_nodes;
             auto_expand_removed_nodes = null;
             asyncExec(new Runnable() {
-                @Override
                 public void run() {
                     if (save_expand_state != null && save_expand_state.size() > 0) {
                         if (viewer instanceof IInternalTreeModelViewer) {
@@ -517,7 +493,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                             }
                             if (expanded.size() > 0) {
                                 Protocol.invokeLater(new Runnable() {
-                                    @Override
                                     public void run() {
                                         auto_expand_set.addAll(expanded);
                                     }
@@ -542,13 +517,11 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 // Deltas do NOT work without the launch item.
                 asyncExec(new Runnable() {
                     boolean found;
-                    @Override
                     public void run() {
                         if (viewer instanceof IInternalTreeModelViewer) {
                             found = ((IInternalTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
                         }
                         Protocol.invokeLater(new Runnable() {
-                            @Override
                             public void run() {
                                 if (disposed) return;
                                 if (found) realized = true;
@@ -631,7 +604,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         node2children.clear();
     }
 
-    @Override
     public void run() {
         postDelta();
         if (!posted && pending_node == null) {
@@ -639,12 +611,10 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         }
     }
 
-    @Override
     public void treeCollapsed(TreeExpansionEvent event) {
         updateExpandStack(event, false);
     }
 
-    @Override
     public void treeExpanded(TreeExpansionEvent event) {
         updateExpandStack(event, true);
     }
