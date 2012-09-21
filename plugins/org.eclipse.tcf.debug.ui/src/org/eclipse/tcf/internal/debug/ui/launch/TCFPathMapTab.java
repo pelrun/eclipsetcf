@@ -232,6 +232,10 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         });
     }
 
+    protected final TableViewer getViewer() {
+        return viewer;
+    }
+    
     List<IPathMap.PathMapRule> getPathMap() {
         List<IPathMap.PathMapRule> l = new ArrayList<IPathMap.PathMapRule>();
         for (PathMapRule r : map) l.add(r);
