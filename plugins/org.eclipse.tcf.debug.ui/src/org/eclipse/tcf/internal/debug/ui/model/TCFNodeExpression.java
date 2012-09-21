@@ -29,6 +29,7 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.ILabelUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelDelta;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
 import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ICellModifier;
@@ -1034,6 +1035,20 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         return false;
     }
 
+    //
+    //  @param return-value Boolean.TRUE  --> Show Types ICON is     selected/depressed
+    //  @param return-value Boolean.FALSE --> Show Types ICON is not selected/depressed
+    //
+    private Boolean isShowTypeNamesEnabled( IPresentationContext context ) {
+        Boolean attribute = (Boolean) context.getProperty(IDebugModelPresentation.DISPLAY_VARIABLE_TYPE_NAMES);
+
+        if (attribute != null) {
+            return attribute;
+        }
+
+        return Boolean.FALSE;
+    }
+
     @Override
     protected boolean getData(ILabelUpdate result, Runnable done) {
         if (is_empty) {
@@ -1087,7 +1102,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (error != null) {
                 if (cols == null || cols.length <= 1) {
                     result.setForeground(ColorCache.rgb_error, 0);
-                    result.setLabel(name + ": N/A", 0);
+                    if (isShowTypeNamesEnabled( result.getPresentationContext())) {
+                        if (!type_name.validate(done)) return false;
+                        result.setLabel(name + ": N/A" + " , Type = " + type_name.getData(), 0);
+                    }
+                    else {
+                        result.setLabel(name + ": N/A", 0);
+                    }
                 }
                 else {
                     for (int i = 0; i < cols.length; i++) {
@@ -1110,7 +1131,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 if (cols == null) {
                     StyledStringBuffer s = getPrettyExpression(done);
                     if (s == null) return false;
-                    result.setLabel(name + " = " + s, 0);
+                    if (isShowTypeNamesEnabled( result.getPresentationContext())) {
+                        if (!type_name.validate(done)) return false;
+                        result.setLabel(name + " = " + s + " , Type = " + type_name.getData(), 0);
+                    }
+                    else {
+                        result.setLabel(name + " = " + s, 0);
+                    }
                 }
                 else {
                     for (int i = 0; i < cols.length; i++) {
@@ -1138,11 +1165,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             }
             next_value = value.getData();
             if (isValueChanged(prev_value, next_value)) {
-                result.setBackground(ColorCache.rgb_highlight, 0);
                 if (cols != null) {
                     for (int i = 1; i < cols.length; i++) {
                         result.setBackground(ColorCache.rgb_highlight, i);
                     }
+                }
+                else {
+                    result.setForeground(ColorCache.rgb_no_columns_color_change, 0);
                 }
             }
             ISymbols.TypeClass type_class = ISymbols.TypeClass.unknown;

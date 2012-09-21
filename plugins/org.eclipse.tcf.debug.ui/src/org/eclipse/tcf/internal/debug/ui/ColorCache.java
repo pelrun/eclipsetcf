@@ -23,11 +23,17 @@ public class ColorCache {
     public static RGB rgb_highlight =
         DebugUITools.getPreferenceColor(IDebugUIConstants.PREF_CHANGED_VALUE_BACKGROUND).getRGB();
 
+    public static RGB rgb_no_columns_color_change =
+            DebugUITools.getPreferenceColor(IDebugUIConstants.PREF_CHANGED_DEBUG_ELEMENT_COLOR).getRGB();
+
     private static final IPropertyChangeListener preferenceChangeListener = new IPropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             if (event.getProperty().equals(IDebugUIConstants.PREF_CHANGED_VALUE_BACKGROUND)) {
                 rgb_highlight = DebugUITools.getPreferenceColor(IDebugUIConstants.PREF_CHANGED_VALUE_BACKGROUND).getRGB();
+            }
+            else if (event.getProperty().equals(IDebugUIConstants.PREF_CHANGED_DEBUG_ELEMENT_COLOR)) {
+                rgb_no_columns_color_change = DebugUITools.getPreferenceColor(IDebugUIConstants.PREF_CHANGED_DEBUG_ELEMENT_COLOR).getRGB();
             }
         }
     };

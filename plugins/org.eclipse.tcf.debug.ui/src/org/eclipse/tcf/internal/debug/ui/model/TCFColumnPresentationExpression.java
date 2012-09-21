@@ -80,6 +80,6 @@ public class TCFColumnPresentationExpression implements IColumnPresentation {
     }
 
     public boolean isOptional() {
-        return false;
+        return true;
     }
 }

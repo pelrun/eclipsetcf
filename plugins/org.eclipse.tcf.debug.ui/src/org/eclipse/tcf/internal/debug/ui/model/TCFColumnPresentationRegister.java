@@ -103,6 +103,6 @@ public class TCFColumnPresentationRegister implements IColumnPresentation {
     }
 
     public boolean isOptional() {
-        return false;
+        return true;
     }
 }

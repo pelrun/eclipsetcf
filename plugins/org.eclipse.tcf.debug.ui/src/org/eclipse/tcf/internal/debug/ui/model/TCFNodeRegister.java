@@ -387,11 +387,13 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 }
             }
             if (changed) {
-                result.setBackground(ColorCache.rgb_highlight, 0);
                 if (cols != null) {
                     for (int i = 1; i < cols.length; i++) {
                         result.setBackground(ColorCache.rgb_highlight, i);
                     }
+                }
+                else {
+                    result.setForeground(ColorCache.rgb_no_columns_color_change, 0);
                 }
             }
         }
@@ -416,6 +418,9 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             else {
                 result.setLabel(ctx.getName() + " = " + s, 0);
             }
+        }
+        else if (col < 0) {
+            result.setLabel(ctx.getName(), 0);
         }
     }
 
