@@ -69,41 +69,30 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         100,
     };
 
-    private static final String[] column_labels = {
-        "Host Path",
-        "Target Path",
-        "Context Query"
-    };
-
     private static final String TAB_ID = "org.eclipse.tcf.launch.pathMapTab";
 
     private ArrayList<PathMapRule> map;
 
     private class FileMapContentProvider implements IStructuredContentProvider  {
 
-        @Override
         public Object[] getElements(Object input) {
             return map.toArray(new PathMapRule[map.size()]);
         }
 
-        @Override
         public void inputChanged(Viewer viewer, Object old_input, Object new_input) {
         }
 
-        @Override
         public void dispose() {
         }
     }
 
     private class FileMapLabelProvider extends LabelProvider implements ITableLabelProvider {
 
-        @Override
         public Image getColumnImage(Object element, int column) {
             if (column == 0) return ImageCache.getImage(ImageCache.IMG_ATTRIBUTE);
             return null;
         }
 
-        @Override
         public String getColumnText(Object element, int column) {
             PathMapRule e = (PathMapRule)element;
             Object o = e.getProperties().get(column_ids[column]);
@@ -114,12 +103,10 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     private class FileMapCellModifier implements ICellModifier {
 
-        @Override
         public boolean canModify(Object element, String property) {
             return true;
         }
 
-        @Override
         public Object getValue(Object element, String property) {
             if (element instanceof Item) element = ((Item)element).getData();
             PathMapRule a = (PathMapRule)element;
@@ -128,7 +115,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             return o.toString();
         }
 
-        @Override
         public void modify(Object element, String property, Object value) {
             if (element instanceof Item) element = ((Item)element).getData();
             PathMapRule a = (PathMapRule)element;
@@ -141,7 +127,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     private Exception init_error;
 
-    @Override
     public String getName() {
         return "Path Map";
     }
@@ -156,7 +141,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         return TAB_ID;
     }
 
-    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
@@ -193,7 +177,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         CellEditor[] editors = new CellEditor[column_ids.length];
         for (int i = 0; i < column_ids.length; i++) {
             TableColumn c = new TableColumn(table, SWT.NONE, i);
-            c.setText(column_labels[i]);
+            c.setText(column_ids[i]);
             c.setWidth(column_size[i]);
             editors[i] = new TextCellEditor(table);
         }
@@ -201,7 +185,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         viewer.setCellModifier(new FileMapCellModifier());
         createTableButtons(composite);
         viewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 updateLaunchConfigurationDialog();
             }
@@ -255,7 +238,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         return Collections.unmodifiableList(l);
     }
 
-    @Override
     public void initializeFrom(ILaunchConfiguration config) {
         setErrorMessage(null);
         setMessage(null);
@@ -272,7 +254,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         }
     }
 
-    @Override
     public void performApply(ILaunchConfigurationWorkingCopy config) {
         for (PathMapRule m : map) m.getProperties().remove(IPathMap.PROP_ID);
         StringBuffer bf = new StringBuffer();
@@ -281,7 +262,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         else config.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
     }
 
-    @Override
     public void setDefaults(ILaunchConfigurationWorkingCopy config) {
         config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
     }
