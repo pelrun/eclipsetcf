@@ -50,7 +50,7 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 				node = candidate;
 				break;
 			} else if (peer.getAttributes().get("remote.id.transient") != null //$NON-NLS-1$
-							&& peer.getAttributes().get("remote.id.transient").equals(peer.getID())) { //$NON-NLS-1$
+							&& peer.getAttributes().get("remote.id.transient").equals(id)) { //$NON-NLS-1$
 				node = candidate;
 				break;
 			}
@@ -75,7 +75,7 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 				node = candidate;
 				break;
 			} else if (peer.getAttributes().get("remote.id.transient") != null //$NON-NLS-1$
-							&& peer.getAttributes().get("remote.id.transient").equals(peer.getID())) { //$NON-NLS-1$
+							&& peer.getAttributes().get("remote.id.transient").equals(id)) { //$NON-NLS-1$
 				node = candidate;
 				break;
 			}
