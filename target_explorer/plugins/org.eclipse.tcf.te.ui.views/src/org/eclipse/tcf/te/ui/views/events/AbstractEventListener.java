@@ -14,14 +14,17 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNodeProvider;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
-import org.eclipse.ui.ISources;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -29,7 +32,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
-import org.eclipse.ui.services.IEvaluationService;
 
 /**
  * Abstract UI event listener updating the main view.
@@ -63,6 +65,50 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 	}
 
 	/**
+	 * Checks the viewers selection if it needs to get re-applied in order to
+	 * trigger a selection changed event.
+	 *
+	 * @param viewer The common viewer. Must not be <code>null</code>.
+	 * @param node The refreshed node or <code>null</code> if the whole tree is refreshed.
+	 */
+	protected void triggerSelectionChanged(CommonViewer viewer, Object node) {
+		Assert.isNotNull(viewer);
+
+		// If the whole tree is refreshed, it is simple
+		if (node == null) {
+			ISelection selection = viewer.getSelection();
+			if (selection != null && !selection.isEmpty()) {
+				viewer.setSelection(selection, true);
+			}
+		} else {
+			// Analyze the selection if the node refresh is part of it
+			ISelection selection = viewer.getSelection();
+			if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+				Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
+				while (iterator.hasNext()) {
+					Object selected = iterator.next();
+					boolean apply = false;
+
+					if (node.equals(selected)) apply = true;
+
+					if (!apply) {
+						// Check if we can adapt to the class type of the selected node
+						Object adapted = selected instanceof IAdaptable ? ((IAdaptable)selected).getAdapter(node.getClass()) : null;
+						if (adapted == null) adapted = Platform.getAdapterManager().getAdapter(selected, node.getClass());
+						if (adapted != null && adapted.equals(node)) apply = true;
+					}
+
+					// Apply the selection
+					if (apply) {
+						viewer.setSelection(selection, true);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Trigger a refresh of the given node. If the node
 	 * is <code>null</code>, everything will be refreshed.
 	 *
@@ -86,11 +132,8 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 				viewer.refresh();
 			}
 
-			// Request a re-evaluation if all expressions referring the "selection" source.
-			IEvaluationService service = (IEvaluationService)viewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
-			if (service != null) {
-				service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
-			}
+			// Trigger a selection changed event if needed
+			triggerSelectionChanged(viewer, node);
 		}
 	}
 
@@ -114,11 +157,8 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 		} else {
 			viewer.update(node, null);
 
-			// Request a re-evaluation if all expressions referring the "selection" source.
-			IEvaluationService service = (IEvaluationService)viewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
-			if (service != null) {
-				service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
-			}
+			// Trigger a selection changed event if needed
+			triggerSelectionChanged(viewer, node);
 		}
 	}
 
@@ -263,11 +303,8 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 							parentViewer.refresh(node);
 						}
 
-						// Request a re-evaluation if all expressions referring the "selection" source.
-						IEvaluationService service = (IEvaluationService)parentViewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
-						if (service != null) {
-							service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
-						}
+						// Trigger a selection changed event if needed
+						triggerSelectionChanged(parentViewer, node);
 					}
 				}
 			};
@@ -304,11 +341,8 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 							parentViewer.update(node, null);
 						}
 
-						// Request a re-evaluation if all expressions referring the "selection" source.
-						IEvaluationService service = (IEvaluationService)parentViewer.getCommonNavigator().getSite().getService(IEvaluationService.class);
-						if (service != null) {
-							service.requestEvaluation(ISources.ACTIVE_CURRENT_SELECTION_NAME);
-						}
+						// Trigger a selection changed event if needed
+						triggerSelectionChanged(parentViewer, node);
 					}
 				}
 			};

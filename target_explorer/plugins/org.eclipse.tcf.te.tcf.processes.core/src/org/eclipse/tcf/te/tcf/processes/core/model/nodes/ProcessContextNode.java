@@ -218,21 +218,21 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 	protected Object doGetAdapter(Class<?> adapter) {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		if (IProcesses.ProcessContext.class.equals(adapter)) {
+		if (IProcesses.ProcessContext.class.isAssignableFrom(adapter)) {
 			return pContext;
 		}
-		if (ISysMonitor.SysMonitorContext.class.equals(adapter)) {
+		if (ISysMonitor.SysMonitorContext.class.isAssignableFrom(adapter)) {
 			return sContext;
 		}
-		if (IPeerModelProvider.class.equals(adapter)) {
+		if (IPeerModelProvider.class.isAssignableFrom(adapter)) {
 			IModel model = getParent(IModel.class);
 			if (model instanceof IPeerModelProvider) return model;
 		}
-		if (IPeerModel.class.equals(adapter)) {
+		if (IPeerModel.class.isAssignableFrom(adapter)) {
 			IModel model = getParent(IModel.class);
 			if (model instanceof IPeerModelProvider) return ((IPeerModelProvider)model).getPeerModel();
 		}
-		if (IAsyncRefreshableCtx.class.equals(adapter)) {
+		if (IAsyncRefreshableCtx.class.isAssignableFrom(adapter)) {
 			return refreshableCtxAdapter;
 		}
 

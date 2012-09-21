@@ -150,11 +150,11 @@ public class StepContextAdapter extends PlatformObject implements IStepContext {
 			return launch;
 		}
 
-		if (ILaunchConfiguration.class.equals(adapter)) {
+		if (ILaunchConfiguration.class.isAssignableFrom(adapter)) {
 			return launch.getLaunchConfiguration();
 		}
 
-		if (ILaunchConfigurationType.class.equals(adapter)) {
+		if (ILaunchConfigurationType.class.isAssignableFrom(adapter)) {
 			try {
 				return launch.getLaunchConfiguration().getType();
 			}
