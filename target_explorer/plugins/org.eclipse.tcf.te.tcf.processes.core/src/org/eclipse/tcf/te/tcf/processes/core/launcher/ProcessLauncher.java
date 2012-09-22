@@ -410,9 +410,13 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			return;
 		}
 
+		// Check if the user wants to force the use of the IProcesses service
+		String property = System.getProperty("processLauncher.force.IProcesses"); //$NON-NLS-1$
+		boolean forceIProcesses = property != null ? Boolean.parseBoolean(property) : false;
+
 		// Get the process and streams services. Try the V1 processes service first
 		// before falling back to the standard processes service.
-		svcProcesses = channel.getRemoteService(IProcessesV1.class);
+		if (!forceIProcesses) svcProcesses = channel.getRemoteService(IProcessesV1.class);
 		if (svcProcesses == null) svcProcesses = channel.getRemoteService(IProcesses.class);
 		if (svcProcesses == null) {
 			IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
