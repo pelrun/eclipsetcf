@@ -424,7 +424,12 @@ public class ConsoleManager {
 			// If configured, check all existing tab items if they are associated
 			// with terminated consoles
 			if (UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_REMOVE_TERMINATED_TERMINALS)) {
+				// Remote all terminated tab items. This will invoke the
+				// tab's dispose listener.
 				manager.removeTerminatedItems();
+				// Switch back to the tab folder control as removeTerminatedItems()
+				// may have triggered the switch to the empty space control.
+				view.switchToTabFolderControl();
 			}
 
 			// Create a new tab item

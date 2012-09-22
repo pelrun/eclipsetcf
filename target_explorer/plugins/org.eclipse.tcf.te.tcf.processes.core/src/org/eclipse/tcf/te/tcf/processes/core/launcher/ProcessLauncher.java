@@ -194,12 +194,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			}
 		};
 
-		if (Protocol.isDispatchThread()) {
-			runnable.run();
-		}
-		else {
-			Protocol.invokeAndWait(runnable);
-		}
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
 	}
 
 	/**
@@ -211,6 +207,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 * @param error The exception in case {@link #terminate()} returned with an error or <code>null</code>.
 	 */
 	protected void onTerminateDone(IProcesses.ProcessContext context, Exception error) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
 
 		// If the terminate of the remote process context failed, give a warning to the user
@@ -257,6 +254,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 * @param error The exception in case sending the signal returned with an error or <code>null</code>.
 	 */
 	protected void onSignalSIGHUPDone(IProcesses.ProcessContext context, Exception error) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
 
 		// If the terminate of the remote process context failed, give a warning to the user
@@ -333,7 +331,12 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		Map<String, Boolean> flags = new HashMap<String, Boolean>();
 		flags.put(IChannelManager.FLAG_FORCE_NEW, Boolean.TRUE);
 		if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
-			onChannelOpenDone(peer);
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					onChannelOpenDone(peer);
+				}
+			});
 		}
 		else {
 			Tcf.getChannelManager().openChannel(peer, flags, new IChannelManager.DoneOpenChannel() {
@@ -357,89 +360,88 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	}
 
 	protected void onChannelOpenDone(final IPeer peer) {
-		Protocol.invokeAndWait(new Runnable() {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Attach a channel listener so we can dispose ourself if the channel
+		// is closed from the remote side.
+		channel.addChannelListener(new IChannelListener() {
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelOpened()
+			 */
 			@Override
-			public void run() {
-				// Attach a channel listener so we can dispose ourself if the channel
-				// is closed from the remote side.
-				channel.addChannelListener(new IChannelListener() {
-					/* (non-Javadoc)
-					 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelOpened()
-					 */
-					@Override
-					public void onChannelOpened() {
-					}
-					/* (non-Javadoc)
-					 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelClosed(java.lang.Throwable)
-					 */
-					@Override
-					public void onChannelClosed(Throwable error) {
-						if (error != null) {
-							IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-											NLS.bind(Messages.ProcessLauncher_error_channelConnectFailed, peer.getID(), error.getLocalizedMessage()),
-											error);
-							invokeCallback(status, null);
-						}
-					}
-					/* (non-Javadoc)
-					 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#congestionLevel(int)
-					 */
-					@Override
-					public void congestionLevel(int level) {
-					}
-				});
-
-
-				// Check if the channel is in connected state
-				if (channel.getState() != IChannel.STATE_OPEN) {
+			public void onChannelOpened() {
+			}
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelClosed(java.lang.Throwable)
+			 */
+			@Override
+			public void onChannelClosed(Throwable error) {
+				if (error != null) {
 					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-									Messages.ProcessLauncher_error_channelNotConnected,
-									new IllegalStateException());
+									NLS.bind(Messages.ProcessLauncher_error_channelConnectFailed, peer.getID(), error.getLocalizedMessage()),
+									error);
 					invokeCallback(status, null);
-					return;
 				}
-
-				// Do some very basic sanity checking on the process properties
-				if (properties.getStringProperty(PROP_PROCESS_PATH) == null) {
-					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-									Messages.ProcessLauncher_error_missingProcessPath,
-									new IllegalArgumentException(PROP_PROCESS_PATH));
-					invokeCallback(status, null);
-					return;
-				}
-
-				// Get the process and streams services. Try the V1 processes service first
-				// before falling back to the standard processes service.
-				svcProcesses = channel.getRemoteService(IProcessesV1.class);
-				if (svcProcesses == null) svcProcesses = channel.getRemoteService(IProcesses.class);
-				if (svcProcesses == null) {
-					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-									NLS.bind(Messages.ProcessLauncher_error_missingRequiredService, IProcesses.class.getName()),
-									null);
-
-					invokeCallback(status, null);
-					return;
-				}
-
-				svcStreams = channel.getRemoteService(IStreams.class);
-				if (svcStreams == null) {
-					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-									NLS.bind(Messages.ProcessLauncher_error_missingRequiredService, IStreams.class.getName()),
-									null);
-					invokeCallback(status, null);
-					return;
-				}
-
-				// Execute the launch now
-				executeLaunch();
+			}
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#congestionLevel(int)
+			 */
+			@Override
+			public void congestionLevel(int level) {
 			}
 		});
+
+
+		// Check if the channel is in connected state
+		if (channel.getState() != IChannel.STATE_OPEN) {
+			IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
+							Messages.ProcessLauncher_error_channelNotConnected,
+							new IllegalStateException());
+			invokeCallback(status, null);
+			return;
+		}
+
+		// Do some very basic sanity checking on the process properties
+		if (properties.getStringProperty(PROP_PROCESS_PATH) == null) {
+			IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
+							Messages.ProcessLauncher_error_missingProcessPath,
+							new IllegalArgumentException(PROP_PROCESS_PATH));
+			invokeCallback(status, null);
+			return;
+		}
+
+		// Get the process and streams services. Try the V1 processes service first
+		// before falling back to the standard processes service.
+		svcProcesses = channel.getRemoteService(IProcessesV1.class);
+		if (svcProcesses == null) svcProcesses = channel.getRemoteService(IProcesses.class);
+		if (svcProcesses == null) {
+			IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
+							NLS.bind(Messages.ProcessLauncher_error_missingRequiredService, IProcesses.class.getName()),
+							null);
+
+			invokeCallback(status, null);
+			return;
+		}
+
+		svcStreams = channel.getRemoteService(IStreams.class);
+		if (svcStreams == null) {
+			IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
+							NLS.bind(Messages.ProcessLauncher_error_missingRequiredService, IStreams.class.getName()),
+							null);
+			invokeCallback(status, null);
+			return;
+		}
+
+		// Execute the launch now
+		executeLaunch();
 	}
 
 	/**
 	 * Executes the launch of the remote process.
 	 */
 	protected void executeLaunch() {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		// Get the process properties container
 		final IPropertiesContainer properties = getProperties();
 		if (properties == null) {
@@ -495,6 +497,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 * Called from {@link IStreams#subscribe(String, org.eclipse.tcf.services.IStreams.StreamsListener, org.eclipse.tcf.services.IStreams.DoneSubscribe)}.
 	 */
 	protected void onSubscribeStreamsDone() {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		// Get the process properties container
 		IPropertiesContainer properties = getProperties();
 		if (properties == null) {
@@ -505,6 +509,21 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			invokeCallback(status, null);
 			return;
 		}
+
+		// The callback collector assure that all necessary work, like opening the terminal
+		// window and terminal tab, is done before the process get launched finally.
+		AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				if (status.getSeverity() == IStatus.ERROR) {
+					invokeCallback(status, null);
+					return;
+				}
+
+				// Launch the process
+				onAttachStreamsDone();
+			}
+		}, new CallbackInvocationDelegate());
 
 		// The streams got subscribed, check if we shall attach the console
 		if (properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE)) {
@@ -553,7 +572,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					props.setProperty("TabFolderManager_state_closed", Messages.ProcessLauncher_state_closed); //$NON-NLS-1$
 
 					// Open the console
-					terminal.openConsole(props, null);
+					terminal.openConsole(props, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
 				}
 			} else {
 				// Create and connect the streams which will be connected to the terminals stdin
@@ -589,11 +608,12 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				// Construct the status object
 				IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, e);
 				invokeCallback(status, null);
+				return;
 			}
 		}
 
-		// Launch the process
-		onAttachStreamsDone();
+		// Mark the collector initialization as done
+		collector.initDone();
 	}
 
 	/**
@@ -645,12 +665,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				}
 			};
 
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
 		}
 
 		if (peerName.get() != null) {
@@ -739,6 +755,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 * Queries the initial new process environment from remote.
 	 */
 	protected void onAttachStreamsDone() {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		// Query the default environment for a new process
 		getSvcProcesses().getEnvironment(new IProcesses.DoneGetEnvironment() {
 			@Override
@@ -766,6 +784,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 * Called from {@link #executeLaunch()} or {@link #onAttachStreamsDone()}.
 	 */
 	protected void onGetEnvironmentDone(final Map<String, String> environment) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		// Get the process properties container
 		final IPropertiesContainer properties = getProperties();
 		if (properties == null) {
@@ -873,6 +893,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 * @param process The process context or <code>null</code>.
 	 */
 	protected void onProcessLaunchDone(ProcessContext process) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		// Register the process context with the listeners
 		if (process != null) {
 			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_PROCESS_LAUNCHER)) {
