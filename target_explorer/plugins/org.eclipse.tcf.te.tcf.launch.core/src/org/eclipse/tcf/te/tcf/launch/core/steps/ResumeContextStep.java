@@ -9,16 +9,20 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.steps;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
+import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
@@ -79,22 +83,37 @@ public class ResumeContextStep extends AbstractTcfLaunchStep {
 		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ICommonTCFLaunchAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		final IProcesses.ProcessContext processContext = (IProcesses.ProcessContext)StepperAttributeUtil.getProperty(IRemoteAppLaunchAttributes.ATTR_PROCESS_CONTEXT, fullQualifiedId, data);
 		final IRunControl runControl = channel.getRemoteService(IRunControl.class);
+		final String svcProcessesName = (String)StepperAttributeUtil.getProperty("services.processes.name", fullQualifiedId, data); //$NON-NLS-1$
 
-		if (runControl != null) {
-			runControl.getContext(processContext.getID(), new IRunControl.DoneGetContext() {
-				@Override
-				public void doneGetContext(IToken token, Exception error, RunControlContext context) {
-					ProgressHelper.worked(monitor, 5);
-					if (!ProgressHelper.isCancelOrError(ResumeContextStep.this, StatusHelper.getStatus(error), monitor, callback)) {
-						context.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
-							@Override
-							public void doneCommand(IToken token, Exception error) {
-								callback.done(ResumeContextStep.this, StatusHelper.getStatus(error));
-							}
-						});
+		if (IProcessesV1.NAME.equals(svcProcessesName)) {
+			// If the processes service used is IProcessesV1, there is nothing to do here
+			callback.done(ResumeContextStep.this, Status.OK_STATUS);
+		} else if (runControl != null) {
+			// Get the launch configuration object
+			final ILaunchConfiguration lc = getLaunchConfiguration(context);
+			Assert.isNotNull(lc);
+			boolean stopAtEntry = DefaultPersistenceDelegate.getAttribute(lc, IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY, false);
+
+			// In case "stop at entry" is not desired, we have to resume the context once to
+			// "stop at main".
+			if (!stopAtEntry) {
+				runControl.getContext(processContext.getID(), new IRunControl.DoneGetContext() {
+					@Override
+					public void doneGetContext(IToken token, Exception error, RunControlContext context) {
+						ProgressHelper.worked(monitor, 5);
+						if (!ProgressHelper.isCancelOrError(ResumeContextStep.this, StatusHelper.getStatus(error), monitor, callback)) {
+							context.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
+								@Override
+								public void doneCommand(IToken token, Exception error) {
+									callback.done(ResumeContextStep.this, StatusHelper.getStatus(error));
+								}
+							});
+						}
 					}
-				}
-			});
+				});
+			} else {
+				callback.done(ResumeContextStep.this, Status.OK_STATUS);
+			}
 		}
 		else {
 			callback.done(this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "missing run control service")); //$NON-NLS-1$

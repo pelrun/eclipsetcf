@@ -18,11 +18,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.callback.Callback;
@@ -83,8 +85,13 @@ public class LaunchProcessStep extends AbstractTcfLaunchStep {
 	public void execute(IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, final ICallback callback) {
 		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ICommonTCFLaunchAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		Assert.isTrue(channel != null && channel.getState() == IChannel.STATE_OPEN, "channel is missing or closed"); //$NON-NLS-1$
+
+		// Get the launch configuration object
+		final ILaunchConfiguration lc = getLaunchConfiguration(context);
+		Assert.isNotNull(lc);
+
 		// Construct the launcher object
-		ProcessLauncher launcher = new ProcessLauncher();
+		final ProcessLauncher launcher = new ProcessLauncher();
 
 		Map<String, Object> launchAttributes = new HashMap<String, Object>();
 
@@ -96,17 +103,32 @@ public class LaunchProcessStep extends AbstractTcfLaunchStep {
 
 		launchAttributes.put(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, Boolean.FALSE);
 
-		boolean outputConsole = DefaultPersistenceDelegate.getAttribute(getLaunchConfiguration(context), "org.eclipse.debug.ui.ATTR_CONSOLE_OUTPUT_ON", true); //$NON-NLS-1$
+		boolean outputConsole = DefaultPersistenceDelegate.getAttribute(lc, "org.eclipse.debug.ui.ATTR_CONSOLE_OUTPUT_ON", true); //$NON-NLS-1$
 		if (outputConsole) {
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE, Boolean.TRUE);
 		}
-		String outputFile = DefaultPersistenceDelegate.getAttribute(getLaunchConfiguration(context), "org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE", (String)null); //$NON-NLS-1$
+		String outputFile = DefaultPersistenceDelegate.getAttribute(lc, "org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE", (String)null); //$NON-NLS-1$
 		if (outputFile != null) {
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE, outputFile);
 		}
 
 		if (ILaunchManager.DEBUG_MODE.equals(getLaunchMode(context))) {
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ATTACH, Boolean.TRUE);
+
+			boolean stopAtEntry = DefaultPersistenceDelegate.getAttribute(lc, IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY, false);
+			if (stopAtEntry) {
+				launchAttributes.put(IProcessesV1.START_STOP_AT_ENTRY, Boolean.TRUE);
+			}
+
+			boolean stopAtMain = DefaultPersistenceDelegate.getAttribute(lc, IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, false);
+			if (stopAtMain) {
+				launchAttributes.put(IProcessesV1.START_STOP_AT_MAIN, Boolean.TRUE);
+			}
+
+			boolean attachChildren = DefaultPersistenceDelegate.getAttribute(lc, IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, false);
+			if (attachChildren) {
+				launchAttributes.put(IProcessesV1.START_ATTACH_CHILDREN, Boolean.TRUE);
+			}
 		}
 
 		// Determine the active peer
@@ -145,8 +167,12 @@ public class LaunchProcessStep extends AbstractTcfLaunchStep {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
 				Object result = getResult();
-				if (status.isOK() && result instanceof IProcesses.ProcessContext) {
-					StepperAttributeUtil.setProperty(IRemoteAppLaunchAttributes.ATTR_PROCESS_CONTEXT, fullQualifiedId.getParentId(), data, result);
+				if (status.isOK()) {
+					if (result instanceof IProcesses.ProcessContext) {
+						StepperAttributeUtil.setProperty(IRemoteAppLaunchAttributes.ATTR_PROCESS_CONTEXT, fullQualifiedId.getParentId(), data, result);
+					}
+					StepperAttributeUtil.setProperty("services.processes.name", fullQualifiedId.getParentId(), data, //$NON-NLS-1$
+														(launcher.getSvcProcesses() instanceof IProcessesV1 ? IProcessesV1.NAME : IProcesses.NAME));
 				}
 				Assert.isTrue(channel.getState() == IChannel.STATE_OPEN, "channel is closed"); //$NON-NLS-1$
 				super.internalDone(caller, status);

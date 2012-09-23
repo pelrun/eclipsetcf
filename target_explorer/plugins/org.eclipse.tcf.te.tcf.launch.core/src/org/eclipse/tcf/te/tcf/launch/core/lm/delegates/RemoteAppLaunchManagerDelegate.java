@@ -65,20 +65,16 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	public void initLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.initLaunchConfigAttributes(wc, launchSpec);
 
-		if (launchSpec.hasAttribute(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS)) {
-			wc.setAttribute(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS, (String)launchSpec.getAttribute(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS).getValue());
-		}
-		if (launchSpec.hasAttribute(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE)) {
-			wc.setAttribute(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, (String)launchSpec.getAttribute(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE).getValue());
-		}
-		if (launchSpec.hasAttribute(IFileTransferLaunchAttributes.ATTR_FILE_TRANSFERS)) {
-			wc.setAttribute(IFileTransferLaunchAttributes.ATTR_FILE_TRANSFERS, (String)launchSpec.getAttribute(IFileTransferLaunchAttributes.ATTR_FILE_TRANSFERS).getValue());
-		}
-		if (launchSpec.hasAttribute(IReferencedProjectLaunchAttributes.ATTR_REFERENCED_PROJECTS)) {
-			wc.setAttribute(IReferencedProjectLaunchAttributes.ATTR_REFERENCED_PROJECTS, (String)launchSpec.getAttribute(IReferencedProjectLaunchAttributes.ATTR_REFERENCED_PROJECTS).getValue());
-		}
+		wc.setAttribute(IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, true);
+		wc.setAttribute(IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, true);
+		copySpecToConfig(launchSpec, wc);
+
+		wc.rename(getDefaultLaunchName(wc));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.launch.core.lm.delegates.DefaultLaunchManagerDelegate#updateLaunchConfig(org.eclipse.debug.core.ILaunchConfigurationWorkingCopy, org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext, boolean)
+	 */
 	@Override
 	public void updateLaunchConfig(ILaunchConfigurationWorkingCopy wc, ISelectionContext selContext, boolean replace) {
 		super.updateLaunchConfig(wc, selContext, replace);
@@ -114,6 +110,8 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 			IRemoteSelectionContext remoteCtx = (IRemoteSelectionContext)selContext;
 			LaunchContextsPersistenceDelegate.setLaunchContexts(wc, new IModelNode[]{remoteCtx.getRemoteCtx()});
 		}
+
+		wc.rename(getDefaultLaunchName(wc));
 	}
 
 	/* (non-Javadoc)
@@ -269,7 +267,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	 */
 	@Override
 	protected int getNumAttributes() {
-		return 5;
+		return 8;
 	}
 
 	/* (non-Javadoc)
@@ -278,18 +276,27 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	@Override
 	protected int getAttributeRanking(String attributeKey) {
 		if (ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS.equals(attributeKey)) {
-			return getNumAttributes() * 32;
+			return getNumAttributes() * 256;
 		}
 		else if (IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE.equals(attributeKey)) {
-			return getNumAttributes() * 16;
+			return getNumAttributes() * 128;
 		}
 		else if (IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS.equals(attributeKey)) {
-			return getNumAttributes() * 8;
+			return getNumAttributes() * 64;
 		}
 		else if (IFileTransferLaunchAttributes.ATTR_FILE_TRANSFERS.equals(attributeKey)) {
-			return getNumAttributes() * 4;
+			return getNumAttributes() * 32;
 		}
 		else if (IReferencedProjectLaunchAttributes.ATTR_REFERENCED_PROJECTS.equals(attributeKey)) {
+			return getNumAttributes() * 16;
+		}
+		else if (IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY.equals(attributeKey)) {
+			return getNumAttributes() * 8;
+		}
+		else if (IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN.equals(attributeKey)) {
+			return getNumAttributes() * 4;
+		}
+		else if (IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN.equals(attributeKey)) {
 			return getNumAttributes() * 2;
 		}
 		else {

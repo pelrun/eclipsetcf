@@ -25,5 +25,23 @@ public interface IRemoteAppLaunchAttributes {
 	 */
 	public static final String ATTR_PROCESS_ARGUMENTS = ICommonTCFLaunchAttributes.ATTR_PREFIX + ".process_arguments"; //$NON-NLS-1$
 
+	/**
+	 * Launch configuration attribute: Flag if or if not to stop at process entry.
+	 */
+	public static final String ATTR_STOP_AT_ENTRY = ICommonTCFLaunchAttributes.ATTR_PREFIX + ".process_stop_at_entry"; //$NON-NLS-1$
+
+	/**
+	 * Launch configuration attribute: Flag if or if not to stop at main.
+	 */
+	public static final String ATTR_STOP_AT_MAIN = ICommonTCFLaunchAttributes.ATTR_PREFIX + ".process_stop_at_main"; //$NON-NLS-1$
+
+	/**
+	 * Launch configuration attribute: Flag if or if not to attach process children.
+	 */
+	public static final String ATTR_ATTACH_CHILDREN = ICommonTCFLaunchAttributes.ATTR_PREFIX + ".process_attach_children"; //$NON-NLS-1$
+
+	/**
+	 * Launch configuration attribute (internal use): The process context object.
+	 */
 	public static final String ATTR_PROCESS_CONTEXT = ICommonTCFLaunchAttributes.ATTR_PREFIX + ".process_context"; //$NON-NLS-1$
 }

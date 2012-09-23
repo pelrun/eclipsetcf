@@ -71,6 +71,9 @@ public class Messages extends NLS {
 	public static String LaunchConfigurationMainTabSection_processArguments_label;
 	public static String LaunchConfigurationMainTabSection_processImage_label;
 	public static String LaunchConfigurationMainTabSection_error_missingProcessImage;
+	public static String LaunchConfigurationMainTabSection_stopAtEntry_label;
+	public static String LaunchConfigurationMainTabSection_stopAtMain_label;
+	public static String LaunchConfigurationMainTabSection_attachChildren_label;
 
 	public static String AddEditFileTransferDialog_add_dialogTitle;
 	public static String AddEditFileTransferDialog_edit_dialogTitle;

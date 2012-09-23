@@ -12,16 +12,23 @@ package org.eclipse.tcf.te.tcf.launch.ui.remote.app;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.launch.ui.interfaces.ILaunchConfigurationTabFormPart;
+import org.eclipse.tcf.te.launch.ui.tabs.AbstractLaunchConfigurationTab;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.dialogs.FSOpenFileDialog;
@@ -39,9 +46,13 @@ import org.eclipse.ui.forms.widgets.Section;
  */
 public class LaunchConfigurationMainTabSection extends AbstractSection implements ILaunchConfigurationTabFormPart {
 
-	BaseEditBrowseTextControl processImage;
-	BaseEditBrowseTextControl processArguments;
-	IModelNode firstSelection = null;
+	/* default */ BaseEditBrowseTextControl processImage;
+	/* default */ BaseEditBrowseTextControl processArguments;
+	private Button stopAtEntry;
+	private Button stopAtMain;
+	private Button attachChildren;
+
+	/* default */ IModelNode firstSelection = null;
 
 	/**
 	 * Constructor.
@@ -125,6 +136,55 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 		processArguments.setParentControlIsInnerPanel(true);
 		processArguments.setFormToolkit(toolkit);
 		processArguments.setupPanel(client);
+
+		Object container = getManagedForm().getContainer();
+		if (container instanceof AbstractLaunchConfigurationTab) {
+			ILaunchConfigurationDialog dialog = ((AbstractLaunchConfigurationTab)container).getLaunchConfigurationDialog();
+			String mode = dialog != null ? dialog.getMode() : null;
+			if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+				// Add the debug options to the launch tab
+				Label label = new Label(client, SWT.HORIZONTAL);
+				GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+				layoutData.horizontalSpan = 3;
+				label.setLayoutData(layoutData);
+
+				stopAtEntry = new Button(client, SWT.CHECK);
+				stopAtEntry.setText(Messages.LaunchConfigurationMainTabSection_stopAtEntry_label);
+				layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+				layoutData.horizontalSpan = 3;
+				stopAtEntry.setLayoutData(layoutData);
+				stopAtEntry.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						getManagedForm().dirtyStateChanged();
+					}
+				});
+
+				stopAtMain = new Button(client, SWT.CHECK);
+				stopAtMain.setText(Messages.LaunchConfigurationMainTabSection_stopAtMain_label);
+				layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+				layoutData.horizontalSpan = 3;
+				stopAtMain.setLayoutData(layoutData);
+				stopAtMain.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						getManagedForm().dirtyStateChanged();
+					}
+				});
+
+				attachChildren = new Button(client, SWT.CHECK);
+				attachChildren.setText(Messages.LaunchConfigurationMainTabSection_attachChildren_label);
+				layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+				layoutData.horizontalSpan = 3;
+				attachChildren.setLayoutData(layoutData);
+				attachChildren.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						getManagedForm().dirtyStateChanged();
+					}
+				});
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -142,6 +202,21 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 		if (processArguments != null) {
 			String arguments = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, ""); //$NON-NLS-1$
 			processArguments.setEditFieldControlText(arguments);
+		}
+
+		if (stopAtEntry != null) {
+			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY, false);
+			stopAtEntry.setSelection(selected);
+		}
+
+		if (stopAtMain != null) {
+			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, false);
+			stopAtMain.setSelection(selected);
+		}
+
+		if (attachChildren != null) {
+			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, false);
+			attachChildren.setSelection(selected);
 		}
 	}
 
@@ -174,6 +249,18 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 			}
 		} else {
 			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, (String)null);
+		}
+
+		if (stopAtEntry != null) {
+			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY, stopAtEntry.getSelection());
+		}
+
+		if (stopAtMain != null) {
+			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, stopAtMain.getSelection());
+		}
+
+		if (attachChildren != null) {
+			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, attachChildren.getSelection());
 		}
 	}
 
