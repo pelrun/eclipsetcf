@@ -1,5 +1,5 @@
 #******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -16,17 +16,39 @@ NAME = "StackTrace"
 #
 # Stack frame context property names.
 #
-PROP_ID = "ID"                         # String, stack frame ID
-PROP_PARENT_ID = "ParentID"            # String, stack frame parent ID
-PROP_PROCESS_ID = "ProcessID"          # String, stack frame process ID
-PROP_NAME = "Name"                     # String, human readable name
-PROP_TOP_FRAME = "TopFrame"            # Boolean, true if the frame is top frame on a stack
-PROP_LEVEL = "Level"                   # Integer, stack frame level, starting from stack bottom
-PROP_FRAME_ADDRESS = "FP"              # Number, stack frame memory address
-PROP_RETURN_ADDRESS = "RP"             # Number, return address
-PROP_INSTRUCTION_ADDRESS = "IP"        # Number, instruction pointer
-PROP_ARGUMENTS_COUNT = "ArgsCnt"       # Integer, number of function arguments
-PROP_ARGUMENTS_ADDRESS = "ArgsAddr"    # Number, memory address of function arguments
+# String, stack frame ID
+PROP_ID = "ID"
+
+# String, stack frame parent ID
+PROP_PARENT_ID = "ParentID"
+
+# String, stack frame process ID
+PROP_PROCESS_ID = "ProcessID"
+
+# String, human readable name
+PROP_NAME = "Name"
+
+# Boolean, true if the frame is top frame on a stack
+PROP_TOP_FRAME = "TopFrame"
+
+# Integer, stack frame level, starting from stack bottom
+PROP_LEVEL = "Level"
+
+# Number, stack frame memory address
+PROP_FRAME_ADDRESS = "FP"
+
+# Number, return address
+PROP_RETURN_ADDRESS = "RP"
+
+# Number, instruction pointer
+PROP_INSTRUCTION_ADDRESS = "IP"
+
+# Integer, number of function arguments
+PROP_ARGUMENTS_COUNT = "ArgsCnt"
+
+# Number, memory address of function arguments
+PROP_ARGUMENTS_ADDRESS = "ArgsAddr"
+
 
 class StackTraceService(services.Service):
     def getName(self):
@@ -48,9 +70,9 @@ class StackTraceService(services.Service):
         """
         Retrieve stack trace context list.
         Parent context usually corresponds to an execution thread.
-        Some targets have more then one stack. In such case children of a thread
-        are stacks, and stack frames are deeper in the hierarchy - they can be
-        retrieved with additional getChildren commands.
+        Some targets have more then one stack. In such case children of a
+        thread are stacks, and stack frames are deeper in the hierarchy - they
+        can be retrieved with additional getChildren commands.
 
         The command will fail if parent thread is not suspended.
         Client can use Run Control service to suspend a thread.
@@ -60,6 +82,7 @@ class StackTraceService(services.Service):
         """
         raise NotImplementedError("Abstract method")
 
+
 class DoneGetContext(object):
     """
     Client call back interface for getContext().
@@ -67,10 +90,12 @@ class DoneGetContext(object):
     def doneGetContext(self, token, error, contexts):
         """
         Called when context data retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param contexts - array of context data or None if error.
         """
         pass
+
 
 class DoneGetChildren(object):
     """
@@ -79,11 +104,13 @@ class DoneGetChildren(object):
     def doneGetChildren(self, token, error, context_ids):
         """
         Called when context list retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context_ids - array of available context IDs.
         Stack frames are ordered from stack bottom to top.
         """
         pass
+
 
 class StackTraceContext(object):
     """

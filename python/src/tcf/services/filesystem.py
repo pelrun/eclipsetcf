@@ -77,37 +77,38 @@ NAME = "FileSystem"
 # Flags to be used with open() method.
 
 # Open the file for reading.
-TCF_O_READ              = 0x00000001
+TCF_O_READ = 0x00000001
 
 # Open the file for writing. If both this and TCF_O_READ are
 # specified, the file is opened for both reading and writing.
-TCF_O_WRITE             = 0x00000002
+TCF_O_WRITE = 0x00000002
 
 # Force all writes to append data at the end of the file.
-TCF_O_APPEND            = 0x00000004
+TCF_O_APPEND = 0x00000004
 
 # If this flag is specified, then a new file will be created if one
 # does not already exist (if TCF_O_TRUNC is specified, the new file will
 # be truncated to zero length if it previously exists).
-TCF_O_CREAT             = 0x00000008
+TCF_O_CREAT = 0x00000008
 
 # Forces an existing file with the same name to be truncated to zero
 # length when creating a file by specifying TCF_O_CREAT.
 # TCF_O_CREAT MUST also be specified if this flag is used.
-TCF_O_TRUNC             = 0x00000010
+TCF_O_TRUNC = 0x00000010
 
 # Causes the request to fail if the named file already exists.
 # TCF_O_CREAT MUST also be specified if this flag is used.
-TCF_O_EXCL              = 0x00000020
+TCF_O_EXCL = 0x00000020
 
 # Flags to be used together with FileAttrs.
 # The flags specify which of the fields are present.  Those fields
 # for which the corresponding flag is not set are not present (not
 # included in the message).
-ATTR_SIZE               = 0x00000001
-ATTR_UIDGID             = 0x00000002
-ATTR_PERMISSIONS        = 0x00000004
-ATTR_ACMODTIME          = 0x00000008
+ATTR_SIZE = 0x00000001
+ATTR_UIDGID = 0x00000002
+ATTR_PERMISSIONS = 0x00000004
+ATTR_ACMODTIME = 0x00000008
+
 
 class FileAttrs(object):
     """
@@ -132,7 +133,8 @@ class FileAttrs(object):
     midnight Jan 1, 1970 in UTC.
     attributes - Additional (non-standard) attributes.
     """
-    def __init__(self, flags, size, uid, gid, permissions, atime, mtime, attributes):
+    def __init__(self, flags, size, uid, gid, permissions, atime, mtime,
+                 attributes):
         self.flags = flags
         self.size = size
         self.uid = uid
@@ -144,48 +146,55 @@ class FileAttrs(object):
 
     def isFile(self):
         """
-        Determines if the file system object is a file on the remote file system.
+        Determines if the file system object is a file on the remote file
+        system.
 
-        @return True if and only if the object on the remote system can be considered to have "contents" that
-        have the potential to be read and written as a byte stream.
+        @return True if and only if the object on the remote system can be
+                considered to have "contents" that have the potential to be
+                read and written as a byte stream.
         """
-        if (self.flags & ATTR_PERMISSIONS) == 0: return False
+        if (self.flags & ATTR_PERMISSIONS) == 0:
+            return False
         return (self.permissions & S_IFMT) == S_IFREG
 
     def isDirectory(self):
         """
-        Determines if the file system object is a directory on the remote file system.
+        Determines if the file system object is a directory on the remote file
+        system.
 
-        @return True if and only if the object on the remote system is a directory.
-        That is, it contains entries that can be interpreted as other files.
+        @return True if and only if the object on the remote system is a
+                directory. That is, it contains entries that can be interpreted
+                as other files.
         """
-        if (self.flags & ATTR_PERMISSIONS) == 0: return False
+        if (self.flags & ATTR_PERMISSIONS) == 0:
+            return False
         return (self.permissions & S_IFMT) == S_IFDIR
 
 # The following flags are defined for the 'permissions' field:
-S_IFMT     = 0170000   # bitmask for the file type bitfields
-S_IFSOCK   = 0140000   # socket
-S_IFLNK    = 0120000   # symbolic link
-S_IFREG    = 0100000   # regular file
-S_IFBLK    = 0060000   # block device
-S_IFDIR    = 0040000   # directory
-S_IFCHR    = 0020000   # character device
-S_IFIFO    = 0010000   # fifo
-S_ISUID    = 0004000   # set UID bit
-S_ISGID    = 0002000   # set GID bit (see below)
-S_ISVTX    = 0001000   # sticky bit (see below)
-S_IRWXU    = 00700     # mask for file owner permissions
-S_IRUSR    = 00400     # owner has read permission
-S_IWUSR    = 00200     # owner has write permission
-S_IXUSR    = 00100     # owner has execute permission
-S_IRWXG    = 00070     # mask for group permissions
-S_IRGRP    = 00040     # group has read permission
-S_IWGRP    = 00020     # group has write permission
-S_IXGRP    = 00010     # group has execute permission
-S_IRWXO    = 00007     # mask for permissions for others (not in group)
-S_IROTH    = 00004     # others have read permission
-S_IWOTH    = 00002     # others have write permission
-S_IXOTH    = 00001     # others have execute permission
+S_IFMT = 0170000   # bitmask for the file type bitfields
+S_IFSOCK = 0140000   # socket
+S_IFLNK = 0120000   # symbolic link
+S_IFREG = 0100000   # regular file
+S_IFBLK = 0060000   # block device
+S_IFDIR = 0040000   # directory
+S_IFCHR = 0020000   # character device
+S_IFIFO = 0010000   # fifo
+S_ISUID = 0004000   # set UID bit
+S_ISGID = 0002000   # set GID bit (see below)
+S_ISVTX = 0001000   # sticky bit (see below)
+S_IRWXU = 00700     # mask for file owner permissions
+S_IRUSR = 00400     # owner has read permission
+S_IWUSR = 00200     # owner has write permission
+S_IXUSR = 00100     # owner has execute permission
+S_IRWXG = 00070     # mask for group permissions
+S_IRGRP = 00040     # group has read permission
+S_IWGRP = 00020     # group has write permission
+S_IXGRP = 00010     # group has execute permission
+S_IRWXO = 00007     # mask for permissions for others (not in group)
+S_IROTH = 00004     # others have read permission
+S_IWOTH = 00002     # others have write permission
+S_IXOTH = 00001     # others have execute permission
+
 
 class DirEntry(object):
     """
@@ -208,10 +217,11 @@ class DirEntry(object):
         self.longname = longname
         self.attrs = attrs
 
+
 class FileHandle(object):
-    def __init__(self, service, id):
+    def __init__(self, service, fileID):
         self.service = service
-        self.id = id
+        self.id = fileID
 
     def getService(self):
         return self.service
@@ -234,15 +244,18 @@ STATUS_NO_SUCH_FILE = 0x10002
 # permissions to perform the operation.
 STATUS_PERMISSION_DENIED = 0x10003
 
+
 class FileSystemException(IOError):
     """
     The class to represent File System error reports.
     """
+
     def __init__(self, message_or_exception):
         if isinstance(message_or_exception, (str, unicode)):
             super(FileSystemException, self).__init__(message_or_exception)
         elif isinstance(message_or_exception, Exception):
             self.caused_by = message_or_exception
+
     def getStatus(self):
         """
         Get error code. The code can be standard TCF error code or
@@ -251,19 +264,23 @@ class FileSystemException(IOError):
         """
         raise NotImplementedError("Abstract methods")
 
+
 class FileSystemService(services.Service):
+
     def getName(self):
         return NAME
 
-    def open(self, file_name, flags, attrs, done):
+    def open(self, file_name, flags, attrs, done):  # @ReservedAssignment
         """
         Open or create a file on a remote system.
 
-        @param file_name specifies the file name.  See 'File Names' for more information.
-        @param flags is a bit mask of TCF_O_* flags.
-        @param attrs specifies the initial attributes for the file.
-         Default values will be used for those attributes that are not specified.
-        @param done is call back object.
+        @param file_name - specifies the file name.  See 'File Names' for more
+                           information.
+        @param flags - is a bit mask of TCF_O_* flags.
+        @param attrs - specifies the initial attributes for the file. Default
+                       values will be used for those attributes that are not
+                       specified.
+        @param done - is call back object.
         @return pending command handle.
         """
         raise NotImplementedError("Abstract methods")
@@ -285,18 +302,19 @@ class FileSystemService(services.Service):
         In response to this request, the server will read as many bytes as it
         can from the file (up to 'length'), and return them in a byte array.
         If an error occurs or EOF is encountered, the server may return
-        fewer bytes then requested. Call back method doneRead() argument 'error'
-        will be not None in case of error, and argument 'eof' will be
+        fewer bytes then requested. Call back method doneRead() argument
+        'error' will be not None in case of error, and argument 'eof' will be
         True in case of EOF. For normal disk files, it is guaranteed
         that this will read the specified number of bytes, or up to end of file
-        or error. For e.g. device files this may return fewer bytes than requested.
+        or error. For e.g. device files this may return fewer bytes than
+        requested.
 
-        @param handle is an open file handle returned by open().
-        @param offset is the offset (in bytes) relative
-        to the beginning of the file from where to start reading.
-        If offset < 0 then reading starts from current position in the file.
-        @param length is the maximum number of bytes to read.
-        @param done is call back object.
+        @param handle - is an open file handle returned by open().
+        @param offset - is the offset (in bytes) relative to the beginning of
+                        the file from where to start reading. If offset < 0
+                        then reading starts from current position in the file.
+        @param length - is the maximum number of bytes to read.
+        @param done - is call back object.
         @return pending command handle.
         """
         raise NotImplementedError("Abstract methods")
@@ -346,7 +364,8 @@ class FileSystemService(services.Service):
 
     def fstat(self, handle, done):
         """
-        Retrieve file attributes for an open file (identified by the file handle).
+        Retrieve file attributes for an open file (identified by the file
+        handle).
 
         @param handle is a file handle returned by 'open()'.
         @param done is call back object.
@@ -393,7 +412,8 @@ class FileSystemService(services.Service):
         directory, it SHOULD call close() for the handle.  The handle
         should be closed regardless of whether an error has occurred or not.
 
-        @param path - name of the directory to be listed (without any trailing slash).
+        @param path - name of the directory to be listed (without any trailing
+                      slash).
         @param done - result call back object.
         @return pending command handle.
         """
@@ -444,12 +464,14 @@ class FileSystemService(services.Service):
     def roots(self, done):
         """
         Retrieve file system roots - top level file system objects.
-        UNIX file system can report just one root with path "/". Other types of systems
-        can have more the one root. For example, Windows server can return multiple roots:
-        one per disc (e.g. "/C:/", "/D:/", etc.). Note: even Windows implementation of
-        the service must use forward slash as directory separator, and must start
-        absolute path with "/". Server should implement proper translation of
-        protocol file names to OS native names and back.
+        UNIX file system can report just one root with path "/". Other types of
+        systems can have more the one root. For example, Windows server can
+        return multiple roots:
+        one per disc (e.g. "/C:/", "/D:/", etc.). Note: even Windows
+        implementation of the service must use forward slash as directory
+        separator, and must start absolute path with "/". Server should
+        implement proper translation of protocol file names to OS native names
+        and back.
 
         @param done - result call back object.
         @return pending command handle.
@@ -508,8 +530,9 @@ class FileSystemService(services.Service):
         """
         Create a symbolic link on the server.
 
-        @param link_path specifies the path name of the symbolic link to be created.
-        @param target_path specifies the target of the symbolic link.
+        @param link_path - specifies the path name of the symbolic link to be
+                           created.
+        @param target_path - specifies the target of the symbolic link.
         @param done - result call back object.
         @return pending command handle.
         """
@@ -519,8 +542,8 @@ class FileSystemService(services.Service):
         """
         Copy a file on remote system.
 
-        @param src_path specifies the path name of the file to be copied.
-        @param dst_path specifies destination file name.
+        @param src_path - specifies the path name of the file to be copied.
+        @param dst_path - specifies destination file name.
         @param copy_permissions - if True then copy source file permissions.
         @param copy_ownership - if True then copy source file UID and GID.
         @param done - result call back object.
@@ -538,66 +561,83 @@ class FileSystemService(services.Service):
         """
         raise NotImplementedError("Abstract methods")
 
+
 class DoneOpen(object):
     def doneOpen(self, token, error, handle):
         pass
+
 
 class DoneClose(object):
     def doneClose(self, token, error):
         pass
 
+
 class DoneRead(object):
     def doneRead(self, token, error, data, eof):
         pass
+
 
 class DoneWrite(object):
     def doneWrite(self, token, error):
         pass
 
+
 class DoneStat(object):
     def doneStat(self, token, error, attrs):
         pass
+
 
 class DoneSetStat(object):
     def doneSetStat(self, token, error):
         pass
 
+
 class DoneReadDir(object):
     def doneReadDir(self, token, error, entries, eof):
         pass
+
 
 class DoneMkDir(object):
     def doneMkDir(self, token, error):
         pass
 
+
 class DoneRemove(object):
     def doneRemove(self, token, error):
         pass
+
 
 class DoneRoots(object):
     def doneRoots(self, token, error, entries):
         pass
 
+
 class DoneRealPath(object):
     def doneRealPath(self, token, error, path):
         pass
+
 
 class DoneRename(object):
     def doneRename(self, token, error):
         pass
 
+
 class DoneReadLink(object):
     def doneReadLink(self, token, error, path):
         pass
+
 
 class DoneSymLink(object):
     def doneSymLink(self, token, error):
         pass
 
+
 class DoneCopy(object):
     def doneCopy(self, token, error):
         pass
 
+
 class DoneUser(object):
-    def doneUser(self, token, error, real_uid, effective_uid, real_gid, effective_gid, home):
+    def doneUser(self, token, error, real_uid, effective_uid, real_gid,
+                 effective_gid, home):
         pass

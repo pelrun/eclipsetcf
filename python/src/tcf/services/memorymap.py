@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,10 +7,11 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 """
-MemoryMap service provides information about executable modules (files) mapped (loaded) into target memory.
+MemoryMap service provides information about executable modules (files) mapped
+(loaded) into target memory.
 """
 
 from tcf import services
@@ -21,6 +22,12 @@ NAME = "MemoryMap"
 # Memory region property names.
 # Number, region address in memory
 PROP_ADDRESS = "Addr"
+
+# String, memory region context query, see IContextQuery
+PROP_CONTEXT_QUERY = "ContextQuery"
+
+# String, memory region ID
+PROP_ID = "ID"
 
 # Number, region size
 PROP_SIZE = "Size"
@@ -50,6 +57,7 @@ FLAG_WRITE = 2
 # Instruction fetch access is allowed
 FLAG_EXECUTE = 4
 
+
 class MemoryRegion(object):
     """Memory region object."""
 
@@ -70,6 +78,15 @@ class MemoryRegion(object):
         @return region address.
         """
         return self._props.get(PROP_ADDRESS)
+
+    def getContextQuery(self):
+        """Get context query that defines scope of the region, see also
+        ContextQuery service.
+        Same as getProperties().get(PROP_CONTEXT_QUERY)
+        Only user-defined regions can have a context query property.
+        @return context query expression, or None.
+        """
+        return self._props.get(PROP_CONTEXT_QUERY, None)
 
     def getSize(self):
         """
@@ -114,26 +131,28 @@ class MemoryRegion(object):
         return "MemoryRegion(%s)" % str(self._props)
     __str__ = __repr__
 
+
 class MemoryMapService(services.Service):
+
     def getName(self):
         return NAME
 
-    def get(self, id, done):
+    def get(self, contextID, done):
         """
         Retrieve memory map for given context ID.
 
-        @param id - context ID.
+        @param contextID - context ID.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
         return NotImplementedError("Abstract method")
 
-    def set(self, id, map, done):
+    def set(self, contextID, memoryMap, done):  # @ReservedAssignment
         """
         Set memory map for given context ID.
 
-        @param id - context ID.
-        @param map - memory map data.
+        @param contextID - context ID.
+        @param memoryMap - memory map data.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
@@ -153,17 +172,20 @@ class MemoryMapService(services.Service):
         """
         return NotImplementedError("Abstract method")
 
+
 class DoneGet(object):
     """
     Client call back interface for get().
     """
-    def doneGet(self, token, error, map):
+    def doneGet(self, token, error, memoryMap):
         """
         Called when memory map data retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
-        @param map - memory map data.
+        @param error - error description if operation failed, None if
+                       succeeded.
+        @param memoryMap - memory map data.
         """
         pass
+
 
 class DoneSet(object):
     """
@@ -172,9 +194,11 @@ class DoneSet(object):
     def doneSet(self, token, error):
         """
         Called when memory map set command is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         """
         pass
+
 
 class MemoryMapListener(object):
     """

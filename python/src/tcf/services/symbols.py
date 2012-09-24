@@ -14,15 +14,17 @@ from tcf import services
 # Service name.
 NAME = "Symbols"
 
+
 class SymbolClass:
     unknown = 0                # unknown symbol class
     value = 1                  # constant value
     reference = 2              # variable data object
     function = 3               # function body
-    type = 4                   # a type
+    type = 4                   # a type @ReservedAssignment
     comp_unit = 5              # a compilation unit
     block = 6                  # a block of code
     namespace = 7              # a namespace
+
 
 class TypeClass:
     unknown = 0                # unknown type class
@@ -83,6 +85,7 @@ PROP_VALUE = "Value"
 PROP_BIG_ENDIAN = "BigEndian"
 PROP_REGISTER = "Register"
 PROP_FLAGS = "Flags"
+PROP_CONTAINER_ID = "ContainerID"
 
 #
 # Symbol context properties update policies.
@@ -90,13 +93,15 @@ PROP_FLAGS = "Flags"
 
 # Update policy "Memory Map": symbol properties become invalid when
 # memory map changes - when modules are loaded or unloaded.
-# Symbol OwnerID indicates memory space (process) that is invalidation events source.
+# Symbol OwnerID indicates memory space (process) that is invalidation events
+# source.
 # Most static variables and types have this update policy.
 UPDATE_ON_MEMORY_MAP_CHANGES = 0
 
 # Update policy "Execution State": symbol properties become invalid when
 # execution state changes - a thread is suspended, resumed or exited.
-# Symbol OwnerID indicates executable context (thread) that is invalidation events source.
+# Symbol OwnerID indicates executable context (thread) that is invalidation
+# events source.
 # Most stack (auto) variables have this update policy.
 UPDATE_ON_EXE_STATE_CHANGES = 1
 
@@ -178,6 +183,16 @@ class Symbol(object):
         @return type ID.
         """
         return self._props.get(PROP_BASE_TYPE_ID)
+
+    def getContainerID(self):
+        """Get container type ID.
+        If this symbol is a
+            field or member - return containing class type;
+            member pointer - return containing class type;
+            otherwise return None.
+        @return type ID.
+        """
+        return self._props.get(PROP_CONTAINER_ID)
 
     def getIndexTypeID(self):
         """
@@ -266,16 +281,17 @@ class Symbol(object):
         """
         return self._props
 
+
 class SymbolsService(services.Service):
     def getName(self):
         return NAME
 
-    def getContext(self, id, done):
+    def getContext(self, contextID, done):
         """
         Retrieve symbol context info for given symbol ID.
         @see Symbol
 
-        @param id - symbol context ID.
+        @param contextID - symbol context ID.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
@@ -300,7 +316,8 @@ class SymbolsService(services.Service):
         The context can be memory space, process, thread or stack frame.
 
         @param context_id - a search scope.
-        @param ip - instruction pointer - ignored if context_id is a stack frame ID
+        @param ip - instruction pointer - ignored if context_id is a stack
+                    frame ID
         @param name - symbol name.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
@@ -313,7 +330,8 @@ class SymbolsService(services.Service):
         The context can be memory space, process, thread or stack frame.
 
         @param context_id - a search scope.
-        @param ip - instruction pointer - ignored if context_id is a stack frame ID
+        @param ip - instruction pointer - ignored if context_id is a stack
+                    frame ID
         @param name - symbol name.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
@@ -334,7 +352,8 @@ class SymbolsService(services.Service):
 
     def findInScope(self, context_id, ip, scope_id, name, done):
         """
-        Search symbols with given name in given context or in given symbol scope.
+        Search symbols with given name in given context or in given symbol
+        scope.
         The context can be memory space, process, thread or stack frame.
         The symbol scope can be any symbol.
         If ip is not null, the search of the symbol name is done first in the
@@ -351,7 +370,7 @@ class SymbolsService(services.Service):
         """
         raise NotImplementedError("Abstract method")
 
-    def list(self, context_id, done):
+    def list(self, context_id, done):  # @ReservedAssignment
         """
         List all symbols in given context.
         The context can be a stack frame.
@@ -376,13 +395,33 @@ class SymbolsService(services.Service):
 
     def findFrameInfo(self, context_id, address, done):
         """
-        Retrieve stack tracing commands for given instruction address in a context memory.
+        Retrieve stack tracing commands for given instruction address in a
+        context memory.
         @param context_id - exacutable context ID.
         @param address - instruction address.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
         raise NotImplementedError("Abstract method")
+
+    def getLocationInfo(self, symbolID, done):
+        """Retrieve symbol location information.
+        @param symbol_id - symbol ID.
+        @param done - call back interface called when operation is completed.
+        @return - pending command handle.
+        """
+        raise NotImplementedError("Abstract method")
+
+    def getSymFileInfo(self, contextID, address, done):
+        """Get symbol file info for a module that contains given address in a
+        memory space.
+        @param contextID - a memory space (process) ID.
+        @param address - an address in the memory space.
+        @param done - call back interface called when operation is completed.
+        @return - pending command handle.
+        """
+        raise NotImplementedError("Abstract method")
+
 
 class DoneGetContext(object):
     """
@@ -392,10 +431,24 @@ class DoneGetContext(object):
         """
         Called when context data retrieval is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context - context properties.
         """
         pass
+
+
+class DoneGetLocationInfo(object):
+    """Client call back interface for getLocationInfo()."""
+    def doneGetLocationInfo(self, token, error, props):
+        """Called when location information retrieval is done.
+        @param token - command handle.
+        @param error - error description if operation failed, None if
+                       succeeded.
+        @param props - symbol location properties, see LOC_ * .
+        """
+        pass
+
 
 class DoneGetChildren(object):
     """
@@ -405,10 +458,12 @@ class DoneGetChildren(object):
         """
         Called when context list retrieval is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context_ids - array of available context IDs.
         """
         pass
+
 
 class DoneFind(object):
     """
@@ -418,10 +473,24 @@ class DoneFind(object):
         """
         Called when symbol search is done.
         @param token - command handle.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param symbol_ids - list of symbol ID.
         """
         pass
+
+
+class DoneGetSymFileInfo(object):
+    """Client call back interface for getSymFileInfo()."""
+    def doneGetSymFileInfo(self, token, error, props):
+        """Called when symbol file information retrieval is done.
+        @param token - command handle.
+        @param error - error description if operation failed, None if
+                       succeeded.
+        @param props - symbol file properties.
+        """
+        pass
+
 
 class DoneList(object):
     """
@@ -431,9 +500,11 @@ class DoneList(object):
         """
         Called when symbol list retrieval is done.
         @param token - command handle.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param symbol_ids - array of symbol IDs.
         """
+
 
 class DoneGetArrayType(object):
     """
@@ -443,43 +514,100 @@ class DoneGetArrayType(object):
         """
         Called when array type creation is done.
         @param token - command handle.
-        @param error - error description if operation failed, None if succeeded.
-        @param type_id - array type symbol ID 
+        @param error - error description if operation failed, None if
+                       succeeded.
+        @param type_id - array type symbol ID
         """
 
 
 #
-# Command codes that are used to calculate frame pointer and register values during stack tracing.
+# Command codes that are used to calculate frame pointer and register values
+# during stack tracing.
 #
 
 # Load a number to the evaluation stack. Command argument is the number.
-CMD_NUMBER      = 1
-
-# Load a register value to the evaluation stack. Command argument is the register ID.
-CMD_REGISTER    = 2
+CMD_NUMBER = 1
 
 # Load frame address to the evaluation stack.
-CMD_FP          = 3
-
-# Read memory at address on the top of the evaluation stack. Command arguments are
-# the value size (Number) and endianness (Boolean, false - little-endian, true - big-endian).
-CMD_DEREF       = 4
+CMD_FP = 3
 
 # Add two values on top of the evaluation stack
-CMD_ADD         = 5
+CMD_ADD = 5
+
+CMD_SUB = 6
+CMD_MUL = 7
+CMD_DIV = 8
+CMD_AND = 9
+CMD_OR = 10
+CMD_XOR = 11
+CMD_NEG = 12
+CMD_GE = 13
+CMD_GT = 14
+CMD_LE = 15
+CMD_LT = 16
+CMD_SHL = 17
+CMD_SHR = 18
+
+# Load expression argument to evaluation stack.
+CMD_ARG = 19
+
+# Evaluate DWARF location expression. Command arguments are byte array of
+# DWARF expression instructions and an object that contains evaluation
+# parameters.
+CMD_LOCATION = 20
+
+CMD_FCALL = 21
+CMD_WR_REG = 22
+CMD_WR_MEM = 23
+CMD_PIECE = 24
+
+# deprecated
+# Load a register value to the evaluation stack. Command argument is the
+# register ID.
+CMD_REGISTER = 2
+
+# Read memory at address on the top of the evaluation stack. Command arguments
+# are the value size (Number) and endianness (Boolean, false - little-endian,
+# true - big-endian).
+CMD_DEREF = 4
+
+# Symbol location properties.
+
+# Number, start address of code range where the location info is valid, or null
+# if it is valid everywhere
+LOC_CODE_ADDR = "CodeAddr"
+
+# Number, size in bytes of code range where the location info is valid, or null
+# if it is valid everywhere
+LOC_CODE_SIZE = "CodeSize"
+
+
+# Number, number of argument required to execute location instructions
+LOC_ARG_CNT = "ArgCnt"
+
+# List, instructions to compute object value location, e.g. address, or offset,
+# or register ID, etc.
+LOC_VALUE_CMDS = "ValueCmds"
+
+# List, instructions to compute dynamic array length location
+LOC_LENGTH_CMDS = "LengthCmds"
+
 
 class DoneFindFrameInfo(object):
     """
     Client call back interface for findFrameInfo().
     """
-    def doneFindFrameInfo(self, token, error, address, size, fp_cmds, reg_cmds):
+    def doneFindFrameInfo(self, token, error, address, size, fp_cmds,
+                          reg_cmds):
         """
         Called when stack tracing information retrieval is done.
         @param token - command handle.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param address - start of instruction address range
         @param size - size of instruction address range
         @param fp_cmds - commands to calculate stack frame pointer
-        @param reg_cmds - map register IDs -> commands to calculate register values
+        @param reg_cmds - map register IDs -> commands to calculate register
+                          values
         """
         pass

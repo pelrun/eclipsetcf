@@ -1,4 +1,4 @@
-# *******************************************************************************
+# *****************************************************************************
 # * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,13 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 """
-Expressions service allows TCF client to perform expression evaluation on remote target.
-The service can be used to retrieve or modify values of variables or any data structures in remote target memory.
+Expressions service allows TCF client to perform expression evaluation on
+remote target.
+The service can be used to retrieve or modify values of variables or any data
+structures in remote target memory.
 """
 
 from tcf import services
@@ -19,12 +21,16 @@ from tcf import services
 # Service name.
 NAME = "Expressions"
 
+
 class Expression(object):
     """
-    Expression object represent an expression that can be evaluated by remote target.
-    It has a unique ID and contains all information necessary to compute a value.
+    Expression object represent an expression that can be evaluated by remote
+    target.
+    It has a unique ID and contains all information necessary to compute a
+    value.
     The object data usually includes:
-      1. process, thread or stack frame ID that should be used to resolve symbol names
+      1. process, thread or stack frame ID that should be used to resolve
+         symbol names
       2. a script that can compute a value, like "x.y + z"
     """
     def __init__(self, props):
@@ -63,7 +69,8 @@ class Expression(object):
 
     def getSymbolID(self):
         """
-        Return symbol ID if the expression represents a symbol (e.g. local variable).
+        Return symbol ID if the expression represents a symbol (e.g. local
+        variable).
         @return symbol ID
         """
         return self._props.get(PROP_SYMBOL_ID)
@@ -71,7 +78,8 @@ class Expression(object):
     def getBits(self):
         """
         Get size of expression value in bits.
-        Can be 0 if value size is even number of bytes, use getSize() in such case.
+        Can be 0 if value size is even number of bytes, use getSize() in such
+        case.
         @return size in bits.
         """
         return self._props.get(PROP_BITS, 0)
@@ -86,9 +94,10 @@ class Expression(object):
 
     def getTypeID(self):
         """
-        Get expression type ID. Symbols service can be used to get type properties.
-        This is "static" or "declared" type ID, actual type of a value can be different -
-        if expression language supports dynamic typing.
+        Get expression type ID. Symbols service can be used to get type
+        properties.
+        This is "static" or "declared" type ID, actual type of a value can be
+        different - if expression language supports dynamic typing.
         @return type ID.
         """
         return self._props.get(PROP_TYPE)
@@ -99,6 +108,14 @@ class Expression(object):
         @return true if can assign.
         """
         return self._props.get(PROP_CAN_ASSIGN)
+
+    def hasFuncCall(self):
+        """
+        Check if the expression contains target function call.
+        Such expression can resume the target when evaluated.
+        @return true if has a function call.
+        """
+        return (self._props.get(PROP_HAS_FUNC_CALL))
 
     def getProperties(self):
         """
@@ -117,12 +134,16 @@ PROP_BITS = "Bits"
 PROP_SIZE = "Size"
 PROP_TYPE = "Type"
 PROP_CAN_ASSIGN = "CanAssign"
+PROP_HAS_FUNC_CALL = "HasFuncCall"
+
 
 class Value(object):
     """
     Value represents result of expression evaluation.
-    Note that same expression can be evaluated multiple times with different results.
+    Note that same expression can be evaluated multiple times with different
+    results.
     """
+
     def __init__(self, value, props):
         self._value = value
         self._props = props or {}
@@ -148,7 +169,8 @@ class Value(object):
     def isBigEndian(self):
         """
         Check endianness of the values.
-        Big-endian means decreasing numeric significance with increasing byte number.
+        Big-endian means decreasing numeric significance with increasing
+        byte number.
         @return true if big-endian.
         """
         return self._props.get(VAL_BIG_ENDIAN)
@@ -159,6 +181,20 @@ class Value(object):
         @return The value address or None if none address exists for the value
         """
         return self._props.get(VAL_ADDRESS)
+
+    def getRegisterID(self):
+        """
+        Return register ID if the value represents register variable.
+        @return register ID or None.
+        """
+        return self._props.get(VAL_REGISTER)
+
+    def getSymbolID(self):
+        """
+        Return symbol ID if the value represents a symbol.
+        @return symbol ID or None.
+        """
+        return self._props.get(VAL_SYMBOL)
 
     def getValue(self):
         """
@@ -182,16 +218,18 @@ VAL_REGISTER = "Register"
 VAL_ADDRESS = "Address"
 VAL_BIG_ENDIAN = "BigEndian"
 
+
 class ExpressionsService(services.Service):
+
     def getName(self):
         return NAME
 
-    def getContext(self, id, done):
+    def getContext(self, contextID, done):
         """
         Retrieve expression context info for given context ID.
         @see Expression
 
-        @param id - context ID.
+        @param contextID - context ID.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
@@ -208,8 +246,8 @@ class ExpressionsService(services.Service):
         5. thread - top stack frame function arguments and local variables
         6. process - global variables
 
-        Children list *does not* include IDs of expressions that were created by clients
-        using "create" command.
+        Children list *does not* include IDs of expressions that were created
+        by clients using "create" command.
 
         @param parent_context_id - parent context ID.
         @param done - call back interface called when operation is completed.
@@ -221,36 +259,38 @@ class ExpressionsService(services.Service):
         """
         Create an expression context.
         The context should be disposed after use.
-        @param parent_id - a context ID that can be used to resolve symbol names.
-        @param language - language of expression script, None means default language
+        @param parent_id - a context ID that can be used to resolve symbol
+                           names.
+        @param language - language of expression script, None means default
+                          language
         @param expression - expression script
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
-    def dispose(self, id, done):
+    def dispose(self, contextID, done):
         """
         Dispose an expression context that was created by create()
-        @param id - the expression context ID
+        @param contextID - the expression context ID
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
-    def evaluate(self, id, done):
+    def evaluate(self, contextID, done):
         """
         Evaluate value of an expression context.
-        @param id - the expression context ID
+        @param contextID - the expression context ID
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
-    def assign(self, id, value, done):
+    def assign(self, contextID, value, done):
         """
         Assign a value to memory location determined by an expression.
-        @param id - expression ID.
+        @param contextID - expression ID.
         @param value - value as an array of bytes.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
@@ -271,6 +311,7 @@ class ExpressionsService(services.Service):
         """
         raise NotImplementedError("Abstract method")
 
+
 class DoneGetContext(object):
     """
     Client call back interface for getContext().
@@ -279,10 +320,12 @@ class DoneGetContext(object):
         """
         Called when context data retrieval is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context - context properties.
         """
         pass
+
 
 class DoneGetChildren(object):
     """
@@ -292,7 +335,8 @@ class DoneGetChildren(object):
         """
         Called when context list retrieval is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context_ids - array of available context IDs.
         """
         pass
@@ -306,10 +350,12 @@ class DoneCreate(object):
         """
         Called when context create context command is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context - context properties.
         """
         pass
+
 
 class DoneDispose(object):
     """
@@ -319,9 +365,11 @@ class DoneDispose(object):
         """
         Called when context dispose command is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         """
         pass
+
 
 class DoneEvaluate(object):
     """
@@ -331,10 +379,12 @@ class DoneEvaluate(object):
         """
         Called when context dispose command is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param value - expression evaluation result
         """
         pass
+
 
 class DoneAssign(object):
     """
@@ -344,16 +394,18 @@ class DoneAssign(object):
         """
         Called when assign command is done.
         @param token - command handle
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         """
         pass
+
 
 class ExpressionsListener(object):
     """
     Registers event listener is notified when registers context hierarchy
     changes, and when a register is modified by the service commands.
     """
-    def valueChanged(self, id):
+    def valueChanged(self, contextID):
         """
         Called when expression value was changed and clients
         need to update themselves. Clients, at least, should invalidate
@@ -361,6 +413,6 @@ class ExpressionsListener(object):
         Not every change is notified - it is not possible,
         only those, which are not caused by normal execution of the debuggee.
         At least, changes caused by "assign" command should be notified.
-        @param id - expression context ID.
+        @param contextID - expression context ID.
         """
         pass

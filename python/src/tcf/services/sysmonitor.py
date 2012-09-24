@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,13 +7,16 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 """
 This is an optional service that can be implemented by a peer.
-If implemented, the service can be used for monitoring system activity and utilization.
-It provides list of running processes, different process attributes like command line, environment, etc.,
-and some resource utilization data. The service can be used by a client to provide functionality
+If implemented, the service can be used for monitoring system activity and
+utilization.
+It provides list of running processes, different process attributes like
+command line, environment, etc.,
+and some resource utilization data. The service can be used by a client to
+provide functionality
 similar to Unix 'top' utility or Windows 'Task Manager'.
 """
 
@@ -84,7 +87,8 @@ PROP_FLAGS = "Flags"
 # required loading a memory page from disk
 PROP_MINFLT = "MinFlt"
 
-# The number of minor faults that  the  process's  waited-for  children have made
+# The number of minor faults that  the  process's  waited-for  children have
+# made
 PROP_CMINFLT = "CMinFlt"
 
 # The  number  of major faults the process has made which have required
@@ -98,7 +102,8 @@ PROP_CMAJFLT = "CMajFlt"
 # The number of milliseconds that this process has been scheduled in user mode
 PROP_UTIME = "UTime"
 
-# The number of milliseconds that this process has been scheduled in kernel mode
+# The number of milliseconds that this process has been scheduled in kernel
+# mode
 PROP_STIME = "STime"
 
 # The  number  of  jiffies that this process's waited-for children have
@@ -186,11 +191,12 @@ class SysMonitorContext(object):
     """
     A context corresponds to an execution thread, process, address space, etc.
     A context can belong to a parent context. Contexts hierarchy can be simple
-    plain list or it can form a tree. It is up to target agent developers to choose
-    layout that is most descriptive for a given target. Context IDs are valid across
-    all services. In other words, all services access same hierarchy of contexts,
-    with same IDs, however, each service accesses its own subset of context's
-    attributes and functionality, which is relevant to that service.
+    plain list or it can form a tree. It is up to target agent developers to
+    choose layout that is most descriptive for a given target. Context IDs are
+    valid across all services. In other words, all services access same
+    hierarchy of contexts, with same IDs, however, each service accesses its
+    own subset of context's attributes and functionality, which is relevant to
+    that service.
     """
     def __init__(self, props):
         self._props = props or {}
@@ -336,11 +342,11 @@ class SysMonitorService(services.Service):
     def getName(self):
         return NAME
 
-    def getContext(self, id, done):
+    def getContext(self, contextID, done):
         """
         Retrieve context info for given context ID.
 
-        @param id - context ID.
+        @param contextID - context ID.
         @param done - callback interface called when operation is completed.
         """
         raise NotImplementedError("Abstract method")
@@ -356,13 +362,13 @@ class SysMonitorService(services.Service):
         """
         raise NotImplementedError("Abstract method")
 
-    def getCommandLine(self, id, done):
+    def getCommandLine(self, contextID, done):
         """
         Get context command line.
         """
         raise NotImplementedError("Abstract method")
 
-    def getEnvironment(self, id, done):
+    def getEnvironment(self, contextID, done):
         """
         Get context environment variables.
         """
@@ -376,10 +382,12 @@ class DoneGetContext(object):
     def doneGetContext(self, token, error, context):
         """
         Called when context data retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context - context data.
         """
         pass
+
 
 class DoneGetChildren(object):
     """
@@ -388,14 +396,17 @@ class DoneGetChildren(object):
     def doneGetChildren(self, token, error, context_ids):
         """
         Called when context list retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context_ids - array of available context IDs.
         """
         pass
 
+
 class DoneGetCommandLine(object):
     def doneGetCommandLine(self, token, error, cmd_line):
         pass
+
 
 class DoneGetEnvironment(object):
     def doneGetEnvironment(self, token, error, environment):

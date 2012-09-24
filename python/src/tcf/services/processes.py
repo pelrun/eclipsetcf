@@ -1,4 +1,4 @@
-# *******************************************************************************
+# *****************************************************************************
 # * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 """
 IProcesses service provides access to the target OS's process
@@ -71,18 +71,21 @@ class ProcessesService(services.Service):
     def getName(self):
         return NAME
 
-    def getContext(self, id, done):
+    def getContext(self, contextID, done):
         """
         Retrieve context info for given context ID.
-        A context corresponds to an execution thread, process, address space, etc.
-        Context IDs are valid across TCF services, so it is allowed to issue
-        'IProcesses.getContext' command with a context that was obtained,
-        for example, from Memory service.
-        However, 'Processes.getContext' is supposed to return only process specific data,
-        If the ID is not a process ID, 'IProcesses.getContext' may not return any
-        useful information
+        A context corresponds to an execution thread, process, address space,
+        etc.
 
-        @param id - context ID.
+        Context IDs are valid across TCF services, so it is allowed to issue
+        getContext() command with a context that was obtained, for example,
+        from Memory service.
+
+        However, 'Processes.getContext' is supposed to return only process
+        specific data, If the ID is not a process ID, 'Processes.getContext'
+        may not return any useful information
+
+        @param contextID - context ID.
         @param done - call back interface called when operation is completed.
         """
         raise NotImplementedError("Abstract method")
@@ -124,9 +127,11 @@ class ProcessesService(services.Service):
         Set process or thread signal mask.
         Bits in the mask control how signals should be handled by debug agent.
         If context is not attached the command will return an error.
-        @param dont_stop - bit-set of signals that should not suspend execution of the context.
+        @param dont_stop - bit-set of signals that should not suspend execution
+        of the context.
         By default, debugger suspends a context before it receives a signal.
-        @param dont_pass - bit-set of signals that should not be delivered to the context.
+        @param dont_pass - bit-set of signals that should not be delivered to
+                           the context.
         @param done - call back interface called when operation is completed.
         @return pending command handle, can be used to cancel the command.
         """
@@ -150,16 +155,20 @@ class ProcessesService(services.Service):
         """
         raise NotImplementedError("Abstract method")
 
-    def start(self, directory, file, command_line, environment, attach, done):
+    def start(self, directory, fileName, command_line, environment, attach,
+              done):
         """
         Start a new process on remote machine.
         @param directory - initial value of working directory for the process.
-        @param file - process image file.
+        @param fileName - process image file.
         @param command_line - command line arguments for the process.
-        Note: the service does NOT add image file name as first argument for the process.
-        If a client wants first parameter to be the file name, it should add it itself.
+                              Note: the service does NOT add image file name as
+                              first argument for the process. If a client wants
+                              first parameter to be the file name, it should
+                              add it itself.
         @param environment - map of environment variables for the process,
-        if None then default set of environment variables will be used.
+                             if None then default set of environment variables
+                             will be used.
         @param attach - if True debugger should be attached to the process.
         @param done - call back interface called when operation is completed.
         @return pending command handle, can be used to cancel the command.
@@ -191,7 +200,8 @@ class ProcessContext(object):
     def getProperties(self):
         """
         Get context properties. See PROP_* definitions for property names.
-        Context properties are read only, clients should not try to modify them.
+        Context properties are read only, clients should not try to modify
+        them.
         @return Map of context properties.
         """
         return self._props
@@ -220,7 +230,8 @@ class ProcessContext(object):
     def isAttached(self):
         """
         Utility method to read context property PROP_ATTACHED.
-        Services like IRunControl, IMemory, IBreakpoints work only with attached processes.
+        Services like RunControl, Memory, Breakpoints work only with
+        attached processes.
         @return value of PROP_ATTACHED.
         """
         return bool(self._props.get(PROP_ATTACHED))
@@ -235,7 +246,8 @@ class ProcessContext(object):
     def attach(self, done):
         """
         Attach debugger to a process.
-        Services like IRunControl, IMemory, IBreakpoints work only with attached processes.
+        Services like RunControl, Memory, Breakpoints work only with attached
+        processes.
         @param done - call back interface called when operation is completed.
         @return pending command handle, can be used to cancel the command.
         """
@@ -258,12 +270,14 @@ class ProcessContext(object):
         """
         raise NotImplementedError("Abstract method")
 
+
 class DoneCommand(object):
     """
     Call-back interface to be called when command is complete.
     """
     def doneCommand(self, token, error):
         pass
+
 
 class DoneGetContext(object):
     """
@@ -272,10 +286,12 @@ class DoneGetContext(object):
     def doneGetContext(self, token, error, context):
         """
         Called when context data retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context - context data.
         """
         pass
+
 
 class DoneGetChildren(object):
     """
@@ -284,17 +300,20 @@ class DoneGetChildren(object):
     def doneGetChildren(self, token, error, context_ids):
         """
         Called when context list retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param context_ids - array of available context IDs.
         """
         pass
+
 
 class DoneGetSignalList(object):
     """
     Call-back interface to be called when "getSignalList" command is complete.
     """
-    def doneGetSignalList(self, token, error, list):
+    def doneGetSignalList(self, token, error, signalList):
         pass
+
 
 class DoneGetSignalMask(object):
     """
@@ -303,12 +322,16 @@ class DoneGetSignalMask(object):
     def doneGetSignalMask(self, token, error, dont_stop, dont_pass, pending):
         """
         @param token - command handle.
-        @param dont_stop - bit-set of signals that should suspend execution of the context.
-        @param dont_pass - bit-set of signals that should not be delivered to the context.
-        @param pending - bit-set of signals that are generated but not delivered yet.
+        @param dont_stop - bit-set of signals that should suspend execution of
+                           the context.
+        @param dont_pass - bit-set of signals that should not be delivered to
+                           the context.
+        @param pending - bit-set of signals that are generated but not
+                         delivered yet.
         Note: "pending" is meaningful only if the context is suspended.
         """
         pass
+
 
 class DoneGetEnvironment(object):
     """
@@ -317,12 +340,14 @@ class DoneGetEnvironment(object):
     def doneGetEnvironment(self, token, error, environment):
         pass
 
+
 class DoneStart(object):
     """
     Call-back interface to be called when "start" command is complete.
     """
     def doneStart(self, token, error, process):
         pass
+
 
 class ProcessesListener(object):
     """
@@ -334,7 +359,8 @@ class ProcessesListener(object):
         """
         Called when a process exits.
         @param process_id - process context ID
-        @param exit_code - if >= 0 - the process exit code,
-        if < 0 - process was terminated by a signal, the signal code = -exit_code.
+        @param exit_code - if >= 0 - the process exit code, if < 0 - process
+                           was terminated by a signal, the signal
+                           code = -exit_code.
         """
         pass

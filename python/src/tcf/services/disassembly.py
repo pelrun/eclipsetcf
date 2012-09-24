@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 """
 TCF Disassembly service interface.
@@ -34,7 +34,8 @@ FIELD_TYPE = "Type"
 # Value of the field for "String" and "Register" types, String.
 FIELD_TEXT = "Text"
 
-# Value of the field for "Address," "Displacement," or "Immediate" types, Number.
+# Value of the field for "Address," "Displacement," or "Immediate" types,
+# Number.
 FIELD_VALUE = "Value"
 
 # Context ID of the address space used with "Address" types, String.
@@ -55,7 +56,8 @@ class DisassemblyService(services.Service):
     def getCapabilities(self, context_id, done):
         """
         Retrieve disassembly service capabilities a given context-id.
-        @param context_id - a context ID, usually one returned by Run Control or Memory services.
+        @param context_id - a context ID, usually one returned by Run Control
+                            or Memory services.
         @param done - command result call back object.
         @return - pending command handle.
         """
@@ -63,11 +65,14 @@ class DisassemblyService(services.Service):
 
     def disassemble(self, context_id, addr, size, params, done):
         """
-        Disassemble instruction code from a specified range of memory addresses, in a specified context.
-        @param context_id - a context ID, usually one returned by Run Control or Memory services.
+        Disassemble instruction code from a specified range of memory
+        addresses, in a specified context.
+        @param context_id - a context ID, usually one returned by Run Control
+                            or Memory services.
         @param addr - address of first instruction to disassemble.
         @param size - size in bytes of the address range.
-        @param params - properties to control the disassembly output, an element of capabilities array, see getCapabilities.
+        @param params - properties to control the disassembly output, an
+                        element of capabilities array, see getCapabilities.
         @param done - command result call back object.
         @return - pending command handle.
         """
@@ -82,9 +87,11 @@ class DoneGetCapabilities(object):
         Called when capabilities retrieval is done.
         @param token - command handle.
         @param error - error object or None.
-        @param capabilities - array of capabilities, see CAPABILITY_* for contents of each array element.
+        @param capabilities - array of capabilities, see CAPABILITY_* for
+                              contents of each array element.
         """
         pass
+
 
 class DoneDisassemble(object):
     """
@@ -99,20 +106,28 @@ class DoneDisassemble(object):
         """
         pass
 
+
 class DisassemblyLine(object):
     """
     Represents a single disassembly line.
     """
-    def __init__(self, addr, size, instruction):
+    def __init__(self, addr, size, instruction, opcode=None):
         self.addr = addr
         self.size = size or 0
         self.instruction = instruction
+        self.opcode = opcode
 
     def getAddress(self):
         """
         @return instruction address.
         """
         return self.addr
+
+    def getOpcodeValue(self):
+        """
+        @return instruction address.
+        """
+        return self.opcode
 
     def getSize(self):
         """
@@ -122,7 +137,8 @@ class DisassemblyLine(object):
 
     def getInstruction(self):
         """
-        @return array of instruction fields, each field is a collection of field properties, see FIELD_*.
+        @return array of instruction fields, each field is a collection of
+                field properties, see FIELD_*.
         """
         return self.instruction
 

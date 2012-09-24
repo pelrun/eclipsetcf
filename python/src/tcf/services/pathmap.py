@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 """
 PathMap service manages file path translation across systems.
@@ -18,11 +18,9 @@ from tcf import services
 NAME = "PathMap"
 
 # Path mapping rule property names.
-# String, rule ID
-PROP_ID = "ID"
 
-# String, source, or compile-time file path
-PROP_SOURCE = "Source"
+# String, contexts query, see IContextQuery
+PROP_CONTEXT_QUERY = "ContextQuery"
 
 # String, destination, or run-time file path
 PROP_DESTINATION = "Destination"
@@ -30,8 +28,18 @@ PROP_DESTINATION = "Destination"
 # String
 PROP_HOST = "Host"
 
+# String, rule ID
+PROP_ID = "ID"
+
 # String, file access protocol, see PROTOCOL_*, default is regular file
 PROP_PROTOCOL = "Protocol"
+
+# String, source, or compile-time file path
+PROP_SOURCE = "Source"
+
+# Deprecated
+# String, symbols context group ID or name, deprecated - use ContextQuery
+PROP_CONTEXT = "Context"
 
 # PROP_PROTOCOL values.
 # Regular file access using system calls
@@ -42,6 +50,7 @@ PROTOCOL_HOST = "host"
 
 # File should be accessed using File System service on target
 PROTOCOL_TARGET = "target"
+
 
 class PathMapRule(object):
     """
@@ -56,10 +65,19 @@ class PathMapRule(object):
     def __json__(self):
         return self._props
 
+    def getContextQuery(self):
+        """Get context query that defines scope of the mapping rule, see
+        also IContextQuery.
+        Same as getProperties().get(PROP_CONTEXT_QUERY)
+        @return context query expression, or None.
+        """
+        return self._props.get(PROP_CONTEXT_QUERY, None)
+
     def getProperties(self):
         """
         Get rule properties. See PROP_* definitions for property names.
-        Context properties are read only, clients should not try to modify them.
+        Context properties are read only, clients should not try to modify
+        them.
         @return Map of rule properties.
         """
         return self._props
@@ -118,27 +136,30 @@ class PathMapService(services.Service):
         """
         return NotImplementedError("Abstract method")
 
-    def set(self, map, done):
+    def set(self, pathMap, done):  # @ReservedAssignment
         """
         Set file path mapping rules.
 
-        @param map - file path mapping rules.
+        @param pathMap - file path mapping rules.
         @param done - call back interface called when operation is completed.
         @return - pending command handle.
         """
         return NotImplementedError("Abstract method")
 
+
 class DoneGet(object):
     """
     Client call back interface for get().
     """
-    def doneGet(self, token, error, map):
+    def doneGet(self, token, error, pathMap):
         """
         Called when file path mapping retrieval is done.
-        @param error - error description if operation failed, None if succeeded.
-        @param map - file path mapping data.
+        @param error - error description if operation failed, None if
+                       succeeded.
+        @param pathMap - file path mapping data.
         """
         pass
+
 
 class DoneSet(object):
     """
@@ -147,7 +168,8 @@ class DoneSet(object):
     def doneSet(self, token, error):
         """
         Called when file path mapping transmission is done.
-        @param error - error description if operation failed, None if succeeded.
+        @param error - error description if operation failed, None if
+                       succeeded.
         @param map - memory map data.
         """
         pass

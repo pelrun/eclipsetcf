@@ -168,6 +168,9 @@ STATE_SIGNAL_DESCRIPTION = "SignalDescription"
 STATE_BREAKPOINT_IDS = "BPs"
 STATE_PC_ERROR = "PCError"
 
+# Boolean - true if the context is running in reverse
+STATE_REVERSING = "Reversing"
+
 # Optional parameters of resume command.
 # Integer - starting address of step range, inclusive */
 RP_RANGE_START = "RangeStart"

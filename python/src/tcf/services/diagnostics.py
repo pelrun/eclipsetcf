@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 """
 This is an optional service that can be implemented by a peer.
@@ -19,15 +19,17 @@ from tcf import services
 
 NAME = "Diagnostics"
 
+
 class DiagnosticsService(services.Service):
     def getName(self):
         return NAME
 
     def echo(self, s, done):
         """
-        'echo' command result returns same string that was given as command argument.
-        The command is used to test communication channel ability to transmit arbitrary strings in
-        both directions.
+        'echo' command result returns same string that was given as command
+        argument.
+        The command is used to test communication channel ability to transmit
+        arbitrary strings in both directions.
         @param s - any string.
         @param done - command result call back object.
         @return - pending command handle.
@@ -36,9 +38,10 @@ class DiagnosticsService(services.Service):
 
     def echoFP(self, n, done):
         """
-        'echoFP' command result returns same floating point number that was given as command argument.
-        The command is used to test communication channel ability to transmit arbitrary floating point numbers in
-        both directions.
+        'echoFP' command result returns same floating point number that was
+        given as command argument.
+        The command is used to test communication channel ability to transmit
+        arbitrary floating point numbers in both directions.
         @param n - any floating point number.
         @param done - command result call back object.
         @return - pending command handle.
@@ -47,8 +50,10 @@ class DiagnosticsService(services.Service):
 
     def echoERR(self, error, done):
         """
-        'echoERR' command result returns same error report that was given as command argument.
-        The command is used to test remote agent ability to receive and transmit TCF error reports.
+        'echoERR' command result returns same error report that was given as
+        command argument.
+        The command is used to test remote agent ability to receive and
+        transmit TCF error reports.
         @param error - an error object.
         @param done - command result call back object.
         @return - pending command handle.
@@ -61,9 +66,10 @@ class DiagnosticsService(services.Service):
         Clients can request remote peer to run a test from the list.
         When started, a test performs a predefined set actions.
         Nature of test actions is uniquely identified by test name.
-        Exact description of test actions is a contract between client and remote peer,
-        and it is not part of Diagnostics service specifications.
-        Clients should not attempt to run a test if they don't recognize the test name.
+        Exact description of test actions is a contract between client and
+        remote peer, and it is not part of Diagnostics service specifications.
+        Clients should not attempt to run a test if they don't recognize the
+        test name.
         @param done - command result call back object.
         @return - pending command handle.
         """
@@ -74,8 +80,9 @@ class DiagnosticsService(services.Service):
         Run a test. When started, a test performs a predefined set actions.
         Nature of test actions is uniquely identified by test name.
         Running test usually has associated execution context ID.
-        Depending on the test, the ID can be used with services RunControl and/or Processes services to control
-        test execution, and to obtain test results.
+        Depending on the test, the ID can be used with services RunControl
+        and/or Processes services to control test execution, and to obtain
+        test results.
         @param name - test name
         @param done - command result call back object.
         @return - pending command handle.
@@ -104,8 +111,8 @@ class DiagnosticsService(services.Service):
     def createTestStreams(self, inp_buf_size, out_buf_size, done):
         """
         Create a pair of virtual streams, @see IStreams service.
-        Remote ends of the streams are connected, so any data sent into 'inp' stream
-        will become for available for reading from 'out' stream.
+        Remote ends of the streams are connected, so any data sent into 'inp'
+        stream will become for available for reading from 'out' stream.
         The command is used for testing virtual streams.
         @param inp_buf_size - buffer size in bytes of the input stream.
         @param out_buf_size - buffer size in bytes of the output stream.
@@ -114,10 +121,11 @@ class DiagnosticsService(services.Service):
         """
         return NotImplementedError("Abstract method")
 
-    def disposeTestStream(self, id, done):
+    def disposeTestStream(self, streamID, done):
         """
-        Dispose a virtual stream that was created by 'createTestStreams' command.
-        @param id - the stream ID.
+        Dispose a virtual stream that was created by 'createTestStreams'
+        command.
+        @param streamID - the stream ID.
         @param done - command result call back object.
         @return - pending command handle.
         """
@@ -146,6 +154,7 @@ class DoneEcho(object):
         """
         pass
 
+
 class DoneEchoFP(object):
     """
     Call back interface for 'echoFP' command.
@@ -159,6 +168,7 @@ class DoneEchoFP(object):
         """
         pass
 
+
 class DoneEchoERR(object):
     """
     Call back interface for 'echoERR' command.
@@ -168,23 +178,26 @@ class DoneEchoERR(object):
         Called when 'echoERR' command is done.
         @param token - command handle.
         @param error - communication error report or None.
-        @param error_obj - error object, should be equal to the command argument.
+        @param error_obj - error object, should be equal to the command
+                           argument.
         @param error_msg - error object converted to a human readable string.
         """
         pass
+
 
 class DoneGetTestList(object):
     """
     Call back interface for 'getTestList' command.
     """
-    def doneGetTestList(self, token, error, list):
+    def doneGetTestList(self, token, error, testList):
         """
         Called when 'getTestList' command is done.
         @param token - command handle.
         @param error - error object or None.
-        @param list - names of tests that are supported by the peer.
+        @param testList - names of tests that are supported by the peer.
         """
         pass
+
 
 class DoneRunTest(object):
     """
@@ -199,6 +212,7 @@ class DoneRunTest(object):
         """
         pass
 
+
 class DoneCancelTest(object):
     """
     Call back interface for 'cancelTest' command.
@@ -210,6 +224,7 @@ class DoneCancelTest(object):
         @param error - error object or None.
         """
         pass
+
 
 class DoneGetSymbol(object):
     """
@@ -224,30 +239,40 @@ class DoneGetSymbol(object):
         """
         pass
 
+
 class Symbol(object):
     """
     Represents result value of 'getSymbol' command.
     """
+
     def __init__(self, props):
         self._props = props or {}
+
     def getSectionName(self):
         return self._props.get("Section")
+
     def getValue(self):
         return self._props.get("Value")
+
     def isUndef(self):
         val = self._props.get("Storage")
         return val == "UNDEF"
+
     def isCommon(self):
         val = self._props.get("Storage")
         return val == "COMMON"
+
     def isGlobal(self):
         val = self._props.get("Storage")
         return val == "GLOBAL"
+
     def isLocal(self):
         val = self._props.get("Storage")
         return val == "LOCAL"
+
     def isAbs(self):
         return self._props.get("Abs", False)
+
 
 class DoneCreateTestStreams(object):
     """
@@ -263,6 +288,7 @@ class DoneCreateTestStreams(object):
         """
         pass
 
+
 class DoneDisposeTestStream(object):
     """
     Call back interface for 'disposeTestStream' command.
@@ -274,6 +300,7 @@ class DoneDisposeTestStream(object):
         @param error - error object or None.
         """
         pass
+
 
 class DoneNotImplementedCommand(object):
     def doneNotImplementedCommand(self, token, error):
