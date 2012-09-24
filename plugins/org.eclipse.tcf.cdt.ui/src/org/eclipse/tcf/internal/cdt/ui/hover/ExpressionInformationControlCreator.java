@@ -123,9 +123,10 @@ public class ExpressionInformationControlCreator implements
             }
             public void paneChanged(String newPaneID) {
                 if (DefaultDetailPane.ID.equals(newPaneID)) {
+                    fDetailPane.getCurrentControl().setForeground(
+                            getShell().getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
                     fDetailPane.getCurrentControl().setBackground(
-                            getShell().getDisplay().getSystemColor(
-                                    SWT.COLOR_INFO_BACKGROUND));
+                            getShell().getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
                 }
             }
 
@@ -339,8 +340,8 @@ public class ExpressionInformationControlCreator implements
                 }
             });
 
-            setBackgroundColor(getShell().getDisplay().getSystemColor(
-                    SWT.COLOR_INFO_BACKGROUND));
+            setForegroundColor(getShell().getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+            setBackgroundColor(getShell().getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
         }
 
         /**
@@ -390,6 +391,15 @@ public class ExpressionInformationControlCreator implements
                     }
                 }
             }
+        }
+
+        @Override
+        public void setForegroundColor(Color foreground) {
+            super.setForegroundColor(foreground);
+            if (fDetailPaneComposite != null) {
+                fDetailPaneComposite.setForeground(foreground);
+            }
+            fTree.setForeground(foreground);
         }
 
         @Override
@@ -467,5 +477,4 @@ public class ExpressionInformationControlCreator implements
     public IInformationControl createInformationControl(Shell parent) {
         return new ExpressionInformationControl(parent, false);
     }
-
 }
