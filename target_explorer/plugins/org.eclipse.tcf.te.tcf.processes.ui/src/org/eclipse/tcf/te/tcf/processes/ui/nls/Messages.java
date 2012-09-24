@@ -30,6 +30,8 @@ public class Messages extends NLS {
 
 	// **** Declare externalized string id's down here *****
 
+	public static String PossibleCause;
+
 	public static String ProcessExplorerTreeControl_section_title;
 
 	public static String ProcessesTreeControl_column_name_label;
@@ -85,37 +87,21 @@ public class Messages extends NLS {
 	public static String ContextIDSection_UserID;
 
 	public static String ContextPage_File;
-
 	public static String ContextPage_Group;
-
 	public static String ContextPage_GroupID;
-
 	public static String ContextPage_ID;
-
 	public static String ContextPage_Pages;
-
 	public static String ContextPage_ParentID;
-
 	public static String ContextPage_PID;
-
 	public static String ContextPage_PPID;
-
 	public static String ContextPage_Resident;
-
 	public static String ContextPage_Root;
-
 	public static String ContextPage_State;
-
 	public static String ContextPage_TracerPID;
-
 	public static String ContextPage_TTYGRPID;
-
 	public static String ContextPage_UserGRPID;
-
 	public static String ContextPage_UserID;
-
 	public static String ContextPage_Virtual;
-
 	public static String ContextPage_WorkHome;
 
 	public static String EditSpeedGradeDialog_DialogMessage;
@@ -158,66 +144,43 @@ public class Messages extends NLS {
 	public static String NewSpeedGradeDialog_ValueLabel;
 
 	public static String GeneralInformationPage_InternalPID;
-
 	public static String GeneralInformationPage_InternalPPID;
-
 	public static String GeneralInformationPage_Name;
-
 	public static String GeneralInformationPage_ParentPID;
-
 	public static String GeneralInformationPage_ProcessID;
-
 	public static String GeneralInformationPage_State;
-
 	public static String GeneralInformationPage_Type;
-
 	public static String GeneralInformationPage_User;
 
 
 	public static String GeneralSearchable_CaseSensitive;
-
 	public static String GeneralSearchable_FindLabel;
-
 	public static String GeneralSearchable_GeneralOptions;
-
 	public static String GeneralSearchable_PreciseMatching;
 
-	public static String TerminateHandler_TerminationError;
+	public static String TerminateHandler_terminateFailed;
+
 	public static String ProcessLabelProvider_RootNodeLabel;
 
 	public static String ProcessMonitorEditorPage_PageTitle;
 
 	public static String ProcessSearchable_ProcessList;
-
 	public static String ProcessSearchable_PromptFindInProcessList;
-
 	public static String ProcessSearchable_PromptFindUnderProcess;
-
 	public static String ProcessSearchable_SearchTitle;
 
 	public static String ProcessStateSearchable_NotSure;
-
 	public static String ProcessStateSearchable_SectionChooseState;
-
 	public static String ProcessStateSearchable_SpecifyState;
-
 	public static String ProcessStateSearchable_StatePaging;
-
 	public static String ProcessStateSearchable_StateRunning;
-
 	public static String ProcessStateSearchable_StateSleeping;
-
 	public static String ProcessStateSearchable_StateTraced;
-
 	public static String ProcessStateSearchable_StateWaiting;
-
 	public static String ProcessStateSearchable_StateZombie;
 
 	public static String ProcessUserSearchable_DontRemember;
-
 	public static String ProcessUserSearchable_Myself;
-
 	public static String ProcessUserSearchable_SpecifyUser;
-
 	public static String ProcessUserSearchable_WhoStarted;
 }

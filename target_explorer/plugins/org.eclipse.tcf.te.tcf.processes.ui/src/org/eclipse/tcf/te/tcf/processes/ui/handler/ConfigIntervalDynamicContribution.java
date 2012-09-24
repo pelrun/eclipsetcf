@@ -47,6 +47,7 @@ import org.eclipse.ui.handlers.IHandlerService;
  */
 public class ConfigIntervalDynamicContribution extends CompoundContributionItem implements IPreferenceConsts {
 	private static final String CUSTOM_COMMAND_ID = "org.eclipse.tcf.te.tcf.processes.ui.command.refreshInterval"; //$NON-NLS-1$
+
 	/**
 	 * The action to allow a most recently used interval to be selected.
 	 */

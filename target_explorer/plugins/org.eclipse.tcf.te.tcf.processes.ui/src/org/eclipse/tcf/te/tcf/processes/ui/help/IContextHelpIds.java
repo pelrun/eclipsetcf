@@ -40,4 +40,9 @@ public interface IContextHelpIds {
 	 * Error dialog: remote process launch failed.
 	 */
 	public final static String LAUNCH_PROCESS_ERROR_DIALOG = PREFIX + "LaunchProcessErrorDialog"; //$NON-NLS-1$
+
+	/**
+	 * Terminate command handler: Terminate operation failed.
+	 */
+	public final static String MESSAGE_TERMINATE_FAILED = PREFIX + ".status.messageTerminateFailed"; //$NON-NLS-1$
 }

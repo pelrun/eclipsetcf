@@ -16,18 +16,18 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.steps.TerminateStep;
+import org.eclipse.tcf.te.tcf.processes.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -54,19 +54,15 @@ public class TerminateHandler extends AbstractHandler {
 							step.executeTerminate(process, new Callback() {
 								@Override
 								protected void internalDone(Object caller, final IStatus status) {
-									if (status.isOK()) {
+									if (status.getSeverity() != IStatus.ERROR) {
 										IModel model = process.getParent(IModel.class);
 										Assert.isNotNull(model);
 										model.getService(IModelUpdateService.class).remove(process);
-									}
-									else {
-										PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable(){
-											@Override
-						                    public void run() {
-												String message = status.getMessage();
-												Shell parent = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-												MessageDialog.openError(parent, Messages.TerminateHandler_TerminationError, message);
-						                    }});
+									} else {
+										// Build up the message template
+										String template = NLS.bind(Messages.TerminateHandler_terminateFailed, process.getName(), Messages.PossibleCause);
+										// Handle the status
+										StatusHandlerUtil.handleStatus(status, process, template, null, IContextHelpIds.MESSAGE_TERMINATE_FAILED, TerminateHandler.this, null);
 									}
 								}
 							});
