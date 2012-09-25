@@ -918,6 +918,12 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
             if (!get_base_type) break;
 
+            if (name.length() > 0x1000) {
+                /* Must be invalid symbols data */
+                name = "<Unknown>";
+                break;
+            }
+
             type_cache = model.getSymbolInfoCache(type_symbol.getBaseTypeID());
             if (type_cache == null) {
                 name = "<Unknown> " + name;
@@ -1638,7 +1644,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
         public boolean canModify(Object element, final String property) {
             final TCFNodeExpression node = (TCFNodeExpression)element;
-            return new TCFTask<Boolean>() {
+            return new TCFTask<Boolean>(node.channel) {
                 public void run() {
                     if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
                         done(node.is_empty || node.script != null);

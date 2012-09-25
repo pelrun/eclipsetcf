@@ -19,6 +19,7 @@ import org.eclipse.debug.ui.actions.IToggleBreakpointsTargetExtension;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpoint;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
 import org.eclipse.tcf.services.IBreakpoints;
@@ -32,7 +33,8 @@ public class BreakpointCommand implements IToggleBreakpointsTargetExtension {
     public boolean canToggleBreakpoints(IWorkbenchPart part, ISelection selection) {
         if (selection.isEmpty()) return false;
         final Object obj = ((IStructuredSelection)selection).getFirstElement();
-        return new TCFTask<Boolean>() {
+        if (!(obj instanceof TCFNode)) return false;
+        return new TCFTask<Boolean>(((TCFNode)obj).getChannel()) {
             public void run() {
                 TCFDataCache<BigInteger> addr_cache = null;
                 if (obj instanceof TCFNodeExecContext) addr_cache = ((TCFNodeExecContext)obj).getAddress();
@@ -51,7 +53,8 @@ public class BreakpointCommand implements IToggleBreakpointsTargetExtension {
     public void toggleBreakpoints(IWorkbenchPart part, ISelection selection) {
         if (selection.isEmpty()) return;
         final Object obj = ((IStructuredSelection)selection).getFirstElement();
-        new TCFTask<Object>() {
+        if (!(obj instanceof TCFNode)) return;
+        new TCFTask<Object>(((TCFNode)obj).getChannel()) {
             public void run() {
                 TCFDataCache<BigInteger> addr_cache = null;
                 if (obj instanceof TCFNodeExecContext) addr_cache = ((TCFNodeExecContext)obj).getAddress();
