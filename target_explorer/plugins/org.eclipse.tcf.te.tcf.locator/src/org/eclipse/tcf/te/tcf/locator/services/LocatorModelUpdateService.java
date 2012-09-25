@@ -192,7 +192,8 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		if (dst == peer) return;
 
 		// If not forced, the peer id's of both attribute maps must be the same
-		if (!force) Assert.isTrue(dst.getID().equals(peer.getID()));
+		if (!force) Assert.isTrue(dst.getID().equals(peer.getID())
+									|| (dst.getAttributes().get("remote.id.transient") != null && dst.getAttributes().get("remote.id.transient").equals(peer.getID()))); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Get a modifiable copy of the destination peer attributes
 		Map<String, String> dstAttrs = new HashMap<String, String>(dst.getAttributes());

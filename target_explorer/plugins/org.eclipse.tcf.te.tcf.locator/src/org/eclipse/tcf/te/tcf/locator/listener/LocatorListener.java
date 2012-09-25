@@ -85,11 +85,15 @@ public class LocatorListener implements ILocator.LocatorListener {
 				String value = peerNode.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
 				boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
 				if (isStatic) {
-					boolean changed = peerNode.setChangeEventsEnabled(false);
-					// Merge user configured properties between the peers
-					model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, true);
-					if (changed) peerNode.setChangeEventsEnabled(true);
-					peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, peer, peerNode.getPeer());
+					// Validate the peer node before updating
+					IPeer myPeer = model.validatePeer(peer);
+					if (myPeer != null) {
+						boolean changed = peerNode.setChangeEventsEnabled(false);
+						// Merge user configured properties between the peers
+						model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, myPeer, true);
+						if (changed) peerNode.setChangeEventsEnabled(true);
+						peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, peerNode.getPeer());
+					}
 				} else {
 					peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
 				}

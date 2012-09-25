@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 import java.util.List;
 
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IScanner;
@@ -121,6 +122,16 @@ public interface ILocatorModel extends IAdaptable {
 	 * @return The service instance implementing the specified service interface, or <code>null</code>.
 	 */
 	public <V extends ILocatorModelService> V getService(Class<V> serviceInterface);
+
+	/**
+	 * Validate the given peer.
+	 * <p>
+	 * If the peer is for local host, than only the peer using the loopback address is valid.
+	 *
+	 * @param peer The peer. Must not be <code>null</code>.
+	 * @return The peer if the peer is valid, or <code>null</code> if not.
+	 */
+	public IPeer validatePeer(IPeer peer);
 
 	/**
 	 * Validate the given peer model if or if not it can be added to the locator model as new peer

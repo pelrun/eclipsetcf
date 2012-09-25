@@ -198,10 +198,6 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
     public List<IPeerModel> getChildren(String parentPeerID) {
 		Assert.isNotNull(parentPeerID);
 
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
-			CoreBundleActivator.getTraceHandler().trace("LocatorModel.getChildren( " + parentPeerID + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-
 		List<IPeerModel> children = peerChildren.get(parentPeerID);
 		if (children == null) children = Collections.emptyList();
 		return Collections.unmodifiableList(children);
@@ -214,10 +210,6 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
     public void setChildren(String parentPeerID, List<IPeerModel> children) {
 		Assert.isNotNull(parentPeerID);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
-			CoreBundleActivator.getTraceHandler().trace("LocatorModel.setChildren( " + parentPeerID + ", " + children + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		}
 
 		if (children == null || children.size() == 0) {
 			peerChildren.remove(parentPeerID);
@@ -363,6 +355,40 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 			// Reset the scanner reference
 			scanner = null;
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel#validatePeer(org.eclipse.tcf.protocol.IPeer)
+	 */
+	@Override
+	public IPeer validatePeer(IPeer peer) {
+		Assert.isNotNull(peer);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeer( " + (peer != null ? peer.getID() : null) + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		IPeer result = peer;
+
+		// Get the loopback address
+		String loopback = IPAddressUtil.getInstance().getIPv4LoopbackAddress();
+		// Get the peer IP
+		String peerIP = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+
+		// If the peer node is for local host, we ignore all peers not being
+		// associated with the loopback address.
+		if (IPAddressUtil.getInstance().isLocalHost(peerIP) && !loopback.equals(peerIP)) {
+			// Not loopback address -> drop the peer
+			result = null;
+
+			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+				CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeer: local host peer but not loopback address -> peer node dropped" //$NON-NLS-1$
+															, ITracing.ID_TRACE_LOCATOR_MODEL, this);
+			}
+		}
+
+	    return result;
 	}
 
 	/* (non-Javadoc)
