@@ -402,25 +402,27 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
     }
 
     private void setLabel(ILabelUpdate result, int col, int radix) {
+        String name = null;
         IRegisters.RegistersContext ctx = context.getData();
+        if (ctx != null) name = ctx.getName();
         Throwable error = context.getError();
         if (error == null) error = value.getError();
         byte[] data = value.getData();
-        if (error != null || ctx == null) {
+        if (error != null && col >= 0) {
             result.setForeground(ColorCache.rgb_error, col);
             result.setLabel("N/A", col);
         }
-        else if (data != null) {
+        else if (data != null && error == null) {
             String s = toNumberString(radix);
             if (col >= 0) {
                 result.setLabel(s, col);
             }
-            else {
-                result.setLabel(ctx.getName() + " = " + s, 0);
+            else if (name != null) {
+                result.setLabel(name + " = " + s, 0);
             }
         }
-        else if (col < 0) {
-            result.setLabel(ctx.getName(), 0);
+        else if (col < 0 && name != null) {
+            result.setLabel(name, 0);
         }
     }
 
