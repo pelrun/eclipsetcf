@@ -247,8 +247,24 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             expr_text = parent_text + "[" + index + "]";
                         }
                     }
-                    if (expr_text == null && field != null && field.getData() != null) {
-                        expr_text = parent_text + (deref ? "->" : ".") + field.getData().getName();
+                    if (expr_text == null && field != null) {
+                        ISymbols.Symbol field_data = field.getData();
+                        if (field_data != null) {
+                            if (field_data.getName() != null) {
+                                expr_text = parent_text + (deref ? "->" : ".") + field_data.getName();
+                            }
+                            else if (field_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
+                                TCFDataCache<ISymbols.Symbol> type = model.getSymbolInfoCache(field_data.getTypeID());
+                                if (type != null) {
+                                    if (!type.validate(this)) return false;
+                                    ISymbols.Symbol type_data = type.getData();
+                                    if (type_data != null) {
+                                        String type_name = type_data.getName();
+                                        expr_text = "*(" + type_name + "*)" + (deref ? "" : "&") + parent_text;
+                                    }
+                                }
+                            }
+                        }
                     }
                     if (expr_text == null && base_text.getData() != null) expr_text = base_text.getData();
                 }
@@ -1083,8 +1099,21 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     name = "[" + index + "]";
                 }
             }
-            if (name == null && field != null && field.getData() != null) name = field.getData().getName();
-            if (name == null && reg_id != null && expression_text.getData() != null) name = expression_text.getData();
+            if (name == null && field != null) {
+                ISymbols.Symbol field_data = field.getData();
+                name = field_data.getName();
+                if (name == null && field_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
+                    TCFDataCache<ISymbols.Symbol> type = model.getSymbolInfoCache(field_data.getTypeID());
+                    if (type != null) {
+                        if (!type.validate(done)) return false;
+                        ISymbols.Symbol type_data = type.getData();
+                        if (type_data != null) name = type_data.getName();
+                    }
+                }
+            }
+            if (name == null && reg_id != null && expression_text.getData() != null) {
+                name = expression_text.getData();
+            }
             if (name == null && var_expression.getData() != null) {
                 TCFDataCache<ISymbols.Symbol> var = model.getSymbolInfoCache(var_expression.getData().getSymbolID());
                 if (var != null) {
@@ -1097,7 +1126,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     }
                 }
             }
-            if (name == null && base_text.getData() != null) name = base_text.getData();
+            if (name == null && base_text.getData() != null) {
+                name = base_text.getData();
+            }
             if (name != null) {
                 String cast = model.getCastToType(id);
                 if (cast != null) name = "(" + cast + ")(" + name + ")";
