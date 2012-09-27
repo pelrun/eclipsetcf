@@ -56,6 +56,15 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 		super.dispose();
 	}
 
+	/**
+	 * Returns if or if not to adjust the panels background color.
+	 *
+	 * @return <code>True</code> to adjust the panels background color, <code>false</code> if not.
+	 */
+	protected boolean isAdjustBackgroundColor() {
+		return getParentControl().getParentPage() != null;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#setupPanel(org.eclipse.swt.widgets.Composite, org.eclipse.ui.forms.widgets.FormToolkit)
 	 */
@@ -64,7 +73,7 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 		Assert.isNotNull(parent);
 		Assert.isNotNull(toolkit);
 
-		boolean adjustBackgroundColor = getParentControl().getParentPage() != null;
+		boolean adjustBackgroundColor = isAdjustBackgroundColor();
 
 		Composite panel = toolkit.createComposite(parent);
 		GridLayout layout = new GridLayout();
