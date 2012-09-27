@@ -18,6 +18,7 @@ import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
@@ -28,6 +29,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupSer
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
+import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 
 /**
@@ -161,8 +163,28 @@ public class LocatorListener implements ILocator.LocatorListener {
 			// find the corresponding model node to remove
 			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
 			if (peerNode != null) {
-				// Remove from the model
-				model.getService(ILocatorModelUpdateService.class).remove(peerNode);
+				IPeer peer = peerNode.getPeer();
+				String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
+				boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+				if (isStatic) {
+					// Create a modifiable copy of the peer attributes
+					Map<String, String> attrs = new HashMap<String, String>(peerNode.getPeer().getAttributes());
+					attrs.remove("remote.transient"); //$NON-NLS-1$
+					attrs.remove("remote.id.transient"); //$NON-NLS-1$
+					attrs.remove("ClientID"); //$NON-NLS-1$
+
+					// Update the peer attributes
+					if (peer instanceof PeerRedirector) {
+						((PeerRedirector)peer).updateAttributes(attrs);
+					} else if (peer instanceof Peer) {
+						((Peer)peer).updateAttributes(attrs);
+					}
+
+					peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, peer, peerNode.getPeer());
+				} else {
+					// Dynamic peer -> Remove peer model node from the model
+					model.getService(ILocatorModelUpdateService.class).remove(peerNode);
+				}
 			}
 		}
 	}
