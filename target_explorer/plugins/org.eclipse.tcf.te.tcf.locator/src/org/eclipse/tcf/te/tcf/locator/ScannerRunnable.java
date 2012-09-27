@@ -203,7 +203,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			// Don't ask for discovered peers on the same host or in the same network
 			if (ip != null && !"".equals(ip) && !IPAddressUtil.getInstance().isLocalHost(ip)) { //$NON-NLS-1$
 				boolean sameNet = false;
-				String net = ip.substring(0, ip.lastIndexOf('.'));
+				String net = ip.lastIndexOf('.') != -1 ? ip.substring(0, ip.lastIndexOf('.')) : ip;
 				String[] addresses = IPAddressUtil.getInstance().getLocalHostAddresses(IPAddressUtil.HOSTMAP_ANY_UNICAST
 																							| IPAddressUtil.HOSTMAP_CANONICALADDR
 																							| IPAddressUtil.HOSTMAP_LOOPBACK
