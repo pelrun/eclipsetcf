@@ -144,7 +144,20 @@
                style="push"
                tooltip="%command.attach.tooltip">
             <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.processes.isProcessTreeNode"/>
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                           <test
+                                 forcePluginActivation="true"
+                                 property="org.eclipse.tcf.te.runtime.services.hasService"
+                                 value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                        </adapt>
+                     </and>
+                  </iterate>
+               </with>
             </visibleWhen>
          </command>
 
@@ -157,7 +170,20 @@
                style="push"
                tooltip="%command.detach.tooltip">
             <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.processes.isProcessTreeNode"/>
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                           <test
+                                 forcePluginActivation="true"
+                                 property="org.eclipse.tcf.te.runtime.services.hasService"
+                                 value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                        </adapt>
+                     </and>
+                  </iterate>
+               </with>
             </visibleWhen>
          </command>
          
@@ -377,12 +403,26 @@
             class="org.eclipse.tcf.te.tcf.processes.ui.handler.AttachHandler"
             commandId="org.eclipse.tcf.te.launch.command.attach">
          <activeWhen>
-            <with variable="activePartId">
-               <or>
-                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
-                  <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
-               </or>
-            </with>
+            <and>
+               <with variable="activePartId">
+                  <or>
+                     <equals value="org.eclipse.tcf.te.ui.views.View"/>
+                     <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
+                  </or>
+               </with>
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                        <test
+                              forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.services.hasService"
+                              value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                     </adapt>
+                  </iterate>
+               </with>
+            </and>
          </activeWhen>
          <enabledWhen>
             <with variable="selection">
@@ -400,12 +440,26 @@
             class="org.eclipse.tcf.te.tcf.processes.ui.handler.DetachHandler"
             commandId="org.eclipse.tcf.te.launch.command.detach">
          <activeWhen>
-            <with variable="activePartId">
-               <or>
-                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
-                  <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
-               </or>
-            </with>
+            <and>
+               <with variable="activePartId">
+                  <or>
+                     <equals value="org.eclipse.tcf.te.ui.views.View"/>
+                     <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
+                  </or>
+               </with>
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                        <test
+                              forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.services.hasService"
+                              value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                     </adapt>
+                  </iterate>
+               </with>
+            </and>
          </activeWhen>
          <enabledWhen>
             <with variable="selection">
