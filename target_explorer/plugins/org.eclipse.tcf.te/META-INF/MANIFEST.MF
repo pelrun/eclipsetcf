@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %pluginName
+Bundle-SymbolicName: org.eclipse.tcf.te;singleton:=true
+Bundle-Version: 1.1.0.qualifier
+Bundle-Activator: org.eclipse.tcf.te.activator.CoreBundleActivator
+Require-Bundle: org.eclipse.core.runtime;bundle-version="3.8.0"
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Localization: plugin
+Bundle-Vendor: %providerName
+Export-Package: org.eclipse.tcf.te.activator;x-internal:=true

@@ -32,6 +32,7 @@
 		<module>features/org.eclipse.tcf.rse.feature</module>
 		<module>features/org.eclipse.tcf.rse.sdk.feature</module>
 	  
+		<module>target_explorer/plugins/org.eclipse.tcf.te</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.core</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.core.cdt</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.launch.core</module>
