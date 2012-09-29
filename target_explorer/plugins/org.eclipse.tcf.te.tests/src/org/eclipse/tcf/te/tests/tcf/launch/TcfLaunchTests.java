@@ -66,11 +66,21 @@ public class TcfLaunchTests extends TcfTestCase {
 		String temp = System.getProperty("java.io.tmpdir"); //$NON-NLS-1$
 		IPath tempDir = temp != null ? new Path(temp) : null;
 		assertNotNull("Missing java temp directory", tempDir); //$NON-NLS-1$
+
+		// If the temporary directory is not writable for whatever reason to us,
+		// fallback to the users home directory
+		if (!tempDir.toFile().canWrite()) {
+			temp = System.getProperty("user.home"); //$NON-NLS-1$
+			tempDir = temp != null ? new Path(temp) : null;
+			assertNotNull("Missing user home directory", tempDir); //$NON-NLS-1$
+		}
+
 		tempDir = tempDir.append(TcfLaunchTests.class.getSimpleName());
 		assertNotNull("Cannot append test case specific temp directory", tempDir); //$NON-NLS-1$
 		if (!tempDir.toFile().exists()) {
 			assertTrue("Failed to create path " + tempDir.toString(), tempDir.toFile().mkdirs()); //$NON-NLS-1$
 		}
+		assertTrue("Temporary file location is not writable (" + tempDir.toOSString() + ")", tempDir.toFile().canWrite()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		IPath tempHelloWorld = tempDir.append(helloWorldLocation.lastSegment());
 		if (tempHelloWorld.toFile().exists()) {
@@ -107,7 +117,7 @@ public class TcfLaunchTests extends TcfTestCase {
 			assertNull("Unexpected exception when launching hello world: " + e, e); //$NON-NLS-1$
 		}
 
-		assertTrue("Missing console output file", outFile.toFile().exists() && outFile.toFile().length() > 0); //$NON-NLS-1$
+		assertTrue("Missing console output file (" + outFile.toOSString() + ")", outFile.toFile().exists() && outFile.toFile().length() > 0); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	private IPath getHelloWorldLocation() {
