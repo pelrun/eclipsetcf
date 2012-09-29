@@ -19,7 +19,7 @@ import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
  */
 public abstract class AbstractValidatingWizardPage extends AbstractWizardPage implements IValidatingContainer {
 	// A used to detect if a validation process is already running.
-	// If set to true, validatePage() should return immediately.
+	// If set to true, validate() should return immediately.
 	private boolean validationInProgress = false;
 
 	/**
