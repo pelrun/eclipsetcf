@@ -24,6 +24,12 @@
    <feature url="features/org.eclipse.tcf.te.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.sdk.feature" version="0.0.0">
       <category name="org.eclipse.tcf.te"/>
    </feature>
+   <feature url="features/org.eclipse.tcf.te.tcf.core.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.tcf.core.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te"/>
+   </feature>
+   <feature url="features/org.eclipse.tcf.te.tcf.core.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.tcf.core.sdk.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te"/>
+   </feature>
    <feature url="features/org.eclipse.tcf.te.tcf.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.tcf.feature" version="0.0.0">
       <category name="org.eclipse.tcf.te"/>
    </feature>
