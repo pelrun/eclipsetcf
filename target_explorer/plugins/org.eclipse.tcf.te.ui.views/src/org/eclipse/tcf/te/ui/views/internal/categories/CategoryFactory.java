@@ -9,11 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.internal.categories;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.PlatformUI;
 /**
  * The element factory for a category.
  */
@@ -23,9 +27,23 @@ public class CategoryFactory implements IElementFactory {
 	 * @see org.eclipse.ui.IElementFactory#createElement(org.eclipse.ui.IMemento)
 	 */
 	@Override
-	public IAdaptable createElement(IMemento memento) {
-		String id = memento.getString("id"); //$NON-NLS-1$
-		ICategory category = CategoriesExtensionPointManager.getInstance().getCategory(id, false);
-		return category instanceof IAdaptable ? (IAdaptable)category : null;
+	public IAdaptable createElement(final IMemento memento) {
+		final AtomicReference<ICategory> category = new AtomicReference<ICategory>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				String id = memento.getString("id"); //$NON-NLS-1$
+				category.set(CategoriesExtensionPointManager.getInstance().getCategory(id, false));
+			}
+		};
+
+		if (Display.findDisplay(Thread.currentThread()) == null) {
+			PlatformUI.getWorkbench().getDisplay().syncExec(runnable);
+		} else {
+			runnable.run();
+		}
+
+		return category.get() instanceof IAdaptable ? (IAdaptable)category.get() : null;
 	}
 }
