@@ -230,6 +230,12 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 																0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
 				}
 
+				// Find the "Server-Properties: ..." string within the output
+				int start = output.indexOf("Server-Properties:"); //$NON-NLS-1$
+				if (start != -1) {
+					output = output.substring(start);
+				}
+
 				// Strip away "Server-Properties:"
 				output = output.replace("Server-Properties:", " "); //$NON-NLS-1$ //$NON-NLS-2$
 				output = output.trim();
