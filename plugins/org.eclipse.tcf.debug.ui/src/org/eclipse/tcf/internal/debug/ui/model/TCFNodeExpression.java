@@ -1668,6 +1668,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(column_id)) {
             return new TextCellEditor(parent);
         }
+        if (TCFColumnPresentationExpression.COL_VALUE.equals(column_id)) {
+            return new TextCellEditor(parent);
+        }
         return null;
     }
 
@@ -1693,6 +1696,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             }
                             if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
                                 done(TCFNumberFormat.isValidDecNumber(true, node.toNumberString(10)) == null);
+                                return;
+                            }
+                            if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
+                                StyledStringBuffer bf = node.getPrettyExpression(this);
+                                if (bf == null) return;
+                                String s = bf.toString();
+                                done(s.startsWith("0x") || TCFNumberFormat.isValidDecNumber(true, s) == null);
                                 return;
                             }
                         }
@@ -1722,6 +1732,12 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         }
                         if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
                             done(node.toNumberString(10));
+                            return;
+                        }
+                        if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
+                            StyledStringBuffer bf = node.getPrettyExpression(this);
+                            if (bf == null) return;
+                            done(bf.toString());
                             return;
                         }
                     }
@@ -1803,6 +1819,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             else if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
                                 error = TCFNumberFormat.isValidDecNumber(is_float, input);
                                 if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
+                            }
+                            else if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
+                                if (input.startsWith("0x")) {
+                                    String s = input.substring(2);
+                                    error = TCFNumberFormat.isValidHexNumber(s);
+                                    if (error == null) bf = TCFNumberFormat.toByteArray(s, 16, false, size, signed, big_endian);
+                                }
+                                else {
+                                    error = TCFNumberFormat.isValidDecNumber(is_float, input);
+                                    if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
+                                }
                             }
                             if (error != null) throw new Exception("Invalid value: " + value, new Exception(error));
                             if (bf != null) {
