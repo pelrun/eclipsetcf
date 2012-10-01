@@ -19,7 +19,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.AbstractTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ITreeNodeModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.ui.trees.TreeContentProvider;
 
 
 /**

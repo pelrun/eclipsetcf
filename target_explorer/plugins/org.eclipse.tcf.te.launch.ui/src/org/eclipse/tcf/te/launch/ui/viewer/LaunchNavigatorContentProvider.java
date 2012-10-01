@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -28,13 +29,16 @@ import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.ui.trees.TreeContentProvider;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * Launches content provider for the common navigator of Target Explorer.
  */
-public class LaunchNavigatorContentProvider extends TreeContentProvider implements IEventListener {
+public class LaunchNavigatorContentProvider implements ITreeContentProvider, IEventListener {
+	private final static Object[] NO_ELEMENTS = new Object[0];
+
+	// The viewer
+	private Viewer viewer;
 
 	/**
 	 * Constructor.
@@ -45,80 +49,10 @@ public class LaunchNavigatorContentProvider extends TreeContentProvider implemen
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
-	 */
-	@Override
-	public Object getParent(Object element) {
-		if (element instanceof LaunchNode) {
-			LaunchNode node = (LaunchNode)element;
-			if (node.getParent() == null ||
-							node.isType(LaunchNode.TYPE_ROOT) ||
-							(!isTypeNodeVisible() && node.isType(LaunchNode.TYPE_LAUNCH_CONFIG)) ||
-							(!isRootNodeVisible() && node.isType(LaunchNode.TYPE_LAUNCH_CONFIG_TYPE))) {
-				return node.getModel().getModelRoot();
-			}
-
-			return node.getParent();
-		}
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.trees.TreeContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
-		super.inputChanged(viewer, oldInput, newInput);
-
-		if (newInput != null && !newInput.equals(oldInput)) {
-			LaunchModel model = LaunchModel.getLaunchModel(newInput);
-			if (model != null) {
-				LaunchNode lastLaunchedNode = null;
-				long nodeValue = -1;
-				for (IModelNode typeNode : model.getRootNode().getChildren()) {
-					for (IModelNode launchNode : ((IContainerModelNode)typeNode).getChildren()) {
-						ILaunchConfiguration config = ((LaunchNode)launchNode).getLaunchConfiguration();
-						String lastLaunched = DefaultPersistenceDelegate.getAttribute(config, ICommonLaunchAttributes.ATTR_LAST_LAUNCHED, (String)null);
-						if (lastLaunched != null) {
-							long last = Long.parseLong(lastLaunched);
-							if (last > nodeValue) {
-								nodeValue = last;
-								lastLaunchedNode = (LaunchNode)launchNode;
-							}
-						}
-					}
-				}
-				if (lastLaunchedNode != null) {
-					final LaunchNode node = lastLaunchedNode;
-					ExecutorsUtil.executeInUI(new Runnable() {
-						@Override
-						public void run() {
-							viewer.setSelection(new StructuredSelection(node));
-						}
-					});
-				}
-			}
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.trees.TreeContentProvider#dispose()
-	 */
-	@Override
-	public void dispose() {
-		super.dispose();
-		EventManager.getInstance().removeEventListener(this);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	@Override
 	public Object[] getChildren(Object element) {
-		super.getChildren(element);
 
 		if (element instanceof LaunchNode) {
 			LaunchNode node = (LaunchNode)element;
@@ -158,6 +92,7 @@ public class LaunchNavigatorContentProvider extends TreeContentProvider implemen
 			}
 			return getChildren(model.getRootNode());
 		}
+
 		return NO_ELEMENTS;
 	}
 
@@ -205,6 +140,80 @@ public class LaunchNavigatorContentProvider extends TreeContentProvider implemen
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
+	 */
+	@Override
+	public Object getParent(Object element) {
+		if (element instanceof LaunchNode) {
+			LaunchNode node = (LaunchNode)element;
+			if (node.getParent() == null ||
+							node.isType(LaunchNode.TYPE_ROOT) ||
+							(!isTypeNodeVisible() && node.isType(LaunchNode.TYPE_LAUNCH_CONFIG)) ||
+							(!isRootNodeVisible() && node.isType(LaunchNode.TYPE_LAUNCH_CONFIG_TYPE))) {
+				return node.getModel().getModelRoot();
+			}
+
+			return node.getParent();
+		}
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getElements(java.lang.Object)
+	 */
+	@Override
+	public Object[] getElements(Object inputElement) {
+	    return getChildren(inputElement);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.trees.TreeContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
+		this.viewer = viewer;
+		if (newInput != null && !newInput.equals(oldInput)) {
+			LaunchModel model = LaunchModel.getLaunchModel(newInput);
+			if (model != null) {
+				LaunchNode lastLaunchedNode = null;
+				long nodeValue = -1;
+				for (IModelNode typeNode : model.getRootNode().getChildren()) {
+					for (IModelNode launchNode : ((IContainerModelNode)typeNode).getChildren()) {
+						ILaunchConfiguration config = ((LaunchNode)launchNode).getLaunchConfiguration();
+						String lastLaunched = DefaultPersistenceDelegate.getAttribute(config, ICommonLaunchAttributes.ATTR_LAST_LAUNCHED, (String)null);
+						if (lastLaunched != null) {
+							long last = Long.parseLong(lastLaunched);
+							if (last > nodeValue) {
+								nodeValue = last;
+								lastLaunchedNode = (LaunchNode)launchNode;
+							}
+						}
+					}
+				}
+				if (lastLaunchedNode != null) {
+					final LaunchNode node = lastLaunchedNode;
+					ExecutorsUtil.executeInUI(new Runnable() {
+						@Override
+						public void run() {
+							viewer.setSelection(new StructuredSelection(node));
+						}
+					});
+				}
+			}
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.trees.TreeContentProvider#dispose()
+	 */
+	@Override
+	public void dispose() {
+		EventManager.getInstance().removeEventListener(this);
+	}
+
+
 	/**
 	 * If the root node of the tree is visible.
 	 *
@@ -215,7 +224,7 @@ public class LaunchNavigatorContentProvider extends TreeContentProvider implemen
 	}
 
 	/**
-	 * If the launch config type node in the tree is visible.
+	 * If the launch configuration type node in the tree is visible.
 	 *
 	 * @return true if it is visible.
 	 */
@@ -237,14 +246,14 @@ public class LaunchNavigatorContentProvider extends TreeContentProvider implemen
 	 */
 	@Override
 	public void eventFired(EventObject event) {
-		final TreeViewer viewer = this.viewer;
+		final Viewer viewer = this.viewer;
 		if (event.getSource() instanceof LaunchModel) {
 			final LaunchModel model = (LaunchModel)event.getSource();
-			if (model != null) {
+			if (model != null && viewer instanceof TreeViewer) {
 				PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 					@Override
 					public void run() {
-						viewer.refresh((isRootNodeVisible() ? model.getRootNode() : model.getModelRoot()), true);
+						((TreeViewer)viewer).refresh((isRootNodeVisible() ? model.getRootNode() : model.getModelRoot()), true);
 					}
 				});
 			}

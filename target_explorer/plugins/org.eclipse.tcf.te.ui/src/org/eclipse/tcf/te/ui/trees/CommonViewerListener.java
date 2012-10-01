@@ -35,7 +35,7 @@ import org.eclipse.tcf.te.ui.interfaces.ISchedulableEvent;
  * CommonViewerListener listens to the property change event from the
  *  tree and update the viewer accordingly.
  */
-class CommonViewerListener extends Ancestor<Object> implements PropertyChangeListener, IPropertyChangeListener {
+public class CommonViewerListener extends Ancestor<Object> implements PropertyChangeListener, IPropertyChangeListener {
 	// The timer that process the property events periodically.
 	private static Timer viewerTimer;
 	static {
@@ -75,7 +75,7 @@ class CommonViewerListener extends Ancestor<Object> implements PropertyChangeLis
 		viewerTimer.schedule(this.task, INTERVAL, INTERVAL);
 		this.queue = Collections.synchronizedList(new ArrayList<EventObject>());
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.core.utils.Ancestor#getParent(java.lang.Object)
@@ -84,7 +84,7 @@ class CommonViewerListener extends Ancestor<Object> implements PropertyChangeLis
     protected Object getParent(Object element) {
 		return contentProvider.getParent(element);
     }
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
@@ -93,10 +93,10 @@ class CommonViewerListener extends Ancestor<Object> implements PropertyChangeLis
     public void propertyChange(PropertyChangeEvent event) {
 		processEvent(event);
     }
-	
+
 	/**
 	 * Adding the event object into the queue and trigger the scheduling.
-	 * 
+	 *
 	 * @param event The event object.
 	 */
 	private void processEvent(EventObject event) {
@@ -124,7 +124,7 @@ class CommonViewerListener extends Ancestor<Object> implements PropertyChangeLis
 
 	/**
 	 * Get and empty the queued objects.
-	 * 
+	 *
 	 * @return The objects in current queue.
 	 */
 	Object[] emptyQueue() {
@@ -142,11 +142,11 @@ class CommonViewerListener extends Ancestor<Object> implements PropertyChangeLis
 			return objects.toArray();
 		}
 	}
-	
+
 	/**
 	 * Check if it is ready for next run. If the time
 	 * has expired, then mark last run time and return true.
-	 * 
+	 *
 	 * @param scheduled if this processing is scheduled
 	 * @return true if it is time.
 	 */
@@ -160,7 +160,7 @@ class CommonViewerListener extends Ancestor<Object> implements PropertyChangeLis
 
 	/**
 	 * Handle the current events in the event queue.
-	 * 
+	 *
 	 * @param scheduled if this handling is scheduled.
 	 */
 	void handleEvent(boolean scheduled) {
@@ -176,7 +176,7 @@ class CommonViewerListener extends Ancestor<Object> implements PropertyChangeLis
 
 	/**
 	 * Get the refreshing root for the object list.
-	 * 
+	 *
 	 * @param objects The objects to be refreshed.
 	 * @return The root of these objects.
 	 */

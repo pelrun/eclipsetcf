@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.trees;
+package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -24,6 +24,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
+import org.eclipse.tcf.te.ui.trees.CommonViewerListener;
+import org.eclipse.tcf.te.ui.trees.Pending;
 
 /**
  * The base tree content provider that defines several default methods.
