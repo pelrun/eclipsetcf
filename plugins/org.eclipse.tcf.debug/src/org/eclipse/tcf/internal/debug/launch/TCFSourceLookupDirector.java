@@ -12,7 +12,9 @@ package org.eclipse.tcf.internal.debug.launch;
 
 import java.io.File;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IFile;
@@ -22,6 +24,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector;
+import org.eclipse.debug.core.sourcelookup.ISourceContainerType;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupDirector;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
 import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
@@ -36,6 +39,21 @@ import org.eclipse.tcf.util.TCFTask;
  * For TCF source lookup there is one source lookup participant.
  */
 public class TCFSourceLookupDirector extends AbstractSourceLookupDirector {
+
+    private static Set<String> fSupportedContainerTypes;
+    static {
+        fSupportedContainerTypes = new HashSet<String>();
+        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.absolutePath");
+        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.absolutePath");
+        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.programRelativePath");
+        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.mapping");
+        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.compilationDirectory");
+        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.project");
+        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.sourceFoldersRelativePath");
+        fSupportedContainerTypes.add("org.eclipse.debug.core.containerType.folder");
+        fSupportedContainerTypes.add("org.eclipse.debug.core.containerType.workspace");
+        fSupportedContainerTypes.add("org.eclipse.debug.core.containerType.directory");
+    };
 
     public static Object lookup(final TCFLaunch launch, final String ctx, Object element) {
         if (element instanceof ILineNumbers.CodeArea) {
@@ -119,5 +137,13 @@ public class TCFSourceLookupDirector extends AbstractSourceLookupDirector {
 
     public void initializeParticipants() {
         addParticipants(new ISourceLookupParticipant[] { new TCFSourceLookupParticipant() });
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.debug.core.sourcelookup.ISourceLookupDirector#supportsSourceContainerType(org.eclipse.debug.core.sourcelookup.ISourceContainerType)
+     */
+    @Override
+    public boolean supportsSourceContainerType(ISourceContainerType type) {
+        return fSupportedContainerTypes.contains(type.getId());
     }
 }
