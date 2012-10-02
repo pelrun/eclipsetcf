@@ -354,10 +354,12 @@
                mnemonic="%menu.filter.mnemonic"
                style="push">
             <visibleWhen checkEnabled="false">
-               <with variable="activePart">
-                  <adapt type="org.eclipse.ui.navigator.CommonViewer">
-                     <test property="org.eclipse.tcf.te.ui.views.isFilterable"/>
-                  </adapt>
+               <with variable="selection">
+                  <iterate>
+                     <adapt type="org.eclipse.tcf.te.core.interfaces.IFilterable">
+                        <instanceof value="org.eclipse.tcf.te.core.interfaces.IFilterable"/>
+                     </adapt>
+                  </iterate>
                </with>
             </visibleWhen>
          </command>
@@ -367,10 +369,12 @@
                mnemonic="%menu.reset.mnemonic"
                style="push">
             <visibleWhen checkEnabled="false">
-               <with variable="activePart">
-                  <adapt type="org.eclipse.ui.navigator.CommonViewer">
-                     <test property="org.eclipse.tcf.te.ui.views.isFilterable"/>
-                  </adapt>
+               <with variable="selection">
+                  <iterate>
+                     <adapt type="org.eclipse.tcf.te.core.interfaces.IFilterable">
+                        <instanceof value="org.eclipse.tcf.te.core.interfaces.IFilterable"/>
+                     </adapt>
+                  </iterate>
                </with>
             </visibleWhen>
          </command>
@@ -386,6 +390,7 @@
                <with variable="selection">
                   <iterate>
                      <adapt type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
+                        <instanceof value="org.eclipse.tcf.te.ui.interfaces.ISearchable"/>
                      </adapt>
                   </iterate>
                </with>
