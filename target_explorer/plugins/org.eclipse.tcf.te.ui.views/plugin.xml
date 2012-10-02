@@ -346,28 +346,50 @@
                </visibleWhen>
          </dynamic>
       </menuContribution>
-      <menuContribution
-            locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.filter">
+      
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.filter">
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.quickfilter"
                label="%menu.filter.label"
                mnemonic="%menu.filter.mnemonic"
                style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="activePart">
+                  <adapt type="org.eclipse.ui.navigator.CommonViewer">
+                     <test property="org.eclipse.tcf.te.ui.views.isFilterable"/>
+                  </adapt>
+               </with>
+            </visibleWhen>
          </command>
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.resetfilter"
                label="%menu.reset.label"
                mnemonic="%menu.reset.mnemonic"
                style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="activePart">
+                  <adapt type="org.eclipse.ui.navigator.CommonViewer">
+                     <test property="org.eclipse.tcf.te.ui.views.isFilterable"/>
+                  </adapt>
+               </with>
+            </visibleWhen>
          </command>
       </menuContribution>
-      <menuContribution
-            locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.search">
+      
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.search">
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.find"
                label="%menu.find.label"
                mnemonic="%menu.find.mnemonic"
                style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate>
+                     <adapt type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
          </command>
       </menuContribution>
 
@@ -499,171 +521,121 @@
             class="org.eclipse.tcf.te.ui.views.handler.ConfigFiltersHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.filters">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.View">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.View"/>
             </with>
          </activeWhen>
       </handler>
+      
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.ConfigContentHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.content">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.View">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.View"/>
             </with>
          </activeWhen>
       </handler>
+      
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.ViewQuickFilterHanlder"
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.View">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.View"/>
             </with>
          </activeWhen>
          <enabledWhen>
-            <with
-                  variable="activePart">
-               <adapt
-                     type="org.eclipse.ui.navigator.CommonViewer">
-                  <test
-                        property="org.eclipse.tcf.te.ui.views.isFilterable">
-                  </test>
+            <with variable="activePart">
+               <adapt type="org.eclipse.ui.navigator.CommonViewer">
+                  <test property="org.eclipse.tcf.te.ui.views.isFilterable"/>
                </adapt>
             </with>
          </enabledWhen>
       </handler>
+      
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.ViewQuickFilterResetHanlder"
             commandId="org.eclipse.tcf.te.ui.views.command.resetfilter">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.View">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.View"/>
             </with>
          </activeWhen>
          <enabledWhen>
-            <with
-                  variable="activePart">
-               <adapt
-                     type="org.eclipse.ui.navigator.CommonViewer">
-                  <test
-                        property="org.eclipse.tcf.te.ui.views.isFiltering">
-                  </test>
+            <with variable="activePart">
+               <adapt type="org.eclipse.ui.navigator.CommonViewer">
+                  <test property="org.eclipse.tcf.te.ui.views.isFiltering"/>
                </adapt>
             </with>
          </enabledWhen>
       </handler>
+      
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.EditorQuickFilterHanlder"
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.Editor">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
             </with>
          </activeWhen>
          <enabledWhen>
-            <with
-                  variable="activeEditor">
-               <test
-                     property="org.eclipse.tcf.te.ui.views.isEditorFilterable">
-               </test>
+            <with variable="activeEditor">
+               <test property="org.eclipse.tcf.te.ui.views.isEditorFilterable"/>
             </with>
          </enabledWhen>
       </handler>
+      
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.EditorQuickFilterResetHanlder"
             commandId="org.eclipse.tcf.te.ui.views.command.resetfilter">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.Editor">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
             </with>
          </activeWhen>
          <enabledWhen>
-            <with
-                  variable="activeEditor">
-               <adapt
-                     type="org.eclipse.jface.viewers.TreeViewer">
-                  <test
-                        property="org.eclipse.tcf.te.ui.views.isFiltering">
-                  </test>
+            <with variable="activeEditor">
+               <adapt type="org.eclipse.jface.viewers.TreeViewer">
+                  <test property="org.eclipse.tcf.te.ui.views.isFiltering"/>
                </adapt>
             </with>
          </enabledWhen>
       </handler>
+      
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.ViewSearchHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.find">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.View">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.View"/>
             </with>
          </activeWhen>
          <enabledWhen>
-            <with
-                  variable="selection">
-               <count
-                     value="1">
-               </count>
+            <with variable="selection">
+               <count value="1"/>
                <iterate>
-                  <or>
-                     <instanceof
-                           value="org.eclipse.tcf.te.ui.interfaces.ISearchable">
-                     </instanceof>
-                     <adapt
-                           type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
-                     </adapt>
-                  </or>
+                  <adapt type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
+                  </adapt>
                </iterate>
             </with>
          </enabledWhen>
       </handler>
+      
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.EditorSearchHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.find">
          <activeWhen>
-            <with
-                  variable="activePartId">
-               <equals
-                     value="org.eclipse.tcf.te.ui.views.Editor">
-               </equals>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
             </with>
          </activeWhen>
          <enabledWhen>
-            <with
-                  variable="selection">
-               <count
-                     value="1">
-               </count>
+            <with variable="selection">
+               <count value="1"/>
                <iterate>
-                  <or>
-                     <instanceof
-                           value="org.eclipse.tcf.te.ui.interfaces.ISearchable">
-                     </instanceof>
-                     <adapt
-                           type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
-                     </adapt>
-                  </or>
+                  <adapt type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
+                  </adapt>
                </iterate>
             </with>
          </enabledWhen>

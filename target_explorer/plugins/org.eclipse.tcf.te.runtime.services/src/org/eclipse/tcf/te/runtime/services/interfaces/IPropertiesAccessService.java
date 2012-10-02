@@ -52,13 +52,26 @@ public interface IPropertiesAccessService extends IService {
 
 	/**
 	 * Set the property with the key with the given value.
-	 * 
+	 *
 	 * @param context The context to set the property to. Must not be <code>null</code>.
 	 * @param key The property key. Must not be <code>null</code>.
 	 * @param value The value to set.
+	 *
 	 * @return <code>true</code> if the value was set.
 	 */
 	public boolean setProperty(Object context, String key, Object value);
+
+	/**
+	 * Test if the property value stored under the given property is equal to the given
+	 * expected value.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param key The property key. Must not be <code>null</code>.
+	 * @param value The expected property value.
+	 *
+	 * @return <code>true</code> if the expected value is equal to the stored property value, <code>false</code> otherwise.
+	 */
+	public boolean isProperty(Object context, String key, Object value);
 
 	/**
 	 * Returns the direct parent node of the given context object.

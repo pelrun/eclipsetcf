@@ -7,11 +7,13 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.runtime.internal;
+package org.eclipse.tcf.te.runtime.services.internal;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
 
 /**
  * Property tester implementation for objects of type {@link IPropertiesContainer}.
@@ -47,7 +49,8 @@ public class PropertiesContainerPropertyTester extends PropertyTester {
 		Assert.isNotNull(node);
 
 		if (args != null && args.length > 0 && args[0] instanceof String) {
-			return node.isProperty((String)args[0], expectedValue);
+			IPropertiesAccessService service = ServiceManager.getInstance().getService(node, IPropertiesAccessService.class);
+			return service != null ? service.isProperty(node, (String)args[0], expectedValue) : node.isProperty((String)args[0], expectedValue);
 		}
 
 		return false;

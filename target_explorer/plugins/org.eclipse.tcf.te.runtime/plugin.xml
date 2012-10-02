@@ -14,14 +14,6 @@
             properties="preference"
             type="java.lang.Object">
       </propertyTester>
-
-      <propertyTester
-            class="org.eclipse.tcf.te.runtime.internal.PropertiesContainerPropertyTester"
-            id="org.eclipse.tcf.te.runtime.PropertiesContainerPropertyTester"
-            namespace="org.eclipse.tcf.te.runtime"
-            properties="isProperty"
-            type="org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer">
-      </propertyTester>
    </extension>
 
 <!-- Event listener contributions -->

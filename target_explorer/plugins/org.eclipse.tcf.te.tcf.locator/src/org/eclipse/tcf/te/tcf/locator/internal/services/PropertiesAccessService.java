@@ -60,12 +60,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 				}
 			};
 
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
 		}
 
 		return !result.isEmpty() ? Collections.unmodifiableMap(result) : null;
@@ -91,12 +87,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 				}
 			};
 
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
 		}
 
 		return value.get();
@@ -121,12 +113,34 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 				}
 			};
 
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+		}
+
+		return result.get();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService#isProperty(java.lang.Object, java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public boolean isProperty(final Object context, final String key, final Object value) {
+		Assert.isNotNull(context);
+		Assert.isNotNull(key);
+
+		final AtomicBoolean result = new AtomicBoolean();
+		if (context instanceof IPeerModel) {
+			final IPeerModel peerModel = (IPeerModel) context;
+
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					result.set(peerModel.isProperty(key, value));
+				}
+			};
+
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
 		}
 
 		return result.get();
@@ -150,12 +164,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 				}
 			};
 
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
 		}
 
 		return value.get();
