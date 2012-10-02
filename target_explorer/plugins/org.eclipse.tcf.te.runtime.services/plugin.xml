@@ -14,6 +14,14 @@
             properties="hasService"
             type="java.lang.Object">
       </propertyTester>
+
+      <propertyTester
+            class="org.eclipse.tcf.te.runtime.services.internal.MenuServicePropertyTester"
+            id="org.eclipse.tcf.te.runtime.services.MenuServicePropertyTester"
+            namespace="org.eclipse.tcf.te.runtime.services.menu"
+            properties="isVisible"
+            type="java.lang.Object">
+      </propertyTester>
       
       <propertyTester
             class="org.eclipse.tcf.te.runtime.services.internal.PropertiesContainerPropertyTester"

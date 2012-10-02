@@ -118,14 +118,47 @@
       <actionProvider
             class="org.eclipse.tcf.te.ui.views.actions.NewActionProvider"
             id="org.eclipse.tcf.te.ui.views.navigator.actions.NewActionProvider">
-            <enablement>
-            </enablement>
+         <enablement>
+            <with variable="selection">
+               <iterate operator="and" ifEmpty="false">
+                  <or>
+                     <not>
+                        <test
+                              forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.services.hasService"
+                              value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                     </not>
+                     <test
+                           property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                           args="org.eclipse.tcf.te.ui.views.navigator.actions.NewActionProvider"
+                           value="true"/>
+                  </or>
+               </iterate>
+            </with>
+         </enablement>
       </actionProvider>
 
       <actionProvider
             class="org.eclipse.tcf.te.ui.views.actions.GoIntoActionProvider"
             id="org.eclipse.tcf.te.ui.views.navigator.actions.GoIntoActionProvider">
-         <enablement></enablement>
+         <enablement>
+            <with variable="selection">
+               <iterate operator="and" ifEmpty="false">
+                  <or>
+                     <not>
+                        <test
+                              forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.services.hasService"
+                              value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                     </not>
+                     <test
+                           property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                           args="org.eclipse.tcf.te.ui.views.navigator.actions.GoIntoActionProvider"
+                           value="true"/>
+                  </or>
+               </iterate>
+            </with>
+         </enablement>
       </actionProvider>
       
    </extension>
@@ -247,6 +280,20 @@
       </propertyContributor>
    </extension>
 
+<!-- Service contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.services.services">
+      <service
+            class="org.eclipse.tcf.te.ui.views.internal.services.MenuService"
+            id="org.eclipse.tcf.te.ui.views.services.MenuService">
+         <serviceType
+               bundleId="org.eclipse.tcf.te.runtime.services"
+               class="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+         <enablement>
+            <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.ICategory"/>
+         </enablement>
+      </service>
+   </extension>
+
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.properties">
@@ -271,8 +318,27 @@
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.showIn">
          <menu
                commandId="org.eclipse.tcf.te.ui.views.command.ShowInGroup"
-               id="org.eclipse.tcf.te.ui.views.View.showIn"
+               id="org.eclipse.tcf.te.ui.views.View.menu.showIn"
                label="%menu.showIn.label">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <or>
+                        <not>
+                           <test
+                                 forcePluginActivation="true"
+                                 property="org.eclipse.tcf.te.runtime.services.hasService"
+                                 value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                        </not>
+                        <test
+                              property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                              args="org.eclipse.tcf.te.ui.views.View.menu.showIn"
+                              value="true"/>
+                     </or>
+                  </iterate>
+               </with>
+            </visibleWhen>
+               
             <command
                   commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
                   icon="icons/eview16/prop_ps.gif"
