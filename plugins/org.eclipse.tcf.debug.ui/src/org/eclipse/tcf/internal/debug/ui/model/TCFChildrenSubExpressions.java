@@ -104,6 +104,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                 ISymbols.Symbol sym_data = sym_cache.getData();
                 if (sym_data == null) continue;
                 if (sym_data.getSymbolClass() != ISymbols.SymbolClass.reference) continue;
+                if (sym_data.getFlag(ISymbols.SYM_FLAG_ARTIFICIAL)) continue;
                 if (sym_data.getName() == null && !sym_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
                     if (!findFields(sym_data, map, deref)) return false;
                 }

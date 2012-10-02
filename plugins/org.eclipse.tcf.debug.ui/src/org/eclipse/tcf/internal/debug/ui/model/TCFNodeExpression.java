@@ -1352,6 +1352,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             ISymbols.Symbol field_props = field_cache.getData();
             if (field_props == null) continue;
             if (field_props.getSymbolClass() != ISymbols.SymbolClass.reference) continue;
+            if (field_props.getFlag(ISymbols.SYM_FLAG_ARTIFICIAL)) continue;
             String name = field_props.getName();
             if (name == null && type != null && field_props.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
                 name = type.getName();
@@ -1366,9 +1367,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 bf.append('=');
                 if (!field_node.value.validate(done)) return false;
                 IExpressions.Value field_value = field_node.value.getData();
-                byte[] field_data = field_value.getValue();
-                if (!field_node.appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
-                        field_data, 0, field_data.length, big_endian, done)) return false;
+                byte[] field_data = field_value != null ? field_value.getValue() : null;
+                if (field_data == null) {
+                    bf.append('?');
+                }
+                else {
+                    if (!field_node.appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
+                            field_data, 0, field_data.length, big_endian, done)) return false;
+                }
                 cnt++;
                 continue;
             }
