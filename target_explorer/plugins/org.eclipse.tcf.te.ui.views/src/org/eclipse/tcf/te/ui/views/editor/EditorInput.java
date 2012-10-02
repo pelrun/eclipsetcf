@@ -181,13 +181,11 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 			return getPersistable();
 		}
 
-		// If the adapter can be applied to the node instance, return the node
+		// If the adapter can be applied to the node instance, return the adapted node
 		Object adapted = Platform.getAdapterManager().getAdapter(node, adapter);
-		if (adapted != null) {
-			return adapted;
-		}
+		if (adapted != null) return adapted;
 
-		return Platform.getAdapterManager().getAdapter(this, adapter);
+		return null;
 	}
 
 }
