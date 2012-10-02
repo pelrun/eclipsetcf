@@ -559,8 +559,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 }
                 StyledStringBuffer bf = new StyledStringBuffer();
                 bf.append('{');
-                if (!appendCompositeValueText(bf, 1, base_type_data, buf,
-                        0, size, base_type_data.isBigEndian(), this)) return false;
+                if (!appendCompositeValueText(bf, 1, base_type_data, TCFNodeExpression.this, true,
+                        buf, 0, size, base_type_data.isBigEndian(), this)) return false;
                 bf.append('}');
                 set(null, null, bf);
                 return true;
@@ -1297,7 +1297,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (v != null) {
                 byte[] data = v.getValue();
                 if (data != null) {
-                    if (!appendValueText(bf, 1, v.getTypeID(),
+                    if (!appendValueText(bf, 1, v.getTypeID(), this,
                             data, 0, data.length, v.isBigEndian(), done)) return null;
                 }
             }
@@ -1318,7 +1318,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     break;
                 }
                 if (n > 0) bf.append(", ");
-                if (!appendValueText(bf, level + 1, type.getBaseTypeID(),
+                if (!appendValueText(bf, level + 1, type.getBaseTypeID(), null,
                         data, offs + n * elem_size, elem_size, big_endian, done)) return false;
             }
         }
@@ -1326,7 +1326,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         return true;
     }
 
-    private boolean appendCompositeValueText(StyledStringBuffer bf, int level, ISymbols.Symbol type,
+    private boolean appendCompositeValueText(
+            StyledStringBuffer bf, int level, ISymbols.Symbol type,
+            TCFNodeExpression data_node, boolean data_deref,
             byte[] data, int offs, int size, boolean big_endian, Runnable done) {
         TCFDataCache<String[]> children_cache = model.getSymbolChildrenCache(type.getID());
         if (children_cache == null) {
@@ -1347,26 +1349,40 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 pending = field_cache;
                 continue;
             }
-            ISymbols.Symbol field_data = field_cache.getData();
-            if (field_data == null) continue;
-            if (field_data.getSymbolClass() != ISymbols.SymbolClass.reference) continue;
-            String name = field_data.getName();
-            int f_offs = field_data.getOffset();
-            int f_size = field_data.getSize();
+            ISymbols.Symbol field_props = field_cache.getData();
+            if (field_props == null) continue;
+            if (field_props.getSymbolClass() != ISymbols.SymbolClass.reference) continue;
+            String name = field_props.getName();
+            if (name == null && type != null && field_props.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
+                name = type.getName();
+            }
+            TCFNodeExpression field_node = null;
+            if (data_node != null) field_node = data_node.children.getField(id, data_deref);
+            if (field_props.getProperties().get(ISymbols.PROP_OFFSET) == null) {
+                // Bitfield - use field_node to retrieve the value
+                if (name == null || field_node == null) continue;
+                if (cnt > 0) bf.append(", ");
+                bf.append(name);
+                bf.append('=');
+                if (!field_node.value.validate(done)) return false;
+                IExpressions.Value field_value = field_node.value.getData();
+                byte[] field_data = field_value.getValue();
+                if (!field_node.appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
+                        field_data, 0, field_data.length, big_endian, done)) return false;
+                cnt++;
+                continue;
+            }
+            int f_offs = field_props.getOffset();
+            int f_size = field_props.getSize();
             if (name == null) {
-                // Super-class members
-                if (offs + f_offs + f_size > data.length) {
-                    continue;
-                }
-                else {
-                    StyledStringBuffer bf1 = new StyledStringBuffer();
-                    if (!appendCompositeValueText(bf1, level, field_data, data,
-                            offs + f_offs, f_size, big_endian, done)) return false;
-                    if (bf1.length() > 0) {
-                        if (cnt > 0) bf.append(", ");
-                        bf.append(bf1);
-                        cnt++;
-                    }
+                if (offs + f_offs + f_size > data.length) continue;
+                StyledStringBuffer bf1 = new StyledStringBuffer();
+                if (!appendCompositeValueText(bf1, level, field_props, field_node, false,
+                        data, offs + f_offs, f_size, big_endian, done)) return false;
+                if (bf1.length() > 0) {
+                    if (cnt > 0) bf.append(", ");
+                    bf.append(bf1);
+                    cnt++;
                 }
             }
             else {
@@ -1377,7 +1393,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     bf.append('?');
                 }
                 else {
-                    if (!appendValueText(bf, level + 1, field_data.getTypeID(),
+                    if (!appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
                             data, offs + f_offs, f_size, big_endian, done)) return false;
                 }
                 cnt++;
@@ -1402,7 +1418,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     @SuppressWarnings("incomplete-switch")
-    private boolean appendValueText(StyledStringBuffer bf, int level, String type_id,
+    private boolean appendValueText(
+            StyledStringBuffer bf, int level, String type_id, TCFNodeExpression data_node,
             byte[] data, int offs, int size, boolean big_endian, Runnable done) {
         if (data == null) return true;
         ISymbols.Symbol type_data = null;
@@ -1487,7 +1504,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             case composite:
                 if (level > 0) {
                     bf.append('{');
-                    if (!appendCompositeValueText(bf, level, type_data, data, offs, size, big_endian, done)) return false;
+                    if (!appendCompositeValueText(bf, level, type_data, data_node, false,
+                            data, offs, size, big_endian, done)) return false;
                     bf.append('}');
                 }
                 break;
@@ -1571,25 +1589,39 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 byte[] data = v.getValue();
                 if (data != null) {
                     boolean big_endian = v.isBigEndian();
-                    if (!appendValueText(bf, 0, v.getTypeID(),
+                    if (!appendValueText(bf, 0, v.getTypeID(), this,
                             data, 0, data.length, big_endian, done)) return false;
                 }
+                int cnt = 0;
                 String reg_id = v.getRegisterID();
                 if (reg_id != null) {
                     String nm = getRegisterName(reg_id, done);
                     if (nm == null) return false;
                     bf.append("Register: ", SWT.BOLD);
                     bf.append(nm);
-                    bf.append('\n');
+                    cnt++;
+                }
+                TCFDataCache<ISymbols.Symbol> field_cache = model.getSymbolInfoCache(field_id);
+                if (field_cache != null) {
+                    if (!field_cache.validate(done)) return false;
+                    ISymbols.Symbol field_props = field_cache.getData();
+                    if (field_props != null && field_props.getProperties().get(ISymbols.PROP_OFFSET) != null) {
+                        if (cnt > 0) bf.append(", ");
+                        bf.append("Offset: ", SWT.BOLD);
+                        bf.append(Integer.toString(field_props.getOffset()), StyledStringBuffer.MONOSPACED);
+                        cnt++;
+                    }
                 }
                 Number addr = v.getAddress();
                 if (addr != null) {
                     BigInteger i = JSON.toBigInteger(addr);
+                    if (cnt > 0) bf.append(", ");
                     bf.append("Address: ", SWT.BOLD);
                     bf.append("0x", StyledStringBuffer.MONOSPACED);
                     bf.append(i.toString(16), StyledStringBuffer.MONOSPACED);
-                    bf.append('\n');
+                    cnt++;
                 }
+                if (cnt > 0) bf.append('\n');
             }
         }
         return true;
@@ -1604,7 +1636,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             byte[] data = v.getValue();
             if (data != null) {
                 boolean big_endian = v.isBigEndian();
-                if (!appendValueText(bf, 1, v.getTypeID(),
+                if (!appendValueText(bf, 1, v.getTypeID(), this,
                         data, 0, data.length, big_endian, done)) return null;
             }
         }

@@ -77,13 +77,15 @@ public class TCFChildrenSubExpressions extends TCFChildren {
         for (int i = 0; i < a.length; i++) a[i].dispose();
     }
 
-    private TCFNodeExpression findField(String field_id, boolean deref) {
+    TCFNodeExpression getField(String field_id, boolean deref) {
         assert field_id != null;
         for (TCFNode n : getNodes()) {
             TCFNodeExpression e = (TCFNodeExpression)n;
             if (field_id.equals(e.getFieldID()) && e.isDeref() == deref) return e;
         }
-        return null;
+        TCFNodeExpression e = new TCFNodeExpression(node, null, field_id, null, null, -1, deref);
+        add(e);
+        return e;
     }
 
     private boolean findFields(ISymbols.Symbol type, Map<String,TCFNode> map, boolean deref) {
@@ -106,8 +108,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                     if (!findFields(sym_data, map, deref)) return false;
                 }
                 else {
-                    TCFNodeExpression n = findField(id, deref);
-                    if (n == null) add(n = new TCFNodeExpression(node, null, id, null, null, -1, deref));
+                    TCFNodeExpression n = getField(id, deref);
                     n.setSortPosition(map.size());
                     map.put(n.id, n);
                 }
