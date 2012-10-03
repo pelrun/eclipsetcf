@@ -96,13 +96,12 @@
 <!-- Default navigator content contibutions -->
       <navigatorContent
             activeByDefault="true"
-            appearsBefore="org.eclipse.tcf.te.tcf.ui.navigator.content"
             contentProvider="org.eclipse.tcf.te.ui.views.navigator.ContentProviderDelegate"
             icon="icons/eview16/targets_view.gif"
             id="org.eclipse.tcf.te.ui.views.navigator.content"
             labelProvider="org.eclipse.tcf.te.ui.views.navigator.LabelProviderDelegate"
             name="%navigatorContent.name"
-            priority="higher">
+            priority="highest">
             <triggerPoints>
                <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.IRoot"/>
             </triggerPoints>
