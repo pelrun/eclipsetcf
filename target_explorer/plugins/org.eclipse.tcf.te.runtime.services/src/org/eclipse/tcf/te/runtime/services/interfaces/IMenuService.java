@@ -20,8 +20,8 @@ public interface IMenuService extends IService {
 	 * Tests if or if not the menu contribution identified by the given id is
 	 * visible for the given context.
 	 *
-	 * @param context The context. Must be not <code>null</code>.
-	 * @param contributionID The contribution ID. Must be not <code>null</code>.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param contributionID The contribution ID. Must not be <code>null</code>.
 	 *
 	 * @return <code>True</code> if the contribution is visible, <code>false</code> otherwise.
 	 */

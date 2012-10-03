@@ -135,6 +135,12 @@ public class TcfTestCase extends CoreTestCase {
 		}
 		assertNotNull("Failed to read output from agent.", output); //$NON-NLS-1$
 
+		// Find the "Server-Properties: ..." string within the output
+		int start = output.indexOf("Server-Properties:"); //$NON-NLS-1$
+		if (start != -1 && start > 0) {
+			output = output.substring(start);
+		}
+
 		// Strip away "Server-Properties:"
 		output = output.replace("Server-Properties:", " "); //$NON-NLS-1$ //$NON-NLS-2$
 		output = output.trim();

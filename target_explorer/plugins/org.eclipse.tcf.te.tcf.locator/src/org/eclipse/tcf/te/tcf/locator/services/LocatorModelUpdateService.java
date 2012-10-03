@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
@@ -187,7 +186,7 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		// We can merge the peer attributes only if the destination peer is a AbstractPeer
 		IPeer dst = node.getPeer();
 		// If not of correct type, than we cannot update the attributes
-		if (!(dst instanceof AbstractPeer) && !(dst instanceof PeerRedirector) && !(dst instanceof Peer)) return;
+		if (!(dst instanceof PeerRedirector) && !(dst instanceof Peer)) return;
 		// If destination and source peer are the same objects(!) nothing to do here
 		if (dst == peer) return;
 
@@ -206,23 +205,38 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 			srcAttrs.remove(IPeer.ATTR_NAME);
 		}
 
+		// Determine the peer class
+		String peerClassSimpleName = peer.getClass().getSimpleName();
+		if (peer.getAttributes().containsKey("remote.transient")) { //$NON-NLS-1$
+			peerClassSimpleName = "RemotePeer"; //$NON-NLS-1$
+		}
+
 		// If the source is a RemotePeer and the destination not, attributes from
 		// the remote peer overwrites local attributes.
-		if ("RemotePeer".equals(peer.getClass().getSimpleName()) && !"RemotePeer".equals(dst.getClass().getSimpleName())) { //$NON-NLS-1$ //$NON-NLS-2$
+		if ("RemotePeer".equals(peerClassSimpleName) && !"RemotePeer".equals(dst.getClass().getSimpleName())) { //$NON-NLS-1$ //$NON-NLS-2$
+			// The ID is not merged from remote to local
+			srcAttrs.remove(IPeer.ATTR_ID);
+
 			// Eliminate all attributes already set in the destination attributes map
+			String merged = dstAttrs.get("remote.merged.transient"); //$NON-NLS-1$
 			for (String key : dstAttrs.keySet()) {
-				srcAttrs.remove(key);
+				if (merged == null || !merged.contains(key)) {
+					srcAttrs.remove(key);
+				}
 			}
 		}
 
 		// Mark the peer as a remote peer and remember the remote peer id
-		if ("RemotePeer".equals(peer.getClass().getSimpleName()) && !"RemotePeer".equals(dst.getClass().getSimpleName())) { //$NON-NLS-1$ //$NON-NLS-2$
+		if ("RemotePeer".equals(peerClassSimpleName) && !"RemotePeer".equals(dst.getClass().getSimpleName())) { //$NON-NLS-1$ //$NON-NLS-2$
 			srcAttrs.put("remote.transient", Boolean.TRUE.toString()); //$NON-NLS-1$
 			srcAttrs.put("remote.id.transient", peer.getID()); //$NON-NLS-1$
+			srcAttrs.put("remote.merged.transient", srcAttrs.keySet().toString()); //$NON-NLS-1$
 		}
 
 		// Copy all remaining attributes from source to destination
-		if (!srcAttrs.isEmpty()) dstAttrs.putAll(srcAttrs);
+		if (!srcAttrs.isEmpty()) {
+			dstAttrs.putAll(srcAttrs);
+		}
 
 		// If the ID's are different between the peers to merge and force is set,
 		// we have set the ID in dstAttrs to the original one as set in the destination peer.
@@ -231,9 +245,7 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		}
 
 		// And update the destination peer attributes
-		if (dst instanceof AbstractPeer) {
-			((AbstractPeer)dst).updateAttributes(dstAttrs);
-		} else if (dst instanceof PeerRedirector) {
+		if (dst instanceof PeerRedirector) {
 			((PeerRedirector)dst).updateAttributes(dstAttrs);
 		} else if (dst instanceof Peer) {
 			((Peer)dst).updateAttributes(dstAttrs);

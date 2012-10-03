@@ -9,7 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.listener;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -126,6 +128,13 @@ public class LocatorListener implements ILocator.LocatorListener {
 		if (model != null && peer != null) {
 			// find the corresponding model node to remove
 			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peer.getID());
+			if (peerNode == null) {
+				// Double check with "ClientID" if set
+				String clientID = peer.getAttributes().get("ClientID"); //$NON-NLS-1$
+				if (clientID != null) {
+					peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(clientID);
+				}
+			}
 			// Update the peer instance
 			if (peerNode != null) {
 			    // Get the old peer instance
@@ -138,7 +147,15 @@ public class LocatorListener implements ILocator.LocatorListener {
 			    	}
 			    	// Non-visible peers are updated
 			    	else {
-			    		model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, false);
+						// Validate the peer node before updating
+						IPeer myPeer = model.validatePeer(peer);
+						if (myPeer != null) {
+							boolean changed = peerNode.setChangeEventsEnabled(false);
+							// Merge user configured properties between the peers
+							model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, myPeer, true);
+							if (changed) peerNode.setChangeEventsEnabled(true);
+							peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, peerNode.getPeer());
+						}
 			    	}
 			    }
 			}
@@ -167,19 +184,50 @@ public class LocatorListener implements ILocator.LocatorListener {
 				String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
 				boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
 				if (isStatic) {
+					boolean changed = peerNode.setChangeEventsEnabled(false);
+
 					// Create a modifiable copy of the peer attributes
 					Map<String, String> attrs = new HashMap<String, String>(peerNode.getPeer().getAttributes());
-					attrs.remove("remote.transient"); //$NON-NLS-1$
-					attrs.remove("remote.id.transient"); //$NON-NLS-1$
-					attrs.remove("ClientID"); //$NON-NLS-1$
+					// Remember the remote peer id before removing it
+					String remotePeerID = attrs.get("remote.id.transient"); //$NON-NLS-1$
 
-					// Update the peer attributes
-					if (peer instanceof PeerRedirector) {
-						((PeerRedirector)peer).updateAttributes(attrs);
-					} else if (peer instanceof Peer) {
-						((Peer)peer).updateAttributes(attrs);
+					// Remove all merged attributes from the peer instance
+					String merged = attrs.remove("remote.merged.transient"); //$NON-NLS-1$
+					if (merged != null) {
+						merged = merged.replace('[', ' ').replace(']', ' ').trim();
+						List<String> keysToRemove = Arrays.asList(merged.split(",\\ ")); //$NON-NLS-1$
+						String[] keys = attrs.keySet().toArray(new String[attrs.keySet().size()]);
+						for (String key : keys) {
+							if (keysToRemove.contains(key)) {
+								attrs.remove(key);
+							}
+						}
+
+						// Make sure the ID is set correctly
+						if (attrs.get(IPeer.ATTR_ID) == null) {
+							attrs.put(IPeer.ATTR_ID, peer.getID());
+						}
+
+						// Update the peer attributes
+						if (peer instanceof PeerRedirector) {
+							((PeerRedirector)peer).updateAttributes(attrs);
+						} else if (peer instanceof Peer) {
+							((Peer)peer).updateAttributes(attrs);
+						}
 					}
 
+					// Remove the attributes stored at peer node level
+					peerNode.setProperty(IPeerModelProperties.PROP_LOCAL_SERVICES, null);
+					peerNode.setProperty(IPeerModelProperties.PROP_REMOTE_SERVICES, null);
+
+					// Check if we have to remote the peer in the underlying locator service too
+					if (remotePeerID != null) {
+				        Map<String, IPeer> peers = Protocol.getLocator().getPeers();
+				        IPeer remotePeer = peers.get(remotePeerID);
+				        if (remotePeer instanceof AbstractPeer) ((AbstractPeer)remotePeer).dispose();
+					}
+
+					if (changed) peerNode.setChangeEventsEnabled(true);
 					peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, peer, peerNode.getPeer());
 				} else {
 					// Dynamic peer -> Remove peer model node from the model

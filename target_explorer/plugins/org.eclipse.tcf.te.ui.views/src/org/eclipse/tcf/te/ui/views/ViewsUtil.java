@@ -14,6 +14,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.handler.PropertiesCommandHandler;
@@ -102,6 +103,44 @@ public class ViewsUtil {
 					if (viewer == null) viewer = part != null ? (Viewer)part.getAdapter(Viewer.class) : null;
 					// Refresh the viewer
 					if (viewer != null) viewer.refresh();
+				}
+			}
+		};
+
+		// Execute asynchronously
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(runnable);
+		}
+	}
+
+	/**
+	 * Asynchronously refresh the given element within the view identified
+	 * by the given id.
+	 *
+	 * @param id The view id. Must not be <code>null</code>.
+	 * @param element The element to refresh. Must not be <code>null</code>.
+	 */
+	public static void refresh(final String id, final Object element) {
+		Assert.isNotNull(id);
+		Assert.isNotNull(element);
+
+		// Create the runnable
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				// Check the active workbench window and active page instances
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+					// Get the view reference
+					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findViewReference(id);
+					// Get the view part from the reference, but do not restore it
+					IWorkbenchPart part = reference != null ? reference.getPart(false) : null;
+					// If the part is a common navigator, get the common viewer
+					Viewer viewer = part instanceof CommonNavigator ? ((CommonNavigator)part).getCommonViewer() : null;
+					// If not a common navigator, try to adapt to the viewer
+					if (viewer == null) viewer = part != null ? (Viewer)part.getAdapter(Viewer.class) : null;
+					// Refresh the viewer
+					if (viewer instanceof StructuredViewer) ((StructuredViewer)viewer).refresh(element, true);
+					else viewer.refresh();
 				}
 			}
 		};

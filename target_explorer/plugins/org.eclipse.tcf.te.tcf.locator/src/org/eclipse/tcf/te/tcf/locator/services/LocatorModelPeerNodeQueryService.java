@@ -71,13 +71,19 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				doQueryServices(node, new DoneQueryServices() {
-					@Override
-					public void doneQueryServices(Throwable error) {
-						if (error == null) services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
-						completed.set(true);
-					}
-				});
+				// If the peer is a RemotePeer or has the "remote.transient" property set
+		    	// --> an agent is running and has been associated with the peer model.
+				if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+					doQueryServices(node, new DoneQueryServices() {
+						@Override
+						public void doneQueryServices(Throwable error) {
+							if (error == null) services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
+							completed.set(true);
+						}
+					});
+				} else {
+		    		completed.set(true);
+		    	}
 			}
 		});
 
@@ -129,13 +135,19 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				doQueryServices(node, new DoneQueryServices() {
-					@Override
-					public void doneQueryServices(Throwable error) {
-						if (error == null) services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
-						completed.set(true);
-					}
-				});
+				// If the peer is a RemotePeer or has the "remote.transient" property set
+		    	// --> an agent is running and has been associated with the peer model.
+		    	if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+					doQueryServices(node, new DoneQueryServices() {
+						@Override
+						public void doneQueryServices(Throwable error) {
+							if (error == null) services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
+							completed.set(true);
+						}
+					});
+		    	} else {
+		    		completed.set(true);
+		    	}
 			}
 		});
 

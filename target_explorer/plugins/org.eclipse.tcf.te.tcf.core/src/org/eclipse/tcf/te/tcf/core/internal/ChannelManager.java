@@ -418,6 +418,52 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#shutdown(org.eclipse.tcf.protocol.IPeer)
+	 */
+	@Override
+	public void shutdown(final IPeer peer) {
+		Runnable runnable = new Runnable() {
+			@Override
+            public void run() {
+				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+				internalShutdown(peer);
+			}
+		};
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeLater(runnable);
+	}
+
+	/**
+	 * Shutdown the communication to the given peer, no matter of the current
+	 * reference count. A possible associated value-add is shutdown as well.
+	 *
+	 * @param peer The peer. Must not be <code>null</code>.
+	 */
+	/* default */ void internalShutdown(IPeer peer) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(peer);
+
+		// Get the peer id
+		String id = peer.getID();
+
+		// Get the channel
+		IChannel channel = internalGetChannel(peer);
+		if (channel != null) {
+			// Reset the reference count (will force a channel close)
+			refCounters.remove(id);
+
+			// Close the channel
+			internalCloseChannel(channel);
+
+			// Get the value-add's for the peer to shutdown
+			IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
+			if (valueAdds != null && valueAdds.length > 0) {
+				internalShutdownValueAdds(peer, valueAdds);
+			}
+		}
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#closeAll()
 	 */
 	@Override

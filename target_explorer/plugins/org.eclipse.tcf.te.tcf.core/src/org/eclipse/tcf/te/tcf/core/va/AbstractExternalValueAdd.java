@@ -232,7 +232,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 				// Find the "Server-Properties: ..." string within the output
 				int start = output.indexOf("Server-Properties:"); //$NON-NLS-1$
-				if (start != -1) {
+				if (start != -1 && start > 0) {
 					output = output.substring(start);
 				}
 
@@ -275,6 +275,9 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 				entries.put(id, entry);
 			}
+
+			// Stop the output reader thread
+			launcher.getOutputReader().interrupt();
 		} else {
 			error = new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, this.getId()));
 		}

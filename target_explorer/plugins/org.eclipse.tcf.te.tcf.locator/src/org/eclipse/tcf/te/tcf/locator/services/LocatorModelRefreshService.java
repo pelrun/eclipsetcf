@@ -156,8 +156,16 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			else {
 				oldChildren.remove(peerNode);
 			}
-			// Merge user configured properties between the peers
-			model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, false);
+
+			if (peerNode.getPeer() != peer) {
+				if ("RemotePeer".equals(peerNode.getPeer().getClass().getSimpleName())) { //$NON-NLS-1$
+					peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+				} else {
+					// Merge user configured properties between the peers
+					model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, false);
+				}
+			}
+
 			// Validate the peer node before adding
 			peerNode = model.validatePeerNodeForAdd(peerNode);
 			if (peerNode != null) {

@@ -83,6 +83,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	public void run() {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
+		// If a scanner runnable already active for this peer node, there
+		// is no need to run another scan.
+		if (peerNode.getProperty("scanner.transient") != null) return; //$NON-NLS-1$
+		peerNode.setProperty("scanner.transient", this); //$NON-NLS-1$
+
 		// Determine the peer
 		IPeer peer = peerNode.getPeer();
 		if (peer == null) return;
@@ -306,6 +311,9 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			if (!sharedChannel && !keepOpen) channel.close();
 		}
 
+		// Reset the scanner runnable marker
+		peerNode.setProperty("scanner.transient", null); //$NON-NLS-1$
+
 		// Re-enable the change events a fire a "properties" change event
 		if (changed) {
 			peerNode.setChangeEventsEnabled(true);
@@ -349,6 +357,9 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			peerNode.setProperty("dns.name.transient", null); //$NON-NLS-1$
 			peerNode.setProperty("dns.lastIP.transient", null); //$NON-NLS-1$
 			peerNode.setProperty("dns.skip.transient", null); //$NON-NLS-1$
+
+			// Reset the scanner runnable marker
+			peerNode.setProperty("scanner.transient", null); //$NON-NLS-1$
 
 			// Re-enable the change events a fire a "properties" change event
 			if (changed) {
