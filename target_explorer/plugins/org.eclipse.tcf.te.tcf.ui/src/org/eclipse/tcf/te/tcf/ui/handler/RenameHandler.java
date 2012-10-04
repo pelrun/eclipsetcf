@@ -61,8 +61,8 @@ public class RenameHandler extends AbstractHandler {
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
-    @Override
-    public Object execute(ExecutionEvent event) throws ExecutionException {
+	@Override
+	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// Get the shell
 		shell = HandlerUtil.getActiveShell(event);
 		// Get the current selection
@@ -81,7 +81,7 @@ public class RenameHandler extends AbstractHandler {
 		shell = null;
 
 		return null;
-    }
+	}
 
 	/**
 	 * Renames all elements from the given selection and invokes the
@@ -156,14 +156,18 @@ public class RenameHandler extends AbstractHandler {
 								} catch (IOException e) {
 									String template = NLS.bind(Messages.RenameHandler_error_renameFailed, Messages.PossibleCause);
 									StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), selection, template,
-																	Messages.RenameHandler_error_title, IContextHelpIds.MESSAGE_RENAME_FAILED, this, null);
+													Messages.RenameHandler_error_title, IContextHelpIds.MESSAGE_RENAME_FAILED, this, null);
 								}
 							}
 						}
 					};
 
-					if (Protocol.isDispatchThread()) runnable.run();
-					else Protocol.invokeAndWait(runnable);
+					if (Protocol.isDispatchThread()) {
+						runnable.run();
+					}
+					else {
+						Protocol.invokeAndWait(runnable);
+					}
 
 					// Trigger a refresh of the model
 					invokeCallback = false;
@@ -172,13 +176,15 @@ public class RenameHandler extends AbstractHandler {
 						public void run() {
 							final ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
 							// Refresh the model now (must be executed within the TCF dispatch thread)
-							if (service != null) service.refresh(new Callback() {
-								@Override
-								protected void internalDone(Object caller, IStatus status) {
-									// Invoke the callback
-									callback.done(RenameHandler.this, Status.OK_STATUS);
-								}
-							});
+							if (service != null) {
+								service.refresh(new Callback() {
+									@Override
+									protected void internalDone(Object caller, IStatus status) {
+										// Invoke the callback
+										callback.done(RenameHandler.this, Status.OK_STATUS);
+									}
+								});
+							}
 						}
 					});
 				}
@@ -206,23 +212,31 @@ public class RenameHandler extends AbstractHandler {
 
 		Runnable runnable = new Runnable() {
 			@Override
-            public void run() {
+			public void run() {
 				name.set(node.getPeer().getName());
 
 				ILocatorModel model = Model.getModel();
 				Assert.isNotNull(model);
 				IPeerModel[] peers = model.getPeers();
 				for (IPeerModel peer : peers) {
-					if (peer.equals(node)) continue;
-					if (!usedNames.contains(peer.getPeer().getName())) {
-						usedNames.add(peer.getPeer().getName());
+					String isStatic = peer.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+					if (isStatic != null && Boolean.parseBoolean(isStatic.trim())) {
+						String name = peer.getPeer().getName();
+						Assert.isNotNull(name);
+						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
+							usedNames.add(name.trim().toUpperCase());
+						}
 					}
 				}
 			}
 		};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
+		if (Protocol.isDispatchThread()) {
+			runnable.run();
+		}
+		else {
+			Protocol.invokeAndWait(runnable);
+		}
 
 		String title = NLS.bind(Messages.RenameHandler_dialog_title, name.get());
 		String prompt = Messages.RenameHandler_dialog_message;

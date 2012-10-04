@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
+import org.eclipse.tcf.te.ui.views.interfaces.IEditorSaveAsAdapter;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.ui.IPersistableElement;
 
@@ -23,14 +24,17 @@ import org.eclipse.ui.IPersistableElement;
 public class AdapterFactory implements IAdapterFactory {
 	// The adapter for ILabelProvider.class
 	private final DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
+	// The adapter for IEditorSaveAsAdapter.class
+	private final IEditorSaveAsAdapter editorSaveAsAdapter = new EditorSaveAsAdapter();
 
 	// The adapter class.
 	private Class<?>[] adapters = {
 					ILabelProvider.class,
 					IPersistableElement.class,
 					ICategorizable.class,
-					IPeerModel.class
-				};
+					IPeerModel.class,
+					IEditorSaveAsAdapter.class
+	};
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapter(java.lang.Object, java.lang.Class)
@@ -53,6 +57,9 @@ public class AdapterFactory implements IAdapterFactory {
 		if (adaptableObject instanceof EditorInput) {
 			if (IPeerModel.class.equals(adapterType)) {
 				return ((EditorInput)adaptableObject).getAdapter(adapterType);
+			}
+			if (IEditorSaveAsAdapter.class.equals(adapterType)) {
+				return editorSaveAsAdapter;
 			}
 		}
 

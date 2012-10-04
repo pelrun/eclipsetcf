@@ -59,7 +59,7 @@ public class RenameDialog extends CustomTitleAreaDialog {
 	 * @param contextHelpId The context help id.
 	 */
 	public RenameDialog(Shell parent, String dialogTitle, String title, String defaultMessage, String usedErrorMessage, String formatErrorMessage,
-						String label, String oldName, String formatRegex, String[] usedNames, String contextHelpId) {
+					String label, String oldName, String formatRegex, String[] usedNames, String contextHelpId) {
 		super(parent, contextHelpId);
 
 		this.dialogTitle = dialogTitle != null ? dialogTitle : "Rename"; //$NON-NLS-1$
@@ -97,7 +97,7 @@ public class RenameDialog extends CustomTitleAreaDialog {
 		name.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e) {
-				if (usedNames.contains(name.getText())) {
+				if (usedNames.contains(name.getText().trim().toUpperCase())) {
 					setButtonEnabled(OK, false);
 					setMessage(usedErrorMessage, IMessageProvider.ERROR);
 				}

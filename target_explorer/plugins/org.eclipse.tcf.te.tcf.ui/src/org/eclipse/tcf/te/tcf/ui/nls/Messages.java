@@ -175,4 +175,9 @@ public class Messages extends NLS {
 	public static String LoggingPreferencePage_maxFileSize_label;
 	public static String LoggingPreferencePage_maxFileSize_error;
 	public static String LoggingPreferencePage_maxFilesInCycle_label;
+
+	public static String EditorSaveAsAdapter_title;
+	public static String EditorSaveAsAdapter_message;
+	public static String EditorSaveAsAdapter_nameInUse_error;
+	public static String EditorSaveAsAdapter_label;
 }

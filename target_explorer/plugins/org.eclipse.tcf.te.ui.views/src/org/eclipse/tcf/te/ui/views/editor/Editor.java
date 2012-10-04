@@ -16,11 +16,13 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBinding;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBindingExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.IEditorPage;
+import org.eclipse.tcf.te.ui.views.interfaces.IEditorSaveAsAdapter;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -82,7 +84,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		if(fpage != null) {
 			fpage.setFocus();
 		}
-		else super.setFocus();
+		else {
+			super.setFocus();
+		}
 	}
 
 	/*
@@ -109,8 +113,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 			Object page = pages.get(i);
 			if (page instanceof IFormPage) {
 				IFormPage fpage = (IFormPage)page;
-				if (fpage.getIndex() == index)
+				if (fpage.getIndex() == index) {
 					return fpage;
+				}
 			}
 		}
 		return null;
@@ -132,7 +137,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		while (iterator.hasNext()) {
 			Object element = iterator.next();
 			// Skip over pages not being a form page.
-			if (!(element instanceof IFormPage)) continue;
+			if (!(element instanceof IFormPage)) {
+				continue;
+			}
 			IFormPage page = (IFormPage)element;
 			// Find the corresponding page binding
 			EditorPageBinding binding = null;
@@ -188,7 +195,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 						for (String insertBeforePageId : pageIds) {
 							// If it is "first", we insert the page at index 0
 							if ("first".equalsIgnoreCase(insertBeforePageId)) { //$NON-NLS-1$
-								if (getIndexOf(page.getId()) == -1) addPage(0, page);
+								if (getIndexOf(page.getId()) == -1) {
+									addPage(0, page);
+								}
 								pageAdded = true;
 								break;
 							}
@@ -196,7 +205,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 							// Find the index of the page we shall insert this page before
 							int index = getIndexOf(insertBeforePageId);
 							if (index != -1) {
-								if (getIndexOf(page.getId()) == -1) addPage(index, page);
+								if (getIndexOf(page.getId()) == -1) {
+									addPage(index, page);
+								}
 								pageAdded = true;
 								break;
 							}
@@ -209,7 +220,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 						for (String insertAfterPageId : pageIds) {
 							// If it is "last", we insert the page at the end
 							if ("last".equalsIgnoreCase(insertAfterPageId)) { //$NON-NLS-1$
-								if (getIndexOf(page.getId()) == -1) addPage(page);
+								if (getIndexOf(page.getId()) == -1) {
+									addPage(page);
+								}
 								pageAdded = true;
 								break;
 							}
@@ -217,7 +230,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 							// Find the index of the page we shall insert this page after
 							int index = getIndexOf(insertAfterPageId);
 							if (index != -1 && index + 1 < pages.size()) {
-								if (getIndexOf(page.getId()) == -1) addPage(index + 1, page);
+								if (getIndexOf(page.getId()) == -1) {
+									addPage(index + 1, page);
+								}
 								pageAdded = true;
 								break;
 							}
@@ -225,7 +240,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 					}
 
 					// Add the page to the end if not added otherwise
-					if (!pageAdded && getIndexOf(page.getId()) == -1) addPage(page);
+					if (!pageAdded && getIndexOf(page.getId()) == -1) {
+						addPage(page);
+					}
 
 				} catch (PartInitException e) { /* ignored on purpose */ }
 			}
@@ -244,8 +261,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 			Object page = pages.get(i);
 			if (page instanceof IFormPage) {
 				IFormPage fpage = (IFormPage)page;
-				if (fpage.getId().equals(pageId))
+				if (fpage.getId().equals(pageId)) {
 					return i;
+				}
 			}
 		}
 		return -1;
@@ -259,7 +277,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		super.init(site, input);
 
 		// Update the part name
-		if (!"".equals(input.getName())) setPartName(input.getName()); //$NON-NLS-1$
+		if (!"".equals(input.getName())) { //$NON-NLS-1$
+			setPartName(input.getName());
+		}
 
 		// Dispose an existing event listener instance
 		if (listener != null) { listener.dispose(); listener = null; }
@@ -278,7 +298,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 			// Reset the editor input name to trigger recalculation
 			((EditorInput)input).name = null;
 			// If the name changed, apply the new name
-			if (!oldPartName.equals(input.getName())) setPartName(input.getName());
+			if (!oldPartName.equals(input.getName())) {
+				setPartName(input.getName());
+			}
 		}
 	}
 
@@ -290,7 +312,7 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		// Dispose an existing event listener instance
 		if (listener != null) { listener.dispose(); listener = null; }
 
-	    super.dispose();
+		super.dispose();
 	}
 
 	/* (non-Javadoc)
@@ -313,6 +335,20 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 	 */
 	@Override
 	public void doSaveAs() {
+		IEditorSaveAsAdapter adapter = getEditorInput() != null ? (IEditorSaveAsAdapter)Platform.getAdapterManager().getAdapter(getEditorInput(), IEditorSaveAsAdapter.class) : null;
+		if (adapter != null) {
+			Object newNode = adapter.doSaveAs(getEditorInput());
+			if (newNode != null) {
+				setInput(new EditorInput(newNode));
+				updatePartName();
+				updatePageList();
+				for (Object page : pages) {
+					if (page instanceof AbstractEditorPage) {
+						((AbstractEditorPage) page).init(getEditorSite(), getEditorInput());
+					}
+				}
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -320,6 +356,10 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 	 */
 	@Override
 	public boolean isSaveAsAllowed() {
+		IEditorSaveAsAdapter adapter = getEditorInput() != null ? (IEditorSaveAsAdapter)Platform.getAdapterManager().getAdapter(getEditorInput(), IEditorSaveAsAdapter.class) : null;
+		if (adapter != null) {
+			return adapter.isSaveAsAllowed(getEditorInput());
+		}
 		return false;
 	}
 
@@ -393,17 +433,17 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 	 * @see org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor#getContributorId()
 	 */
 	@Override
-    public String getContributorId() {
-	    return IUIConstants.TABBED_PROPERTIES_CONTRIBUTOR_ID;
-    }
+	public String getContributorId() {
+		return IUIConstants.TABBED_PROPERTIES_CONTRIBUTOR_ID;
+	}
 
-    /**
-     * Fires a property changed event.
-     *
-     * @param propertyId the id of the property that changed
-     */
-    @Override
-    public final void firePropertyChange(final int propertyId) {
-    	super.firePropertyChange(propertyId);
-    }
+	/**
+	 * Fires a property changed event.
+	 *
+	 * @param propertyId the id of the property that changed
+	 */
+	@Override
+	public final void firePropertyChange(final int propertyId) {
+		super.firePropertyChange(propertyId);
+	}
 }
