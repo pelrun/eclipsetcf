@@ -140,7 +140,7 @@ public class ViewsUtil {
 					if (viewer == null) viewer = part != null ? (Viewer)part.getAdapter(Viewer.class) : null;
 					// Refresh the viewer
 					if (viewer instanceof StructuredViewer) ((StructuredViewer)viewer).refresh(element, true);
-					else viewer.refresh();
+					else if (viewer != null) viewer.refresh();
 				}
 			}
 		};
