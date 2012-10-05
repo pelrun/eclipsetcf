@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.ui.statushandler;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -269,7 +268,8 @@ public class DefaultStatusHandler extends AbstractStatusHandler {
 	 * @param keyDontAskAgain The unique key for the stored result value or <code>null</code>.
 	 * @param helpContextId The help context id or <code>null</code>.
 	 *
-	 * @return {@link Boolean} if the severity is {@link IStatusHandlerConstants#QUESTION}, <code>null</code> otherwise.
+	 * @return {@link Integer} containing the id of the button pressed if the severity is {@link IStatusHandlerConstants#QUESTION}
+	 * 		   or {@link IStatusHandlerConstants#YES_NO_CANCEL}, <code>null</code> otherwise.
 	 */
 	protected Object doOpenMessageDialog(Shell shell, String title, String message, String[] buttonLabel, int severity, String keyDontAskAgain, String helpContextId) {
 		Assert.isNotNull(shell);
@@ -280,7 +280,7 @@ public class DefaultStatusHandler extends AbstractStatusHandler {
 
 		switch (severity) {
 			case IStatusHandlerConstants.QUESTION:
-				result = Boolean.valueOf(OptionalMessageDialog.openYesNoDialog(shell, title, message, buttonLabel, keyDontAskAgain, helpContextId) == IDialogConstants.YES_ID);
+				result = Integer.valueOf(OptionalMessageDialog.openYesNoDialog(shell, title, message, buttonLabel, keyDontAskAgain, helpContextId));
 				break;
 			case IStatusHandlerConstants.YES_NO_CANCEL:
 				result = Integer.valueOf(OptionalMessageDialog.openYesNoCancelDialog(shell, title, message, buttonLabel, keyDontAskAgain, helpContextId));
