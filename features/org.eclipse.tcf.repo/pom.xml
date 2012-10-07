@@ -16,8 +16,11 @@
 	<packaging>eclipse-repository</packaging>
 
 	<properties>
+		<pack200>/shared/common/jdk-1.5.0-22.x86_64/bin</pack200>
+		<javaExecutable>/usr/local/bin/java</javaExecutable>
 		<tcf-stream>development</tcf-stream>
 		<tcf-zipfile>org.eclipse.tcf.repo.zip</tcf-zipfile>
+		<tcf-signerInputDirectory>/home/data/httpd/download-staging.priv/tools/tcf/hudson</tcf-signerInputDirectory>
 		<tcf-install>/home/data/httpd/download.eclipse.org/tools/tcf/builds/${tcf-stream}/nightly</tcf-install>
 		<jacoco.skip>true</jacoco.skip>
 	</properties>
@@ -38,6 +41,8 @@
 								<id>pack</id>
 								<phase>package</phase>
 								<configuration>
+									<pack200>${pack200}</pack200>
+									<javaExecutable>${javaExecutable}</javaExecutable>
 									<inputFile>${project.build.directory}/${tcf-zipfile}</inputFile>
 								</configuration>
 								<goals>
@@ -49,7 +54,7 @@
 								<id>sign</id>
 								<configuration>
 									<inputFile>${project.build.directory}/${tcf-zipfile}</inputFile>
-									<signerInputDirectory>/home/data/httpd/download-staging.priv/tools/tcf/hudson</signerInputDirectory>
+									<signerInputDirectory>${tcf-signerInputDirector}</signerInputDirectory>
 								</configuration>
 								<phase>package</phase>
 								<goals>
@@ -60,6 +65,8 @@
 							<execution>
 								<id>repack</id>
 								<configuration>
+									<pack200>${pack200}</pack200>
+									<javaExecutable>${javaExecutable}</javaExecutable>
 									<!-- this is output from signer mojo -->
 									<inputFile>${project.build.directory}/signed/site_assembly.zip</inputFile> 
 								</configuration>
@@ -81,6 +88,7 @@
 					<!--
 					This is what I use to deploy a p2 repository someplace to test from before manually making active.        
 					-->
+<!--					
 					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
@@ -124,6 +132,7 @@
 							</execution>
 						</executions>
 					</plugin>
+-->					
 				</plugins>
 			</build>
 		</profile>
