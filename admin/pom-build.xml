@@ -36,7 +36,7 @@
 
 	<profiles>
 		<profile>
-			<id>sign-new</id>
+			<id>sign</id>
 			<!-- Uses the new jarsigner from the CBI platform     -->
 			<!-- Not deployed to nexus yet. Must be build locally -->
 			<!-- before running this profile.                     -->
