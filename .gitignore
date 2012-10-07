@@ -68,6 +68,8 @@ tests/plugins/org.eclipse.tcf.debug.test/bin
 
 # Target Explorer
 /target_explorer/coverage/
+/target_explorer/plugins/org.eclipse.tcf.te/target
+/target_explorer/plugins/org.eclipse.tcf.te/bin
 /target_explorer/plugins/org.eclipse.tcf.te.core/target
 /target_explorer/plugins/org.eclipse.tcf.te.core/bin
 /target_explorer/plugins/org.eclipse.tcf.te.core.cdt/target
@@ -150,6 +152,10 @@ tests/plugins/org.eclipse.tcf.debug.test/bin
 /target_explorer/features/org.eclipse.tcf.te.feature/bin
 /target_explorer/features/org.eclipse.tcf.te.sdk.feature/target
 /target_explorer/features/org.eclipse.tcf.te.sdk.feature/bin
+/target_explorer/features/org.eclipse.tcf.te.tcf.core.feature/target
+/target_explorer/features/org.eclipse.tcf.te.tcf.core.feature/bin
+/target_explorer/features/org.eclipse.tcf.te.tcf.core.sdk.feature/target
+/target_explorer/features/org.eclipse.tcf.te.tcf.core.sdk.feature/bin
 /target_explorer/features/org.eclipse.tcf.te.tcf.feature/target
 /target_explorer/features/org.eclipse.tcf.te.tcf.feature/bin
 /target_explorer/features/org.eclipse.tcf.te.tcf.sdk.feature/target

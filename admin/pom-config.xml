@@ -37,6 +37,7 @@
 		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
 		<jacoco-version>0.5.9.201207300726</jacoco-version>
+		<eclipse-jarsigner-version>1.0.2-SNAPSHOT</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
@@ -241,6 +242,20 @@
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>${jacoco-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.cbi.maven.plugins</groupId>
+					<artifactId>eclipse-jarsigner-plugin</artifactId>
+					<version>${eclipse-jarsigner-version}</version>
+					<executions>
+						<execution>
+							<id>sign</id>
+							<phase>package</phase>
+							<goals>
+								<goal>sign</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
