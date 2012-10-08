@@ -5,6 +5,7 @@
 # .
 workspace
 debug-workspace
+artifacts/
 
 # examples/
 examples/org.eclipse.tcf.examples.daytime/bin
