@@ -84,24 +84,22 @@
 		<Bug pattern="EI_EXPOSE_REP"/>
 		<Or>
 			<Method name="getAdapterList"/>
-			<Class name="org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState"/>
-			<Package name="~org\.eclipse\.tcf\.te\.tcf\.filesystem\.core\.internal\.operations"/>
+			<Package name="~org\.eclipse\.tcf\.te\..*"/>
 		</Or>
 	</Match>
 	
 	<!-- Ignore EI_EXPOSE_REP2 -->
 	<Match>
 		<Bug pattern="EI_EXPOSE_REP2"/>
-		<Or>
-			<Class name="org.eclipse.tcf.te.ui.views.handler.UpdateActiveExtensionsOperation"/>
-			<Class name="org.eclipse.tcf.te.ui.views.handler.UpdateActiveFiltersOperation"/>
-			<Class name="~org\.eclipse\.tcf\.te\.tcf\.terminals\.core\.launcher\.TerminalsStreamsListener.*"/>
-			<Class name="~org\.eclipse\.tcf\.te\.tcf\.processes\.core\.launcher\.ProcessStreamsListener.*"/>
-			<Class name="org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState"/>
-			<Package name="~org\.eclipse\.tcf\.te\.tcf\.filesystem\.core\.internal\.operations"/>
-		</Or>
+		<Package name="~org\.eclipse\.tcf\.te\..*"/>
 	</Match>
 	
+	<!-- Ignore PZLA_PREFER_ZERO_LENGTH_ARRAYS -->
+	<Match>
+		<Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS"/>
+		<Package name="~org\.eclipse\.tcf\.te\..*"/>
+	</Match>
+
 	<!-- Ignore LI_LAZY_INIT_UPDATE_STATIC in Model.java -->
 	<Match>
 		<Bug pattern="LI_LAZY_INIT_UPDATE_STATIC"/>

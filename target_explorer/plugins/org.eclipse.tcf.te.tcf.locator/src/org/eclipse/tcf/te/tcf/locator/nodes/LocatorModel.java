@@ -366,7 +366,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
-			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeer( " + (peer != null ? peer.getID() : null) + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
+			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeer( " + peer.getID() + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		IPeer result = peer;
@@ -399,16 +399,17 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		Assert.isNotNull(node);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
+		// Get the peer from the peer node
+		IPeer peer = node.getPeer();
+		if (peer == null) return node;
+
 		// Skip static peer IP address validation
-		String value = node.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+		String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
 		boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
 		if (isStatic) return node;
 
-		// Get the peer from the peer node
-		IPeer peer = node.getPeer();
-
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
-			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd( " + (peer != null ? peer.getID() : null) + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
+			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd( " + peer.getID() + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		IPeerModel result = node;
