@@ -27,89 +27,99 @@ public class CategorizableAdapter implements ICategorizable {
 	/* default */ final Object element;
 
 	/**
-     * Constructor.
-     *
-     * @param element The adapted element. Must not be <code>null</code>.
-     */
-    public CategorizableAdapter(Object element) {
-    	Assert.isNotNull(element);
-    	this.element = element;
-    }
+	 * Constructor.
+	 *
+	 * @param element The adapted element. Must not be <code>null</code>.
+	 */
+	public CategorizableAdapter(Object element) {
+		Assert.isNotNull(element);
+		this.element = element;
+	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable#getId()
-     */
-    @Override
-    public String getId() {
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable#getId()
+	 */
+	@Override
+	public String getId() {
 		if (element instanceof IPeerModel) {
 			return ((IPeerModel)element).getPeerId();
 		}
-	    return null;
+		return null;
 	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable#isValid(org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable.OPERATION, org.eclipse.tcf.te.ui.views.interfaces.ICategory, org.eclipse.tcf.te.ui.views.interfaces.ICategory)
-     */
-    @Override
-    public boolean isValid(OPERATION operation, ICategory parentCategory, ICategory category) {
-    	Assert.isNotNull(operation);
-    	Assert.isNotNull(category);
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable#isValid(org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable.OPERATION, org.eclipse.tcf.te.ui.views.interfaces.ICategory, org.eclipse.tcf.te.ui.views.interfaces.ICategory)
+	 */
+	@Override
+	public boolean isValid(OPERATION operation, ICategory parentCategory, ICategory category) {
+		Assert.isNotNull(operation);
+		Assert.isNotNull(category);
 
-    	if (element instanceof IPeerModel) {
-    		// ADD: Parent and destination category are the same -> not valid
-    		if (OPERATION.ADD.equals(operation) && category.equals(parentCategory)) return false;
+		if (element instanceof IPeerModel) {
+			// ADD: Parent and destination category are the same -> not valid
+			if (OPERATION.ADD.equals(operation) && category.equals(parentCategory)) {
+				return false;
+			}
 
-    		// ALL: Static peer's cannot be removed from or added to "My Targets"
-    		if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
-    			final AtomicBoolean isStatic = new AtomicBoolean();
+			// ALL: Static peer's cannot be removed from or added to "My Targets"
+			if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
+				final AtomicBoolean isStatic = new AtomicBoolean();
 
-    			Runnable runnable = new Runnable() {
-    				@Override
-    				public void run() {
-    					String value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-    					isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
-    				}
-    			};
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						String value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+						isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
+					}
+				};
 
-    			if (Protocol.isDispatchThread()) runnable.run();
-    			else Protocol.invokeAndWait(runnable);
+				if (Protocol.isDispatchThread()) {
+					runnable.run();
+				}
+				else {
+					Protocol.invokeAndWait(runnable);
+				}
 
-    			if (isStatic.get()) return false;
-    		}
+				if (isStatic.get()) {
+					return false;
+				}
 
-    		// ALL: Destination is "Neighborhood" -> not valid
-    		if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(category.getId())) return false;
+				return true;
+			}
 
-    		return true;
-    	}
+			// ALL: Destination is "Neighborhood" -> not valid
+			if (IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
+				return true;
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable#isEnabled(org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable.OPERATION, org.eclipse.tcf.te.ui.views.interfaces.ICategory)
-     */
-    @Override
-    public boolean isEnabled(OPERATION operation, ICategory category) {
-    	Assert.isNotNull(operation);
-    	Assert.isNotNull(category);
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable#isEnabled(org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable.OPERATION, org.eclipse.tcf.te.ui.views.interfaces.ICategory)
+	 */
+	@Override
+	public boolean isEnabled(OPERATION operation, ICategory category) {
+		Assert.isNotNull(operation);
+		Assert.isNotNull(category);
 
-    	if (element instanceof IPeerModel) {
-    		// ADD: element belongs to category -> not enabled
-    		if (OPERATION.ADD.equals(operation)
-    				&& Managers.getCategoryManager().belongsTo(category.getId(), getId())) {
-    			return false;
-    		}
+		if (element instanceof IPeerModel) {
+			// ADD: element belongs to category -> not enabled
+			if (OPERATION.ADD.equals(operation)
+							&& Managers.getCategoryManager().belongsTo(category.getId(), getId())) {
+				return false;
+			}
 
-    		// REMOVE: element belongs not to category -> not enabled
-    		if (OPERATION.REMOVE.equals(operation)
-    				&& !Managers.getCategoryManager().belongsTo(category.getId(), getId())) {
-    			return false;
-    		}
+			// REMOVE: element belongs not to category -> not enabled
+			if (OPERATION.REMOVE.equals(operation)
+							&& !Managers.getCategoryManager().belongsTo(category.getId(), getId())) {
+				return false;
+			}
 
-    		return true;
-    	}
+			return true;
+		}
 
-    	return false;
-    }
+		return false;
+	}
 }
