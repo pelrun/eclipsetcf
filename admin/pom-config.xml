@@ -152,6 +152,7 @@
 						</environments>
 						<resolver>p2</resolver>
 						<ignoreTychoRepositories>true</ignoreTychoRepositories>
+						<includePackedArtifacts>true</includePackedArtifacts>
 						<pomDependencies>consider</pomDependencies>
 					</configuration>
 				</plugin>
