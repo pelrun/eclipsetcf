@@ -320,6 +320,13 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 	 */
 	@Override
 	public void doSave(IProgressMonitor monitor) {
+		// The pages may require some save pre processing
+		for (Object page : pages) {
+			if (page instanceof AbstractEditorPage) {
+				((AbstractEditorPage)page).preDoSave(monitor);
+			}
+		}
+		// Commit the page changes
 		commitPages(true);
 		// The pages may require some save post processing
 		for (Object page : pages) {

@@ -112,6 +112,17 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	 * @param monitor The progress monitor or <code>null</code>
 	 * @see Editor#doSave(IProgressMonitor)
 	 */
+	public void preDoSave(IProgressMonitor monitor) {
+		// do nothing
+	}
+
+	/**
+	 * Called from the parent properties editor <code>doSave(IProgressMonitor)</code>
+	 * method.
+	 *
+	 * @param monitor The progress monitor or <code>null</code>
+	 * @see Editor#doSave(IProgressMonitor)
+	 */
 	public void postDoSave(IProgressMonitor monitor) {
 		// do nothing
 	}
