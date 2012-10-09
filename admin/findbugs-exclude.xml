@@ -149,6 +149,12 @@
 		</Or>
 	</Match>
 
+		<!-- Ignore BC_VACUOUS_INSTANCEOF -->
+	<Match>
+		<Bug pattern="BC_VACUOUS_INSTANCEOF"/>
+		<Class name="org.eclipse.tcf.te.runtime.stepper.extensions.StepGroup"/>
+	</Match>
+
 	<!-- Ignore RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE -->
 	<Match>
 		<Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
@@ -176,7 +182,18 @@
 			</And>
 			<And>
 				<Class name="~org\.eclipse\.tcf\.te\.tcf\.processes\.core\.launcher\.ProcessLauncher.*"/>
+				<Or>
+					<Method name="run"/>
+					<Method name="onChannelOpenDone"/>
+				</Or>
+			</And>
+			<And>
+				<Class name="~org\.eclipse\.tcf\.te\.tcf\.processes\.ui\.internal\.properties\.GeneralInformationPage.*"/>
 				<Method name="run"/>
+			</And>
+			<And>
+				<Class name="~org\.eclipse\.tcf\.te\.ui\.views\.editor\.controls\.ButtonPanelControl.*"/>
+				<Method name="propertyChanged"/>
 			</And>
 		</Or>
 	</Match>

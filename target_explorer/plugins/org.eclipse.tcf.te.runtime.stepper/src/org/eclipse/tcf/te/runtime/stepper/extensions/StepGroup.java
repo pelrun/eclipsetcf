@@ -193,7 +193,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 
 		/**
 		 * Returns the parameters for the step.
-		 * 
+		 *
 		 * @return The parameters or an empty Map.
 		 */
 		public Map<String,String> getParameters() {
@@ -813,7 +813,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 
 	/**
 	 * Returns a candidate for the given reference.
-	 * @param reference The refrence.
+	 * @param reference The reference.
 	 * @return The candidate. Can be either an IStep or IStepGroup.
 	 */
 	protected IExecutableExtension getCandidate(String id, ReferenceSubElement reference) {
