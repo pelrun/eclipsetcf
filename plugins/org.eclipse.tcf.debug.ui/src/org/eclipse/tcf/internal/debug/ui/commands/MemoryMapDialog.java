@@ -47,8 +47,9 @@ class MemoryMapDialog extends Dialog {
 
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
-        ok_button = createButton(parent, IDialogConstants.OK_ID, "&OK", true);
+        ok_button = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
         ok_button.setEnabled(widget != null && widget.getMemoryMapID() != null);
+        createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
     }
 
     @Override
