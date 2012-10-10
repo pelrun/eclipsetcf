@@ -207,7 +207,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				while (counter > 0 && output == null) {
 					// Try to read in the output
 					output = launcher.getOutputReader().getOutput();
-					if ("".equals(output)) { //$NON-NLS-1$
+					if ("".equals(output) || output.indexOf("Server-Properties:") == -1) { //$NON-NLS-1$ //$NON-NLS-2$
 						output = null;
 						try {
 	                        Thread.sleep(200);
