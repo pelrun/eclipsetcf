@@ -42,8 +42,8 @@ public class BreakpointScopeCategory extends PlatformObject implements IWorkbenc
 
     private static Object[] EMPTY_CHILDREN_ARRAY = new Object[0];
 
-    private String fFilter;
-    private String fContextIds;
+    private final String fFilter;
+    private final String fContextIds;
 
     public BreakpointScopeCategory(String filter, String contextIds) {
         fFilter = filter;
@@ -62,10 +62,8 @@ public class BreakpointScopeCategory extends PlatformObject implements IWorkbenc
      * Sets the given filter and context strings to all breakpoints which match
      * the group's current scope settings.
      */
-    void setFilter(String filter, String contextIds) {
+    void setFilter(final String filter, final String contextIds) {
         final List<ICBreakpoint> bps = findCategoryBreakpoints();
-        fFilter = filter;
-        fContextIds = contextIds;
 
         if (bps.isEmpty()) return;  // No breakpoints to update
         try {
@@ -73,8 +71,8 @@ public class BreakpointScopeCategory extends PlatformObject implements IWorkbenc
                 new IWorkspaceRunnable() {
                     public void run(IProgressMonitor monitor) throws CoreException {
                         for (ICBreakpoint bp : bps) {
-                            getScopeExtension(bp).setPropertiesFilter(fFilter);
-                            getScopeExtension(bp).setRawContextIds(fContextIds);
+                            getScopeExtension(bp).setPropertiesFilter(filter);
+                            getScopeExtension(bp).setRawContextIds(contextIds);
                         }
                     }
                 },
