@@ -18,6 +18,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
@@ -199,6 +200,11 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 
 		// Get a modifiable copy of the source peer attributes
 		Map<String, String> srcAttrs = new HashMap<String, String>(peer.getAttributes());
+
+		// Remove the URI from the destination if requested
+		boolean removeURI = srcAttrs.containsKey(IPersistableNodeProperties.PROPERTY_URI + ".remove"); //$NON-NLS-1$
+		removeURI = removeURI ? Boolean.parseBoolean(srcAttrs.remove(IPersistableNodeProperties.PROPERTY_URI + ".remove")) : false; //$NON-NLS-1$
+		if (removeURI) dstAttrs.remove(IPersistableNodeProperties.PROPERTY_URI);
 
 		// Determine the peer class
 		String peerClassSimpleName = peer.getClass().getSimpleName();
