@@ -200,11 +200,6 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		// Get a modifiable copy of the source peer attributes
 		Map<String, String> srcAttrs = new HashMap<String, String>(peer.getAttributes());
 
-		// Names are not updated
-		if (srcAttrs.containsKey(IPeer.ATTR_NAME)) {
-			srcAttrs.remove(IPeer.ATTR_NAME);
-		}
-
 		// Determine the peer class
 		String peerClassSimpleName = peer.getClass().getSimpleName();
 		if (peer.getAttributes().containsKey("remote.transient")) { //$NON-NLS-1$
@@ -216,6 +211,8 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		if ("RemotePeer".equals(peerClassSimpleName) && !"RemotePeer".equals(dst.getClass().getSimpleName())) { //$NON-NLS-1$ //$NON-NLS-2$
 			// The ID is not merged from remote to local
 			srcAttrs.remove(IPeer.ATTR_ID);
+			// The Name is not merged from remote to local
+			srcAttrs.remove(IPeer.ATTR_NAME);
 
 			// Eliminate all attributes already set in the destination attributes map
 			String merged = dstAttrs.get("remote.merged.transient"); //$NON-NLS-1$
