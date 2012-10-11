@@ -36,7 +36,7 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 	 * Constructor.
 	 */
 	public GsonPeerPersistenceDelegate() {
-		super("json"); //$NON-NLS-1$
+		super("peer"); //$NON-NLS-1$
 	}
 
 	/* (non-Javadoc)

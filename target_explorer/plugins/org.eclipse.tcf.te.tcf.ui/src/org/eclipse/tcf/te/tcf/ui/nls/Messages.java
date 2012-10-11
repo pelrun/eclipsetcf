@@ -180,4 +180,33 @@ public class Messages extends NLS {
 	public static String EditorSaveAsAdapter_message;
 	public static String EditorSaveAsAdapter_nameInUse_error;
 	public static String EditorSaveAsAdapter_label;
+
+	public static String PeerExportWizard_title;
+	public static String PeerExportWizard_message;
+	public static String PeerExportWizardPage_selectAll;
+	public static String PeerExportWizardPage_deselectAll;
+	public static String PeerExportWizardPage_peers_label;
+	public static String PeerExportWizardPage_destination_label;
+	public static String PeerExportWizardPage_destination_button;
+	public static String PeerExportWizardPage_peersMissing_error;
+	public static String PeerExportWizardPage_destinationMissing_error;
+	public static String PeerExportWizardPage_destinationIsFile_error;
+	public static String PeerExportWizardPage_overwrite_button;
+	public static String PeerExportWizardPage_overwriteDialog_message;
+	public static String PeerExportWizardPage_overwriteDialogToggle_message;
+
+	public static String PeerImportWizard_title;
+	public static String PeerImportWizard_message;
+	public static String PeerImportWizardPage_selectAll;
+	public static String PeerImportWizardPage_deselectAll;
+	public static String PeerImportWizardPage_peers_label;
+	public static String PeerImportWizardPage_destination_label;
+	public static String PeerImportWizardPage_destination_button;
+	public static String PeerImportWizardPage_peersMissing_error;
+	public static String PeerImportWizardPage_locationMissing_error;
+	public static String PeerImportWizardPage_locationIsFile_error;
+	public static String PeerImportWizardPage_overwrite_button;
+	public static String PeerImportWizardPage_overwriteDialog_message;
+	public static String PeerImportWizardPage_overwriteDialogToggle_message;
+
 }

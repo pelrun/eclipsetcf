@@ -51,7 +51,7 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			}
 		}
 
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerModel || element instanceof IPeer) {
 			StringBuilder builder = new StringBuilder();
 
 			// Copy the peer node and peer attributes
@@ -60,8 +60,13 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					attrs.putAll(((IPeerModel)element).getProperties());
-					attrs.putAll(((IPeerModel)element).getPeer().getAttributes());
+					if (element instanceof IPeerModel) {
+						attrs.putAll(((IPeerModel)element).getProperties());
+						attrs.putAll(((IPeerModel)element).getPeer().getAttributes());
+					}
+					else if (element instanceof IPeer) {
+						attrs.putAll(((IPeer)element).getAttributes());
+					}
 				}
 			};
 
@@ -135,13 +140,19 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			}
 		}
 
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerModel || element instanceof IPeer) {
 			final AtomicBoolean isStatic = new AtomicBoolean();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					String value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+					String value = null;
+					if (element instanceof IPeerModel) {
+						value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+					}
+					else if (element instanceof IPeer) {
+						value = ((IPeer)element).getAttributes().get("static.transient"); //$NON-NLS-1$
+					}
 					isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
 				}
 			};
@@ -234,8 +245,8 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 
 		int state = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);
 		if (state > IPeerModelProperties.STATE_UNKNOWN
-				&& (!isStatic || state == IPeerModelProperties.STATE_CONNECTED
-							  || state == IPeerModelProperties.STATE_WAITING_FOR_READY)) {
+						&& (!isStatic || state == IPeerModelProperties.STATE_CONNECTED
+						|| state == IPeerModelProperties.STATE_WAITING_FOR_READY)) {
 			builder.append(" ["); //$NON-NLS-1$
 			builder.append(Messages.getString("LabelProviderDelegate_state_" + state)); //$NON-NLS-1$
 			builder.append("]"); //$NON-NLS-1$

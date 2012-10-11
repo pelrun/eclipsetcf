@@ -173,6 +173,43 @@
       </wizard>
    </extension>
    
+<!-- Import/Export wizard contributions -->
+   <extension point="org.eclipse.ui.importWizards">
+      <category
+            name="%ImportWizards.Category.TCF"
+            id="org.eclipse.tcf.te.tcf.ui.wizard.category.import.tcf">
+      </category>
+      
+      <wizard
+            name="%ImportWizards.Peer"
+            icon="icons/obj16/peer.gif"
+            id="org.eclipse.tcf.te.tcf.ui.wizards.import.tcf"
+            category="org.eclipse.tcf.te.tcf.ui.wizard.category.import.tcf"            
+            class="org.eclipse.tcf.te.tcf.ui.wizards.PeerImportWizard">
+         <description>
+            %ImportWizards.PeerDescription
+         </description>
+      </wizard>
+   </extension>
+   
+   <extension point="org.eclipse.ui.exportWizards">
+      <category
+            name="%ExportWizards.Category.TCF"
+            id="org.eclipse.tcf.te.tcf.ui.wizard.category.export.tcf">
+      </category>
+      
+      <wizard
+            name="%ExportWizards.Peer"
+            icon="icons/obj16/peer.gif"
+            id="org.eclipse.tcf.te.tcf.ui.wizards.export.tcf"
+            category="org.eclipse.tcf.te.tcf.ui.wizard.category.export.tcf"            
+            class="org.eclipse.tcf.te.tcf.ui.wizards.PeerExportWizard">
+         <description>
+            %ExportWizards.PeerDescription
+         </description>
+      </wizard>
+   </extension>
+
 <!-- Editor page contributions -->
    <extension point="org.eclipse.tcf.te.ui.views.editorPages">
       <editorPage
