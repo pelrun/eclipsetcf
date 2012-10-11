@@ -192,7 +192,7 @@ public class PeerExportWizardPage extends WizardPage {
 		GridData buttonData = new GridData(GridData.FILL_HORIZONTAL);
 		button.setLayoutData(buttonData);
 
-		button.setData(new Integer(id));
+		button.setData(Integer.valueOf(id));
 		button.setText(label);
 		button.setFont(parent.getFont());
 
@@ -305,41 +305,42 @@ public class PeerExportWizardPage extends WizardPage {
 				}
 				IPath destpath = new Path(path);
 				File destfolder = destpath.toFile();
-				if(!destfolder.exists()) {
-					destfolder.mkdirs();
-				}
-				monitor.beginTask(Messages.PeerExportWizard_title, configs.length);
-				boolean toggleState = false;
-				int toggleResult = -1;
-				for (Object config : configs) {
-					IURIPersistenceService service = ServiceManager.getInstance().getService(config, IURIPersistenceService.class);
-					if (service != null) {
-						try {
-							URI uri = service.getURI(config);
-							File defaultFile = new File(uri.normalize());
-							defaultFile = new Path(defaultFile.toString()).removeFileExtension().toFile();
-							File file = destpath.append(defaultFile.getName()).addFileExtension("peer").toFile(); //$NON-NLS-1$
-							if (file.exists() && !overwrite) {
-								if (!toggleState || toggleResult < 0) {
-									MessageDialogWithToggle dialog = MessageDialogWithToggle.openYesNoQuestion(
-													getShell(), null,
-													NLS.bind(Messages.PeerExportWizardPage_overwriteDialog_message, file.toString()),
-													Messages.PeerExportWizardPage_overwriteDialogToggle_message, toggleState, null, null);
-									toggleState = dialog.getToggleState();
-									toggleResult = dialog.getReturnCode();
+				boolean exist = destfolder.exists();
+				if(!exist) exist = destfolder.mkdirs();
+				if (exist) {
+					monitor.beginTask(Messages.PeerExportWizard_title, configs.length);
+					boolean toggleState = false;
+					int toggleResult = -1;
+					for (Object config : configs) {
+						IURIPersistenceService service = ServiceManager.getInstance().getService(config, IURIPersistenceService.class);
+						if (service != null) {
+							try {
+								URI uri = service.getURI(config);
+								File defaultFile = new File(uri.normalize());
+								defaultFile = new Path(defaultFile.toString()).removeFileExtension().toFile();
+								File file = destpath.append(defaultFile.getName()).addFileExtension("peer").toFile(); //$NON-NLS-1$
+								if (file.exists() && !overwrite) {
+									if (!toggleState || toggleResult < 0) {
+										MessageDialogWithToggle dialog = MessageDialogWithToggle.openYesNoQuestion(
+														getShell(), null,
+														NLS.bind(Messages.PeerExportWizardPage_overwriteDialog_message, file.toString()),
+														Messages.PeerExportWizardPage_overwriteDialogToggle_message, toggleState, null, null);
+										toggleState = dialog.getToggleState();
+										toggleResult = dialog.getReturnCode();
+									}
+									if (toggleResult != IDialogConstants.YES_ID) {
+										continue;
+									}
 								}
-								if (toggleResult != IDialogConstants.YES_ID) {
-									continue;
-								}
+								service.write(config, file.toURI());
 							}
-							service.write(config, file.toURI());
+							catch (Exception e) {
+							}
 						}
-						catch (Exception e) {
-						}
+						monitor.worked(1);
 					}
-					monitor.worked(1);
+					monitor.done();
 				}
-				monitor.done();
 				return Status.OK_STATUS;
 			}
 		};

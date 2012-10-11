@@ -99,7 +99,7 @@
 		<Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS"/>
 		<Package name="~org\.eclipse\.tcf\.te\..*"/>
 	</Match>
-
+	
 	<!-- Ignore LI_LAZY_INIT_UPDATE_STATIC in Model.java -->
 	<Match>
 		<Bug pattern="LI_LAZY_INIT_UPDATE_STATIC"/>
