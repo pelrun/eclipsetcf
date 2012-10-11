@@ -37,6 +37,7 @@
                   <insertionPoint name="group.edit" separator="true"/>
                   <insertionPoint name="group.delete"/>
                   <insertionPoint name="group.build" separator="true"/>
+                  <insertionPoint name="group.importexport" separator="true"/>
                   <insertionPoint name="group.refresh" separator="true"/>
                   <insertionPoint name="group.syncop"/>
                   <insertionPoint name="group.categories" separator="true"/>
@@ -312,6 +313,11 @@
                   </with>
                </visibleWhen>
          </command>
+      </menuContribution>
+      
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.importexport">
+          <command commandId="org.eclipse.ui.file.import"/>
+          <command commandId="org.eclipse.ui.file.export"/>
       </menuContribution>
       
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.showIn">

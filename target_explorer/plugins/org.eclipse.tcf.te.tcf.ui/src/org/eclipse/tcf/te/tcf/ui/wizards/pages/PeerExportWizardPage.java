@@ -13,6 +13,7 @@ package org.eclipse.tcf.te.tcf.ui.wizards.pages;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
@@ -20,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -27,6 +29,7 @@ import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreePathContentProvider;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
@@ -68,13 +71,16 @@ public class PeerExportWizardPage extends WizardPage {
 	private Button fDestinationButton;
 	private Button fOverwrite;
 
+	private IStructuredSelection fSelection;
+
 	/**
 	 * Constructor
 	 */
-	public PeerExportWizardPage() {
+	public PeerExportWizardPage(IStructuredSelection selection) {
 		super(Messages.PeerExportWizard_title);
 		setTitle(Messages.PeerExportWizard_title);
 		setMessage(Messages.PeerExportWizard_message);
+		fSelection = selection;
 	}
 
 	@Override
@@ -89,6 +95,17 @@ public class PeerExportWizardPage extends WizardPage {
 
 		createPeersGroup(composite);
 		createDestinationGroup(composite);
+
+		List<IPeerModel> elements = new ArrayList<IPeerModel>();
+		Iterator<Object> it = fSelection.iterator();
+		while (it.hasNext()) {
+			Object element = it.next();
+			IPeerModel peerModel = (IPeerModel)Platform.getAdapterManager().getAdapter(element, IPeerModel.class);
+			if (peerModel != null) {
+				elements.add((IPeerModel)element);
+			}
+		}
+		fViewer.setCheckedElements(elements.toArray());
 
 		setPageComplete(isComplete());
 		setErrorMessage(null);

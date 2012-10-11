@@ -26,6 +26,9 @@ import org.eclipse.ui.IWorkbench;
 public class PeerExportWizard extends Wizard implements IExportWizard {
 
 	private String EXPORT_DIALOG_SETTINGS = "PeerExport"; //$NON-NLS-1$
+
+	private IStructuredSelection fSelection = null;
+
 	/**
 	 * Constructor.
 	 */
@@ -45,7 +48,7 @@ public class PeerExportWizard extends Wizard implements IExportWizard {
 	 */
 	@Override
 	public void addPages() {
-		IWizardPage page = new PeerExportWizardPage();
+		IWizardPage page = new PeerExportWizardPage(fSelection);
 		addPage(page);
 	}
 
@@ -62,6 +65,7 @@ public class PeerExportWizard extends Wizard implements IExportWizard {
 	 */
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
+		this.fSelection = selection;
 		setWindowTitle(Messages.PeerExportWizard_title);
 		setNeedsProgressMonitor(true);
 	}
