@@ -23,33 +23,21 @@ import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
 
 public class TCFBreakpointScopeExtension implements ICBreakpointExtension {
 
-    private String fContextIds;
-    private String fProperties;
     private ICBreakpoint fBreakpoint;
     private IPreferenceStore fPreferenceStore;
 
     public void initialize(IPreferenceStore prefStore) {
         fPreferenceStore = prefStore;
-        fContextIds = fPreferenceStore.getString(TCFBreakpointsModel.ATTR_CONTEXTIDS);
-        if (fContextIds != null && fContextIds.length() == 0) {
-            fContextIds = null;
-        }
-        fProperties = fPreferenceStore.getString(TCFBreakpointsModel.ATTR_CONTEXT_QUERY);
     }
 
     public void initialize(ICBreakpoint breakpoint) throws CoreException {
         fBreakpoint = breakpoint;
-        IMarker m = fBreakpoint.getMarker();
-        if (m != null && m.exists()) {
-            fContextIds = m.getAttribute(TCFBreakpointsModel.ATTR_CONTEXTIDS, null);
-            fProperties = m.getAttribute(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, null);
-        }
     }
 
     public void setThreadFilter(final String[] threadIds) {
         String attr;
         if (threadIds == null) {
-            attr = null;
+            attr = "";
         }
         else if (threadIds.length == 0) {
             // empty string is filtered out in TCFBreakpointsModel
@@ -67,11 +55,19 @@ public class TCFBreakpointScopeExtension implements ICBreakpointExtension {
     }
 
     String getRawContextIds() {
-        return fContextIds;
+        if (fPreferenceStore != null) {
+            return fPreferenceStore.getString(TCFBreakpointsModel.ATTR_CONTEXTIDS);
+        }
+        if (fBreakpoint != null) {
+            IMarker marker = fBreakpoint.getMarker();
+            if (marker != null) {
+                return marker.getAttribute(TCFBreakpointsModel.ATTR_CONTEXTIDS, "");
+            }
+        }
+        return "";
     }
 
-    void setRawContextIds(String contextIDs) {
-        fContextIds = contextIDs;
+    void setRawContextIds(final String contextIDs) {
         if (fPreferenceStore!= null) {
             fPreferenceStore.setValue(TCFBreakpointsModel.ATTR_CONTEXTIDS, contextIDs);
         }
@@ -82,7 +78,7 @@ public class TCFBreakpointScopeExtension implements ICBreakpointExtension {
                         final IMarker m = fBreakpoint.getMarker();
                         if (m == null || !m.exists()) return;
 
-                        m.setAttribute(TCFBreakpointsModel.ATTR_CONTEXTIDS, fContextIds);
+                        m.setAttribute(TCFBreakpointsModel.ATTR_CONTEXTIDS, contextIDs);
                     }
                 }, null);
             }
@@ -93,9 +89,10 @@ public class TCFBreakpointScopeExtension implements ICBreakpointExtension {
     }
 
     public void setPropertiesFilter(String properties) {
-        fProperties = properties;
+        final String _properties = properties != null ? properties : "";
+        
         if (fPreferenceStore!= null) {
-            fPreferenceStore.setValue(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, properties);
+            fPreferenceStore.setValue(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, _properties);
         }
         else if (fBreakpoint != null) {
             try {
@@ -103,11 +100,7 @@ public class TCFBreakpointScopeExtension implements ICBreakpointExtension {
                     public void run(IProgressMonitor monitor) throws CoreException {
                         final IMarker m = fBreakpoint.getMarker();
                         if (m == null || !m.exists()) return;
-                        if (fProperties.length() != 0)
-                            m.setAttribute(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, fProperties);
-                        else
-                            m.setAttribute(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, null);
-
+                        m.setAttribute(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, _properties);
                     }
                 }, null);
             }
@@ -118,12 +111,22 @@ public class TCFBreakpointScopeExtension implements ICBreakpointExtension {
     }
 
     public String getPropertiesFilter() {
-        return fProperties;
+        if (fPreferenceStore != null) {
+            return fPreferenceStore.getString(TCFBreakpointsModel.ATTR_CONTEXT_QUERY);
+        }
+        if (fBreakpoint != null) {
+            IMarker marker = fBreakpoint.getMarker();
+            if (marker != null) {
+                return marker.getAttribute(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, "");
+            }
+        }
+        return "";
     }
 
     public String[] getThreadFilters() {
-        if (fContextIds != null) {
-            return fContextIds.split(",\\s*");
+        String contextIds = getRawContextIds();
+        if (contextIds.length() != 0) {
+            return contextIds.split(",\\s*");
         }
         return null;
     }

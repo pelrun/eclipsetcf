@@ -616,7 +616,12 @@ public class TCFBreakpointsModel {
             if (key.startsWith(ITCFConstants.ID_TCF_DEBUG_MODEL)) {
                 String tcf_key = key.substring(ITCFConstants.ID_TCF_DEBUG_MODEL.length() + 1);
                 if (IBreakpoints.PROP_CONTEXT_IDS.equals(tcf_key)) {
-                    val = filterContextIds(channel, ((String)val).split(",\\s*"));
+                    String stringVal = (String)val;
+                    if (stringVal.length() == 0) continue; 
+                    val = filterContextIds(channel, stringVal.split(",\\s*"));
+                }
+                else if (IBreakpoints.PROP_CONTEXT_QUERY.equals(tcf_key)) {
+                    if (((String)val).length() == 0) continue;
                 }
                 else if (IBreakpoints.PROP_CONTEXT_NAMES.equals(tcf_key) ||
                         IBreakpoints.PROP_STOP_GROUP.equals(tcf_key) ||

@@ -13,14 +13,13 @@ package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 
 import org.eclipse.cdt.debug.core.model.ICBreakpoint;
 import org.eclipse.cdt.debug.ui.breakpoints.ICBreakpointContext;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.tcf.internal.debug.model.ITCFConstants;
 import org.eclipse.ui.dialogs.PropertyPage;
 
 /**
@@ -35,9 +34,9 @@ public class TCFBreakpointThreadFilterPage extends PropertyPage {
     protected Control createContents(Composite parent) {
         BreakpointScopeCategory category = getScopeCategory();
         if (category != null) {
-            fFilterExtension = new TCFBreakpointScopeExtension();
-            fFilterExtension.setPropertiesFilter(category.getFilter());
-            fFilterExtension.setRawContextIds(category.getContextIds());
+            TCFBreakpointScopeExtension filterExtension = getFilterExtension();
+            filterExtension.setPropertiesFilter(category.getFilter());
+            filterExtension.setRawContextIds(category.getContextIds());
         }
 
         noDefaultAndApplyButton();
@@ -72,18 +71,14 @@ public class TCFBreakpointThreadFilterPage extends PropertyPage {
 
     protected TCFBreakpointScopeExtension getFilterExtension() {
         if (fFilterExtension != null) return fFilterExtension;
-
-        ICBreakpoint bp = getBreakpoint();
-        if (bp != null) {
-            try {
-                fFilterExtension = bp.getExtension(
-                        ITCFConstants.ID_TCF_DEBUG_MODEL, TCFBreakpointScopeExtension.class);
-            } catch (CoreException e) {
-                // potential race condition: ignore
-            }
-        }
-        if (fFilterExtension == null) {
-            fFilterExtension = new TCFBreakpointScopeExtension();
+        
+        fFilterExtension = new TCFBreakpointScopeExtension();
+        BreakpointScopeCategory category = getScopeCategory();
+        if (category != null) {
+            fFilterExtension.initialize(new PreferenceStore());
+            fFilterExtension.setPropertiesFilter(category.getFilter());
+            fFilterExtension.setRawContextIds(category.getContextIds());                
+        } else {
             fFilterExtension.initialize(getPreferenceStore());
         }
         return fFilterExtension;
@@ -109,19 +104,17 @@ public class TCFBreakpointThreadFilterPage extends PropertyPage {
     protected void doStore() {
         fThreadFilterEditor.doStore();
         BreakpointScopeCategory scopeCategory = getScopeCategory();
-        if (scopeCategory != null && fFilterExtension != null) {
-            scopeCategory.setFilter(fFilterExtension.getPropertiesFilter(), fFilterExtension.getRawContextIds());
+        if (scopeCategory != null) {
+            TCFBreakpointScopeExtension filterExtension = getFilterExtension();            
+            scopeCategory.setFilter(filterExtension.getPropertiesFilter(), filterExtension.getRawContextIds());
         }
     }
 
     @Override
     public void setVisible(boolean visible) {
         if (visible) {
-            if (fFilterExtension != null) {
-                fFilterExtension.initialize(getPreferenceStore());
-                fThreadFilterEditor.setInitialCheckedState();
-                fThreadFilterEditor.setupScopeExpressionCombo();
-            }
+            fThreadFilterEditor.setInitialCheckedState();
+            fThreadFilterEditor.setupScopeExpressionCombo();
         } else {
             doStore();
         }
