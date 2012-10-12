@@ -39,7 +39,7 @@ public abstract class TCFDebugTask<V> extends TCFTask<V> {
             catch (InterruptedException x) {
                 throw new DebugException(new Status(
                         IStatus.ERROR, Activator.PLUGIN_ID, DebugException.REQUEST_FAILED,
-                        "Debugger requiest interrupted", x));
+                        "Debugger request interrupted", x));
             }
         }
         assert isDone();
@@ -47,7 +47,7 @@ public abstract class TCFDebugTask<V> extends TCFTask<V> {
         if (x instanceof DebugException) throw (DebugException)x;
         if (x != null) throw new DebugException(new Status(
                 IStatus.ERROR, Activator.PLUGIN_ID, DebugException.REQUEST_FAILED,
-                "Debugger requiest failed", x));
+                "Debugger request failed", x));
         return getResult();
     }
 
