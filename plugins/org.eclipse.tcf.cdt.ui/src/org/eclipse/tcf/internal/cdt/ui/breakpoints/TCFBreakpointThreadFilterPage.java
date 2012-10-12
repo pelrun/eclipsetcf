@@ -71,13 +71,13 @@ public class TCFBreakpointThreadFilterPage extends PropertyPage {
 
     protected TCFBreakpointScopeExtension getFilterExtension() {
         if (fFilterExtension != null) return fFilterExtension;
-        
+
         fFilterExtension = new TCFBreakpointScopeExtension();
         BreakpointScopeCategory category = getScopeCategory();
         if (category != null) {
             fFilterExtension.initialize(new PreferenceStore());
             fFilterExtension.setPropertiesFilter(category.getFilter());
-            fFilterExtension.setRawContextIds(category.getContextIds());                
+            fFilterExtension.setRawContextIds(category.getContextIds());
         } else {
             fFilterExtension.initialize(getPreferenceStore());
         }
@@ -105,7 +105,7 @@ public class TCFBreakpointThreadFilterPage extends PropertyPage {
         fThreadFilterEditor.doStore();
         BreakpointScopeCategory scopeCategory = getScopeCategory();
         if (scopeCategory != null) {
-            TCFBreakpointScopeExtension filterExtension = getFilterExtension();            
+            TCFBreakpointScopeExtension filterExtension = getFilterExtension();
             scopeCategory.setFilter(filterExtension.getPropertiesFilter(), filterExtension.getRawContextIds());
         }
     }

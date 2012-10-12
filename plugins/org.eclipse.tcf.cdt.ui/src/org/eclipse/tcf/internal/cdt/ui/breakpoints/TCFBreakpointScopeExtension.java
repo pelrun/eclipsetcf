@@ -90,7 +90,7 @@ public class TCFBreakpointScopeExtension implements ICBreakpointExtension {
 
     public void setPropertiesFilter(String properties) {
         final String _properties = properties != null ? properties : "";
-        
+
         if (fPreferenceStore!= null) {
             fPreferenceStore.setValue(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, _properties);
         }

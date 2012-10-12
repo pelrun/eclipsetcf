@@ -617,7 +617,7 @@ public class TCFBreakpointsModel {
                 String tcf_key = key.substring(ITCFConstants.ID_TCF_DEBUG_MODEL.length() + 1);
                 if (IBreakpoints.PROP_CONTEXT_IDS.equals(tcf_key)) {
                     String stringVal = (String)val;
-                    if (stringVal.length() == 0) continue; 
+                    if (stringVal.length() == 0) continue;
                     val = filterContextIds(channel, stringVal.split(",\\s*"));
                 }
                 else if (IBreakpoints.PROP_CONTEXT_QUERY.equals(tcf_key)) {

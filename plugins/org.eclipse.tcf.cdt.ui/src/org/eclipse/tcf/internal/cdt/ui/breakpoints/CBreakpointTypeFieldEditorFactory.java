@@ -21,7 +21,7 @@ import org.eclipse.tcf.services.IBreakpoints;
  * HardwareFieldEditorFactory - Create the field editor for hardware breakpoint support.
  */
 public class CBreakpointTypeFieldEditorFactory implements IFieldEditorFactory {
-    
+
     public final static String NAME_HARDWARE = "org.eclipse.tcf.cdt.Hardware";
     public final static String NAME_TEMPORARY = "org.eclipse.tcf.cdt.Temporary";
 
