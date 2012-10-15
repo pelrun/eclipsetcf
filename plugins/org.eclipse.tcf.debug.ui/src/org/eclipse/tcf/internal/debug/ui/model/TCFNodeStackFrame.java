@@ -513,10 +513,13 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
     }
 
     void onMemoryMapChanged() {
+        stack_trace_context.cancel();
         line_info.reset();
         func_info.reset();
+        address.cancel();
         children_vars.onMemoryMapChanged();
         children_exps.onMemoryMapChanged();
+        children_hover_exps.onMemoryMapChanged();
         postAllChangedDelta();
     }
 
