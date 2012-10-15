@@ -33,7 +33,11 @@ public class Activator implements  BundleActivator {
         if (bundles != null) {
             for (Bundle bundle : bundles) {
                 if ((bundle.getState() & (Bundle.INSTALLED | Bundle.UNINSTALLED)) == 0) {
-                    bundle.start(Bundle.START_TRANSIENT);
+                    // Call the start(...) only if in RESOLVED state, otherwise
+                    // this can trigger a state change bundle exception
+                    if (bundle.getState() == Bundle.RESOLVED) {
+                        bundle.start(Bundle.START_TRANSIENT);
+                    }
                     cnt++;
                 }
             }
