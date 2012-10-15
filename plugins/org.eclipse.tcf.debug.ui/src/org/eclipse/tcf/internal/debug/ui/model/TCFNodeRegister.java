@@ -39,6 +39,7 @@ import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.services.IRegisters;
+import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
 
@@ -203,10 +204,15 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         }
         else if (p instanceof TCFNodeExecContext) {
             TCFNodeExecContext exe = (TCFNodeExecContext)p;
-            TCFDataCache<TCFContextState> state_cache = exe.getState();
-            if (!state_cache.validate(done)) return null;
-            TCFContextState state = state_cache.getData();
-            if (state == null || !state.is_suspended) return true;
+            TCFDataCache<IRunControl.RunControlContext> ctx_cache = exe.getRunContext();
+            if (!ctx_cache.validate(done)) return null;
+            IRunControl.RunControlContext ctx_data = ctx_cache.getData();
+            if (ctx_data != null && ctx_data.hasState()) {
+                TCFDataCache<TCFContextState> state_cache = exe.getState();
+                if (!state_cache.validate(done)) return null;
+                TCFContextState state_data = state_cache.getData();
+                if (state_data == null || !state_data.is_suspended) return true;
+            }
         }
         return false;
     }
@@ -228,7 +234,8 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 Number addr = ctx.getMemoryAddress();
                 if (addr != null) {
                     bf.append("Address: ", SWT.BOLD);
-                    bf.append(JSON.toBigInteger(addr).toString(16));
+                    bf.append("0x", StyledStringBuffer.MONOSPACED);
+                    bf.append(JSON.toBigInteger(addr).toString(16), StyledStringBuffer.MONOSPACED);
                 }
                 if (ctx.isReadable()) {
                     if (l < bf.length()) bf.append(", ");

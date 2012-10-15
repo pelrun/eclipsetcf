@@ -220,7 +220,7 @@ public class TCFPinViewCommand implements IPinProvider {
                             vars = true;
                             mem = true;
                         }
-                        if (IDebugUIConstants.ID_REGISTER_VIEW.equals(id)) done(vars);
+                        if (IDebugUIConstants.ID_REGISTER_VIEW.equals(id)) done(mem);
                         else if (IDebugUIConstants.ID_VARIABLE_VIEW.equals(id)) done(vars);
                         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(id)) done(mem);
                         else done(false);
