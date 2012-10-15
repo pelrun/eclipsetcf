@@ -28,6 +28,9 @@ public class MenuService extends AbstractService implements IMenuService {
     		if (contributionID.endsWith("menu.showIn")) { //$NON-NLS-1$
     			return false;
     		}
+    		if (contributionID.endsWith("file.import") || contributionID.endsWith("file.export")) { //$NON-NLS-1$ //$NON-NLS-2$
+    			return false;
+    		}
     	}
 
 	    return true;
