@@ -33,11 +33,10 @@ public class Activator implements  BundleActivator {
         if (bundles != null) {
             for (Bundle bundle : bundles) {
                 if ((bundle.getState() & (Bundle.INSTALLED | Bundle.UNINSTALLED)) == 0) {
-                    // Call the start(...) only if in RESOLVED state, otherwise
-                    // this can trigger a state change bundle exception
-                    if (bundle.getState() == Bundle.RESOLVED) {
-                        bundle.start(Bundle.START_TRANSIENT);
-                    }
+                    // Calling the start(...) method leads to an state change bundle
+                    // exception in case the bundle is not in RESOLVED state. Trigger
+                    // the bundle activation via the loadClass method is apparently safer.
+                    bundle.loadClass("org.eclipse.tcf.Activator");
                     cnt++;
                 }
             }
