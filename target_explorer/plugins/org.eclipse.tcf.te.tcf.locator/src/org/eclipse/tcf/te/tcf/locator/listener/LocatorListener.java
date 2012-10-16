@@ -23,6 +23,7 @@ import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -39,7 +40,7 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
  */
 public class LocatorListener implements ILocator.LocatorListener {
 	// Reference to the parent model
-	private final ILocatorModel model;
+	/* default */ final ILocatorModel model;
 
 	/**
 	 * Constructor.
@@ -178,7 +179,7 @@ public class LocatorListener implements ILocator.LocatorListener {
 
 		if (model != null && id != null) {
 			// find the corresponding model node to remove
-			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+			final IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
 			if (peerNode != null) {
 				IPeer peer = peerNode.getPeer();
 				String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
@@ -229,6 +230,18 @@ public class LocatorListener implements ILocator.LocatorListener {
 
 					if (changed) peerNode.setChangeEventsEnabled(true);
 					peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, peer, peerNode.getPeer());
+
+					final IModelListener[] listeners = model.getListener();
+					if (listeners.length > 0) {
+						Protocol.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								for (IModelListener listener : listeners) {
+									listener.locatorModelChanged(model, peerNode, false);
+								}
+							}
+						});
+					}
 				} else {
 					// Dynamic peer -> Remove peer model node from the model
 					model.getService(ILocatorModelUpdateService.class).remove(peerNode);
