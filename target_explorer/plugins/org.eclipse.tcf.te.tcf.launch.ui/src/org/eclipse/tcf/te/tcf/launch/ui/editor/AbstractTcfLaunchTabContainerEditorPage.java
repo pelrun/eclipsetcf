@@ -16,7 +16,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
@@ -126,7 +125,7 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 							Map<String, String> attributes = new HashMap<String, String>(peerModel.getPeer().getAttributes());
 							attributes.put(IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES, launchConfigAttributes);
 							IPeer newPeer = new Peer(attributes);
-							if (oldPeer instanceof TransientPeer && !(oldPeer instanceof AbstractPeer || oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
+							if (oldPeer instanceof TransientPeer && !(oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
 								peerModel.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_INSTANCE, newPeer);
 							} else {
 								Model.getModel().getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerModel, newPeer, false);

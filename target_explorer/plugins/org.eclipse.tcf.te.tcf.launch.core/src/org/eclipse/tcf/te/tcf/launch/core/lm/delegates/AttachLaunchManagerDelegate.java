@@ -21,7 +21,6 @@ import java.util.Map.Entry;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationListener;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.protocol.IPeer;
@@ -238,7 +237,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 								attributes.put(IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES, launchConfigAttributes);
 							}
 							IPeer newPeer = new Peer(attributes);
-							if (oldPeer instanceof TransientPeer && !(oldPeer instanceof AbstractPeer || oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
+							if (oldPeer instanceof TransientPeer && !(oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
 								peerModel.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_INSTANCE, newPeer);
 							} else {
 								Model.getModel().getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerModel, newPeer, false);
