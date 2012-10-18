@@ -119,22 +119,18 @@
             class="org.eclipse.tcf.te.ui.views.actions.NewActionProvider"
             id="org.eclipse.tcf.te.ui.views.navigator.actions.NewActionProvider">
          <enablement>
-            <with variable="selection">
-               <iterate operator="and" ifEmpty="false">
-                  <or>
-                     <not>
-                        <test
-                              forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.services.hasService"
-                              value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
-                     </not>
-                     <test
-                           property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
-                           args="org.eclipse.tcf.te.ui.views.navigator.actions.NewActionProvider"
-                           value="true"/>
-                  </or>
-               </iterate>
-            </with>
+            <or>
+               <not>
+                  <test
+                        forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.services.hasService"
+                        value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+               </not>
+               <test
+                     property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                     args="org.eclipse.tcf.te.ui.views.navigator.actions.NewActionProvider"
+                     value="true"/>
+            </or>
          </enablement>
       </actionProvider>
 
@@ -142,22 +138,18 @@
             class="org.eclipse.tcf.te.ui.views.actions.GoIntoActionProvider"
             id="org.eclipse.tcf.te.ui.views.navigator.actions.GoIntoActionProvider">
          <enablement>
-            <with variable="selection">
-               <iterate operator="and" ifEmpty="false">
-                  <or>
-                     <not>
-                        <test
-                              forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.services.hasService"
-                              value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
-                     </not>
-                     <test
-                           property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
-                           args="org.eclipse.tcf.te.ui.views.navigator.actions.GoIntoActionProvider"
-                           value="true"/>
-                  </or>
-               </iterate>
-            </with>
+            <or>
+               <not>
+                  <test
+                        forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.services.hasService"
+                        value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+               </not>
+               <test
+                     property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                     args="org.eclipse.tcf.te.ui.views.navigator.actions.GoIntoActionProvider"
+                     value="true"/>
+            </or>
          </enablement>
       </actionProvider>
       

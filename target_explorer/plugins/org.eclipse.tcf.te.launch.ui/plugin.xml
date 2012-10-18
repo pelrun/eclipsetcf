@@ -106,7 +106,13 @@
                id="org.eclipse.tcf.te.launch.ui.actions.open"
                overrides="org.eclipse.ui.navigator.resources.OpenActions">
 	        <enablement>
-               <reference definitionId="launch.expressions.isSingleLaunchConfig"/>
+	           <and>
+                  <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
+                  <or>
+	                 <test property="org.eclipse.tcf.te.launch.ui.model.isLaunchConfig"/>
+	                 <test property="org.eclipse.tcf.te.launch.ui.model.isLaunchConfigType"/>
+	              </or>
+	           </and>
             </enablement>
          </actionProvider>
          <dropAssistant
