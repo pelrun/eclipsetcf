@@ -14,8 +14,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jface.viewers.ContentViewer;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreePathViewerSorter;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -51,8 +55,15 @@ public class TreeViewerSorter extends TreePathViewerSorter {
 	 * @return The text for the given node and column index or <code>null</code>.
 	 */
 	protected String doGetText(Viewer viewer, Object node, int index) {
-		if (node != null && doGetLabelProvider(viewer) != null) {
-			return doGetLabelProvider(viewer).getText(node);
+		if (node != null) {
+			IBaseLabelProvider labelProvider = doGetLabelProvider(viewer);
+			if (labelProvider instanceof ILabelProvider) {
+				return ((ILabelProvider)labelProvider).getText(node);
+			}
+			if (labelProvider instanceof IStyledLabelProvider) {
+				StyledString text = ((IStyledLabelProvider)labelProvider).getStyledText(node);
+				return text != null ? text.getString() : null;
+			}
 		}
 		return null;
 	}
@@ -63,10 +74,14 @@ public class TreeViewerSorter extends TreePathViewerSorter {
 	 * @param viewer The viewer or <code>null</code>.
 	 * @return The label provider or <code>null</code>.
 	 */
-	protected ILabelProvider doGetLabelProvider(Viewer viewer) {
+	protected IBaseLabelProvider doGetLabelProvider(Viewer viewer) {
 		if (viewer instanceof ContentViewer) {
 			IBaseLabelProvider candidate = ((ContentViewer)viewer).getLabelProvider();
-			if (candidate instanceof ILabelProvider) return (ILabelProvider)candidate;
+			// We don't want any decoration, so unwrap the decorating label provider here
+			if (candidate instanceof DecoratingLabelProvider) candidate = ((DecoratingLabelProvider)candidate).getLabelProvider();
+			if (candidate instanceof DecoratingStyledCellLabelProvider) candidate = ((DecoratingStyledCellLabelProvider)candidate).getStyledStringProvider();
+			// Return the label provider
+			return candidate;
 		}
 		return null;
 	}
