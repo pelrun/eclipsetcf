@@ -115,9 +115,11 @@ public class PersistenceDelegateBindingExtensionPointManager extends AbstractExt
 				evalContext.addVariable("context", context); //$NON-NLS-1$
 				if (context instanceof Class) evalContext.addVariable("contextClass", ((Class<?>)context).getName()); //$NON-NLS-1$
 				else evalContext.addVariable("contextClass", context.getClass().getName()); //$NON-NLS-1$
-				evalContext.addVariable("container", container); //$NON-NLS-1$
-				if (container instanceof Class) evalContext.addVariable("containerClass", ((Class<?>)container).getName()); //$NON-NLS-1$
-				else evalContext.addVariable("containerClass", container.getClass().getName()); //$NON-NLS-1$
+				if (container != null) {
+					evalContext.addVariable("container", container); //$NON-NLS-1$
+					if (container instanceof Class) evalContext.addVariable("containerClass", ((Class<?>)container).getName()); //$NON-NLS-1$
+					else evalContext.addVariable("containerClass", container.getClass().getName()); //$NON-NLS-1$
+				}
 				// Allow plugin activation
 				evalContext.setAllowPluginActivation(true);
 				// Evaluate the expression
