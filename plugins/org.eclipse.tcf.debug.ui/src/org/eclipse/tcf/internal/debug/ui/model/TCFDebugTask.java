@@ -47,7 +47,7 @@ public abstract class TCFDebugTask<V> extends TCFTask<V> {
         if (x instanceof DebugException) throw (DebugException)x;
         if (x != null) throw new DebugException(new Status(
                 IStatus.ERROR, Activator.PLUGIN_ID, DebugException.REQUEST_FAILED,
-                "Debugger request failed", x));
+                "Debugger request failed.\n " + x.getMessage(), x));
         return getResult();
     }
 
