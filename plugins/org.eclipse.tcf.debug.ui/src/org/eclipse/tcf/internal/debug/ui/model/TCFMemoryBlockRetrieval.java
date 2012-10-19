@@ -524,7 +524,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         }
 
         public void run() {
-            // Note: double posting is neccesery to avoid deadlocks
+            // Note: double posting is necessary to avoid deadlocks
             assert Protocol.isDispatchThread();
             final ModelDelta d = delta;
             delta = null;
