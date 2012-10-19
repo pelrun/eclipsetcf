@@ -57,7 +57,7 @@ public class EventListenerDelegate implements IEventListener {
 					if (contexts != null && contexts.length == 1 && contexts[0] instanceof IPeerModel && ((IPeerModel)contexts[0]).getPeerId().equalsIgnoreCase(peer.getID())) {
 						IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(Map.class, launchConfigAttributes, false);
 						try {
-							Map<String, String> attributes = (Map<String,String>)delegate.read(Map.class, launchConfigAttributes, null);
+							Map<String, String> attributes = delegate != null ? (Map<String,String>)delegate.read(Map.class, launchConfigAttributes, null) : null;
 							if (attributes != null) {
 								attributes.remove(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS);
 								attributes.remove(ICommonLaunchAttributes.ATTR_UUID);

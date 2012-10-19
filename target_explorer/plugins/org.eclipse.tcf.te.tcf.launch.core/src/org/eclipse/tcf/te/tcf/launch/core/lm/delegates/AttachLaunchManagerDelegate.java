@@ -121,7 +121,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 				if (launchConfigAttributes != null) {
 					IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(Map.class, launchConfigAttributes, false);
 					try {
-						Map<String, String> attributes = (Map<String,String>)delegate.read(Map.class, launchConfigAttributes, null);
+						Map<String, String> attributes = delegate != null ? (Map<String,String>)delegate.read(Map.class, launchConfigAttributes, null) : null;
 						if (attributes != null) {
 							attributes.remove(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS);
 							attributes.remove(ICommonLaunchAttributes.ATTR_UUID);
