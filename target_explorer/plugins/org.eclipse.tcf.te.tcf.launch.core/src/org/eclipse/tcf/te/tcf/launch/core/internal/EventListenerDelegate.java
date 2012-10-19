@@ -58,23 +58,25 @@ public class EventListenerDelegate implements IEventListener {
 						IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(Map.class, launchConfigAttributes, false);
 						try {
 							Map<String, String> attributes = (Map<String,String>)delegate.read(Map.class, launchConfigAttributes, null);
-							attributes.remove(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS);
-							attributes.remove(ICommonLaunchAttributes.ATTR_UUID);
-							attributes.remove(ICommonLaunchAttributes.ATTR_LAST_LAUNCHED);
-							final ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
-							for (Entry<String, String> entry : attributes.entrySet()) {
-								LaunchConfigHelper.addLaunchConfigAttribute(wc, entry.getKey(), entry.getValue());
-							}
-							ExecutorsUtil.executeInUI(new Runnable() {
-								@Override
-								public void run() {
-									try {
-										wc.doSave();
-									}
-									catch (Exception e) {
-									}
+							if (attributes != null) {
+								attributes.remove(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS);
+								attributes.remove(ICommonLaunchAttributes.ATTR_UUID);
+								attributes.remove(ICommonLaunchAttributes.ATTR_LAST_LAUNCHED);
+								final ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
+								for (Entry<String, String> entry : attributes.entrySet()) {
+									LaunchConfigHelper.addLaunchConfigAttribute(wc, entry.getKey(), entry.getValue());
 								}
-							});
+								ExecutorsUtil.executeInUI(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											wc.doSave();
+										}
+										catch (Exception e) {
+										}
+									}
+								});
+							}
 						}
 						catch (Exception e) {
 						}
