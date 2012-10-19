@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.tcf.te.runtime.extensions.ExecutableExtension;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableDelegate;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 
 import com.google.gson.Gson;
@@ -40,6 +41,8 @@ import com.google.gson.GsonBuilder;
 public class GsonMapPersistenceDelegate extends ExecutableExtension implements IPersistenceDelegate {
 
 	private final String defaultFileExtension;
+
+	protected static final String VARIABLES = "__VariablesMap__"; //$NON-NLS-1$
 
 	/**
 	 * Constructor.
@@ -76,7 +79,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#write(java.lang.Object, java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public Object write(Object context, Object container, String key) throws IOException {
+	public final Object write(Object context, Object container, String key) throws IOException {
 		Assert.isNotNull(context);
 		Assert.isNotNull(container);
 
@@ -106,7 +109,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			try {
 				writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8"); //$NON-NLS-1$
 				Gson gson = new GsonBuilder().setPrettyPrinting().create();
-				gson.toJson(toMap(context), Map.class, writer);
+
+				gson.toJson(internalToMap(context), Map.class, writer);
 			} finally {
 				if (writer != null) {
 					writer.close();
@@ -115,17 +119,44 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		}
 		else if (container instanceof String || String.class.equals(container)) {
 			Gson gson = new GsonBuilder().create();
-			container = gson.toJson(toMap(context));
+
+			container = gson.toJson(internalToMap(context));
 		}
 
 		return container;
+	}
+
+	/*
+	 * Convert the context to a Map, extract and use variables and add them to the map as key VARIABLE.
+	 */
+	private Map<String,Object> internalToMap(Object context) {
+		try {
+			Map<String,Object> data = toMap(context);
+
+			if (data != null) {
+				Map<String,String> variables = new HashMap<String, String>();
+				IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
+				for (IVariableDelegate delegate : delegates) {
+					delegate.getVariables(data, variables);
+				}
+				if (!variables.isEmpty()) {
+					data.put(VARIABLES, variables);
+				}
+			}
+			return data;
+		}
+		catch (Exception e) {
+
+		}
+
+		return null;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#read(java.lang.Object, java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public Object read(Object context, Object container, String key) throws IOException {
+	public final Object read(Object context, Object container, String key) throws IOException {
 		Assert.isNotNull(container);
 
 		Gson gson = new GsonBuilder().create();
@@ -159,6 +190,14 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		}
 		else if (container instanceof String) {
 			data = gson.fromJson((String)container, Map.class);
+		}
+
+		if (data != null && data.containsKey(VARIABLES)) {
+			Map<String,String> variables = (Map<String,String>)data.remove(VARIABLES);
+			IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
+			for (IVariableDelegate delegate : delegates) {
+				delegate.putVariables(data, variables);
+			}
 		}
 
 		return data != null ? fromMap(data, context) : context;
@@ -241,7 +280,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	 * @throws IOException
 	 */
 	protected Object fromMap(Map<String,Object> map, Object context) throws IOException {
-		if (context == null || (context instanceof Class && ((Class<?>)context).isInstance(map))) {
+		if (context == null || context.equals(map.getClass())) {
 			return map;
 		}
 		else if (context instanceof Map) {

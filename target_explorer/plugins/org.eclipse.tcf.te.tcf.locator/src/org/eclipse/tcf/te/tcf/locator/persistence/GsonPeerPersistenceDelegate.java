@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
@@ -48,56 +47,6 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.persistence.AbstractPropertiesToStringPersistenceDelegate#read(java.lang.Object, java.lang.Object, java.lang.String)
-	 */
-	@Override
-	public Object read(final Object context, final Object container, String key) throws IOException {
-		Assert.isNotNull(context);
-		Assert.isNotNull(container);
-
-		final IPeer peer = (IPeer)super.read(context, container, key);
-
-		if (peer != null) {
-			if (context instanceof IPeer || IPeer.class.equals(context)) {
-				return peer;
-			}
-			else if (context instanceof Class && (((Class<?>)context).isAssignableFrom(IPeerModel.class))) {
-				final AtomicReference<IPeerModel> model = new AtomicReference<IPeerModel>();
-
-				Runnable runnable = new Runnable() {
-					@Override
-					public void run() {
-						// Get the id of the decoded attributes
-						String id = peer.getID();
-						if (id != null) {
-							// Lookup the id within the model
-							IPeerModel peerModel = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
-							if (peerModel == null) {
-								// Not found in the model -> create a ghost object
-								peerModel = new PeerModel(Model.getModel(), peer);
-								peerModel.setProperty(IModelNode.PROPERTY_IS_GHOST, true);
-							}
-
-							model.set(peerModel);
-						}
-					}
-				};
-
-				if (Protocol.isDispatchThread()) {
-					runnable.run();
-				}
-				else {
-					Protocol.invokeAndWait(runnable);
-				}
-
-				return model.get();
-			}
-		}
-
-		return null;
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.persistence.AbstractPropertiesPersistenceDelegate#toMap(java.lang.Object)
 	 */
 	@Override
@@ -120,7 +69,44 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 			attrs.put(entry.getKey(), entry.getValue().toString());
 		}
 
-		return new Peer(attrs);
+		final IPeer peer = new Peer(attrs);
+
+		if (context instanceof IPeer || IPeer.class.equals(context)) {
+			return peer;
+		}
+		else if (context instanceof Class && (((Class<?>)context).isAssignableFrom(IPeerModel.class))) {
+			final AtomicReference<IPeerModel> model = new AtomicReference<IPeerModel>();
+
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					// Get the id of the decoded attributes
+					String id = peer.getID();
+					if (id != null) {
+						// Lookup the id within the model
+						IPeerModel peerModel = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+						if (peerModel == null) {
+							// Not found in the model -> create a ghost object
+							peerModel = new PeerModel(Model.getModel(), peer);
+							peerModel.setProperty(IModelNode.PROPERTY_IS_GHOST, true);
+						}
+
+						model.set(peerModel);
+					}
+				}
+			};
+
+			if (Protocol.isDispatchThread()) {
+				runnable.run();
+			}
+			else {
+				Protocol.invokeAndWait(runnable);
+			}
+
+			return model.get();
+		}
+
+		return null;
 	}
 
 	/**

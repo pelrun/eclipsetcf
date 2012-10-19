@@ -21,8 +21,10 @@ import org.eclipse.tcf.te.runtime.extensions.AbstractExtensionPointManager;
 import org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy;
 import org.eclipse.tcf.te.runtime.persistence.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableDelegate;
 import org.eclipse.tcf.te.runtime.persistence.internal.PersistenceDelegateBinding;
 import org.eclipse.tcf.te.runtime.persistence.internal.PersistenceDelegateBindingExtensionPointManager;
+import org.eclipse.tcf.te.runtime.persistence.internal.VariableDelegateExtensionPointManager;
 
 /**
  * Persistence delegate manager implementation.
@@ -142,5 +144,15 @@ public class PersistenceManager extends AbstractExtensionPointManager<IPersisten
 		}
 
 		return delegates.get(0);
+	}
+
+	/**
+	 * Returns the bound variable delegates for the given persistence delegate.
+	 *
+	 * @param persistenceDelegate The persistence delegate.
+	 * @return The list of bound variable delegates or an empty array.
+	 */
+	public IVariableDelegate[] getVariableDelegates(IPersistenceDelegate persistenceDelegate) {
+		return VariableDelegateExtensionPointManager.getInstance().getDelegates(persistenceDelegate);
 	}
 }

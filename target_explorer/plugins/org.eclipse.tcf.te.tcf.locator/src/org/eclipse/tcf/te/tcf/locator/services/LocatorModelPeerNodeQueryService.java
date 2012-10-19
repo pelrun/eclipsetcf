@@ -72,18 +72,20 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 			@Override
 			public void run() {
 				// If the peer is a RemotePeer or has the "remote.transient" property set
-		    	// --> an agent is running and has been associated with the peer model.
+				// --> an agent is running and has been associated with the peer model.
 				if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
 					doQueryServices(node, new DoneQueryServices() {
 						@Override
 						public void doneQueryServices(Throwable error) {
-							if (error == null) services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
+							if (error == null) {
+								services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
+							}
 							completed.set(true);
 						}
 					});
 				} else {
-		    		completed.set(true);
-		    	}
+					completed.set(true);
+				}
 			}
 		});
 
@@ -136,18 +138,20 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 			@Override
 			public void run() {
 				// If the peer is a RemotePeer or has the "remote.transient" property set
-		    	// --> an agent is running and has been associated with the peer model.
-		    	if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+				// --> an agent is running and has been associated with the peer model.
+				if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
 					doQueryServices(node, new DoneQueryServices() {
 						@Override
 						public void doneQueryServices(Throwable error) {
-							if (error == null) services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
+							if (error == null) {
+								services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
+							}
 							completed.set(true);
 						}
 					});
-		    	} else {
-		    		completed.set(true);
-		    	}
+				} else {
+					completed.set(true);
+				}
 			}
 		});
 
@@ -218,8 +222,10 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 			public void doneQueryServices(Throwable error) {
 				// Get the list of the original done callbacks
 				List<DoneQueryServices> dones = serviceQueriesInProgress.remove(node);
-				for (DoneQueryServices done : dones) {
-					done.doneQueryServices(error);
+				if (dones != null) {
+					for (DoneQueryServices done : dones) {
+						done.doneQueryServices(error);
+					}
 				}
 			}
 		};
