@@ -204,6 +204,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private int display_source_generation;
     private int suspend_trigger_generation;
     private int auto_disconnect_generation;
+    
+    private boolean reverse_debug_enabled;
 
     // Debugger preferences:
     private long min_view_updates_interval;
@@ -313,7 +315,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     };
 
     private final IModelSelectionPolicy selection_policy;
-
+    
     private IChannel channel;
     private TCFNodeLaunch launch_node;
     private boolean disposed;
@@ -2011,4 +2013,19 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     public boolean isInstructionSteppingEnabled() {
         return instruction_stepping_enabled;
     }
+    
+    /**
+     * Set whether reverse debugging should be enabled or not.
+     * @param enabled
+     */
+    public void setReverseDebugEnabled(boolean enabled) {
+        reverse_debug_enabled = enabled;
+    }
+
+    /**
+     * @return whether reverse debugging is enabled.
+     */
+    public boolean isReverseDebugEnabled() {
+        return reverse_debug_enabled;
+    }    
 }

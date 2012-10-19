@@ -10,7 +10,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui.commands;
 
+import java.util.concurrent.ExecutionException;
+
 import org.eclipse.core.expressions.PropertyTester;
+import org.eclipse.tcf.internal.cdt.ui.Activator;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
+import org.eclipse.tcf.util.TCFTask;
 
 
 /**
@@ -19,9 +24,30 @@ import org.eclipse.core.expressions.PropertyTester;
  */
 public class TCFReverseDebuggingPropertyTester extends PropertyTester {
 
-    public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
-        // TODO should be queried from target
-        return true;
+    private static final String ENABLED = "isReverseDebuggingEnabled"; //$NON-NLS-1$
+
+    public boolean test(Object context, String property, Object[] args, Object expectedValue) {
+        if (!ENABLED.equals(property)) return false;
+        
+        if (context instanceof TCFNode) {
+            final TCFNode node = (TCFNode)context; 
+            try {
+                return new TCFTask<Boolean>() {
+                    public void run() {
+                        done(node.getModel().isInstructionSteppingEnabled());
+                    };
+                }.get();
+            }
+            catch (InterruptedException e) {
+                Activator.log(e);
+                return false;
+            }
+            catch (ExecutionException e) {
+                Activator.log(e);
+                return false;
+            }
+        }
+        return false;
     }
 
 }
