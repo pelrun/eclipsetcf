@@ -9,14 +9,11 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.listeners;
 
-import org.eclipse.tcf.te.ui.views.expressions.SelectionSourceProvider;
 import org.eclipse.ui.IPartService;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.services.IEvaluationService;
 
 /**
  * The window listener implementation. Takes care of the
@@ -27,24 +24,12 @@ public class WorkbenchWindowListener implements IWindowListener {
 	private final WorkbenchPartListener partListener = new WorkbenchPartListener();
 	// The global perspective listener instance
 	private final WorkbenchPerspectiveListener perspectiveListener = new WorkbenchPerspectiveListener();
-	// The global selection service source provider
-	private final SelectionSourceProvider sourceProvider = new SelectionSourceProvider();
-
-	/**
-     * Constructor
-     */
-    public WorkbenchWindowListener() {
-    	// Register the source provider with the evaluation service
-		IEvaluationService service = (IEvaluationService)PlatformUI.getWorkbench().getService(IEvaluationService.class);
-    	if (service != null) service.addSourceProvider(sourceProvider);
-    }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWindowListener#windowActivated(org.eclipse.ui.IWorkbenchWindow)
 	 */
 	@Override
 	public void windowActivated(IWorkbenchWindow window) {
-		sourceProvider.windowActivated(window);
 	}
 
 	/* (non-Javadoc)
@@ -52,7 +37,6 @@ public class WorkbenchWindowListener implements IWindowListener {
 	 */
 	@Override
 	public void windowDeactivated(IWorkbenchWindow window) {
-		sourceProvider.windowDeactivated(window);
 	}
 
 	/* (non-Javadoc)
@@ -60,8 +44,6 @@ public class WorkbenchWindowListener implements IWindowListener {
 	 */
 	@Override
 	public void windowClosed(IWorkbenchWindow window) {
-		sourceProvider.windowClosed(window);
-
 		// On close, remove all global listeners from the window
 		if (window != null) {
 			if (window.getPartService() != null) {
@@ -76,8 +58,6 @@ public class WorkbenchWindowListener implements IWindowListener {
 	 */
 	@Override
 	public void windowOpened(IWorkbenchWindow window) {
-		sourceProvider.windowOpened(window);
-
 		// On open, register all global listener to the window
 		if (window != null) {
 			if (window.getPartService() != null) {

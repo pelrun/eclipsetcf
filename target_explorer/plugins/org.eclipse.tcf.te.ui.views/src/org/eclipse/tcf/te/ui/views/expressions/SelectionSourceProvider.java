@@ -23,6 +23,7 @@ import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.services.IEvaluationService;
 import org.eclipse.ui.services.IServiceLocator;
 
 /**
@@ -52,6 +53,9 @@ public class SelectionSourceProvider extends AbstractSourceProvider implements I
 	// The map containing the cached selections
 	private final Map<String, ISelection> cache = new HashMap<String, ISelection>();
 
+	// The reference to the expression evaluation service
+	private IEvaluationService service = null;
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.AbstractSourceProvider#initialize(org.eclipse.ui.services.IServiceLocator)
 	 */
@@ -59,9 +63,19 @@ public class SelectionSourceProvider extends AbstractSourceProvider implements I
 	public void initialize(IServiceLocator locator) {
 	    super.initialize(locator);
 
-	    // Register the source provider with the selection service
-	    if (PlatformUI.getWorkbench() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
-	    	windowOpened(PlatformUI.getWorkbench().getActiveWorkbenchWindow());
+	    if (PlatformUI.getWorkbench() != null) {
+	    	// Register the service provider as workbench window listener
+	    	PlatformUI.getWorkbench().addWindowListener(this);
+		    // Initialize the selection cache and the selection listener
+	    	if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
+	    		windowOpened(PlatformUI.getWorkbench().getActiveWorkbenchWindow());
+	    	}
+	    }
+
+	    // Register the source provider with the expression evaluation service
+	    if (locator.hasService(IEvaluationService.class)) {
+	    	service = (IEvaluationService)locator.getService(IEvaluationService.class);
+	    	if (service != null) service.addSourceProvider(this);
 	    }
 	}
 
@@ -70,10 +84,18 @@ public class SelectionSourceProvider extends AbstractSourceProvider implements I
 	 */
 	@Override
 	public void dispose() {
-		// Unregister the source provider from the selection service
-	    if (PlatformUI.getWorkbench() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
-	    	windowClosed(PlatformUI.getWorkbench().getActiveWorkbenchWindow());
+		// Unregister the selection listener
+	    if (PlatformUI.getWorkbench() != null) {
+	    	// Unregister the service provide as workbench window listener
+	    	PlatformUI.getWorkbench().removeWindowListener(this);
+	    	// Unregister the selection listener
+	    	if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
+	    		windowClosed(PlatformUI.getWorkbench().getActiveWorkbenchWindow());
+	    	}
 	    }
+
+	    // Unregister the source provider from the expression evaluation service
+	    if (service != null) { service.removeSourceProvider(this); service = null; }
 	}
 
 	/* (non-Javadoc)
@@ -106,7 +128,7 @@ public class SelectionSourceProvider extends AbstractSourceProvider implements I
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		String partId = part != null ? part.getSite().getId() : null;
-		if (!IUIConstants.ID_EXPLORER.equals(partId) || ID_DEBUG_VIEW.equals(partId)) {
+		if (!IUIConstants.ID_EXPLORER.equals(partId) && !ID_DEBUG_VIEW.equals(partId)) {
 			return;
 		}
 
@@ -115,7 +137,7 @@ public class SelectionSourceProvider extends AbstractSourceProvider implements I
 		else cache.remove(partId);
 
 		// Fire the source changed notification
-		fireSourceChanged(ISources.ACTIVE_CURRENT_SELECTION, IUIConstants.ID_EXPLORER.equals(partId) ? systemManagerViewSelectionName : debugViewSelectionName,
+		fireSourceChanged(ISources.WORKBENCH, IUIConstants.ID_EXPLORER.equals(partId) ? systemManagerViewSelectionName : debugViewSelectionName,
 						  selection != null ? selection : IEvaluationContext.UNDEFINED_VARIABLE);
 	}
 
@@ -171,14 +193,14 @@ public class SelectionSourceProvider extends AbstractSourceProvider implements I
 			if (selection != null) cache.put(IUIConstants.ID_EXPLORER, selection);
 			else cache.remove(IUIConstants.ID_EXPLORER);
 
-			fireSourceChanged(ISources.ACTIVE_CURRENT_SELECTION, systemManagerViewSelectionName,
+			fireSourceChanged(ISources.WORKBENCH, systemManagerViewSelectionName,
 							  selection != null ? selection : IEvaluationContext.UNDEFINED_VARIABLE);
 
 			selection = service.getSelection(ID_DEBUG_VIEW);
 			if (selection != null) cache.put(ID_DEBUG_VIEW, selection);
 			else cache.remove(ID_DEBUG_VIEW);
 
-			fireSourceChanged(ISources.ACTIVE_CURRENT_SELECTION, debugViewSelectionName,
+			fireSourceChanged(ISources.WORKBENCH, debugViewSelectionName,
 							  selection != null ? selection : IEvaluationContext.UNDEFINED_VARIABLE);
 		}
 	}
