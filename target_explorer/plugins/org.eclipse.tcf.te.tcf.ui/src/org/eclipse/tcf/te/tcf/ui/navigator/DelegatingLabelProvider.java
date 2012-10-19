@@ -181,6 +181,14 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 		Image decoratedImage = null;
 
 		if (image != null && element instanceof IPeerModel) {
+			ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
+			if (delegates != null && delegates.length > 0) {
+				if (delegates[0] instanceof ILabelDecorator) {
+					Image candidate = ((ILabelDecorator)delegates[0]).decorateImage(image, element);
+					if (candidate != null) image = candidate;
+				}
+			}
+
 			String value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
 			boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
 			if (!isStatic) {
@@ -199,9 +207,17 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 	 */
 	@Override
 	public String decorateText(final String text, final Object element) {
-		if (element instanceof IPeerModel) {
-			String label = text;
+		String label = text;
 
+		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
+		if (delegates != null && delegates.length > 0) {
+			if (delegates[0] instanceof ILabelDecorator) {
+				String candidate = ((ILabelDecorator)delegates[0]).decorateText(label, element);
+				if (candidate != null) label = candidate;
+			}
+		}
+
+		if (element instanceof IPeerModel) {
 			final StringBuilder builder = new StringBuilder(label != null && !"".equals(label.trim()) ? label.trim() : "<noname>"); //$NON-NLS-1$ //$NON-NLS-2$
 
 			Runnable runnable = new Runnable() {
@@ -211,12 +227,8 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 				}
 			};
 
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
 
 			label = builder.toString();
 
