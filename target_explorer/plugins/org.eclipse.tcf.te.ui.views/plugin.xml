@@ -902,14 +902,6 @@
                priorityLevel="workbench">
          </variable>
       </sourceProvider>
-
-      <sourceProvider
-            provider="org.eclipse.tcf.te.ui.views.expressions.EditorSourceProvider">
-         <variable
-               name="editorInput"
-               priorityLevel="workbench">
-         </variable>
-      </sourceProvider>
    </extension>
    
 </plugin>
