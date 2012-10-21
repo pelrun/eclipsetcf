@@ -92,6 +92,94 @@ public class TCFNumberFormat {
                 bf[i] = (byte)((n >> ((size - 1 - i) * 8)) & 0xff);
             }
         }
+        else if (size == 2 || size == 10 || size == 16) {
+            BigDecimal d = new BigDecimal(s);
+            int n = 0;
+            int bin_scale = 0;
+            for (n = 0; n < 1000; n++) {
+                d = d.stripTrailingZeros();
+                int scale = d.scale();
+                if (scale > 0) {
+                    int x = d.precision();
+                    if (x > 36) {
+                        x -= 36;
+                        if (x > scale) x = scale;
+                        d = d.setScale(scale - x, RoundingMode.HALF_DOWN);
+                        continue;
+                    }
+                }
+                if (scale < 0) {
+                    d = d.divide(BigDecimal.valueOf(2).pow(-scale));
+                    bin_scale += scale;
+                }
+                else if (scale > 0) {
+                    d = d.multiply(BigDecimal.valueOf(2).pow(scale));
+                    bin_scale += scale;
+                }
+                else {
+                    break;
+                }
+            }
+            BigInteger man = d.unscaledValue();
+            int cmp = man.compareTo(BigInteger.ZERO);
+            bf = new byte[size];
+            if (cmp != 0) {
+                boolean sign = cmp < 0;
+                if (sign) man = man.negate();
+                int man_bits = man.bitLength();
+                int man_offs = 0;
+                int exp = 0;
+                for (;;) {
+                    if (size == 2) {
+                        exp = man_bits - bin_scale + 14;
+                        if (exp <= 0) {
+                            man_bits += 1 - exp;
+                            exp = 0;
+                        }
+                        if (exp > 0x1f) exp = 0x1f;
+                        man_offs = 5;
+                    }
+                    else {
+                        exp = man_bits - bin_scale + 16382;
+                        if (exp <= 0) {
+                            man_bits += 1 - exp;
+                            exp = 0;
+                        }
+                        else if (size == 10) {
+                            man_bits++;
+                        }
+                        if (exp > 0x7fff) exp = 0x7fff;
+                        man_offs = 15;
+                    }
+                    // Rounding
+                    int rb = man_offs + man_bits - size * 8 - 1;
+                    if (rb >= 0 && man.testBit(rb)) {
+                        man = man.add(BigInteger.ONE.shiftLeft(rb));
+                        man_bits = man.bitLength();
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (sign) bf[0] |= 0x80;
+                for (int i = 1; i <= man_offs; i++) {
+                    if (((1 << (man_offs - i)) & exp) != 0) {
+                        bf[i / 8] |= (1 << (7 - i % 8));
+                    }
+                }
+                for (int i = 0; i < man_bits; i++) {
+                    int j = man_offs + i; // bit pos in bf
+                    int k = man_bits - i - 1; // bit pos in man
+                    if (j / 8 >= bf.length) break;
+                    if (i == 0) {
+                        assert man.testBit(k) == (exp > 0 && size != 10);
+                    }
+                    else if (man.testBit(k)) {
+                        bf[j / 8] |= (1 << (7 - j % 8));
+                    }
+                }
+            }
+        }
         else {
             throw new Exception("Unsupported floating point format");
         }
