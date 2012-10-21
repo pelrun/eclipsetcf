@@ -29,14 +29,14 @@
 	
 	<properties>
 		<!-- Define version id's to be used in the plugins section -->
-		<tycho-version>0.15.0</tycho-version>
-		<maven-resources-version>2.5</maven-resources-version>
+		<tycho-version>0.16.0</tycho-version>
+		<maven-resources-version>2.6</maven-resources-version>
 		<maven-antrun-version>1.7</maven-antrun-version>
 		<gmaven-version>1.4</gmaven-version>
 		<exec-maven-version>1.2.1</exec-maven-version>
 		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
-		<jacoco-version>0.5.9.201207300726</jacoco-version>
+		<jacoco-version>0.5.10.201208310627</jacoco-version>
 		<eclipse-jarsigner-version>1.0.2-SNAPSHOT</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
