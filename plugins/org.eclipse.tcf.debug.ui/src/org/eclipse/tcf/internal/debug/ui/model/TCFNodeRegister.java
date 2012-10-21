@@ -710,7 +710,11 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
     public boolean isRepresentationGroup(AtomicBoolean res, Runnable done) {
         res.set(false);
         HashSet<Integer> offsets = new HashSet<Integer>();
+        if (!context.validate(done)) return false;
         if (!children.validate(done)) return false;
+        IRegisters.RegistersContext reg_ctx = context.getData();
+        if (reg_ctx == null) return true;
+        if (reg_ctx.getSize() == 0) return true;
         for (TCFNode child_node : children.toArray()) {
             TCFNodeRegister child_reg = (TCFNodeRegister)child_node;
             if (!child_reg.context.validate(done)) return false;
