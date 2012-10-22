@@ -146,4 +146,14 @@
       </binding>
    </extension>
 
+<!-- Variable delegate contributions --> 
+   <extension point="org.eclipse.tcf.te.runtime.persistence.variableDelegates">
+      <delegate 
+            id="org.eclipse.tcf.te.launch.core.persistence.variableDelegate" 
+            class="org.eclipse.tcf.te.launch.core.internal.FileTransferItemVariableDelegate"
+            delegateId="org.eclipse.tcf.te.launch.core.persistence.gson.fileTransferItem"/>
+   </extension>
+
+
+
 </plugin>

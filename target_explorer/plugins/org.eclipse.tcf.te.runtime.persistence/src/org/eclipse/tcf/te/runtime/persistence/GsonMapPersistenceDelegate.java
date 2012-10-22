@@ -134,12 +134,12 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			Map<String,Object> data = toMap(context);
 
 			if (data != null) {
-				Map<String,String> variables = new HashMap<String, String>();
+				Map<String,String> variables = null;
 				IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
 				for (IVariableDelegate delegate : delegates) {
-					delegate.getVariables(data, variables);
+					variables = delegate.getVariables(data);
 				}
-				if (!variables.isEmpty()) {
+				if (variables != null && !variables.isEmpty()) {
 					data.put(VARIABLES, variables);
 				}
 			}
@@ -196,7 +196,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			Map<String,String> variables = (Map<String,String>)data.remove(VARIABLES);
 			IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
 			for (IVariableDelegate delegate : delegates) {
-				delegate.putVariables(data, variables);
+				data = delegate.putVariables(data, variables);
 			}
 		}
 

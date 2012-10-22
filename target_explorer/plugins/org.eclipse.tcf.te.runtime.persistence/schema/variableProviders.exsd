@@ -3,10 +3,10 @@
 <schema targetNamespace="org.eclipse.tcf.te.runtime.persistence" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.tcf.te.runtime.persistence" id="variableDelegates" name="Variable Delegates Extension Point"/>
+         <meta.schema plugin="org.eclipse.tcf.te.runtime.persistence" id="variableProviders" name="Variable Providers Extension Point"/>
       </appinfo>
       <documentation>
-         This extension point is used to declare the variable delegates.
+         This extension point is used to declare the variable provider
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence>
-            <element ref="delegate" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="provider" minOccurs="1" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,37 +47,27 @@
       </complexType>
    </element>
 
-   <element name="delegate">
+   <element name="provider">
       <annotation>
          <documentation>
-            Declares a variable delegate.
+            Declares a variable provider.
          </documentation>
       </annotation>
       <complexType>
          <attribute name="id" type="string" use="required">
             <annotation>
                <documentation>
-                  The unique id of the variable delegate contribution.
+                  The unique id of the variable provider contribution.
                </documentation>
             </annotation>
          </attribute>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  The variable delegate implementation.
+                  The variable provider implementation.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableDelegate"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="delegateId" type="string" use="required">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="identifier" basedOn="org.eclipse.tcf.te.runtime.persistence.delegates/delegate/@id"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableProvider"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -99,11 +89,10 @@
       </appinfo>
       <documentation>
          &lt;pre&gt;
-   &lt;extension point=&quot;org.eclipse.tcf.te.runtime.persistence.variableDelegates&quot;&gt;
-      &lt;delegate
-            id=&quot;org.eclipse.tcf.te.runtime.persistence.delegate.VariableDelegate&quot;
-            class=&quot;org.eclipse.tcf.te.runtime.persistence.internal.VariableDelegate&quot;
-            delegateId=&quot;org.eclipse.tcf.te.runtime.persistence.delegate.PersistenceDelegate&quot;/&gt;
+   &lt;extension point=&quot;org.eclipse.tcf.te.runtime.persistence.variableProviders&quot;&gt;
+      &lt;provider
+            id=&quot;org.eclipse.tcf.te.runtime.persistence.delegate.VariableProvider&quot;
+            class=&quot;org.eclipse.tcf.te.runtime.persistence.internal.VariableProvider&quot;/&gt;
    &lt;/extension&gt;
 &lt;/pre&gt;
       </documentation>

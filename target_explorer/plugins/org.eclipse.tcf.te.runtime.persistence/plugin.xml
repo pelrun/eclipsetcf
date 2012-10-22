@@ -6,6 +6,7 @@
    <extension-point id="delegates" name="%ExtensionPoint.delegates.name" schema="schema/delegates.exsd"/>
    <extension-point id="bindings" name="%ExtensionPoint.bindings.name" schema="schema/bindings.exsd"/>
    <extension-point id="variableDelegates" name="%ExtensionPoint.variableDelegates.name" schema="schema/variableDelegates.exsd"/> 
+   <extension-point id="variableProviders" name="%ExtensionPoint.variableProviders.name" schema="schema/variableProviders.exsd"/> 
    
 <!-- Service contributions -->
    <extension point="org.eclipse.tcf.te.runtime.services.services">
@@ -58,4 +59,12 @@
       </binding>
    </extension>
    
+<!-- Variable Provider Contribution -->
+   <extension point="org.eclipse.tcf.te.runtime.persistence.variableProviders">
+      <provider
+            id="org.eclipse.tcf.te.runtime.persistence.variableProvider"
+            class="org.eclipse.tcf.te.runtime.persistence.internal.VariableProvider">
+      </provider>
+   </extension>
+
 </plugin>

@@ -13,22 +13,13 @@ package org.eclipse.tcf.te.runtime.persistence.interfaces;
 import java.util.Map;
 
 /**
- * IVariableDelegate
+ * IVariableProvider
  */
-public interface IVariableDelegate {
+public interface IVariableProvider {
 
 	/**
-	 * Extract variables from map and use them inside map values.
-	 * @param map The map to inspect.
-	 * @return The used variables.
+	 * Get the list of provided variables.
+	 * @return The provided variables.
 	 */
-	public Map<String,String> getVariables(Map<String, Object> map);
-
-	/**
-	 * Replace all variables inside map values by current variable value or given default.
-	 * @param map The map with variables to inspect.
-	 * @param defaultVariables The default variables.
-	 * @return The map without variables.
-	 */
-	public Map<String,Object> putVariables(Map<String,Object> map, Map<String,String> defaultVariables);
+	public Map<String,String> getVariables();
 }

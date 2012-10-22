@@ -22,9 +22,11 @@ import org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy;
 import org.eclipse.tcf.te.runtime.persistence.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableDelegate;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableProvider;
 import org.eclipse.tcf.te.runtime.persistence.internal.PersistenceDelegateBinding;
 import org.eclipse.tcf.te.runtime.persistence.internal.PersistenceDelegateBindingExtensionPointManager;
 import org.eclipse.tcf.te.runtime.persistence.internal.VariableDelegateExtensionPointManager;
+import org.eclipse.tcf.te.runtime.persistence.internal.VariableProviderExtensionPointManager;
 
 /**
  * Persistence delegate manager implementation.
@@ -154,5 +156,14 @@ public class PersistenceManager extends AbstractExtensionPointManager<IPersisten
 	 */
 	public IVariableDelegate[] getVariableDelegates(IPersistenceDelegate persistenceDelegate) {
 		return VariableDelegateExtensionPointManager.getInstance().getDelegates(persistenceDelegate);
+	}
+
+	/**
+	 * Returns all variable providers.
+	 *
+	 * @return The list of variable providers or an empty array.
+	 */
+	public IVariableProvider[] getVariableProviders() {
+		return VariableProviderExtensionPointManager.getInstance().getProviders();
 	}
 }
