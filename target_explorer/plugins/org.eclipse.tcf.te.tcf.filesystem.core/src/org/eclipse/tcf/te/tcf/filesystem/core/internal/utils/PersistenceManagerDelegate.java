@@ -22,7 +22,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.content.IContentType;
-import org.eclipse.tcf.te.runtime.persistence.GsonMapPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelegate;
 
 /**
  * The persistence delegate to persist or restore a map whose keys are URIs.

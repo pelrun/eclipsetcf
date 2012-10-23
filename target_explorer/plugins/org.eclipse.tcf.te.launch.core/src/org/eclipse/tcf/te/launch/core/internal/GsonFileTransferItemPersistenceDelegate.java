@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.tcf.te.runtime.persistence.GsonMapPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.services.filetransfer.FileTransferItem;
 import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
 

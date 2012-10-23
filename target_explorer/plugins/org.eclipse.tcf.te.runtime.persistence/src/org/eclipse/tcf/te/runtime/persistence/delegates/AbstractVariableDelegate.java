@@ -8,19 +8,23 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.runtime.persistence;
+package org.eclipse.tcf.te.runtime.persistence.delegates;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExecutableExtension;
+import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableDelegate;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableProvider;
 
 /**
  * AbstractVariableDelegate
  */
-public abstract class AbstractVariableDelegate implements IVariableDelegate {
+public abstract class AbstractVariableDelegate implements IVariableDelegate, IExecutableExtension  {
 
 	/**
 	 * Get the list of keys this delegate is handling.
@@ -123,4 +127,10 @@ public abstract class AbstractVariableDelegate implements IVariableDelegate {
 		return variables;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.core.runtime.IExecutableExtension#setInitializationData(org.eclipse.core.runtime.IConfigurationElement, java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
+	}
 }

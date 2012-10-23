@@ -21,7 +21,7 @@
    <extension point="org.eclipse.tcf.te.runtime.persistence.delegates">
       <delegate 
             id="org.eclipse.tcf.te.runtime.persistence.gson.map"
-            class="org.eclipse.tcf.te.runtime.persistence.GsonMapPersistenceDelegate">
+            class="org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelegate">
       </delegate>
    </extension>
 

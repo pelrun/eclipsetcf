@@ -16,7 +16,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.tcf.te.runtime.persistence.GsonMapPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelegate;
 
 /**
  * Launch configuration to string delegate implementation.

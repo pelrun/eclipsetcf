@@ -150,8 +150,11 @@
    <extension point="org.eclipse.tcf.te.runtime.persistence.variableDelegates">
       <delegate 
             id="org.eclipse.tcf.te.launch.core.persistence.variableDelegate" 
-            class="org.eclipse.tcf.te.launch.core.internal.FileTransferItemVariableDelegate"
-            delegateId="org.eclipse.tcf.te.launch.core.persistence.gson.fileTransferItem"/>
+            delegateId="org.eclipse.tcf.te.launch.core.persistence.gson.fileTransferItem">
+         <class class="org.eclipse.tcf.te.runtime.persistence.delegates.PathVariableDelegate">
+            <parameter name="keysToHandle" value="host"/>
+         </class>
+      </delegate>
    </extension>
 
 

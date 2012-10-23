@@ -8,7 +8,7 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.runtime.persistence;
+package org.eclipse.tcf.te.runtime.persistence.delegates;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.tcf.te.runtime.extensions.ExecutableExtension;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableDelegate;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;

@@ -8,7 +8,7 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.runtime.persistence;
+package org.eclipse.tcf.te.runtime.persistence.delegates;
 
 import org.eclipse.core.runtime.Path;
 import org.eclipse.tcf.te.runtime.utils.Host;

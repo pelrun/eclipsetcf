@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.runtime.persistence.GsonMapPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelegate;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;

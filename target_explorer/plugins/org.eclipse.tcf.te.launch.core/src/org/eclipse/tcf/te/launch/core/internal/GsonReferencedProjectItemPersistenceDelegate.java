@@ -15,7 +15,7 @@ import java.util.Map;
 
 import org.eclipse.tcf.te.launch.core.interfaces.IReferencedProjectItem;
 import org.eclipse.tcf.te.launch.core.persistence.projects.ReferencedProjectItem;
-import org.eclipse.tcf.te.runtime.persistence.GsonMapPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelegate;
 
 /**
  * Referenced project item to string delegate implementation.
