@@ -240,7 +240,7 @@ public class RegisterVectorDisplayMenu extends CompoundContributionItem implemen
                 }
 
                 Map<String,String> map = modes.get(elements.get(n));
-                TCFModelProxy proxy = node.getModel().getModelProxy(ctx);
+                TCFModelProxy[] proxies = node.getModel().getModelProxies(ctx);
                 for (Object obj : selection) {
                     if (obj instanceof TCFNodeRegister) {
                         TCFNodeRegister reg = (TCFNodeRegister)obj;
@@ -248,10 +248,10 @@ public class RegisterVectorDisplayMenu extends CompoundContributionItem implemen
                         String rep_id = map != null ? map.get(id) : null;
                         if (rep_id == null) representation.remove(id);
                         else representation.put(id, rep_id);
-                        if (proxy != null) {
-                            proxy.addDelta(reg, IModelDelta.CONTENT);
+                        for (int i = 0; i < proxies.length; i++) {
+                            proxies[i].addDelta(reg, IModelDelta.CONTENT);
                             TCFNode n = node.getModel().getNode(rep_id);
-                            if (n != null) proxy.expand(n);
+                            if (n != null) proxies[i].expand(n);
                         }
                     }
                 }
