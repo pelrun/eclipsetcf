@@ -528,6 +528,7 @@ class LocatorService(locator.LocatorService):
         @return a map containing the attributes
         """
         attrs = {}
+        # Remove packet header
         s = data[8:size].decode("UTF-8")
         l = len(s)
         i = 0
@@ -555,7 +556,7 @@ class LocatorService(locator.LocatorService):
         """
         cnt = 0
         attrs = {}
-        s = data[8:size - 8].decode("UTF-8")
+        s = data[8:].decode("UTF-8")
         l = len(s)
         i = 0
         while i < l:
