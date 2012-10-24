@@ -13,6 +13,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -31,11 +32,17 @@ public class RefreshProcessListHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IEditorInput editorInput = HandlerUtil.getActiveEditorInputChecked(event);
-		IPeerModel peer = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
+		final IPeerModel peer = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
 		if (peer != null) {
-			IModel model = ModelManager.getRuntimeModel(peer);
-			Assert.isNotNull(model);
-			model.getService(IModelRefreshService.class).refresh(null);
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					IModel model = ModelManager.getRuntimeModel(peer);
+					Assert.isNotNull(model);
+					model.getService(IModelRefreshService.class).refresh(null);
+				}
+			};
+			Protocol.invokeLater(runnable);
 		}
 		return null;
 	}

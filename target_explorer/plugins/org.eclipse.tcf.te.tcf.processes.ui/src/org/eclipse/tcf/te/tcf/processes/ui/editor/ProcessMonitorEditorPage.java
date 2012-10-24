@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.processes.ui.editor;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -116,7 +117,11 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	 */
 	@Override
     protected Object getViewerInput() {
-		IPeerModel peerModel = (IPeerModel) getEditorInputNode();
-		return ModelManager.getRuntimeModel(peerModel);
+		Object element = getEditorInputNode();
+		IPeerModel peerModel = element instanceof IPeerModel ? (IPeerModel)element : null;
+		if (peerModel == null && element instanceof IAdaptable) {
+			peerModel = (IPeerModel)((IAdaptable)element).getAdapter(IPeerModel.class);
+		}
+		return peerModel != null ? ModelManager.getRuntimeModel(peerModel) : null;
     }
 }
