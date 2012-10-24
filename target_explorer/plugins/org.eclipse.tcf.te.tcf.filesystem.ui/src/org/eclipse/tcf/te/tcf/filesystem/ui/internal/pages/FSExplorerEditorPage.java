@@ -9,12 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.pages;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
 /**
- * The editor page for the file system explorer. 
+ * The editor page for the file system explorer.
  */
 public class FSExplorerEditorPage extends TreeViewerExplorerEditorPage {
 
@@ -60,7 +61,11 @@ public class FSExplorerEditorPage extends TreeViewerExplorerEditorPage {
 	 */
 	@Override
     protected Object getViewerInput() {
-		IPeerModel peerModel = (IPeerModel) getEditorInputNode();
-		return FSModel.getFSModel(peerModel).getRoot();
+		Object element = getEditorInputNode();
+		IPeerModel peerModel = element instanceof IPeerModel ? (IPeerModel)element : null;
+		if (peerModel == null && element instanceof IAdaptable) {
+			peerModel = (IPeerModel)((IAdaptable)element).getAdapter(IPeerModel.class);
+		}
+		return peerModel != null ? FSModel.getFSModel(peerModel).getRoot() : null;
     }
 }
