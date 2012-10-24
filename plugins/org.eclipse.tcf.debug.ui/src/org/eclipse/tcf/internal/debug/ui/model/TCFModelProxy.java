@@ -18,7 +18,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.debug.internal.ui.viewers.model.IInternalTreeModelViewer;
@@ -61,7 +60,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     private final Set<ModelDelta> content_deltas = new HashSet<ModelDelta>();
     private final LinkedList<TCFNode> selection = new LinkedList<TCFNode>();
     private final Set<String> auto_expand_set = new HashSet<String>();
-    private Map<String, Boolean> expanded_nodes = Collections.synchronizedMap(new TreeMap<String, Boolean>());
+    private Map<String, Boolean> expanded_nodes = Collections.synchronizedMap(new HashMap<String, Boolean>());
 
     private ITreeModelViewer viewer;
     private boolean posted;
@@ -303,17 +302,22 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      * @param user_request Flag whether the state is requested in response
      * to a user-requested suspend event.
      */
-    boolean getAutoExpandNode(String id, boolean user_request) {
+    boolean getAutoExpandNode(TCFNode node, boolean user_request) {
+        String id = node.id;
+        node.getParent();
         Boolean expand = null;
         synchronized(expanded_nodes) {
-            expand = id != null ? expanded_nodes.get(id) : null;
+            expand = expanded_nodes.get(id);
             if (expand == null) {
                 if (user_request) {
                     expand = Boolean.FALSE;
                 }
                 else {
                     expand = Boolean.TRUE;
-                    if (id != null) expanded_nodes.put(id, is_linux);
+                    while (node != null) {
+                        expanded_nodes.put(node.getID(), is_linux);
+                        node = node.getParent();
+                    }
                 }
             }
         }
@@ -486,10 +490,13 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 public void run() {
                     if (save_expand_state != null && save_expand_state.size() > 0) {
                         if (viewer instanceof IInternalTreeModelViewer) {
-                            IInternalTreeModelViewer tree_viwer = (IInternalTreeModelViewer)viewer;
                             final Set<String> expanded = new HashSet<String>();
                             for (TCFNode node : save_expand_state) {
-                                if (tree_viwer.getExpandedState(node)) expanded.add(node.id);
+                                if (getExpandedState(node) || 
+                                    Boolean.TRUE.equals(expanded_nodes.get(node.getID())) ) 
+                                {
+                                    expanded.add(node.id);
+                                }
                             }
                             if (expanded.size() > 0) {
                                 Protocol.invokeLater(new Runnable() {
@@ -507,6 +514,15 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         }
     }
 
+    private boolean getExpandedState(TCFNode node) {
+        IInternalTreeModelViewer tree_viewer = (IInternalTreeModelViewer)viewer;
+        Object element = node;
+        if (node instanceof TCFNodeLaunch) {
+            element = node.getModel().getLaunch();
+        }
+        return tree_viewer.getExpandedState(element);
+    }
+    
     private void postDelta() {
         assert Protocol.isDispatchThread();
         if (disposed) return;
@@ -620,8 +636,15 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     }
 
     private void updateExpandStack(TreeExpansionEvent event, final boolean expand) {
-        if (event.getElement() instanceof TCFNodeExecContext) {
-            TCFNodeExecContext node = (TCFNodeExecContext)event.getElement();
+        Object element = event.getElement();
+        TCFNode node = null;
+        if (element instanceof TCFNode) {
+            node = (TCFNode)element;
+        } 
+        if (element instanceof TCFLaunch) {
+            node = model.getRootNode();
+        }
+        if (node != null) {
             if (model == node.getModel()) expanded_nodes.put(node.id, expand);
         }
     }

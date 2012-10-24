@@ -142,6 +142,7 @@ public class TCFNodeLaunch extends TCFNode implements ISymbolOwner {
                 }
             }
         }
+        model.setDebugViewSelection(this, IRunControl.REASON_USER_REQUEST);
         children.onContextAdded(context);
     }
 

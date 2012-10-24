@@ -933,14 +933,14 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             TCFNode node = getNode(id);
             if (node instanceof TCFNodeExecContext) {
                 ((TCFNodeExecContext)node).onContextRemoved();
-                for (TCFModelProxy p : model_proxies) p.saveExpandState(node);
+                for (TCFModelProxy p : model_proxies) {
+                    p.saveExpandState(node);
+                    p.clearAutoExpandStack(id);
+                }
             }
             action_results.remove(id);
             Object o = context_map.remove(id);
             if (o instanceof CreateNodeRunnable) ((CreateNodeRunnable)o).onContextRemoved();
-            for (TCFModelProxy proxy : model_proxies) {
-                proxy.clearAutoExpandStack(id);
-            }
             if (mem_blocks_update != null) mem_blocks_update.changeset.remove(id);
         }
 
@@ -1602,7 +1602,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             reason.equals(IRunControl.REASON_STEP) ||
             reason.equals(IRunControl.REASON_CONTAINER) ||
             delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
-        if (proxy.getAutoExpandNode(node.id, user_request)) proxy.expand(node);
+        if (proxy.getAutoExpandNode(node, user_request)) proxy.expand(node);
         if (reason.equals(IRunControl.REASON_USER_REQUEST)) return;
         proxy.setSelection(node);
     }
