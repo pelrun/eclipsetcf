@@ -54,7 +54,7 @@ public class EditorQuickFilterTester extends PropertyTester {
 		if (decorator == null && element instanceof IAdaptable) {
 			decorator = (IFilterable) ((IAdaptable) element).getAdapter(IFilterable.class);
 		}
-		if (decorator == null) {
+		if (decorator == null && element != null) {
 			decorator = (IFilterable) Platform.getAdapterManager()
 			                .getAdapter(element, IFilterable.class);
 		}
