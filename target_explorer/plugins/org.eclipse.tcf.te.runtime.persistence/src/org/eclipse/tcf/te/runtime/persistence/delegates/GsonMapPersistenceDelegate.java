@@ -193,8 +193,11 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			data = gson.fromJson((String)container, Map.class);
 		}
 
-		if (data != null && data.containsKey(VARIABLES)) {
-			Map<String,String> variables = (Map<String,String>)data.remove(VARIABLES);
+		if (data != null) {
+			Map<String,String> variables = new HashMap<String, String>();
+			if (data.containsKey(VARIABLES)) {
+				variables = (Map<String,String>)data.remove(VARIABLES);
+			}
 			IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
 			for (IVariableDelegate delegate : delegates) {
 				data = delegate.putVariables(data, variables);
