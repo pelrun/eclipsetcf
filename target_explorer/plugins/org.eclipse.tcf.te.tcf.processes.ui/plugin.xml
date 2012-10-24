@@ -221,22 +221,6 @@
          </command>
       </menuContribution>
 
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.properties">
-         <command
-               commandId="org.eclipse.ui.file.properties"
-               id="properties"
-               label="%command.properties.label.1">
-            <visibleWhen>
-               <with variable="selection">
-                  <count value="1"/>
-                  <iterate ifEmpty="false" operator="and">
-                     <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-     
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?before=additions">
          <command
                commandId="org.eclipse.tcf.te.tcf.processes.ui.command.refreshViewer"

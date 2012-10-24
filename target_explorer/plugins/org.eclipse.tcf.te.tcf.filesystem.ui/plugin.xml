@@ -942,32 +942,6 @@
          </command>
       </menuContribution>
       
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.properties">
-         <command
-               commandId="org.eclipse.ui.file.properties"
-               helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Properties"
-               id="properties"
-               label="%PropertiesAction.label"
-               tooltip="%PropertiesAction.tooltip">
-               <visibleWhen>
-                  <with variable="selection">
-                     <count value="1"/>
-                     <iterate operator="and" ifEmpty="false">
-                        <and>
-                           <instanceof
-                                 value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
-                           </instanceof>
-                           <not>
-                              <test
-                                    property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot">
-                              </test>
-                           </not>
-                        </and>
-                     </iterate>
-                  </with>
-               </visibleWhen>
-         </command>
-      </menuContribution>
       <menuContribution
             locationURI="toolbar:org.eclipse.tcf.te.tcf.filesystem.FSExplorerEditorPage?before=additions">
          <command
