@@ -613,23 +613,27 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     };
 
     private class InitialSelection implements Runnable {
+        final TCFModelProxy proxy;
         boolean done;
+        InitialSelection(TCFModelProxy proxy) {
+            this.proxy = proxy;
+        }
         public void run() {
             if (done) return;
             if (launch_node != null) {
                 ArrayList<TCFNodeExecContext> nodes = new ArrayList<TCFNodeExecContext>();
                 if (!searchSuspendedThreads(launch_node.getFilteredChildren(), nodes)) return;
                 if (nodes.size() == 0) {
-                    setDebugViewSelection(launch_node, "Launch");
+                    setDebugViewSelectionForProxy(proxy, launch_node, "Launch");
                 }
                 else if (nodes.size() == 1) {
                     TCFNodeExecContext n = nodes.get(0);
-                    setDebugViewSelection(n, "Launch");
+                    setDebugViewSelectionForProxy(proxy, n, "Launch");
                 }
                 else {
                     for (TCFNodeExecContext n : nodes) {
                         String reason = n.getState().getData().suspend_reason;
-                        setDebugViewSelection(n, reason);
+                        setDebugViewSelectionForProxy(proxy, n, reason);
                     }
                 }
             }
@@ -792,7 +796,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         for (TCFModelProxy p : model_proxies) {
             String id = p.getPresentationContext().getId();
             if (IDebugUIConstants.ID_DEBUG_VIEW.equals(id)) {
-                Protocol.invokeLater(new InitialSelection());
+                Protocol.invokeLater(new InitialSelection(p));
             }
         }
     }
@@ -916,7 +920,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         IPresentationContext pc = mp.getPresentationContext();
         model_proxies.add(mp);
         if (launch_node != null && pc.getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) {
-            Protocol.invokeLater(new InitialSelection());
+            Protocol.invokeLater(new InitialSelection(mp));
         }
     }
 
@@ -1567,14 +1571,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         if (reason == null) return;
         for (TCFModelProxy proxy : model_proxies) {
             if (proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) {
-                boolean user_request =
-                    reason.equals(IRunControl.REASON_USER_REQUEST) ||
-                    reason.equals(IRunControl.REASON_STEP) ||
-                    reason.equals(IRunControl.REASON_CONTAINER) ||
-                    delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
-                if (proxy.getAutoExpandNode(node.id, user_request)) proxy.expand(node);
-                if (reason.equals(IRunControl.REASON_USER_REQUEST)) continue;
-                proxy.setSelection(node);
+                setDebugViewSelectionForProxy(proxy, node, reason);
             }
             if (reason.equals(IRunControl.REASON_BREAKPOINT)) {
                 IWorkbenchPart part = proxy.getPresentationContext().getPart();
@@ -1585,6 +1582,29 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 }
             }
         }
+    }
+    
+    /**
+     * Sets the selection in debug view for a given debug view instance.
+     * @param proxy - model proxy for a given debug view instance
+     * @param node - model node that represents the debug context.
+     * @param reason - suspend reason.
+     */
+    public void setDebugViewSelectionForProxy(TCFModelProxy proxy, TCFNode node, String reason) {
+        assert Protocol.isDispatchThread();
+        if (!proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) return;
+        if (node == null) return;
+        if (node.isDisposed()) return;
+        if (reason == null) return;
+        
+        boolean user_request =
+            reason.equals(IRunControl.REASON_USER_REQUEST) ||
+            reason.equals(IRunControl.REASON_STEP) ||
+            reason.equals(IRunControl.REASON_CONTAINER) ||
+            delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
+        if (proxy.getAutoExpandNode(node.id, user_request)) proxy.expand(node);
+        if (reason.equals(IRunControl.REASON_USER_REQUEST)) return;
+        proxy.setSelection(node);
     }
 
     /**
