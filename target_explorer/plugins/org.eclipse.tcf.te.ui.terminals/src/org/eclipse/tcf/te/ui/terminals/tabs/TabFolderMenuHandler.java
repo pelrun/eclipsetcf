@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
+import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IMenuListener2;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
@@ -68,9 +69,27 @@ public class TabFolderMenuHandler extends PlatformObject {
 		 */
 		@Override
 		public void menuAboutToShow(IMenuManager manager) {
+			removeInvalidContributions(manager);
 			updateMenuItems(true);
 		}
-
+		
+		/**
+		 * Bug 392249: Remove contributions that appear in the context in Eclipse 4.x which are
+		 * not visible in Eclipse 3.8.x. Re-evaluate from time to time!
+		 * 
+		 * @param manager The menu manager or <code>null</code>
+		 */
+		private void removeInvalidContributions(IMenuManager manager) {
+			if (manager == null) return;
+			
+			IContributionItem[] items = manager.getItems();
+			for (IContributionItem item : items) {
+				String id = item.getId();
+				if (id != null && id.startsWith("org.eclipse.cdt")) { //$NON-NLS-1$
+					manager.remove(item);
+				}
+			}
+		}
 	}
 
 	/**
@@ -134,8 +153,12 @@ public class TabFolderMenuHandler extends PlatformObject {
 
 		// Create the menu manager if not done before
 		contextMenuManager = new MenuManager("#PopupMenu"); //$NON-NLS-1$
-		// Create and associated the menu listener
-		contextMenuManager.addMenuListener(new MenuListener());
+		
+		// Bug 392249: Register our menu listener after registering the context menu
+		//             for contributions. That way we can use our menu listener to get
+		//             rid of unwanted/misguided contributions. At least until this is
+		//             fixed in the Eclipse 4.x platform.
+		
 		// Create the context menu
 		contextMenu = contextMenuManager.createContextMenu(tabFolder);
 
@@ -147,6 +170,9 @@ public class TabFolderMenuHandler extends PlatformObject {
 
 		// Register to the view site to open the menu for contributions
 		getParentView().getSite().registerContextMenu(contextMenuManager, getParentView().getSite().getSelectionProvider());
+
+		// Create and associated the menu listener
+		contextMenuManager.addMenuListener(new MenuListener());
 	}
 
 	/**
