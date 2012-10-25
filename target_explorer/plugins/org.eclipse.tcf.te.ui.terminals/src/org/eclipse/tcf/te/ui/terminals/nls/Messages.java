@@ -70,6 +70,9 @@ public class Messages extends NLS {
 	public static String ToggleCommandFieldAction_menu;
 	public static String ToggleCommandFieldAction_toolTip;
 
+	public static String SelectEncodingAction_menu;
+	public static String SelectEncodingAction_tooltip;
+
 	public static String ProcessSettingsPage_dialogTitle;
 	public static String ProcessSettingsPage_processImagePathSelectorControl_label;
 	public static String ProcessSettingsPage_processImagePathSelectorControl_button;
@@ -92,6 +95,8 @@ public class Messages extends NLS {
 
     public static String LaunchTerminalSettingsDialog_error_title;
 	public static String LaunchTerminalSettingsDialog_error_invalidSettings;
+
+	public static String EncodingSelectionDialog_title;
 
 	public static String TabFolderManager_encoding;
 	public static String TabFolderManager_state_connected;

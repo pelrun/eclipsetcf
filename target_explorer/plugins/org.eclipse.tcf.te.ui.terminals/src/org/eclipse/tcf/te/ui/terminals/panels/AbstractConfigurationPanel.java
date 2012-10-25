@@ -517,7 +517,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	protected void setEncoding(String encoding) {
 		Assert.isNotNull(encoding);
 
-		int index = SWTControlUtil.indexOf(encodingCombo, encoding);
+		int index = SWTControlUtil.indexOf(encodingCombo, "ISO-8859-1".equals(encoding) ? "Default (ISO-8859-1)" : encoding); //$NON-NLS-1$ //$NON-NLS-2$
 		if (index != -1) SWTControlUtil.select(encodingCombo, index);
 		else SWTControlUtil.setText(encodingCombo, encoding);
 	}

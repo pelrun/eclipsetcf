@@ -26,4 +26,9 @@ public interface IContextHelpIds {
 	 * Launch terminal settings dialog.
 	 */
 	public final static String LAUNCH_TERMINAL_SETTINGS_DIALOG = PREFIX + "LaunchTerminalSettingsDialog"; //$NON-NLS-1$
+
+	/**
+	 * Terminal control encoding selection dialog.
+	 */
+	public final static String ENCODING_SELECTION_DIALOG = PREFIX + "EncodingSelectionDialog"; //$NON-NLS-1$
 }

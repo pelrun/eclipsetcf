@@ -21,6 +21,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.tcf.te.ui.terminals.actions.SelectEncodingAction;
 import org.eclipse.tcf.te.ui.terminals.actions.TabScrollLockAction;
 import org.eclipse.tcf.te.ui.terminals.actions.ToggleCommandFieldAction;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
@@ -238,6 +239,17 @@ public class TabFolderMenuHandler extends PlatformObject {
 				return getActiveTerminalViewControl();
 			}
 		});
+
+		// Create and add the select encoding action
+		add (new SelectEncodingAction((TabFolderManager)getParentView().getAdapter(TabFolderManager.class)) {
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.internal.terminal.control.actions.AbstractTerminalAction#getTarget()
+			 */
+			@Override
+			protected ITerminalViewControl getTarget() {
+				return getActiveTerminalViewControl();
+			}
+		});
 	}
 
 	/**
@@ -278,6 +290,10 @@ public class TabFolderMenuHandler extends PlatformObject {
 			}
 			// Add a separator after the select all action
 			if (action instanceof TerminalActionSelectAll) {
+				manager.add(new Separator());
+			}
+			// Add a separator after the scroll lock action
+			if (action instanceof TabScrollLockAction) {
 				manager.add(new Separator());
 			}
 		}

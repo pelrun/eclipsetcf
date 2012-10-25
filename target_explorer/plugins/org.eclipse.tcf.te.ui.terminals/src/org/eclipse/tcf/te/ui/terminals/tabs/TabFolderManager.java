@@ -854,7 +854,7 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	/**
 	 * Update the parent view status line.
 	 */
-	protected void updateStatusLine() {
+	public final void updateStatusLine() {
 		String message = null;
 		IStatusLineManager manager = parentView.getViewSite().getActionBars().getStatusLineManager();
 
