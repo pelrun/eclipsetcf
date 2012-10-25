@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
@@ -21,6 +22,7 @@ import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.listener.RuntimeModelProcessServiceListener;
+import org.eclipse.tcf.te.tcf.processes.core.model.runtime.listener.RuntimeModelRunControlServiceListener;
 
 /**
  * Runtime model channel service implementation.
@@ -30,6 +32,8 @@ public class RuntimeModelChannelService extends AbstractModelService<IRuntimeMod
 	/* default */ IChannel channel;
 	// Reference to the process service listener
 	/* default */ IProcesses.ProcessesListener serviceListener;
+	// Reference to the run control service listener
+	/* default */ IRunControl.RunControlListener runControlListener;
 
 	/**
 	 * Constructor.
@@ -80,6 +84,15 @@ public class RuntimeModelChannelService extends AbstractModelService<IRuntimeMod
 							service.addListener(serviceListener);
 						}
 					}
+					// Attach the run control service listener instance
+					if (error == null && runControlListener == null) {
+						IRunControl service = channel.getRemoteService(IRunControl.class);
+						if (service != null) {
+							runControlListener = new RuntimeModelRunControlServiceListener(getModel());
+							service.addListener(runControlListener);
+						}
+					}
+
 					done.doneOpenChannel(error, channel);
 				}
 			});

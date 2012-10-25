@@ -1,0 +1,117 @@
+/*******************************************************************************
+ * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * This program and the accompanying materials are made available under the terms
+ * of the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * Wind River Systems - initial API and implementation
+ *******************************************************************************/
+package org.eclipse.tcf.te.tcf.processes.core.model.runtime.listener;
+
+import java.util.Map;
+
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.services.IRunControl.RunControlContext;
+import org.eclipse.tcf.services.IRunControl.RunControlListener;
+import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+
+/**
+ * Run control service runtime model service listener implementation.
+ */
+public class RuntimeModelRunControlServiceListener implements RunControlListener {
+	// Reference to the parent model
+	private final IRuntimeModel model;
+
+	/**
+     * Constructor.
+     */
+    public RuntimeModelRunControlServiceListener(IRuntimeModel model) {
+    	Assert.isNotNull(model);
+    	this.model = model;
+    }
+
+	/**
+	 * Returns the parent runtime model.
+	 *
+	 * @return The parent runtime model.
+	 */
+	public final IRuntimeModel getModel() {
+		return model;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#contextAdded(org.eclipse.tcf.services.IRunControl.RunControlContext[])
+	 */
+	@Override
+	public void contextAdded(RunControlContext[] contexts) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#contextChanged(org.eclipse.tcf.services.IRunControl.RunControlContext[])
+	 */
+	@Override
+	public void contextChanged(RunControlContext[] contexts) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#contextRemoved(java.lang.String[])
+	 */
+	@Override
+	public void contextRemoved(String[] context_ids) {
+		// If a run control context is removed from run control (detach),
+		// and the context is known to our model, refresh the context as
+		// we do not get events from the process service if the attach state changed.
+		if (context_ids != null && context_ids.length > 0) {
+			IModelLookupService lkupService = model.getService(IModelLookupService.class);
+			IModelRefreshService refreshService = model.getService(IModelRefreshService.class);
+			for (String contextID : context_ids) {
+				IModelNode[] candidates = lkupService.lkupModelNodesById(contextID);
+				if (candidates != null && candidates.length > 0) {
+					for (IModelNode node : candidates) {
+						refreshService.refresh(node, null);
+					}
+				}
+			}
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#contextSuspended(java.lang.String, java.lang.String, java.lang.String, java.util.Map)
+	 */
+	@Override
+	public void contextSuspended(String context, String pc, String reason, Map<String, Object> params) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#contextResumed(java.lang.String)
+	 */
+	@Override
+	public void contextResumed(String context) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#containerSuspended(java.lang.String, java.lang.String, java.lang.String, java.util.Map, java.lang.String[])
+	 */
+	@Override
+	public void containerSuspended(String context, String pc, String reason, Map<String, Object> params, String[] suspended_ids) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#containerResumed(java.lang.String[])
+	 */
+	@Override
+	public void containerResumed(String[] context_ids) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.services.IRunControl.RunControlListener#contextException(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void contextException(String context, String msg) {
+	}
+
+}
