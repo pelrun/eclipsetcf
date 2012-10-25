@@ -196,6 +196,14 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     }
 
     /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.Dialog#isResizable()
+     */
+    @Override
+    protected boolean isResizable() {
+        return true;
+    }
+
+    /* (non-Javadoc)
      * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
      */
     @Override
