@@ -12,7 +12,7 @@
             allowMultiple="true"
             category="org.eclipse.tcf.te.ui.views.category"
             class="org.eclipse.tcf.te.ui.terminals.view.TerminalsView"
-            icon="platform:/plugin/org.eclipse.ui.console/icons/full/eview16/console_view.gif"
+            icon="icons/eview16/terminal_view.gif"
             id="org.eclipse.tcf.te.ui.terminals.TerminalsView"
             name="%TerminalsView.name">
       </view>
