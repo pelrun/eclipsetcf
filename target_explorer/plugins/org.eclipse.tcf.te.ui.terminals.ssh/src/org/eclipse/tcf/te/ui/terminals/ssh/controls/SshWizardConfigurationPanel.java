@@ -149,9 +149,10 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				if (password != null) {
 					sshSettings.setPassword(password);
 				}
-				if (hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING) != null) {
-					setEncoding(hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING));
-				}
+
+				String encoding = hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING);
+				if (encoding == null || "null".equals(encoding)) encoding = "ISO-8859-1"; //$NON-NLS-1$ //$NON-NLS-2$
+				setEncoding(encoding);
 			} else {
 				sshSettings.setHost(getSelectionHost());
 				sshSettings.setUser(getDefaultUser());
