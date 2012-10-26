@@ -13,13 +13,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.ui.async.UICallbackInvocationDelegate;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
+import org.eclipse.tcf.te.ui.terminals.actions.PinTerminalAction;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
+import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderToolbarHandler;
 import org.eclipse.ui.IMemento;
 
 /**
@@ -55,6 +62,9 @@ public class TerminalsViewMementoHandler {
 		// connection info of the open, non-terminated tab items
 		memento = memento.createChild("terminalConnections"); //$NON-NLS-1$
 		Assert.isNotNull(memento);
+
+		// Save the pinned state
+		memento.putBoolean("pinned", view.isPinned()); //$NON-NLS-1$
 
 		// Loop the saveable items and store the connection data of each
 		// item to the memento
@@ -103,13 +113,35 @@ public class TerminalsViewMementoHandler {
 	 * @param view The terminals view. Must not be <code>null</code>.
 	 * @param memento The memento. Must not be <code>null</code>.
 	 */
-	protected void restoreState(TerminalsView view, IMemento memento) {
+	protected void restoreState(final TerminalsView view, IMemento memento) {
 		Assert.isNotNull(view);
 		Assert.isNotNull(memento);
 
 		// Get the "terminalConnections" memento
 		memento = memento.getChild("terminalConnections"); //$NON-NLS-1$
 		if (memento != null) {
+			final IMemento finMemento = memento;
+			// Restore the pinned state of the after all connections completed
+			AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
+				@Override
+				protected void internalDone(Object caller, IStatus status) {
+					// Restore the pinned state
+					if (finMemento.getBoolean("pinned") != null) { //$NON-NLS-1$
+						DisplayUtil.safeAsyncExec(new Runnable() {
+							@Override
+							public void run() {
+								view.setPinned(finMemento.getBoolean("pinned").booleanValue()); //$NON-NLS-1$
+
+								TabFolderToolbarHandler toolbarHandler = (TabFolderToolbarHandler)view.getAdapter(TabFolderToolbarHandler.class);
+								if (toolbarHandler != null) {
+									PinTerminalAction action = (PinTerminalAction)toolbarHandler.getAdapter(PinTerminalAction.class);
+									if (action != null) action.setChecked(view.isPinned());
+								}
+							}
+						});
+					}
+				}
+			}, new UICallbackInvocationDelegate());
 			// Get all the "connection" memento's.
 			IMemento[] connections = memento.getChildren("connection"); //$NON-NLS-1$
 			for (IMemento connection : connections) {
@@ -133,9 +165,11 @@ public class TerminalsViewMementoHandler {
 
                 // Restore the terminal connection
                 if (delegate != null && !properties.isEmpty()) {
-                	delegate.execute(properties, null);
+                	delegate.execute(properties, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
                 }
 			}
+
+			collector.initDone();
 		}
 	}
 }

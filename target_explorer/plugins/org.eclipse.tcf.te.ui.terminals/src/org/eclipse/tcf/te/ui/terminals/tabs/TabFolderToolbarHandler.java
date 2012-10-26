@@ -342,6 +342,14 @@ public class TabFolderToolbarHandler extends PlatformObject {
 		if (IToolBarManager.class.isAssignableFrom(adapter)) {
 			return toolbarManager;
 		}
+
+		// Try the toolbar actions
+		for (AbstractTerminalAction action : toolbarActions) {
+			if (adapter.isAssignableFrom(action.getClass())) {
+				return action;
+			}
+		}
+
 		// Try the parent view
 		Object adapted = getParentView().getAdapter(adapter);
 		if (adapted != null) {
