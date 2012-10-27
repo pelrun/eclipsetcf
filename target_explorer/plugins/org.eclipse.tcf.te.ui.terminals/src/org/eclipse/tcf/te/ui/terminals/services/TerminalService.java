@@ -41,12 +41,13 @@ public class TerminalService extends AbstractService implements ITerminalService
 		 * Invoked to execute the terminal service runnable.
 		 *
 		 * @param id The terminals view id or <code>null</code>.
+		 * @param secondaryId The terminals view secondary id or <code>null</code>.
 		 * @param title The terminal tab title. Must not be <code>null</code>.
 		 * @param connector The terminal connector. Must not be <code>null</code>.
 		 * @param data The custom terminal data node or <code>null</code>.
 		 * @param callback The target callback to invoke if the operation finished or <code>null</code>.
 		 */
-		public abstract void run(String id, String title, ITerminalConnector connector, Object data, ICallback callback);
+		public abstract void run(String id, String secondaryId, String title, ITerminalConnector connector, Object data, ICallback callback);
 
 		/**
 		 * Returns if or if not to execute the runnable asynchronously.
@@ -73,6 +74,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 
 		// Extract the properties
 		String id = properties.getStringProperty(ITerminalsConnectorConstants.PROP_ID);
+		String secondaryId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_SECONDARY_ID);
 		String title = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TITLE);
 		Object data = properties.getProperty(ITerminalsConnectorConstants.PROP_DATA);
 
@@ -93,18 +95,19 @@ public class TerminalService extends AbstractService implements ITerminalService
 
 		// Finalize the used variables
 		final String finId = id;
+		final String finSecondaryId = secondaryId;
 		final String finTitle = title;
 		final Object finData = data;
 
 		// Execute the operation
 		if (!runnable.isExecuteAsync()) {
-			runnable.run(finId, finTitle, connector, finData, callback);
+			runnable.run(finId, finSecondaryId, finTitle, connector, finData, callback);
 		}
 		else {
 			DisplayUtil.safeAsyncExec(new Runnable() {
 				@Override
                 public void run() {
-					runnable.run(finId, finTitle, connector, finData, callback);
+					runnable.run(finId, finSecondaryId, finTitle, connector, finData, callback);
 				}
 			});
 		}
@@ -173,13 +176,13 @@ public class TerminalService extends AbstractService implements ITerminalService
 
 		executeServiceOperation(properties, new TerminalServiceRunnable() {
 			@Override
-			public void run(String id, String title, ITerminalConnector connector, Object data, ICallback callback) {
+			public void run(String id, String secondaryId, String title, ITerminalConnector connector, Object data, ICallback callback) {
 				// Determine if a new terminal tab shall be enforced
 				boolean forceNew = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW);
 				// Determine the terminal encoding
 				String encoding = properties.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
 				// Open the new console
-				CTabItem item = ConsoleManager.getInstance().openConsole(id, title, encoding, connector, data, true, forceNew);
+				CTabItem item = ConsoleManager.getInstance().openConsole(id, secondaryId, title, encoding, connector, data, true, forceNew);
 				// Associate the original terminal properties with the tab item.
 				// This makes it easier to persist the connection data within the memento handler
 				if (item != null) item.setData("properties", properties); //$NON-NLS-1$
@@ -198,7 +201,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 
 		executeServiceOperation(properties, new TerminalServiceRunnable() {
 			@Override
-			public void run(String id, String title, ITerminalConnector connector, Object data, ICallback callback) {
+			public void run(String id, String secondaryId, String title, ITerminalConnector connector, Object data, ICallback callback) {
 				// Close the console
 				ConsoleManager.getInstance().closeConsole(id, title, connector, data);
 				// Invoke the callback
@@ -216,7 +219,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 
 		executeServiceOperation(properties, new TerminalServiceRunnable() {
 			@Override
-			public void run(String id, String title, ITerminalConnector connector, Object data, ICallback callback) {
+			public void run(String id, String secondaryId, String title, ITerminalConnector connector, Object data, ICallback callback) {
 				// Close the console
 				ConsoleManager.getInstance().terminateConsole(id, title, connector, data);
 				// Invoke the callback

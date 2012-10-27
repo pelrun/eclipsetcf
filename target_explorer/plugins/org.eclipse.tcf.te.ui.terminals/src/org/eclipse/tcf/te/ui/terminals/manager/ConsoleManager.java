@@ -217,11 +217,12 @@ public class ConsoleManager {
 	 * Search and return the first available terminal view.
 	 *
 	 * @param id The terminals console view id. Must not be <code>null</code>.
+	 * @param secondaryId The terminals console view secondary id or <code>null</code>.
 	 * @param useActive - return only an active terminal view.
 	 *
 	 * @return The terminals console view instance or <code>null</code> if not found.
 	 */
-	private IViewPart getFirstTerminalsView(String id, boolean useActive) {
+	private IViewPart getFirstTerminalsView(String id, String secondaryId, boolean useActive) {
 		Assert.isNotNull(id);
 
 		IWorkbenchPage page = getActiveWorkbenchPage();
@@ -230,14 +231,16 @@ public class ConsoleManager {
 		for (int i = 0; i < refs.length; i++) {
 			IViewReference ref = refs[i];
 			if (ref.getId().equals(id)) {
-				IViewPart part = ref.getView(true);
-				if (useActive) {
-					if (page.isPartVisible(part)) {
+				if (secondaryId == null || secondaryId.equals(ref.getSecondaryId())) {
+					IViewPart part = ref.getView(true);
+					if (useActive) {
+						if (page.isPartVisible(part)) {
+							return part;
+						}
+					}
+					else {
 						return part;
 					}
-				}
-				else {
-					return part;
 				}
 			}
 		}
@@ -322,18 +325,19 @@ public class ConsoleManager {
 	 * Bring the terminals console view, specified by the given id, to the top of the view stack.
 	 *
 	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
+	 * @param secondaryId The terminals console view secondary id or <code>null</code>.
 	 * @param activate If <code>true</code> activate the console view.
 	 */
-	private IViewPart bringToTop(String id, boolean activate) {
+	private IViewPart bringToTop(String id, String secondaryId, boolean activate) {
 		// Get the active workbench page
 		IWorkbenchPage page = getActiveWorkbenchPage();
 		if (page != null) {
 			// Look for any terminal view
-			IViewPart anyTerminal = getFirstTerminalsView(id != null ? id : IUIConstants.ID, false);
+			IViewPart anyTerminal = getFirstTerminalsView(id != null ? id : IUIConstants.ID, secondaryId, false);
 			// there is at least one terminal available
 			if (anyTerminal != null) {
 				// is there an active terminal view
-				IViewPart activePart = getFirstTerminalsView(id != null ? id : IUIConstants.ID, true);
+				IViewPart activePart = getFirstTerminalsView(id != null ? id : IUIConstants.ID, secondaryId, true);
 				// no terminal view active
 				if (activePart == null) {
 					// use the first not pinned
@@ -353,7 +357,7 @@ public class ConsoleManager {
 				}
 				// we found a active terminal page
 				// if it is pinned search for a non pinned (not active)
-				if (((ITerminalsView) activePart).isPinned()) {
+				if (((ITerminalsView) activePart).isPinned() && secondaryId == null) {
 					// we found one so use it
 					IViewPart notPinnedPart = getFirstNotPinnedTerminalsView(id != null ? id : IUIConstants.ID);
 					if (notPinnedPart != null) {
@@ -395,12 +399,30 @@ public class ConsoleManager {
 	 * @param forceNew If <code>true</code> a new console tab is created even if another one matches the criteria.
 	 */
 	public CTabItem openConsole(String id, String title, String encoding, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
+		return openConsole(id, null, title, encoding, connector, data, activate, forceNew);
+	}
+
+	/**
+	 * Opens the console with the given title and connector.
+	 * <p>
+	 * <b>Note:</b> The method must be called within the UI thread.
+	 *
+	 * @param id The terminals console view id or <code>null</code> to show the default terminals console view.
+	 * @param secondaryId The terminals console view secondary id or <code>null</code>.
+	 * @param title The console title. Must not be <code>null</code>.
+	 * @param encoding The terminal encoding or <code>null</code>.
+	 * @param connector The terminal connector. Must not be <code>null</code>.
+	 * @param data The custom terminal data node or <code>null</code>.
+	 * @param activate If <code>true</code> activate the console view.
+	 * @param forceNew If <code>true</code> a new console tab is created even if another one matches the criteria.
+	 */
+	public CTabItem openConsole(String id, String secondaryId, String title, String encoding, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
 		Assert.isNotNull(Display.findDisplay(Thread.currentThread()));
 
 		// Make the consoles view visible
-		IViewPart part = bringToTop(id, activate);
+		IViewPart part = bringToTop(id, secondaryId, activate);
 		if (!(part instanceof ITerminalsView)) return null;
 		// Cast to the correct type
 		ITerminalsView view = (ITerminalsView)part;

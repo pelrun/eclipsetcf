@@ -406,8 +406,9 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 
 		ITerminalViewControl terminal = (ITerminalViewControl)oldItem.getData();
 		ITerminalConnector connector = terminal.getTerminalConnector();
-		Object data=oldItem.getData("customData"); //$NON-NLS-1$
-		String title=oldItem.getText();
+		Object data = oldItem.getData("customData"); //$NON-NLS-1$
+		IPropertiesContainer properties = (IPropertiesContainer)oldItem.getData("properties"); //$NON-NLS-1$
+		String title = oldItem.getText();
 
 		// The result tab item
 		CTabItem item = null;
@@ -446,8 +447,10 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 
 			item.setData(terminal);
 
-			// Associated the custom data node with the tab item (if any)
+			// Associate the custom data node with the tab item (if any)
 			if (data != null) item.setData("customData", data); //$NON-NLS-1$
+			// Associate the properties with the tab item (if any)
+			if (properties != null) item.setData("properties", properties); //$NON-NLS-1$
 
 			// Overwrite the text canvas help id
 			String contextHelpId = getParentView().getContextHelpId();

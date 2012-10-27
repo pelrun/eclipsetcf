@@ -21,6 +21,11 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_ID = "id"; //$NON-NLS-1$
 
 	/**
+	 * Property: The unique secondary id of the terminals view to open.
+	 */
+	public static final String PROP_SECONDARY_ID = "secondaryId"; //$NON-NLS-1$
+
+	/**
 	 * Property: The title of the terminal tab to open.
 	 */
 	public static final String PROP_TITLE = "title"; //$NON-NLS-1$

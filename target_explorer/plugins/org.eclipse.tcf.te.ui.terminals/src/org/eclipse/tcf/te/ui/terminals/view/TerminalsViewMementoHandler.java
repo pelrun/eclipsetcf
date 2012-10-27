@@ -63,6 +63,10 @@ public class TerminalsViewMementoHandler {
 		memento = memento.createChild("terminalConnections"); //$NON-NLS-1$
 		Assert.isNotNull(memento);
 
+		// Write the view id and secondary id
+		memento.putString("id", view.getViewSite().getId()); //$NON-NLS-1$
+		memento.putString("secondaryId", view.getViewSite().getSecondaryId()); //$NON-NLS-1$
+
 		// Save the pinned state
 		memento.putBoolean("pinned", view.isPinned()); //$NON-NLS-1$
 
@@ -120,6 +124,11 @@ public class TerminalsViewMementoHandler {
 		// Get the "terminalConnections" memento
 		memento = memento.getChild("terminalConnections"); //$NON-NLS-1$
 		if (memento != null) {
+			// Read view id and secondary id
+			String id = memento.getString("id"); //$NON-NLS-1$
+			String secondaryId = memento.getString("secondaryId"); //$NON-NLS-1$
+			if ("null".equals(secondaryId)) secondaryId = null; //$NON-NLS-1$
+
 			final IMemento finMemento = memento;
 			// Restore the pinned state of the after all connections completed
 			AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
@@ -147,6 +156,10 @@ public class TerminalsViewMementoHandler {
 			for (IMemento connection : connections) {
 				// Create the properties container that holds the terminal properties
 				IPropertiesContainer properties = new PropertiesContainer();
+
+				// Set the view id attributes
+				properties.setProperty(ITerminalsConnectorConstants.PROP_ID, id);
+				properties.setProperty(ITerminalsConnectorConstants.PROP_SECONDARY_ID, secondaryId);
 
 				// Restore the common attributes
 				properties.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, connection.getString(ITerminalsConnectorConstants.PROP_DELEGATE_ID));
