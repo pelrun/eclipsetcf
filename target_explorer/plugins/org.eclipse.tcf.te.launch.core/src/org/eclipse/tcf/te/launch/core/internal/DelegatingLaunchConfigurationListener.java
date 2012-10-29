@@ -17,14 +17,14 @@ import org.eclipse.tcf.te.launch.core.lm.LaunchManager;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchManagerDelegate;
 
 /**
- * LaunchConfigurationListenerDelegate
+ * DelegatingLaunchConfigurationListener
  */
-public class LaunchConfigurationListenerDelegate implements ILaunchConfigurationListener {
+public class DelegatingLaunchConfigurationListener implements ILaunchConfigurationListener {
 
 	/**
 	 * Constructor.
 	 */
-	public LaunchConfigurationListenerDelegate() {
+	public DelegatingLaunchConfigurationListener() {
 	}
 
 	/* (non-Javadoc)

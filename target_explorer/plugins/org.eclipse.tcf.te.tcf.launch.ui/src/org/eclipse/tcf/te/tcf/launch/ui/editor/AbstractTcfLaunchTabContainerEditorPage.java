@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor;
 
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,10 @@ import org.eclipse.tcf.te.launch.core.lm.LaunchSpecification;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.launch.ui.editor.AbstractLaunchTabContainerEditorPage;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
@@ -44,6 +49,8 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 
 	protected static final String PROP_LAUNCH_CONFIG_WC = "launchConfigWorkingCopy.transient.silent"; //$NON-NLS-1$
 	protected static final String PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES = "launchConfigAttributes.transient.silent"; //$NON-NLS-1$
+
+	private IEventListener eventListener = null;
 
 	/**
 	 * Get the peer model from the editor input.
@@ -162,8 +169,49 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 		}
 
 		setDirty(dirty);
-		getManagedForm().dirtyStateChanged();
+		ExecutorsUtil.executeInUI(new Runnable() {
+			@Override
+			public void run() {
+				getManagedForm().dirtyStateChanged();
+			}
+		});
 		return dirty;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.launch.ui.editor.AbstractLaunchTabContainerEditorPage#setActive(boolean)
+	 */
+	@Override
+	public void setActive(boolean active) {
+		super.setActive(active);
+
+		if (eventListener == null) {
+			eventListener = new IEventListener() {
+				@Override
+				public void eventFired(EventObject event) {
+					if (event instanceof ChangeEvent && IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES.equals(((ChangeEvent)event).getEventId())) {
+						if (event.getSource() instanceof IPeerModel && getPeerModel(getEditorInput()).getUUID().equals(((IPeerModel)event.getSource()).getUUID())) {
+							Protocol.invokeAndWait(new Runnable() {
+								@Override
+								public void run() {
+									IPropertiesAccessService service = ServiceManager.getInstance().getService(getPeerModel(getEditorInput()), IPropertiesAccessService.class);
+									Assert.isNotNull(service);
+									service.setProperty(getPeerModel(getEditorInput()), PROP_LAUNCH_CONFIG_WC, null);
+									service.setProperty(getPeerModel(getEditorInput()), PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, null);
+								}
+							});
+							ExecutorsUtil.executeInUI(new Runnable() {
+								@Override
+								public void run() {
+									setActive(isActive());
+								}
+							});
+						}
+					}
+				}
+			};
+			EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -172,6 +220,7 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	@Override
 	public void dispose() {
 		super.dispose();
+		EventManager.getInstance().removeEventListener(eventListener);
 		IPeerModel peerModel = getPeerModel(getEditorInput());
 		IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
 		service.setProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, null);

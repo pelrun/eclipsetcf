@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationListener;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -32,6 +34,8 @@ import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.IRemoteSelectionContext;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
@@ -39,8 +43,6 @@ import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.IAttachLaunchAttributes;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 /**
@@ -209,7 +211,13 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 	public void launchConfigurationChanged(ILaunchConfiguration configuration) {
 		try {
 			IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(configuration);
-			if (contexts != null && contexts.length == 1 && contexts[0] instanceof IPeerModel) {
+			boolean active = false;
+			for (ILaunch launch : DebugPlugin.getDefault().getLaunchManager().getLaunches()) {
+				if (launch.getLaunchConfiguration().equals(configuration)) {
+					active = true;
+				}
+			}
+			if (active && contexts != null && contexts.length == 1 && contexts[0] instanceof IPeerModel) {
 				final IPeerModel peerModel = (IPeerModel)contexts[0];
 				@SuppressWarnings({ "unchecked", "rawtypes" })
 				Map<?,?> attributes = new LinkedHashMap(configuration.getAttributes());
@@ -231,6 +239,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 						public void run() {
 							IPeer oldPeer = peerModel.getPeer();
 							Map<String, String> attributes = new HashMap<String, String>(peerModel.getPeer().getAttributes());
+							String oldLaunchConfigAttributes = attributes.get(IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES);
 							if (launchConfigAttributes.trim().length() == 0) {
 								attributes.remove(IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES);
 							}
@@ -241,8 +250,13 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate im
 							if (oldPeer instanceof TransientPeer && !(oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
 								peerModel.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_INSTANCE, newPeer);
 							} else {
-								Model.getModel().getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerModel, newPeer, false);
+								if (oldPeer instanceof PeerRedirector) {
+									((PeerRedirector)oldPeer).updateAttributes(attributes);
+								} else if (oldPeer instanceof Peer) {
+									((Peer)oldPeer).updateAttributes(attributes);
+								}
 							}
+							EventManager.getInstance().fireEvent(new ChangeEvent(peerModel, IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES, oldLaunchConfigAttributes, launchConfigAttributes));
 						}
 					});
 				}
