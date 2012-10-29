@@ -52,6 +52,14 @@ PROTOCOL_HOST = "host"
 PROTOCOL_TARGET = "target"
 
 
+class PathMapListener(object):
+    """Pathmap event listener is notified when pathmap changes."""
+
+    def changed(self):
+        """Called when a pathmap has been changed."""
+        pass
+
+
 class PathMapRule(object):
     """
     PathMapRule represents a single file path mapping rule.
