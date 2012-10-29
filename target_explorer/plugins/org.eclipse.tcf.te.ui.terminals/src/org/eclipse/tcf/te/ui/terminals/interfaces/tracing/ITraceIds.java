@@ -18,4 +18,9 @@ public interface ITraceIds {
 	 * If activated, tracing information about the terminals output stream monitor is printed out.
 	 */
 	public static final String TRACE_OUTPUT_STREAM_MONITOR = "trace/outputStreamMonitor"; //$NON-NLS-1$
+
+	/**
+	 * If activated, tracing information about the launch terminal command handler is printed out.
+	 */
+	public static final String TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER = "trace/launchTerminalCommandHandler"; //$NON-NLS-1$
 }

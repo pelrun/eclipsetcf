@@ -42,9 +42,11 @@ import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
+import org.eclipse.tcf.te.ui.terminals.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
@@ -166,6 +168,18 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
 	    super(shell, IContextHelpIds.LAUNCH_TERMINAL_SETTINGS_DIALOG);
     }
 
+    private long start = 0;
+
+	/**
+     * Constructor.
+     *
+	 * @param shell The parent shell or <code>null</code>.
+     */
+    public LaunchTerminalSettingsDialog(Shell shell, long start) {
+	    super(shell, IContextHelpIds.LAUNCH_TERMINAL_SETTINGS_DIALOG);
+	    this.start = start;
+    }
+
     /**
      * Sets the parent selection.
      *
@@ -208,6 +222,11 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
      */
     @Override
     protected Control createDialogArea(Composite parent) {
+		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+			UIPlugin.getTraceHandler().trace("Creating dialog area after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
+												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
+		}
+
     	setDialogTitle(Messages.LaunchTerminalSettingsDialog_title);
 
         Composite composite = (Composite)super.createDialogArea(parent);
@@ -268,6 +287,12 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
 		restoreWidgetValues();
 
         applyDialogFont(composite);
+
+		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+			UIPlugin.getTraceHandler().trace("Created dialog area after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
+												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
+		}
+
         return composite;
     }
 
@@ -280,10 +305,26 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     protected void fillCombo(Combo combo) {
     	Assert.isNotNull(combo);
 
+		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+			UIPlugin.getTraceHandler().trace("Filling combo after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
+												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
+		}
+
     	List<String> items = new ArrayList<String>();
 
     	if(selection==null || selection.isEmpty()){
-    		ILauncherDelegate[] delegates = LauncherDelegateManager.getInstance().getLauncherDelegates(true);
+    		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+    			UIPlugin.getTraceHandler().trace("Getting launcher delegates after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
+    												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
+    		}
+
+			ILauncherDelegate[] delegates = LauncherDelegateManager.getInstance().getLauncherDelegates(true);
+
+    		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+    			UIPlugin.getTraceHandler().trace("Got launcher delegates after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
+    												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
+    		}
+
     		for (ILauncherDelegate delegate : delegates) {
     			String label = delegate.getLabel();
     			String id=delegate.getId();
@@ -297,7 +338,18 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     			items.add(label);
     		}
     	} else {
+    		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+    			UIPlugin.getTraceHandler().trace("Getting applicable launcher delegates after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
+    												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
+    		}
+
     		ILauncherDelegate[] delegates = LauncherDelegateManager.getInstance().getApplicableLauncherDelegates(selection);
+
+    		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+    			UIPlugin.getTraceHandler().trace("Got applicable launcher delegates after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
+    												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
+    		}
+
     		for (ILauncherDelegate delegate : delegates) {
     			String label = delegate.getLabel();
     			if (label == null || "".equals(label.trim())) label = delegate.getId(); //$NON-NLS-1$
