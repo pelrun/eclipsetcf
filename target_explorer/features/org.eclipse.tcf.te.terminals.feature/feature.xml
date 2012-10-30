@@ -35,7 +35,6 @@
       <import plugin="org.eclipse.tcf.te.ui" version="1.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.ui.controls" version="1.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.ui.swt" version="1.1.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.cdt.core" version="5.4.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.equinox.security" version="1.1.100" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tm.terminal.serial" version="2.1.100" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tm.terminal.ssh" version="2.1.100" match="greaterOrEqual"/>
@@ -44,13 +43,6 @@
 
    <plugin
          id="org.eclipse.tcf.te.ui.terminals"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.tcf.te.ui.terminals.process"
          download-size="0"
          install-size="0"
          version="0.0.0"
