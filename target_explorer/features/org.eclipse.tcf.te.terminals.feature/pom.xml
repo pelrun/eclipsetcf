@@ -12,7 +12,7 @@
 	</parent>
 
 	<version>1.1.0.qualifier</version>
-	<artifactId>org.eclipse.tcf.te.feature</artifactId>
+	<artifactId>org.eclipse.tcf.te.terminals.feature</artifactId>
 	<packaging>eclipse-feature</packaging>
 	
 	<properties>
