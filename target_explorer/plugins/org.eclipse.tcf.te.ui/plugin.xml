@@ -6,15 +6,22 @@
    <extension-point id="viewers" name="%extension-point.viewers.name" schema="schema/viewers.exsd"/>
    <extension-point id="cellEditors" name="%extension-point.cellEditors.name" schema="schema/cellEditors.exsd"/>
 
-<!-- New target wizard contributions -->
+<!-- View contributions -->
+   <extension point="org.eclipse.ui.views">
+      <category
+            id="org.eclipse.tcf.te.ui.views.category"
+            name="%ViewCategory.name">
+      </category>
+   </extension>
 
+<!-- New target wizard contributions -->
    <extension point="org.eclipse.tcf.te.ui.newWizards">
       <category
             id="org.eclipse.tcf.te.ui.newWizards.category.general"
             name="%NewWizards.category.name">
       </category>
    </extension>
-
+   
 <!-- Command contributions -->
    <extension point="org.eclipse.ui.commands">
       <category
