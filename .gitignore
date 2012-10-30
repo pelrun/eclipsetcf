@@ -161,6 +161,10 @@ tests/plugins/org.eclipse.tcf.debug.test/bin
 /target_explorer/features/org.eclipse.tcf.te.tcf.feature/bin
 /target_explorer/features/org.eclipse.tcf.te.tcf.sdk.feature/target
 /target_explorer/features/org.eclipse.tcf.te.tcf.sdk.feature/bin
+/target_explorer/features/org.eclipse.tcf.te.terminals.feature/target
+/target_explorer/features/org.eclipse.tcf.te.terminals.feature/bin
+/target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature/target
+/target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature/bin
 
 /target_explorer/experimental/plugins/org.eclipse.tcf.te.rcp/target
 /target_explorer/experimental/plugins/org.eclipse.tcf.te.rcp/bin
