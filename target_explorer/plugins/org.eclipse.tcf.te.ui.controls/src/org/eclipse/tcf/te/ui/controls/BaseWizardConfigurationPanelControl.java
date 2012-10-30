@@ -92,6 +92,8 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 		Assert.isNotNull(parent);
 		Assert.isNotNull(toolkit);
 
+		setFormToolkit(toolkit);
+
 		if (isPanelIsGroup()) {
 			panel = new Group(parent, SWT.NONE);
 			if (getGroupLabel() != null) ((Group)panel).setText(getGroupLabel());

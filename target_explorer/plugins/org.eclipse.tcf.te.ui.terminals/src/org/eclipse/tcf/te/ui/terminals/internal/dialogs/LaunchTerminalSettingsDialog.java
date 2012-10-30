@@ -66,7 +66,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
 	private FormToolkit toolkit = null;
 
 	// Map the label added to the combobox to the corresponding launcher delegate.
-	private final Map<String, ILauncherDelegate> label2delegate = new HashMap<String, ILauncherDelegate>();
+	/* default */ final Map<String, ILauncherDelegate> label2delegate = new HashMap<String, ILauncherDelegate>();
 
 	// The data object containing the currently selected settings
 	private IPropertiesContainer data = null;
@@ -93,6 +93,32 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
         @Override
         public String getGroupLabel() {
             return Messages.LaunchTerminalSettingsDialog_group_label;
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl#showConfigurationPanel(java.lang.String)
+         */
+        @Override
+        public void showConfigurationPanel(String key) {
+        	// Check if we have to create the panel first
+    		IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
+    		if (configPanel == null) {
+           		// Get the corresponding delegate
+           		ILauncherDelegate delegate = label2delegate.get(key);
+           		Assert.isNotNull(delegate);
+           		// Get the wizard configuration panel instance
+           		configPanel = delegate.getPanel(this);
+            	if (configPanel == null) configPanel = new EmptySettingsPanel(this);
+            	// Push the selection to the configuration panel
+            	Assert.isTrue(configPanel instanceof IConfigurationPanel);
+            	((IConfigurationPanel)configPanel).setSelection(getSelection());
+            	// Add it
+            	addConfigurationPanel(key, configPanel);
+            	// Create the panel controls
+            	configPanel.setupPanel(getPanel(), getFormToolkit());
+    		}
+
+            super.showConfigurationPanel(key);
         }
 	}
 
@@ -255,13 +281,15 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
         // Create the settings panel control
         settings = new SettingsPanelControl(null);
 
-		// Create and add the panels
-        for (String terminalLabel : terminals.getItems()) {
-        	// Get the corresponding delegate
-        	ILauncherDelegate delegate = label2delegate.get(terminalLabel);
-        	Assert.isNotNull(delegate);
-        	// Get the wizard configuration panel instance
-        	IConfigurationPanel configPanel = delegate.getPanel(settings);
+		// Create, initialize and add the first visible panel. All
+        // other panels are created on demand only.
+        String terminalLabel = SWTControlUtil.getItem(terminals, 0);
+        if (terminalLabel != null) {
+       		// Get the corresponding delegate
+       		ILauncherDelegate delegate = label2delegate.get(terminalLabel);
+       		Assert.isNotNull(delegate);
+       		// Get the wizard configuration panel instance
+       		IConfigurationPanel configPanel = delegate.getPanel(settings);
         	if (configPanel == null) configPanel = new EmptySettingsPanel(settings);
         	// Push the selection to the configuration panel
         	Assert.isNotNull(configPanel);
