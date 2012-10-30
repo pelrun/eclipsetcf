@@ -36,6 +36,12 @@
    <feature url="features/org.eclipse.tcf.te.tcf.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.tcf.sdk.feature" version="0.0.0">
       <category name="org.eclipse.tcf.te"/>
    </feature>
+   <feature url="features/org.eclipse.tcf.te.terminals.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.terminals.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te.terminal"/>
+   </feature>
+   <feature url="features/org.eclipse.tcf.te.terminals.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.terminals.sdk.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te.terminal"/>
+   </feature>
    <category-def name="org.eclipse.tcf" label="Target Communication Framework">
       <description>
          Target Communication Framework
@@ -44,6 +50,11 @@
    <category-def name="org.eclipse.tcf.te" label="Target Explorer">
       <description>
          Target Explorer
+      </description>
+   </category-def>
+   <category-def name="org.eclipse.tcf.te.terminal" label="Terminal">
+      <description>
+         Target Explorer tabbed Terminal View
       </description>
    </category-def>
 </site>
