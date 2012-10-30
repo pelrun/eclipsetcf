@@ -1007,6 +1007,17 @@ class TestRCBP1 implements ITCFTest, IRunControl.RunControlListener {
                                                 }
                                             }
                                         });
+                                        switch (rnd.nextInt(2)) {
+                                        case 0: s = "ID=ID="; break;
+                                        case 1: s = "ID=ID=ID"; break;
+                                        }
+                                        srv_context_query.query(s, new IContextQuery.DoneQuery() {
+                                            public void doneQuery(IToken token, Exception error, String[] contexts) {
+                                                if (error == null) {
+                                                    exit(new Exception("Invalid ContextQuery.query responce: error expected"));
+                                                }
+                                            }
+                                        });
                                         return;
                                     }
                                 }

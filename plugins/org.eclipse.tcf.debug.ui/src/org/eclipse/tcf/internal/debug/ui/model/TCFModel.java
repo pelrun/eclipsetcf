@@ -1583,7 +1583,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             }
         }
     }
-    
+
     /**
      * Sets the selection in debug view for a given debug view instance.
      * @param proxy - model proxy for a given debug view instance
@@ -1596,7 +1596,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         if (node == null) return;
         if (node.isDisposed()) return;
         if (reason == null) return;
-        
+
         boolean user_request =
             reason.equals(IRunControl.REASON_USER_REQUEST) ||
             reason.equals(IRunControl.REASON_STEP) ||
