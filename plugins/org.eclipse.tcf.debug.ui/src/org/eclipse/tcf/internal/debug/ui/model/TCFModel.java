@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -201,7 +202,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     final List<ITCFPresentationProvider> view_request_listeners;
 
-    private int display_source_generation;
+    private final Map<IWorkbenchPage,Object> display_source_generation =
+            new WeakHashMap<IWorkbenchPage,Object>();
+
     private int suspend_trigger_generation;
     private int auto_disconnect_generation;
 
@@ -1607,14 +1610,31 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         proxy.setSelection(node);
     }
 
+    private synchronized Object displaySourceStart(IWorkbenchPage page, boolean wait) {
+        Object generation = new Object();
+        if (wait) launch.addPendingClient(generation);
+        if (page != null) {
+            Object prev = display_source_generation.put(page, generation);
+            if (prev != null) launch.removePendingClient(prev);
+        }
+        return generation;
+    }
+
+    private synchronized boolean displaySourceCheck(IWorkbenchPage page, Object generation) {
+        return page == null || generation == display_source_generation.get(page);
+    }
+
+    private synchronized void displaySourceEnd(Object generation) {
+        launch.removePendingClient(generation);
+    }
+
     /**
      * Reveal source code associated with given model element.
      * The method is part of ISourceDisplay interface.
      * The method is normally called from SourceLookupService.
      */
     public void displaySource(Object model_element, final IWorkbenchPage page, boolean forceSourceLookup) {
-        if (wait_for_pc_update_after_step) launch.addPendingClient(TCFModel.this);
-        final int cnt = ++display_source_generation;
+        final Object generation = displaySourceStart(page, wait_for_pc_update_after_step);
         /* Because of racing in Eclipse Debug infrastructure, 'model_element' value can be invalid.
          * As a workaround, get current debug view selection.
          */
@@ -1628,7 +1648,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         final Object element = model_element;
         Protocol.invokeLater(25, new Runnable() {
             public void run() {
-                if (cnt != display_source_generation) return;
+                if (!displaySourceCheck(page, generation)) return;
                 TCFNodeStackFrame stack_frame = null;
                 if (!disposed && channel.getState() == IChannel.STATE_OPEN) {
                     if (element instanceof TCFNodeExecContext) {
@@ -1677,7 +1697,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     top_frame = stack_frame.getFrameNo() == 0;
                     ctx_id = stack_frame.parent.id;
                 }
-                displaySource(cnt, page, element, ctx_id, mem_id, top_frame, area);
+                displaySource(generation, page, element, ctx_id, mem_id, top_frame, area);
             }
         });
     }
@@ -1733,13 +1753,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         return displaySource(page, editor_id, editor_input, line);
     }
 
-    private void displaySource(final int cnt, final IWorkbenchPage page,
+    private void displaySource(final Object generation, final IWorkbenchPage page,
             final Object element, final String exe_id, final String mem_id, final boolean top_frame, final ILineNumbers.CodeArea area) {
         final boolean disassembly_available = channel.getRemoteService(IDisassembly.class) != null;
         display.asyncExec(new Runnable() {
             public void run() {
                 try {
-                    if (cnt != display_source_generation) return;
+                    if (!displaySourceCheck(page, generation)) return;
                     String editor_id = null;
                     IEditorInput editor_input = null;
                     int line = 0;
@@ -1776,13 +1796,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                         editor_id = DisassemblyEditorInput.EDITOR_ID;
                         editor_input = DisassemblyEditorInput.INSTANCE;
                     }
-                    if (cnt != display_source_generation) return;
+                    if (!displaySourceCheck(page, generation)) return;
                     displaySource(page, editor_id, editor_input, line);
                     if (wait_for_pc_update_after_step) launch.addPendingClient(annotation_manager);
                     annotation_manager.updateAnnotations(page.getWorkbenchWindow(), launch);
                 }
                 finally {
-                    if (cnt == display_source_generation) launch.removePendingClient(TCFModel.this);
+                    displaySourceEnd(generation);
                 }
             }
         });
