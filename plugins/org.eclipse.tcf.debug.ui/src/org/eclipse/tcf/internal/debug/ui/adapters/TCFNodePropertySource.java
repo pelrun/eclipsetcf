@@ -154,6 +154,24 @@ public class TCFNodePropertySource implements IPropertySource {
                                 }
                                 addDescriptor("Expression Value", key, value);
                             }
+                            String sym_id = value_data.getSymbolID();
+                            if (sym_id != null) {
+                                TCFDataCache<ISymbols.Symbol> sym_cache = exp_node.getModel().getSymbolInfoCache(sym_id);
+                                if (!sym_cache.validate(this)) return;
+                                Throwable sym_error = sym_cache.getError();
+                                if (sym_error != null) addDescriptor("Expression Value Symbol", "Error", TCFModel.getErrorMessage(sym_error, false));
+                                ISymbols.Symbol sym_data = sym_cache.getData();
+                                if (sym_data != null) {
+                                    props = sym_data.getProperties();
+                                    for (String key : props.keySet()) {
+                                        Object value = props.get(key);
+                                        if (value instanceof Number) {
+                                            value = toHexAddrString((Number)value);
+                                        }
+                                        addDescriptor("Expression Value Symbol", key, value);
+                                    }
+                                }
+                            }
                         }
                         done(list.toArray(new IPropertyDescriptor[list.size()]));
                     }

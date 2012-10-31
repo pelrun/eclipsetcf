@@ -492,8 +492,8 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                         if (viewer instanceof IInternalTreeModelViewer) {
                             final Set<String> expanded = new HashSet<String>();
                             for (TCFNode node : save_expand_state) {
-                                if (getExpandedState(node) || 
-                                    Boolean.TRUE.equals(expanded_nodes.get(node.getID())) ) 
+                                if (getExpandedState(node) ||
+                                    Boolean.TRUE.equals(expanded_nodes.get(node.getID())) )
                                 {
                                     expanded.add(node.id);
                                 }
@@ -522,7 +522,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         }
         return tree_viewer.getExpandedState(element);
     }
-    
+
     private void postDelta() {
         assert Protocol.isDispatchThread();
         if (disposed) return;
@@ -640,7 +640,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         TCFNode node = null;
         if (element instanceof TCFNode) {
             node = (TCFNode)element;
-        } 
+        }
         if (element instanceof TCFLaunch) {
             node = model.getRootNode();
         }
