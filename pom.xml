@@ -25,6 +25,8 @@
 		<module>plugins/org.eclipse.tcf.cdt.ui</module>
 		<module>plugins/org.eclipse.tcf.rse</module>
 
+		<module>features/org.eclipse.tcf.core.feature</module>
+		<module>features/org.eclipse.tcf.core.sdk.feature</module>
 		<module>features/org.eclipse.tcf.feature</module>
 		<module>features/org.eclipse.tcf.sdk.feature</module>
 		<module>features/org.eclipse.tcf.cdt.feature</module>

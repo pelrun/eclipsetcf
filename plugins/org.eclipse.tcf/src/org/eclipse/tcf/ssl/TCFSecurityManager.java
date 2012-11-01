@@ -158,7 +158,6 @@ public class TCFSecurityManager {
                             else if (s.indexOf("-----END ") == 0) break; //$NON-NLS-1$
                             else if (app) bf.append(s);
                         }
-                        r.close();
                         KeyFactory kf = KeyFactory.getInstance("RSA"); //$NON-NLS-1$
                         byte[] bytes = Base64.toByteArray(bf.toString().toCharArray());
                         return kf.generatePrivate(new PKCS8EncodedKeySpec(bytes));
@@ -172,6 +171,8 @@ public class TCFSecurityManager {
                             Protocol.log("Cannot close private key file: " + f, x); //$NON-NLS-1$
                         }
                         return null;
+                    } finally {
+                        if (r != null) try { r.close(); } catch (IOException e) {}
                     }
                 }
 

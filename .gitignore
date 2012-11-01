@@ -19,13 +19,13 @@ features/build-workspace
 features/org.eclipse.tcf.cdt.feature/target
 features/org.eclipse.tcf.cdt.sdk.feature/target
 
+# features/org.eclipse.tcf.core.feature/
+features/org.eclipse.tcf.core.feature/target
+features/org.eclipse.tcf.core.sdk.feature/target
+
 # features/org.eclipse.tcf.feature/
 features/org.eclipse.tcf.feature/target
 features/org.eclipse.tcf.sdk.feature/target
-
-# features/org.eclipse.tcf.headless.build/
-features/org.eclipse.tcf.headless.build/build-directory
-features/org.eclipse.tcf.headless.build/workspace
 
 # features/org.eclipse.tcf.repo/
 features/org.eclipse.tcf.repo/target
@@ -33,12 +33,6 @@ features/org.eclipse.tcf.repo/target
 # features/org.eclipse.tcf.rse.feature/
 features/org.eclipse.tcf.rse.feature/target
 features/org.eclipse.tcf.rse.sdk.feature/target
-
-# features/org.eclipse.tcf.site/
-features/org.eclipse.tcf.site/features
-features/org.eclipse.tcf.site/plugins
-features/org.eclipse.tcf.site/artifacts.xml
-features/org.eclipse.tcf.site/content.xml
 
 # plugins/org.eclipse.tcf/
 plugins/org.eclipse.tcf/target

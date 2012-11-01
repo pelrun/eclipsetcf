@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
+   <feature url="features/org.eclipse.tcf.core.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.core.feature" version="0.0.0">
+      <category name="org.eclipse.tcf"/>
+   </feature>
+   <feature url="features/org.eclipse.tcf.core.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.core.sdk.feature" version="0.0.0">
+      <category name="org.eclipse.tcf"/>
+   </feature>
    <feature url="features/org.eclipse.tcf.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.feature" version="0.0.0">
       <category name="org.eclipse.tcf"/>
    </feature>

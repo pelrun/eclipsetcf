@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+    Copyright (c) 2010, 2012 Wind River Systems, Inc. and others.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
@@ -10,10 +10,10 @@
         Wind River Systems - initial API and implementation
  -->
 <feature
-      id="org.eclipse.tcf.rse.sdk.feature"
+      id="org.eclipse.tcf.core.sdk.feature"
       label="%featureName"
       version="1.1.0.qualifier"
-      provider-name="%providerName">
+      provider-name="%featureProvider">
 
    <description url="http://wiki.eclipse.org/TCF">
       %description
@@ -32,11 +32,18 @@
    </url>
 
    <requires>
-      <import feature="org.eclipse.tcf.rse.feature" version="1.1.0.qualifier"/>
+      <import feature="org.eclipse.tcf.core.feature" version="1.1.0.qualifier"/>
    </requires>
 
    <plugin
-         id="org.eclipse.tcf.rse.source"
+         id="org.eclipse.tcf.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.tcf.core.source"
          download-size="0"
          install-size="0"
          version="0.0.0"
