@@ -182,11 +182,15 @@ public abstract class AbstractServiceManager {
 			Assert.isNotNull(serviceTypeName);
 
 			if (service != null) {
-				Class<?>[] interfaces = service.getClass().getInterfaces();
-				for (Class<?> interfaze : interfaces) {
-					if (serviceTypeName.equals(interfaze.getName())) {
-						return true;
+				Class<?> clazz = service.getClass();
+				while (clazz != null) {
+					Class<?>[] interfaces = clazz.getInterfaces();
+					for (Class<?> interfaze : interfaces) {
+						if (serviceTypeName.equals(interfaze.getName())) {
+							return true;
+						}
 					}
+					clazz = clazz.getSuperclass();
 				}
 			}
 			else if (configElement != null) {
