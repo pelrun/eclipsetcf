@@ -9,6 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
@@ -51,25 +54,31 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
     }
 
     String getParameterInitialValue (String comparator, int initIndex){
+       String param = comparator + "=";
        if (expression != null && expression.length() > 0) {
-           int indexExpr = expression.indexOf (comparator, initIndex);
+           int indexExpr = expression.indexOf (param, initIndex);
            if (indexExpr != -1){
                // Make sure we didn't partial match to another parameter name.
                if (indexExpr != 0) {
                    String testChar = expression.substring(indexExpr-1, indexExpr);
-                   if (!testChar.equals(",")) {
+                   if (!testChar.matches("[,/]")) {
                        return getParameterInitialValue(comparator,indexExpr+1);
                    }
                }
-               int startOfVal = expression.indexOf ('=', indexExpr);
+               int startOfVal = indexExpr + param.length();
                if (startOfVal != -1) {
-                   startOfVal += 1;
                    int endOfVal = -1;
                    if (startOfVal != 0) {
-                       endOfVal = expression.indexOf (',', startOfVal);
+                       if (expression.charAt(startOfVal) == '"') {
+                           startOfVal+=1;
+                           endOfVal = expression.indexOf('"', startOfVal);
+                       }
+                       else {
+                           endOfVal = expression.indexOf (',', startOfVal);
+                       }
                        if (endOfVal == -1) {
                            endOfVal = expression.length();
-                       }
+                       }                       
                    }
                    return expression.substring(startOfVal, endOfVal);
                }
@@ -171,7 +180,7 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
                // Make sure we didn't partial match to another parameter name.
                if (indexExpr != 0) {
                    String testChar = expression.substring(indexExpr-1, indexExpr);
-                   if (!testChar.equals(",")) {
+                   if (!testChar.matches("[,/]")) {
                        return findParameter(comparator,indexExpr+1);
                    }
                }
@@ -181,26 +190,43 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
    }
 
    private boolean replaceParameter(String parameter, String replaceString, int index) {
+       String testChar = null;
+       int endLocation = 0;
+       if (replaceString.length() != 0 && expression.contains(replaceString))
+           return true;
        if (index != 0) {
-           String testChar = expression.substring(index+parameter.length(), index+1+parameter.length());
+           testChar = expression.substring(index+parameter.length(), index+1+parameter.length());
            if (!testChar.equals("=")) {
                return false;
            }
            testChar = expression.substring(index-1, index);
-           if (!testChar.equals(",")) {
+           if (!testChar.matches("[,/]"))
                return false;
-           }
-           else {
-               index-=1;
-           }
        }
-       int endLocation = expression.indexOf(',', index+1);
+       testChar = expression.substring(index+parameter.length()+1,index+parameter.length()+2);
+       if (testChar.equals("\"")) {
+           endLocation = expression.indexOf('"', index+parameter.length()+3);
+           if (endLocation != -1 && endLocation != (expression.length() -1)) {
+               testChar = expression.substring(endLocation+1, endLocation+2);
+               if (testChar.equals(","))
+                   endLocation++;
+           }
+           else
+               endLocation = -1;
+       }
+       else {
+           endLocation = expression.indexOf(',', index+1);
+       }
+       
        if (endLocation == -1) {
            endLocation = expression.length();
+           testChar = expression.substring(index-1, index);
+           if (testChar.matches("[,]") && replaceString.length() == 0)
+               index-=1;
        }
-       else if (index == 0 && replaceString.length() == 0) {
+       else if (replaceString.length() == 0)
            endLocation++;
-       }
+
        String removeStr = expression.substring(index, endLocation);
        expression = expression.replace(removeStr, replaceString);
 
@@ -224,7 +250,11 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
                return;
            }
            cellString = cellString.trim();
-           if (cellString.length() != 0) {
+           if (cellString.length() > 0) {
+               if (cellString.charAt(0) != '"')
+                   cellString = "\"" + cellString;
+               if (cellString.charAt(cellString.length()-1 ) != '"')
+                   cellString += "\"";
                if (expression == null || expression.length() == 0) {
                    expression = new String(paramName + "=" + cellString);
                    }
@@ -232,12 +262,16 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
                    String nameValuePair = paramName + "=" + cellString;
                    int strIndex = findParameter(paramName, 0);
                    if (strIndex == -1) {
-                       expression += "," + nameValuePair;
+                       String check_parameter = expression;
+                       Pattern p = Pattern.compile("\"([^\"]*)\"");
+                       Matcher m = p.matcher(check_parameter);
+                       check_parameter = m.replaceAll("temp");
+                       if (check_parameter.matches("^(.*?)=(.*)$"))
+                           expression += "," + nameValuePair;
+                       else
+                           expression += nameValuePair;
                    }
                    else {
-                       if (strIndex != 0) {
-                           nameValuePair = "," + nameValuePair;
-                       }
                        if (!replaceParameter(paramName,nameValuePair,strIndex)) {
                            getButton(IDialogConstants.OK_ID).setEnabled(false);
                        }

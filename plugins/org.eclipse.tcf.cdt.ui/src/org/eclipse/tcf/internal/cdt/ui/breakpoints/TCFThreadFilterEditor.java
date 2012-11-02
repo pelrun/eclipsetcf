@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.DebugPlugin;
@@ -411,8 +413,23 @@ public class TCFThreadFilterEditor {
          return result;
      }
 
-    boolean missingParameterValue(String expression, int fromIndex) {
-        boolean result = false;
+    String missingParameterValue(String expression, int fromIndex) {
+        String result = null;
+        if (fromIndex == 0) {
+            // Ignore content in double-quotes.
+            Pattern p = Pattern.compile("\"([^\"]*)\"");
+            Matcher m = p.matcher(expression);
+            expression = m.replaceAll("temp");
+
+            // No whitespace
+            if (expression.matches("^(.*?)(\\s)(.*)$"))
+                return Messages.TCFThreadFilterEditorFormatError;
+
+            // Check characters around equals.
+            if (expression.matches("^(.*?)[^a-zA-Z0-9_]=[^a-zA-Z0-9_](.*)$"))
+                return Messages.TCFThreadFilterEditorUnbalancedParameters;
+        }
+
         int lastIndex = expression.length();
         if (lastIndex != 0 && fromIndex <= lastIndex) {
             int equalsIndex = expression.indexOf('=', fromIndex);
@@ -420,23 +437,14 @@ public class TCFThreadFilterEditor {
             int nextEqualsIndex = expression.indexOf('=',equalsIndex+1);
             if (commaIndex == lastIndex-1 || equalsIndex == lastIndex-1 ||
                 equalsIndex == 0 || commaIndex == 0) {
-                return true;
+                return Messages.TCFThreadFilterEditorUnbalancedParameters;
             }
             if (equalsIndex > 0) {
-                String failPattern = new String("[=,\\s]");
-                String testChar = expression.substring(equalsIndex-1, equalsIndex);
-                String testNextChar = expression.substring(equalsIndex+1,equalsIndex+2);
-                if (testChar.matches(failPattern) || testNextChar.matches(failPattern) ||
-                        (commaIndex != -1 && commaIndex < equalsIndex) ||
-                        (nextEqualsIndex != -1 && (commaIndex == -1 || nextEqualsIndex < commaIndex))) {
-                    return true;
+                if ((commaIndex != -1 && commaIndex < equalsIndex) ||
+                    (nextEqualsIndex != -1 && (commaIndex == -1 || nextEqualsIndex < commaIndex))) {
+                    return Messages.TCFThreadFilterEditorUnbalancedParameters;
                 }
                 if (commaIndex!=-1) {
-                    testChar = expression.substring(commaIndex-1, commaIndex);
-                    testNextChar = expression.substring(commaIndex+1,commaIndex+2);
-                    if (testChar.matches(failPattern) || testNextChar.matches(failPattern)) {
-                        return true;
-                    }
                     result = missingParameterValue(expression, commaIndex+1);
                 }
             }
@@ -447,14 +455,14 @@ public class TCFThreadFilterEditor {
     private class ExpressionModifier implements ModifyListener {
         public void modifyText(ModifyEvent e) {
             String expression = scopeExprCombo.getText();
-            if (missingParameterValue(expression, 0)) {
+            String error = missingParameterValue(expression, 0);
+            if (error != null) {
                 scopeExpressionDecoration.show();
-                fPage.setErrorMessage(Messages.TCFThreadFilterEditorFormatError);
+                fPage.setErrorMessage(error);
                 fPage.setValid(false);
             }
             else {
                 fContextList.clear();
-                String error = null;
                 if (expression != null && expression.length() != 0)
                     error = getQueryFilteredContexts (expression, fContextList);
                 if (error == null ) {
