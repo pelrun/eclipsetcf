@@ -142,7 +142,7 @@ public class TCFNodePropertySource implements IPropertySource {
                             }
                         }
 
-                        Throwable value_error = type_cache.getError();
+                        Throwable value_error = value_cache.getError();
                         if (value_error != null) addDescriptor("Expression Value", "Error", TCFModel.getErrorMessage(value_error, false));
                         IExpressions.Value value_data = value_cache.getData();
                         if (value_data != null) {
