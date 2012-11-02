@@ -1596,18 +1596,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             return true;
         }
         if (!rem_expression.validate(done)) return false;
-        if (!value.validate(done)) return false;
-        int pos = bf.length();
-        bf.append(rem_expression.getError(), ColorCache.rgb_error);
-        if (bf.length() == pos) bf.append(value.getError(), ColorCache.rgb_error);
-        if (bf.length() == pos) {
+        if (rem_expression.getError() == null) {
+            if (!value.validate(done)) return false;
             IExpressions.Value v = value.getData();
             if (v != null) {
-                byte[] data = v.getValue();
-                if (data != null) {
-                    boolean big_endian = v.isBigEndian();
-                    if (!appendValueText(bf, 0, v.getTypeID(), this,
+                if (value.getError() == null) {
+                    byte[] data = v.getValue();
+                    if (data != null) {
+                        boolean big_endian = v.isBigEndian();
+                        if (!appendValueText(bf, 0, v.getTypeID(), this,
                             data, 0, data.length, big_endian, done)) return false;
+                    }
                 }
                 int cnt = 0;
                 String reg_id = v.getRegisterID();
@@ -1640,6 +1639,12 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 }
                 if (cnt > 0) bf.append('\n');
             }
+            if (value.getError() != null) {
+                bf.append(value.getError(), ColorCache.rgb_error);
+            }
+        }
+        else {
+            bf.append(rem_expression.getError(), ColorCache.rgb_error);
         }
         return true;
     }
