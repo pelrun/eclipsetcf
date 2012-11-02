@@ -522,21 +522,32 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         System.arraycopy(buf, 0, tmp, 0, buf.length);
                         buf = tmp;
                     }
-                    command = mem_space_data.get(addr.add(BigInteger.valueOf(offs)), 1, buf, offs, 1, 0, new IMemory.DoneMemory() {
+                    BigInteger get_addr = addr.add(BigInteger.valueOf(offs));
+                    final int get_size = 16 - (get_addr.intValue() & 0xf);
+                    command = mem_space_data.get(get_addr, 1, buf, offs, get_size, 0, new IMemory.DoneMemory() {
                         public void doneMemory(IToken token, MemoryError error) {
-                            if (error != null && offs == 0) {
-                                set(command, error, null);
-                            }
-                            else if (buf[offs] == 0 || offs >= 2048 || error != null) {
-                                StyledStringBuffer bf = new StyledStringBuffer();
-                                bf.append(toASCIIString(buf, 0, offs, '"'), StyledStringBuffer.MONOSPACED);
-                                set(command, null, bf);
-                            }
-                            else if (command == token) {
-                                command = null;
+                            if (command != token) return;
+                            IMemory.ErrorOffset err_offs = null;
+                            if (error instanceof IMemory.ErrorOffset) err_offs = (IMemory.ErrorOffset)error;
+                            for (int i = 0; i < get_size; i++) {
+                                MemoryError byte_error = null;
+                                if (error != null && (err_offs == null || err_offs.getStatus(i) != IMemory.ErrorOffset.BYTE_VALID)) {
+                                    byte_error = error;
+                                    if (offs == 0) {
+                                        set(command, byte_error, null);
+                                        return;
+                                    }
+                                }
+                                if (buf[offs] == 0 || offs >= 2048 || byte_error != null) {
+                                    StyledStringBuffer bf = new StyledStringBuffer();
+                                    bf.append(toASCIIString(buf, 0, offs, '"'), StyledStringBuffer.MONOSPACED);
+                                    set(command, null, bf);
+                                    return;
+                                }
                                 offs++;
-                                run();
                             }
+                            command = null;
+                            run();
                         }
                     });
                     return false;
