@@ -22,7 +22,7 @@ public class ModelAdapter implements IModelListener {
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, boolean)
 	 */
 	@Override
-	public void locatorModelChanged(ILocatorModel model, IPeerModel peer, boolean added) {
+	public void locatorModelChanged(ILocatorModel model, IPeerModel peerModel, boolean added) {
 	}
 
 	/* (non-Javadoc)

@@ -21,10 +21,10 @@ public interface IModelListener {
 	 * Invoked if a peer is added or removed to/from the locator model.
 	 *
 	 * @param model The changed locator model.
-	 * @param peer The added/removed peer model.
-	 * @param added <code>True</code> if the peer model got added, <code>false</code> if it got removed.
+	 * @param peerModel The added/removed peer model node.
+	 * @param added <code>True</code> if the peer model node got added, <code>false</code> if it got removed.
 	 */
-	public void locatorModelChanged(ILocatorModel model, IPeerModel peer, boolean added);
+	public void locatorModelChanged(ILocatorModel model, IPeerModel peerModel, boolean added);
 
 	/**
 	 * Invoked if the locator model is disposed.

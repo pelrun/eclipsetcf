@@ -12,6 +12,9 @@ package org.eclipse.tcf.te.tcf.ui.navigator;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IAdapterService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter;
@@ -50,8 +53,9 @@ public class ModelListener extends ModelAdapter {
 	 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, boolean)
 	 */
 	@Override
-	public void locatorModelChanged(final ILocatorModel model, final IPeerModel peer, final boolean added) {
+	public void locatorModelChanged(final ILocatorModel model, final IPeerModel peerModel, final boolean added) {
 		if (parentModel.equals(model)) {
+			// Locator model changed -> refresh the tree
 			Tree tree = viewer.getTree();
 			if (tree != null && !tree.isDisposed()) {
 				Display display = tree.getDisplay();
@@ -63,29 +67,40 @@ public class ModelListener extends ModelAdapter {
 						}
 					}
 				});
+			}
 
-				// If a peer model got removed, check if there is still an properties
-				// editor open, and if yes, close the editor.
-				if (!added && peer != null) {
-					display.asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							// Get the currently active workbench window
-							IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-							if (window != null) {
-								// Get the active page
-								IWorkbenchPage page = window.getActivePage();
-								// Create the editor input object
-								IEditorInput input = new EditorInput(peer);
-								// Lookup the editors matching the editor input
-								IEditorReference[] editors = page.findEditors(input, IUIConstants.ID_EDITOR, IWorkbenchPage.MATCH_INPUT);
-								if (editors != null && editors.length > 0) {
-									// Close the editors
-									page.closeEditors(editors, true);
+			if (peerModel != null) {
+				// Check if the peer model node can be adapted to IModelListener.
+				IAdapterService service = ServiceManager.getInstance().getService(peerModel, IAdapterService.class);
+				IModelListener listener = service != null ? service.getAdapter(peerModel, IModelListener.class) : null;
+				// If yes -> Invoke the adapted model listener instance
+				if (listener != null) {
+					listener.locatorModelChanged(model, peerModel, added);
+				}
+				// If no -> Default behavior is to close the editor (if any)
+				else if (!added) {
+					Display display = PlatformUI.getWorkbench().getDisplay();
+					if (display != null) {
+						display.asyncExec(new Runnable() {
+							@Override
+							public void run() {
+								// Get the currently active workbench window
+								IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+								if (window != null) {
+									// Get the active page
+									IWorkbenchPage page = window.getActivePage();
+									// Create the editor input object
+									IEditorInput input = new EditorInput(peerModel);
+									// Lookup the editors matching the editor input
+									IEditorReference[] editors = page.findEditors(input, IUIConstants.ID_EDITOR, IWorkbenchPage.MATCH_INPUT);
+									if (editors != null && editors.length > 0) {
+										// Close the editors
+										page.closeEditors(editors, true);
+									}
 								}
 							}
-						}
-					});
+						});
+					}
 				}
 			}
 		}
