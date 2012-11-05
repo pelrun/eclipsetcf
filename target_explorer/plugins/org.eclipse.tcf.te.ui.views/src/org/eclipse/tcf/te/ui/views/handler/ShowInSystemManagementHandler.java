@@ -14,9 +14,13 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.part.EditorPart;
 
 /**
  * "Show In System Management" command handler implementation.
@@ -31,10 +35,21 @@ public class ShowInSystemManagementHandler extends AbstractHandler {
 		// Show the view
 		ViewsUtil.show(IUIConstants.ID_EXPLORER);
 
-		// Get the active selection
+		// Get the active part
+		IWorkbenchPart part = HandlerUtil.getActivePart(event);
+		// Get the current selection
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
+
+		// If the handler is invoked from an editor part, than we do not have a selection.
+		// Determine the active editor input and construct a fake selection object from it.
+		if ((selection == null || selection.isEmpty()) && part instanceof EditorPart) {
+			IEditorInput input = ((EditorPart)part).getEditorInput();
+			Object element = input != null ? input.getAdapter(Object.class) : null;
+			if (element != null) selection = new StructuredSelection(element);
+		}
+
+		// Pass on to the view
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-			// Pass on to the view
 			ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, selection);
 		}
 

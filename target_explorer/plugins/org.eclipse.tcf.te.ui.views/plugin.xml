@@ -580,6 +580,10 @@
 
    <extension point="org.eclipse.ui.commandImages">
       <image
+            commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"
+            icon="icons/eview16/targets_view.gif">
+      </image>
+      <image
             commandId="org.eclipse.tcf.te.ui.views.command.find"
             icon="icons/obj16/search.gif">
       </image>
@@ -692,7 +696,6 @@
             </with>
          </activeWhen>
       </handler>
-      
       
       <handler
             class="org.eclipse.tcf.te.ui.views.handler.ConfigFiltersHandler"
