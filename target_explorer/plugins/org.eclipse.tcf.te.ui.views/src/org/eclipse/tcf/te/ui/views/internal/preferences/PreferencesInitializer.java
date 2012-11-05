@@ -42,7 +42,5 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		store.putDefaultString(IPreferenceKeys.PREF_CONTENT_MRU_LIST, ""); //$NON-NLS-1$
 		// [Hidden] Hide categories navigator content extension: default on
 		store.putDefaultBoolean(IPreferenceKeys.PREF_HIDE_CATEGORY_EXTENSION, true);
-		// [Hidden] System management mode: default off
-		store.putDefaultBoolean(IPreferenceKeys.PREF_SYSTEM_MANAGMENT_MODE, false);
 	}
 }

@@ -136,4 +136,10 @@
             name="%preference.page.name">
       </page>
    </extension>
+
+<!-- Preference contributions -->
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="org.eclipse.tcf.te.ui.preferences.PreferencesInitializer"/>
+   </extension>
+
 </plugin>

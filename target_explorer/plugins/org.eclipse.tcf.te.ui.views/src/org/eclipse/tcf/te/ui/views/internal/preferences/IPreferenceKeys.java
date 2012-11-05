@@ -47,9 +47,4 @@ public interface IPreferenceKeys {
 	 * Preference key to access the flag to hide category content extension.
 	 */
 	public static final String PREF_HIDE_CATEGORY_EXTENSION = "org.eclipse.tcf.te.ui.views.navigator.content.hide"; //$NON-NLS-1$
-
-	/**
-	 * Preference key to access the flag that controls if running in "System Management" mode.
-	 */
-	public static final String PREF_SYSTEM_MANAGMENT_MODE = PREFIX + "mode.systemmanagement"; //$NON-NLS-1$
 }

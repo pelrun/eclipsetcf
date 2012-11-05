@@ -14,6 +14,8 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
+import org.eclipse.tcf.te.ui.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
@@ -135,7 +137,8 @@ public final class EditorInput implements IEditorInput, IPersistableElement {
 	 */
 	@Override
 	public IPersistableElement getPersistable() {
-		if (getFactoryId() != null) {
+		ScopedEclipsePreferences store = org.eclipse.tcf.te.ui.activator.UIPlugin.getScopedPreferences();
+		if (getFactoryId() != null && store != null && store.getBoolean(IPreferenceKeys.PREF_PERSIST_EDITORS)) {
 			return this;
 		}
 		return null;

@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.ui.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
-import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.interfaces.IPreferenceKeys;
 
@@ -32,7 +32,12 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer implem
 	 */
 	@Override
 	public void initializeDefaultPreferences() {
-		IPreferenceStore preferenceStore = UIPlugin.getDefault().getPreferenceStore();
-		preferenceStore.setDefault(PREF_DEPTH_FIRST_SEARCH, DEFAULT_DEPTH_FIRST_SEARCH);
+		ScopedEclipsePreferences store = UIPlugin.getScopedPreferences();
+
+		// Search is a DFS: default off
+		store.putDefaultBoolean(PREF_DEPTH_FIRST_SEARCH, false);
+		// Persist editors: default on
+		store.putDefaultBoolean(IPreferenceKeys.PREF_PERSIST_EDITORS, true);
+
 	}
 }

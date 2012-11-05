@@ -21,6 +21,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
@@ -36,6 +37,8 @@ import org.osgi.framework.BundleContext;
 public class UIPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static UIPlugin plugin;
+	// The scoped preferences instance
+	private static volatile ScopedEclipsePreferences scopedPreferences;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
 	// The pending images used to display the animation.
@@ -101,6 +104,16 @@ public class UIPlugin extends AbstractUIPlugin {
 	}
 
 	/**
+	 * Return the scoped preferences for this plugin.
+	 */
+	public static ScopedEclipsePreferences getScopedPreferences() {
+		if (scopedPreferences == null) {
+			scopedPreferences = new ScopedEclipsePreferences(getUniqueIdentifier());
+		}
+		return scopedPreferences;
+	}
+
+	/**
 	 * Returns the bundles trace handler.
 	 *
 	 * @return The bundles trace handler.
@@ -144,6 +157,7 @@ public class UIPlugin extends AbstractUIPlugin {
 		}
 		pendingImages = null;
 		plugin = null;
+		scopedPreferences = null;
 		traceHandler = null;
 		super.stop(context);
 	}

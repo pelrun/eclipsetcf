@@ -14,12 +14,17 @@ package org.eclipse.tcf.te.ui.interfaces;
  */
 public interface IPreferenceKeys {
 	/**
-	 * Common prefix for all ui preference keys
+	 * Common prefix for all UI preference keys
 	 */
 	public final String PREFIX = "te.ui."; //$NON-NLS-1$
 
-	// The preference key to access the option that if the search is a DFS.
+	/**
+	 * Preference key to access the option that if the search is a DFS.
+	 */
 	public static final String PREF_DEPTH_FIRST_SEARCH = "PrefDFS"; //$NON-NLS-1$
-	// The default value of the option that if expanded nodes should be persisted
-	public static final boolean DEFAULT_DEPTH_FIRST_SEARCH = false;
+
+	/**
+	 * Preference key to access the flag controlling if configuration editors are persisted on session close
+	 */
+	public static final String PREF_PERSIST_EDITORS = PREFIX + "persistEditors"; //$NON-NLS-1$
 }

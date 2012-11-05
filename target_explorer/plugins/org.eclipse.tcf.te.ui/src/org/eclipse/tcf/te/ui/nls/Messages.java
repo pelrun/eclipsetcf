@@ -68,7 +68,11 @@ public class Messages extends NLS {
 	public static String NameValuePairDialog_usedOrIllegalName_error;
 
 	public static String PreferencePage_label;
+	public static String PreferencePage_sessions_label;
+	public static String PreferencePage_persistEditors_label;
+
 	public static String QuickFilterPopup_PromptMessage;
+
 	public static String TreeViewerSearchDialog_AdvancedOptions;
 	public static String TreeViewerSearchDialog_All;
 	public static String TreeViewerSearchDialog_BFS;
@@ -86,8 +90,9 @@ public class Messages extends NLS {
 	public static String TreeViewerSearchDialog_SearchNodesUsing;
 	public static String TreeViewerSearchDialog_Selected;
 	public static String TreeViewerSearchDialog_BreadthFirst;
-	public static String ViewerStateManager_MkdirFailed;
 	public static String TreeViewerSearchDialog_BtnWrapText;
 	public static String TreeViewerSearchDialog_GeneralOptions;
 	public static String TreeViewerSearchDialog_UseOptions;
+
+	public static String ViewerStateManager_MkdirFailed;
 }
