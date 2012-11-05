@@ -12,6 +12,7 @@ package org.eclipse.tcf.internal.cdt.ui;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.eclipse.cdt.debug.internal.core.breakpoints.CFunctionBreakpoint;
 import org.eclipse.cdt.debug.internal.core.breakpoints.CLineBreakpoint;
 import org.eclipse.cdt.debug.internal.core.breakpoints.CWatchpoint;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
@@ -36,6 +38,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.tcf.internal.debug.model.ITCFBreakpointListener;
@@ -58,7 +61,7 @@ class TCFBreakpointStatusListener {
     /** Ref count attribute for foreign breakpoints */
     private static final String ATTR_REFCOUNT = "org.eclipse.tcf.cdt.refcount";
 
-    private class BreakpointListener implements ITCFBreakpointListener {
+    private class BreakpointListener implements ITCFBreakpointListener, IBreakpointListener {
 
         private final TCFBreakpointsStatus status;
         private final Map<String,ICBreakpoint> installed = new HashMap<String,ICBreakpoint>();
@@ -69,6 +72,7 @@ class TCFBreakpointStatusListener {
             status = launch.getBreakpointsStatus();
             status.addListener(this);
             bp_listeners.put(launch, this);
+            DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
             for (String id : status.getStatusIDs()) breakpointStatusChanged(id);
         }
 
@@ -78,6 +82,32 @@ class TCFBreakpointStatusListener {
             if (bp == null) createOrUpdateBreakpoint(id);
         }
 
+        public void breakpointAdded(IBreakpoint breakpoint) {}
+        public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
+            updateBreakpoint(breakpoint, false);            
+        }
+        public void breakpointRemoved(final IBreakpoint breakpoint, IMarkerDelta delta) {
+            updateBreakpoint(breakpoint, true);
+        }
+
+        private void updateBreakpoint(IBreakpoint breakpoint, final boolean removed) {
+            try {
+                IMarker marker = breakpoint.getMarker();
+                if (marker == null || !marker.exists()) return;
+                if (TCFBreakpointsModel.isLocal(marker)) return;
+                final String marker_id = TCFBreakpointsModel.getBreakpointID(breakpoint);
+                Protocol.invokeLater(new Runnable() {
+                    public void run() {
+                        if (removed) {
+                            foreign.remove(marker_id);
+                        }
+                        createOrUpdateBreakpoint(marker_id);
+                    }
+                });
+                
+            } catch (CoreException e) {}
+        }
+        
         private void updateStatus(String id, IBreakpoint bp) {
             if (bp instanceof ICBreakpoint) {
                 boolean ok = false;
@@ -121,6 +151,7 @@ class TCFBreakpointStatusListener {
         }
 
         void dispose() {
+            DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
             for (ICBreakpoint cbp : installed.values()) {
                 decrementInstallCount(cbp);
             }
