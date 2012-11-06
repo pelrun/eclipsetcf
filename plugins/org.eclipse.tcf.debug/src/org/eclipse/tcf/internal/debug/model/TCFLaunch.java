@@ -1274,6 +1274,17 @@ public class TCFLaunch extends Launch {
      * @param mode - on of launch mode constants defined in ILaunchManager.
      * @param id - TCF peer ID.
      */
+    public void launchTCF(String mode, String id) {
+        launchTCF(mode, id, null, null);
+    }
+
+    /**
+     * Activate TCF launch: open communication channel and perform all necessary launch steps.
+     * @param mode - on of launch mode constants defined in ILaunchManager.
+     * @param id - TCF peer ID.
+     * @param task - TCF task that is waiting until the launching is done, can be null
+     * @param monitor - launching progress monitor, can be null
+     */
     public void launchTCF(String mode, String id, TCFTask<Boolean> task, IProgressMonitor monitor) {
         assert Protocol.isDispatchThread();
         this.mode = mode;
