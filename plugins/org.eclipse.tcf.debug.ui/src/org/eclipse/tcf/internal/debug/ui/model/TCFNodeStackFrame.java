@@ -100,20 +100,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     set(null, address.getError(), null);
                     return true;
                 }
-                if (frame_no > 0) {
-                    boolean func_start = false;
-                    if (!func_info.validate(this)) return false;
-                    TCFFunctionRef ref = func_info.getData();
-                    if (ref != null && ref.symbol_id != null) {
-                        TCFDataCache<ISymbols.Symbol> sym_cache = model.getSymbolInfoCache(ref.symbol_id);
-                        if (!sym_cache.validate(this)) return false;
-                        ISymbols.Symbol sym_data = sym_cache.getData();
-                        if (sym_data != null) {
-                            func_start = n.equals(JSON.toBigInteger(sym_data.getAddress()));
-                        }
-                    }
-                    if (!func_start) n = n.subtract(BigInteger.valueOf(1));
-                }
+                if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                 TCFDataCache<TCFNodeExecContext> mem_cache = ((TCFNodeExecContext)parent).getMemoryNode();
                 if (!mem_cache.validate(this)) return false;
                 if (mem_cache.getError() != null || mem_cache.getData() == null) {
@@ -139,6 +126,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     set(null, address.getError(), null);
                     return true;
                 }
+                if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                 TCFDataCache<TCFNodeExecContext> mem_cache = ((TCFNodeExecContext)parent).getMemoryNode();
                 if (!mem_cache.validate(this)) return false;
                 if (mem_cache.getError() != null || mem_cache.getData() == null) {
@@ -338,9 +326,11 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     if (!map_dc.validate(done)) return false;
                     TCFNodeExecContext.MemoryRegion[] map = map_dc.getData();
                     if (map != null) {
+                        BigInteger n = addr;
+                        if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                         for (TCFNodeExecContext.MemoryRegion r : map) {
                             String fnm = r.region.getFileName();
-                            if (fnm != null && r.contains(addr)) {
+                            if (fnm != null && r.contains(n)) {
                                 fnm = fnm.replace('\\', '/');
                                 int x = fnm.lastIndexOf('/');
                                 if (x >= 0) fnm = fnm.substring(x + 1);
