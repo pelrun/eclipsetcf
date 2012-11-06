@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.model;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -109,6 +111,9 @@ public class TCFLaunch extends Launch {
     private static LaunchListener[] listeners_array;
 
     private final Collection<ActionsListener> action_listeners = new ArrayList<ActionsListener>();
+
+    private TCFTask<Boolean> launch_task;
+    private IProgressMonitor launch_monitor;
 
     private IChannel channel;
     private Throwable error;
@@ -273,6 +278,11 @@ public class TCFLaunch extends Launch {
                     IPeer p = Protocol.getLocator().getPeers().get(id);
                     if (p != null) channel.redirect(p.getAttributes());
                     else channel.redirect(id);
+                    if (launch_monitor != null) {
+                        String name = p.getName();
+                        if (name == null) name = id;
+                        launch_monitor.subTask("Connecting to " + name);
+                    }
                 }
             };
         }
@@ -362,6 +372,9 @@ public class TCFLaunch extends Launch {
                     connecting = false;
                     for (LaunchListener l : getListeners()) l.onConnected(TCFLaunch.this);
                     fireChanged();
+                    if (launch_task != null) launch_task.done(true);
+                    launch_monitor = null;
+                    launch_task = null;
                 }
             };
         }
@@ -381,6 +394,9 @@ public class TCFLaunch extends Launch {
         for (TCFDataCache<?> c : context_query_cache.values()) c.dispose();
         context_query_cache.clear();
         if (DebugPlugin.getDefault() != null) fireChanged();
+        if (launch_task != null) launch_task.done(false);
+        launch_monitor = null;
+        launch_task = null;
         runShutdownSequence(new Runnable() {
             public void run() {
                 shutdown = true;
@@ -634,8 +650,11 @@ public class TCFLaunch extends Launch {
             return;
         }
         try {
-            final InputStream inp = new FileInputStream(local_file);
+            final File local_fd = new File(local_file);
+            final InputStream inp = new FileInputStream(local_fd);
+            final String task_name = "Downloading: " + local_fd.getName();
             int flags = IFileSystem.TCF_O_WRITE | IFileSystem.TCF_O_CREAT | IFileSystem.TCF_O_TRUNC;
+            if (launch_monitor != null) launch_monitor.subTask(task_name);
             fs.open(remote_file, flags, null, new IFileSystem.DoneOpen() {
 
                 IFileHandle handle;
@@ -663,10 +682,14 @@ public class TCFLaunch extends Launch {
                                 close();
                                 break;
                             }
+                            final long kb_done = (offset + rd) / 1024;
                             cmds.add(fs.write(handle, offset, buf, 0, rd, new IFileSystem.DoneWrite() {
 
                                 public void doneWrite(IToken token, FileSystemException error) {
                                     cmds.remove(token);
+                                    if (launch_monitor != null) {
+                                        launch_monitor.subTask(task_name + ", " + kb_done + " KB done");
+                                    }
                                     if (error != null) channel.terminate(error);
                                     else write_next();
                                 }
@@ -814,6 +837,7 @@ public class TCFLaunch extends Launch {
                             }
                         }
                     };
+                    if (launch_monitor != null) launch_monitor.subTask("Starting: " + file);
                     String[] args_arr = toArgsArray(file, args);
                     IProcessesV1 ps_v1 = channel.getRemoteService(IProcessesV1.class);
                     if (ps_v1 != null) {
@@ -1250,9 +1274,11 @@ public class TCFLaunch extends Launch {
      * @param mode - on of launch mode constants defined in ILaunchManager.
      * @param id - TCF peer ID.
      */
-    public void launchTCF(String mode, String id) {
+    public void launchTCF(String mode, String id, TCFTask<Boolean> task, IProgressMonitor monitor) {
         assert Protocol.isDispatchThread();
         this.mode = mode;
+        this.launch_task = task;
+        this.launch_monitor = monitor;
         try {
             if (id == null || id.length() == 0) throw new IOException("Invalid peer ID");
             redirection_path.clear();
@@ -1292,6 +1318,7 @@ public class TCFLaunch extends Launch {
 
             });
             assert channel.getState() == IChannel.STATE_OPENING;
+            if (launch_monitor != null) launch_monitor.subTask("Connecting to " + peer_name);
             connecting = true;
         }
         catch (Throwable e) {

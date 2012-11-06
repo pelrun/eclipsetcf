@@ -305,15 +305,12 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
     public void launch(final ILaunchConfiguration configuration, final String mode,
             final ILaunch launch, final IProgressMonitor monitor) throws CoreException {
         String local_id = null;
-        int task_cnt = 1;
         if (configuration.getAttribute(ATTR_RUN_LOCAL_AGENT, false)) {
-            task_cnt++;
-            if (monitor != null) monitor.beginTask("Starting TCF Agent", task_cnt); //$NON-NLS-1$
+            if (monitor != null) monitor.subTask("Starting TCF Agent"); //$NON-NLS-1$
             local_id = TCFLocalAgent.runLocalAgent();
         }
         else if (configuration.getAttribute(ATTR_USE_LOCAL_AGENT, true)) {
-            task_cnt++;
-            if (monitor != null) monitor.beginTask("Searching TCF Agent", task_cnt); //$NON-NLS-1$
+            if (monitor != null) monitor.subTask("Searching TCF Agent"); //$NON-NLS-1$
             local_id = TCFLocalAgent.getLocalAgentID();
             if (local_id == null) throw new CoreException(new Status(IStatus.ERROR,
                     Activator.PLUGIN_ID, 0,
@@ -321,14 +318,13 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
                     null));
         }
 
-        if (monitor != null) monitor.beginTask("Launching TCF debugger session", task_cnt); //$NON-NLS-1$
-        final String id = configuration.getAttribute(ATTR_USE_LOCAL_AGENT, true) ? local_id : configuration.getAttribute(ATTR_PEER_ID, "");
+        final String id = configuration.getAttribute(ATTR_USE_LOCAL_AGENT, true) ?
+                local_id : configuration.getAttribute(ATTR_PEER_ID, "");
 
-        Protocol.invokeLater(new Runnable() {
+        new TCFTask<Boolean>() {
             public void run() {
-                ((TCFLaunch)launch).launchTCF(mode, id);
-                if (monitor != null) monitor.done();
+                ((TCFLaunch)launch).launchTCF(mode, id, this, monitor);
             }
-        });
+        }.getE();
     }
 }

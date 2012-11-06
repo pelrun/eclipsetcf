@@ -22,7 +22,7 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.IStatusHandler;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
-import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.util.TCFTask;
 
 /**
  * TCF launch delegate for CDT based launch configuration types.
@@ -53,21 +53,22 @@ public class TCFCDTLaunchDelegate extends TCFLaunchDelegate {
                 launch.setAttribute("attach_to_process", selection.fContextId);
             }
             peerId = selection.fPeerId;
-        } else if (isRemoteLaunch(tcfLaunchConfig)) {
+        }
+        else if (isRemoteLaunch(tcfLaunchConfig)) {
             peerId = tcfLaunchConfig.getAttribute(TCFLaunchDelegate.ATTR_PEER_ID, (String) null);
-        } else {
+        }
+        else {
             peerId = null;
         }
         if (peerId == null) {
             super.launch(tcfLaunchConfig, mode, launch, monitor);
-        } else {
-            if (monitor != null) monitor.beginTask("Launching TCF debugger session", 1); //$NON-NLS-1$
-            Protocol.invokeLater(new Runnable() {
+        }
+        else {
+            new TCFTask<Boolean>() {
                 public void run() {
-                    ((TCFLaunch)launch).launchTCF(mode, peerId);
-                    if (monitor != null) monitor.done();
+                    ((TCFLaunch)launch).launchTCF(mode, peerId, this, monitor);
                 }
-            });
+            }.getE();
         }
     }
 
@@ -102,7 +103,8 @@ public class TCFCDTLaunchDelegate extends TCFLaunchDelegate {
         if (isAttachLaunch(orig)) {
             changed = setStringAttribute(copy, TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE, null) || changed;
             changed = setStringAttribute(copy, TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, null) || changed;
-        } else {
+        }
+        else {
             changed = copyStringAttribute(orig, copy, ICDTLaunchConfigurationConstants.ATTR_PROGRAM_NAME,
                     TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE) || changed;
             changed = copyStringAttribute(orig, copy, ICDTLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS,
