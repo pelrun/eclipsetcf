@@ -9,6 +9,12 @@
             class="org.eclipse.tcf.te.tcf.launch.core.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext"/>
       </factory>
+      <factory
+            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"
+            class="org.eclipse.tcf.te.tcf.launch.core.internal.adapters.AdapterFactory">
+         <adapter type="org.eclipse.debug.core.ILaunchConfiguration"/>
+         <adapter type="org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"/>
+      </factory>
    </extension>
 
 <!-- Launch Configuration Type contributions -->
@@ -22,6 +28,7 @@
             name="%LaunchType.Remote.App.name"/>
       <launchConfigurationType
             id="org.eclipse.tcf.te.tcf.launch.type.attach"
+            public="false"
             sourceLocatorId="org.eclipse.tcf.debug.SourceLocator"
             sourcePathComputerId="org.eclipse.tcf.debug.SourcePathComputer"
             delegate="org.eclipse.tcf.te.tcf.launch.core.delegates.LaunchConfigurationDelegate"

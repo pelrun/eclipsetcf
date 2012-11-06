@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.launch.core.activator;
 
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationListener;
-import org.eclipse.tcf.te.launch.core.internal.DelegatingLaunchConfigurationListener;
 import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.osgi.framework.BundleActivator;
@@ -79,9 +78,6 @@ public class CoreBundleActivator implements BundleActivator {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = bundleContext;
-
-		launchConfigListener = new DelegatingLaunchConfigurationListener();
-		DebugPlugin.getDefault().getLaunchManager().addLaunchConfigurationListener(launchConfigListener);
 	}
 
 	/*

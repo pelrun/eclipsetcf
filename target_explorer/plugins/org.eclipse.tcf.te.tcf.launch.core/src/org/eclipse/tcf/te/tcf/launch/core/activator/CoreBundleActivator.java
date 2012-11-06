@@ -9,11 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.activator;
 
-import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
-import org.eclipse.tcf.te.tcf.launch.core.internal.EventListenerDelegate;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -65,9 +63,6 @@ public class CoreBundleActivator implements BundleActivator {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = bundleContext;
-
-		eventListener = new EventListenerDelegate();
-		EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);
 	}
 
 	/* (non-Javadoc)

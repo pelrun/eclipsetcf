@@ -63,17 +63,6 @@ public class MemoryMapEditorPage extends AbstractTcfLaunchTabContainerEditorPage
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.launch.ui.editor.AbstractLaunchTabContainerEditorPage#setActive(boolean)
-	 */
-	@Override
-	public void setActive(boolean active) {
-		super.setActive(active);
-		if (isActive() && ((TCFMemoryMapTab)getLaunchConfigurationTab()).updateContext()) {
-			((TCFMemoryMapTab)getLaunchConfigurationTab()).initializeFrom(getLaunchConfig(getPeerModel(getEditorInput())));
-		}
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEditorPage#dispose()
 	 */
 	@Override

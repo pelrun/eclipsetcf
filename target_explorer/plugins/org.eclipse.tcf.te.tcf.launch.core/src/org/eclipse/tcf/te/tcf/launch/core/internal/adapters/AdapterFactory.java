@@ -15,10 +15,13 @@ import java.util.Map;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchListener;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
  * Adapter factory implementation.
@@ -26,9 +29,12 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 public class AdapterFactory implements IAdapterFactory {
 	// Maintain a map of step context adapters per peer model
 	/* default */ Map<ILaunch, IStepContext> adapters = new HashMap<ILaunch, IStepContext>();
+	AttachLaunchConfigAdapter attachLaunchConfigAdapter = new AttachLaunchConfigAdapter();
 
 	private static final Class<?>[] CLASSES = new Class[] {
-		IStepContext.class
+		IStepContext.class,
+		ILaunchConfiguration.class,
+		ILaunchConfigurationWorkingCopy.class,
 	};
 
 	/**
@@ -85,6 +91,20 @@ public class AdapterFactory implements IAdapterFactory {
 					adapters.put((ILaunch)adaptableObject, adapter);
 				}
 				return adapter;
+			}
+		}
+		else if (adaptableObject instanceof IPeerModel) {
+			if (ILaunchConfiguration.class.equals(adapterType)) {
+				return attachLaunchConfigAdapter.getAttachLaunchConfig((IPeerModel)adaptableObject);
+			}
+			if (ILaunchConfigurationWorkingCopy.class.equals(adapterType)) {
+				ILaunchConfiguration launchConfig = attachLaunchConfigAdapter.getAttachLaunchConfig((IPeerModel)adaptableObject);
+				try {
+					return launchConfig.getWorkingCopy();
+				}
+				catch (Exception e) {
+					return launchConfig;
+				}
 			}
 		}
 		return null;

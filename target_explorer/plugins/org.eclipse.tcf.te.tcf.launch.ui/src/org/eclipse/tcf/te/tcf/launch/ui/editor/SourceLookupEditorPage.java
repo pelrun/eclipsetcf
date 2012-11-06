@@ -9,8 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor;
 
+import org.eclipse.debug.internal.ui.sourcelookup.SourceLookupPanel;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
-import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 /**
  * Source lookup launch configuration tab container page implementation.
  */
+@SuppressWarnings("restriction")
 public class SourceLookupEditorPage extends AbstractTcfLaunchTabContainerEditorPage {
 
 	/* (non-Javadoc)
@@ -25,7 +26,7 @@ public class SourceLookupEditorPage extends AbstractTcfLaunchTabContainerEditorP
 	 */
 	@Override
 	protected AbstractLaunchConfigurationTab createLaunchConfigurationTab() {
-		return new SourceLookupTab() {
+		return new SourceLookupPanel() {
 			@Override
 			public void createControl(Composite parent) {
 				super.createControl(parent);

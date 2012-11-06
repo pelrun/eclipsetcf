@@ -9,48 +9,30 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor;
 
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationListener;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.tcf.core.TransientPeer;
-import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.launch.core.lm.LaunchManager;
-import org.eclipse.tcf.te.launch.core.lm.LaunchSpecification;
-import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
-import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.launch.ui.editor.AbstractLaunchTabContainerEditorPage;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
-import org.eclipse.tcf.te.runtime.events.ChangeEvent;
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
-import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
-import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 /**
  * TCF launch configuration tab container page implementation.
  */
-public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLaunchTabContainerEditorPage {
+public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLaunchTabContainerEditorPage implements ILaunchConfigurationListener {
+
+	protected ILaunchConfigurationListener launchConfigListener = null;
 
 	protected static final String PROP_LAUNCH_CONFIG_WC = "launchConfigWorkingCopy.transient.silent"; //$NON-NLS-1$
 	protected static final String PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES = "launchConfigAttributes.transient.silent"; //$NON-NLS-1$
-
-	private IEventListener eventListener = null;
 
 	/**
 	 * Get the peer model from the editor input.
@@ -75,22 +57,19 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 				wc = (ILaunchConfigurationWorkingCopy)service.getProperty(peerModel, PROP_LAUNCH_CONFIG_WC);
 			}
 			else {
-				String launchConfigAttributes = peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES);
-				ILaunchSpecification spec = new LaunchSpecification(ILaunchTypes.ATTACH, ILaunchManager.DEBUG_MODE);
-				LaunchContextsPersistenceDelegate.setLaunchContexts(spec, new IModelNode[]{peerModel});
+				wc = (ILaunchConfigurationWorkingCopy)Platform.getAdapterManager().getAdapter(peerModel, ILaunchConfigurationWorkingCopy.class);
+				if (wc == null) {
+					wc = (ILaunchConfigurationWorkingCopy)Platform.getAdapterManager().loadAdapter(peerModel, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
+				}
+				service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, wc);
+				IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(wc, String.class, false);
+				String launchConfigAttributes = null;
 				try {
-					wc = LaunchManager.getInstance().getLaunchConfiguration(spec, true).getWorkingCopy();
-					LaunchContextsPersistenceDelegate.setLaunchContexts(wc, null);
-					IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(wc, String.class, false);
-					if (launchConfigAttributes != null && launchConfigAttributes.trim().length() > 0) {
-						delegate.read(wc, launchConfigAttributes, null);
-					}
 					launchConfigAttributes = (String)delegate.write(wc, String.class, null);
-					service.setProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, launchConfigAttributes);
-					service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, wc);
 				}
 				catch (Exception e) {
 				}
+				service.setProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, launchConfigAttributes);
 			}
 		}
 		return wc;
@@ -118,30 +97,14 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 		ILaunchConfigurationWorkingCopy wc = getLaunchConfig(getPeerModel(getEditorInput()));
 		if (wc != null && checkLaunchConfigDirty()) {
 			getLaunchConfigurationTab().performApply(wc);
-			IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(wc, String.class, false);
 			try {
-				final String launchConfigAttributes = (String)delegate.write(wc, String.class, null);
-				final IPeerModel peerModel = getPeerModel(getEditorInput());
+				wc.doSave();
+				IPeerModel peerModel = getPeerModel(getEditorInput());
 				IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
-				service.setProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, launchConfigAttributes);
-				if (peerModel != null) {
-					Protocol.invokeAndWait(new Runnable() {
-						@Override
-						public void run() {
-							IPeer oldPeer = peerModel.getPeer();
-							Map<String, String> attributes = new HashMap<String, String>(peerModel.getPeer().getAttributes());
-							attributes.put(IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES, launchConfigAttributes);
-							IPeer newPeer = new Peer(attributes);
-							if (oldPeer instanceof TransientPeer && !(oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
-								peerModel.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_INSTANCE, newPeer);
-							} else {
-								Model.getModel().getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerModel, newPeer, false);
-							}
-							checkLaunchConfigDirty();
-						}
-					});
-					return true;
-				}
+				Assert.isNotNull(service);
+				service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, null);
+				checkLaunchConfigDirty();
+				return true;
 			}
 			catch (Exception e) {
 			}
@@ -167,15 +130,22 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 		}
 		catch (Exception e) {
 		}
-
 		setDirty(dirty);
+		return dirty;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.launch.ui.editor.AbstractLaunchTabContainerEditorPage#setDirty(boolean)
+	 */
+	@Override
+	public void setDirty(boolean dirty) {
+		super.setDirty(dirty);
 		ExecutorsUtil.executeInUI(new Runnable() {
 			@Override
 			public void run() {
 				getManagedForm().dirtyStateChanged();
 			}
 		});
-		return dirty;
 	}
 
 	/* (non-Javadoc)
@@ -184,33 +154,9 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	@Override
 	public void setActive(boolean active) {
 		super.setActive(active);
-
-		if (eventListener == null) {
-			eventListener = new IEventListener() {
-				@Override
-				public void eventFired(EventObject event) {
-					if (event instanceof ChangeEvent && IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES.equals(((ChangeEvent)event).getEventId())) {
-						if (event.getSource() instanceof IPeerModel && getPeerModel(getEditorInput()).getUUID().equals(((IPeerModel)event.getSource()).getUUID())) {
-							Protocol.invokeAndWait(new Runnable() {
-								@Override
-								public void run() {
-									IPropertiesAccessService service = ServiceManager.getInstance().getService(getPeerModel(getEditorInput()), IPropertiesAccessService.class);
-									Assert.isNotNull(service);
-									service.setProperty(getPeerModel(getEditorInput()), PROP_LAUNCH_CONFIG_WC, null);
-									service.setProperty(getPeerModel(getEditorInput()), PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, null);
-								}
-							});
-							ExecutorsUtil.executeInUI(new Runnable() {
-								@Override
-								public void run() {
-									setActive(isActive());
-								}
-							});
-						}
-					}
-				}
-			};
-			EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);
+		if (active && launchConfigListener == null) {
+			launchConfigListener = this;
+			DebugPlugin.getDefault().getLaunchManager().addLaunchConfigurationListener(this);
 		}
 	}
 
@@ -220,10 +166,47 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	@Override
 	public void dispose() {
 		super.dispose();
-		EventManager.getInstance().removeEventListener(eventListener);
 		IPeerModel peerModel = getPeerModel(getEditorInput());
 		IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
 		service.setProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, null);
 		service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, null);
+		DebugPlugin.getDefault().getLaunchManager().removeLaunchConfigurationListener(this);
+		launchConfigListener = null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.debug.core.ILaunchConfigurationListener#launchConfigurationAdded(org.eclipse.debug.core.ILaunchConfiguration)
+	 */
+	@Override
+	public void launchConfigurationAdded(ILaunchConfiguration configuration) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.debug.core.ILaunchConfigurationListener#launchConfigurationRemoved(org.eclipse.debug.core.ILaunchConfiguration)
+	 */
+	@Override
+	public void launchConfigurationRemoved(ILaunchConfiguration configuration) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.debug.core.ILaunchConfigurationListener#launchConfigurationChanged(org.eclipse.debug.core.ILaunchConfiguration)
+	 */
+	@Override
+	public void launchConfigurationChanged(ILaunchConfiguration configuration) {
+		if (!(configuration instanceof ILaunchConfigurationWorkingCopy)) {
+			IPeerModel peerModel = getPeerModel(getEditorInput());
+			IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
+			ILaunchConfigurationWorkingCopy wc = (ILaunchConfigurationWorkingCopy)service.getProperty(peerModel, PROP_LAUNCH_CONFIG_WC);
+			if (wc != null && configuration.getName().equals(wc.getName())) {
+				service.setProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, null);
+				service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, null);
+				ExecutorsUtil.executeInUI(new Runnable() {
+					@Override
+					public void run() {
+						setActive(isActive());
+					}
+				});
+			}
+		}
 	}
 }
