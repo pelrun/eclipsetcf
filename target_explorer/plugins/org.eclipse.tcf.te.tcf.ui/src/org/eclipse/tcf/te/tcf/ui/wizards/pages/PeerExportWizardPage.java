@@ -83,6 +83,9 @@ public class PeerExportWizardPage extends WizardPage {
 		fSelection = selection;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
+	 */
 	@Override
 	public void createControl(Composite parent) {
 		initializeDialogUnits(parent);
@@ -323,7 +326,9 @@ public class PeerExportWizardPage extends WizardPage {
 				IPath destpath = new Path(path);
 				File destfolder = destpath.toFile();
 				boolean exist = destfolder.exists();
-				if(!exist) exist = destfolder.mkdirs();
+				if(!exist) {
+					exist = destfolder.mkdirs();
+				}
 				if (exist) {
 					monitor.beginTask(Messages.PeerExportWizard_title, configs.length);
 					boolean toggleState = false;
