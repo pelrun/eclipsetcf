@@ -40,9 +40,9 @@ public class ShowInSystemManagementHandler extends AbstractHandler {
 		// Get the current selection
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 
-		// If the handler is invoked from an editor part, than we do not have a selection.
-		// Determine the active editor input and construct a fake selection object from it.
-		if ((selection == null || selection.isEmpty()) && part instanceof EditorPart) {
+		// If the handler is invoked from an editor part, ignore the selection and
+		// construct an artificial selection from the active editor input.
+		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
 			Object element = input != null ? input.getAdapter(Object.class) : null;
 			if (element != null) selection = new StructuredSelection(element);
