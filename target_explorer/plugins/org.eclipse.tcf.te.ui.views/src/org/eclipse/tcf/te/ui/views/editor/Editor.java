@@ -126,6 +126,9 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 	 * will be removed and pages now being valid gets added.
 	 */
 	public void updatePageList() {
+		// Remember the currently active page
+		String activePageId = getActivePageInstance() != null ? getActivePageInstance().getId() : null;
+		String activePageTitle = getActivePageInstance() != null ? getActivePageInstance().getTitle() : null;
 		// Get the editor input object
 		IEditorInput input = getEditorInput();
 		// Get all applicable editor page bindings
@@ -161,6 +164,14 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		// --> Process them now
 		for (EditorPageBinding binding : bindings) {
 			processPageBinding(binding);
+		}
+		// If possible, restore the active page
+		if (activePageId != null) {
+			int index = getIndexOf(activePageId);
+			if (index == -1 && activePageTitle != null) {
+				index = getIndexOfByTitle(activePageTitle);
+			}
+			if (index != -1) setActivePage(index);
 		}
 	}
 
@@ -262,6 +273,26 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 			if (page instanceof IFormPage) {
 				IFormPage fpage = (IFormPage)page;
 				if (fpage.getId().equals(pageId)) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Returns the index of the page with the given title.
+	 *
+	 * @param pageTitle The page title. Must not be <code>null</code>.
+	 * @return The page index or <code>-1</code> if not found.
+	 */
+	private int getIndexOfByTitle(String pageTitle) {
+		Assert.isNotNull(pageTitle);
+		for (int i = 0; i < pages.size(); i++) {
+			Object page = pages.get(i);
+			if (page instanceof IFormPage) {
+				IFormPage fpage = (IFormPage)page;
+				if (fpage.getTitle().equals(pageTitle)) {
 					return i;
 				}
 			}
