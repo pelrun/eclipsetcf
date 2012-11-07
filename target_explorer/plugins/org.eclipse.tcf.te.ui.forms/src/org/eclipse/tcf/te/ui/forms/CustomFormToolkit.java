@@ -31,8 +31,11 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 
 /**
- * Custom form toolkit for using form elements within
- * dialog and wizard pages, or other containers.
+ * Custom form toolkit for using form elements within dialog and wizard pages, or other containers.
+ * <p>
+ * <b>Note:</b> The custom form toolkit does wrap a standard form toolkit. The client who is constructing
+ *              the custom form toolkit is responsible to dispose the wrapped form toolkit if the client
+ *              created it. The custom form toolkit does not dispose the wrapped form toolkit itself.
  */
 public class CustomFormToolkit extends PlatformObject {
 	// The reference of the wrapped toolkit
@@ -62,7 +65,8 @@ public class CustomFormToolkit extends PlatformObject {
 	 * Dispose the form toolkit wrapper.
 	 */
 	public void dispose() {
-		toolkit.dispose();
+		// The custom form toolkit wrapper does not own the wrapped
+		// toolkit, therefore never dispose the wrapped toolkit in here.
 	}
 
 	/* (non-Javadoc)

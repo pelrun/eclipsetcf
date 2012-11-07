@@ -155,7 +155,7 @@ public abstract class AbstractLaunchTabContainerEditorPage extends AbstractCusto
 	@Override
 	public void setActive(boolean active) {
 		super.setActive(active);
-		setupData(getEditorInput());
+		if (active) setupData(getEditorInput());
 	}
 
 	/**
