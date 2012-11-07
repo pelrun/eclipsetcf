@@ -25,3 +25,10 @@ How to setup a Target Explorer development environment
 	
 4. Import the team project set
 	- Import the project set from org.eclipse.tm.te.docs/team/projectSets/tm-te-all.psf
+
+5. Git setup for correct userid as per
+        - http://wiki.eclipse.org/Platform-releng/Git_Workflows#Configure_the_workspace
+
+6. Git setup the repo as per
+        - http://wiki.eclipse.org/Platform-releng/Git_Workflows#Configuring_the_repo
+
