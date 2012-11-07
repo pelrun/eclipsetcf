@@ -349,7 +349,7 @@ public class TCFBreakpointsModel {
      * Return false if the properties represent a breakpoint created by some other TCF client.
      */
     @SuppressWarnings("unchecked")
-    public boolean isLocal(Map<String,Object> properties) {
+    public static boolean isLocal(Map<String,Object> properties) {
         if (properties == null) return false;
         Map<String,Object> client_data = (Map<String,Object>)properties.get(IBreakpoints.PROP_CLIENT_DATA);
         if (client_data == null) return false;
@@ -363,7 +363,7 @@ public class TCFBreakpointsModel {
      * @return true if the marker is owned by local instance of Eclipse.
      * Return false if the marker represents a breakpoint created by some other TCF client.
      */
-    public boolean isLocal(IMarker marker) {
+    public static boolean isLocal(IMarker marker) {
         try {
             Map<String,Object> marker_attrs = marker.getAttributes();
             if (marker_attrs == null) return false;
