@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.tcf.launch.ui.attach;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
@@ -32,8 +31,8 @@ public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabG
 	public void createContextSelectorTab(ILaunchConfigurationDialog dialog, List<ILaunchConfigurationTab> tabs, String mode) {
 		Assert.isNotNull(tabs);
 
-		ILaunchConfigurationTab tab = new LaunchConfigurationMainTab();
-		tabs.add(tab);
+		//		ILaunchConfigurationTab tab = new LaunchConfigurationMainTab();
+		//		tabs.add(tab);
 	}
 
 	/* (non-Javadoc)
@@ -45,6 +44,6 @@ public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabG
 		tabs.add(new TCFMemoryMapTab());
 		tabs.add(new TCFPathMapTab());
 		tabs.add(new SourceLookupTab());
-		tabs.add(new CommonTab());
+		//		tabs.add(new CommonTab());
 	}
 }
