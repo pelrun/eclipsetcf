@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -109,18 +110,38 @@ public class TCFLocalAgent {
                     public void run() {
                         try {
                             final int n = prs.waitFor();
+                            final StringBuffer sbf = new StringBuffer();
                             if (n != 0) {
+                                char cbf[] = new char[256];
+                                InputStreamReader r = new InputStreamReader(prs.getErrorStream());
+                                for (;;) {
+                                    try {
+                                        int rd = r.read(cbf);
+                                        if (rd < 0) break;
+                                        sbf.append(cbf, 0, rd);
+                                    }
+                                    catch (IOException x) {
+                                        break;
+                                    }
+                                }
+                                try {
+                                    r.close();
+                                }
+                                catch (IOException x) {
+                                }
+                                sbf.append("TCF Agent exited with code ");
+                                sbf.append(n);
                                 Protocol.invokeLater(new Runnable() {
                                     public void run() {
                                         if (waiting.isDone()) return;
-                                        waiting.error(new IOException("TCF Agent exited with code " + n));
+                                        waiting.error(new IOException(sbf.toString()));
                                     }
                                 });
                             }
                             synchronized (TCFLocalAgent.class) {
                                 if (agent == prs) {
                                     if (n != 0 && !destroed) {
-                                        Activator.log("TCF Agent exited with code " + n, null);
+                                        Activator.log(sbf.toString(), null);
                                     }
                                     agent = null;
                                 }
@@ -164,6 +185,7 @@ public class TCFLocalAgent {
 
     public static synchronized String getLocalAgentID() {
         return new TCFTask<String>() {
+            int cnt;
             public void run() {
                 final ILocator locator = Protocol.getLocator();
                 for (IPeer p : locator.getPeers().values()) {
@@ -172,7 +194,12 @@ public class TCFLocalAgent {
                         return;
                     }
                 }
-                done(null);
+                if (cnt++ < 10) {
+                    Protocol.invokeLater(100, this);
+                }
+                else {
+                    done(null);
+                }
             }
         }.getE();
     }

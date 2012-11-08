@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -84,7 +84,7 @@ class TCFBreakpointStatusListener {
 
         public void breakpointAdded(IBreakpoint breakpoint) {}
         public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-            updateBreakpoint(breakpoint, false);            
+            updateBreakpoint(breakpoint, false);
         }
         public void breakpointRemoved(final IBreakpoint breakpoint, IMarkerDelta delta) {
             updateBreakpoint(breakpoint, true);
@@ -104,10 +104,11 @@ class TCFBreakpointStatusListener {
                         createOrUpdateBreakpoint(marker_id);
                     }
                 });
-                
-            } catch (CoreException e) {}
+            }
+            catch (CoreException e) {
+            }
         }
-        
+
         private void updateStatus(String id, IBreakpoint bp) {
             if (bp instanceof ICBreakpoint) {
                 boolean ok = false;
