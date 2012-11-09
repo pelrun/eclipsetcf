@@ -62,10 +62,10 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 					wc = (ILaunchConfigurationWorkingCopy)Platform.getAdapterManager().loadAdapter(peerModel, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
 				}
 				service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, wc);
-				IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(wc, String.class, false);
+				IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(wc, String.class);
 				String launchConfigAttributes = null;
 				try {
-					launchConfigAttributes = (String)delegate.write(wc, String.class, null);
+					launchConfigAttributes = (String)delegate.write(wc, String.class);
 				}
 				catch (Exception e) {
 				}
@@ -122,10 +122,10 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 		IPeerModel peerModel = getPeerModel(getEditorInput());
 		IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
 		String oldLaunchConfigAttributes = (String)service.getProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES);
-		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(getLaunchConfig(peerModel), String.class, false);
+		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(getLaunchConfig(peerModel), String.class);
 		String launchConfigAttributes = null;
 		try {
-			launchConfigAttributes = (String)delegate.write(getLaunchConfig(peerModel), String.class, null);
+			launchConfigAttributes = (String)delegate.write(getLaunchConfig(peerModel), String.class);
 			dirty = !launchConfigAttributes.equals(oldLaunchConfigAttributes);
 		}
 		catch (Exception e) {

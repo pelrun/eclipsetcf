@@ -96,16 +96,15 @@ public class PersistenceManager extends AbstractExtensionPointManager<IPersisten
 	 * delegate with the specified id is registered, <code>null</code> is returned.
 	 *
 	 * @param id The unique id of the persistence delegate or <code>null</code>
-	 * @param unique If <code>true</code>, the method returns new instances of the persistence delegate contribution.
 	 *
 	 * @return The persistence delegate instance or <code>null</code>.
 	 */
-	protected IPersistenceDelegate getDelegate(String id, boolean unique) {
+	protected IPersistenceDelegate getDelegate(String id) {
 		IPersistenceDelegate contribution = null;
 		if (getExtensions().containsKey(id)) {
 			ExecutableExtensionProxy<IPersistenceDelegate> proxy = getExtensions().get(id);
 			// Get the extension instance
-			contribution = unique ? proxy.newInstance() : proxy.getInstance();
+			contribution = proxy.getInstance();
 		}
 
 		return contribution;
@@ -119,7 +118,7 @@ public class PersistenceManager extends AbstractExtensionPointManager<IPersisten
 	 * @param container The persistence container or <code>null</code>.
 	 * @return The persistence delegate which is enabled or <code>null</code>.
 	 */
-	public IPersistenceDelegate getDelegate(Object context, Object container, boolean unique) {
+	public IPersistenceDelegate getDelegate(Object context, Object container) {
 		Assert.isNotNull(context);
 
 		List<IPersistenceDelegate> delegates = new ArrayList<IPersistenceDelegate>();
@@ -127,7 +126,7 @@ public class PersistenceManager extends AbstractExtensionPointManager<IPersisten
 		// Get the list of applicable bindings
 		PersistenceDelegateBinding[] bindings = PersistenceDelegateBindingExtensionPointManager.getInstance().getApplicableBindings(context, container);
 		for (PersistenceDelegateBinding binding : bindings) {
-			IPersistenceDelegate delegate = getDelegate(binding.getDelegateId(), unique);
+			IPersistenceDelegate delegate = getDelegate(binding.getDelegateId());
 			if (delegate != null && !delegates.contains(delegate)) {
 				delegates.add(delegate);
 			}

@@ -13,25 +13,18 @@ package org.eclipse.tcf.te.tcf.launch.core.lm.delegates;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.te.launch.core.lm.delegates.DefaultLaunchManagerDelegate;
-import org.eclipse.tcf.te.launch.core.lm.interfaces.ICommonLaunchAttributes;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchContextLaunchAttributes;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.IRemoteSelectionContext;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
-import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.IAttachLaunchAttributes;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
  * RemoteAppLaunchManagerDelegate
@@ -104,25 +97,6 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 			if (!launchContexts.contains(remoteCtx)) {
 				launchContexts.add(remoteCtx);
 				LaunchContextsPersistenceDelegate.setLaunchContexts(launchSpec, launchContexts.toArray(new IModelNode[launchContexts.size()]));
-			}
-
-			if (remoteCtx instanceof IPeerModel) {
-				String launchConfigAttributes = ((IPeerModel)remoteCtx).getPeer().getAttributes().get(IPeerModelProperties.PROP_LAUNCH_CONFIG_ATTRIBUTES);
-				if (launchConfigAttributes != null) {
-					IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(Map.class, launchConfigAttributes, false);
-					try {
-						Map<String, String> attributes = delegate != null ? (Map<String,String>)delegate.read(Map.class, launchConfigAttributes, null) : null;
-						if (attributes != null) {
-							attributes.remove(ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS);
-							attributes.remove(ICommonLaunchAttributes.ATTR_UUID);
-							attributes.remove(ICommonLaunchAttributes.ATTR_LAST_LAUNCHED);
-							for (Entry<String, String> entry : attributes.entrySet()) {
-								launchSpec.addAttribute(entry.getKey(), entry.getValue(), true);
-							}
-						}
-					}
-					catch (Exception e) { /* ignored on purpose */ }
-				}
 			}
 
 			launchSpec.setLaunchConfigName(getDefaultLaunchName(launchSpec));

@@ -128,20 +128,19 @@
             delegateId="org.eclipse.tcf.te.launch.core.persistence.gson.launchConfigAttributes"
             id="org.eclipse.tcf.te.launch.core.binding.gson.launchConfigAttributes">
          <enablement>
-            <with variable="container">
+            <and>
+               <with variable="containerClass">
+                 <equals value="java.lang.String"/>
+               </with>
                <or>
-                  <instanceof value="java.lang.String"/>
-                  <and>
-                     <instanceof value="java.lang.Class"/>
-                     <with variable="containerClass">
-                        <equals value="java.lang.String"/>
-                     </with>
-                  </and>
+                  <with variable="context">
+                     <instanceof value="org.eclipse.debug.core.ILaunchConfiguration"/>
+                  </with>
+                  <with variable="contextClass">
+                     <equals value="org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"/>
+                  </with>
                </or>
-            </with>
-            <with variable="context">
-               <instanceof value="org.eclipse.debug.core.ILaunchConfiguration"/>
-            </with>
+            </and>
          </enablement>
       </binding>
    </extension>

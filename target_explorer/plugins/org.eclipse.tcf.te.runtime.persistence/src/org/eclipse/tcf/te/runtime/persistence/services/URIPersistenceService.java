@@ -36,14 +36,14 @@ public class URIPersistenceService extends AbstractService implements IURIPersis
 		uri = uri != null ? uri : getURI(context);
 
 		// Determine the persistence delegate
-		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(context, uri, false);
+		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(context, uri);
 		// If the persistence delegate could not be determined, throw an IOException
 		if (delegate == null) {
 			throw new IOException("The persistence delegate for context '" + context.getClass().getName() + "' cannot be determined."); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		// Pass on to the delegate for writing
-		delegate.write(context, uri, null);
+		delegate.write(context, uri);
 	}
 
 	/* (non-Javadoc)
@@ -56,14 +56,14 @@ public class URIPersistenceService extends AbstractService implements IURIPersis
 		uri = uri != null ? uri : getURI(context);
 
 		// Determine the persistence delegate
-		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(context, uri, false);
+		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(context, uri);
 		// If the persistence delegate could not be determined, throw an IOException
 		if (delegate == null) {
 			throw new IOException("The persistence delegate for context '" + context.getClass().getName() + "' cannot be determined."); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		// Pass on to the delegate for reading
-		return delegate.read(context, uri, null);
+		return delegate.read(context, uri);
 	}
 
 	/* (non-Javadoc)
@@ -76,13 +76,13 @@ public class URIPersistenceService extends AbstractService implements IURIPersis
 		uri = uri != null ? uri : getURI(context);
 
 		// Determine the persistence delegate
-		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(context, uri, false);
+		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(context, uri);
 		// If the persistence delegate could not be determined, throw an IOException
 		if (delegate == null) {
 			throw new IOException("The persistence delegate for context '" + context.getClass().getName() + "' cannot be determined."); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
-		return delegate.delete(context, uri, null);
+		return delegate.delete(context, uri);
 	}
 
 	/* (non-Javadoc)

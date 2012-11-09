@@ -77,10 +77,10 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#write(java.lang.Object, java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#write(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public final Object write(Object context, Object container, String key) throws IOException {
+	public final Object write(Object context, Object container) throws IOException {
 		Assert.isNotNull(context);
 		Assert.isNotNull(container);
 
@@ -118,7 +118,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 				}
 			}
 		}
-		else if (container instanceof String || String.class.equals(container)) {
+		else if (String.class.equals(container)) {
 			Gson gson = new GsonBuilder().create();
 
 			container = gson.toJson(internalToMap(context));
@@ -154,10 +154,10 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#read(java.lang.Object, java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#read(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public final Object read(Object context, Object container, String key) throws IOException {
+	public final Object read(Object context, Object container) throws IOException {
 		Assert.isNotNull(container);
 
 		Gson gson = new GsonBuilder().create();
@@ -208,10 +208,10 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#delete(java.lang.Object, java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#delete(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public boolean delete(Object context, Object container, String key) throws IOException {
+	public boolean delete(Object context, Object container) throws IOException {
 		Assert.isNotNull(container);
 
 		if (container instanceof URI) {

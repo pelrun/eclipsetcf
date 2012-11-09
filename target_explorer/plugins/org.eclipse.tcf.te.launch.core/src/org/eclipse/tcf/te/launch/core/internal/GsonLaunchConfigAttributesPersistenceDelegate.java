@@ -61,6 +61,7 @@ public class GsonLaunchConfigAttributesPersistenceDelegate extends GsonMapPersis
 		if (context instanceof ILaunchConfigurationWorkingCopy) {
 			((ILaunchConfigurationWorkingCopy)context).setAttributes(map);
 		}
+
 		return context;
 	}
 }

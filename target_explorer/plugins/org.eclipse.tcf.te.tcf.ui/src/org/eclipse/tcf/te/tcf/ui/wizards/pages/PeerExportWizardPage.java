@@ -50,6 +50,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
@@ -334,7 +335,10 @@ public class PeerExportWizardPage extends WizardPage {
 					boolean toggleState = false;
 					int toggleResult = -1;
 					for (Object config : configs) {
-						IURIPersistenceService service = ServiceManager.getInstance().getService(config, IURIPersistenceService.class);
+						IURIPersistenceService service = ServiceManager.getInstance().getService(config, IExportPersistenceService.class);
+						if (service == null) {
+							service = ServiceManager.getInstance().getService(config, IURIPersistenceService.class);
+						}
 						if (service != null) {
 							try {
 								URI uri = service.getURI(config);

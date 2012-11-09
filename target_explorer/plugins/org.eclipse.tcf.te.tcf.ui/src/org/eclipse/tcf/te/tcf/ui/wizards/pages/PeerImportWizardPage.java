@@ -55,6 +55,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IImportPersistenceService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
@@ -151,8 +152,10 @@ public class PeerImportWizardPage extends WizardPage {
 					for (File candidate : candidates) {
 						try {
 							IURIPersistenceService service = ServiceManager.getInstance().getService(IURIPersistenceService.class);
-							IPeer tempPeer = (IPeer)service.read(IPeer.class, candidate.getAbsoluteFile().toURI());
-							elements.add(tempPeer);
+							if (service != null) {
+								IPeer tempPeer = (IPeer)service.read(IPeer.class, candidate.getAbsoluteFile().toURI());
+								elements.add(tempPeer);
+							}
 						}
 						catch (Exception e) {
 						}
@@ -373,7 +376,10 @@ public class PeerImportWizardPage extends WizardPage {
 							}
 						});
 						// And create a new one if we cannot find it
-						IURIPersistenceService service = ServiceManager.getInstance().getService(IURIPersistenceService.class);
+						IURIPersistenceService service = ServiceManager.getInstance().getService(IImportPersistenceService.class);
+						if (service == null) {
+							service = ServiceManager.getInstance().getService(IURIPersistenceService.class);
+						}
 						if (peerModel.get() != null) {
 							if (!toggleState || toggleResult < 0) {
 								MessageDialogWithToggle dialog = MessageDialogWithToggle.openYesNoQuestion(

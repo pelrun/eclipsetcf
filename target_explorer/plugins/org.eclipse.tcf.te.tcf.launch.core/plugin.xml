@@ -17,6 +17,20 @@
       </factory>
    </extension>
 
+<!-- Service contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.services.services">
+      <service
+            id="org.eclipse.tcf.te.tcf.launch.services.persistence.import"
+            class="org.eclipse.tcf.te.tcf.launch.core.internal.services.ImportPersistenceService">
+         <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IImportPersistenceService"/>
+      </service>
+      <service
+            id="org.eclipse.tcf.te.tcf.launch.services.persistence.export"
+            class="org.eclipse.tcf.te.tcf.launch.core.internal.services.ExportPersistenceService">
+         <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService"/>
+      </service>
+   </extension>
+
 <!-- Launch Configuration Type contributions -->
    <extension point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType

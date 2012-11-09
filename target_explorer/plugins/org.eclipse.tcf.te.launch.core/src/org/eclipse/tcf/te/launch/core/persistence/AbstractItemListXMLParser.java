@@ -152,10 +152,10 @@ public abstract class AbstractItemListXMLParser<ItemType> extends DefaultHandler
 				}
 
 				if (clazz != null) {
-					IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(clazz, lastData, false);
+					IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(clazz, lastData);
 					if (delegate != null) {
 						try {
-							ItemType item = (ItemType)delegate.read(getReadClass(), lastData, null);
+							ItemType item = (ItemType)delegate.read(getReadClass(), lastData);
 							if (items != null && !items.contains(item)) {
 								items.add(item);
 							}

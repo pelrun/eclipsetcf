@@ -180,10 +180,10 @@ public abstract class AbstractItemListPersistenceDelegate<ItemType> {
 		Assert.isNotNull(indentation);
 		Assert.isNotNull(item);
 
-		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(item, String.class, false);
+		IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(item, String.class);
 		if (delegate != null) {
 			writer.write(indentation + "<" + tagName + " " + AbstractItemListXMLParser.ATTR_TYPE + "=\"" + delegate.getPersistedClass(item).getName() + "\">\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-			writer.write(indentation + "\t" + delegate.write(item, String.class, null) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+			writer.write(indentation + "\t" + delegate.write(item, String.class) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 			writer.write(indentation + "</" + tagName + ">\n"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
