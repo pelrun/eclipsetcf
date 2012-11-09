@@ -516,14 +516,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 }
                 if (size == 0) {
                     // c-string: read until 0
+                    BigInteger get_addr = addr.add(BigInteger.valueOf(offs));
+                    final int get_size = 16 - (get_addr.intValue() & 0xf);
                     if (buf == null) buf = new byte[256];
-                    if (offs >= buf.length) {
+                    if (offs + get_size > buf.length) {
                         byte[] tmp = new byte[buf.length * 2];
                         System.arraycopy(buf, 0, tmp, 0, buf.length);
                         buf = tmp;
                     }
-                    BigInteger get_addr = addr.add(BigInteger.valueOf(offs));
-                    final int get_size = 16 - (get_addr.intValue() & 0xf);
                     command = mem_space_data.get(get_addr, 1, buf, offs, get_size, 0, new IMemory.DoneMemory() {
                         public void doneMemory(IToken token, MemoryError error) {
                             if (command != token) return;
