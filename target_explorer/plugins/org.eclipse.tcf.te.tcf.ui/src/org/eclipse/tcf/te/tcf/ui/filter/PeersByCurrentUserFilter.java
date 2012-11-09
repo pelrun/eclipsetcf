@@ -21,7 +21,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
  * Filter implementation filtering peers not started by the current user.
  */
 public class PeersByCurrentUserFilter extends ViewerFilter {
-	private static final String USERNAME = System.getProperty("user.name"); //$NON-NLS-1$
+	/* default */ static final String USERNAME = System.getProperty("user.name"); //$NON-NLS-1$
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
@@ -34,7 +34,16 @@ public class PeersByCurrentUserFilter extends ViewerFilter {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					user.set(((IPeerModel)element).getPeer().getUserName());
+					IPeerModel peerModel = (IPeerModel)element;
+
+					String value = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+					boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+
+					if (!isStatic) {
+						user.set(peerModel.getPeer().getUserName());
+					} else {
+						user.set(USERNAME);
+					}
 				}
 			};
 			Assert.isTrue(!Protocol.isDispatchThread());
