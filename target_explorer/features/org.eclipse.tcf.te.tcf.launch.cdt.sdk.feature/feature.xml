@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature"
+      label="%featureName"
+      version="1.1.0.qualifier"
+      provider-name="%providerName">
+
+   <description>
+      %description
+   </description>
+
+   <copyright>
+      %copyright
+   </copyright>
+
+   <license url="%licenseURL">
+      %license
+   </license>
+
+   <url>
+      <update label="%updateSiteName" url="http://download.eclipse.org/releases/juno"/>
+   </url>
+
+   <requires>
+      <import feature="org.eclipse.tcf.te.tcf.launch.cdt.feature" version="1.1.0.qualifier"/>
+      <import feature="org.eclipse.tcf.te.tcf.core.sdk.feature" version="1.1.0" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="org.eclipse.tcf.te.tcf.launch.cdt.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>
