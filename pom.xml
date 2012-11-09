@@ -51,6 +51,7 @@
 		<module>target_explorer/plugins/org.eclipse.tcf.te.tcf.core.scripting</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.tcf.filesystem.core</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.tcf.filesystem.ui</module>
+		<module>target_explorer/plugins/org.eclipse.tcf.te.tcf.launch.cdt</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.tcf.launch.core</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.tcf.launch.ui</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.tcf.locator</module>
@@ -82,6 +83,8 @@
 		<module>target_explorer/features/org.eclipse.tcf.te.tcf.sdk.feature</module>
 		<module>target_explorer/features/org.eclipse.tcf.te.terminals.feature</module>
 		<module>target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature</module>
+		<module>target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.feature</module>
+		<module>target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature</module>
 	  
 		<module>features/org.eclipse.tcf.repo</module>
 	</modules>

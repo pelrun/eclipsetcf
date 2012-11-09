@@ -48,6 +48,12 @@
    <feature url="features/org.eclipse.tcf.te.terminals.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.terminals.sdk.feature" version="0.0.0">
       <category name="org.eclipse.tcf.te"/>
    </feature>
+   <feature url="features/org.eclipse.tcf.te.tcf.launch.cdt.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.tcf.launch.cdt.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te"/>
+   </feature>
+   <feature url="features/org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te"/>
+   </feature>
    <category-def name="org.eclipse.tcf" label="Target Communication Framework">
       <description>
          Target Communication Framework
