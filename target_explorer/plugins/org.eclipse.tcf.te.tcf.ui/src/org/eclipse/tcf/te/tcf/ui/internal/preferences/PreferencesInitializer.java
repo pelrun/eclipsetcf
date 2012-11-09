@@ -35,5 +35,7 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(IPreferenceKeys.PREF_HIDE_DYNAMIC_TARGET_DISCOVERY_EXTENSION, true);
 		// [Hidden] Hide proxy and value-add's in the "System Management" view: default on
 		store.setDefault(IPreferenceKeys.PREF_HIDE_PROXIES_AND_VALUEADDS, true);
+		// [Hidden] Activate current user filter: default off
+		store.setDefault(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER, false);
 	}
 }

@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ITreePathContentProvider;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
@@ -46,6 +47,7 @@ import org.eclipse.ui.internal.navigator.NavigatorFilterService;
 import org.eclipse.ui.navigator.CommonViewer;
 import org.eclipse.ui.navigator.ICommonContentExtensionSite;
 import org.eclipse.ui.navigator.ICommonContentProvider;
+import org.eclipse.ui.navigator.ICommonFilterDescriptor;
 import org.eclipse.ui.navigator.INavigatorContentService;
 import org.eclipse.ui.navigator.INavigatorFilterService;
 
@@ -59,6 +61,9 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 
 	// The "Redirected Peers" filter id
 	private final static String REDIRECT_PEERS_FILTER_ID = "org.eclipse.tcf.te.tcf.ui.navigator.RedirectPeersFilter"; //$NON-NLS-1$
+	// The current user filter id
+	private final static String CURRENT_USER_FILTER_ID = "org.eclipse.tcf.te.tcf.ui.navigator.PeersByCurrentUserFilter"; //$NON-NLS-1$
+
 
 	// The locator model listener instance
 	/* default */ IModelListener modelListener = null;
@@ -473,14 +478,44 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 		// Make sure that the hidden "Redirected Peers" filter is active
 		INavigatorContentService cs = config.getService();
 		navFilterService = cs != null ? cs.getFilterService() : null;
-		if (navFilterService != null && !navFilterService.isActive(REDIRECT_PEERS_FILTER_ID)) {
-			if (navFilterService instanceof NavigatorFilterService) {
-				((NavigatorFilterService)navFilterService).addActiveFilterIds(new String[] { REDIRECT_PEERS_FILTER_ID });
+		if (navFilterService instanceof NavigatorFilterService) {
+			final NavigatorFilterService filterService = (NavigatorFilterService)navFilterService;
+			boolean activeFiltersChanged = false;
+
+			// Reconstruct the list of active filters based on the visible filter descriptors
+			List<String> activeFilderIds = new ArrayList<String>();
+
+			ICommonFilterDescriptor[] descriptors = filterService.getVisibleFilterDescriptors();
+			for (ICommonFilterDescriptor descriptor : descriptors) {
+				if (descriptor.getId() != null && !"".equals(descriptor.getId()) && filterService.isActive(descriptor.getId())) { //$NON-NLS-1$
+					activeFilderIds.add(descriptor.getId());
+				}
+			}
+
+			if (!activeFilderIds.contains(REDIRECT_PEERS_FILTER_ID)) {
+				activeFilderIds.add(REDIRECT_PEERS_FILTER_ID);
+				activeFiltersChanged = true;
+			}
+
+			if (UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER)
+					&& !navFilterService.isActive(CURRENT_USER_FILTER_ID)) {
+				IDialogSettings settings = UIPlugin.getDefault().getDialogSettings();
+				IDialogSettings section = settings.getSection(this.getClass().getSimpleName());
+				if (section == null) section = settings.addNewSection(this.getClass().getSimpleName());
+				if (!section.getBoolean(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER + ".done")) { //$NON-NLS-1$
+					activeFilderIds.add(CURRENT_USER_FILTER_ID);
+					activeFiltersChanged = true;
+					section.put(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER + ".done", true); //$NON-NLS-1$
+				}
+			}
+
+			if (activeFiltersChanged) {
+				final String[] finActiveFilterIds = activeFilderIds.toArray(new String[activeFilderIds.size()]);
 				// Do the update view asynchronous to avoid reentrant viewer calls
 				DisplayUtil.safeAsyncExec(new Runnable() {
 					@Override
 					public void run() {
-						((NavigatorFilterService)navFilterService).updateViewer();
+						filterService.activateFilterIdsAndUpdateViewer(finActiveFilterIds);
 					}
 				});
 			}

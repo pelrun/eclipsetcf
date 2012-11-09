@@ -27,4 +27,9 @@ public interface IPreferenceKeys {
 	 * Preference key to access the flag to hide proxies and value-add's in the "System Management" tree.
 	 */
 	public static final String PREF_HIDE_PROXIES_AND_VALUEADDS = PREFIX + ".model.proxies_valueadds.hide"; //$NON-NLS-1$
+
+	/**
+	 * Preference key to access the flag to activate the current user filter on first launch.
+	 */
+	public static final String PREF_ACTIVATE_CURRENT_USER_FILTER = PREFIX + ".model.currentUserFilter.activate"; //$NON-NLS-1$
 }
