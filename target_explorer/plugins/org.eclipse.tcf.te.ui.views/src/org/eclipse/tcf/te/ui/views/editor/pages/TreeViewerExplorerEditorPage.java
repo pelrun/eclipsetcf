@@ -34,13 +34,18 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
@@ -65,7 +70,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 	private IToolBarManager toolbarMgr;
 	private PropertyChangeListener pcListener;
 	private Image formImage;
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.forms.editor.FormPage#dispose()
 	 */
@@ -158,10 +163,70 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 		// Set the initial input
 		Object input = getViewerInput();
 		treeControl.getViewer().setInput(input);
-		
+
 	    addViewerListeners();
-	    
+
+	    // adjust the tree column width initially to take the full size of control
+	    adjustTreeColumnWidth(treeControl.getViewer());
+
 	    updateUI();
+	}
+
+	/**
+	 * Determines the current visible width of the tree control and
+	 * adjust the column width according to there relative weight.
+	 *
+	 * @param viewer The viewer or <code>null</code>.
+	 */
+	protected void adjustTreeColumnWidth(Viewer viewer) {
+		if (!(viewer instanceof TreeViewer)) return;
+
+		final TreeViewer treeViewer = (TreeViewer)viewer;
+		final Tree tree = treeViewer.getTree();
+		tree.setData("initialSizeAdjusted", Boolean.FALSE); //$NON-NLS-1$
+		tree.addControlListener(new ControlListener() {
+
+			@Override
+			public void controlResized(ControlEvent e) {
+				Boolean initialSizeAdjusted = (Boolean)tree.getData("initialSizeAdjusted"); //$NON-NLS-1$
+				if (initialSizeAdjusted.booleanValue()) return;
+				tree.setData("initialSizeAdjusted", Boolean.TRUE); //$NON-NLS-1$
+
+				int sumColumnWidth = 0;
+				int treeWidth = tree.getSize().x - tree.getVerticalBar().getSize().x;
+
+				TreeColumn[] columns = tree.getColumns();
+
+				// Summarize the tree column width
+				for (TreeColumn column : columns) {
+					sumColumnWidth += column.getWidth();
+				}
+
+				// Calculate the new width for each column
+				int sumColumnWidth2 = 0;
+				TreeColumn maxColumn = null;
+				for (TreeColumn column : columns) {
+					int weight = (column.getWidth() * 100) / sumColumnWidth;
+					int newWidth = (weight * treeWidth) / 100;
+					sumColumnWidth2 += newWidth;
+					column.setWidth(newWidth);
+					if (maxColumn == null || maxColumn.getWidth() < column.getWidth()) {
+						maxColumn = column;
+					}
+				}
+
+				// If we end up with a slighter larger width of all columns than
+				// the tree widget is, reduce the size of the largest column
+				if (sumColumnWidth2 > treeWidth && maxColumn != null) {
+					int delta = sumColumnWidth2 - treeWidth + 2;
+					maxColumn.setWidth(maxColumn.getWidth() - delta);
+				}
+			}
+
+			@Override
+			public void controlMoved(ControlEvent e) {
+			}
+		});
 	}
 
 	/**
@@ -181,7 +246,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
             }
 		});
 		viewer.addDoubleClickListener(this);
-		
+
 	    IPropertyChangeProvider provider = getPropertyChangeProvider();
 		if(provider != null) {
 			pcListener = new PropertyChangeListener() {
@@ -208,7 +273,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 			provider.addPropertyChangeListener(pcListener);
 		}
     }
-	
+
 	@Override
     public Object getAdapter(Class adapter) {
 		if(TreeViewer.class.equals(adapter)) {
@@ -218,9 +283,9 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
     }
 
 	/**
-	 * Get an adapter instance from the adaptable with the specified 
+	 * Get an adapter instance from the adaptable with the specified
 	 * adapter interface.
-	 * 
+	 *
 	 * @param adaptable The adaptable to get the adapter.
 	 * @param adapter The adapter interface class.
 	 * @return An adapter or null if it does not adapt to this type.
@@ -239,10 +304,10 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 		}
 		return adapted;
 	}
-	
+
 	/**
 	 * Get an adapter of IFilteringLabelDecorator.
-	 * 
+	 *
 	 * @return an IFilteringLabelDecorator adapter or null if it does not adapt to IFilteringLabelDecorator.
 	 */
 	private IFilterable adaptFilterable() {
@@ -257,7 +322,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 
 	/**
 	 * Get the viewer input adapter for the input.
-	 * 
+	 *
 	 * @param input the input of the tree viewer.
 	 * @return The adapter.
 	 */
@@ -268,14 +333,14 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 		}
 		return null;
     }
-	
+
 	Object getTreeViewerInput() {
 		if (treeControl != null && treeControl.getViewer() != null) {
 			return treeControl.getViewer().getInput();
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Creates and returns a tree control.
 	 *
@@ -293,7 +358,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 	public final TreeControl getTreeControl() {
 		return treeControl;
 	}
-	
+
 	/**
 	 * Update the page's ui including its toolbar and title text and image.
 	 */
@@ -346,7 +411,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 			}
 		}
 	}
-	
+
 	/**
 	 * Get the title bar's decorator or null if there's no decorator for it.
 	 */
@@ -373,7 +438,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 			/* ignored on purpose */
 		}
 	}
-	
+
 	/**
 	 * Get the id of the command invoked when the tree is double-clicked.
 	 * If the id is null, then no command is invoked.
@@ -383,7 +448,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 	protected String getDoubleClickCommandId() {
 		return null;
 	}
-	
+
 	/**
 	 * Get the tree viewer's id. This viewer id is used by
 	 * viewer extension to define columns and filters.
@@ -442,6 +507,6 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 			if (viewer.isExpandable(element)) {
 				viewer.setExpandedState(element, !viewer.getExpandedState(element));
 			}
-		}	    
+		}
     }
 }
