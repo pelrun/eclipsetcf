@@ -147,8 +147,9 @@ public class ServicesSection extends AbstractSection {
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				needQueryServices.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES) != null
-										|| node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES) != null);
+				// If one services key is set, the other is set to. The more important information
+				// is the remote services, so test for the remote services key.
+				needQueryServices.set(!node.containsKey(IPeerModelProperties.PROP_REMOTE_SERVICES));
 			}
 		});
 
