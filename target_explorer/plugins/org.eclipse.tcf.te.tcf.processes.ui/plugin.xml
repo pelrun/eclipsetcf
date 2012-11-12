@@ -22,7 +22,7 @@
 <!-- Event listener contributions -->
    <extension point="org.eclipse.tcf.te.runtime.eventListeners">
       <eventListener
-            class="org.eclipse.tcf.te.tcf.processes.ui.navigator.events.EventListener">
+            class="org.eclipse.tcf.te.tcf.ui.navigator.events.EventListener">
          <eventSourceType
                bundleId="org.eclipse.tcf.te.tcf.processes.core"
                class="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel">
