@@ -27,7 +27,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * Top preference page implementation.
  */
 public class PreferencePage extends org.eclipse.jface.preference.PreferencePage implements IWorkbenchPreferencePage {
-	private Button persistEditors;
+	private Button persistEditors = null;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
@@ -67,7 +67,9 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	 */
 	@Override
 	protected void performDefaults() {
-		persistEditors.setSelection(UIPlugin.getScopedPreferences().getDefaultBoolean(IPreferenceKeys.PREF_PERSIST_EDITORS));
+		if (persistEditors != null) {
+			persistEditors.setSelection(UIPlugin.getScopedPreferences().getDefaultBoolean(IPreferenceKeys.PREF_PERSIST_EDITORS));
+		}
 	    super.performDefaults();
 	}
 
@@ -76,7 +78,9 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	 */
 	@Override
 	public boolean performOk() {
-		UIPlugin.getScopedPreferences().putBoolean(IPreferenceKeys.PREF_PERSIST_EDITORS, persistEditors.getSelection());
+		if (persistEditors != null) {
+			UIPlugin.getScopedPreferences().putBoolean(IPreferenceKeys.PREF_PERSIST_EDITORS, persistEditors.getSelection());
+		}
 	    return super.performOk();
 	}
 

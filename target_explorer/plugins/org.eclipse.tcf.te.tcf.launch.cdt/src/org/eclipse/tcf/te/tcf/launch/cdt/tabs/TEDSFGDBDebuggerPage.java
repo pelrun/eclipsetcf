@@ -35,9 +35,9 @@ import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 @SuppressWarnings("restriction")
 public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 
-	protected Text fGDBServerCommandText;
+	protected Text fGDBServerCommandText = null;
 
-	protected Text fGDBServerPortNumberText;
+	protected Text fGDBServerPortNumberText = null;
 
 	private boolean fIsInitializing = false;
 
@@ -82,20 +82,18 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
 		} catch (CoreException e) {
 		}
-		fGDBServerCommandText.setText(gdbserverCommand);
-		fGDBServerPortNumberText.setText(gdbserverPortNumber);
+		if (fGDBServerCommandText != null) fGDBServerCommandText.setText(gdbserverCommand);
+		if (fGDBServerPortNumberText != null) fGDBServerPortNumberText.setText(gdbserverPortNumber);
 		setInitializing(false);
 	}
 
 	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 		super.performApply(configuration);
-		String str = fGDBServerCommandText.getText();
-		str.trim();
+		String str = fGDBServerCommandText != null ? fGDBServerCommandText.getText().trim() : null;
 		configuration.setAttribute(
 				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, str);
-		str = fGDBServerPortNumberText.getText();
-		str.trim();
+		str = fGDBServerPortNumberText != null ? fGDBServerPortNumberText.getText().trim() : null;
 		configuration.setAttribute(
 				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, str);
 	}

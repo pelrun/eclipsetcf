@@ -46,7 +46,7 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 	public void launch(ILaunchConfiguration config, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		IPath exePath = checkBinaryDetails(config);
-		if (exePath != null) {
+		if (exePath != null && launch instanceof GdbLaunch) {
 			// -1. Initialize TE
 			Activator.getDefault().initializeTE();
 			// 0. Get the peer from the launch configuration

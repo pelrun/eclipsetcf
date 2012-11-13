@@ -149,7 +149,7 @@
 		</Or>
 	</Match>
 
-		<!-- Ignore BC_VACUOUS_INSTANCEOF -->
+	<!-- Ignore BC_VACUOUS_INSTANCEOF -->
 	<Match>
 		<Bug pattern="BC_VACUOUS_INSTANCEOF"/>
 		<Class name="org.eclipse.tcf.te.runtime.stepper.extensions.StepGroup"/>
@@ -169,7 +169,10 @@
 	<!-- Ignore WA_NOT_IN_LOOP in ProcessOutputReaderThread -->
 	<Match>
 		<Bug pattern="WA_NOT_IN_LOOP"/>
-		<Class name="org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread"/>
+		<Or>
+			<Class name="org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread"/>
+			<Class name="org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper"/>
+		</Or>
 	</Match>
 	
 	<!-- Ignore UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR -->
@@ -212,6 +215,12 @@
 			<Class name="org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState"/>
 			<Class name="org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl"/>
 		</Or>
+	</Match>
+
+	<!-- Ignore BC_VACUOUS_INSTANCEOF -->
+	<Match>
+		<Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+		<Class name="org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FileExtBasedImageUpdater"/>
 	</Match>
 	
 	<!-- Filters for org.eclipse.tcf bundle -->

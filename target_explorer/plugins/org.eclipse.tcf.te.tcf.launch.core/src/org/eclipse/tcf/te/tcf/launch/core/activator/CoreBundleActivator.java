@@ -9,8 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.activator;
 
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -23,8 +21,6 @@ public class CoreBundleActivator implements BundleActivator {
 	private static BundleContext context;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
-	// The event listener to delegate peer attribute changes
-	private IEventListener eventListener;
 
 	/**
 	 * Returns the bundle context
@@ -72,8 +68,5 @@ public class CoreBundleActivator implements BundleActivator {
 	public void stop(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = null;
 		traceHandler = null;
-
-		EventManager.getInstance().removeEventListener(eventListener);
-		eventListener = null;
 	}
 }

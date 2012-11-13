@@ -110,7 +110,6 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
            		configPanel = delegate.getPanel(this);
             	if (configPanel == null) configPanel = new EmptySettingsPanel(this);
             	// Push the selection to the configuration panel
-            	Assert.isTrue(configPanel instanceof IConfigurationPanel);
             	((IConfigurationPanel)configPanel).setSelection(getSelection());
             	// Add it
             	addConfigurationPanel(key, configPanel);
