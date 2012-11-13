@@ -117,7 +117,8 @@
    <extension point="org.eclipse.tcf.te.ui.views.editorPageBindings">
       <editorPageBinding
             id="org.eclipse.tcf.te.tcf.processes.ui.binding.ProcessExplorerEditorPage"
-            pageId="org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage">
+            pageId="org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage"
+            insertBefore="org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <enablement>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
