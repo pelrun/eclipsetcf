@@ -24,6 +24,7 @@ public class Messages extends NLS {
     public static String TCFThreadFilterQueryAdvancedLabel;
     public static String TCFThreadFilterQueryTreeViewLabel;
     public static String TCFThreadFilterEditorFormatError;
+    public static String TCFThreadFilterEditorUnbalancedParameters;
     public static String TCFThreadFilterEditorNoOpenChannel;
     public static String TCFThreadFileterEditorInvalidQuery;
     public static String TCFBreakpointPreferencesEnableDefaultTriggerScope;
