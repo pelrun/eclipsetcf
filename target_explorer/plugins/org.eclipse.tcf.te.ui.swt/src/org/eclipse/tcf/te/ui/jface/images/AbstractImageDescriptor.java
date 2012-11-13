@@ -70,6 +70,21 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	}
 
 	/**
+	 * Returns the image for the given key.
+	 *
+	 * @param registry The image registry. Must not be <code>null</code>.
+	 * @param key The image key. Must not be <code>null</code>.
+	 *
+	 * @return The image or <code>null</code>.
+	 */
+	protected Image getImage(ImageRegistry registry, String key) {
+		Assert.isNotNull(registry);
+		Assert.isNotNull(key);
+
+		return registry.get(key);
+	}
+
+	/**
 	 * Draw the image, found under the specified key, centered within the
 	 * rectangle given by width x height.
 	 *
@@ -79,7 +94,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 */
 	protected void drawCentered(String key, int width, int height) {
 		Assert.isNotNull(key);
-		drawCentered(parentImageRegistry.get(key), width, height);
+		drawCentered(getImage(parentImageRegistry, key), width, height);
 	}
 
 	/**
@@ -110,7 +125,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 * @param height The height of the base image.
 	 */
 	protected void drawCenterRight(String key, int width, int height) {
-		Image image = parentImageRegistry.get(key);
+		Image image = getImage(parentImageRegistry, key);
 		if (image != null) {
 			ImageData imageData = image.getImageData();
 			if (imageData != null) {
@@ -128,7 +143,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 * @param key The overlay image key. Must not be <code>null</code>.
 	 */
 	protected void drawTopLeft(String key) {
-		Image image = parentImageRegistry.get(key);
+		Image image = getImage(parentImageRegistry, key);
 		if (image != null) {
 			ImageData imageData = image.getImageData();
 			if (imageData != null) {
@@ -162,7 +177,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 * @param height The height of the base image.
 	 */
 	protected void drawTopRight(String key, int width, int height) {
-		Image image = parentImageRegistry.get(key);
+		Image image = getImage(parentImageRegistry, key);
 		if (image != null) {
 			ImageData imageData = image.getImageData();
 			if (imageData != null) {
@@ -181,7 +196,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 * @param height The height of the base image.
 	 */
 	protected void drawBottomCenter(String key, int width, int height) {
-		Image image = parentImageRegistry.get(key);
+		Image image = getImage(parentImageRegistry, key);
 		if (image != null) {
 			ImageData imageData = image.getImageData();
 			if (imageData != null) {
@@ -201,7 +216,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 * @param height The height of the base image.
 	 */
 	protected void drawBottomLeft(String key, int width, int height) {
-		Image image = parentImageRegistry.get(key);
+		Image image = getImage(parentImageRegistry, key);
 		if (image != null) {
 			ImageData imageData = image.getImageData();
 			if (imageData != null) {
@@ -220,7 +235,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 * @param height The height of the base image.
 	 */
 	protected void drawCenterLeft(String key, int width, int height) {
-		Image image = parentImageRegistry.get(key);
+		Image image = getImage(parentImageRegistry, key);
 		if (image != null) {
 			ImageData imageData = image.getImageData();
 			if (imageData != null) {
@@ -255,7 +270,7 @@ public abstract class AbstractImageDescriptor extends CompositeImageDescriptor {
 	 * @param height The height of the base image.
 	 */
 	protected void drawBottomRight(String key, int width, int height) {
-		Image image = parentImageRegistry.get(key);
+		Image image = getImage(parentImageRegistry, key);
 		if (image != null) {
 			ImageData imageData = image.getImageData();
 			if (imageData != null) {
