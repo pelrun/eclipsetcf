@@ -495,7 +495,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.launch.command.run"
                id="org.eclipse.tcf.te.launch.ui.editor.toolbar.commands.run"
-               label="%Run.menu.name"
+               label="%command.run.label"
                style="push"/>
          <separator
                name="group.debug"
@@ -503,7 +503,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.launch.command.debug"
                id="org.eclipse.tcf.te.launch.ui.editor.toolbar.commands.debug"
-               label="%Debug.menu.name"
+               label="%command.debug.label"
                style="push"/>
          <separator
                name="group.launch"
@@ -533,29 +533,33 @@
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             description="%command.showInDebugView.description"
-            helpContextId="org.eclipse.tcf.te.launch.command_ShowInDebugView"
             id="org.eclipse.tcf.te.launch.command.showInDebugView"
+            helpContextId="org.eclipse.tcf.te.launch.command_ShowInDebugView"
             name="%command.showInDebugView.name"/>
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             description="%command.attach.description"
-            helpContextId="org.eclipse.tcf.te.launch.command_Attach"
             id="org.eclipse.tcf.te.launch.command.attach"
+            helpContextId="org.eclipse.tcf.te.launch.command_Attach"
             name="%command.attach.name"/>
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             description="%command.detach.description"
-            helpContextId="org.eclipse.tcf.te.launch.command_Detach"
             id="org.eclipse.tcf.te.launch.command.detach"
+            helpContextId="org.eclipse.tcf.te.launch.command_Detach"
             name="%command.detach.name"/>
       <command
-            helpContextId="org.eclipse.tcf.te.ui.launch.command_Run"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            description="%command.run.description"
             id="org.eclipse.tcf.te.ui.launch.command.run"
-            name="%Run.menu.name"/>
+            helpContextId="org.eclipse.tcf.te.ui.launch.command_Run"
+            name="%command.run.name"/>
       <command
-            helpContextId="org.eclipse.tcf.te.ui.launch.command_Debug"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            description="%command.debug.description"
             id="org.eclipse.tcf.te.ui.launch.command.debug"
-            name="%Debug.menu.name"/>
+            helpContextId="org.eclipse.tcf.te.ui.launch.command_Debug"
+            name="%command.debug.name"/>
    </extension>
    
 <!-- Command image contributions -->
@@ -713,9 +717,7 @@
          <enabledWhen>
             <with variable="selection">
                <count value="1"/>
-               <iterate 
-                     operator="and" 
-                     ifEmpty="false">
+               <iterate  operator="and" ifEmpty="false">
                   <and>
                      <test property="org.eclipse.tcf.te.launch.ui.model.isLaunchConfig"/>
                      <test property="org.eclipse.tcf.te.launch.ui.model.isValidLaunchConfig" value="debug"/>
