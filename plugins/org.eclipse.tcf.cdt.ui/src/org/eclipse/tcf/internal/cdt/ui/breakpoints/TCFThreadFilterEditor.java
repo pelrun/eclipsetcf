@@ -413,49 +413,29 @@ public class TCFThreadFilterEditor {
          return result;
      }
 
-    String missingParameterValue(String expression, int fromIndex) {
+    String validateBasicSyntax(String expression) {
+
         String result = null;
-        if (fromIndex == 0) {
-            // Ignore content in double-quotes.
-            Pattern p = Pattern.compile("\"([^\"]*)\"");
-            Matcher m = p.matcher(expression);
-            expression = m.replaceAll("temp");
+        // Ignore content in double-quotes.
+        Pattern p = Pattern.compile("\"((?:\\\\\\\\|\\\\\"|[^\"])*)\"");
+        Matcher m = p.matcher(expression);
+        expression = m.replaceAll("temp");
 
-            // No whitespace
-            if (expression.matches("^(.*?)(\\s)(.*)$"))
-                return Messages.TCFThreadFilterEditorFormatError;
+        // No whitespace
+        if (expression.matches("^(.*?)(\\s)(.*)$"))
+            return Messages.TCFThreadFilterEditorFormatError;
 
-            // Check characters around equals.
-            if (expression.matches("^(.*?)[^a-zA-Z0-9_]=[^a-zA-Z0-9_](.*)$"))
-                return Messages.TCFThreadFilterEditorUnbalancedParameters;
-        }
+        // Check characters around equals.
+        if (expression.matches("^(.*?)[^a-zA-Z0-9_]=[^a-zA-Z0-9_](.*)$"))
+            return Messages.TCFThreadFilterEditorUnbalancedParameters;
 
-        int lastIndex = expression.length();
-        if (lastIndex != 0 && fromIndex <= lastIndex) {
-            int equalsIndex = expression.indexOf('=', fromIndex);
-            int commaIndex = expression.indexOf(',', fromIndex);
-            int nextEqualsIndex = expression.indexOf('=',equalsIndex+1);
-            if (commaIndex == lastIndex-1 || equalsIndex == lastIndex-1 ||
-                equalsIndex == 0 || commaIndex == 0) {
-                return Messages.TCFThreadFilterEditorUnbalancedParameters;
-            }
-            if (equalsIndex > 0) {
-                if ((commaIndex != -1 && commaIndex < equalsIndex) ||
-                    (nextEqualsIndex != -1 && (commaIndex == -1 || nextEqualsIndex < commaIndex))) {
-                    return Messages.TCFThreadFilterEditorUnbalancedParameters;
-                }
-                if (commaIndex!=-1) {
-                    result = missingParameterValue(expression, commaIndex+1);
-                }
-            }
-        }
         return result;
     }
 
     private class ExpressionModifier implements ModifyListener {
         public void modifyText(ModifyEvent e) {
             String expression = scopeExprCombo.getText();
-            String error = missingParameterValue(expression, 0);
+            String error = validateBasicSyntax(expression);
             if (error != null) {
                 scopeExpressionDecoration.show();
                 fPage.setErrorMessage(error);
