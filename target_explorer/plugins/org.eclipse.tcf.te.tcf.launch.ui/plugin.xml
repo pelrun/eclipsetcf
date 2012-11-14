@@ -86,28 +86,6 @@
             </enablement>
          </contextualLaunch>
       </shortcut>
-      <shortcut
-            id="org.eclipse.tcf.te.tcf.launch.ui.launchshortcut.attach.debug"
-            label="%LaunchShortcut.Attach.name"
-            icon="icons/obj16/attach.gif"
-            modes="debug">
-         <class class="org.eclipse.tcf.te.launch.ui.handler.LaunchShortcutHandler">
-            <parameter name="typeId" value="org.eclipse.tcf.te.tcf.launch.type.attach"/>
-         </class>
-         <contextualLaunch>
-            <enablement>
-               <with variable="selection">
-                  <iterate ifEmpty="false">
-                     <test 
-                           forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
-                           value="org.eclipse.tcf.te.tcf.launch.type.attach"
-                           args="debug"/>
-                  </iterate>
-               </with>
-            </enablement>
-         </contextualLaunch>
-      </shortcut>
    </extension>
 
 <!-- Editor page contributions -->
