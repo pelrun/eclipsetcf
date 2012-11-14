@@ -309,6 +309,10 @@ public class MemoryMapWidget {
 
         createMapButtons(composite);
     }
+    
+    protected final TableViewer getViewer() {
+        return table_viewer;
+    }
 
     private void createMapButtons(Composite parent) {
         Font font = parent.getFont();

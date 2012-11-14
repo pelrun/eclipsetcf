@@ -41,13 +41,34 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
         composite.setFont(parent.getFont());
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 1, 1));
-        widget = new MemoryMapWidget(composite, node);
+        widget = createWidget(composite, node);
         widget.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent evt) {
                 updateLaunchConfigurationDialog();
             }
         });
         setControl(composite);
+    }
+
+    /**
+     * Create the memory map widget.
+     * 
+     * @param composite The parent composite.
+     * @param node The TCF node.
+     * 
+     * @return The memory map widget.
+     */
+    protected MemoryMapWidget createWidget(Composite composite, TCFNode node) {
+        return new MemoryMapWidget(composite, node);
+    }
+    
+    /**
+     * Returns the memory map widget.
+     * 
+     * @return The memory map widget.
+     */
+    protected final MemoryMapWidget getWidget() {
+        return widget;
     }
 
     /**
