@@ -39,7 +39,7 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	 * @param input The editor input.
 	 * @return The peer model.
 	 */
-	IPeerModel getPeerModel(Object input) {
+	public IPeerModel getPeerModel(Object input) {
 		return (IPeerModel)((IAdaptable)input).getAdapter(IPeerModel.class);
 	}
 
@@ -48,7 +48,7 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	 * @param peerModel The peer model.
 	 * @return The launch configuration.
 	 */
-	ILaunchConfigurationWorkingCopy getLaunchConfig(final IPeerModel peerModel) {
+	public ILaunchConfigurationWorkingCopy getLaunchConfig(final IPeerModel peerModel) {
 		ILaunchConfigurationWorkingCopy wc = null;
 		if (peerModel != null) {
 			IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
@@ -113,9 +113,9 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	}
 
 	/**
-	 * Check if the launch config has changed.
+	 * Check if the launch configuration has changed.
 	 * If it has changed, the page is set dirty.
-	 * @return <code>true</code> if the launch config has changed since last save.
+	 * @return <code>true</code> if the launch configuration has changed since last save.
 	 */
 	public boolean checkLaunchConfigDirty() {
 		boolean dirty = false;

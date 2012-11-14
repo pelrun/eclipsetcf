@@ -13,6 +13,7 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.IDebugView;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.tcf.internal.debug.ui.launch.TCFMemoryMapTab;
+import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.MemoryMapTab;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.ISelectionListener;
@@ -40,14 +41,7 @@ public class MemoryMapEditorPage extends AbstractTcfLaunchTabContainerEditorPage
 	 */
 	@Override
 	protected AbstractLaunchConfigurationTab createLaunchConfigurationTab() {
-		return new TCFMemoryMapTab() {
-			@Override
-			protected void updateLaunchConfigurationDialog() {
-				super.updateLaunchConfigurationDialog();
-				performApply(getLaunchConfig(getPeerModel(getEditorInput())));
-				checkLaunchConfigDirty();
-			}
-		};
+		return new MemoryMapTab(this);
 	}
 
 	/* (non-Javadoc)

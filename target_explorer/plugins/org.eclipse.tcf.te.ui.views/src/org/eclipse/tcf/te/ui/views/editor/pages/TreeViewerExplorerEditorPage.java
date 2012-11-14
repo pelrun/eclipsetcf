@@ -183,15 +183,10 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 
 		final TreeViewer treeViewer = (TreeViewer)viewer;
 		final Tree tree = treeViewer.getTree();
-		tree.setData("initialSizeAdjusted", Boolean.FALSE); //$NON-NLS-1$
 		tree.addControlListener(new ControlListener() {
 
 			@Override
 			public void controlResized(ControlEvent e) {
-				Boolean initialSizeAdjusted = (Boolean)tree.getData("initialSizeAdjusted"); //$NON-NLS-1$
-				if (initialSizeAdjusted.booleanValue()) return;
-				tree.setData("initialSizeAdjusted", Boolean.TRUE); //$NON-NLS-1$
-
 				int sumColumnWidth = 0;
 				int treeWidth = tree.getSize().x - tree.getVerticalBar().getSize().x;
 
@@ -221,6 +216,8 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 					int delta = sumColumnWidth2 - treeWidth + 2;
 					maxColumn.setWidth(maxColumn.getWidth() - delta);
 				}
+
+				tree.removeControlListener(this);
 			}
 
 			@Override
