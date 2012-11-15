@@ -52,19 +52,19 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
 
     /**
      * Create the memory map widget.
-     * 
+     *
      * @param composite The parent composite.
      * @param node The TCF node.
-     * 
+     *
      * @return The memory map widget.
      */
     protected MemoryMapWidget createWidget(Composite composite, TCFNode node) {
         return new MemoryMapWidget(composite, node);
     }
-    
+
     /**
      * Returns the memory map widget.
-     * 
+     *
      * @return The memory map widget.
      */
     protected final MemoryMapWidget getWidget() {

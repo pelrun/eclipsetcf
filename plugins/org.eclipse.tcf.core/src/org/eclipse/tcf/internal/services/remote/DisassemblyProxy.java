@@ -40,7 +40,7 @@ public class DisassemblyProxy implements IDisassembly {
             else if (data != null) this.size = data.length;
             else this.size = 0;
             Collection<Map<String,Object>> c = (Collection<Map<String,Object>>)m.get("Instruction");
-            instruction = c.toArray(new Map[c.size()]);
+            instruction = c != null ? c.toArray(new Map[c.size()]) : null;
         }
 
         public Number getAddress() {

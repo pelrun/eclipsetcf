@@ -78,7 +78,7 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
                        }
                        if (endOfVal == -1) {
                            endOfVal = expression.length();
-                       }                       
+                       }
                    }
                    return expression.substring(startOfVal, endOfVal);
                }
@@ -217,7 +217,7 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
        else {
            endLocation = expression.indexOf(',', index+1);
        }
-       
+
        if (endLocation == -1) {
            endLocation = expression.length();
            testChar = expression.substring(index-1, index);

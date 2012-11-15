@@ -309,7 +309,7 @@ public class MemoryMapWidget {
 
         createMapButtons(composite);
     }
-    
+
     protected final TableViewer getViewer() {
         return table_viewer;
     }

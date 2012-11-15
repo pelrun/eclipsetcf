@@ -21,7 +21,6 @@ import org.eclipse.cdt.debug.internal.ui.disassembly.dsf.AbstractDisassemblyBack
 import org.eclipse.cdt.debug.internal.ui.disassembly.dsf.AddressRangePosition;
 import org.eclipse.cdt.debug.internal.ui.disassembly.dsf.DisassemblyUtils;
 import org.eclipse.cdt.debug.internal.ui.disassembly.dsf.ErrorPosition;
-import org.eclipse.cdt.debug.internal.ui.disassembly.dsf.IDisassemblyPartCallback;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -195,22 +194,87 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         }
     }
 
-    private IDisassemblyPartCallback fCallback;
     private volatile boolean fSuspended;
     private volatile TCFNodeExecContext fExecContext;
     private volatile TCFNodeExecContext fMemoryContext;
     private volatile TCFNodeStackFrame fActiveFrame;
-    private volatile BigInteger fSuspendAddress;
     private volatile int fSuspendCount;
+    private volatile int fContextCount;
+    private volatile boolean disposed;
+
+    /* Objects of the Request class represent pending disassembly update requests.
+     * A request becomes obsolete and should be aborted if:
+     * 1. debug context selection changes.
+     * 2. debug context state changes.
+     * 3. the view is disposed.
+     */
+    private class Request {
+        final TCFNodeExecContext ctx;
+        final TCFNodeExecContext mem;
+        final int suspend_cnt;
+        final int context_cnt;
+        final long doc_mod_cnt;
+
+        boolean done;
+
+        Request() {
+            /* Record request context */
+            ctx = fExecContext;
+            mem = fMemoryContext;
+            suspend_cnt = fSuspendCount;
+            context_cnt = fContextCount;
+            doc_mod_cnt = getModCount();
+            assert fCallback.getUpdatePending();
+        }
+
+        /* Return true if the request handling should continue,
+         * otherwise reset pending state and return false */
+        private boolean check() {
+            boolean ok =
+                !done &&
+                !disposed &&
+                fExecContext != null &&
+                fMemoryContext != null &&
+                ctx == fExecContext &&
+                mem == fMemoryContext &&
+                suspend_cnt == fSuspendCount &&
+                context_cnt == fContextCount;
+            if (ok) {
+                if (Protocol.isDispatchThread()) {
+                    ok = !ctx.isDisposed() && !mem.isDisposed();
+                }
+                else {
+                    ok = doc_mod_cnt == getModCount() && fCallback.hasViewer();
+                }
+            }
+            if (ok) return true;
+            done();
+            return false;
+        }
+
+        /* Reset request pending state */
+        private void done() {
+            if (Protocol.isDispatchThread()) {
+                fCallback.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        done();
+                    }
+                });
+            }
+            else if (!done) {
+                done = true;
+                /* Don't call setUpdatePending() if pending state was reset by the view */
+                if (context_cnt != fContextCount) return;
+                assert fCallback.getUpdatePending();
+                fCallback.setUpdatePending(false);
+            }
+        }
+    }
 
     private final IRunControl.RunControlListener fRunControlListener = new TCFRunControlListener();
     private final IChannelListener fChannelListener = new TCFChannelListener();
     private final ILaunchesListener fLaunchesListener = new TCFLaunchListener();
-
-    @Override
-    public void init(IDisassemblyPartCallback callback) {
-        fCallback = callback;
-    }
 
     public boolean supportsDebugContext(IAdaptable context) {
         return (context instanceof TCFNodeExecContext || context instanceof TCFNodeStackFrame)
@@ -247,7 +311,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
         if (fExecContext != thread) {
             result.contextChanged = true;
-            fSuspendCount++;
+            fContextCount++;
             if (fExecContext != null) removeListeners(fExecContext);
             fExecContext = thread;
             if (fExecContext != null) addListeners(fExecContext);
@@ -326,7 +390,6 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     private void handleContextSuspended(BigInteger pc) {
         fSuspendCount++;
         fSuspended = true;
-        fSuspendAddress = pc;
         fCallback.handleTargetSuspended();
     }
 
@@ -336,7 +399,6 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     private void handleSessionEnded() {
-        clearDebugContext();
         fCallback.handleTargetEnded();
     }
 
@@ -351,56 +413,38 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     public void retrieveFrameAddress(final int targetFrame) {
-        final TCFNodeExecContext execContext = fExecContext;
-        if (execContext == null) {
-            fCallback.setUpdatePending(false);
-            return;
-        }
-        BigInteger address;
-        if (targetFrame == 0 && fSuspendAddress != null) {
-            // shortcut for goto frame on suspend
-            address = fSuspendAddress;
-            fSuspendAddress = null;
-        }
-        else {
-            final int suspendCount = fSuspendCount;
-            final TCFChildrenStackTrace stack = execContext.getStackTrace();
-            address = new TCFTask<BigInteger>(execContext.getChannel()) {
+        final Request request = new Request();
+        if (!request.check()) return;
+        try {
+            BigInteger address = new TCFTask<BigInteger>(request.ctx.getChannel()) {
                 public void run() {
-                    if (suspendCount != fSuspendCount || execContext != fExecContext) {
-                        done(null);
+                    if (targetFrame == 0) {
+                        TCFDataCache<BigInteger> addr = request.ctx.getAddress();
+                        if (!addr.validate(this)) return;
+                        done(addr.getData());
                         return;
                     }
+                    TCFChildrenStackTrace stack = request.ctx.getStackTrace();
                     if (!stack.validate(this)) return;
-                    TCFNodeStackFrame frame = null;
-                    if (targetFrame == 0) {
-                        frame = stack.getTopFrame();
-                    }
-                    else {
-                        Map<String,TCFNode> frameData = stack.getData();
-                        for (TCFNode node : frameData.values()) {
-                            if (node instanceof TCFNodeStackFrame) {
-                                TCFNodeStackFrame cand = (TCFNodeStackFrame) node;
-                                if (cand.getFrameNo() == targetFrame) {
-                                    frame = cand;
-                                    break;
-                                }
+                    Map<String,TCFNode> frameData = stack.getData();
+                    for (TCFNode node : frameData.values()) {
+                        if (node instanceof TCFNodeStackFrame) {
+                            TCFNodeStackFrame frame = (TCFNodeStackFrame) node;
+                            if (frame.getFrameNo() == targetFrame) {
+                                TCFDataCache<BigInteger> addr = frame.getAddress();
+                                if (!addr.validate(this)) return;
+                                done(addr.getData());
+                                return;
                             }
                         }
-                    }
-                    if (frame != null) {
-                        TCFDataCache<BigInteger> addressCache = frame.getAddress();
-                        if (!addressCache.validate(this)) return;
-                        done(addressCache.getData());
-                        return;
                     }
                     done(null);
                 }
             }.getE();
-        }
 
-        if (execContext == fExecContext) {
-            fCallback.setUpdatePending(false);
+            if (!request.check()) return;
+
+            request.done();
             if (address == null) address = BigInteger.valueOf(-2);
             if (targetFrame == 0) {
                 fCallback.updatePC(address);
@@ -409,13 +453,16 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 fCallback.gotoFrame(targetFrame, address);
             }
         }
+        catch (Throwable x) {
+            request.done();
+        }
     }
 
     public int getFrameLevel() {
         if (fActiveFrame == null) return -1;
         return new TCFTask<Integer>() {
             public void run() {
-                done(fActiveFrame != null ? fActiveFrame.getFrameNo() : -1);
+                done(fActiveFrame.getFrameNo());
             }
         }.getE();
     }
@@ -429,18 +476,15 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     public String getFrameFile() {
-        final TCFNodeStackFrame frame = fActiveFrame;
-        if (frame == null) return null;
-        return new TCFTask<String>(frame.getChannel()) {
+        if (fActiveFrame == null) return null;
+        return new TCFTask<String>(fActiveFrame.getChannel()) {
             public void run() {
-                if (frame == fActiveFrame) {
-                    TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
-                    if (!sourceRefCache.validate(this)) return;
-                    TCFSourceRef sourceRef = sourceRefCache.getData();
-                    if (sourceRef != null && sourceRef.area != null) {
-                        done(TCFSourceLookupParticipant.toFileName(sourceRef.area));
-                        return;
-                    }
+                TCFDataCache<TCFSourceRef> sourceRefCache = fActiveFrame.getLineInfo();
+                if (!sourceRefCache.validate(this)) return;
+                TCFSourceRef sourceRef = sourceRefCache.getData();
+                if (sourceRef != null && sourceRef.area != null) {
+                    done(TCFSourceLookupParticipant.toFileName(sourceRef.area));
+                    return;
                 }
                 done(null);
             }
@@ -448,18 +492,15 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     public int getFrameLine() {
-        final TCFNodeStackFrame frame = fActiveFrame;
-        if (frame == null) return -1;
-        return new TCFTask<Integer>(frame.getChannel()) {
+        if (fActiveFrame == null) return -1;
+        return new TCFTask<Integer>(fActiveFrame.getChannel()) {
             public void run() {
-                if (frame == fActiveFrame) {
-                    TCFDataCache<TCFSourceRef> sourceRefCache = frame.getLineInfo();
-                    if (!sourceRefCache.validate(this)) return;
-                    TCFSourceRef sourceRef = sourceRefCache.getData();
-                    if (sourceRef != null && sourceRef.area != null) {
-                        done(sourceRef.area.start_line);
-                        return;
-                    }
+                TCFDataCache<TCFSourceRef> sourceRefCache = fActiveFrame.getLineInfo();
+                if (!sourceRefCache.validate(this)) return;
+                TCFSourceRef sourceRef = sourceRefCache.getData();
+                if (sourceRef != null && sourceRef.area != null) {
+                    done(sourceRef.area.start_line);
+                    return;
                 }
                 done(-1);
             }
@@ -470,13 +511,9 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             BigInteger endAddress, String file, int lineNumber, int lines,
             final boolean mixed, final boolean showSymbols, boolean showDisassembly,
             final int linesHint) {
-        final TCFNodeExecContext execContext = fExecContext;
-        if (execContext == null || execContext.isDisposed()) {
-            fCallback.setUpdatePending(false);
-            return;
-        }
-        final int suspendCount = fSuspendCount;
-        final long modCount = getModCount();
+
+        final Request request = new Request();
+
         Protocol.invokeLater(new Runnable() {
 
             IMemory.MemoryContext mem;
@@ -485,7 +522,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             IDisassemblyLine[] disassembly;
             AddressRange range;
             boolean done_disassembly;
-            ISymbols.Symbol[] functionSymbols;
+            ISymbols.Symbol[] symbol_array;
             boolean done_symbols;
             CodeArea[] code_areas;
             boolean done_line_numbers;
@@ -493,22 +530,18 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             boolean done_code;
 
             public void run() {
-                if (execContext != fExecContext)  return;
-                if (suspendCount != fSuspendCount || fMemoryContext == null) {
-                    fCallback.setUpdatePending(false);
-                    return;
-                }
-                final IChannel channel = execContext.getChannel();
+                if (!request.check()) return;
+                IChannel channel = request.ctx.getChannel();
                 IDisassembly disass = channel.getRemoteService(IDisassembly.class);
                 if (disass == null) {
-                    fCallback.setUpdatePending(false);
+                    request.done();
                     return;
                 }
-                TCFDataCache<IMemory.MemoryContext> cache = fMemoryContext.getMemoryContext();
+                TCFDataCache<IMemory.MemoryContext> cache = request.mem.getMemoryContext();
                 if (!cache.validate(this)) return;
                 mem = cache.getData();
                 if (mem == null) {
-                    fCallback.setUpdatePending(false);
+                    request.done();
                     return;
                 }
                 big_endian = mem.isBigEndian();
@@ -519,12 +552,16 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 BigInteger mem_end = bit.shiftLeft(addr_bits);
                 mem_end = mem_end.subtract(bit);
 
+                final BigInteger requestedLineEndAddr = startAddress.add(BigInteger.valueOf(linesHint * mem.getAddressSize()));
+
                 if (startAddress.compareTo(mem_end) > 0) {
-                    fCallback.setUpdatePending(false);
+                    fCallback.asyncExec(new Runnable() {
+                        public void run() {
+                            insertEmptySpace(request, startAddress, requestedLineEndAddr);
+                        }
+                    });
                     return;
                 }
-
-                BigInteger requestedLineEndAddr = startAddress.add(BigInteger.valueOf(linesHint * mem.getAddressSize()));
 
                 if (requestedLineEndAddr.compareTo(mem_end) > 0) {
                     accessSize = mem_end.subtract(startAddress).intValue() + 1;
@@ -538,16 +575,11 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                     disass.disassemble(mem.getID(), startAddress, accessSize, params, new DoneDisassemble() {
                         @Override
                         public void doneDisassemble(IToken token, final Throwable error, IDisassemblyLine[] res) {
-                            if (execContext != fExecContext) return;
                             if (error != null) {
                                 fCallback.asyncExec(new Runnable() {
                                     public void run() {
-                                        if (execContext != fExecContext) return;
-                                        if (modCount == getModCount()) {
-                                            fCallback.insertError(startAddress, TCFModel.getErrorMessage(error, false));
-                                            fCallback.setUpdatePending(false);
-                                            if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
-                                        }
+                                        insertError(request, startAddress, error);
+                                        if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
                                     }
                                 });
                                 return;
@@ -574,7 +606,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                         done_symbols = true;
                     }
                     else {
-                        final ArrayList<ISymbols.Symbol> symbolList = new ArrayList<ISymbols.Symbol>();
+                        final ArrayList<ISymbols.Symbol> symbol_list = new ArrayList<ISymbols.Symbol>();
                         IDisassemblyLine line = disassembly[0];
                         symbols.findByAddr(mem.getID(), line.getAddress(), new ISymbols.DoneFind() {
                             int idx = 0;
@@ -587,7 +619,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                                                 if (context.getTypeClass().equals(ISymbols.TypeClass.function) &&
                                                     context.getAddress() != null && context.getSize() >= 0)
                                                 {
-                                                    symbolList.add(context);
+                                                    symbol_list.add(context);
                                                     nextAddress = JSON.toBigInteger(context.getAddress()).add(BigInteger.valueOf(context.getSize()));
                                                 }
                                             }
@@ -605,7 +637,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                                     symbols.findByAddr(mem.getID(), instrAddress, this);
                                     return;
                                 }
-                                functionSymbols = symbolList.toArray(new ISymbols.Symbol[symbolList.size()]);
+                                symbol_array = symbol_list.toArray(new ISymbols.Symbol[symbol_list.size()]);
                                 done_symbols = true;
                                 run();
                             }
@@ -653,8 +685,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 }
                 fCallback.asyncExec(new Runnable() {
                     public void run() {
-                        insertDisassembly(modCount, startAddress, code, range, big_endian,
-                                disassembly, functionSymbols, code_areas);
+                        insertDisassembly(request, startAddress, code, range, big_endian,
+                                disassembly, symbol_array, code_areas);
                         if (fCallback.getAddressSize() < addr_bits) fCallback.addressSizeChanged(addr_bits);
                     }
                 });
@@ -663,21 +695,13 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     private long getModCount() {
-        return ((IDocumentExtension4) fCallback.getDocument()).getModificationStamp();
+        return ((IDocumentExtension4)fCallback.getDocument()).getModificationStamp();
     }
 
-    protected final void insertDisassembly(long modCount, BigInteger startAddress, byte[] code, AddressRange range, boolean big_endian,
+    protected final void insertDisassembly(Request request, BigInteger startAddress, byte[] code, AddressRange range, boolean big_endian,
             IDisassemblyLine[] instructions, ISymbols.Symbol[] symbols, CodeArea[] codeAreas) {
-        if (!fCallback.hasViewer() || fExecContext == null) return;
-        if (modCount != getModCount()) return;
+        if (!request.check()) return;
         if (DEBUG) System.out.println("insertDisassembly "+ DisassemblyUtils.getAddressText(startAddress)); //$NON-NLS-1$
-        boolean updatePending = fCallback.getUpdatePending();
-        assert updatePending;
-        if (!updatePending) {
-            // safe-guard in case something weird is going on
-            return;
-        }
-
         boolean insertedAnyAddress = false;
         try {
             fCallback.lockScroller();
@@ -685,10 +709,6 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             AddressRangePosition p = null;
             if (instructions != null) for (IDisassemblyLine instruction : instructions) {
                 BigInteger address = JSON.toBigInteger(instruction.getAddress());
-                if (startAddress == null) {
-                    startAddress = address;
-                    fCallback.setGotoAddressPending(address);
-                }
                 if (p == null || !p.containsAddress(address)) {
                     p = fCallback.getPositionOfAddress(address);
                 }
@@ -772,7 +792,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             DisassemblyUtils.internalError(e);
         }
         finally {
-            fCallback.setUpdatePending(false);
+            request.done();
             if (insertedAnyAddress) {
                 fCallback.updateInvalidSource();
                 fCallback.unlockScroller();
@@ -782,6 +802,38 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             else {
                 fCallback.unlockScroller();
             }
+        }
+    }
+
+    private void insertError(Request request, BigInteger address, Throwable error) {
+        if (!request.check()) return;
+        fCallback.lockScroller();
+        fCallback.insertError(address, TCFModel.getErrorMessage(error, false));
+        request.done();
+        fCallback.unlockScroller();
+        fCallback.doPending();
+        fCallback.updateVisibleArea();
+    }
+
+    private void insertEmptySpace(Request request, BigInteger startAddress, BigInteger endAddress) {
+        if (!request.check()) return;
+        try {
+            fCallback.lockScroller();
+            for (;;) {
+                AddressRangePosition p = fCallback.getPositionOfAddress(startAddress);
+                if (!p.fValid) fCallback.getDocument().insertDisassemblyLine(p, startAddress, 1, "", " ", null, 0);
+                startAddress = startAddress.add(BigInteger.ONE);
+                if (startAddress.compareTo(endAddress) >= 0) break;
+            }
+        }
+        catch (BadLocationException e) {
+            DisassemblyUtils.internalError(e);
+        }
+        finally {
+            request.done();
+            fCallback.unlockScroller();
+            fCallback.doPending();
+            fCallback.updateVisibleArea();
         }
     }
 
@@ -899,23 +951,19 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     public void retrieveDisassembly(String file, int lines,
             BigInteger endAddress, boolean mixed, boolean showSymbols,
             boolean showDisassembly) {
+        final Request request = new Request();
         // TODO disassembly for source file
-        fCallback.setUpdatePending(false);
+        request.done();
     }
 
     public String evaluateExpression(final String expression) {
-        final TCFNodeStackFrame activeFrame = fActiveFrame;
-        if (activeFrame == null) return null;
-        String value = new TCFTask<String>(activeFrame.getChannel()) {
+        if (fActiveFrame == null) return null;
+        String value = new TCFTask<String>(fActiveFrame.getChannel()) {
             public void run() {
-                if (activeFrame != fActiveFrame) {
-                    done(null);
-                    return;
-                }
-                IChannel channel = activeFrame.getChannel();
+                IChannel channel = fActiveFrame.getChannel();
                 final IExpressions exprSvc = channel.getRemoteService(IExpressions.class);
                 if (exprSvc != null) {
-                    TCFNode evalContext = activeFrame.isEmulated() ? activeFrame.getParent() : activeFrame;
+                    TCFNode evalContext = fActiveFrame.isEmulated() ? fActiveFrame.getParent() : fActiveFrame;
                     exprSvc.create(evalContext.getID(), null, expression, new DoneCreate() {
                         public void doneCreate(IToken token, Exception error, final Expression context) {
                             if (error == null) {
@@ -952,6 +1000,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     public void dispose() {
+        disposed = true;
     }
 
     public Object insertSource(Position pos, BigInteger address, String file, int lineNumber) {
