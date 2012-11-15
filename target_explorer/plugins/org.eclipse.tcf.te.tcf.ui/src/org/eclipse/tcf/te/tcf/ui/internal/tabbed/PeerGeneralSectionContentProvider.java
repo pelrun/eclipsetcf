@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.TreePath;
@@ -23,6 +24,8 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IAdapterService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 import org.eclipse.ui.forms.widgets.Section;
@@ -61,6 +64,10 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 		List<NodePropertiesTableTableNode> nodes = new ArrayList<NodePropertiesTableTableNode>();
 
 		if (inputElement instanceof IPeerModel) {
+			// Get the associated label provider
+			IAdapterService service = ServiceManager.getInstance().getService(inputElement, IAdapterService.class);
+			ILabelProvider provider = service != null ? service.getAdapter(inputElement, ILabelProvider.class) : null;
+
 			// Get all custom properties of the node
 			final Map<String, Object> properties = new HashMap<String, Object>();
 			// And get all native properties of the peer
@@ -81,6 +88,14 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 				if (name.endsWith(".silent") || name.contains(".transient")) continue; //$NON-NLS-1$ //$NON-NLS-2$
 				// Create the properties node
 				NodePropertiesTableTableNode propertiesNode = new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : ""); //$NON-NLS-1$
+				// Check the label provider if the value to show is replaced
+				if (provider != null) {
+					String text = provider.getText(propertiesNode);
+					if (text != null && !"".equals(text)) { //$NON-NLS-1$
+						propertiesNode = new NodePropertiesTableTableNode(name, text);
+					}
+				}
+				// Add the properties node
 				nodes.add(propertiesNode);
 			}
 		}
