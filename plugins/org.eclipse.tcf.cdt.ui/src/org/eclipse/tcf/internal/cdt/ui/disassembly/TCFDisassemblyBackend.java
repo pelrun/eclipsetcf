@@ -399,6 +399,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     private void handleSessionEnded() {
+        fContextCount++;
         fCallback.handleTargetEnded();
     }
 
