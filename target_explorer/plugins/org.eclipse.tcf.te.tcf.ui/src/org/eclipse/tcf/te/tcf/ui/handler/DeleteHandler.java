@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.tcf.ui.handler;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,7 +24,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.osgi.util.NLS;
@@ -35,6 +33,7 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -42,6 +41,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshSe
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.interfaces.handler.IDeleteHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
@@ -95,38 +95,47 @@ public class DeleteHandler extends AbstractHandler {
 
 		boolean canDelete = false;
 
-		// The selection must be a structured selection and must not be empty
-		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+		// The selection must be a tree selection and must not be empty
+		if (selection instanceof ITreeSelection && !selection.isEmpty()) {
 			// Assume the selection to be deletable
 			canDelete = true;
 			// Iterate the selection. All elements must be of type IPeerModel
-			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
-			while (iterator.hasNext()) {
-				Object element = iterator.next();
+			for (TreePath treePath : ((ITreeSelection)selection).getPaths()) {
+				// Get the element
+				Object element = treePath.getLastSegment();
+				// This handler will take care of peer model nodes only
 				if (!(element instanceof IPeerModel)) {
 					canDelete = false;
 					break;
 				}
 
-				// Determine if the selected peer model is static
-				boolean isStatic = isStatic((IPeerModel)element);
-				// Determine if the selected peer model represents an agent
-				// started by the current user
-				boolean isStartedByCurrentUser = isStartedByCurrentUser((IPeerModel)element);
-				// Static nodes can be handled the one way or the other.
-				// For dynamic nodes, "delete" means "remove from <category>",
-				// and this works only if the parent category is not "Neighborhood".
-				if (!isStatic) {
-					// Determine the parent categories for the selected node
-					ICategory[] categories = getParentCategories(selection, (IPeerModel)element);
-					for (ICategory category : categories) {
-						if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(category.getId())) {
-							canDelete = false;
-							break;
-						}
-						else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId()) && isStartedByCurrentUser) {
-							canDelete = false;
-							break;
+				// Check if there is a delete handler delegate for the element
+				IUIService service = ServiceManager.getInstance().getService(element, IUIService.class);
+				IDeleteHandlerDelegate delegate = service != null ? service.getDelegate(element, IDeleteHandlerDelegate.class) : null;
+				// If a delegate is available, ask the handler first if the given element is currently deletable
+				if (delegate != null) canDelete = delegate.canDelete(treePath);
+				// If the element is still marked deletable, apply the default check too
+				if (canDelete) {
+					// Determine if the selected peer model is static
+					boolean isStatic = isStatic((IPeerModel)element);
+					// Determine if the selected peer model represents an agent
+					// started by the current user
+					boolean isStartedByCurrentUser = isStartedByCurrentUser((IPeerModel)element);
+					// Static nodes can be handled the one way or the other.
+					// For dynamic nodes, "delete" means "remove from <category>",
+					// and this works only if the parent category is not "Neighborhood".
+					if (!isStatic) {
+						// Determine the parent category of the current tree path
+						ICategory category = treePath.getFirstSegment() instanceof ICategory ? (ICategory)treePath.getFirstSegment() : null;
+						if (category != null) {
+							if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(category.getId())) {
+								canDelete = false;
+								break;
+							}
+							else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId()) && isStartedByCurrentUser) {
+								canDelete = false;
+								break;
+							}
 						}
 					}
 				}
@@ -200,41 +209,6 @@ public class DeleteHandler extends AbstractHandler {
 	}
 
 	/**
-	 * Returns the parent categories of the selected node based on the
-	 * given selection.
-	 *
-	 * @param selection The selection. Must not be <code>null</code>.
-	 * @param node The peer model node. Must not be <code>null</code>.
-	 *
-	 * @return The list of parent categories of the selected node.
-	 */
-	private ICategory[] getParentCategories(ISelection selection, IPeerModel node) {
-		Assert.isNotNull(selection);
-		Assert.isNotNull(node);
-
-		List<ICategory> categories = new ArrayList<ICategory>();
-
-		// Get all tree pathes of the given node
-		if (selection instanceof ITreeSelection) {
-			TreePath[] pathes = ((ITreeSelection)selection).getPathsFor(node);
-			for (TreePath path : pathes) {
-				// Loop through the parent pathes to find the category element
-				TreePath parentPath = path.getParentPath();
-				while (parentPath != null) {
-					if (parentPath.getLastSegment() instanceof ICategory
-									&& !categories.contains(parentPath.getLastSegment())) {
-						categories.add((ICategory)parentPath.getLastSegment());
-						break;
-					}
-					parentPath = parentPath.getParentPath();
-				}
-			}
-		}
-
-		return categories.toArray(new ICategory[categories.size()]);
-	}
-
-	/**
 	 * Internal helper class to describe the delete operation to perform.
 	 */
 	private static class Operation {
@@ -303,10 +277,10 @@ public class DeleteHandler extends AbstractHandler {
 		// from an asynchronous callback, set this flag to false.
 		boolean invokeCallback = true;
 
-		// The selection must be a structured selection and must not be empty
-		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+		// The selection must be a tree selection and must not be empty
+		if (selection instanceof ITreeSelection && !selection.isEmpty()) {
 			// Determine the operations to perform for each of the selected elements
-			Operation[] operations = selection2operations((IStructuredSelection)selection);
+			Operation[] operations = selection2operations((ITreeSelection)selection);
 
 			// Seek confirmation for the "remove" operations. If the user deny it,
 			// everything, including the "unlink" operations are cancelled.
@@ -364,59 +338,58 @@ public class DeleteHandler extends AbstractHandler {
 	 * @param selection The selection. Must not be <code>null</code>.
 	 * @return The list of operations.
 	 */
-	private Operation[] selection2operations(IStructuredSelection selection) {
+	private Operation[] selection2operations(ITreeSelection selection) {
 		Assert.isNotNull(selection);
 
 		List<Operation> operations = new ArrayList<Operation>();
 
-		Iterator<?> iterator = selection.iterator();
-		while (iterator.hasNext()) {
-			Object element = iterator.next();
+		// Iterate the selection. All elements must be of type IPeerModel
+		for (TreePath treePath : selection.getPaths()) {
+			// Get the element
+			Object element = treePath.getLastSegment();
 			Assert.isTrue(element instanceof IPeerModel);
 			IPeerModel node = (IPeerModel)element;
 
 			boolean isStatic = isStatic(node);
-			ICategory[] categories = getParentCategories(selection, node);
+			ICategory category = treePath.getFirstSegment() instanceof ICategory ? (ICategory)treePath.getFirstSegment() : null;
 
-			if (categories.length == 0 && isStatic) {
+			if (category == null && isStatic) {
 				Operation op = new Operation();
 				op.node = node;
 				op.type = Operation.TYPE.Remove;
 				operations.add(op);
-			} else {
-				for (ICategory category : categories) {
-					// If the parent category is "Favorites", it is always
-					// an "unlink" operation
-					if (IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
-						Operation op = new Operation();
-						op.node = node;
+			} else if (category != null) {
+				// If the parent category is "Favorites", it is always
+				// an "unlink" operation
+				if (IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
+					Operation op = new Operation();
+					op.node = node;
+					op.type = Operation.TYPE.Unlink;
+					op.parentCategory = category;
+					operations.add(op);
+				}
+				// If the parent category is "My Targets", is is an
+				// "remove" operation for static peers and "unlink" for
+				// dynamic peers
+				else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
+					Operation op = new Operation();
+					op.node = node;
+
+					if (isStatic) {
+						op.type = Operation.TYPE.Remove;
+					} else {
 						op.type = Operation.TYPE.Unlink;
 						op.parentCategory = category;
-						operations.add(op);
 					}
-					// If the parent category is "My Targets", is is an
-					// "remove" operation for static peers and "unlink" for
-					// dynamic peers
-					else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
-						Operation op = new Operation();
-						op.node = node;
 
-						if (isStatic) {
-							op.type = Operation.TYPE.Remove;
-						} else {
-							op.type = Operation.TYPE.Unlink;
-							op.parentCategory = category;
-						}
+					operations.add(op);
+				}
+				else {
+					Operation op = new Operation();
+					op.node = node;
+					op.type = Operation.TYPE.Remove;
 
-						operations.add(op);
-					}
-					else {
-						Operation op = new Operation();
-						op.node = node;
-						op.type = Operation.TYPE.Remove;
-
-						operations.add(op);
-					}
+					operations.add(op);
 				}
 			}
 		}

@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.ui.wizards.newWizard;
 
 import org.eclipse.jface.wizard.IWizard;
-import org.eclipse.tcf.te.ui.interfaces.IContextHelpIds;
+import org.eclipse.tcf.te.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.wizards.AbstractWizardCommandHandler;
 
 /**

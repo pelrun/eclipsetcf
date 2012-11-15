@@ -25,7 +25,7 @@ import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IAdapterService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 import org.eclipse.ui.forms.widgets.Section;
@@ -65,8 +65,8 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 
 		if (inputElement instanceof IPeerModel) {
 			// Get the associated label provider
-			IAdapterService service = ServiceManager.getInstance().getService(inputElement, IAdapterService.class);
-			ILabelProvider provider = service != null ? service.getAdapter(inputElement, ILabelProvider.class) : null;
+			IUIService service = ServiceManager.getInstance().getService(inputElement, IUIService.class);
+			ILabelProvider provider = service != null ? service.getDelegate(inputElement, ILabelProvider.class) : null;
 
 			// Get all custom properties of the node
 			final Map<String, Object> properties = new HashMap<String, Object>();
