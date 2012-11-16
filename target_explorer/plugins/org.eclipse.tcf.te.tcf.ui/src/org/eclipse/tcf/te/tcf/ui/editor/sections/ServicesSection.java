@@ -9,7 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.editor.sections;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
@@ -27,6 +26,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.ui.forms.IManagedForm;
@@ -39,8 +39,8 @@ import org.eclipse.ui.forms.widgets.Section;
  */
 public class ServicesSection extends AbstractSection {
 	// The section sub controls
-	private Text local;
-	private Text remote;
+	/* default */ Text local;
+	/* default */ Text remote;
 
 	// Reference to the original data object
 	/* default */ IPeerModel od;
@@ -125,6 +125,9 @@ public class ServicesSection extends AbstractSection {
 		}
 	}
 
+	// Flag to mark that the services query had been done for the current peer model node
+	private boolean servicesQueryTriggered = false;
+
 	/**
 	 * Initialize the page widgets based of the data from the given peer node.
 	 * <p>
@@ -134,6 +137,9 @@ public class ServicesSection extends AbstractSection {
 	 * @param node The peer node or <code>null</code>.
 	 */
 	public void setupData(final IPeerModel node) {
+		// Reset the services query triggered flag if we setup
+		// for a new peer model node
+		if (od != node) servicesQueryTriggered = false;
 		// Store a reference to the original data
 		od = node;
 		// Clean the original data copy
@@ -142,42 +148,79 @@ public class ServicesSection extends AbstractSection {
 		// If no data is available, we are done
 		if (node == null) return;
 
-		// Trigger the query of the services provided by the node
-		final AtomicBoolean needQueryServices = new AtomicBoolean();
-		Protocol.invokeAndWait(new Runnable() {
+		// Create the UI runnable
+		final AtomicBoolean fireRefreshTabs = new AtomicBoolean();
+		final Runnable uiRunnable = new Runnable() {
+
 			@Override
 			public void run() {
-				needQueryServices.set(!node.containsKey(IPeerModelProperties.PROP_REMOTE_SERVICES)
-											&& !node.containsKey(IPeerModelProperties.PROP_LOCAL_SERVICES));
+				boolean fireNotification = fireRefreshTabs.get();
+
+				String value = odc.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES);
+				fireNotification |= value != null && !value.equals(SWTControlUtil.getText(local));
+				SWTControlUtil.setText(local, value != null ? value : ""); //$NON-NLS-1$
+				value = odc.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+				fireNotification |= value != null && !value.equals(SWTControlUtil.getText(remote));
+				SWTControlUtil.setText(remote, value != null ? value : ""); //$NON-NLS-1$
+
+				if (fireNotification) {
+					// Fire a change event to trigger the editor refresh
+					od.fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
+				}
 			}
-		});
+		};
 
-		if (needQueryServices.get()) {
-			node.getModel().getService(ILocatorModelPeerNodeQueryService.class).queryLocalServices(node);
-		}
+		// If not yet triggered, run the service query
+		if (!servicesQueryTriggered) {
+			// Mark the services query as triggered
+			servicesQueryTriggered = true;
 
-		// Thread access to the model is limited to the executors thread.
-		// Copy the data over to the working copy to ease the access.
-		Protocol.invokeAndWait(new Runnable() {
-			@Override
-			public void run() {
-				Map<String, Object> properties = od.getProperties();
-				odc.setProperties(properties);
-			}
-		});
+			Runnable runnable = new Runnable() {
 
-		boolean fireRefreshTabs = needQueryServices.get();
+				@Override
+				public void run() {
+					// Check if we have to run the query at all
+					boolean doQuery = !node.containsKey(IPeerModelProperties.PROP_REMOTE_SERVICES)
+										&& !node.containsKey(IPeerModelProperties.PROP_LOCAL_SERVICES);
 
-		String value = odc.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES);
-		fireRefreshTabs |= value != null && !value.equals(SWTControlUtil.getText(local));
-		SWTControlUtil.setText(local, value != null ? value : ""); //$NON-NLS-1$
-		value = odc.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
-		fireRefreshTabs |= value != null && !value.equals(SWTControlUtil.getText(remote));
-		SWTControlUtil.setText(remote, value != null ? value : ""); //$NON-NLS-1$
+					if (doQuery) {
+						ILocatorModelPeerNodeQueryService service = node.getModel().getService(ILocatorModelPeerNodeQueryService.class);
+						if (service != null) {
+							service.queryServicesAsync(node, new ILocatorModelPeerNodeQueryService.DoneQueryServices() {
+								@Override
+								public void doneQueryServices(Throwable error) {
+									// Copy over the properties
+									odc.setProperties(node.getProperties());
 
-		if (fireRefreshTabs) {
-			// Fire a change event to trigger the editor refresh
-			od.fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
+									// Setup the data within the UI controls and fire the change notification
+									fireRefreshTabs.set(true);
+									DisplayUtil.safeAsyncExec(uiRunnable);
+								}
+							});
+						}
+					} else {
+						// Copy over the properties
+						odc.setProperties(node.getProperties());
+						// Setup the data within the UI controls
+						DisplayUtil.safeAsyncExec(uiRunnable);
+					}
+				}
+			};
+
+			Protocol.invokeLater(runnable);
+		} else {
+			// Thread access to the model is limited to the dispatch thread.
+			// Copy the data over to the working copy to ease the access.
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					// Copy over the properties
+					odc.setProperties(od.getProperties());
+
+					// Setup the data within the UI controls
+					DisplayUtil.safeAsyncExec(uiRunnable);
+				}
+			});
 		}
 	}
 }

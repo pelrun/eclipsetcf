@@ -74,7 +74,7 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 				// If the peer is a RemotePeer or has the "remote.transient" property set
 				// --> an agent is running and has been associated with the peer model.
 				if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
-					doQueryServices(node, new DoneQueryServices() {
+					queryServicesAsync(node, new DoneQueryServices() {
 						@Override
 						public void doneQueryServices(Throwable error) {
 							if (error == null) {
@@ -140,7 +140,7 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 				// If the peer is a RemotePeer or has the "remote.transient" property set
 				// --> an agent is running and has been associated with the peer model.
 				if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
-					doQueryServices(node, new DoneQueryServices() {
+					queryServicesAsync(node, new DoneQueryServices() {
 						@Override
 						public void doneQueryServices(Throwable error) {
 							if (error == null) {
@@ -175,28 +175,13 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		return services.get();
 	}
 
-	/**
-	 * Client call back interface for doQueryServices(...).
-	 */
-	/* default */ interface DoneQueryServices {
-		/**
-		 * Called when the services query completed.
-		 *
-		 * @param error The error description if operation failed, <code>null</code> if succeeded.
-		 */
-		void doneQueryServices(Throwable error);
-	}
-
 	/* default */ final Map<IPeerModel, List<DoneQueryServices>> serviceQueriesInProgress = new HashMap<IPeerModel, List<DoneQueryServices>>();
 
-	/**
-	 * Opens a channel to the peer node and query the services from the opened channel.
-	 *
-	 * @param node The peer node. Must not be <code>null</code>.
-	 * @param serviceType The type of the requested services. See {@link IPeerModelProperties#PROP_LOCAL_SERVICES} and {@link IPeerModelProperties#PROP_REMOTE_SERVICES}.
-	 * @param done The client callback. Must not be <code>null</code>.
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService#queryServicesAsync(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService.DoneQueryServices)
 	 */
-	protected void doQueryServices(final IPeerModel node, final DoneQueryServices done) {
+	@Override
+	public void queryServicesAsync(final IPeerModel node, final DoneQueryServices done) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 		Assert.isNotNull(done);
