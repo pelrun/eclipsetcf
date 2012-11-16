@@ -14,8 +14,11 @@ package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,11 +51,11 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -84,6 +87,7 @@ public class TCFThreadFilterEditor {
         private final boolean fIsContainer;
         private final String fScopeId;
         private final String fSessionId;
+        private final String fBpGroup;
 
         Context(IRunControl.RunControlContext ctx, Context parent) {
             this(ctx, parent.fSessionId);
@@ -97,6 +101,18 @@ public class TCFThreadFilterEditor {
             fId = ctx.getID();
             fParentId = ctx.getParentID();
             fIsContainer = !ctx.hasState();
+            fBpGroup = ctx.getBPGroup();
+        }
+        
+        
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof Context && fId.equals(((Context)obj).fId);
+        }
+        
+        @Override
+        public int hashCode() {
+            return fId.hashCode();
         }
     }
 
@@ -205,35 +221,34 @@ public class TCFThreadFilterEditor {
         public Object[] filterList(Object[] resultArray) {
             ArrayList<Object> filteredList = new ArrayList<Object>();
             String filterExpr = null;
-            if (scopeExprCombo != null)
+            if (scopeExprCombo != null) {
                 filterExpr = scopeExprCombo.getText();
-            if (fContextList.size() != 0) {
-                for (Object obj : resultArray) {
-                    for (String id : fContextList) {
-                        if (obj instanceof ILaunch || obj instanceof ILaunchManager ||
-                            obj instanceof Context && id.equals(((Context)obj).fId)) {
-                            filteredList.add(obj);
-                            break;
-                        }
-                        else if (obj instanceof Context && ((Context)obj).fIsContainer) {
-                            // Some filters skip a generation.  Check children before passing.
-                            Object[] childArray = getChildren(obj);
-                            if (childArray != null && childArray.length != 0) {
-                                filteredList.add(obj);
-                                break;
-                            }
-                        }
-                    }
+            }
+            for (Object obj : resultArray) {
+                if (obj instanceof ILaunch || obj instanceof ILaunchManager) {
+                    filteredList.add(obj);
+                } else if (obj instanceof Context) {
+                   Context context = (Context)obj;
+                   // Add element to list if:
+                   // Check if context in result of query expression (if query expression was specitifed).
+                   // Also check if breakpoint group is valid on context.
+                   // Finally, check if contexts' children are not filtered out. 
+                   if ( (filterExpr == null || filterExpr.length() == 0 || fContextList.contains(context.fId)) 
+                        && context.fBpGroup != null) 
+                   {
+                       filteredList.add(obj);
+                   } else if (context.fIsContainer) {
+                       Object[] childArray = getChildren(obj);
+                       if (childArray != null && childArray.length != 0) {
+                           filteredList.add(obj);
+                       }
+                   }
                 }
             }
-            if (filterExpr != null && filterExpr.length() != 0) {
-                return filteredList.toArray(new Object[filteredList.size()]);
-            }
-            else {
-                return resultArray;
-            }
+            fFilteredContexts.addAll(filteredList);
+            return filteredList.toArray(new Object[filteredList.size()]);
         }
-
+        
         public Object getParent(Object element) {
             if (element instanceof Context) {
                 Context ctx = (Context) element;
@@ -301,11 +316,12 @@ public class TCFThreadFilterEditor {
     private final ThreadFilterContentProvider fContentProvider;
     private final CheckHandler fCheckHandler;
     private final List<Context> fContexts = new ArrayList<Context>();
+    private final Set<Object> fFilteredContexts = new HashSet<Object>();
     private final Map<TCFLaunch, Context[]> fContainersPerLaunch = new HashMap<TCFLaunch, Context[]>();
     private final Map<Context, Context[]> fContextsPerContainer = new HashMap<Context, Context[]>();
     private Combo scopeExprCombo;
     private ControlDecoration scopeExpressionDecoration;
-    private final ArrayList<String> fContextList = new ArrayList<String>();
+    private final Set<String> fContextList = new TreeSet<String>();
     private Link preferencesLink;
 
     /**
@@ -380,7 +396,7 @@ public class TCFThreadFilterEditor {
      * @param query  The query to validate
      * @return       Error String if validation has failed, else null.
      */
-     private String getQueryFilteredContexts (final String query, final ArrayList<String> contextList) {
+     private String getQueryFilteredContexts (final String query, final Set<String> contextList) {
 
          TCFLaunch launch = (TCFLaunch)getAttributeLaunch();
          if (launch == null) {
@@ -458,6 +474,7 @@ public class TCFThreadFilterEditor {
                 scopeExprCombo.getParent().layout();
                 if (fThreadViewer != null) {
                     fThreadViewer.refresh();
+                    fFilteredContexts.clear();
                     setInitialCheckedState();
                 }
             }
@@ -762,7 +779,7 @@ public class TCFThreadFilterEditor {
                 }
             }
         }
-        if (checkedIds.size() != fContexts.size()) {
+        if (checkedIds.size() != fFilteredContexts.size()) {
             threadIds = checkedIds.toArray(new String[checkedIds.size()]);
         }
         filterExtension.setThreadFilter(threadIds);
