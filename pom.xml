@@ -17,6 +17,10 @@
 	<packaging>pom</packaging>
 	<name>TCF and Target Explorer, Maven Master</name>
 
+	<properties>
+		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git</tycho.scmUrl>
+	</properties>
+
 	<modules>
 		<module>plugins/org.eclipse.tcf</module>
 		<module>plugins/org.eclipse.tcf.core</module>
