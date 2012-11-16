@@ -61,6 +61,8 @@ import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 
 public class MemoryMapWidget {
 
@@ -222,6 +224,8 @@ public class MemoryMapWidget {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
         composite.setFont(font);
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -251,6 +255,8 @@ public class MemoryMapWidget {
 
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
         composite.setFont(font);
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -318,6 +324,8 @@ public class MemoryMapWidget {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout();
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
         composite.setFont(font);
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL));
@@ -325,7 +333,7 @@ public class MemoryMapWidget {
         SelectionAdapter sel_adapter = null;
 
         final Button button_add = new Button(composite, SWT.PUSH);
-        button_add.setText("&Add...");
+        button_add.setText(" &Add... ");
         button_add.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         button_add.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
@@ -347,9 +355,10 @@ public class MemoryMapWidget {
         final MenuItem item_add = new MenuItem(menu, SWT.PUSH);
         item_add.setText("&Add...");
         item_add.addSelectionListener(sel_adapter);
+        item_add.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ADD));
 
         final Button button_edit = new Button(composite, SWT.PUSH);
-        button_edit.setText("E&dit...");
+        button_edit.setText(" E&dit... ");
         button_edit.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         button_edit.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
@@ -365,7 +374,7 @@ public class MemoryMapWidget {
         item_edit.addSelectionListener(sel_adapter);
 
         final Button button_remove = new Button(composite, SWT.PUSH);
-        button_remove.setText("&Remove");
+        button_remove.setText(" &Remove ");
         button_remove.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         button_remove.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
@@ -383,6 +392,7 @@ public class MemoryMapWidget {
         final MenuItem item_remove = new MenuItem(menu, SWT.PUSH);
         item_remove.setText("&Remove");
         item_remove.addSelectionListener(sel_adapter);
+        item_remove.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_DELETE));
 
         map_table.setMenu(menu);
 
