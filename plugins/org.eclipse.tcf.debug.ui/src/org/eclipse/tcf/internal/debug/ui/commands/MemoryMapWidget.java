@@ -621,12 +621,10 @@ public class MemoryMapWidget {
                         if (map_cache.getData() != null) {
                             for (TCFNodeExecContext.MemoryRegion m : map_cache.getData()) {
                                 Map<String,Object> props = m.region.getProperties();
+                                target_map.add(new TCFMemoryRegion(props));
                                 if (props.get(IMemoryMap.PROP_ID) != null) {
                                     String fnm = m.region.getFileName();
                                     if (fnm != null) loaded_files.add(fnm);
-                                }
-                                else {
-                                    target_map.add(new TCFMemoryRegion(props));
                                 }
                             }
                         }
