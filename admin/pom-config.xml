@@ -206,7 +206,7 @@
 					<configuration>
 						<baselineRepositories>
 							<repository>
-								<url>http://download.eclipse.org/tools/tcf/builds/${tcf-stream}/night</url>
+								<url>http://download.eclipse.org/tools/tcf/builds/${tcf-stream}/nightly</url>
 							</repository>
 						</baselineRepositories>
 					</configuration>
