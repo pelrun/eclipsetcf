@@ -49,10 +49,7 @@
                   <insertionPoint name="group.connection" separator="true"/>
                   <insertionPoint name="group.operations" separator="true"/>
                   <insertionPoint name="group.analysis" separator="true"/>
-                  <insertionPoint
-                        name="group.filter"
-                        separator="true">
-                  </insertionPoint>
+                  <insertionPoint name="group.filter" separator="true"/>
                   <insertionPoint name="additions" separator="true"/>
                   <insertionPoint name="group.properties" separator="true"/>
             </popupMenu>
