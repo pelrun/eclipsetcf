@@ -605,8 +605,9 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 
 		// Check if there is already a channel opened to this peer
 		IChannel channel = !forceNew ? channels.get(id) : null;
-		if (channel != null && (channel.getState() == IChannel.STATE_OPEN || channel.getState() == IChannel.STATE_OPENING)) {
-			// Got an existing channel -> drop out immediately
+		if (noValueAdd || channel != null && (channel.getState() == IChannel.STATE_OPEN || channel.getState() == IChannel.STATE_OPENING)) {
+			// Got an existing channel or a channel without value-add decoration
+			// got requested -> drop out immediately
 			done.doneHandleValueAdds(null, null);
 			return;
 		}
