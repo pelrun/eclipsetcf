@@ -547,9 +547,9 @@
          <propertySection
                class="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerGeneralSection"
                enablesFor="1"
+               filter="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerGeneralSectionFilter"
                id="org.eclipse.tcf.te.ui.views.propertysections.peer.general"
                tab="org.eclipse.tcf.te.ui.views.propertyTab.peer.general">
-            <input type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
          </propertySection>
       </propertySections>
    </extension>
