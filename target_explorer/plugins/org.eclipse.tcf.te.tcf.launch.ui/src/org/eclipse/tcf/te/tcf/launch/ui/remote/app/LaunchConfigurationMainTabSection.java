@@ -95,6 +95,7 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 			protected void onButtonControlSelected() {
 				if (firstSelection != null) {
 					FSOpenFileDialog dialog = new FSOpenFileDialog(section.getShell());
+					dialog.setFilterPath(getEditFieldControlText());
 					dialog.setInput(firstSelection);
 					if (dialog.open() == Window.OK) {
 						Object candidate = dialog.getFirstResult();
