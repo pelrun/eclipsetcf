@@ -77,7 +77,7 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		super(parent, form.getToolkit(), titleBar ? (ExpandableComposite.TITLE_BAR | style) : style);
 		initialize(form);
 		configureSection(getSection());
-    }
+	}
 
 	/**
 	 * Configure the section.
@@ -171,7 +171,7 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		// Cursor needs to be explicitly disposed
 		tlb.addDisposeListener(new DisposeListener() {
 			@Override
-            public void widgetDisposed(DisposeEvent e) {
+			public void widgetDisposed(DisposeEvent e) {
 				if (cursor.isDisposed() == false) {
 					cursor.dispose();
 				}
@@ -215,7 +215,9 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	 * @param dirty <code>True</code> to mark the section dirty, <code>false</code> otherwise.
 	 */
 	public final void markDirty(boolean dirty) {
-		if (dirty) markDirty();
+		if (dirty) {
+			markDirty();
+		}
 		else {
 			// For now, there is no direct way to reset the dirty state,
 			// and the refresh() method is setting back both flags (stale and dirty).
@@ -231,7 +233,9 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 					}
 				});
 				f.setBoolean(this, dirty);
-				if (getManagedForm() != null) getManagedForm().dirtyStateChanged();
+				if (getManagedForm() != null) {
+					getManagedForm().dirtyStateChanged();
+				}
 			} catch (Exception e) { /* ignored on purpose */ }
 		}
 	}
@@ -243,8 +247,10 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	public void commit(boolean onSave) {
 		// commit is reseting the dirty state
 		boolean hasBeenDirty = isDirty();
-	    super.commit(onSave);
-	    if (hasBeenDirty) getManagedForm().dirtyStateChanged();
+		super.commit(onSave);
+		if (hasBeenDirty) {
+			markDirty();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -255,9 +261,13 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		// refresh is reseting both the stale and the dirty state
 		boolean hasBeenStale = isStale();
 		boolean hasBeenDirty = isDirty();
-	    super.refresh();
-	    if (hasBeenStale) getManagedForm().staleStateChanged();
-	    if (hasBeenDirty) getManagedForm().dirtyStateChanged();
+		super.refresh();
+		if (hasBeenStale) {
+			getManagedForm().staleStateChanged();
+		}
+		if (hasBeenDirty) {
+			getManagedForm().dirtyStateChanged();
+		}
 	}
 
 	/* (non-Javadoc)

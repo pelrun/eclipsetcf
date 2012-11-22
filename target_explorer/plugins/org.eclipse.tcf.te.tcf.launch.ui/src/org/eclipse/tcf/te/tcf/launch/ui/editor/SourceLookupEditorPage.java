@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor;
 
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.internal.ui.sourcelookup.SourceLookupPanel;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.SWT;
@@ -37,6 +38,17 @@ public class SourceLookupEditorPage extends AbstractTcfLaunchTabContainerEditorP
 				super.updateLaunchConfigurationDialog();
 				performApply(getLaunchConfig(getPeerModel(getEditorInput())));
 				checkLaunchConfigDirty();
+			}
+			/* (non-Javadoc)
+			 * @see org.eclipse.debug.internal.ui.sourcelookup.SourceLookupPanel#initializeFrom(org.eclipse.debug.core.ILaunchConfiguration)
+			 */
+			@Override
+			public void initializeFrom(ILaunchConfiguration configuration) {
+				boolean oldDirty = getEditor().isDirty() || checkLaunchConfigDirty();
+				super.initializeFrom(configuration);
+				if (!oldDirty && checkLaunchConfigDirty()) {
+					extractData();
+				}
 			}
 		};
 	}
