@@ -65,6 +65,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 	private boolean hideEditFieldControlDecoration = false;
 	private boolean hideLabelControl = false;
 	private boolean adjustBackgroundColor = false;
+	private boolean restoreHistoryChangesEditFieldControl = false;
 	boolean isInitializing = true;
 
 	private String groupLabel = ""; //$NON-NLS-1$
@@ -242,6 +243,24 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 	 */
 	public final boolean isAdjustBackgroundColor() {
 		return adjustBackgroundColor;
+	}
+
+	/**
+	 * Sets if restore history changes the edit field control content.
+	 *
+	 * @param change <code>True</code> if restore history changes the content, <code>false</code> otherwise.
+	 */
+	public final void setRestoreHistoryChangesEditFieldControl(boolean change) {
+		this.restoreHistoryChangesEditFieldControl = change;
+	}
+
+	/**
+	 * Returns if restore history changes the edit field control content.
+	 *
+	 * @return <code>True</code> if restore history changes the content, <code>false</code> otherwise.
+	 */
+	public final boolean isRestoreHistoryChangesEditFieldControl() {
+		return restoreHistoryChangesEditFieldControl;
 	}
 
 	/**
@@ -1032,8 +1051,6 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		String oldText = SWTControlUtil.getText(editFieldControl);
 		if (!text.equals(oldText)) {
 			SWTControlUtil.setText(editFieldControl, text);
-			// If the edit field control is not a combobox, next statement will do nothing
-			SWTControlUtil.add(editFieldControl, text);
 		}
 	}
 
@@ -1078,7 +1095,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 			}
 
 			// Restore the previously selected item if still available
-			if (newItems.contains(oldSelectedItem)) {
+			if (newItems.contains(oldSelectedItem) || !oldItems.contains(oldSelectedItem)) {
 				setEditFieldControlText(oldSelectedItem);
 			}
 		}
@@ -1347,7 +1364,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		String[] historyEntries = getHistory(settings, idPrefix);
 		if (historyEntries.length > 0) {
 			setEditFieldControlHistory(historyEntries);
-			if ("".equals(getEditFieldControlText())) { //$NON-NLS-1$
+			if ("".equals(getEditFieldControlText()) && restoreHistoryChangesEditFieldControl) { //$NON-NLS-1$
 				setEditFieldControlText(historyEntries[0]);
 			}
 		}

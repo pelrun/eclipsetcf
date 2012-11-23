@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -321,4 +322,21 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	protected final boolean isUpdating() {
 		return updating;
 	}
+
+	/**
+	 * Saves the widget history of all UI elements of the section.
+	 *
+	 * @param settings The dialog settings or <code>null</code>.
+	 */
+	public void saveWidgetValues(IDialogSettings settings) {
+	}
+
+	/**
+	 * Restores the widget history of all UI elements of the section.
+	 *
+	 * @param settings The dialog settings or <code>null</code>.
+	 */
+	public void restoreWidgetValues(IDialogSettings settings) {
+	}
+
 }

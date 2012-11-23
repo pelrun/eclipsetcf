@@ -100,9 +100,11 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 		section.setClient(client);
 
 		addressControl = doCreateAddressControl(this);
+		addressControl.setHasHistory(hasHistory());
 		addressControl.setupPanel(client);
 
 		portControl = doCreatePortControl(this);
+		portControl.setHasHistory(hasHistory());
 		portControl.setParentControlIsInnerPanel(true);
 		portControl.setupPanel(addressControl.getInnerPanelComposite());
 		portControl.setEditFieldControlText(getDefaultPort());
@@ -155,6 +157,16 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 	 */
 	protected String getDefaultPort() {
 		return null;
+	}
+
+	/**
+	 * Returns if or if not the panel controls should be created with history
+	 * (combo) or not (text).
+	 *
+	 * @return <code>True</code> to create the panel controls with history, <code>false</code> otherwise.
+	 */
+	protected boolean hasHistory() {
+		return false;
 	}
 
 	/* (non-Javadoc)
@@ -317,7 +329,7 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 	public void doSaveWidgetValues(IDialogSettings settings, String idPrefix) {
 		super.doSaveWidgetValues(settings, idPrefix);
 		if (addressControl != null) addressControl.doSaveWidgetValues(settings, idPrefix);
-		if (portControl != null) portControl.doSaveWidgetValues(settings, idPrefix);
+		if (portControl != null && !portControl.getEditFieldControlText().equals(getDefaultPort())) portControl.doSaveWidgetValues(settings, idPrefix);
 	}
 
 	/* (non-Javadoc)

@@ -44,6 +44,7 @@ import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.wizards.AbstractWizard;
+import org.eclipse.tcf.te.ui.wizards.pages.AbstractWizardPage;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
@@ -82,6 +83,7 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 
 		// Walk through the page list and extract the attributes from it
 		for (IWizardPage page : getPages()) {
+			if (page instanceof AbstractWizardPage) ((AbstractWizardPage)page).saveWidgetValues();
 			if (page instanceof IDataExchangeNode) {
 				((IDataExchangeNode)page).extractData(peerAttributes);
 			}
