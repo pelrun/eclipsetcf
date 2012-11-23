@@ -39,6 +39,13 @@
             properties="isValidLaunchConfigType"
             type="java.lang.Object">
       </propertyTester>
+      <propertyTester
+            class="org.eclipse.tcf.te.launch.core.properties.PropertyTester"
+            id="org.eclipse.tcf.te.launch.core.properties.PropertyTester"
+            namespace="org.eclipse.tcf.te.launch.core"
+            properties="isLaunched"
+            type="java.lang.Object">
+      </propertyTester>
    </extension>
 
 <!-- Launch Step contributions -->

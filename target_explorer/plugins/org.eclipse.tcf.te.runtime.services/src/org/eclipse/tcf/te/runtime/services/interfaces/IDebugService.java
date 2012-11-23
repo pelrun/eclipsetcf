@@ -28,4 +28,12 @@ public interface IDebugService extends IService {
 	 * @param callback The callback to invoke once the operation completed. Must not be <code>null</code>.
 	 */
 	public void attach(Object context, IPropertiesContainer data, ICallback callback);
+
+	/**
+	 * Returns if or if not the debugger has been launched for the given context.
+	 *
+	 * @param context The debug context. Must not be <code>null</code>.
+	 * @return <code>True</code> if the debugger has been launched for the context, <code>false</code> otherwise.
+	 */
+	public boolean isLaunched(Object context);
 }

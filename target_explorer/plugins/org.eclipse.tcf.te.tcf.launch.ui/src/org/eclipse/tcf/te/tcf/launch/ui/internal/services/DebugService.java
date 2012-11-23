@@ -10,12 +10,15 @@
 package org.eclipse.tcf.te.tcf.launch.ui.internal.services;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.ILaunchesListener;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.launch.core.lm.LaunchManager;
@@ -38,6 +41,19 @@ import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
  * Debug service implementations for TCF contexts.
  */
 public class DebugService extends AbstractService implements IDebugService {
+	// Reference to the launches listener
+	private final ILaunchesListener listener;
+
+	/**
+     * Constructor
+     */
+    public DebugService() {
+    	super();
+
+    	// Create and register the launches listener instance
+    	listener = new DebugServicesLaunchesListener();
+		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(listener);
+    }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IDebugService#attach(java.lang.Object, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
@@ -113,5 +129,36 @@ public class DebugService extends AbstractService implements IDebugService {
 		else {
 			callback.done(this, Status.OK_STATUS);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IDebugService#isLaunched(java.lang.Object)
+	 */
+	@Override
+	public boolean isLaunched(Object context) {
+		Assert.isNotNull(context);
+
+		boolean isLaunched = false;
+
+		if (context instanceof IModelNode) {
+			ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
+			for (ILaunch launch : launches) {
+				try {
+					if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && !launch.isTerminated()) {
+						IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
+						if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
+							isLaunched = true;
+							break;
+						}
+					}
+				} catch (CoreException e) {
+					if (Platform.inDebugMode()) e.printStackTrace();
+				}
+			}
+		}
+
+		System.out.println("DebugService.isLaunched: " + isLaunched); //$NON-NLS-1$
+
+	    return isLaunched;
 	}
 }
