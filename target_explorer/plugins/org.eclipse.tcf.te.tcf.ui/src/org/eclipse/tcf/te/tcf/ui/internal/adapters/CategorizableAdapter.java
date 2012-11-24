@@ -68,8 +68,7 @@ public class CategorizableAdapter implements ICategorizable {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						String value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-						isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
+						isStatic.set(((IPeerModel)element).isStatic());
 					}
 				};
 

@@ -131,8 +131,7 @@ public class OfflineCommandHandler extends AbstractHandler {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = node.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-				isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
+				isStatic.set(node.isStatic());
 			}
 		};
 

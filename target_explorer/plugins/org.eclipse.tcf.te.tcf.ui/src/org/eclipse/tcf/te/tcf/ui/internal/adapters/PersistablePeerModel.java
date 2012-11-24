@@ -26,8 +26,7 @@ public class PersistablePeerModel implements IPersistableElement {
 	 */
 	public PersistablePeerModel(IPeerModel peerModel) {
 		this.peerModel = peerModel;
-		String value = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-		isStatic = value != null && Boolean.parseBoolean(value.trim());
+		isStatic = peerModel.isStatic();
 	}
 
 	/*

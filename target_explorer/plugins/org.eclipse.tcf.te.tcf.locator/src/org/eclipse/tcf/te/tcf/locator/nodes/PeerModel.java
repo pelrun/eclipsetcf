@@ -160,6 +160,16 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel#isStatic()
+	 */
+	@Override
+	public boolean isStatic() {
+		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
+		String value = getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+		return value != null && Boolean.parseBoolean(value.trim());
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
 	 */
 	@Override

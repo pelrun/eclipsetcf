@@ -185,8 +185,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 							}
 							Assert.isNotNull(categorizable);
 
-							String value = peer.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-							boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+							boolean isStatic = peer.isStatic();
 
 							// Static peers, or if launched by current user -> add automatically to "My Targets"
 							boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
@@ -219,8 +218,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 							}
 							Assert.isNotNull(categorizable);
 
-							String value = peer.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-							boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+							boolean isStatic = peer.isStatic();
 
 							boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
 							if (!isNeighborhood && !isStatic) {

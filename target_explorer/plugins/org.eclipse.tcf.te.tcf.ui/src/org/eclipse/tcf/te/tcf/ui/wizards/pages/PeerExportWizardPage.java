@@ -143,8 +143,7 @@ public class PeerExportWizardPage extends WizardPage {
 			public Object[] getElements(Object inputElement) {
 				List<IPeerModel> elements = new ArrayList<IPeerModel>();
 				for (IPeerModel peerModel : ((ILocatorModel)inputElement).getPeers()) {
-					String isStaticStr = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-					if (isStaticStr != null && Boolean.parseBoolean(isStaticStr.trim())) {
+					if (peerModel.isStatic()) {
 						elements.add(peerModel);
 					}
 

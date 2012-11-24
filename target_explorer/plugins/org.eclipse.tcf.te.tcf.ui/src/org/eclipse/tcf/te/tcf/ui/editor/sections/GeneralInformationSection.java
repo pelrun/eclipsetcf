@@ -439,10 +439,9 @@ public class GeneralInformationSection extends AbstractSection {
 				@Override
 				public void run() {
 					if (input instanceof IPeerModel) {
-						String value = ((IPeerModel)input).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-						isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
+						isStatic.set(((IPeerModel)input).isStatic());
 
-						value = ((IPeerModel)input).getPeer().getAttributes().get("remote.transient"); //$NON-NLS-1$
+						String value = ((IPeerModel)input).getPeer().getAttributes().get("remote.transient"); //$NON-NLS-1$
 						isRemote.set(value != null && Boolean.parseBoolean(value.trim()));
 					}
 				}

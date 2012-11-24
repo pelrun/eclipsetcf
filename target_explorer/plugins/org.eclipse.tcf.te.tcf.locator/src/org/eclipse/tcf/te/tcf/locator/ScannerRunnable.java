@@ -290,8 +290,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 										// However, the child list may include manual redirected static peers. Do not
 										// remove them here.
 										for (IPeerModel child : oldChildren) {
-											String value = child.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-											if (value == null || !Boolean.parseBoolean(value.trim())) {
+											if (!child.isStatic()) {
 												// Remove the child peer node from the model
 												model.getService(ILocatorModelUpdateService.class).removeChild(child);
 											}

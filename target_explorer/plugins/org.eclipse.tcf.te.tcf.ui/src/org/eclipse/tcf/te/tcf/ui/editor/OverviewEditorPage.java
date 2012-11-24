@@ -194,8 +194,7 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage impl
 				@Override
 				public void run() {
 					try {
-						String value = ((IPeerModel)input).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-						boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+						boolean isStatic = ((IPeerModel)input).isStatic();
 						if (isStatic) {
 							// Get the persistence service
 							IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);

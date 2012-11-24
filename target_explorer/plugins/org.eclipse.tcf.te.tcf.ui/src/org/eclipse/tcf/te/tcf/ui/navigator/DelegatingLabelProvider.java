@@ -146,14 +146,13 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					String value = null;
 					if (element instanceof IPeerModel) {
-						value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+						isStatic.set(((IPeerModel)element).isStatic());
 					}
 					else if (element instanceof IPeer) {
-						value = ((IPeer)element).getAttributes().get("static.transient"); //$NON-NLS-1$
+						String value = ((IPeer)element).getAttributes().get("static.transient"); //$NON-NLS-1$
+						isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
 					}
-					isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
 				}
 			};
 
@@ -189,8 +188,7 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 				}
 			}
 
-			String value = ((IPeerModel)element).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-			boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+			boolean isStatic = ((IPeerModel)element).isStatic();
 			if (!isStatic) {
 				AbstractImageDescriptor descriptor = new PeerImageDescriptor(UIPlugin.getDefault().getImageRegistry(),
 								image,
@@ -252,8 +250,7 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 		Assert.isNotNull(peerModel);
 		Assert.isTrue(Protocol.isDispatchThread());
 
-		String value = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-		boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+		boolean isStatic = peerModel.isStatic();
 
 		int state = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);
 		if (state > IPeerModelProperties.STATE_UNKNOWN

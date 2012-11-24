@@ -219,8 +219,7 @@ public class RenameHandler extends AbstractHandler {
 				Assert.isNotNull(model);
 				IPeerModel[] peers = model.getPeers();
 				for (IPeerModel peer : peers) {
-					String isStatic = peer.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-					if (isStatic != null && Boolean.parseBoolean(isStatic.trim())) {
+					if (peer.isStatic()) {
 						String name = peer.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$

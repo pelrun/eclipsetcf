@@ -356,8 +356,7 @@ public class PeerImportWizardPage extends WizardPage {
 								peerModel.set(model.getService(ILocatorModelLookupService.class).lkupPeerModelById(((IPeer)config).getID()));
 								if (peerModel.get() == null) {
 									for (IPeerModel peer : model.getPeers()) {
-										String isStatic = peer.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-										if (isStatic != null && Boolean.parseBoolean(isStatic.trim())) {
+										if (peer.isStatic()) {
 											String name = peer.getPeer().getName();
 											if (name.equalsIgnoreCase(((IPeer)config).getName())) {
 												peerModel.set(peer);
@@ -367,11 +366,8 @@ public class PeerImportWizardPage extends WizardPage {
 									}
 
 								}
-								if (peerModel.get() != null) {
-									String isStaticStr = peerModel.get().getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-									if (isStaticStr == null || !Boolean.parseBoolean(isStaticStr.trim())) {
-										peerModel.set(null);
-									}
+								if (peerModel.get() != null && !peerModel.get().isStatic()) {
+									peerModel.set(null);
 								}
 							}
 						});

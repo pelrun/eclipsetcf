@@ -60,11 +60,8 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 	 */
 	@Override
 	public boolean isSaveAsAllowed(IEditorInput input) {
-		IPeerModel model = (IPeerModel)input.getAdapter(IPeerModel.class);
-		if (model != null) {
-			String isStatic = model.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-			return isStatic != null && Boolean.parseBoolean(isStatic.trim());
-		}
+		IPeerModel peerModel = (IPeerModel)input.getAdapter(IPeerModel.class);
+		if (peerModel != null) return peerModel.isStatic();
 
 		return false;
 	}
@@ -156,8 +153,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 				IPeerModel[] peers = Model.getModel().getPeers();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerModel peerModel : peers) {
-					String isStatic = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-					if (isStatic != null && Boolean.parseBoolean(isStatic.trim())) {
+					if (peerModel.isStatic()) {
 						String name = peerModel.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$

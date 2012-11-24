@@ -87,8 +87,7 @@ public class LocatorListener implements ILocator.LocatorListener {
 				}
 			} else {
 				// Peer node found, update the peer instance
-				String value = peerNode.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-				boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+				boolean isStatic = peerNode.isStatic();
 				if (isStatic) {
 					// Validate the peer node before updating
 					IPeer myPeer = model.validatePeer(peer);
@@ -181,11 +180,9 @@ public class LocatorListener implements ILocator.LocatorListener {
 			// find the corresponding model node to remove
 			final IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
 			if (peerNode != null) {
-				IPeer peer = peerNode.getPeer();
-				String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
-				boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
-				if (isStatic) {
+				if (peerNode.isStatic()) {
 					boolean changed = peerNode.setChangeEventsEnabled(false);
+					IPeer peer = peerNode.getPeer();
 
 					// Create a modifiable copy of the peer attributes
 					Map<String, String> attrs = new HashMap<String, String>(peerNode.getPeer().getAttributes());

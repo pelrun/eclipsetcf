@@ -35,11 +35,7 @@ public class PeersByCurrentUserFilter extends ViewerFilter {
 				@Override
 				public void run() {
 					IPeerModel peerModel = (IPeerModel)element;
-
-					String value = peerModel.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-					boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
-
-					if (!isStatic) {
+					if (!peerModel.isStatic()) {
 						user.set(peerModel.getPeer().getUserName());
 					} else {
 						user.set(USERNAME);

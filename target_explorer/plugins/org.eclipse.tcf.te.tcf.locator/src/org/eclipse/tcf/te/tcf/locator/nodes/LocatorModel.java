@@ -404,8 +404,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		if (peer == null) return node;
 
 		// Skip static peer IP address validation
-		String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
-		boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+		boolean isStatic = node.isStatic();
 		if (isStatic) return node;
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {

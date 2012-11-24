@@ -172,8 +172,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 				// There is still the chance that the node we add is a static node and
 				// there exist an dynamically discovered node with a different id but
 				// for the same peer. Do this check only if the peer to add is a static one.
-				String value = peerNode.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-				boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+				boolean isStatic = peerNode.isStatic();
 				if (isStatic) {
 					for (IPeerModel candidate : oldChildren) {
 						String peerID = peerNode.getPeerId();

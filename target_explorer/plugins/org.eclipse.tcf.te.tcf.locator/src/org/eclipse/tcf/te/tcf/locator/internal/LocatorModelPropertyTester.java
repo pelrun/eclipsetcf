@@ -98,8 +98,7 @@ public class LocatorModelPropertyTester extends PropertyTester {
 		}
 
 		if ("isStaticPeer".equals(property)) { //$NON-NLS-1$
-			String value = node.getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-			boolean isStaticPeer = value != null && Boolean.parseBoolean(value.trim());
+			boolean isStaticPeer = node.isStatic();
 			if (expectedValue instanceof Boolean) {
 				return ((Boolean) expectedValue).booleanValue() == isStaticPeer;
 			}

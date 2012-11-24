@@ -66,4 +66,11 @@ public interface IPeerModel extends IContainerModelNode {
 	 * @return <code>True</code> if the peer attributes are complete, <code>false</code> otherwise.
 	 */
 	public boolean isComplete();
+
+	/**
+	 * Returns if or if not the peer model node represents a static peer.
+	 *
+	 * @return <code>True</code> if it represents a static peer, <code>false</code> otherwise.
+	 */
+	public boolean isStatic();
 }
