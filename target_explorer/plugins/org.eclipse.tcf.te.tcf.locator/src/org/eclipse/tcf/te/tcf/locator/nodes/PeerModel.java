@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.locator.nodes;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
@@ -164,9 +165,20 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	 */
 	@Override
 	public boolean isStatic() {
-		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-		String value = getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
-		return value != null && Boolean.parseBoolean(value.trim());
+		final AtomicBoolean isStatic = new AtomicBoolean();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				String value = getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+				isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		return isStatic.get();
 	}
 
 	/* (non-Javadoc)
@@ -174,15 +186,25 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	 */
 	@Override
 	public boolean isRemote() {
-		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
+		final AtomicBoolean isRemote = new AtomicBoolean();
 
-		// Determine the "remote" flag
-		String value = getPeer().getAttributes().get("remote.transient"); //$NON-NLS-1$
-		boolean isRemote = value != null ? Boolean.parseBoolean(value) : false;
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				// Determine the "remote" flag
+				String value = getPeer().getAttributes().get("remote.transient"); //$NON-NLS-1$
+				boolean bValue = value != null && Boolean.parseBoolean(value.trim());
 
-		// The peer model node is considered to be remote if it is a remote peer
-		// or the "remote" flag is set.
-		return "RemotePeer".equals(getPeer().getClass().getSimpleName()) || isRemote; //$NON-NLS-1$
+				// The peer model node is considered to be remote if it is a remote peer
+				// or the "remote" flag is set.
+				isRemote.set("RemotePeer".equals(getPeer().getClass().getSimpleName()) || bValue); //$NON-NLS-1$
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		return isRemote.get();
 	}
 
 	/* (non-Javadoc)
