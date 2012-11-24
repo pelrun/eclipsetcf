@@ -192,7 +192,18 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
     }
 
     private static void readSourceContainer(ArrayList<PathMapRule> map, String s) throws CoreException {
-        Element root = DebugPlugin.parseDocument(s);
+        // The user may add source container which stores their memento not
+        // as an XML string. For those containers, DebugPlugin.parseDocument(s)
+        // will throw an CoreException and the debug launch fails. Such source
+        // container should be ignored and the launch should continue.
+        Element root = null;
+        try {
+            root = DebugPlugin.parseDocument(s);
+        } catch (CoreException e) {
+            // The memento does not represent a XML string
+        }
+        if (root == null) return;
+        
         if ("mapping".equals(root.getNodeName())) {
             NodeList list = root.getChildNodes();
             int length = list.getLength();
