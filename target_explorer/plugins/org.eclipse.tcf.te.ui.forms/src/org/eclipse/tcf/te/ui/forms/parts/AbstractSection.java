@@ -216,9 +216,7 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	 * @param dirty <code>True</code> to mark the section dirty, <code>false</code> otherwise.
 	 */
 	public final void markDirty(boolean dirty) {
-		if (dirty) {
-			markDirty();
-		}
+		if (dirty) markDirty();
 		else {
 			// For now, there is no direct way to reset the dirty state,
 			// and the refresh() method is setting back both flags (stale and dirty).
@@ -234,9 +232,7 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 					}
 				});
 				f.setBoolean(this, dirty);
-				if (getManagedForm() != null) {
-					getManagedForm().dirtyStateChanged();
-				}
+				if (getManagedForm() != null) getManagedForm().dirtyStateChanged();
 			} catch (Exception e) { /* ignored on purpose */ }
 		}
 	}
@@ -249,9 +245,7 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		// commit is reseting the dirty state
 		boolean hasBeenDirty = isDirty();
 		super.commit(onSave);
-		if (hasBeenDirty) {
-			markDirty();
-		}
+		if (hasBeenDirty) getManagedForm().dirtyStateChanged();
 	}
 
 	/* (non-Javadoc)
@@ -263,12 +257,8 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		boolean hasBeenStale = isStale();
 		boolean hasBeenDirty = isDirty();
 		super.refresh();
-		if (hasBeenStale) {
-			getManagedForm().staleStateChanged();
-		}
-		if (hasBeenDirty) {
-			getManagedForm().dirtyStateChanged();
-		}
+		if (hasBeenStale) getManagedForm().staleStateChanged();
+		if (hasBeenDirty) getManagedForm().dirtyStateChanged();
 	}
 
 	/* (non-Javadoc)
