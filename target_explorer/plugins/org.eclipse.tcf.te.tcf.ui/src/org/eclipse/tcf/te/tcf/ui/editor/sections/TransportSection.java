@@ -446,9 +446,7 @@ public class TransportSection extends AbstractSection {
 			public void run() {
 				if (input instanceof IPeerModel) {
 					isStatic.set(((IPeerModel)input).isStatic());
-
-					String value = ((IPeerModel)input).getPeer().getAttributes().get("remote.transient"); //$NON-NLS-1$
-					isRemote.set(value != null && Boolean.parseBoolean(value.trim()));
+					isRemote.set(((IPeerModel)input).isRemote());
 				}
 			}
 		};

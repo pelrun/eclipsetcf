@@ -513,6 +513,14 @@ public final class InvalidPeerModel implements IPeerModel {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel#isRemote()
+	 */
+	@Override
+	public boolean isRemote() {
+	    throw new IllegalStateException();
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer#addProperties(java.util.Map)
 	 */
     @Override

@@ -170,6 +170,22 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel#isRemote()
+	 */
+	@Override
+	public boolean isRemote() {
+		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Determine the "remote" flag
+		String value = getPeer().getAttributes().get("remote.transient"); //$NON-NLS-1$
+		boolean isRemote = value != null ? Boolean.parseBoolean(value) : false;
+
+		// The peer model node is considered to be remote if it is a remote peer
+		// or the "remote" flag is set.
+		return "RemotePeer".equals(getPeer().getClass().getSimpleName()) || isRemote; //$NON-NLS-1$
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
 	 */
 	@Override

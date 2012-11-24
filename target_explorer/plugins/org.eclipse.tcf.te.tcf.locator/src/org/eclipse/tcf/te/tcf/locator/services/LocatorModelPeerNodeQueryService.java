@@ -71,9 +71,9 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				// If the peer is a RemotePeer or has the "remote.transient" property set
+				// If the peer is a remote peer
 				// --> an agent is running and has been associated with the peer model.
-				if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+				if (node.isRemote()) {
 					queryServicesAsync(node, new DoneQueryServices() {
 						@Override
 						public void doneQueryServices(Throwable error) {
@@ -137,9 +137,9 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				// If the peer is a RemotePeer or has the "remote.transient" property set
+				// If the peer is a remote peer
 				// --> an agent is running and has been associated with the peer model.
-				if ("RemotePeer".equals(node.getPeer().getClass().getSimpleName()) || Boolean.valueOf(node.getPeer().getAttributes().get("remote.transient")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+				if (node.isRemote()) {
 					queryServicesAsync(node, new DoneQueryServices() {
 						@Override
 						public void doneQueryServices(Throwable error) {

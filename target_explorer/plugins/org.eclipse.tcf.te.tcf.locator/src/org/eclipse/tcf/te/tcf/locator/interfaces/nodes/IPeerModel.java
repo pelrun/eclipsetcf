@@ -69,8 +69,19 @@ public interface IPeerModel extends IContainerModelNode {
 
 	/**
 	 * Returns if or if not the peer model node represents a static peer.
+	 * <p>
+	 * <b>Note:</b> A peer model node can be both static and remote at the same time.
 	 *
-	 * @return <code>True</code> if it represents a static peer, <code>false</code> otherwise.
+	 * @return <code>True</code> if the node represents a static peer, <code>false</code> otherwise.
 	 */
 	public boolean isStatic();
+
+	/**
+	 * Returns if or if not the peer model node represents a remote/discovered peer.
+	 * <p>
+	 * <b>Note:</b> A peer model node can be both static and remote at the same time.
+	 *
+	 * @return <code>True</code> if the node represents a remote peer, <code>false</code> otherwise.
+	 */
+	public boolean isRemote();
 }
