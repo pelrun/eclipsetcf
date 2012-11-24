@@ -194,13 +194,17 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage impl
 				@Override
 				public void run() {
 					try {
-						// Get the persistence service
-						IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
-						if (uRIPersistenceService == null) {
-							throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
+						String value = ((IPeerModel)input).getPeer().getAttributes().get("static.transient"); //$NON-NLS-1$
+						boolean isStatic = value != null && Boolean.parseBoolean(value.trim());
+						if (isStatic) {
+							// Get the persistence service
+							IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
+							if (uRIPersistenceService == null) {
+								throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
+							}
+							// Save the peer node to the new persistence storage
+							uRIPersistenceService.write(((IPeerModel)input).getPeer(), null);
 						}
-						// Save the peer node to the new persistence storage
-						uRIPersistenceService.write(((IPeerModel)input).getPeer(), null);
 					} catch (IOException e) {
 						// Build up the message template
 						String template = NLS.bind(Messages.OverviewEditorPage_error_save, ((IPeerModel)input).getName(), Messages.PossibleCause);
