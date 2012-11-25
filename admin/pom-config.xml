@@ -36,7 +36,9 @@
 		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
 		<jacoco-version>0.5.10.201208310627</jacoco-version>
-		<eclipse-jarsigner-version>1.0.2-SNAPSHOT</eclipse-jarsigner-version>
+		<!--<eclipse-jarsigner-version>1.0.2-SNAPSHOT</eclipse-jarsigner-version>
+		 downgrade to the latest version published -->
+		<eclipse-jarsigner-version>1.0.0</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
@@ -103,6 +105,11 @@
 			<releases>
 				<enabled>true</enabled>
 			</releases>
+		</pluginRepository>
+		<!--Add the m2e repository for the signing plugin until the https://bugs.eclipse.org/bugs/show_bug.cgi?id=394954 is fixed -->
+		<pluginRepository>                                                                                         
+			<id>m2e-cbi</id>                                                                                         
+			<url>http://download.eclipse.org/technology/m2e/maven/</url>                                             
 		</pluginRepository>
 	</pluginRepositories>
 
