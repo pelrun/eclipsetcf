@@ -871,7 +871,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(view_id)) {
             if (!run_context.validate(done)) return false;
             IRunControl.RunControlContext ctx = run_context.getData();
-            if (ctx != null && ctx.hasState()) children = children_exps;
+            if (ctx != null) children = children_exps;
         }
         else if (TCFModel.ID_EXPRESSION_HOVER.equals(view_id)) {
             if (!run_context.validate(done)) return false;
@@ -944,7 +944,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(view_id)) {
             if (!run_context.validate(done)) return false;
             IRunControl.RunControlContext ctx = run_context.getData();
-            if (ctx != null && ctx.hasState()) children = children_exps;
+            if (ctx != null) children = children_exps;
         }
         else if (TCFModel.ID_EXPRESSION_HOVER.equals(view_id)) {
             if (!run_context.validate(done)) return false;
@@ -1009,7 +1009,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(view_id)) {
             if (!run_context.validate(done)) return false;
             IRunControl.RunControlContext ctx = run_context.getData();
-            if (ctx != null && ctx.hasState()) children = children_exps;
+            if (ctx != null) children = children_exps;
         }
         else if (TCFModel.ID_EXPRESSION_HOVER.equals(view_id)) {
             if (!run_context.validate(done)) return false;

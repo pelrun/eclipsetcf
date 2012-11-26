@@ -282,7 +282,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      * Request view selection to be set to given node.
      * @param node - a model node that will become new selection.
      */
-    void setSelection(TCFNode node) {
+    public void setSelection(TCFNode node) {
         if (selection.size() > 0 && selection.getLast() == node) return;
         selection.add(node);
         expand(node.getParent(getPresentationContext()));

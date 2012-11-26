@@ -550,7 +550,8 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                 if (!exec_ctx.getMemoryContext().validate(this)) return;
                 if (exec_ctx.getMemoryContext().getError() != null) {
                     error(exec_ctx.getMemoryContext().getError());
-                } else {
+                }
+                else {
                     done(new MemoryBlock(expression, -1));
                 }
             }
@@ -563,7 +564,8 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                 if (!exec_ctx.getMemoryContext().validate(this)) return;
                 if (exec_ctx.getMemoryContext().getError() != null) {
                     error(exec_ctx.getMemoryContext().getError());
-                } else {
+                }
+                else {
                     done(new MemoryBlock("0x" + Long.toHexString(address), length));
                 }
             }

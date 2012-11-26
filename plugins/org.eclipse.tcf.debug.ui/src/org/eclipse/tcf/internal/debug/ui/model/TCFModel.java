@@ -1003,7 +1003,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         return proxies;
     }
 
-    Collection<TCFModelProxy> getModelProxies() {
+    public Collection<TCFModelProxy> getModelProxies() {
         return model_proxies;
     }
 

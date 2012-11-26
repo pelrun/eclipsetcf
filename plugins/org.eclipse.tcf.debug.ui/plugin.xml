@@ -328,8 +328,24 @@
          <action
             id="org.eclipse.tcf.debug.ui.actions.ViewMemory"
             class="org.eclipse.tcf.internal.debug.ui.commands.ViewMemoryCommand"
-            label="%ViewMemory.label"
-            menubarPath="variableGroup">
+            label="%ViewMemory.label">
+            <enablement>
+               <pluginState
+                     value="activated"
+                     id="org.eclipse.tcf.debug.ui">
+               </pluginState>
+            </enablement>
+         </action>
+      </objectContribution>
+
+      <!-- TCFNodeRegister popup menu contributions -->
+      <objectContribution
+            id="org.eclipse.tcf.debug.ui.TCFNodeRegister"
+            objectClass="org.eclipse.tcf.internal.debug.ui.model.TCFNodeRegister">
+         <action
+            id="org.eclipse.tcf.debug.ui.actions.ViewMemory"
+            class="org.eclipse.tcf.internal.debug.ui.commands.ViewMemoryCommand"
+            label="%ViewMemory.label">
             <enablement>
                <pluginState
                      value="activated"
