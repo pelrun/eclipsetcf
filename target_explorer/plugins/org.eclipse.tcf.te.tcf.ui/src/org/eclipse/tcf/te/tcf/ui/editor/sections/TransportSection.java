@@ -172,6 +172,9 @@ public class TransportSection extends AbstractSection {
 					setupData((IPeerModel)node);
 				}
 			}
+		} else {
+			// Evaluate the dirty state even if going inactive
+			dataChanged(null);
 		}
 	}
 
