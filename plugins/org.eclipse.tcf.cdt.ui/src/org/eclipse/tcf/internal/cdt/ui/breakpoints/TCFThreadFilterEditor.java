@@ -103,13 +103,13 @@ public class TCFThreadFilterEditor {
             fIsContainer = !ctx.hasState();
             fBpGroup = ctx.getBPGroup();
         }
-        
-        
+
+
         @Override
         public boolean equals(Object obj) {
             return obj instanceof Context && fId.equals(((Context)obj).fId);
         }
-        
+
         @Override
         public int hashCode() {
             return fId.hashCode();
@@ -232,9 +232,9 @@ public class TCFThreadFilterEditor {
                    // Add element to list if:
                    // Check if context in result of query expression (if query expression was specitifed).
                    // Also check if breakpoint group is valid on context.
-                   // Finally, check if contexts' children are not filtered out. 
-                   if ( (filterExpr == null || filterExpr.length() == 0 || fContextList.contains(context.fId)) 
-                        && context.fBpGroup != null) 
+                   // Finally, check if contexts' children are not filtered out.
+                   if ( (filterExpr == null || filterExpr.length() == 0 || fContextList.contains(context.fId))
+                        && context.fBpGroup != null)
                    {
                        filteredList.add(obj);
                    } else if (context.fIsContainer) {
@@ -248,7 +248,7 @@ public class TCFThreadFilterEditor {
             fFilteredContexts.addAll(filteredList);
             return filteredList.toArray(new Object[filteredList.size()]);
         }
-        
+
         public Object getParent(Object element) {
             if (element instanceof Context) {
                 Context ctx = (Context) element;

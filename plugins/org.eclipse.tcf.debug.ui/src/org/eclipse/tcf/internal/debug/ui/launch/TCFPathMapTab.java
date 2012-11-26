@@ -170,7 +170,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
                 updateLaunchConfigurationDialog();
             }
         });
-        
+
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             @Override
             public void doubleClick(DoubleClickEvent event) {
@@ -264,7 +264,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         viewer.getTable().setFocus();
         updateLaunchConfigurationDialog();
     }
-    
+
     protected final TableViewer getViewer() {
         return viewer;
     }

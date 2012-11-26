@@ -100,7 +100,7 @@ class PathMapRuleDialog extends Dialog {
                 updateButtons();
             }
         });
-        
+
         Label destination_label = new Label(composite, SWT.NONE);
         destination_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
         destination_label.setFont(font);
@@ -116,7 +116,7 @@ class PathMapRuleDialog extends Dialog {
                 updateButtons();
             }
         });
-        
+
         destination_button = new Button(composite, SWT.PUSH);
         destination_button.setText("Browse..."); //$NON-NLS-1$
         destination_button.setFont(font);
@@ -150,7 +150,7 @@ class PathMapRuleDialog extends Dialog {
             }
         });
     }
-    
+
     private void setData() {
         source_text.setText(pathMapRule.getSource() != null ? pathMapRule.getSource() : ""); //$NON-NLS-1$
         destination_text.setText(pathMapRule.getDestination() != null ? pathMapRule.getDestination() : ""); //$NON-NLS-1$
@@ -161,17 +161,17 @@ class PathMapRuleDialog extends Dialog {
     private void getData() {
         if (source_text.getText().trim().length() > 0)
             pathMapRule.getProperties().put(IPathMap.PROP_SOURCE, source_text.getText());
-        else 
+        else
             pathMapRule.getProperties().remove(IPathMap.PROP_SOURCE);
-        
+
         if (destination_text.getText().trim().length() > 0)
             pathMapRule.getProperties().put(IPathMap.PROP_DESTINATION, destination_text.getText());
-        else 
+        else
             pathMapRule.getProperties().remove(IPathMap.PROP_DESTINATION);
 
         if (context_query_text.getText().trim().length() > 0)
             pathMapRule.getProperties().put(IPathMap.PROP_CONTEXT_QUERY, context_query_text.getText());
-        else 
+        else
             pathMapRule.getProperties().remove(IPathMap.PROP_CONTEXT_QUERY);
     }
 

@@ -203,7 +203,7 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
             // The memento does not represent a XML string
         }
         if (root == null) return;
-        
+
         if ("mapping".equals(root.getNodeName())) {
             NodeList list = root.getChildNodes();
             int length = list.getLength();
