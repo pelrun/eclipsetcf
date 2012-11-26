@@ -84,6 +84,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                 }
                 command = st.getContext(new String[]{ id }, new IStackTrace.DoneGetContext() {
                     public void doneGetContext(IToken token, Exception error, IStackTrace.StackTraceContext[] context) {
+                        if (context != null && context.length == 1) model.getContextMap().put(id, context[0]);
                         set(token, error, context == null || context.length == 0 ? null : context[0]);
                     }
                 });

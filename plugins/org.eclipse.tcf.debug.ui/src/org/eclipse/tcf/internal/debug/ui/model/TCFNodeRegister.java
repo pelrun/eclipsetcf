@@ -71,6 +71,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 IRegisters regs = launch.getService(IRegisters.class);
                 command = regs.getContext(id, new IRegisters.DoneGetContext() {
                     public void doneGetContext(IToken token, Exception error, IRegisters.RegistersContext context) {
+                        if (context != null) model.getContextMap().put(id, context);
                         set(token, error, context);
                     }
                 });

@@ -11,8 +11,6 @@
 package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.math.BigInteger;
-import java.util.LinkedList;
-import java.util.Map;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.DebugPlugin;
@@ -1546,40 +1544,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
     private String getRegisterName(String reg_id, Runnable done) {
         String name = reg_id;
-        TCFDataCache<?> pending = null;
-        TCFNodeRegister reg_node = null;
-        LinkedList<TCFChildren> queue = new LinkedList<TCFChildren>();
-        TCFNode n = parent;
-        while (n != null) {
-            if (n instanceof TCFNodeStackFrame) {
-                queue.add(((TCFNodeStackFrame)n).getRegisters());
-            }
-            if (n instanceof TCFNodeExecContext) {
-                queue.add(((TCFNodeExecContext)n).getRegisters());
-                break;
-            }
-            n = n.parent;
-        }
-        while (!queue.isEmpty()) {
-            TCFChildren reg_list = queue.removeFirst();
-            if (!reg_list.validate()) {
-                pending = reg_list;
-            }
-            else {
-                Map<String,TCFNode> reg_map = reg_list.getData();
-                if (reg_map != null) {
-                    reg_node = (TCFNodeRegister)reg_map.get(reg_id);
-                    if (reg_node != null) break;
-                    for (TCFNode node : reg_map.values()) {
-                        queue.add(((TCFNodeRegister)node).getChildren());
-                    }
-                }
-            }
-        }
-        if (pending != null) {
-            pending.wait(done);
-            return null;
-        }
+        if (!model.createNode(reg_id, done)) return null;
+        TCFNodeRegister reg_node = (TCFNodeRegister)model.getNode(reg_id);
         if (reg_node != null) {
             TCFDataCache<IRegisters.RegistersContext> reg_ctx_cache = reg_node.getContext();
             if (!reg_ctx_cache.validate(done)) return null;
