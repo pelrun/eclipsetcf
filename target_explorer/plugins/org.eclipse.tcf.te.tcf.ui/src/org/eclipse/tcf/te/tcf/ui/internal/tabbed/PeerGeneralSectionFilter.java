@@ -10,7 +10,6 @@
  */
 package org.eclipse.tcf.te.tcf.ui.internal.tabbed;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
@@ -24,8 +23,7 @@ public class PeerGeneralSectionFilter implements IFilter {
 	 */
 	@Override
 	public boolean select(Object element) {
-		IPeerModel peerModel = (IPeerModel)Platform.getAdapterManager().getAdapter(element, IPeerModel.class);
-		return peerModel != null;
+		return element instanceof IPeerModel;
 	}
 
 }
