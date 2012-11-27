@@ -50,6 +50,10 @@ public class StreamsConnector extends AbstractStreamsConnector implements IDispo
 		Assert.isNotNull(control);
 		super.connect(control);
 
+		// Setup the listeners
+		setStdoutListeners(settings.getStdOutListeners());
+		setStderrListeners(settings.getStdErrListeners());
+
 		// connect the streams
 		connectStreams(control, settings.getStdinStream(), settings.getStdoutStream(), settings.getStderrStream(), settings.isLocalEcho(), settings.getLineSeparator());
 

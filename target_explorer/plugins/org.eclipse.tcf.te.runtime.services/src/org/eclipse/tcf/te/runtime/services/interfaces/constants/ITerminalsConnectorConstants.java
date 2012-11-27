@@ -88,6 +88,18 @@ public interface ITerminalsConnectorConstants {
 	 */
 	public static final String PROP_LINE_SEPARATOR = "lineSeparator"; //$NON-NLS-1$
 
+	/**
+	 * Property: The list of stdout listeners to attach to the corresponding stream monitor.
+	 *           <p>Typical for process and streams terminals.
+	 */
+	public static final String PROP_STDOUT_LISTENERS = "stdoutListeners"; //$NON-NLS-1$
+
+	/**
+	 * Property: The list of stderr listeners to attach to the corresponding stream monitor.
+	 *           <p>Typical for process and streams terminals.
+	 */
+	public static final String PROP_STDERR_LISTENERS = "stderrListeners"; //$NON-NLS-1$
+
 	// ***** IP based terminals connector properties *****
 
 	/**

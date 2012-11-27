@@ -29,6 +29,29 @@ public abstract class AbstractStreamsConnector extends TerminalConnectorImpl {
     // Reference to the stderr monitor
     private OutputStreamMonitor stdErrMonitor;
 
+    // Reference to the list of stdout output listeners
+    private OutputStreamMonitor.Listener[] stdoutListeners = null;
+    // Reference to the list of stderr output listeners
+    private OutputStreamMonitor.Listener[] stderrListeners = null;
+
+    /**
+     * Set the list of stdout listeners.
+     *
+     * @param listeners The list of stdout listeners or <code>null</code>.
+     */
+    protected final void setStdoutListeners(OutputStreamMonitor.Listener[] listeners) {
+    	this.stdoutListeners = listeners;
+    }
+
+    /**
+     * Set the list of stderr listeners.
+     *
+     * @param listeners The list of stderr listeners or <code>null</code>.
+     */
+    protected final void setStderrListeners(OutputStreamMonitor.Listener[] listeners) {
+    	this.stderrListeners = listeners;
+    }
+
     /**
      * Connect the given streams. The streams connector will wrap each stream
      * with a corresponding terminal stream monitor.
@@ -57,6 +80,12 @@ public abstract class AbstractStreamsConnector extends TerminalConnectorImpl {
     		stdOutMonitor = createStdOutMonitor(terminalControl, stdout, lineSeparator);
     		// Register the connector if it implements IDisposable
     		if (this instanceof IDisposable) stdOutMonitor.addDisposable((IDisposable)this);
+    		// Register the listeners
+    		if (stdoutListeners != null) {
+    			for (OutputStreamMonitor.Listener l : stdoutListeners) {
+    				stdOutMonitor.addListener(l);
+    			}
+    		}
     		// Start the monitoring
     		stdOutMonitor.startMonitoring();
     	}
@@ -66,6 +95,12 @@ public abstract class AbstractStreamsConnector extends TerminalConnectorImpl {
     		stdErrMonitor = createStdErrMonitor(terminalControl, stderr, lineSeparator);
     		// Register the connector if it implements IDisposable and stdout is not monitored
     		if (stdout == null && this instanceof IDisposable) stdErrMonitor.addDisposable((IDisposable)this);
+    		// Register the listeners
+    		if (stderrListeners != null) {
+    			for (OutputStreamMonitor.Listener l : stderrListeners) {
+    				stdErrMonitor.addListener(l);
+    			}
+    		}
     		// Start the monitoring
     		stdErrMonitor.startMonitoring();
     	}

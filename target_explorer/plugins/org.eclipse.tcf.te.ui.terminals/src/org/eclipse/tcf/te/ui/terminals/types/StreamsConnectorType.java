@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
+import org.eclipse.tcf.te.ui.terminals.streams.OutputStreamMonitor;
 import org.eclipse.tcf.te.ui.terminals.streams.StreamsSettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
@@ -44,6 +45,8 @@ public class StreamsConnectorType extends AbstractConnectorType {
 		InputStream stderr = (InputStream)properties.getProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR);
 		boolean localEcho = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO);
 		String lineSeparator = properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
+		OutputStreamMonitor.Listener[] stdoutListeners = (OutputStreamMonitor.Listener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDOUT_LISTENERS);
+		OutputStreamMonitor.Listener[] stderrListeners = (OutputStreamMonitor.Listener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDERR_LISTENERS);
 
 		// Construct the terminal settings store
 		ISettingsStore store = new SettingsStore();
@@ -55,6 +58,8 @@ public class StreamsConnectorType extends AbstractConnectorType {
 		streamsSettings.setStderrStream(stderr);
 		streamsSettings.setLocalEcho(localEcho);
 		streamsSettings.setLineSeparator(lineSeparator);
+		streamsSettings.setStdOutListeners(stdoutListeners);
+		streamsSettings.setStdErrListeners(stderrListeners);
 		// And save the settings to the store
 		streamsSettings.save(store);
 

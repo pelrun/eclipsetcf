@@ -170,6 +170,10 @@ public class ProcessConnector extends AbstractStreamsConnector {
 				}
 			}
 
+			// Setup the listeners
+			setStdoutListeners(settings.getStdOutListeners());
+			setStderrListeners(settings.getStdErrListeners());
+
 			// connect the streams
 			connectStreams(control, process.getOutputStream(), process.getInputStream(), (pty == null ? process.getErrorStream() : null), settings.isLocalEcho(), lineSeparator);
 

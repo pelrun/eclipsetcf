@@ -11,13 +11,14 @@ package org.eclipse.tcf.te.ui.terminals.process;
 
 import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
-import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
+import org.eclipse.tcf.te.ui.terminals.streams.OutputStreamMonitor;
 import org.eclipse.tcf.te.ui.terminals.types.AbstractConnectorType;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 
 /**
  * Streams terminal connector type implementation.
@@ -43,6 +44,8 @@ public class ProcessConnectorType extends AbstractConnectorType {
 		PTY pty = (PTY)properties.getProperty(ITerminalsConnectorConstants.PROP_PTY_OBJ);
 		boolean localEcho = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO);
 		String lineSeparator = properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
+		OutputStreamMonitor.Listener[] stdoutListeners = (OutputStreamMonitor.Listener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDOUT_LISTENERS);
+		OutputStreamMonitor.Listener[] stderrListeners = (OutputStreamMonitor.Listener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDERR_LISTENERS);
 
 		Assert.isTrue(image != null || process != null);
 
@@ -57,6 +60,8 @@ public class ProcessConnectorType extends AbstractConnectorType {
         processSettings.setPTY(pty);
         processSettings.setLocalEcho(localEcho);
         processSettings.setLineSeparator(lineSeparator);
+        processSettings.setStdOutListeners(stdoutListeners);
+        processSettings.setStdErrListeners(stderrListeners);
 		// And save the settings to the store
 		processSettings.save(store);
 

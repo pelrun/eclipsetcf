@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
@@ -57,6 +58,26 @@ public class OutputStreamMonitor implements IDisposable {
     // A list of object to dispose if this monitor is disposed
     private final List<IDisposable> disposables = new ArrayList<IDisposable>();
 
+	// The list of registered listener
+	private final ListenerList listeners;
+
+	/**
+	 * An interface to be implemented by listeners who want to listen
+	 * to the streams data without interfering with the original data receiver.
+	 * <p>
+	 * Listeners are asynchronously invoked in the TCF dispatch thread.
+	 */
+	public static interface Listener {
+
+		/**
+		 * Signals that some content has been read from the monitored stream.
+		 *
+		 * @param byteBuffer The byte stream. Must not be <code>null</code>.
+		 * @param bytesRead The number of bytes that were read into the read buffer.
+		 */
+		public void onContentReadFromStream(byte[] byteBuffer, int bytesRead);
+	}
+
     /**
      * Constructor.
      *
@@ -73,7 +94,29 @@ public class OutputStreamMonitor implements IDisposable {
         this.stream = new BufferedInputStream(stream, BUFFER_SIZE);
 
         this.lineSeparator = lineSeparator;
+
+        this.listeners = new ListenerList();
     }
+
+	/**
+	 * Register a streams data receiver listener.
+	 *
+	 * @param listener The listener. Must not be <code>null</code>.
+	 */
+	public final void addListener(Listener listener) {
+		Assert.isNotNull(listener);
+		listeners.add(listener);
+	}
+
+	/**
+	 * Unregister a streams data receiver listener.
+	 *
+	 * @param listener The listener. Must not be <code>null</code>.
+	 */
+	public final void removeListener(Listener listener) {
+		Assert.isNotNull(listener);
+		listeners.remove(listener);
+	}
 
 	/**
 	 * Adds the given disposable object to the list. The method will do nothing
@@ -258,6 +301,14 @@ public class OutputStreamMonitor implements IDisposable {
 
     	// If changed, get the new bytes array
     	if (changed) byteBuffer = text.getBytes();
+
+    	// If listeners are registered, signal them the content read event asynchronously
+    	if (listeners.size() > 0) {
+    		for (Object candidate : listeners.getListeners()) {
+    			if (!(candidate instanceof Listener)) continue;
+    			((Listener)candidate).onContentReadFromStream(byteBuffer, bytesRead);
+    		}
+    	}
 
     	return byteBuffer;
     }

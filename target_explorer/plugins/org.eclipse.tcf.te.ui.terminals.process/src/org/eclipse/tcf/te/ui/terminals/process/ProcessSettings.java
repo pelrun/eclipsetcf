@@ -11,8 +11,9 @@ package org.eclipse.tcf.te.ui.terminals.process;
 
 import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.ui.terminals.streams.OutputStreamMonitor;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 
 /**
  * Process connector settings implementation.
@@ -32,6 +33,10 @@ public class ProcessSettings {
 	private boolean localEcho = !PTY.isSupported();
 	// The line separator setting
 	private String lineSeparator = null;
+    // The list of stdout output listeners
+    private OutputStreamMonitor.Listener[] stdoutListeners = null;
+    // The list of stderr output listeners
+    private OutputStreamMonitor.Listener[] stderrListeners = null;
 
 	/**
 	 * Sets the process image.
@@ -149,6 +154,42 @@ public class ProcessSettings {
 	}
 
 	/**
+	 * Sets the list of stdout listeners.
+	 *
+	 * @param listeners The list of stdout listeners or <code>null</code>.
+	 */
+	public void setStdOutListeners(OutputStreamMonitor.Listener[] listeners) {
+		this.stdoutListeners = listeners;
+	}
+
+	/**
+	 * Returns the list of stdout listeners.
+	 *
+	 * @return The list of stdout listeners or <code>null</code>.
+	 */
+	public OutputStreamMonitor.Listener[] getStdOutListeners() {
+		return stdoutListeners;
+	}
+
+	/**
+	 * Sets the list of stderr listeners.
+	 *
+	 * @param listeners The list of stderr listeners or <code>null</code>.
+	 */
+	public void setStdErrListeners(OutputStreamMonitor.Listener[] listeners) {
+		this.stderrListeners = listeners;
+	}
+
+	/**
+	 * Returns the list of stderr listeners.
+	 *
+	 * @return The list of stderr listeners or <code>null</code>.
+	 */
+	public OutputStreamMonitor.Listener[] getStdErrListeners() {
+		return stderrListeners;
+	}
+
+	/**
 	 * Loads the process settings from the given settings store.
 	 *
 	 * @param store The settings store. Must not be <code>null</code>.
@@ -162,6 +203,8 @@ public class ProcessSettings {
 		if (store instanceof IPropertiesContainer) {
 			process = (Process)((IPropertiesContainer)store).getProperty("Process"); //$NON-NLS-1$
 			pty = (PTY)((IPropertiesContainer)store).getProperty("PTY"); //$NON-NLS-1$
+			stdoutListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdOutListeners"); //$NON-NLS-1$
+			stderrListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdErrListeners"); //$NON-NLS-1$
 		}
 	}
 
@@ -179,6 +222,8 @@ public class ProcessSettings {
 		if (store instanceof IPropertiesContainer) {
 			((IPropertiesContainer)store).setProperty("Process", process); //$NON-NLS-1$
 			((IPropertiesContainer)store).setProperty("PTY", pty); //$NON-NLS-1$
+			((IPropertiesContainer)store).setProperty("StdOutListeners", stdoutListeners); //$NON-NLS-1$
+			((IPropertiesContainer)store).setProperty("StdErrListeners", stderrListeners); //$NON-NLS-1$
 		}
 	}
 }

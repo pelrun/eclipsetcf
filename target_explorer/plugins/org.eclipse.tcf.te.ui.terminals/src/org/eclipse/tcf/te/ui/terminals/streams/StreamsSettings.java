@@ -31,6 +31,10 @@ public class StreamsSettings {
 	private boolean localEcho = true;
 	// The line separator setting
 	private String lineSeparator = null;
+    // The list of stdout output listeners
+    private OutputStreamMonitor.Listener[] stdoutListeners = null;
+    // The list of stderr output listeners
+    private OutputStreamMonitor.Listener[] stderrListeners = null;
 
 	/**
 	 * Sets the stdin stream instance.
@@ -124,6 +128,42 @@ public class StreamsSettings {
 	}
 
 	/**
+	 * Sets the list of stdout listeners.
+	 *
+	 * @param listeners The list of stdout listeners or <code>null</code>.
+	 */
+	public void setStdOutListeners(OutputStreamMonitor.Listener[] listeners) {
+		this.stdoutListeners = listeners;
+	}
+
+	/**
+	 * Returns the list of stdout listeners.
+	 *
+	 * @return The list of stdout listeners or <code>null</code>.
+	 */
+	public OutputStreamMonitor.Listener[] getStdOutListeners() {
+		return stdoutListeners;
+	}
+
+	/**
+	 * Sets the list of stderr listeners.
+	 *
+	 * @param listeners The list of stderr listeners or <code>null</code>.
+	 */
+	public void setStdErrListeners(OutputStreamMonitor.Listener[] listeners) {
+		this.stderrListeners = listeners;
+	}
+
+	/**
+	 * Returns the list of stderr listeners.
+	 *
+	 * @return The list of stderr listeners or <code>null</code>.
+	 */
+	public OutputStreamMonitor.Listener[] getStdErrListeners() {
+		return stderrListeners;
+	}
+
+	/**
 	 * Loads the streams settings from the given settings store.
 	 *
 	 * @param store The settings store. Must not be <code>null</code>.
@@ -136,6 +176,8 @@ public class StreamsSettings {
 			stdin = (OutputStream)((IPropertiesContainer)store).getProperty("stdin"); //$NON-NLS-1$
 			stdout = (InputStream)((IPropertiesContainer)store).getProperty("stdout"); //$NON-NLS-1$
 			stderr = (InputStream)((IPropertiesContainer)store).getProperty("stderr"); //$NON-NLS-1$
+			stdoutListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdOutListeners"); //$NON-NLS-1$
+			stderrListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdErrListeners"); //$NON-NLS-1$
 		}
 	}
 
@@ -152,6 +194,8 @@ public class StreamsSettings {
 			((IPropertiesContainer)store).setProperty("stdin", stdin); //$NON-NLS-1$
 			((IPropertiesContainer)store).setProperty("stdout", stdout); //$NON-NLS-1$
 			((IPropertiesContainer)store).setProperty("stderr", stderr); //$NON-NLS-1$
+			((IPropertiesContainer)store).setProperty("StdOutListeners", stdoutListeners); //$NON-NLS-1$
+			((IPropertiesContainer)store).setProperty("StdErrListeners", stderrListeners); //$NON-NLS-1$
 		}
 	}
 }
