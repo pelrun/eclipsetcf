@@ -157,8 +157,6 @@ public class DebugService extends AbstractService implements IDebugService {
 			}
 		}
 
-		System.out.println("DebugService.isLaunched: " + isLaunched); //$NON-NLS-1$
-
 	    return isLaunched;
 	}
 }
