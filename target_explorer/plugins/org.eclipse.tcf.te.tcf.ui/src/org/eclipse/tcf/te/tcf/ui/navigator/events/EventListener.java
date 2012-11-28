@@ -44,7 +44,7 @@ public class EventListener extends AbstractEventListener {
 					// Expansion state of the node changed.
 					boolean expanded = ((Boolean)changeEvent.getNewValue()).booleanValue();
 					// Update the nodes expansion state
-					getViewer().setExpandedState(source, expanded);
+					if (getViewer() != null) getViewer().setExpandedState(source, expanded);
 				} else {
 					refresh(source, false);
 				}
