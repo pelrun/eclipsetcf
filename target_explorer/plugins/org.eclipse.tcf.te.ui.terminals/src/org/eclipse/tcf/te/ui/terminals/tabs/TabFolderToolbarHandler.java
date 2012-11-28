@@ -193,6 +193,16 @@ public class TabFolderToolbarHandler extends PlatformObject {
 	}
 
 	/**
+	 * Removes the given action from the toolbar actions list.
+	 *
+	 * @param action The action instance. Must not be <code>null</code>.
+	 */
+	protected final void remove(AbstractTerminalAction action) {
+		Assert.isNotNull(action);
+		toolbarActions.remove(action);
+	}
+
+	/**
 	 * Create the toolbar actions.
 	 */
 	protected void doCreateToolbarActions() {
