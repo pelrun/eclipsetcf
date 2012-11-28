@@ -482,8 +482,12 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                         }
                         StringBuffer bf = new StringBuffer();
                         for (int i = lst.size(); i > 0; i--) {
+                            String name = lst.get(i - 1);
+                            boolean quote = name.indexOf('/') >= 0;
                             bf.append('/');
-                            bf.append(lst.get(i - 1));
+                            if (quote) bf.append('"');
+                            bf.append(name);
+                            if (quote) bf.append('"');
                         }
                         res = bf.toString();
                     }
