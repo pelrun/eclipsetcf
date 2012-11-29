@@ -34,6 +34,21 @@
       </eventListener>
    </extension>
 
+<!-- Service contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.services.services">
+      <service
+            class="org.eclipse.tcf.te.tcf.processes.ui.services.UIService"
+            id="org.eclipse.tcf.te.tcf.processes.uiservice">
+         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.IUIService"/>
+         <enablement>
+            <or>
+               <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+            </or>
+         </enablement>
+      </service>
+   </extension>
+   
 <!-- Eclipse core expressions property tester -->
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester

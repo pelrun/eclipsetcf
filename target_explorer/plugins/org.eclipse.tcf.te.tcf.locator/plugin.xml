@@ -27,6 +27,7 @@
             adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider"
             class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
       </factory>
    </extension>
 

@@ -17,11 +17,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.ui.interfaces.handler.IPropertiesHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
@@ -66,10 +70,16 @@ public class PropertiesCommandHandler extends AbstractHandler {
 				// Get the active page
 				IWorkbenchPage page = window.getActivePage();
 				// Create the editor input object
-				IEditorInput input = new EditorInput(element);
+				IUIService service = ServiceManager.getInstance().getService(element, IUIService.class);
+				IPropertiesHandlerDelegate delegate = service != null ? service.getDelegate(element, IPropertiesHandlerDelegate.class) : null;
+				IEditorInput input = delegate != null ? delegate.getEditorInput(element) : new EditorInput(element);
 				try {
 					// Opens the Target Explorer properties editor
-					page.openEditor(input, IUIConstants.ID_EDITOR);
+					IEditorPart editor = page.openEditor(input, IUIConstants.ID_EDITOR);
+					// Lookup the ui service for post action
+					if (delegate != null) {
+						delegate.postOpenProperties(editor, element);
+					}
 				} catch (PartInitException e) {
 					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
 												Messages.PropertiesCommandHandler_error_initPartFailed, e);

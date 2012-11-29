@@ -32,7 +32,7 @@ public class AdapterFactory implements IAdapterFactory {
 	private final IPersistableURIProvider peerModelPersistableURIProvider = new PeerPersistableURIProvider();
 
 	private static final Class<?>[] CLASSES = new Class[] {
-		IPersistableURIProvider.class
+		IPersistableURIProvider.class, IPeerModel.class
 	};
 
 	/* (non-Javadoc)
@@ -49,7 +49,8 @@ public class AdapterFactory implements IAdapterFactory {
 			if (IPersistableURIProvider.class.equals(adapterType)) {
 				return peerModelPersistableURIProvider;
 			}
-			if (IPeerModel.class.equals(adapterType) && adaptableObject instanceof IPeer) {
+			if (IPeerModel.class.equals(adapterType)) {
+				if (adaptableObject instanceof IPeer) {
 					final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
 					final IPeer peer = (IPeer)adaptableObject;
 
@@ -72,6 +73,26 @@ public class AdapterFactory implements IAdapterFactory {
 					else Protocol.invokeAndWait(runnable);
 
 					return node.get();
+				}
+				else if (adaptableObject instanceof IPeerModel) {
+					return adaptableObject;
+				}
+				else if (adaptableObject instanceof IPeerModelProvider) {
+					final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+					final IPeerModelProvider provider = (IPeerModelProvider)adaptableObject;
+
+					Runnable runnable = new Runnable() {
+						@Override
+						public void run() {
+							node.set(provider.getPeerModel());
+						}
+					};
+
+					if (Protocol.isDispatchThread()) runnable.run();
+					else Protocol.invokeAndWait(runnable);
+
+					return node.get();
+				}
 			}
 		}
 		return null;

@@ -95,6 +95,21 @@
       </commonFilter>
    </extension>
 
+<!-- Service contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.services.services">
+      <service
+            class="org.eclipse.tcf.te.tcf.filesystem.ui.services.UIService"
+            id="org.eclipse.tcf.te.tcf.filesytsem.uiservice">
+         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.IUIService"/>
+         <enablement>
+            <or>
+               <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel"/>
+            </or>
+         </enablement>
+      </service>
+   </extension>
+   
 <!-- Editor page contributions -->
    <extension point="org.eclipse.tcf.te.ui.views.editorPages">
       <editorPage

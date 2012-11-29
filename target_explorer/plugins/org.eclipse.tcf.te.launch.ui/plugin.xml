@@ -28,6 +28,21 @@
       </propertyTester>
    </extension>
 
+<!-- Service contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.services.services">
+      <service
+            class="org.eclipse.tcf.te.launch.ui.services.UIService"
+            id="org.eclipse.tcf.te.launch.uiservice">
+         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.IUIService"/>
+         <enablement>
+            <or>
+               <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchModel"/>
+               <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
+            </or>
+         </enablement>
+      </service>
+   </extension>
+   
 <!-- Editor page contributions -->
    <extension point="org.eclipse.tcf.te.ui.views.editorPages">
       <editorPage

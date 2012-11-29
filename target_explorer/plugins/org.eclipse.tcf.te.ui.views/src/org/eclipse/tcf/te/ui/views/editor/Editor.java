@@ -121,6 +121,14 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.forms.editor.FormEditor#setActivePage(int)
+	 */
+	@Override
+	public void setActivePage(int pageIndex) {
+	    super.setActivePage(pageIndex);
+	}
+
 	/**
 	 * Update the editor page list. Pages which are not longer valid
 	 * will be removed and pages now being valid gets added.
