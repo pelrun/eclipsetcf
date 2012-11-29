@@ -123,6 +123,19 @@
             </with>
          </enablement>
       </editorPageBinding>
+      <editorPageBinding
+            id="org.eclipse.tcf.te.tcf.launch.ui.binding.PathMapEditorPage"
+            pageId="org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage"
+            insertBefore="org.eclipse.tcf.te.launch.ui.LaunchEditorPage"
+            insertAfter="last">
+         <enablement>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="PathMap"/>
+               </adapt>
+            </with>
+         </enablement>
+      </editorPageBinding>
    </extension>
 
 <!-- Navigator viewer contributions -->
