@@ -126,8 +126,7 @@
       <editorPageBinding
             id="org.eclipse.tcf.te.tcf.launch.ui.binding.PathMapEditorPage"
             pageId="org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage"
-            insertBefore="org.eclipse.tcf.te.launch.ui.LaunchEditorPage"
-            insertAfter="last">
+            insertBefore="org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <enablement>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
