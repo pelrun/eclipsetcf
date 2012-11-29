@@ -70,6 +70,11 @@ public class Messages extends NLS {
 	public static String PreferencePage_label;
 	public static String PreferencePage_sessions_label;
 	public static String PreferencePage_persistEditors_label;
+	public static String PreferencePage_dialogs_label;
+	public static String PreferencePage_resetDoNotShowAgainMarkers_message;
+	public static String PreferencePage_resetDoNotShowAgainMarkers_label;
+	public static String PreferencePage_resetDoNotShowAgainMarkers_dialog_title;
+	public static String PreferencePage_resetDoNotShowAgainMarkers_dialog_message;
 
 	public static String QuickFilterPopup_PromptMessage;
 

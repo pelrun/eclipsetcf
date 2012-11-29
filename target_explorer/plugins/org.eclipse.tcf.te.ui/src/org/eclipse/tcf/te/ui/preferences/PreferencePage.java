@@ -9,7 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.preferences;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -19,7 +22,9 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.interfaces.IPreferenceKeys;
+import org.eclipse.tcf.te.ui.jface.dialogs.OptionalMessageDialog;
 import org.eclipse.tcf.te.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -27,6 +32,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * Top preference page implementation.
  */
 public class PreferencePage extends org.eclipse.jface.preference.PreferencePage implements IWorkbenchPreferencePage {
+	private Button resetDoNotShowAgainMarkers;
 	private Button persistEditors = null;
 
 	/* (non-Javadoc)
@@ -58,6 +64,31 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		persistEditors.setText(Messages.PreferencePage_persistEditors_label);
 		persistEditors.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		persistEditors.setSelection(UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_PERSIST_EDITORS));
+
+		group = new Group(panel, SWT.NONE);
+		group.setText(Messages.PreferencePage_dialogs_label);
+		group.setLayout(new GridLayout(2, false));
+		group.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+
+		label = new Label(group, SWT.NONE);
+		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		label.setText(Messages.PreferencePage_resetDoNotShowAgainMarkers_message);
+
+		resetDoNotShowAgainMarkers = new Button(group, SWT.PUSH);
+		resetDoNotShowAgainMarkers.setText(Messages.PreferencePage_resetDoNotShowAgainMarkers_label);
+		GridData layoutData = new GridData(GridData.END, GridData.CENTER, false, false);
+		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(resetDoNotShowAgainMarkers, resetDoNotShowAgainMarkers.getText().length() + 4);
+		resetDoNotShowAgainMarkers.setLayoutData(layoutData);
+		resetDoNotShowAgainMarkers.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				OptionalMessageDialog.clearAllRememberedStates();
+
+				MessageDialog.openInformation(getShell(),
+						Messages.PreferencePage_resetDoNotShowAgainMarkers_dialog_title,
+						Messages.PreferencePage_resetDoNotShowAgainMarkers_dialog_message);
+			}
+		});
 
 		return panel;
 	}
