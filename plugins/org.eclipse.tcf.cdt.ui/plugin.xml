@@ -295,13 +295,6 @@
          point="org.eclipse.ui.commands">
       <command
             categoryId="org.eclipse.debug.ui.category.run"
-            defaultHandler="org.eclipse.tcf.internal.cdt.ui.commands.AddFunctionBreakointHandler"
-            description="%command.addFunctionBreakpoint.desc"
-            id="org.eclipse.tcf.cdt.ui.add_function_breakpoint"
-            name="%command.addFunctionBreakpoint.name">
-      </command>
-      <command
-            categoryId="org.eclipse.debug.ui.category.run"
             defaultHandler="org.eclipse.tcf.internal.cdt.ui.commands.AddWatchpointHandler"
             description="%command.addWatchpoint.desc"
             id="org.eclipse.tcf.cdt.ui.add_watchpoint"
@@ -317,17 +310,6 @@
 
    <extension
          point="org.eclipse.ui.menus">
-      <menuContribution
-            allPopups="false"
-            locationURI="menu:org.eclipse.debug.ui.BreakpointView?after=additions">
-         <command
-               commandId="org.eclipse.tcf.cdt.ui.add_function_breakpoint"
-               icon="platform:/plugin/org.eclipse.cdt.debug.ui/icons/obj16/funbrkp_obj.gif"
-               id="org.eclipse.tcf.cdt.ui.add_function_breakpoint"
-               label="%item.addFunctionBreakpoint.name"
-               style="push">
-         </command>
-      </menuContribution>
       <menuContribution
             allPopups="false"
             locationURI="popup:#CEditorContext?after=group.debug">

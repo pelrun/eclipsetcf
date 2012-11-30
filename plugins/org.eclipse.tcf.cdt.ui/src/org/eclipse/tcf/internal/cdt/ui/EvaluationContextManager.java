@@ -81,7 +81,7 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
             service.addDebugContextListener(this);
             selectionChanged( service.getActiveContext() );
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.ui.IWindowListener#windowDeactivated(org.eclipse.ui.IWorkbenchWindow)
      */
@@ -94,7 +94,7 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
      */
     public void windowOpened(IWorkbenchWindow window) {
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.ui.IWindowListener#windowClosed(org.eclipse.ui.IWorkbenchWindow)
      */
@@ -108,7 +108,7 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
     public void debugContextChanged(DebugContextEvent event) {
         selectionChanged(event.getContext());
     }
-    
+
     /*
      * Takes the current selection and validates that we have a valid TCF node
      * selected and various actions should be visible and enabled.
@@ -124,7 +124,7 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
                 }
             }
         }
-        
+
         // no context in the given view
         System.setProperty(DEBUGGER_ACTIVE, Boolean.toString(false));
     }
