@@ -34,7 +34,7 @@ public class SignalsCommand extends AbstractActionDelegate {
 
     protected void selectionChanged() {
         TCFNode n = getSelectedNode();
-        getAction().setEnabled(isValidNode(n));
+        setEnabled(isValidNode(n));
     }
 
     protected void run() {

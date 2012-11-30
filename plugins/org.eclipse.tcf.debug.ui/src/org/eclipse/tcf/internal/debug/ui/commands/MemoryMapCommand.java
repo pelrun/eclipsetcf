@@ -66,7 +66,7 @@ public class MemoryMapCommand extends AbstractActionDelegate {
     }
 
     protected void selectionChanged() {
-        getAction().setEnabled(isValidNode(getSelectedNode()));
+        setEnabled(isValidNode(getSelectedNode()));
     }
 
     protected void run() {

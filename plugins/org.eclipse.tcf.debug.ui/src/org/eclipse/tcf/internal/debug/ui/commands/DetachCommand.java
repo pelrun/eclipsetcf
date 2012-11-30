@@ -64,7 +64,7 @@ public class DetachCommand extends AbstractActionDelegate {
 
     @Override
     protected void selectionChanged() {
-        getAction().setEnabled(run(getSelectedNodes(), true));
+        setEnabled(run(getSelectedNodes(), true));
     }
 
     @Override

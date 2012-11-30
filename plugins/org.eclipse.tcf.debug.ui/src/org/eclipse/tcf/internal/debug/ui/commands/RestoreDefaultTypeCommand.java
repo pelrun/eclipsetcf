@@ -30,7 +30,7 @@ public class RestoreDefaultTypeCommand extends AbstractActionDelegate {
     @Override
     protected void selectionChanged() {
         TCFNode node = getCastToTypeNode();
-        getAction().setEnabled(node != null && node.getModel().getCastToType(node.getID()) != null);
+        setEnabled(node != null && node.getModel().getCastToType(node.getID()) != null);
     }
 
     private TCFNode getCastToTypeNode() {

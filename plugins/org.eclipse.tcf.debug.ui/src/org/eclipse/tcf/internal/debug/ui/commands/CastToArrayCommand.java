@@ -177,7 +177,7 @@ public class CastToArrayCommand extends AbstractActionDelegate {
     protected void selectionChanged() {
         new GetBaseTypeName(getSelectedNode()) {
             void done() {
-                getAction().setEnabled(base_type_name != null);
+                setEnabled(base_type_name != null);
             }
         };
     }

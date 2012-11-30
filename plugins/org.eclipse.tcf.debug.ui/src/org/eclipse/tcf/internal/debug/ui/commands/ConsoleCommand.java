@@ -16,7 +16,7 @@ public class ConsoleCommand extends AbstractActionDelegate {
 
     @Override
     protected void selectionChanged() {
-        getAction().setEnabled(getSelectedNode() != null);
+        setEnabled(getSelectedNode() != null);
     }
 
     @Override

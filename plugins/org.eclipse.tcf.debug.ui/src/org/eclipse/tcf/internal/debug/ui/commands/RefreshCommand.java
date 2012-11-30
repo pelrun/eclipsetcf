@@ -21,14 +21,14 @@ import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
-import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 
 public class RefreshCommand extends AbstractActionDelegate {
 
     @Override
     protected void selectionChanged() {
-        getAction().setEnabled(getRootNode() != null);
+        setEnabled(getRootNode() != null);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class RefreshCommand extends AbstractActionDelegate {
         if (node == null) return;
         new TCFTask<Object>(node.getChannel()) {
             public void run() {
-                IViewPart part = getView();
+                IWorkbenchPart part = getPart();
                 TCFModel model = node.getModel();
                 TCFNode ref_node = node;
                 if (part instanceof IMemoryRenderingSite) {
@@ -62,9 +62,9 @@ public class RefreshCommand extends AbstractActionDelegate {
     }
 
     private TCFNode getRootNode() {
-        IViewPart view = getView();
-        if (view == null) return null;
-        IWorkbenchPartSite site = view.getSite();
+        IWorkbenchPart part = getPart();
+        if (part == null) return null;
+        IWorkbenchPartSite site = part.getSite();
         if (site != null && IDebugUIConstants.ID_DEBUG_VIEW.equals(site.getId())) {
             TCFNode n = getSelectedNode();
             if (n == null) return null;
@@ -78,8 +78,8 @@ public class RefreshCommand extends AbstractActionDelegate {
                 if (obj instanceof TCFNode) return (TCFNode)obj;
             }
         }
-        if (view instanceof IDebugView) {
-            Object input = ((IDebugView)view).getViewer().getInput();
+        if (part instanceof IDebugView) {
+            Object input = ((IDebugView)part).getViewer().getInput();
             if (input instanceof TCFNode) return (TCFNode)input;
         }
         return null;

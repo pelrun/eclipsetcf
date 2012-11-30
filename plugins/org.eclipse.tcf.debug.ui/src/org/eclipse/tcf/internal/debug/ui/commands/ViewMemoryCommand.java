@@ -176,6 +176,6 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
                 if (mem_retrieval != null) cnt++;
             }
         }
-        getAction().setEnabled(cnt > 0);
+        setEnabled(cnt > 0);
     }
 }

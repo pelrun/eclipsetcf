@@ -27,7 +27,7 @@ public class WatchInExpressionsCommand extends AbstractActionDelegate {
 
     @Override
     protected void selectionChanged() {
-        getAction().setEnabled(getNodes().length > 0);
+        setEnabled(getNodes().length > 0);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class WatchInExpressionsCommand extends AbstractActionDelegate {
         for (TCFNode n : arr) {
             if (n instanceof TCFNodeExpression) {
                 if (((TCFNodeExpression)n).isEmpty()) return new TCFNode[0];
-                if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(getView().getViewSite().getId()) &&
+                if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(getPart().getSite().getId()) &&
                     (n.getParent() instanceof TCFNodeExecContext || n.getParent() instanceof TCFNodeStackFrame))
                 return new TCFNode[0];
             }

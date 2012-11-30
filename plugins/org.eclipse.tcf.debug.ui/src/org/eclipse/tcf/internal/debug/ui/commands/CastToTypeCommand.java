@@ -66,7 +66,7 @@ public class CastToTypeCommand extends AbstractActionDelegate {
 
     @Override
     protected void selectionChanged() {
-        getAction().setEnabled(getCastToTypeNode() != null);
+        setEnabled(getCastToTypeNode() != null);
     }
 
     private TCFNode getCastToTypeNode() {
