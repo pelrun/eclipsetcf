@@ -13,28 +13,21 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.cdt.debug.ui.CDebugUIPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.contexts.DebugContextEvent;
+import org.eclipse.debug.ui.contexts.IDebugContextListener;
+import org.eclipse.debug.ui.contexts.IDebugContextService;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
-import org.eclipse.ui.IPageListener;
-import org.eclipse.ui.IPartListener2;
-import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.WorkbenchJob;
@@ -47,16 +40,13 @@ import org.eclipse.ui.progress.WorkbenchJob;
  * "Move To Line" and "Add Watch Expression" actions visible in editors only if
  * there is a running debug session.
  */
-public class EvaluationContextManager implements IWindowListener,
-        IPageListener, ISelectionListener, IPartListener2 {
+public class EvaluationContextManager implements IWindowListener, IDebugContextListener {
 
     // Must use the same ID as the base CDT since we want to enable
     // actions that are registered by base CDT.
     private final static String DEBUGGER_ACTIVE = CDebugUIPlugin.PLUGIN_ID + ".debuggerActive"; //$NON-NLS-1$
 
     protected static EvaluationContextManager fgManager;
-
-    private Map<IWorkbenchPage, TCFNode> fContextsByPage = null;
 
     protected EvaluationContextManager() {
     }
@@ -68,9 +58,9 @@ public class EvaluationContextManager implements IWindowListener,
                 if (fgManager == null) {
                     fgManager = new EvaluationContextManager();
                     IWorkbench workbench = PlatformUI.getWorkbench();
-                    IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-                    for (int i = 0; i < windows.length; i++) {
-                        fgManager.windowOpened(windows[i]);
+                    IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+                    if (window != null) {
+                        fgManager.windowActivated(window);
                     }
                     workbench.addWindowListener(fgManager);
                 }
@@ -82,115 +72,60 @@ public class EvaluationContextManager implements IWindowListener,
         job.schedule();
     }
 
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IWindowListener#windowActivated(org.eclipse.ui.IWorkbenchWindow)
+     */
     public void windowActivated(IWorkbenchWindow window) {
-        windowOpened(window);
+            IDebugContextService service = DebugUITools.getDebugContextManager().getContextService(window);
+            service.addDebugContextListener(this);
+            selectionChanged( service.getActiveContext() );
     }
-
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IWindowListener#windowDeactivated(org.eclipse.ui.IWorkbenchWindow)
+     */
     public void windowDeactivated(IWorkbenchWindow window) {
+             DebugUITools.getDebugContextManager().getContextService(window).removeDebugContextListener(this);
     }
 
-    public void windowClosed(IWorkbenchWindow window) {
-        window.removePageListener(this);
-    }
-
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IWindowListener#windowOpened(org.eclipse.ui.IWorkbenchWindow)
+     */
     public void windowOpened(IWorkbenchWindow window) {
-        IWorkbenchPage[] pages = window.getPages();
-        for (int i = 0; i < pages.length; i++) {
-            window.addPageListener(this);
-            pageOpened(pages[i]);
-        }
+    }
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IWindowListener#windowClosed(org.eclipse.ui.IWorkbenchWindow)
+     */
+    public void windowClosed(IWorkbenchWindow window) {
     }
 
-    public void pageActivated(IWorkbenchPage page) {
-        pageOpened(page);
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.debug.ui.contexts.IDebugContextListener#debugContextChanged(org.eclipse.debug.ui.contexts.DebugContextEvent)
+     */
+    public void debugContextChanged(DebugContextEvent event) {
+        selectionChanged(event.getContext());
     }
-
-    public void pageClosed(IWorkbenchPage page) {
-        page.removeSelectionListener(IDebugUIConstants.ID_DEBUG_VIEW, this);
-        page.removePartListener(this);
-    }
-
-    public void pageOpened(IWorkbenchPage page) {
-        page.addSelectionListener(IDebugUIConstants.ID_DEBUG_VIEW, this);
-        page.addPartListener(this);
-        IWorkbenchPartReference ref = page.getActivePartReference();
-        if (ref != null) {
-            partActivated(ref);
-        }
-    }
-
-    public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        IWorkbenchPage page = part.getSite().getPage();
+    
+    /*
+     * Takes the current selection and validates that we have a valid TCF node
+     * selected and various actions should be visible and enabled.
+     */
+    private void selectionChanged(ISelection selection) {
         if (selection instanceof IStructuredSelection) {
-            IStructuredSelection ss = (IStructuredSelection) selection;
+            IStructuredSelection ss = (IStructuredSelection)selection;
             if (ss.size() == 1) {
                 Object element = ss.getFirstElement();
-                if (element instanceof TCFNodeExecContext
-                        || element instanceof TCFNodeStackFrame) {
-                    setContext(page, (TCFNode) element);
+                if (element instanceof TCFNodeExecContext || element instanceof TCFNodeStackFrame) {
+                    System.setProperty(DEBUGGER_ACTIVE, Boolean.toString(true));
                     return;
                 }
             }
         }
+        
         // no context in the given view
-        removeContext(page);
-    }
-
-    public void partActivated(IWorkbenchPartReference partRef) {
-    }
-
-    public void partBroughtToTop(IWorkbenchPartReference partRef) {
-    }
-
-    public void partClosed(IWorkbenchPartReference partRef) {
-        if (IDebugUIConstants.ID_DEBUG_VIEW.equals(partRef.getId())) {
-            removeContext(partRef.getPage());
-        }
-    }
-
-    public void partDeactivated(IWorkbenchPartReference partRef) {
-    }
-
-    public void partOpened(IWorkbenchPartReference partRef) {
-    }
-
-    public void partHidden(IWorkbenchPartReference partRef) {
-    }
-
-    public void partVisible(IWorkbenchPartReference partRef) {
-    }
-
-    public void partInputChanged(IWorkbenchPartReference partRef) {
-    }
-
-    /**
-     * Sets the evaluation context for the given page, and notes that a valid
-     * execution context exists.
-     *
-     * @param page
-     * @param target
-     */
-    private void setContext(IWorkbenchPage page, TCFNode target) {
-        if (fContextsByPage == null) {
-            fContextsByPage = new HashMap<IWorkbenchPage, TCFNode>();
-        }
-        fContextsByPage.put(page, target);
-        System.setProperty(DEBUGGER_ACTIVE, Boolean.TRUE.toString());
-    }
-
-    /**
-     * Removes an evaluation context for the given page, and determines if any
-     * valid execution context remain.
-     *
-     * @param page
-     */
-    private void removeContext(IWorkbenchPage page) {
-        if (fContextsByPage != null) {
-            fContextsByPage.remove(page);
-            if (fContextsByPage.isEmpty()) {
-                System.setProperty(DEBUGGER_ACTIVE, Boolean.FALSE.toString());
-                fContextsByPage = null;
-            }
-        }
+        System.setProperty(DEBUGGER_ACTIVE, Boolean.toString(false));
     }
 }
