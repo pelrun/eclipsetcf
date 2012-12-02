@@ -596,6 +596,27 @@ public class MemoryMapWidget {
         }
     }
 
+    private boolean isLocalEntry(IMemoryMap.MemoryRegion r) {
+        /* Check if launch configuration contains the entry */
+        if (r == null) return false;
+        String f0 = r.getFileName();
+        BigInteger a0 = JSON.toBigInteger(r.getAddress());
+        if (a0 != null)
+        for (IMemoryMap.MemoryRegion c : cur_maps.get(selected_mem_map_id)) {
+            String f1 = c.getFileName();
+            if (f0 != f1) {
+                if (f0 == null) continue;
+                if (!f0.equals(f1)) continue;
+            }
+            Number a1 = c.getAddress();
+            if (a0 != a1) {
+                if (a0 == null) continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
     private void loadTargetMemoryMap() {
         loaded_files.clear();
         target_map.clear();
@@ -620,11 +641,13 @@ public class MemoryMapWidget {
                         }
                         if (map_cache.getData() != null) {
                             for (TCFNodeExecContext.MemoryRegion m : map_cache.getData()) {
-                                Map<String,Object> props = m.region.getProperties();
-                                target_map.add(new TCFMemoryRegion(props));
-                                if (props.get(IMemoryMap.PROP_ID) != null) {
+                                if (isLocalEntry(m.region)) {
                                     String fnm = m.region.getFileName();
                                     if (fnm != null) loaded_files.add(fnm);
+                                }
+                                else {
+                                    /* Foreign entry, added by another client or by the target itself */
+                                    target_map.add(new TCFMemoryRegion(m.region.getProperties()));
                                 }
                             }
                         }
