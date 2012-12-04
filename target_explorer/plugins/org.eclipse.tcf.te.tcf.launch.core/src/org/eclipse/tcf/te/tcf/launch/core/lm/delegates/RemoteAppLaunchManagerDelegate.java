@@ -16,8 +16,10 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.tcf.te.core.cdt.CdtUtils;
 import org.eclipse.tcf.te.launch.core.exceptions.LaunchServiceException;
 import org.eclipse.tcf.te.launch.core.interfaces.IReferencedProjectItem;
 import org.eclipse.tcf.te.launch.core.lm.delegates.DefaultLaunchManagerDelegate;
@@ -67,6 +69,16 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 
 		wc.setAttribute(IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, true);
 		wc.setAttribute(IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, true);
+		try {
+			wc.setAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, CdtUtils.getDefaultSourceLookupDirector().getMemento());
+			IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchSpec);
+			if (contexts != null && contexts.length == 1) {
+				ILaunchConfiguration attachLaunch = (ILaunchConfiguration)Platform.getAdapterManager().getAdapter(contexts[0], ILaunchConfiguration.class);
+				wc.setAttribute("org.eclipse.tcf.debug.PathMap", attachLaunch.getAttribute("org.eclipse.tcf.debug.PathMap", (String)null)); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+		catch (Exception e) {
+		}
 		copySpecToConfig(launchSpec, wc);
 
 		wc.rename(getDefaultLaunchName(wc));
