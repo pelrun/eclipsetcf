@@ -44,10 +44,13 @@ import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.interfaces.handler.IDeleteHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
+import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategoryManager;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -243,6 +246,12 @@ public class DeleteHandler extends AbstractHandler {
 					throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
 				}
 				service.delete(node, null);
+
+				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				IEditorPart editor = page.findEditor(new EditorInput(node));
+				if (editor != null) {
+					page.closeEditor(editor, false);
+				}
 			}
 			else if (TYPE.Unlink.equals(type)) {
 				Assert.isNotNull(parentCategory);
