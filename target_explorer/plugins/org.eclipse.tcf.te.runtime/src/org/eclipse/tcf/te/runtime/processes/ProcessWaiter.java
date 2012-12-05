@@ -10,6 +10,8 @@
 package org.eclipse.tcf.te.runtime.processes;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 
 /**
  * A simple process waiter class. The process waiter keeps "running" till the observed process
@@ -18,6 +20,8 @@ import org.eclipse.core.runtime.Assert;
 public class ProcessWaiter extends Thread {
 	// Reference to the process handle
 	private Process process;
+	// Reference to the callback to invoke
+	private ICallback callback;
 	// Flag set once the process finished
 	private boolean finished;
 	// The exit code of the process
@@ -29,10 +33,21 @@ public class ProcessWaiter extends Thread {
 	 * @param process The process to monitor. Must not be <code>null</code>.
 	 */
 	public ProcessWaiter(final Process process) {
+		this(process, null);
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param process The process to monitor. Must not be <code>null</code>.
+	 * @param callback The callback to invoke once the process exit, or <code>null</code>.
+	 */
+	public ProcessWaiter(final Process process, final ICallback callback) {
 		super();
 
 		Assert.isNotNull(process);
 		this.process = process;
+		this.callback = callback;
 		this.finished = false;
 		this.exitCode = -1;
 	}
@@ -49,6 +64,13 @@ public class ProcessWaiter extends Thread {
 			/* ignored on purpose */
 		}
 		finished = true;
+		
+		// If there is a callback given, invoke the callback
+		// with the exit code set as result
+		if (callback != null) {
+			callback.setResult(Integer.valueOf(exitCode));
+			callback.done(this, Status.OK_STATUS);
+		}
 	}
 
 	/**
