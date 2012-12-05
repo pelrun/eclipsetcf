@@ -111,7 +111,7 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 		addToCommand(command, "-sTCP::" + (port != -1 ? Integer.valueOf(port) : "") + ";ValueAdd=1"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// Enable logging?
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.VA_LOGGING_ENABLE)) {
+		if (Boolean.getBoolean("va.logging.enable")) { //$NON-NLS-1$
 			// Calculate the location and name of the log file
 			Bundle bundle = Platform.getBundle("org.eclipse.tcf.te.tcf.log.core"); //$NON-NLS-1$
 			IPath location = bundle != null ? Platform.getStateLocation(bundle) : null;
@@ -125,7 +125,7 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 				location = location.append(name);
 				addToCommand(command, "-L" + location.toString()); //$NON-NLS-1$
 
-				String level = Platform.getDebugOption(CoreBundleActivator.getUniqueIdentifier() + "/" + ITraceIds.VA_LOGGING_LEVEL); //$NON-NLS-1$
+				String level = System.getProperty("va.logging.level"); //$NON-NLS-1$
 				if (level != null && !"".equals(level.trim())) { //$NON-NLS-1$
 					addToCommand(command, "-l" + level.trim()); //$NON-NLS-1$
 				}
