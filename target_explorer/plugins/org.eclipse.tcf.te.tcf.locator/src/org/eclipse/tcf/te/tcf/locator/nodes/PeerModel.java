@@ -344,9 +344,8 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 	 */
 	@Override
 	public boolean isVisible() {
-		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-		return getPeer() != null && getPeer().getAttributes().containsKey(IPeerModelProperties.PROP_VISIBLE)
-						? Boolean.valueOf(getPeer().getAttributes().get(IPeerModelProperties.PROP_VISIBLE)).booleanValue()
-										: true;
+		IPeer peer = getPeer();
+		return peer != null && peer.getAttributes().containsKey(IPeerModelProperties.PROP_VISIBLE)
+						? Boolean.valueOf(peer.getAttributes().get(IPeerModelProperties.PROP_VISIBLE)).booleanValue() : true;
 	}
 }

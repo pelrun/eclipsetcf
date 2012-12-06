@@ -101,7 +101,6 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	 * @return <code>True</code> if the peer model node is a proxy or value-add, <code>false</code> otherwise.
 	 */
 	/* default */ final boolean isProxyOrValueAdd(IPeerModel peerModel) {
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(peerModel);
 
 		boolean isProxy = peerModel.getPeer().getAttributes().containsKey("Proxy"); //$NON-NLS-1$
@@ -119,7 +118,6 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	 * @return <code>True</code> if filtered, <code>false</code> otherwise.
 	 */
 	/* default */ final boolean isFiltered(IPeerModel peerModel) {
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(peerModel);
 
 		boolean filtered = false;
@@ -155,9 +153,6 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 			final IPeerModel[] peers = model.getPeers();
 			final List<IPeerModel> candidates = new ArrayList<IPeerModel>();
 
-			final Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
 					if (IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
 						for (IPeerModel peer : peers) {
 							ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
@@ -259,21 +254,6 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 							candidates.add(peer);
 						}
 					}
-				}
-			};
-
-			Assert.isTrue(!Protocol.isDispatchThread());
-
-			// The caller thread is very likely the display thread. We have to us a little
-			// trick here to avoid blocking the display thread via a wait on a monitor as
-			// this can (and has) lead to dead-locks with the TCF event dispatch thread if
-			// something fatal (OutOfMemoryError in example) happens in-between.
-			ExecutorsUtil.executeWait(new Runnable() {
-				@Override
-				public void run() {
-					Protocol.invokeAndWait(runnable);
-				}
-			});
 
 			children = candidates.toArray(new IPeerModel[candidates.size()]);
 		}
