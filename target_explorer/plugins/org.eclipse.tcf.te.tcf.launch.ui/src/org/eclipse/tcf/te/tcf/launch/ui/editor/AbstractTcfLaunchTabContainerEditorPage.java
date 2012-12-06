@@ -209,4 +209,12 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 			}
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#doValidate()
+	 */
+	@Override
+	protected ValidationResult doValidate() {
+	    return null;
+	}
 }

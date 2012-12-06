@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.wizards.pages;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 
@@ -84,15 +85,25 @@ public abstract class AbstractValidatingWizardPage extends AbstractWizardPage im
 	 * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
 	 */
 	@Override
-	public void validate() {
+	public final void validate() {
 		if (isValidationInProgress())  return;
-		setValidationInProgress(true);
 
-		setMessage(null);
-		setErrorMessage(null);
-		setPageComplete(true);
+		ValidationResult result = doValidate();
+		if (result != null) {
+			setMessage(result.getMessage(), result.getMessageType());
+			setPageComplete(result.isValid());
+		}
+		else {
+			setMessage(null, IMessageProvider.NONE);
+			setPageComplete(true);
+		}
 
 		setValidationInProgress(false);
 	}
 
+	/**
+	 * Do the validation.
+	 * @return The validation result or <code>null</code>.
+	 */
+	protected abstract ValidationResult doValidate();
 }

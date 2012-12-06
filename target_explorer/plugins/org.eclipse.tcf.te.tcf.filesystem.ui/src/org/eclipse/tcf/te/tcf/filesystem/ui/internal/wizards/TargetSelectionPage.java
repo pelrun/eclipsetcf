@@ -241,22 +241,21 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#validate()
+	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#doValidate()
 	 */
 	@Override
-	public void validate() {
-	    super.validate();
-		if (!isPageComplete()) return;
-		if (isValidationInProgress()) return;
-		setValidationInProgress(true);
+	protected ValidationResult doValidate() {
+		ValidationResult result = new ValidationResult();
+
 		boolean valid = true;
+
 		ISelection selection = treeViewer.getSelection();
 		if (selection.isEmpty()) {
-			setMessage(getDefaultDescription(), IMessageProvider.ERROR);
-			valid = false;
+			result.setResult(getDefaultDescription(), IMessageProvider.ERROR);
+			result.setValid(valid);
 		}
-		setPageComplete(valid);
-		setValidationInProgress(false);
+
+		return result;
 	}
 
 	/**

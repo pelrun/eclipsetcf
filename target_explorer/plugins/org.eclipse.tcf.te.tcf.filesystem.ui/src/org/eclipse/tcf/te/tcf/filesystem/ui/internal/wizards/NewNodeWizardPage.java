@@ -283,31 +283,27 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#validate()
+	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#doValidate()
 	 */
 	@Override
-	public void validate() {
-		super.validate();
-		if (!isPageComplete()) return;
-
-		if (isValidationInProgress()) return;
-		setValidationInProgress(true);
+	protected ValidationResult doValidate() {
+		ValidationResult result = new ValidationResult();
 
 		boolean valid = true;
+
 		if (folderControl != null) {
 			valid &= folderControl.isValid();
-			setMessage(folderControl.getMessage(), folderControl.getMessageType());
+			result.setResult(folderControl);
 		}
 
 		if (nameControl != null) {
 			valid &= nameControl.isValid();
-			if (nameControl.getMessageType() > getMessageType()) {
-				setMessage(nameControl.getMessage(), nameControl.getMessageType());
-			}
+			result.setResult(nameControl);
 		}
 
-		setPageComplete(valid);
-		setValidationInProgress(false);
+		result.setValid(valid);
+
+		return result;
 	}
 
 	/*

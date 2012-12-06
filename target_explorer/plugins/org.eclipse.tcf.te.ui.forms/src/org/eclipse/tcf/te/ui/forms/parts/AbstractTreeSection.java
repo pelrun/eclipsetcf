@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -149,6 +150,16 @@ public abstract class AbstractTreeSection extends AbstractStructuredViewerSectio
 	}
 
 	/**
+	 * Reveals the tree viewer instance to clients.
+	 *
+	 * @return The tree viewer instance or <code>null</code>.
+	 */
+	public TreeViewer getViewer() {
+		StructuredViewer viewer =  getTreePart().getViewer();
+		return viewer instanceof TreeViewer ? (TreeViewer)viewer : null;
+	}
+
+	/**
 	 * Creates the tree viewer instance.
 	 *
 	 * @param parent The parent composite. Must not be <code>null</code>.
@@ -197,5 +208,13 @@ public abstract class AbstractTreeSection extends AbstractStructuredViewerSectio
 	 * Called from {@link TreePartAdapter#createButtonsPanel(Composite, FormToolkit)}.
 	 */
 	protected void initializeButtonsEnablement() {
+	}
+
+	/**
+	 * Indicates whether the sections parent page has become the active in the editor.
+	 *
+	 * @param active <code>True</code> if the parent page should be visible, <code>false</code> otherwise.
+	 */
+	public void setActive(boolean active) {
 	}
 }

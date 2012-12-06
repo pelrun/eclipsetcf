@@ -506,4 +506,12 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 			}
 		}
     }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#doValidate()
+	 */
+	@Override
+	protected ValidationResult doValidate() {
+	    return null;
+	}
 }

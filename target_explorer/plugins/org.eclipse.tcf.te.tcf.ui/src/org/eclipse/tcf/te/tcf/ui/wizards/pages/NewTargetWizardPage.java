@@ -303,46 +303,37 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#validate()
+	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#doValidate()
 	 */
 	@Override
-	public void validate() {
-		super.validate();
-		if (!isPageComplete()) return;
-
-		if (isValidationInProgress()) return;
-		setValidationInProgress(true);
+	protected ValidationResult doValidate() {
+		ValidationResult result = new ValidationResult();
 
 		boolean valid = true;
 
 		if (peerIdControl != null) {
 			valid &= peerIdControl.isValid();
-			setMessage(peerIdControl.getMessage(), peerIdControl.getMessageType());
+			result.setResult(peerIdControl);
 		}
 
 		if (peerNameControl != null) {
 			valid &= peerNameControl.isValid();
-			if (peerNameControl.getMessageType() > getMessageType()) {
-				setMessage(peerNameControl.getMessage(), peerNameControl.getMessageType());
-			}
+			result.setResult(peerNameControl);
 		}
 
 		if (transportTypeControl != null) {
 			valid &= transportTypeControl.isValid();
-			if (transportTypeControl.getMessageType() > getMessageType()) {
-				setMessage(transportTypeControl.getMessage(), transportTypeControl.getMessageType());
-			}
+			result.setResult(transportTypeControl);
 		}
 
 		if (transportTypePanelControl != null) {
 			valid &= transportTypePanelControl.isValid();
-			if (transportTypePanelControl.getMessageType() > getMessageType()) {
-				setMessage(transportTypePanelControl.getMessage(), transportTypePanelControl.getMessageType());
-			}
+			result.setResult(transportTypePanelControl);
 		}
 
-		setPageComplete(valid);
-		setValidationInProgress(false);
+		result.setValid(valid);
+
+		return result;
 	}
 
 	/* (non-Javadoc)

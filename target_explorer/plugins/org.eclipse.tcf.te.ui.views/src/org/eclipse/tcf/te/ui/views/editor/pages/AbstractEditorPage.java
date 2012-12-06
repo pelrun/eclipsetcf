@@ -14,24 +14,27 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.nls.Messages;
+import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.editor.Editor;
 import org.eclipse.tcf.te.ui.views.interfaces.IEditorPage;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormPage;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.MultiPageSelectionProvider;
 
 
 /**
  * Abstract details editor page implementation.
  */
-public abstract class AbstractEditorPage extends FormPage implements IEditorPage {
+public abstract class AbstractEditorPage extends FormPage implements IEditorPage, IValidatingContainer {
 	// The unique page id
 	private String id;
 
@@ -152,4 +155,27 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	public void postDoSave(IProgressMonitor monitor) {
 		// do nothing
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
+	 */
+	@Override
+	public final void validate() {
+		// Get the scrolled form
+		ScrolledForm form = getManagedForm().getForm();
+
+		ValidationResult result = doValidate();
+		if (result != null) {
+			form.setMessage(result.getMessage(), result.getMessageType());
+		}
+		else {
+			form.setMessage(null, IMessageProvider.NONE);
+		}
+	}
+
+	/**
+	 * Do the validation.
+	 * @return The validation result or <code>null</code>.
+	 */
+	protected abstract ValidationResult doValidate();
 }

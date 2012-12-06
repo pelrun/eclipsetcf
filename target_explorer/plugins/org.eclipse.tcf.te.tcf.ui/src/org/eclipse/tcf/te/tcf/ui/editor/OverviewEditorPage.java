@@ -13,7 +13,6 @@ import java.io.IOException;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -35,16 +34,14 @@ import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
-import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage;
-import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 /**
  * Peer overview page implementation.
  */
-public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage implements IValidatingContainer {
+public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	// References to the page sub sections
 	private GeneralInformationSection infoSection;
 	private TransportSection transportSection;
@@ -136,52 +133,34 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage impl
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#doValidate()
 	 */
 	@Override
-	public void validate() {
-		// Get the scrolled form
-		ScrolledForm form = getManagedForm().getForm();
-
-		String message = null;
-		int messageType = IMessageProvider.NONE;
+	protected ValidationResult doValidate() {
+		ValidationResult result = new ValidationResult();
 
 		if (infoSection != null) {
 			infoSection.isValid();
-			if (infoSection.getMessageType() > messageType) {
-				message = infoSection.getMessage();
-				messageType = infoSection.getMessageType();
-			}
+			result.setResult(infoSection);
 		}
 
 		if (transportSection != null) {
 			transportSection.isValid();
-			if (transportSection.getMessageType() > messageType) {
-				message = transportSection.getMessage();
-				messageType = transportSection.getMessageType();
-			}
+			result.setResult(transportSection);
 		}
 
 		if (servicesSection != null) {
 			servicesSection.isValid();
-			if (servicesSection.getMessageType() > messageType) {
-				message = servicesSection.getMessage();
-				messageType = servicesSection.getMessageType();
-			}
+			result.setResult(servicesSection);
 		}
 
 		if (attributesSection != null) {
 			attributesSection.isValid();
-			if (attributesSection.getMessageType() > messageType) {
-				message = attributesSection.getMessage();
-				messageType = attributesSection.getMessageType();
-			}
+			result.setResult(attributesSection);
 		}
 
-		// Apply the message to the form
-		form.setMessage(message, messageType);
+		return result;
 	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#postDoSave(org.eclipse.core.runtime.IProgressMonitor)
 	 */
