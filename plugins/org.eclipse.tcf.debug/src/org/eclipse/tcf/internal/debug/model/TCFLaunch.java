@@ -58,8 +58,17 @@ import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
 
+/**
+ * TCFLaunch class represents an active TCF debug connection.
+ * The class handles initialization and synchronization of Memory Map and Path Map services,
+ * supports downloading and starting a remote process, maintains breakpoint status information, etc.
+ */
 public class TCFLaunch extends Launch {
 
+    /**
+     * Clients can use LaunchListener interface for notifications of launch being created, connected ir
+     * disconnected. The interface also allows to receive remote process output.
+     */
     public interface LaunchListener {
 
         public void onCreated(TCFLaunch launch);
@@ -75,6 +84,10 @@ public class TCFLaunch extends Launch {
                 Exception error, int lost_size);
     }
 
+    /**
+     * Launch object handles queue of user actions, like debugger stepping commands.
+     * ActionsListener allows clients to be notified when an action execution is started and finished.
+     */
     public interface ActionsListener {
 
         public void onContextActionStart(TCFAction action);
@@ -985,10 +998,17 @@ public class TCFLaunch extends Launch {
 
     /*--------------------------------------------------------------------------------------------*/
 
+    /**
+     * Return error object if launching failed.
+     */
     public Throwable getError() {
         return error;
     }
 
+    /**
+     * Terminate the launch because of fatal error.
+     * @param x - the error object.
+     */
     public void setError(Throwable x) {
         error = x;
         if (x != null) {
@@ -1002,6 +1022,10 @@ public class TCFLaunch extends Launch {
         fireChanged();
     }
 
+    /**
+     * Get current target breakpoints status information.
+     * @return status information object
+     */
     public TCFBreakpointsStatus getBreakpointsStatus() {
         return breakpoints_status;
     }
@@ -1015,12 +1039,20 @@ public class TCFLaunch extends Launch {
         return supports_memory_map_preloading;
     }
 
+    /**
+     * Register a launch listener.
+     * @param listener - client object implementing TCFLaunch.LaunchListener interface.
+     */
     public static void addListener(LaunchListener listener) {
         assert Protocol.isDispatchThread();
         listeners.add(listener);
         listeners_array = null;
     }
 
+    /**
+     * Remove a launch listener.
+     * @param listener - client object implementing TCFLaunch.LaunchListener interface.
+     */
     public static void removeListener(LaunchListener listener) {
         assert Protocol.isDispatchThread();
         listeners.remove(listener);
@@ -1060,15 +1092,31 @@ public class TCFLaunch extends Launch {
         }
     }
 
-    /** Thread safe method */
+    /**
+     * Get TCF communication channel that is used by the launch.
+     * Thread safe method.
+     */
     public IChannel getChannel() {
         return channel;
     }
 
+    /**
+     * If the launch has started a remote process, return the process information.
+     * Starting a process is optional and not applicable to all launches.
+     * @return remote process information or null.
+     */
     public IProcesses.ProcessContext getProcessContext() {
         return process;
     }
 
+    /**
+     * Write to stdin stream of remote process that was started by the launch.
+     * @param prs_id - TCF ID of the process.
+     * @param buf - data to write
+     * @param pos - starting position in 'buf'
+     * @param len - number of bytes to write.
+     * @throws Exception
+     */
     public void writeProcessInputStream(String prs_id, byte[] buf, int pos, final int len) throws Exception {
         assert Protocol.isDispatchThread();
         final String id = process_input_stream_id;
@@ -1552,6 +1600,12 @@ public class TCFLaunch extends Launch {
         action_listeners.remove(l);
     }
 
+    /**
+     * Get context filer of the launch.
+     * By default, TCF debugger shows all remote debug contexts.
+     * Context filter is used to hide unwanted contexts to reduce UI clutter.
+     * @return context filter.
+     */
     public Set<String> getContextFilter() {
         return context_filter;
     }
