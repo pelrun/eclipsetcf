@@ -126,10 +126,12 @@ class TCFBreakpointStatusListener {
                 if (ok && installed.get(id) == null) {
                     installed.put(id, cbp);
                     incrementInstallCount(cbp);
-                }
-                if (!ok && installed.get(id) == cbp) {
+                } 
+                else if (!ok && installed.get(id) == cbp) {
                     installed.remove(id);
                     decrementInstallCount(cbp);
+                } else {
+                    updateTCFStamp(cbp);
                 }
             }
             else if (bp instanceof TCFBreakpoint) {
@@ -165,14 +167,14 @@ class TCFBreakpointStatusListener {
 
         private void incrementInstallCount(final ICBreakpoint cbp) {
             Job job = new WorkspaceJob("Increment Breakpoint Install Count") {
+                { setSystem(true); }
                 @Override
                 public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
                     try {
                         cbp.incrementInstallCount();
+                        doUpdateTCFStamp(cbp);
                     }
-                    catch (CoreException e) {
-                        // ignore expected race condition with marker deletion
-                    }
+                    catch (CoreException e) {} // ignore expected race condition with marker deletion
                     return Status.OK_STATUS;
                 }
             };
@@ -181,17 +183,18 @@ class TCFBreakpointStatusListener {
             job.setSystem(true);
             job.schedule();
         }
+        
 
         private void decrementInstallCount(final ICBreakpoint cbp) {
             Job job = new WorkspaceJob("Decrement Breakpoint Install Count") {
+                { setSystem(true); }
                 @Override
                 public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
                     try {
                         cbp.decrementInstallCount();
+                        doUpdateTCFStamp(cbp);
                     }
-                    catch (CoreException e) {
-                        // ignore expected race condition with marker deletion
-                    }
+                    catch (CoreException e) {} // ignore expected race condition with marker deletion
                     return Status.OK_STATUS;
                 }
             };
@@ -201,6 +204,31 @@ class TCFBreakpointStatusListener {
             job.schedule();
         }
 
+        private void updateTCFStamp(final ICBreakpoint cbp) {
+            Job job = new WorkspaceJob("Update C Breakpoint") {
+                { setSystem(true); }
+                @Override
+                public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+                    try {
+                        doUpdateTCFStamp(cbp);
+                    }
+                    catch (CoreException e) {} // ignore expected race condition with marker deletion
+                    return Status.OK_STATUS;
+                }
+            };
+            job.setRule(cbp.getMarker().getResource());
+            job.setPriority(Job.SHORT);
+            job.setSystem(true);
+            job.schedule();
+        }            
+
+        private void doUpdateTCFStamp(ICBreakpoint cbp) throws CoreException {
+            IMarker marker = cbp.getMarker();
+            if (marker != null && marker.exists()) {
+                marker.setAttribute(TCFBreakpointsModel.ATTR_TCF_STAMP, "true");
+            }
+        }
+        
         private void updateStatus(final TCFBreakpoint tbp) {
             Job job = new WorkspaceJob("Update Breakpoint Status") {
                 @Override

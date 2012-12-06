@@ -481,6 +481,28 @@
                type="string">
          </attribute>
       </breakpointEditors>
+      <breakpointEditors
+           debugModelId="org.eclipse.tcf.debug" markerType="org.eclipse.cdt.debug.core.cWatchpointMarker">>
+         <attribute
+              fieldEditorFactory="org.eclipse.tcf.internal.cdt.ui.breakpoints.CWatchpointFieldEditorFactory"
+              label=""
+              name="org.eclipse.tcf.debug.tcfStamp">
+            <value
+                  label=""
+                  value="true">
+               <attribute
+                     fieldEditorFactory="org.eclipse.tcf.internal.cdt.ui.breakpoints.CWatchpointFieldEditorFactory"
+                     label="Read"
+                     name="org.eclipse.cdt.debug.core.read">
+               </attribute>
+               <attribute
+                     fieldEditorFactory="org.eclipse.tcf.internal.cdt.ui.breakpoints.CWatchpointFieldEditorFactory"
+                     label="Write"
+                     name="org.eclipse.cdt.debug.core.write">
+               </attribute>
+            </value>
+         </attribute>
+      </breakpointEditors>
  	</extension>
 
 

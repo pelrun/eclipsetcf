@@ -79,7 +79,8 @@ public class TCFBreakpointsModel {
         ATTR_CONTEXT_QUERY = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CONTEXT_QUERY,
         ATTR_EVENT_TYPE    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_id",
         ATTR_EVENT_ARGS    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_arg",
-        ATTR_TYPE          = "org.eclipse.cdt.debug.core.breakpointType";
+        ATTR_TYPE          = "org.eclipse.cdt.debug.core.breakpointType",
+        ATTR_TCF_STAMP     = "org.eclipse.tcf.debug.tcfStamp";
 
     public static final int
         ATTR_TYPE_TEMPORARY = 0x1,
@@ -579,6 +580,7 @@ public class TCFBreakpointsModel {
             }
             m.put(ATTR_TYPE, cdt_type);
         }
+        m.put(ATTR_TCF_STAMP, Boolean.TRUE.toString());
 
         return m;
     }
