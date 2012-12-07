@@ -27,7 +27,12 @@ public class UICallbackInvocationDelegate implements AsyncCallbackCollector.ICal
 	public void invoke(Runnable runnable) {
 		Assert.isNotNull(runnable);
 		if (PlatformUI.getWorkbench() != null && PlatformUI.getWorkbench().getDisplay() != null) {
-			PlatformUI.getWorkbench().getDisplay().asyncExec(runnable);
+			try {
+				PlatformUI.getWorkbench().getDisplay().asyncExec(runnable);
+	        }
+	        catch (Exception e) {
+	            // if display is disposed, silently ignore.
+	        }
 		}
 	}
 }
