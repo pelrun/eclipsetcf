@@ -66,8 +66,9 @@ public class PathMapTab extends TCFPathMapTab {
 	    if (viewer != null) {
 	    	TableColumn[] columns = viewer.getTable().getColumns();
 	    	for (TableColumn column : columns) {
-	    		if (column.getWidth() == 300) column.setWidth(27);
-	    		else if (column.getWidth() == 100) column.setWidth(15);
+	    		// Set the width hints for the table resize listener
+	    		if (column.getWidth() == 300) column.setData("widthHint", Integer.valueOf(27)); //$NON-NLS-1$
+	    		else if (column.getWidth() == 100) column.setData("widthHint", Integer.valueOf(15)); //$NON-NLS-1$
 
 	    		String label = column.getText();
 	    		String key = "PathMapEditorPage_column_" + label.toLowerCase(); //$NON-NLS-1$

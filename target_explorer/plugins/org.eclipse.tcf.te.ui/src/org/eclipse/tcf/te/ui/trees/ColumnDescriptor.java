@@ -18,7 +18,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 
 /**
  * <p>
- * The data descriptor to describe tree columns of a tree viewer. 
+ * The data descriptor to describe tree columns of a tree viewer.
  * </p>
  * <p>
  * A ColumnDescriptor encapsulates the following information about the tree
@@ -82,7 +82,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Create a column descriptor with specified column id.
-	 * 
+	 *
 	 * @param id
 	 * 				The column id;
 	 */
@@ -92,7 +92,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the column's id.
-	 * 
+	 *
 	 * @return the column's id.
 	 */
 	public String getId() {
@@ -101,16 +101,16 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's id.
-	 * 
+	 *
 	 * @param id
 	 */
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
 	/**
 	 * Get the column's sorting orientation.
-	 * 
+	 *
 	 * @return The sorting orientation.
 	 */
 	public boolean isAscending() {
@@ -119,7 +119,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's sorting orientation.
-	 * 
+	 *
 	 * @param a The new orientation.
 	 */
 	public void setAscending(boolean a) {
@@ -128,7 +128,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's sorting comparator.
-	 * 
+	 *
 	 * @param comparator The new comparator.
 	 */
 	@SuppressWarnings("rawtypes")
@@ -138,7 +138,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the column's sorting comparator.
-	 * 
+	 *
 	 * @return The new comparator.
 	 */
 	@SuppressWarnings("rawtypes")
@@ -148,7 +148,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the tree column.
-	 * 
+	 *
 	 * @param column The tree column.
 	 */
 	public void setTreeColumn(TreeColumn column) {
@@ -157,7 +157,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the tree column.
-	 * 
+	 *
 	 * @return The tree column.
 	 */
 	public TreeColumn getTreeColumn() {
@@ -166,7 +166,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the visibility of this tree column.
-	 * 
+	 *
 	 * @param v the new visibility
 	 */
 	public void setVisible(boolean v) {
@@ -175,7 +175,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the visibility of the tree column.
-	 * 
+	 *
 	 * @return This column's visibility.
 	 */
 	public boolean isVisible() {
@@ -184,25 +184,25 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the name of the column.
-	 * 
+	 *
 	 * @param name The new name.
 	 */
-	public void setName(String name) { 
+	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
 	 * Get the name of the column.
-	 * 
+	 *
 	 * @return The column's name.
 	 */
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * Set the description of the column.
-	 * 
+	 *
 	 * @param desc The column's description.
 	 */
 	public void setDescription(String desc) {
@@ -211,7 +211,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the description of the column.
-	 * 
+	 *
 	 * @return The column's description.
 	 */
 	public String getDescription() {
@@ -220,7 +220,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set if the column is moveable.
-	 * 
+	 *
 	 * @param m The new value.
 	 */
 	public void setMoveable(boolean m) {
@@ -229,7 +229,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get if the column is moveable.
-	 * 
+	 *
 	 * @return If the column is moveable.
 	 */
 	public boolean isMoveable() {
@@ -238,7 +238,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's creation style.
-	 * 
+	 *
 	 * @param style The column's creation style.
 	 */
 	public void setStyle(int style) {
@@ -247,7 +247,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the column's creation style.
-	 * 
+	 *
 	 * @return The column's creation style.
 	 */
 	public int getStyle() {
@@ -256,7 +256,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's alignment.
-	 * 
+	 *
 	 * @param alignment The column's alignment.
 	 */
 	public void setAlignment(int alignment) {
@@ -265,7 +265,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the column's alignment.
-	 * 
+	 *
 	 * @return The column's alignment.
 	 */
 	public int getAlignment() {
@@ -274,7 +274,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's image.
-	 * 
+	 *
 	 * @param img The new image.
 	 */
 	public void setImage(Image img) {
@@ -283,7 +283,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the column's image.
-	 * 
+	 *
 	 * @return The column's image.
 	 */
 	public Image getImage() {
@@ -292,7 +292,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set if the column is resizable.
-	 * 
+	 *
 	 * @param r The new value.
 	 */
 	public void setResizable(boolean r) {
@@ -301,7 +301,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get if the column is resizable.
-	 * 
+	 *
 	 * @return If the column is resizable.
 	 */
 	public boolean isResizable() {
@@ -310,7 +310,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's initial width.
-	 * 
+	 *
 	 * @param width The new column width.
 	 */
 	public void setWidth(int width) {
@@ -319,7 +319,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the column's initial width.
-	 * 
+	 *
 	 * @return the column's initial width.
 	 */
 	public int getWidth() {
@@ -328,7 +328,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's label provider.
-	 * 
+	 *
 	 * @param p The new column label provider.
 	 */
 	public void setLabelProvider(ILabelProvider p) {
@@ -337,7 +337,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Get the column's label provider.
-	 * 
+	 *
 	 * @return The column's label provider.
 	 */
 	public ILabelProvider getLabelProvider() {
@@ -345,8 +345,8 @@ public class ColumnDescriptor {
 	}
 
 	/**
-	 * Get the column's order number. 
-	 * 
+	 * Get the column's order number.
+	 *
 	 * @return The column's order.
 	 */
 	public int getOrder() {
@@ -355,7 +355,7 @@ public class ColumnDescriptor {
 
 	/**
 	 * Set the column's order.
-	 * 
+	 *
 	 * @param order The new order.
 	 */
 	public void setOrder(int order) {

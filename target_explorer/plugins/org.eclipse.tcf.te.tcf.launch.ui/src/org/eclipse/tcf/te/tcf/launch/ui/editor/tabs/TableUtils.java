@@ -43,14 +43,17 @@ public final class TableUtils {
 
 				// Summarize the table column width
 				for (TableColumn column : columns) {
-					sumColumnWidth += column.getWidth();
+					Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
+					sumColumnWidth += widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
 				}
 
 				// Calculate the new width for each column
 				int sumColumnWidth2 = 0;
 				TableColumn maxColumn = null;
 				for (TableColumn column : columns) {
-					int weight = (column.getWidth() * 100) / sumColumnWidth;
+					Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
+					int width = widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
+					int weight = (width * 100) / sumColumnWidth;
 					int newWidth = (weight * tableWidth) / 100;
 					sumColumnWidth2 += newWidth;
 					column.setWidth(newWidth);

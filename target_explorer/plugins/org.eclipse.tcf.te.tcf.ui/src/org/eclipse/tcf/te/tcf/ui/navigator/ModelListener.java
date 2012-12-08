@@ -80,7 +80,7 @@ public class ModelListener extends ModelAdapter {
 				// If no -> Default behavior is to close the editor (if any)
 				else if (!added) {
 					Display display = PlatformUI.getWorkbench().getDisplay();
-					if (display != null) {
+					if (display != null && !display.isDisposed()) {
 						display.asyncExec(new Runnable() {
 							@Override
 							public void run() {

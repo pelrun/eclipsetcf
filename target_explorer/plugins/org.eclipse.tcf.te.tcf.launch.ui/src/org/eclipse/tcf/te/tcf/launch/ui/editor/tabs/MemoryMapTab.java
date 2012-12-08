@@ -55,17 +55,17 @@ public class MemoryMapTab extends TCFMemoryMapTab {
 	        	for (int i = 0; i < columns.length; i++) {
 	        		switch (i) {
 	        		case 0:
-	        			columns[i].setWidth(37);
+	        			columns[i].setData("widthHint", Integer.valueOf(37)); //$NON-NLS-1$
 						break;
 					case 1:
 	                case 2:
-	                    columns[i].setWidth(10);
+	        			columns[i].setData("widthHint", Integer.valueOf(10)); //$NON-NLS-1$
 	                    break;
 	                case 4:
-	                    columns[i].setWidth(18);
+	        			columns[i].setData("widthHint", Integer.valueOf(18)); //$NON-NLS-1$
 	                    break;
 	                default:
-	                    columns[i].setWidth(7);
+	        			columns[i].setData("widthHint", Integer.valueOf(7)); //$NON-NLS-1$
 	                    break;
 	        		}
 	        	}

@@ -239,6 +239,8 @@
             <annotation>
                <documentation>
                   The column&apos;s initial width when it is created, 150 by default.
+&lt;p&gt;
+&lt;b&gt;Note:&lt;/b&gt; The width specified here is a hint. All columns will be resized automatically to consume the full initial width of the tree control. The calculation is based on the hint specified here.
                </documentation>
             </annotation>
          </attribute>

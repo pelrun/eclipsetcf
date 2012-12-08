@@ -46,7 +46,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.tcf.te.core.interfaces.IViewerInput;
-import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.ui.WorkbenchPartControl;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.ui.IDecoratorManager;
@@ -363,11 +362,6 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 		for(ColumnDescriptor visibleColumn : visibleColumns) {
 			doCreateTreeColumn(visibleColumn, true);
 		}
-		if(!Host.isWindowsHost()) {
-			Tree tree = viewer.getTree();
-			TreeColumn column = new TreeColumn(tree, SWT.LEFT);
-			column.setWidth(1);
-		}
 		// Set the default sort column to the first column (the tree column).
 		Assert.isTrue(viewer.getTree().getColumnCount() > 0);
 		TreeColumn treeColumn = viewer.getTree().getColumn(0);
@@ -379,7 +373,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	}
 
 	/**
-	 * Create the tree column described by the specified colum descriptor.
+	 * Create the tree column described by the specified column descriptor.
 	 *
 	 * @param column The column descriptor.
 	 * @param append If the new column should be appended.
@@ -396,6 +390,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	    treeColumn.setImage(column.getImage());
 	    treeColumn.setMoveable(column.isMoveable());
 	    treeColumn.setResizable(column.isResizable());
+	    treeColumn.setData("widthHint", Integer.valueOf(column.getWidth())); //$NON-NLS-1$
 	    treeColumn.setWidth(column.getWidth());
 	    treeColumn.addSelectionListener(this);
 	    treeColumn.addControlListener(new ControlAdapter(){

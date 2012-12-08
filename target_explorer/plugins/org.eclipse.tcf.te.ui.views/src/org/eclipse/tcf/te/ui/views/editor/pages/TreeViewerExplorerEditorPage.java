@@ -194,14 +194,17 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 
 				// Summarize the tree column width
 				for (TreeColumn column : columns) {
-					sumColumnWidth += column.getWidth();
+					Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
+					sumColumnWidth += widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
 				}
 
 				// Calculate the new width for each column
 				int sumColumnWidth2 = 0;
 				TreeColumn maxColumn = null;
 				for (TreeColumn column : columns) {
-					int weight = (column.getWidth() * 100) / sumColumnWidth;
+					Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
+					int width = widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
+					int weight = (width * 100) / sumColumnWidth;
 					int newWidth = (weight * treeWidth) / 100;
 					sumColumnWidth2 += newWidth;
 					column.setWidth(newWidth);
