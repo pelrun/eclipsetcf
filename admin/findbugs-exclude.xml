@@ -1,4 +1,9 @@
 <FindBugsFilter>
+	<!-- Set maximum rank level to 16 -->
+	<Match>
+		<Rank value="17"/>
+	</Match>
+
 	<!-- Ignore all I18N Internationalization bugs -->
 	<Match>
 		<Bug category="I18N"/>
