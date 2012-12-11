@@ -149,7 +149,7 @@
 	               id="org.eclipse.tcf.te.ui.terminals.commands.launchToolbar"
 	               label="%command.launch.label"
 	               style="push"
-	               tooltip="%command.launch.tooltip">
+	               tooltip="%command.launchWithoutSelection.tooltip">
 	         </command>
          </toolbar>
       </menuContribution>
