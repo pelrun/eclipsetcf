@@ -142,7 +142,7 @@ public class DefaultLaunchManagerDelegate extends ExecutableExtension implements
 				catch (LaunchServiceException e) {
 					switch (e.getType()) {
 					case LaunchServiceException.TYPE_MISSING_LAUNCH_CONFIG_ATTR:
-						ranking = 0;
+						ranking = -1;
 						break;
 					default:
 						throw e;
@@ -167,7 +167,7 @@ public class DefaultLaunchManagerDelegate extends ExecutableExtension implements
 					.trace(message.toString(), 0, ITraceIds.TRACE_LAUNCHCONFIGURATIONMATCHING, IStatus.INFO, this);
 				}
 
-				if (ranking >= fullMatchRanking) {
+				if (ranking >= 0 && ranking >= fullMatchRanking) {
 					rankedList.add(new LaunchConfigSorter(launchConfig, ranking));
 				}
 			}
