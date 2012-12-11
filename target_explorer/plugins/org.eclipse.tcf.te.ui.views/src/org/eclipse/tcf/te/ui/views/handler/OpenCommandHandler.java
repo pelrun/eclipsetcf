@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.ui.IWorkbenchPart;
@@ -53,6 +55,12 @@ public class OpenCommandHandler extends AbstractHandler {
 			// If the tree node is expandable, expand or collapse it
 			TreeViewer viewer = ((CommonNavigator)part).getCommonViewer();
 			Object element = ((IStructuredSelection)selection).getFirstElement();
+			if (selection instanceof TreeSelection) {
+				TreePath[] path = ((TreeSelection)selection).getPaths();
+				if (path != null && path.length > 0) {
+					element = path[0];
+				}
+			}
 			if (viewer.isExpandable(element) && !altPressed) {
 				viewer.setExpandedState(element, !viewer.getExpandedState(element));
 			} else {
