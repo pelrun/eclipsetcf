@@ -61,13 +61,15 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 				if (wc == null) {
 					wc = (ILaunchConfigurationWorkingCopy)Platform.getAdapterManager().loadAdapter(peerModel, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
 				}
+				Assert.isNotNull(wc);
 				service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, wc);
 				IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(wc, String.class);
 				String launchConfigAttributes = null;
 				try {
-					launchConfigAttributes = (String)delegate.write(wc, String.class);
+					launchConfigAttributes = delegate != null ? (String)delegate.write(wc, String.class) : null;
 				}
 				catch (Exception e) {
+					/* ignored on purpose */
 				}
 				service.setProperty(peerModel, PROP_ORIGINAL_LAUNCH_CONFIG_ATTRIBUTES, launchConfigAttributes);
 			}

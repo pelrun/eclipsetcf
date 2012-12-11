@@ -113,13 +113,7 @@
                modes="debug"/>
          <enablement>
             <with variable="context">
-               <and>
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                  <or>
-                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
-                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
-                  </or>
-               </and>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
             </with>
          </enablement>
       </launchConfigTypeBinding>
