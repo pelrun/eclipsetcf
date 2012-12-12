@@ -37,10 +37,14 @@ public class TCFChildrenExpressions extends TCFChildren {
         for (TCFNode n : getNodes()) ((TCFNodeExpression)n).onMemoryMapChanged();
     }
 
-    private TCFNodeExpression findScript(String text) {
+    private TCFNodeExpression findScript(String text, IExpression e) {
         for (TCFNode n : getNodes()) {
-            TCFNodeExpression e = (TCFNodeExpression)n;
-            if (text.equals(e.getScript())) return e;
+            TCFNodeExpression node = (TCFNodeExpression)n;
+            if (text.equals(node.getScript()) && 
+                (node.getPlatformExpression() == null || node.getPlatformExpression().equals(e)) ) 
+            {
+                return node;
+            }
         }
         return null;
     }
@@ -59,8 +63,9 @@ public class TCFChildrenExpressions extends TCFChildren {
         HashMap<String,TCFNode> data = new HashMap<String,TCFNode>();
         for (final IExpression e : node.model.getExpressionManager().getExpressions()) {
             String text = e.getExpressionText();
-            TCFNodeExpression n = findScript(text);
+            TCFNodeExpression n = findScript(text, e);
             if (n == null) add(n = new TCFNodeExpression(node, text, null, null, null, -1, false));
+            n.setPlatformExpression(e);
             n.setSortPosition(cnt++);
             if (e instanceof IWatchExpression) n.setEnabled(((IWatchExpression)e).isEnabled());
             data.put(n.id, n);

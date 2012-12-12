@@ -79,6 +79,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private IExpressions.Value next_value;
     private byte[] parent_value;
     private String remote_expression_id;
+    private IExpression platform_expression;
 
     private static int expr_cnt;
 
@@ -730,6 +731,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
     public String getScript() {
         return script;
+    }
+    
+    public IExpression getPlatformExpression() {
+        return platform_expression;
+    }
+    
+    void setPlatformExpression(IExpression expression) {
+        this.platform_expression = expression;
     }
 
     String getFieldID() {
@@ -1890,15 +1899,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     public Object getAdapter(Class adapter) {
         if (script != null) {
             if (adapter == IExpression.class) {
-                IExpressionManager m = DebugPlugin.getDefault().getExpressionManager();
-                for (final IExpression e : m.getExpressions()) {
-                    if (script.equals(e.getExpressionText())) return e;
-                }
+                return platform_expression;
             }
             if (adapter == IWatchExpression.class) {
-                IExpressionManager m = DebugPlugin.getDefault().getExpressionManager();
-                for (final IExpression e : m.getExpressions()) {
-                    if (e instanceof IWatchExpression && script.equals(e.getExpressionText())) return e;
+                if (platform_expression instanceof IWatchExpression) {
+                    return platform_expression;
                 }
             }
         }
