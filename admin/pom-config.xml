@@ -282,10 +282,10 @@
 					<executions>
 						<execution>
 							<id>pack200-normalize</id>
+							<phase>verify</phase>
 							<goals>
 								<goal>normalize</goal>
 							</goals>
-							<phase>verify</phase>
 						</execution>
 					</executions>
 				</plugin>
@@ -296,11 +296,10 @@
 					<executions>
 						<execution>
 							<id>sign</id>
-							<!--- <phase>package</phase> -->
+							<phase>verify</phase>
 							<goals>
 								<goal>sign</goal>
 							</goals>
-							<phase>verify</phase>
 						</execution>
 					</executions>
 				</plugin>
@@ -311,10 +310,10 @@
 					<executions>
 						<execution>
 							<id>pack200-pack</id>
+							<phase>verify</phase>
 							<goals>
 								<goal>pack</goal>
 							</goals>
-							<phase>verify</phase>
 						</execution>
 					</executions>
 				</plugin>
