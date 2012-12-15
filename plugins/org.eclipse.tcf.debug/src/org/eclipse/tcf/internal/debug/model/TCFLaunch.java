@@ -292,7 +292,8 @@ public class TCFLaunch extends Launch {
                     if (p != null) channel.redirect(p.getAttributes());
                     else channel.redirect(id);
                     if (launch_monitor != null) {
-                        String name = p.getName();
+                        String name = null;
+                        if (p != null) name = p.getName();
                         if (name == null) name = id;
                         launch_monitor.subTask("Connecting to " + name);
                     }
