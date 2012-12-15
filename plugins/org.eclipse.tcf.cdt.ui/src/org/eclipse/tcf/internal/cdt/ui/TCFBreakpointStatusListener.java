@@ -126,7 +126,7 @@ class TCFBreakpointStatusListener {
                 if (ok && installed.get(id) == null) {
                     installed.put(id, cbp);
                     incrementInstallCount(cbp);
-                } 
+                }
                 else if (!ok && installed.get(id) == cbp) {
                     installed.remove(id);
                     decrementInstallCount(cbp);
@@ -183,7 +183,6 @@ class TCFBreakpointStatusListener {
             job.setSystem(true);
             job.schedule();
         }
-        
 
         private void decrementInstallCount(final ICBreakpoint cbp) {
             Job job = new WorkspaceJob("Decrement Breakpoint Install Count") {
@@ -220,7 +219,7 @@ class TCFBreakpointStatusListener {
             job.setPriority(Job.SHORT);
             job.setSystem(true);
             job.schedule();
-        }            
+        }
 
         private void doUpdateTCFStamp(ICBreakpoint cbp) throws CoreException {
             IMarker marker = cbp.getMarker();
@@ -228,7 +227,7 @@ class TCFBreakpointStatusListener {
                 marker.setAttribute(TCFBreakpointsModel.ATTR_TCF_STAMP, "true");
             }
         }
-        
+
         private void updateStatus(final TCFBreakpoint tbp) {
             Job job = new WorkspaceJob("Update Breakpoint Status") {
                 @Override

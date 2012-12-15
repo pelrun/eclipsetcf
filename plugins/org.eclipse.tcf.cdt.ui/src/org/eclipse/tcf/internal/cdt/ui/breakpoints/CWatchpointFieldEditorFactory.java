@@ -23,7 +23,7 @@ public class CWatchpointFieldEditorFactory implements IFieldEditorFactory {
 
     private static final String READ_ID = "org.eclipse.cdt.debug.core.read";
     private static final String WRITE_ID = "org.eclipse.cdt.debug.core.write";
-    
+
     public FieldEditor createFieldEditor(String name, String labelText, Composite parent) {
         if (READ_ID.equals(name) || WRITE_ID.equals(name)) {
             return new BooleanFieldEditor(name, labelText, parent);

@@ -40,8 +40,8 @@ public class TCFChildrenExpressions extends TCFChildren {
     private TCFNodeExpression findScript(String text, IExpression e) {
         for (TCFNode n : getNodes()) {
             TCFNodeExpression node = (TCFNodeExpression)n;
-            if (text.equals(node.getScript()) && 
-                (node.getPlatformExpression() == null || node.getPlatformExpression().equals(e)) ) 
+            if (text.equals(node.getScript()) &&
+                (node.getPlatformExpression() == null || node.getPlatformExpression().equals(e)) )
             {
                 return node;
             }

@@ -732,11 +732,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     public String getScript() {
         return script;
     }
-    
+
     public IExpression getPlatformExpression() {
         return platform_expression;
     }
-    
+
     void setPlatformExpression(IExpression expression) {
         this.platform_expression = expression;
     }
