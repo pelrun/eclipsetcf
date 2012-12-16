@@ -117,7 +117,16 @@ public class TcfLaunchTests extends TcfTestCase {
 			assertNull("Unexpected exception when launching hello world: " + e, e); //$NON-NLS-1$
 		}
 
-		assertTrue("Missing console output file (" + outFile.toOSString() + ")", outFile.toFile().exists() && outFile.toFile().length() > 0); //$NON-NLS-1$ //$NON-NLS-2$
+		int counter = 20;
+		boolean exist = outFile.toFile().exists() && outFile.toFile().length() > 0;
+		while (!exist && counter > 0) {
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) { /* ignored on purpose */ }
+			exist = outFile.toFile().exists() && outFile.toFile().length() > 0;
+			counter--;
+		}
+		assertTrue("Missing console output file (" + outFile.toOSString() + ")", exist); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	private IPath getHelloWorldLocation() {
