@@ -123,8 +123,12 @@ public interface IChannelManager extends IAdaptable {
 	/**
 	 * Close all open channel, no matter of the current reference count.
 	 * <p>
-	 * The method can be called from any thread context.
+	 * If <code>wait</code> equals <code>false</code>, the method can be called
+	 * from any thread context. Otherwise it must be called from outside the
+	 * TCF event dispatch thread.
+	 *
+	 * @param wait If <code>true</code> the method will wait until all channels or closed. If <code>false</code>,
+	 *             the method will return immediately.
 	 */
-	public void closeAll();
-
+	public void closeAll(boolean wait);
 }

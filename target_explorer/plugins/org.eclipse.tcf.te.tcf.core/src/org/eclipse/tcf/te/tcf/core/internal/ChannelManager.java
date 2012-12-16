@@ -474,10 +474,12 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#closeAll()
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#closeAll(boolean)
 	 */
 	@Override
-	public void closeAll() {
+	public void closeAll(boolean wait) {
+		if (wait) Assert.isTrue(!Protocol.isDispatchThread());
+
 		Runnable runnable = new Runnable() {
 			@Override
             public void run() {
@@ -485,7 +487,9 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				internalCloseAll();
 			}
 		};
+
 		if (Protocol.isDispatchThread()) runnable.run();
+		else if (wait) Protocol.invokeAndWait(runnable);
 		else Protocol.invokeLater(runnable);
 	}
 
@@ -547,7 +551,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 	}
 
 	/**
-	 * Shutdown all value-add's running. Called from {@link #closeAll()}
+	 * Shutdown all value-add's running. Called from {@link #closeAll(boolean)}
 	 */
 	/* default */ void internalShutdownAllValueAdds() {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$

@@ -11,6 +11,8 @@ package org.eclipse.tcf.te.tcf.ui.activator;
 
 import java.net.URL;
 
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
@@ -32,6 +34,8 @@ public class UIPlugin extends AbstractUIPlugin {
 	private static UIPlugin plugin;
 	// The workbench listener instance
 	private IWorkbenchListener listener;
+	// Reference to the workbench listener
+	/* default */ final ListenerList listeners = new ListenerList();
 
 	/**
 	 * Constructor.
@@ -71,12 +75,31 @@ public class UIPlugin extends AbstractUIPlugin {
 
 			@Override
 			public boolean preShutdown(IWorkbench workbench, boolean forced) {
-				Tcf.getChannelManager().closeAll();
-				return true;
+				boolean proceedShutdown = true;
+
+				// If there are workbench listener registered here, than
+				// invoke them now before closing all the channels.
+				Object[] candidates = listeners.getListeners();
+				for (Object listener : candidates) {
+					if (!(listener instanceof IWorkbenchListener)) continue;
+					proceedShutdown &= ((IWorkbenchListener)listener).preShutdown(workbench, forced);
+					if (!proceedShutdown && !forced) break;
+				}
+
+				// Close all channels now
+				if (proceedShutdown || forced) Tcf.getChannelManager().closeAll(true);
+
+				return proceedShutdown;
 			}
 
 			@Override
 			public void postShutdown(IWorkbench workbench) {
+				// If there are workbench listener registered here, than invoke them now.
+				Object[] candidates = listeners.getListeners();
+				for (Object listener : candidates) {
+					if (!(listener instanceof IWorkbenchListener)) continue;
+					((IWorkbenchListener)listener).postShutdown(workbench);
+				}
 			}
 		};
 		PlatformUI.getWorkbench().addWorkbenchListener(listener);
@@ -90,6 +113,30 @@ public class UIPlugin extends AbstractUIPlugin {
 		plugin = null;
 		if (listener != null) { PlatformUI.getWorkbench().removeWorkbenchListener(listener); listener = null; }
 		super.stop(context);
+	}
+
+	/**
+	 * Adds the given workbench listener.
+	 * <p>
+	 * Has not effect if the same listener is already registered.
+	 *
+	 * @param listener The listener. Must not be <code>null</code>.
+	 */
+	public void addListener(IWorkbenchListener listener) {
+    	Assert.isNotNull(listener);
+    	listeners.add(listener);
+	}
+
+	/**
+	 * Removes the given workbench listener.
+	 * <p>
+	 * Has no effect if the same listener was not already registered.
+	 *
+	 * @param listener The listener. Must not be <code>null</code>.
+	 */
+	public void removeListener(IWorkbenchListener listener) {
+    	Assert.isNotNull(listener);
+    	listeners.remove(listener);
 	}
 
 	/* (non-Javadoc)
