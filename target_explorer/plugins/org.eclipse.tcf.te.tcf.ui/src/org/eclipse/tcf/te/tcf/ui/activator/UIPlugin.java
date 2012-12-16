@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
@@ -87,7 +88,7 @@ public class UIPlugin extends AbstractUIPlugin {
 				}
 
 				// Close all channels now
-				if (proceedShutdown || forced) Tcf.getChannelManager().closeAll(true);
+				if (proceedShutdown || forced) Tcf.getChannelManager().closeAll(!Protocol.isDispatchThread());
 
 				return proceedShutdown;
 			}
