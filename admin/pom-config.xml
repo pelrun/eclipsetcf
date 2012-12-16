@@ -235,7 +235,7 @@
 					<artifactId>maven-resources-plugin</artifactId>
 					<version>${maven-resources-version}</version>
 					<configuration>
-						<encoding>ISO-8859-1</encoding>
+						<encoding>UTF-8</encoding>
 					</configuration>
 				</plugin>
 				<plugin>
