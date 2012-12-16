@@ -27,7 +27,6 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
 import org.eclipse.tcf.te.tcf.ui.controls.CustomTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerAttributesTablePart;
-import org.eclipse.tcf.te.tcf.ui.controls.PeerIdControl;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerNameControl;
 import org.eclipse.tcf.te.tcf.ui.controls.PipeTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.TcpTransportPanel;
@@ -50,13 +49,15 @@ import org.eclipse.ui.forms.widgets.Section;
  * to create the different TCF peer types.
  */
 public class NewTargetWizardPage extends AbstractValidatingWizardPage implements IDataExchangeNode {
-	private PeerIdControl peerIdControl;
 	private PeerNameControl peerNameControl;
 	TransportTypeControl transportTypeControl;
 	TransportTypePanelControl transportTypePanelControl;
 	private PeerAttributesTablePart tablePart;
 
 	private FormToolkit toolkit = null;
+
+	// The UUID of the new peer to create
+	private final UUID uuid = UUID.randomUUID();
 
 	/**
 	 * Local transport type control implementation.
@@ -147,7 +148,6 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	 */
 	@Override
 	public void dispose() {
-		if (peerIdControl != null) { peerIdControl.dispose(); peerIdControl = null; }
 		if (peerNameControl != null) { peerNameControl.dispose(); peerNameControl = null; }
 		if (transportTypeControl != null) { transportTypeControl.dispose(); transportTypeControl = null; }
 		if (transportTypePanelControl != null) { transportTypePanelControl.dispose(); transportTypePanelControl = null; }
@@ -216,13 +216,6 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		peerNameControl.setParentControlIsInnerPanel(true);
 		peerNameControl.setupPanel(client);
 		peerNameControl.getEditFieldControl().setFocus();
-
-		peerIdControl = new PeerIdControl(this);
-		peerIdControl.setFormToolkit(toolkit);
-		peerIdControl.setParentControlIsInnerPanel(true);
-		peerIdControl.setupPanel(client);
-		peerIdControl.getEditFieldControl().setEnabled(false);
-		peerIdControl.setEditFieldControlText(UUID.randomUUID().toString());
 
 		createEmptySpace(client, 5, 2, toolkit);
 
@@ -311,11 +304,6 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 		boolean valid = true;
 
-		if (peerIdControl != null) {
-			valid &= peerIdControl.isValid();
-			result.setResult(peerIdControl);
-		}
-
 		if (peerNameControl != null) {
 			valid &= peerNameControl.isValid();
 			result.setResult(peerNameControl);
@@ -354,9 +342,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		// If the page has been never shown, we are done here
 		if (getControl() == null) return;
 
-		if (peerIdControl != null) {
-			peerAttributes.setProperty(IPeer.ATTR_ID, peerIdControl.getEditFieldControlText());
-		}
+		peerAttributes.setProperty(IPeer.ATTR_ID, uuid.toString());
 
 		String value = peerNameControl != null ? peerNameControl.getEditFieldControlText() : null;
 		if (value != null && !"".equals(value)) peerAttributes.setProperty(IPeer.ATTR_NAME, value); //$NON-NLS-1$
@@ -401,7 +387,6 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	public void saveWidgetValues() {
 		IDialogSettings settings = getDialogSettings();
 		if (settings != null) {
-			if (peerIdControl != null) peerIdControl.saveWidgetValues(settings, null);
 			if (peerNameControl != null) peerNameControl.saveWidgetValues(settings, null);
 			if (transportTypeControl != null) transportTypeControl.saveWidgetValues(settings, null);
 			if (transportTypePanelControl != null) transportTypePanelControl.saveWidgetValues(settings, null);
@@ -415,7 +400,6 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	public void restoreWidgetValues() {
 		IDialogSettings settings = getDialogSettings();
 		if (settings != null) {
-			if (peerIdControl != null) peerIdControl.restoreWidgetValues(settings, null);
 			if (peerNameControl != null) peerNameControl.restoreWidgetValues(settings, null);
 			if (transportTypeControl != null) transportTypeControl.restoreWidgetValues(settings, null);
 			if (transportTypePanelControl != null) transportTypePanelControl.restoreWidgetValues(settings, null);

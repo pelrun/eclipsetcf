@@ -38,7 +38,6 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerIdControl;
 import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerNameControl;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
@@ -55,7 +54,6 @@ import org.eclipse.ui.forms.widgets.Section;
  */
 public class GeneralInformationSection extends AbstractSection {
 	// The section sub controls
-	private InfoSectionPeerIdControl idControl = null;
 	private InfoSectionPeerNameControl nameControl = null;
 
 	private Text linkState = null;
@@ -84,7 +82,6 @@ public class GeneralInformationSection extends AbstractSection {
 	 */
 	@Override
 	public void dispose() {
-		if (idControl != null) { idControl.dispose(); idControl = null; }
 		if (nameControl != null) { nameControl.dispose(); nameControl = null; }
 		super.dispose();
 	}
@@ -94,9 +91,6 @@ public class GeneralInformationSection extends AbstractSection {
 	 */
 	@Override
 	public Object getAdapter(Class adapter) {
-		if (InfoSectionPeerIdControl.class.equals(adapter)) {
-			return idControl;
-		}
 		if (InfoSectionPeerNameControl.class.equals(adapter)) {
 			return nameControl;
 		}
@@ -129,12 +123,6 @@ public class GeneralInformationSection extends AbstractSection {
 		nameControl.setFormToolkit(toolkit);
 		nameControl.setParentControlIsInnerPanel(true);
 		nameControl.setupPanel(client);
-
-		// Create the peer id control
-		idControl = new InfoSectionPeerIdControl(this);
-		idControl.setFormToolkit(toolkit);
-		idControl.setParentControlIsInnerPanel(true);
-		idControl.setupPanel(client);
 
 		// Create the peer link state control
 		Label label = new Label(client, SWT.HORIZONTAL);
@@ -231,10 +219,6 @@ public class GeneralInformationSection extends AbstractSection {
 
 		// From here on, work with the working copy only!
 
-		if (idControl != null) {
-			idControl.setEditFieldControlText(wc.getStringProperty(IPeer.ATTR_ID));
-		}
-
 		if (nameControl != null) {
 			nameControl.setEditFieldControlText(wc.getStringProperty(IPeer.ATTR_NAME));
 		}
@@ -282,10 +266,6 @@ public class GeneralInformationSection extends AbstractSection {
 		}
 
 		// Extract the widget data into the working copy
-		if (idControl != null) {
-			wc.setProperty(IPeer.ATTR_ID, idControl.getEditFieldControlText());
-		}
-
 		if (nameControl != null) {
 			wc.setProperty(IPeer.ATTR_NAME, nameControl.getEditFieldControlText());
 		}
@@ -327,16 +307,9 @@ public class GeneralInformationSection extends AbstractSection {
 
 		boolean valid =  super.isValid();
 
-		if (idControl != null) {
-			valid &= idControl.isValid();
-			setMessage(idControl.getMessage(), idControl.getMessageType());
-		}
-
 		if (nameControl != null) {
 			valid &= nameControl.isValid();
-			if (nameControl.getMessageType() > getMessageType()) {
-				setMessage(nameControl.getMessage(), nameControl.getMessageType());
-			}
+			setMessage(nameControl.getMessage(), nameControl.getMessageType());
 		}
 
 		return valid;
@@ -397,16 +370,6 @@ public class GeneralInformationSection extends AbstractSection {
 		boolean isDirty = false;
 
 		// Compare the data
-		if (idControl != null) {
-			String id = idControl.getEditFieldControlText();
-			if ("".equals(id)) { //$NON-NLS-1$
-				String value = odc.getStringProperty(IPeer.ATTR_ID);
-				isDirty |= value != null && !"".equals(value.trim()); //$NON-NLS-1$
-			} else {
-				isDirty |= !odc.isProperty(IPeer.ATTR_ID, id);
-			}
-		}
-
 		if (nameControl != null) {
 			String name = nameControl.getEditFieldControlText();
 			if ("".equals(name)) { //$NON-NLS-1$
@@ -428,11 +391,6 @@ public class GeneralInformationSection extends AbstractSection {
 	protected void updateEnablement() {
 		// Determine the input
 		final Object input = getManagedForm().getInput();
-
-		// The id control is always read-only
-		if (idControl != null) {
-			SWTControlUtil.setEnabled(idControl.getEditFieldControl(), false);
-		}
 
 		// The name control is enabled for static peers
 		if (nameControl != null) {
