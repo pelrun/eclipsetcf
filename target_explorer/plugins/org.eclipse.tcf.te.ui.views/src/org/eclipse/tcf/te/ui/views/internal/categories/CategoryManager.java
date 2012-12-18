@@ -319,4 +319,30 @@ public class CategoryManager implements ICategoryManager {
 
 		return allCategories.toArray(new String[allCategories.size()]);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategoryManager#getIdsForCategory(java.lang.String)
+	 */
+	@Override
+	public String[] getIdsForCategory(String categoryId) {
+		Assert.isNotNull(categoryId);
+
+		List<String> allIds = new ArrayList<String>();
+
+		List<String> cats = cat2id.get(categoryId);
+		if (cats != null) {
+			allIds.addAll(cats);
+		}
+
+		cats = _t_cat2id.get(categoryId);
+		if (cats != null) {
+			for (String cat : cats) {
+				if (!allIds.contains(cat)) {
+					allIds.add(cat);
+				}
+			}
+		}
+
+		return allIds.toArray(new String[allIds.size()]);
+	}
 }

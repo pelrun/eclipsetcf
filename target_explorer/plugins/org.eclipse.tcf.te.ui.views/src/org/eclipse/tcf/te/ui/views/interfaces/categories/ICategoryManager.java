@@ -70,4 +70,12 @@ public interface ICategoryManager {
 	 */
 	public String[] getCategoryIds(String id);
 
+	/**
+	 * Returns the list of ids for the given category.
+	 *
+	 * @param categoryId The category id. Must not be <code>null</code>.
+	 * @return The list of id's that belongs to the given categoryId, or an empty list.
+	 */
+	public String[] getIdsForCategory(String categoryId);
+
 }
