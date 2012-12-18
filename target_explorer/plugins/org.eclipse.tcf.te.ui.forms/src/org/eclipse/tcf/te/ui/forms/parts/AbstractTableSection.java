@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -141,6 +142,16 @@ public abstract class AbstractTableSection extends AbstractStructuredViewerSecti
 	 */
 	protected TablePart getTablePart() {
 		return (TablePart)getViewerPart();
+	}
+
+	/**
+	 * Reveals the table viewer instance to clients.
+	 *
+	 * @return The table viewer instance or <code>null</code>.
+	 */
+	public TableViewer getViewer() {
+		StructuredViewer viewer =  getTablePart().getViewer();
+		return viewer instanceof TableViewer ? (TableViewer)viewer : null;
 	}
 
 	/**
