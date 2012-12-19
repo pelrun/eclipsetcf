@@ -25,6 +25,7 @@ import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.IWizardContainer;
+import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
@@ -67,6 +68,16 @@ public class RemoteHostAddressControl extends BaseEditBrowseTextControl {
 				getControlDecoration().hide();
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl#modifyText(org.eclipse.swt.events.ModifyEvent)
+	 */
+	@Override
+	public void modifyText(ModifyEvent e) {
+	    super.modifyText(e);
+		getButtonControl().setEnabled(isValid() &&
+						(!(getEditFieldValidator() instanceof NameOrIPValidator) || !((NameOrIPValidator)getEditFieldValidator()).isIP()));
 	}
 
 	/* (non-Javadoc)
