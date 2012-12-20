@@ -64,9 +64,9 @@ public class RemoteHostAddressControl extends BaseEditBrowseTextControl {
 		// Reset the validation message.
 		if (getMessage() != null && getMessage().equals(getUserInformationTextCheckNameAddress())) {
 			setMessage(null, IMessageProvider.NONE);
-			if (getControlDecoration() != null) {
-				getControlDecoration().hide();
-			}
+		}
+		if (getControlDecoration() != null) {
+			getControlDecoration().hide();
 		}
 	}
 
@@ -76,8 +76,12 @@ public class RemoteHostAddressControl extends BaseEditBrowseTextControl {
 	@Override
 	public void modifyText(ModifyEvent e) {
 	    super.modifyText(e);
-		getButtonControl().setEnabled(isValid() &&
-						(!(getEditFieldValidator() instanceof NameOrIPValidator) || !((NameOrIPValidator)getEditFieldValidator()).isIP()));
+	    boolean enabled = isValid() &&
+						(!(getEditFieldValidator() instanceof NameOrIPValidator) || !((NameOrIPValidator)getEditFieldValidator()).isIP());
+		getButtonControl().setEnabled(enabled);
+		if (enabled && getControlDecoration() != null) {
+			getControlDecoration().hide();
+		}
 	}
 
 	/* (non-Javadoc)

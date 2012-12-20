@@ -15,6 +15,8 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.tcf.te.ui.controls.net.RemoteHostAddressControl;
 import org.eclipse.tcf.te.ui.controls.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
+import org.eclipse.ui.forms.editor.FormPage;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
 
 /**
  * Network cable panel remote host address control implementation.
@@ -54,5 +56,15 @@ public class NetworkAddressControl extends RemoteHostAddressControl {
 		if (networkPanel.getParentControl() instanceof ModifyListener) {
 			((ModifyListener)networkPanel.getParentControl()).modifyText(e);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.net.RemoteHostAddressControl#onButtonControlSelected()
+	 */
+	@Override
+	protected void onButtonControlSelected() {
+	    super.onButtonControlSelected();
+		ScrolledForm form = ((FormPage)getValidatingContainer()).getManagedForm().getForm();
+		form.setMessage(getMessage(), getMessageType());
 	}
 }
