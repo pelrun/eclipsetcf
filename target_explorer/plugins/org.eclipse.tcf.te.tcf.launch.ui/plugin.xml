@@ -184,7 +184,14 @@
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
                      <and>
-                        <test property="org.eclipse.debug.core.launchable" value="run"/>
+                        <and>
+                           <with variable="org.eclipse.core.runtime.Platform">
+                              <test property="org.eclipse.core.runtime.bundleState"
+                                    args="org.eclipse.debug.core"
+                                    value="ACTIVE"/>
+                           </with>
+                           <test property="org.eclipse.debug.core.launchable" value="run"/>
+                        </and>				
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
@@ -206,7 +213,14 @@
                <with variable="selection">
                   <iterate  operator="and" ifEmpty="false">
                      <and>
-                        <test property="org.eclipse.debug.core.launchable" value="run"/>
+                        <and>
+                           <with variable="org.eclipse.core.runtime.Platform">
+                              <test property="org.eclipse.core.runtime.bundleState"
+                                    args="org.eclipse.debug.core"
+                                    value="ACTIVE"/>
+                           </with>
+                           <test property="org.eclipse.debug.core.launchable" value="run"/>
+                        </and>				
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
