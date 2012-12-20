@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.forms.activator;
 
+import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -18,6 +19,8 @@ import org.osgi.framework.BundleContext;
 public class UIPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static UIPlugin plugin;
+	// The trace handler instance
+	private static volatile TraceHandler traceHandler;
 
 	/**
 	 * The constructor
@@ -44,6 +47,18 @@ public class UIPlugin extends AbstractUIPlugin {
 		return "org.eclipse.tcf.te.ui.forms"; //$NON-NLS-1$
 	}
 
+	/**
+	 * Returns the bundles trace handler.
+	 *
+	 * @return The bundles trace handler.
+	 */
+	public static TraceHandler getTraceHandler() {
+		if (traceHandler == null) {
+			traceHandler = new TraceHandler(getUniqueIdentifier());
+		}
+		return traceHandler;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
@@ -59,6 +74,7 @@ public class UIPlugin extends AbstractUIPlugin {
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
+		traceHandler = null;
 		super.stop(context);
 	}
 }

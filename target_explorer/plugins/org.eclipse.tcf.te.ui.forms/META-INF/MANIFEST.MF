@@ -16,4 +16,5 @@ Bundle-Vendor: %providerName
 Export-Package: org.eclipse.tcf.te.ui.forms,
  org.eclipse.tcf.te.ui.forms.activator;x-internal:=true,
  org.eclipse.tcf.te.ui.forms.blocks,
+ org.eclipse.tcf.te.ui.forms.interfaces.tracing,
  org.eclipse.tcf.te.ui.forms.parts

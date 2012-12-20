@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
+import org.eclipse.tcf.te.ui.forms.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.forms.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatable;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.ui.forms.AbstractFormPart;
@@ -216,6 +218,11 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	 * @param dirty <code>True</code> to mark the section dirty, <code>false</code> otherwise.
 	 */
 	public final void markDirty(boolean dirty) {
+		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_SECTIONS_DIRTY_STATE)) {
+			UIPlugin.getTraceHandler().trace("markDirty: Set dirty state to " + dirty, //$NON-NLS-1$
+											 ITraceIds.TRACE_SECTIONS_DIRTY_STATE, this);
+		}
+
 		if (dirty) markDirty();
 		else {
 			// For now, there is no direct way to reset the dirty state,
@@ -237,6 +244,38 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		}
 	}
 
+	/**
+	 * Marks the section stale or reset the stale state.
+	 *
+	 * @param stale <code>True</code> to mark the section stale, <code>false</code> otherwise.
+	 */
+	public final void markStale(boolean stale) {
+		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_SECTIONS_STALE_STATE)) {
+			UIPlugin.getTraceHandler().trace("markStale: Set stale state to " + stale, //$NON-NLS-1$
+											 ITraceIds.TRACE_SECTIONS_STALE_STATE, this);
+		}
+
+		if (stale) markStale();
+		else {
+			// For now, there is no direct way to reset the stale state,
+			// and the refresh() method is setting back both flags (stale and dirty).
+			// Plus, refresh() might be overwritten to refresh the widget content
+			// from the data itself, what will trigger an stack overflow after all.
+			try {
+				final Field f = AbstractFormPart.class.getDeclaredField("stale"); //$NON-NLS-1$
+				AccessController.doPrivileged(new PrivilegedAction<Object>() {
+					@Override
+					public Object run() {
+						f.setAccessible(true);
+						return null;
+					}
+				});
+				f.setBoolean(this, stale);
+				if (getManagedForm() != null) getManagedForm().staleStateChanged();
+			} catch (Exception e) { /* ignored on purpose */ }
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
 	 */
@@ -244,8 +283,18 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	public void commit(boolean onSave) {
 		// commit is reseting the dirty state
 		boolean hasBeenDirty = isDirty();
+		// Execute the commit
 		super.commit(onSave);
-		if (hasBeenDirty) getManagedForm().dirtyStateChanged();
+		// signal the dirty state change to the manager form if
+		// it really has changed
+		if (hasBeenDirty) {
+			if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_SECTIONS_DIRTY_STATE)) {
+				UIPlugin.getTraceHandler().trace("Commit(" + onSave + ") reseted the dirty state to false.", //$NON-NLS-1$ //$NON-NLS-2$
+												 ITraceIds.TRACE_SECTIONS_DIRTY_STATE, this);
+			}
+
+			getManagedForm().dirtyStateChanged();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -256,9 +305,26 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		// refresh is reseting both the stale and the dirty state
 		boolean hasBeenStale = isStale();
 		boolean hasBeenDirty = isDirty();
+
 		super.refresh();
-		if (hasBeenStale) getManagedForm().staleStateChanged();
-		if (hasBeenDirty) getManagedForm().dirtyStateChanged();
+
+		if (hasBeenStale) {
+			if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_SECTIONS_STALE_STATE)) {
+				UIPlugin.getTraceHandler().trace("refresh() reseted the stale state to false.", //$NON-NLS-1$
+												 ITraceIds.TRACE_SECTIONS_STALE_STATE, this);
+			}
+
+			getManagedForm().staleStateChanged();
+		}
+
+		if (hasBeenDirty) {
+			if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_SECTIONS_DIRTY_STATE)) {
+				UIPlugin.getTraceHandler().trace("refresh() reseted the dirty state to false.", //$NON-NLS-1$
+												 ITraceIds.TRACE_SECTIONS_DIRTY_STATE, this);
+			}
+
+			getManagedForm().dirtyStateChanged();
+		}
 	}
 
 	/* (non-Javadoc)
