@@ -184,11 +184,7 @@
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
                      <and>
-                        <test
-                              forcePluginActivation="true"
-                              property="org.eclipse.debug.core.launchable"
-                              value="run">
-                        </test>
+                        <test property="org.eclipse.debug.core.launchable" value="run"/>
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
@@ -210,11 +206,7 @@
                <with variable="selection">
                   <iterate  operator="and" ifEmpty="false">
                      <and>
-                        <test
-                              forcePluginActivation="true"
-                              property="org.eclipse.debug.core.launchable"
-                              value="run">
-                        </test>
+                        <test property="org.eclipse.debug.core.launchable" value="run"/>
                         <test 
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
