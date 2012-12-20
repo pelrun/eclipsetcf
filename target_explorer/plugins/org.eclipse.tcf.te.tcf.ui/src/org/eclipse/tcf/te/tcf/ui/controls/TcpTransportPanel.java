@@ -112,9 +112,9 @@ public class TcpTransportPanel extends NetworkCablePanel {
         return "1534"; //$NON-NLS-1$
     }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.nodes.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
-	 */
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.controls.wire.network.NetworkCablePanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
+     */
 	@Override
     public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
 		Assert.isNotNull(data);
@@ -137,7 +137,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.nodes.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.controls.wire.network.NetworkCablePanel#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
 	 */
 	@Override
     public void setupData(IPropertiesContainer data) {
@@ -155,7 +155,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.nodes.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.controls.wire.network.NetworkCablePanel#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
 	 */
 	@Override
     public void extractData(IPropertiesContainer data) {
@@ -175,7 +175,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode3#removeData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.controls.wire.network.NetworkCablePanel#removeData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
 	 */
 	@Override
     public void removeData(IPropertiesContainer data) {
@@ -185,7 +185,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode3#copyData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.controls.wire.network.NetworkCablePanel#copyData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
 	 */
 	@Override
 	public void copyData(IPropertiesContainer src, IPropertiesContainer dst) {

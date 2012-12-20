@@ -190,6 +190,23 @@ public class GeneralInformationSection extends AbstractSection {
 	 * @param node The peer node or <code>null</code>.
 	 */
 	public void setupData(final IPeerModel node) {
+		// If the section is dirty, nothing is changed
+		if (isDirty()) return;
+
+		boolean updateWidgets = true;
+
+		// If the passed in node is the same as the previous one,
+		// no need for updating the section widgets.
+		if ((node == null && od == null) || (node != null && node.equals(od))) {
+			updateWidgets = false;
+		}
+
+		// Besides the node itself, we need to look at the node data to determine
+		// if the widgets needs to be updated. For the comparisation, keep the
+		// current properties of the original data copy in a temporary container.
+		final IPropertiesContainer previousOdc = new PropertiesContainer();
+		previousOdc.setProperties(odc.getProperties());
+
 		// Store a reference to the original data
 		od = node;
 		// Clean the original data copy
@@ -198,9 +215,7 @@ public class GeneralInformationSection extends AbstractSection {
 		wc.clearProperties();
 
 		// If no data is available, we are done
-		if (node == null) {
-			return;
-		}
+		if (node == null) return;
 
 		// Thread access to the model is limited to the executors thread.
 		// Copy the data over to the working copy to ease the access.
@@ -219,30 +234,44 @@ public class GeneralInformationSection extends AbstractSection {
 
 		// From here on, work with the working copy only!
 
-		if (nameControl != null) {
-			nameControl.setEditFieldControlText(wc.getStringProperty(IPeer.ATTR_NAME));
+		// If the original data copy does not match the previous original
+		// data copy, the widgets needs to be updated to present the correct data.
+		if (!previousOdc.getProperties().equals(odc.getProperties())) {
+			updateWidgets = true;
 		}
 
-		if (linkState != null && linkStateImage != null) {
-			String state = wc.getStringProperty(IPeerModelProperties.PROP_STATE);
-			linkState.setText(Messages.getString("GeneralInformationSection_state_" + (state != null ? state.replace('-', '_') : "_1"))); //$NON-NLS-1$ //$NON-NLS-2$
+		if (updateWidgets) {
+			// Mark the control update as in-progress now
+			setIsUpdating(true);
 
-			switch (wc.getIntProperty(IPeerModelProperties.PROP_STATE)) {
-			case 0:
-				linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GOLD_OVR));
-				break;
-			case 1:
-				linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GREEN_OVR));
-				break;
-			case 2:
-				linkStateImage.setImage(UIPlugin.getImage(ImageConsts.RED_OVR));
-				break;
-			case 3:
-				linkStateImage.setImage(UIPlugin.getImage(ImageConsts.RED_X_OVR));
-				break;
-			default:
-				linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GREY_OVR));
+			if (nameControl != null) {
+				nameControl.setEditFieldControlText(wc.getStringProperty(IPeer.ATTR_NAME));
 			}
+
+			if (linkState != null && linkStateImage != null) {
+				String state = wc.getStringProperty(IPeerModelProperties.PROP_STATE);
+				linkState.setText(Messages.getString("GeneralInformationSection_state_" + (state != null ? state.replace('-', '_') : "_1"))); //$NON-NLS-1$ //$NON-NLS-2$
+
+				switch (wc.getIntProperty(IPeerModelProperties.PROP_STATE)) {
+				case 0:
+					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GOLD_OVR));
+					break;
+				case 1:
+					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GREEN_OVR));
+					break;
+				case 2:
+					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.RED_OVR));
+					break;
+				case 3:
+					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.RED_X_OVR));
+					break;
+				default:
+					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GREY_OVR));
+				}
+			}
+
+			// Mark the control update as completed now
+			setIsUpdating(false);
 		}
 
 		// Re-evaluate the dirty state

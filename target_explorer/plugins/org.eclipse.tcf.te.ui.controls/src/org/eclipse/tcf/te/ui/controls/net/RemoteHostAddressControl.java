@@ -85,6 +85,20 @@ public class RemoteHostAddressControl extends BaseEditBrowseTextControl {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl#setEnabled(boolean)
+	 */
+	@Override
+	public void setEnabled(boolean enabled) {
+	    super.setEnabled(enabled);
+
+	    if (enabled) {
+	    	// The "Check" button needs specific enablement
+	    	getButtonControl().setEnabled(isValid() &&
+	    					(!(getEditFieldValidator() instanceof NameOrIPValidator) || !((NameOrIPValidator)getEditFieldValidator()).isIP()));
+	    }
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl#doCreateEditFieldValidator()
 	 */
 	@Override

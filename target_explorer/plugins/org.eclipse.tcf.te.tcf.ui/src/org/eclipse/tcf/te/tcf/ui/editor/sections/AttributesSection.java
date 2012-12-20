@@ -179,6 +179,23 @@ public class AttributesSection extends AbstractSection {
 	 * @param node The peer node or <code>null</code>.
 	 */
 	public void setupData(final IPeerModel node) {
+		// If the section is dirty, nothing is changed
+		if (isDirty()) return;
+
+		boolean updateWidgets = true;
+
+		// If the passed in node is the same as the previous one,
+		// no need for updating the section widgets.
+		if ((node == null && od == null) || (node != null && node.equals(od))) {
+			updateWidgets = false;
+		}
+
+		// Besides the node itself, we need to look at the node data to determine
+		// if the widgets needs to be updated. For the comparisation, keep the
+		// current properties of the original data copy in a temporary container.
+		final IPropertiesContainer previousOdc = new PropertiesContainer();
+		previousOdc.setProperties(odc.getProperties());
+
 		// Store a reference to the original data
 		od = node;
 		// Clean the original data copy
@@ -187,9 +204,7 @@ public class AttributesSection extends AbstractSection {
 		wc.clearProperties();
 
 		// If no data is available, we are done
-		if (node == null) {
-			return;
-		}
+		if (node == null) return;
 
 		// Thread access to the model is limited to the executors thread.
 		// Copy the data over to the working copy to ease the access.
@@ -221,16 +236,30 @@ public class AttributesSection extends AbstractSection {
 			}
 		}
 
-		// Make a <String, String> map out of the remaining properties
-		Map<String, String> attributes = new HashMap<String, String>();
-		Map<String, Object> properties = wc.getProperties();
-		for (Entry<String, Object> entry : properties.entrySet()) {
-			attributes.put(entry.getKey(), entry.getValue().toString());
+		// If the original data copy does not match the previous original
+		// data copy, the widgets needs to be updated to present the correct data.
+		if (!previousOdc.getProperties().equals(odc.getProperties())) {
+			updateWidgets = true;
 		}
 
-		// Pass on to the table part
-		if (tablePart != null) {
-			tablePart.setAttributes(attributes);
+		if (updateWidgets) {
+			// Mark the control update as in-progress now
+			setIsUpdating(true);
+
+			// Make a <String, String> map out of the remaining properties
+			Map<String, String> attributes = new HashMap<String, String>();
+			Map<String, Object> properties = wc.getProperties();
+			for (Entry<String, Object> entry : properties.entrySet()) {
+				attributes.put(entry.getKey(), entry.getValue().toString());
+			}
+
+			// Pass on to the table part
+			if (tablePart != null) {
+				tablePart.setAttributes(attributes);
+			}
+
+			// Mark the control update as completed now
+			setIsUpdating(false);
 		}
 
 		// Re-evaluate the dirty state
