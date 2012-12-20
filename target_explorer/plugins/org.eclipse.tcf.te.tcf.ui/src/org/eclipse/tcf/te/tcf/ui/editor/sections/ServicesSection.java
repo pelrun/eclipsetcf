@@ -137,9 +137,15 @@ public class ServicesSection extends AbstractSection {
 	 * @param node The peer node or <code>null</code>.
 	 */
 	public void setupData(final IPeerModel node) {
-		// Reset the services query triggered flag if we setup
-		// for a new peer model node
+		// Reset the services query triggered flag if we setup for a new peer model node
 		if (od != node) servicesQueryTriggered = false;
+
+		// Besides the node itself, we need to look at the node data to determine
+		// if the widgets needs to be updated. For the comparisation, keep the
+		// current properties of the original data copy in a temporary container.
+		final IPropertiesContainer previousOdc = new PropertiesContainer();
+		previousOdc.setProperties(odc.getProperties());
+
 		// Store a reference to the original data
 		od = node;
 		// Clean the original data copy
@@ -147,6 +153,25 @@ public class ServicesSection extends AbstractSection {
 
 		// If no data is available, we are done
 		if (node == null) return;
+
+		// Thread access to the model is limited to the executors thread.
+		// Copy the data over to the working copy to ease the access.
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				// Copy over the properties
+				odc.setProperties(od.getProperties());
+			}
+		});
+
+		boolean forceQuery = false;
+
+		// If the original data copy does not match the previous original
+		// data copy, the services needs to be queried again.
+		if (!previousOdc.getProperties().equals(odc.getProperties())) {
+			servicesQueryTriggered = false;
+			forceQuery = true;
+		}
 
 		// Create the UI runnable
 		final AtomicBoolean fireRefreshTabs = new AtomicBoolean();
@@ -170,18 +195,21 @@ public class ServicesSection extends AbstractSection {
 			}
 		};
 
-		// If not yet triggered, run the service query
+		// If not yet triggered or if forced, run the service query
 		if (!servicesQueryTriggered) {
 			// Mark the services query as triggered
 			servicesQueryTriggered = true;
+
+			final boolean finForceQuery = forceQuery;
 
 			Runnable runnable = new Runnable() {
 
 				@Override
 				public void run() {
 					// Check if we have to run the query at all
-					boolean doQuery = !node.containsKey(IPeerModelProperties.PROP_REMOTE_SERVICES)
-										&& !node.containsKey(IPeerModelProperties.PROP_LOCAL_SERVICES);
+					boolean doQuery = finForceQuery ||
+										(!node.containsKey(IPeerModelProperties.PROP_REMOTE_SERVICES)
+											&& !node.containsKey(IPeerModelProperties.PROP_LOCAL_SERVICES));
 
 					if (doQuery) {
 						ILocatorModelPeerNodeQueryService service = node.getModel().getService(ILocatorModelPeerNodeQueryService.class);
@@ -189,8 +217,9 @@ public class ServicesSection extends AbstractSection {
 							service.queryServicesAsync(node, new ILocatorModelPeerNodeQueryService.DoneQueryServices() {
 								@Override
 								public void doneQueryServices(Throwable error) {
-									// Copy over the properties
-									odc.setProperties(node.getProperties());
+									// Copy over the service properties
+									odc.setProperty(IPeerModelProperties.PROP_REMOTE_SERVICES, node.getProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
+									odc.setProperty(IPeerModelProperties.PROP_LOCAL_SERVICES, node.getProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
 
 									// Setup the data within the UI controls and fire the change notification
 									fireRefreshTabs.set(true);
@@ -209,18 +238,8 @@ public class ServicesSection extends AbstractSection {
 
 			Protocol.invokeLater(runnable);
 		} else {
-			// Thread access to the model is limited to the dispatch thread.
-			// Copy the data over to the working copy to ease the access.
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					// Copy over the properties
-					odc.setProperties(od.getProperties());
-
-					// Setup the data within the UI controls
-					DisplayUtil.safeAsyncExec(uiRunnable);
-				}
-			});
+			// Setup the data within the UI controls
+			uiRunnable.run();
 		}
 	}
 }
