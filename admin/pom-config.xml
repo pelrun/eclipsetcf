@@ -35,7 +35,7 @@
 		<gmaven-version>1.4</gmaven-version>
 		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
-		<jacoco-version>0.5.10.201208310627</jacoco-version>
+		<jacoco-version>0.6.0.201210061924</jacoco-version>
 		<!--<eclipse-jarsigner-version>1.0.2-SNAPSHOT</eclipse-jarsigner-version>
 		 downgrade to the latest version published -->
 		<eclipse-jarsigner-version>1.0.0</eclipse-jarsigner-version>
@@ -159,9 +159,7 @@
 						</environments>
 						<resolver>p2</resolver>
 						<ignoreTychoRepositories>true</ignoreTychoRepositories>
-<!--						
 						<includePackedArtifacts>true</includePackedArtifacts>
--->						
 						<pomDependencies>consider</pomDependencies>
 					</configuration>
 				</plugin>
@@ -221,6 +219,18 @@
 						</baselineRepositories>
 					</configuration>
 					-->
+					<executions>
+						<execution>
+							<id>p2-metadata</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>p2-metadata</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<defaultP2Metadata>false</defaultP2Metadata>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
