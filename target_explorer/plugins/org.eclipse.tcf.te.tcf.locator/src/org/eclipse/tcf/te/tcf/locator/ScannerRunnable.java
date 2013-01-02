@@ -27,7 +27,9 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IScanner;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
@@ -102,6 +104,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 
 		// Do not open a channel to incomplete peer nodes
 		if (peerNode.isComplete()) {
+			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+				CoreBundleActivator.getTraceHandler().trace("Scanner runnable invoked for peer '" + peerNode.getName() + "' (" + peerNode.getPeerId() + "). Attempting to open channel ...", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+															ITracing.ID_TRACE_SCANNER, ScannerRunnable.this);
+			}
+
 			// Check if there is a shared channel available which is still in open state
 			channel = Tcf.getChannelManager().getChannel(peer);
 			if (channel == null || channel.getState() != IChannel.STATE_OPEN) {
@@ -130,6 +137,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			channel.removeChannelListener(this);
 		}
 
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+			CoreBundleActivator.getTraceHandler().trace("Scanner runnable onChannelOpened invoked for peer '" + peerNode.getName() + "' (" + peerNode.getPeerId() + ").", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_SCANNER, ScannerRunnable.this);
+		}
+
 		// Turn off change notifications temporarily
 		boolean changed = peerNode.setChangeEventsEnabled(false);
 
@@ -140,9 +152,26 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, null);
 		}
 
+		// Get the parent model from the model mode
+		final ILocatorModel model = (ILocatorModel)peerNode.getAdapter(ILocatorModel.class);
+
 		if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 			// Keep the channel open as long as the query for the remote peers is running.
 			boolean keepOpen = false;
+
+			// Update the services lists
+			ILocatorModelUpdateService updateService = model != null ? model.getService(ILocatorModelUpdateService.class) : null;
+			if (updateService != null) {
+				Collection<String> localServices = channel.getLocalServices();
+				Collection<String> remoteServices = channel.getRemoteServices();
+
+				updateService.updatePeerServices(peerNode, localServices, remoteServices);
+
+				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+					CoreBundleActivator.getTraceHandler().trace("Services: local = " + localServices + ", remote = " + remoteServices, //$NON-NLS-1$ //$NON-NLS-2$
+																ITracing.ID_TRACE_SCANNER, ScannerRunnable.this);
+				}
+			}
 
 			// If we don't queried the DNS name of the peer, or the peer IP changed,
 			// trigger a query (can run in any thread, outside TCF dispatch and UI
@@ -222,8 +251,6 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 				}
 
 				if (!sameNet) {
-					// Get the parent model from the model mode
-					final ILocatorModel model = (ILocatorModel)peerNode.getAdapter(ILocatorModel.class);
 					if (model != null) {
 						// Use the open channel to ask the remote peer what other peers it knows
 						ILocator locator = channel.getRemoteService(ILocator.class);
@@ -330,6 +357,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 		if (channel != null) {
 			// Remove ourself as channel listener
 			channel.removeChannelListener(this);
+		}
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+			CoreBundleActivator.getTraceHandler().trace("Scanner runnable onChannelClosed invoked for peer '" + peerNode.getName() + "' (" + peerNode.getPeerId() + "). Error was: " + (error != null ? error.getLocalizedMessage() : null), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_SCANNER, ScannerRunnable.this);
 		}
 
 		// Set the peer state property, if the scanner the runnable

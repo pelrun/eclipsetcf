@@ -21,7 +21,9 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IScanner;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
@@ -48,6 +50,10 @@ public class Scanner extends Job implements IScanner {
 		super(Scanner.class.getName());
 		Assert.isNotNull(parentModel);
 		this.parentModel = parentModel;
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+			CoreBundleActivator.getTraceHandler().trace("Scanner created.", ITracing.ID_TRACE_SCANNER, Scanner.this); //$NON-NLS-1$
+		}
 	}
 
 	/**
@@ -101,6 +107,12 @@ public class Scanner extends Job implements IScanner {
 				for (IPeerModel peer : peers) {
 					// Check for the progress monitor getting canceled
 					if (monitor.isCanceled() || isTerminated()) break;
+
+					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+						CoreBundleActivator.getTraceHandler().trace("Schedule scanner runnable for peer '" + peer.getName() + "' (" + peer.getPeerId() + ")", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+																	ITracing.ID_TRACE_SCANNER, Scanner.this);
+					}
+
 					// Create the scanner runnable
 					Runnable runnable = new ScannerRunnable(this, peer);
 					// Submit for execution
@@ -134,6 +146,10 @@ public class Scanner extends Job implements IScanner {
 	@Override
 	public void terminate() {
 		terminated.set(true);
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+			CoreBundleActivator.getTraceHandler().trace("Scanner terminated.", ITracing.ID_TRACE_SCANNER, Scanner.this); //$NON-NLS-1$
+		}
 	}
 
 	/* (non-Javadoc)

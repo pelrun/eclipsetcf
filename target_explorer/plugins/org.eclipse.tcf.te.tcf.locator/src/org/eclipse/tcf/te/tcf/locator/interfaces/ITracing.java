@@ -29,4 +29,9 @@ public interface ITracing {
 	 * If enabled, prints information about channel state change listener method invocations.
 	 */
 	public static String ID_TRACE_CHANNEL_STATE_CHANGE_LISTENER = "trace/channelStateChangeListener"; //$NON-NLS-1$
+
+	/**
+	 * If enabled, prints information about the scanner.
+	 */
+	public static String ID_TRACE_SCANNER = "trace/scanner"; //$NON-NLS-1$
 }

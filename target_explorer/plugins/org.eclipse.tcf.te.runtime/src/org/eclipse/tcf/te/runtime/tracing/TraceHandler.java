@@ -214,6 +214,18 @@ public class TraceHandler {
 	}
 
 	/**
+	 * Check whether a trace slot is enabled. The debug mode defaults
+	 * to 0.
+	 *
+	 * @param slotId The name of the slot.
+	 *
+	 * @return <code>true</code> if the slot is enabled, <code>false</code> otherwise.
+	 */
+	public final boolean isSlotEnabled(String slotId) {
+		return isSlotEnabled(0, slotId);
+	}
+
+	/**
 	 * Check whether a trace slot is enabled with the given debug mode.
 	 *
 	 * @param debugMode The debug mode
