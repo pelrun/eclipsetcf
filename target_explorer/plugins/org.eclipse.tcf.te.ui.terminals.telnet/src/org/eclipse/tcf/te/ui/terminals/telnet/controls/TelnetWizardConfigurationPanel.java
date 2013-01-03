@@ -63,11 +63,12 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 
 		TelnetConnector conn = new TelnetConnector();
 		telnetSettings = (TelnetSettings) conn.getTelnetSettings();
-		telnetSettingsPage = conn.makeSettingsPage();
-		telnetSettingsPage.createControl(panel);
 		telnetSettings.setHost(getSelectionHost());
 		// MWE otherwise we don't get a valid default selection of the combo
 		telnetSettings.setNetworkPort(NetworkPortMap.PROP_VALUETELNET);
+
+		telnetSettingsPage = conn.makeSettingsPage();
+		telnetSettingsPage.createControl(panel);
 
 		// Create the encoding selection combo
 		createEncodingUI(panel, true);
