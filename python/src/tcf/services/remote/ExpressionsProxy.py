@@ -1,5 +1,5 @@
 # *******************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -102,7 +102,7 @@ class ExpressionsProxy(expressions.ExpressionsService):
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    if args[1]: ctx = expressions.Expression(service, args[1])
+                    if args[1]: ctx = expressions.Expression(args[1])
                 done.doneGetContext(self.token, error, ctx)
         return GetContextCommand().token
 
