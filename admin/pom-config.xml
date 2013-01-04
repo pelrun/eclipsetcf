@@ -43,6 +43,7 @@
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
 		<tcf-stream>development</tcf-stream>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- JaCoCo global properties -->
 		<jacoco.skip>false</jacoco.skip>
