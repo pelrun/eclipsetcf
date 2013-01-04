@@ -426,9 +426,8 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     	IWizardConfigurationPanel panel = this.settings.getConfigurationPanel(terminals.getText());
 
     	if(!panel.isValid()){
-			String strTitle = Messages.LaunchTerminalSettingsDialog_error_title;
 			MessageBox mb = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
-			mb.setText(strTitle);
+			mb.setText(Messages.LaunchTerminalSettingsDialog_error_title);
 			mb.setMessage(Messages.LaunchTerminalSettingsDialog_error_invalidSettings);
 			mb.open();
 			return;

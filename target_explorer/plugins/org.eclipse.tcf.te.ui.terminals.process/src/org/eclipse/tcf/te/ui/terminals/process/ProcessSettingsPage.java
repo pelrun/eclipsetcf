@@ -25,9 +25,9 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
+import org.eclipse.tm.internal.terminal.provisional.api.AbstractSettingsPage;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 
@@ -35,7 +35,7 @@ import org.osgi.framework.Bundle;
  * Process connector settings page implementation.
  */
 @SuppressWarnings("restriction")
-public class ProcessSettingsPage implements ISettingsPage {
+public class ProcessSettingsPage extends AbstractSettingsPage {
 	private Text processImageSelectorControl;
 	private Button processImageSelectorControlButton;
 	private Text processArgumentsControl;
