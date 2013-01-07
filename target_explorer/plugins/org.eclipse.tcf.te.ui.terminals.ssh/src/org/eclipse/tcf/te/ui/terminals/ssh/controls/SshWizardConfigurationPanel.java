@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -23,10 +23,12 @@ import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
+import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.ssh.SshConnector;
@@ -68,8 +70,20 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		sshSettings = (SshSettings) conn.getSshSettings();
 		sshSettings.setHost(getSelectionHost());
 		sshSettings.setUser(getDefaultUser());
+
 		sshSettingsPage = conn.makeSettingsPage();
 		sshSettingsPage.createControl(panel);
+
+		// Add the listener to the settings page
+		if (getParentControl() instanceof IValidatingContainer) {
+			sshSettingsPage.addListener(new ISettingsPage.Listener() {
+
+				@Override
+				public void onSettingsPageChanged(Control control) {
+					((IValidatingContainer)getParentControl()).validate();
+				}
+			});
+		}
 
 		// Create the encoding selection combo
 		createEncodingUI(panel, true);

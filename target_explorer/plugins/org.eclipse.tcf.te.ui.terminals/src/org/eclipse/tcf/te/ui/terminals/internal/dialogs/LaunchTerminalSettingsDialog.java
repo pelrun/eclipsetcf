@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -18,15 +18,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -41,6 +44,7 @@ import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog;
+import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.help.IContextHelpIds;
@@ -55,7 +59,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 /**
  * Launch terminal settings dialog implementation.
  */
-public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
+public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IValidatingContainer {
 	// The parent selection
 	private ISelection selection = null;
 
@@ -74,7 +78,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
 	/**
 	 * The control managing the terminal setting panels.
 	 */
-	protected class SettingsPanelControl extends BaseWizardConfigurationPanelControl {
+	protected class SettingsPanelControl extends BaseWizardConfigurationPanelControl implements IValidatingContainer {
 
 		/**
 		 * Constructor.
@@ -118,6 +122,16 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     		}
 
             super.showConfigurationPanel(key);
+
+            validate();
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
+         */
+        @Override
+        public void validate() {
+        	LaunchTerminalSettingsDialog.this.validate();
         }
 	}
 
@@ -243,6 +257,19 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     }
 
     /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.Dialog#createContents(org.eclipse.swt.widgets.Composite)
+     */
+    @Override
+    protected Control createContents(Composite parent) {
+        Control composite = super.createContents(parent);
+
+        // Validate the dialog after having created all the content
+        validate();
+
+        return composite;
+    }
+
+    /* (non-Javadoc)
      * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
      */
     @Override
@@ -295,6 +322,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
         	configPanel.setSelection(getSelection());
         	// Add it
         	settings.addConfigurationPanel(terminalLabel, configPanel);
+        	// Attach the listener
         }
 
         // Create the toolkit
@@ -389,6 +417,16 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     }
 
     /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
+     */
+    @Override
+    public void validate() {
+    	IWizardConfigurationPanel panel = this.settings.getConfigurationPanel(terminals.getText());
+    	Button okButton = getButton(IDialogConstants.OK_ID);
+    	SWTControlUtil.setEnabled(okButton, panel.isValid());
+    }
+
+    /* (non-Javadoc)
      * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#saveWidgetValues()
      */
     @Override
@@ -428,7 +466,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog {
     	if(!panel.isValid()){
 			MessageBox mb = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
 			mb.setText(Messages.LaunchTerminalSettingsDialog_error_title);
-			mb.setMessage(Messages.LaunchTerminalSettingsDialog_error_invalidSettings);
+			mb.setMessage(NLS.bind(Messages.LaunchTerminalSettingsDialog_error_invalidSettings, panel.getMessage() != null ? panel.getMessage() : Messages.LaunchTerminalSettingsDialog_error_unknownReason));
 			mb.open();
 			return;
     	}
