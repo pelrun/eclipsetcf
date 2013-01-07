@@ -26,6 +26,7 @@ import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
+import org.eclipse.tm.internal.terminal.provisional.api.AbstractSettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.telnet.NetworkPortMap;
 import org.eclipse.tm.internal.terminal.telnet.TelnetConnector;
@@ -70,6 +71,9 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 		telnetSettings.setNetworkPort(NetworkPortMap.PROP_VALUETELNET);
 
 		telnetSettingsPage = conn.makeSettingsPage();
+		if (telnetSettingsPage instanceof AbstractSettingsPage) {
+			((AbstractSettingsPage)telnetSettingsPage).setHasControlDecoration(true);
+		}
 		telnetSettingsPage.createControl(panel);
 
 		// Add the listener to the settings page

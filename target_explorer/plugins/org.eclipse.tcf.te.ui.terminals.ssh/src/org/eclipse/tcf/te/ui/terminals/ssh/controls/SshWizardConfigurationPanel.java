@@ -30,6 +30,7 @@ import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
+import org.eclipse.tm.internal.terminal.provisional.api.AbstractSettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.ssh.SshConnector;
 import org.eclipse.tm.internal.terminal.ssh.SshSettings;
@@ -72,6 +73,9 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		sshSettings.setUser(getDefaultUser());
 
 		sshSettingsPage = conn.makeSettingsPage();
+		if (sshSettingsPage instanceof AbstractSettingsPage) {
+			((AbstractSettingsPage)sshSettingsPage).setHasControlDecoration(true);
+		}
 		sshSettingsPage.createControl(panel);
 
 		// Add the listener to the settings page
