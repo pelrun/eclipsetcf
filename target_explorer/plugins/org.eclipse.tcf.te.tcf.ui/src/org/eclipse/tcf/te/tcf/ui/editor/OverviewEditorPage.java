@@ -35,6 +35,7 @@ import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
@@ -162,6 +163,31 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 
 		return result;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInput(org.eclipse.ui.IEditorInput)
+	 */
+	@Override
+	protected void setInput(IEditorInput input) {
+	    super.setInput(input);
+		if (getEditorInputNode() instanceof IPeerModel) {
+			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerModel)getEditorInputNode()));
+			Protocol.invokeLater(runnable);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInputWithNotify(org.eclipse.ui.IEditorInput)
+	 */
+	@Override
+	protected void setInputWithNotify(IEditorInput input) {
+	    super.setInputWithNotify(input);
+		if (getEditorInputNode() instanceof IPeerModel) {
+			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerModel)getEditorInputNode()));
+			Protocol.invokeLater(runnable);
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#postDoSave(org.eclipse.core.runtime.IProgressMonitor)
 	 */
