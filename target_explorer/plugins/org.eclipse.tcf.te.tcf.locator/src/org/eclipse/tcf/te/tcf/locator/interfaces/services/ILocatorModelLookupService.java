@@ -62,4 +62,12 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @return The peer model instances, or an empty list if the listed services are not supported by any of the peers.
 	 */
 	public IPeerModel[] lkupPeerModelBySupportedServices(String[] expectedLocalServices, String[] expectedRemoteServices);
+
+	/**
+	 * Lookup the matching static peer model instances for the given peer model node.
+	 *
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
+	 * @return The matching peer model instances or an empty list.
+	 */
+	public IPeerModel[] lkupMatchingStaticPeerModels(IPeerModel peerNode);
 }

@@ -84,6 +84,13 @@ public class LocatorListener implements ILocator.LocatorListener {
 					// And schedule for immediate status update
 					Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
 					Protocol.invokeLater(runnable);
+					// Trigger an immediate status update for all matching static peers too
+					IPeerModel[] matches = model.getService(ILocatorModelLookupService.class).lkupMatchingStaticPeerModels(peerNode);
+					for (IPeerModel match : matches) {
+						// And schedule for immediate status update
+						runnable = new ScannerRunnable(model.getScanner(), match);
+						Protocol.invokeLater(runnable);
+					}
 				}
 			} else {
 				// Peer node found, update the peer instance
@@ -97,9 +104,15 @@ public class LocatorListener implements ILocator.LocatorListener {
 						model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, myPeer, true);
 						if (changed) peerNode.setChangeEventsEnabled(true);
 						peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, peerNode.getPeer());
+						// And schedule for immediate status update
+						Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
+						Protocol.invokeLater(runnable);
 					}
 				} else {
 					peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+					// And schedule for immediate status update
+					Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
+					Protocol.invokeLater(runnable);
 				}
 			}
 		}

@@ -407,6 +407,12 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		boolean isStatic = node.isStatic();
 		if (isStatic) return node;
 
+		// Skip validation if the transport type is not TCP or SSL
+		String transport = peer.getTransportName();
+		if (transport == null || !"TCP".equals(transport) && !"SSL".equals(transport)){ //$NON-NLS-1$ //$NON-NLS-2$
+			return node;
+		}
+
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
 			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd( " + peer.getID() + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
