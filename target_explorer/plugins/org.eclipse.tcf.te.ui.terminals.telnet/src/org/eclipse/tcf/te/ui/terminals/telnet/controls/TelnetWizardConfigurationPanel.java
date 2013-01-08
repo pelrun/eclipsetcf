@@ -106,6 +106,21 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 	 */
 	@Override
     public void setupData(IPropertiesContainer data) {
+		if (data == null || telnetSettings == null || telnetSettingsPage == null) return;
+
+		String value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_HOST);
+		if (value != null) telnetSettings.setHost(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_PORT);
+		if (value != null) telnetSettings.setNetworkPort(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		if (value != null) telnetSettings.setTimeout(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
+		if (value != null) setEncoding(value);
+
+		telnetSettingsPage.loadSettings();
     }
 
 	/* (non-Javadoc)

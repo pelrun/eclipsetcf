@@ -108,6 +108,30 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 */
 	@Override
     public void setupData(IPropertiesContainer data) {
+		if (data == null || sshSettings == null || sshSettingsPage == null) return;
+
+		String value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_HOST);
+		if (value != null) sshSettings.setHost(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_PORT);
+		if (value != null) sshSettings.setPort(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		if (value != null) sshSettings.setTimeout(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE);
+		if (value != null) sshSettings.setKeepalive(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_PASSWORD);
+		if (value != null) sshSettings.setPassword(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_USER);
+		if (value != null) sshSettings.setUser(value);
+
+		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
+		if (value != null) setEncoding(value);
+
+		sshSettingsPage.loadSettings();
     }
 
 	/**

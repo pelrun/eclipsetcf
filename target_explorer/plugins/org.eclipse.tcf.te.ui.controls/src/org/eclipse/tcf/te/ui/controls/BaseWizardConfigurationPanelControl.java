@@ -34,6 +34,8 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	private Composite panel;
 	private StackLayout panelLayout;
 
+	private IWizardConfigurationPanel activeConfigurationPanel = null;
+
 	/**
 	 * Constructor.
 	 *
@@ -189,9 +191,19 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 
 		IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
 		if (configPanel != null && configPanel.getControl() != null) {
+			activeConfigurationPanel = configPanel;
 			panelLayout.topControl = configPanel.getControl();
 			panel.layout();
 		}
+	}
+
+	/**
+	 * Returns the currently active configuration panel.
+	 *
+	 * @return The active configuration panel or <code>null</code>.
+	 */
+	public IWizardConfigurationPanel getActiveConfigurationPanel() {
+		return activeConfigurationPanel;
 	}
 
 	/* (non-Javadoc)

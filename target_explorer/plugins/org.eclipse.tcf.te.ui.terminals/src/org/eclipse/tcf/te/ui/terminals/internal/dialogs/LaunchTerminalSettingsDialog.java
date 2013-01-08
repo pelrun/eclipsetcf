@@ -297,7 +297,22 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         terminals.addSelectionListener(new SelectionAdapter() {
         	@Override
         	public void widgetSelected(SelectionEvent e) {
+        		// Get the old panel
+        		IWizardConfigurationPanel oldPanel = settings.getActiveConfigurationPanel();
+        		// Extract the current settings in an special properties container
+        		IPropertiesContainer data = new PropertiesContainer();
+        		if (oldPanel instanceof IDataExchangeNode) ((IDataExchangeNode)oldPanel).extractData(data);
+        		// Clean out settings which are never passed between the panels
+        		data.setProperty(ITerminalsConnectorConstants.PROP_IP_PORT, null);
+        		data.setProperty(ITerminalsConnectorConstants.PROP_TIMEOUT, null);
+            	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, null);
+            	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, null);
+        		// Switch to the new panel
         		settings.showConfigurationPanel(terminals.getText());
+        		// Get the new panel
+        		IWizardConfigurationPanel newPanel = settings.getActiveConfigurationPanel();
+        		// Re-setup the relevant data
+        		if (newPanel instanceof IDataExchangeNode) ((IDataExchangeNode)newPanel).setupData(data);
         	}
 		});
 
@@ -421,7 +436,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
      */
     @Override
     public void validate() {
-    	IWizardConfigurationPanel panel = this.settings.getConfigurationPanel(terminals.getText());
+    	IWizardConfigurationPanel panel = this.settings.getActiveConfigurationPanel();
     	Button okButton = getButton(IDialogConstants.OK_ID);
     	SWTControlUtil.setEnabled(okButton, panel.isValid());
     }
@@ -461,7 +476,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
      */
     @Override
     protected void okPressed() {
-    	IWizardConfigurationPanel panel = this.settings.getConfigurationPanel(terminals.getText());
+    	IWizardConfigurationPanel panel = this.settings.getActiveConfigurationPanel();
 
     	if(!panel.isValid()){
 			MessageBox mb = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
