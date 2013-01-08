@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -296,7 +298,16 @@ public class GeneralInformationSection extends AbstractSection {
 
 		// Extract the widget data into the working copy
 		if (nameControl != null) {
-			wc.setProperty(IPeer.ATTR_NAME, nameControl.getEditFieldControlText());
+			String name = nameControl.getEditFieldControlText();
+			if (name != null && !"".equals(name.trim())) { //$NON-NLS-1$
+				wc.setProperty(IPeer.ATTR_NAME, name);
+			} else {
+				// Build up the message template
+				String template = NLS.bind(Messages.OverviewEditorPage_error_save, wc.getStringProperty(IPeer.ATTR_NAME), Messages.PossibleCause);
+				// Handle the status
+				Status status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), NLS.bind(Messages.GeneralInformationSection_error_emptyName, nameControl.getMessage()));
+				StatusHandlerUtil.handleStatus(status, od, template, null, IContextHelpIds.MESSAGE_SAVE_FAILED, GeneralInformationSection.this, null);
+			}
 		}
 
 		// If the peer name changed, copy the working copy data back to
@@ -318,9 +329,7 @@ public class GeneralInformationSection extends AbstractSection {
 					// Update the peer node instance (silently)
 					boolean changed = node.setChangeEventsEnabled(false);
 					node.setProperty(IPeerModelProperties.PROP_INSTANCE, newPeer);
-					if (changed) {
-						node.setChangeEventsEnabled(true);
-					}
+					if (changed) node.setChangeEventsEnabled(true);
 				}
 			});
 		}

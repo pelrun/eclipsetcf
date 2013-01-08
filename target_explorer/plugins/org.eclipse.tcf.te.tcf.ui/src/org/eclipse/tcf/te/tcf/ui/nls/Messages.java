@@ -65,6 +65,7 @@ public class Messages extends NLS {
 	public static String GeneralInformationSection_state_3;
 	public static String GeneralInformationSection_state_4;
 	public static String GeneralInformationSection_error_delete;
+	public static String GeneralInformationSection_error_emptyName;
 
 	public static String LabelProviderDelegate_state_0;
 	public static String LabelProviderDelegate_state_1;
@@ -95,7 +96,9 @@ public class Messages extends NLS {
 	public static String RemotePeerDiscoveryRootNode_label;
 
 	public static String PeerIdControl_label;
+
 	public static String PeerNameControl_label;
+	public static String PeerNameControl_Information_MissingName;
 
 	public static String TransportTypeControl_label;
 	public static String TransportTypeControl_tcpType_label;

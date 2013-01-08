@@ -12,6 +12,8 @@ package org.eclipse.tcf.te.tcf.ui.controls;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
+import org.eclipse.tcf.te.ui.controls.validator.TextValidator;
+import org.eclipse.tcf.te.ui.controls.validator.Validator;
 
 /**
  * Peer name control implementation.
@@ -33,4 +35,20 @@ public class PeerNameControl extends BaseEditBrowseTextControl {
 		setEditFieldLabel(Messages.PeerNameControl_label);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl#doCreateEditFieldValidator()
+	 */
+	@Override
+	protected Validator doCreateEditFieldValidator() {
+	    return new TextValidator(Validator.ATTR_MANDATORY);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl#configureEditFieldValidator(org.eclipse.tcf.te.ui.controls.validator.Validator)
+	 */
+	@Override
+	protected void configureEditFieldValidator(Validator validator) {
+		if (validator == null) return;
+		validator.setMessageText(TextValidator.INFO_MISSING_NAME, Messages.PeerNameControl_Information_MissingName);
+	}
 }

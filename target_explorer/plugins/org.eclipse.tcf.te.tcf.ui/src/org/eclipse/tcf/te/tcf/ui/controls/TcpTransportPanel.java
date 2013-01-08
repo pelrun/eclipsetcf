@@ -124,7 +124,13 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		NetworkAddressControl addressControl = getAddressControl();
 		if (addressControl != null) {
 			String address = addressControl.getEditFieldControlText();
-			if (address != null) isDirty |= !address.equals(data.getStringProperty(IPeer.ATTR_IP_HOST));
+			if (address != null) {
+				if ("".equals(address)) { //$NON-NLS-1$
+					isDirty |= data.getStringProperty(IPeer.ATTR_IP_HOST) != null && !address.equals(data.getStringProperty(IPeer.ATTR_IP_HOST));
+				} else {
+					isDirty |= !address.equals(data.getStringProperty(IPeer.ATTR_IP_HOST));
+				}
+			}
 		}
 
 		NetworkPortControl portControl = getPortControl();

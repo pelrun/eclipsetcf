@@ -131,6 +131,8 @@ public class Messages extends NLS {
 
 	public static String NumberValidator_Error_InvalidRange;
 
+	public static String TextValidator_Information_MissingName;
+
 	public static String NameControl_label;
 	public static String NameControl_info_missingValue;
 

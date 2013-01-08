@@ -78,6 +78,10 @@ public final class StatusHandlerUtil {
 					break;
 				}
 			}
+		} else if (msg != null) {
+			message.append(template != null ? NLS.bind(template, msg.trim()) : msg.trim());
+		} else if (template != null) {
+			message.append(NLS.bind(template, "")); //$NON-NLS-1$
 		}
 
 		if (message.length() > 0) {
