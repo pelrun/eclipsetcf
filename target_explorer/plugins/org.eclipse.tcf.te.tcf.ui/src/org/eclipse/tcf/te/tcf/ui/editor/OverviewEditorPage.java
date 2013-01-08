@@ -130,6 +130,7 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	    if (transportSection != null) transportSection.setActive(active);
 	    if (servicesSection != null) servicesSection.setActive(active);
 	    if (attributesSection != null) attributesSection.setActive(active);
+	    validate();
 	}
 
 	/* (non-Javadoc)
