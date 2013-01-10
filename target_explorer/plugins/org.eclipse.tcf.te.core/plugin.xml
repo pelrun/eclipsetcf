@@ -15,10 +15,10 @@
 <!-- Property tester contributions -->
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
-            class="org.eclipse.tcf.te.core.adapters.PropertyTester"
-            id="org.eclipse.tcf.te.core.adapters.PropertyTester"
+            class="org.eclipse.tcf.te.core.properties.PropertyTester"
+            id="org.eclipse.tcf.te.core.properties.PropertyTester"
             namespace="org.eclipse.tcf.te.core"
-            properties="hasAdapter,canAdaptTo"
+            properties="hasAdapter,canAdaptTo,hasEnvVar"
             type="java.lang.Object">
       </propertyTester>
       
