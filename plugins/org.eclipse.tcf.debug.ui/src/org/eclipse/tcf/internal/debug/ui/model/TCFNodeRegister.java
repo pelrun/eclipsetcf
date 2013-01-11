@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -59,7 +59,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
 
     private int index;
 
-    TCFNodeRegister(TCFNode parent, final String id) {
+    TCFNodeRegister(final TCFNode parent, final String id) {
         super(parent, id);
         if (parent instanceof TCFNodeStackFrame) is_stack_frame_register = true;
         else if (parent instanceof TCFNodeRegister) is_stack_frame_register = ((TCFNodeRegister)parent).is_stack_frame_register;
@@ -140,26 +140,46 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 }
                 if (!context.validate(this)) return false;
                 IRegisters.RegistersContext ctx = context.getData();
-                if (ctx == null || ctx.getSize() <= 0) {
-                    set(null, null, null);
+                int[] bits = ctx.getBitNumbers();
+                if (bits != null) {
+                    // handle bit fields
+                    TCFNodeRegister p = (TCFNodeRegister)parent;
+                    if (!p.value.validate(this)) return false;
+                    byte[] parent_value = p.value.getData();
+                    byte[] bitfield_value = new byte[(bits.length + 7) / 8];
+                    if (parent_value != null) {
+                        for (int pos = 0; pos < bits.length; pos++) {
+                            int bit = bits[pos];
+                            if (bit / 8 >= parent_value.length) continue;
+                            if ((parent_value[bit / 8] & (1 << (bit % 8))) == 0) continue;
+                            bitfield_value[pos / 8] |= 1 << (pos % 8);
+                        }
+                    }
+                    set(null, p.value.getError(), bitfield_value);
                     return true;
                 }
-                final TCFDataCache<?> cache = this;
-                command = ctx.get(new IRegisters.DoneGet() {
-                    public void doneGet(IToken token, Exception error, byte[] value) {
-                        if (command != token) return;
-                        command = null;
-                        if (error != null) {
-                            Boolean b = usePrevValue(cache);
-                            if (b == null) return;
-                            if (b) {
-                                set(null, null, prev_value);
-                                return;
-                            }
-                        }
-                        set(null, error, value);
+                else {
+                    if (ctx == null || ctx.getSize() <= 0) {
+                        set(null, null, null);
+                        return true;
                     }
-                });
+                    final TCFDataCache<?> cache = this;
+                    command = ctx.get(new IRegisters.DoneGet() {
+                        public void doneGet(IToken token, Exception error, byte[] value) {
+                            if (command != token) return;
+                            command = null;
+                            if (error != null) {
+                                Boolean b = usePrevValue(cache);
+                                if (b == null) return;
+                                if (b) {
+                                    set(null, null, prev_value);
+                                    return;
+                                }
+                            }
+                            set(null, error, value);
+                        }
+                    });
+                }
                 return false;
             }
         };
@@ -653,6 +673,8 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                             boolean big_endian = ctx.isBigEndian();
                             String input = (String)value;
                             String error = null;
+                            int[] bits = ctx.getBitNumbers();
+                            if (bits != null) size = (bits.length + 7) / 8;
                             if (TCFColumnPresentationRegister.COL_HEX_VALUE.equals(property)) {
                                 error = TCFNumberFormat.isValidHexNumber(input);
                                 if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, false, big_endian);
@@ -663,20 +685,60 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                             }
                             if (error != null) throw new Exception("Invalid value: " + value, new Exception(error));
                             if (bf != null) {
-                                ctx.set(bf, new IRegisters.DoneSet() {
-                                    public void doneSet(IToken token, Exception error) {
-                                        if (error != null) {
-                                            node.model.showMessageBox("Cannot modify register value", error);
-                                            done(Boolean.FALSE);
+                                // handle bit fields
+                                if (bits != null) {
+                                    TCFNodeRegister p = (TCFNodeRegister)node.parent;
+                                    if (!p.value.validate(this)) return;
+                                    byte[] parent_value = p.value.getData();
+                                    if (!p.context.validate(this)) return;
+                                    IRegisters.RegistersContext parent_context = p.context.getData();
+
+                                    if (parent_context != null && parent_value != null) {
+                                        byte[] new_value = new byte[parent_value.length];
+                                        System.arraycopy(parent_value, 0, new_value, 0, parent_value.length);
+                                        for (int pos = 0; pos < bits.length; pos++) {
+                                            int bit = bits[pos];
+                                            if (bit / 8 >= new_value.length) continue;
+                                            if ((bf[pos / 8] & (1 << (pos % 8))) == 0) {
+                                                new_value[bit / 8] &= ~(1 << (bit % 8));
+                                            }
+                                            else {
+                                                new_value[bit / 8] |= 1 << (bit % 8);
+                                            }
                                         }
-                                        else {
-                                            node.value.reset();
-                                            node.postStateChangedDelta();
-                                            done(Boolean.TRUE);
-                                        }
+                                        parent_context.set(new_value, new IRegisters.DoneSet() {
+                                            public void doneSet(IToken token, Exception error) {
+                                                TCFNodeRegister p = (TCFNodeRegister)node.parent;
+                                                if (error != null) {
+                                                    p.model.showMessageBox("Cannot modify register value", error);
+                                                    done(Boolean.FALSE);
+                                                }
+                                                else {
+                                                    p.value.reset();
+                                                    p.postStateChangedDelta();
+                                                    done(Boolean.TRUE);
+                                                }
+                                            }
+                                        });
+                                        return;
                                     }
-                                });
-                                return;
+                                }
+                                else {
+                                    ctx.set(bf, new IRegisters.DoneSet() {
+                                        public void doneSet(IToken token, Exception error) {
+                                            if (error != null) {
+                                                node.model.showMessageBox("Cannot modify register value", error);
+                                                done(Boolean.FALSE);
+                                            }
+                                            else {
+                                                node.value.reset();
+                                                node.postStateChangedDelta();
+                                                done(Boolean.TRUE);
+                                            }
+                                        }
+                                    });
+                                    return;
+                                }
                             }
                         }
                         done(Boolean.FALSE);
