@@ -53,7 +53,7 @@ public class SetupWizardDialog extends Wizard {
         if (!canFinish()) return false;
         IWizardPage page = getContainer().getCurrentPage();
         if (page instanceof WizardPropsPage) {
-            if (!((WizardPropsPage)page).performFinish()) return false;;
+            if (!((WizardPropsPage)page).performFinish()) return false;
         }
         return true;
     }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,11 @@ import org.eclipse.ui.console.IOConsoleInputStream;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 
 class TCFConsole {
+    public static final int
+        TYPE_PROCESS = 1,
+        TYPE_CMD_LINE = 2,
+        TYPE_DPRINTF = 3;
+
     private final TCFModel model;
     private final IOConsole console;
     private final Display display;
@@ -90,12 +95,12 @@ class TCFConsole {
                                         }
                                     }
                                 }
-                                else {
+                                else if (process_id != null) {
                                     model.getLaunch().writeProcessInputStream(process_id, buf, 0, n);
                                 }
                             }
                             catch (Exception x) {
-                                model.onProcessStreamError(process_id, 0, x, 0);
+                                if (process_id != null) model.onProcessStreamError(process_id, 0, x, 0);
                             }
                         }
                     });
@@ -176,17 +181,27 @@ class TCFConsole {
         }
     };
 
-    /* process_id == null means debug console */
-    TCFConsole(final TCFModel model, String process_id) {
+    TCFConsole(final TCFModel model, int type, String process_id) {
         this.model = model;
         this.process_id = process_id;
         display = model.getDisplay();
         out_queue = new LinkedList<Message>();
         String image = process_id != null ? ImageCache.IMG_PROCESS_RUNNING : ImageCache.IMG_TCF;
-        console = new IOConsole(
-                "TCF " + (process_id != null ? process_id : "Debugger"), null,
+        String title = "TCF";
+        switch (type) {
+        case TYPE_PROCESS:
+            title += " " + process_id;
+            break;
+        case TYPE_CMD_LINE:
+            title += " Debugger";
+            break;
+        case TYPE_DPRINTF:
+            title += " DPrintf";
+            break;
+        }
+        console = new IOConsole(title, null,
                 ImageCache.getImageDescriptor(image), "UTF-8", true);
-        cmd_line = process_id != null ? null : new TCFCommandLine();
+        cmd_line = type == TYPE_CMD_LINE ? new TCFCommandLine() : null;
         if (cmd_line != null) write(0, prompt);
         display.asyncExec(new Runnable() {
             public void run() {

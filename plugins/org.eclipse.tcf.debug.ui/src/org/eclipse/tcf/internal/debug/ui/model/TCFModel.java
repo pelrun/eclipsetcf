@@ -303,8 +303,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private final Map<IWorkbenchPart,TCFSnapshot> locks = new HashMap<IWorkbenchPart,TCFSnapshot>();
     private final Map<IWorkbenchPart,Integer> lock_policy = new HashMap<IWorkbenchPart,Integer>();
 
-    private final Map<String,TCFConsole> process_consoles = new HashMap<String,TCFConsole>();;
+    private final Map<String,TCFConsole> process_consoles = new HashMap<String,TCFConsole>();
     private final List<TCFConsole> debug_consoles = new ArrayList<TCFConsole>();
+    private TCFConsole dprintf_console;
 
     private static final Map<ILaunchConfiguration,IEditorInput> editor_not_found =
         new HashMap<ILaunchConfiguration,IEditorInput>();
@@ -820,9 +821,18 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     }
 
     void onProcessOutput(String process_id, final int stream_id, byte[] data) {
-        TCFConsole c = process_consoles.get(process_id);
-        if (c == null) process_consoles.put(process_id, c = new TCFConsole(this, process_id));
-        c.write(stream_id, data);
+        if (process_id != null) {
+            TCFConsole c = process_consoles.get(process_id);
+            if (c == null) process_consoles.put(process_id,
+                    c = new TCFConsole(this, TCFConsole.TYPE_PROCESS, process_id));
+            c.write(stream_id, data);
+        }
+        else {
+            if (dprintf_console == null) {
+                dprintf_console = new TCFConsole(TCFModel.this, TCFConsole.TYPE_DPRINTF, null);
+            }
+            dprintf_console.write(stream_id, data);
+        }
     }
 
     void onProcessStreamError(String process_id, int stream_id, Exception x, int lost_size) {
@@ -1022,6 +1032,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         expr_manager.removeExpressionListener(expressions_listener);
         for (TCFConsole c : process_consoles.values()) c.close();
         for (TCFConsole c : debug_consoles) c.close();
+        if (dprintf_console != null) dprintf_console.close();
     }
 
     void addNode(String id, TCFNode node) {
@@ -1885,7 +1896,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      * Open debugger console that provide command line UI for the debugger.
      */
     public void showDebugConsole() {
-        debug_consoles.add(new TCFConsole(this, null));
+        debug_consoles.add(new TCFConsole(this, TCFConsole.TYPE_CMD_LINE, null));
     }
 
     /**

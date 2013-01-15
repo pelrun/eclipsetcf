@@ -47,6 +47,7 @@ import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemory.MemoryContext;
+import org.eclipse.tcf.services.IDPrintf;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IProcesses;
@@ -157,7 +158,7 @@ public class TCFLaunch extends Launch {
     private final HashMap<String,TCFAction> active_actions = new HashMap<String,TCFAction>();
     private final HashMap<String,LinkedList<TCFAction>> context_action_queue = new HashMap<String,LinkedList<TCFAction>>();
     private final HashMap<String,Long> context_action_timestamps = new HashMap<String,Long>();
-    private final HashMap<String,String> stream_ids = new HashMap<String,String>();
+    private final HashMap<String,String> process_stream_ids = new HashMap<String,String>();
     private final LinkedList<LaunchStep> launch_steps = new LinkedList<LaunchStep>();
     private final LinkedList<String> redirection_path = new LinkedList<String>();
 
@@ -172,10 +173,12 @@ public class TCFLaunch extends Launch {
 
     private boolean supports_memory_map_preloading;
 
+    private String dprintf_stream_id;
+
     private final IStreams.StreamsListener streams_listener = new IStreams.StreamsListener() {
 
         public void created(String stream_type, String stream_id, String context_id) {
-            stream_ids.put(stream_id, context_id);
+            process_stream_ids.put(stream_id, context_id);
             if (process_start_command == null) {
                 disconnectStream(stream_id);
             }
@@ -366,6 +369,47 @@ public class TCFLaunch extends Launch {
                         Activator.getBreakpointsModel().downloadBreakpoints(channel, this);
                     }
                 };
+                final IDPrintf dprintf = getService(IDPrintf.class);
+                if (dprintf != null) {
+                    // Open dprintf stream:
+                    final IStreams.DoneRead done_read = new IStreams.DoneRead() {
+                        @Override
+                        public void doneRead(IToken token, Exception error, int lost_size, byte[] data, boolean eos) {
+                            if (data != null && data.length > 0) {
+                                for (LaunchListener l : getListeners()) l.onProcessOutput(TCFLaunch.this, null, 0, data);
+                            }
+                            if (error == null && !eos) streams.read(dprintf_stream_id, 0x1000, this);
+                        }
+                    };
+                    new LaunchStep() {
+                        @Override
+                        void start() throws Exception {
+                            dprintf.open(null, new IDPrintf.DoneCommandOpen() {
+                                @Override
+                                public void doneCommandOpen(IToken token, Exception error, final String id) {
+                                    if (error != null) {
+                                        channel.terminate(error);
+                                        return;
+                                    }
+                                    dprintf_stream_id = id;
+                                    streams.connect(id, new IStreams.DoneConnect() {
+                                        @Override
+                                        public void doneConnect(IToken token, Exception error) {
+                                            if (error != null) {
+                                                channel.terminate(error);
+                                                return;
+                                            }
+                                            streams.read(id, 0x1000, done_read);
+                                            streams.read(id, 0x1000, done_read);
+                                            streams.read(id, 0x1000, done_read);
+                                            done();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    };
+                }
             }
 
             // Call client launch sequence:
@@ -834,7 +878,7 @@ public class TCFLaunch extends Launch {
                         public void doneStart(IToken token, final Exception error, ProcessContext process) {
                             process_start_command = null;
                             if (error != null) {
-                                for (String id : new HashSet<String>(stream_ids.keySet())) disconnectStream(id);
+                                for (String id : new HashSet<String>(process_stream_ids.keySet())) disconnectStream(id);
                                 Protocol.sync(new Runnable() {
                                     public void run() {
                                         channel.terminate(error);
@@ -934,7 +978,7 @@ public class TCFLaunch extends Launch {
         final String inp_id = (String)process.getProperties().get(IProcesses.PROP_STDIN_ID);
         final String out_id = (String)process.getProperties().get(IProcesses.PROP_STDOUT_ID);
         final String err_id = (String)process.getProperties().get(IProcesses.PROP_STDERR_ID);
-        for (final String id : stream_ids.keySet().toArray(new String[stream_ids.size()])) {
+        for (final String id : process_stream_ids.keySet().toArray(new String[process_stream_ids.size()])) {
             if (id.equals(inp_id)) {
                 process_input_stream_id = id;
             }
@@ -955,7 +999,7 @@ public class TCFLaunch extends Launch {
         final IStreams streams = getService(IStreams.class);
         IStreams.DoneRead done = new IStreams.DoneRead() {
             public void doneRead(IToken token, Exception error, int lost_size, byte[] data, boolean eos) {
-                if (stream_ids.get(id) == null) return;
+                if (process_stream_ids.get(id) == null) return;
                 if (lost_size > 0) {
                     Exception x = new IOException("Process output data lost due buffer overflow");
                     for (LaunchListener l : getListeners()) l.onProcessStreamError(TCFLaunch.this, peocess_id, no, x, lost_size);
@@ -981,8 +1025,8 @@ public class TCFLaunch extends Launch {
     }
 
     private void disconnectStream(String id) {
-        assert stream_ids.get(id) != null;
-        stream_ids.remove(id);
+        assert process_stream_ids.get(id) != null;
+        process_stream_ids.remove(id);
         if (channel.getState() != IChannel.STATE_OPEN) return;
         IStreams streams = getService(IStreams.class);
         streams.disconnect(id, new IStreams.DoneDisconnect() {
@@ -1126,11 +1170,11 @@ public class TCFLaunch extends Launch {
         final String prs = process.getID();
         IStreams streams = getService(IStreams.class);
         if (streams == null) throw new IOException("Streams service not available");
-        if (stream_ids.get(id) == null) throw new IOException("Input stream not available");
+        if (process_stream_ids.get(id) == null) throw new IOException("Input stream not available");
         streams.write(id, buf, pos, len, new IStreams.DoneWrite() {
             public void doneWrite(IToken token, Exception error) {
                 if (error == null) return;
-                if (stream_ids.get(id) == null) return;
+                if (process_stream_ids.get(id) == null) return;
                 for (LaunchListener l : getListeners()) l.onProcessStreamError(TCFLaunch.this, prs, 0, error, len);
                 disconnectStream(id);
             }
@@ -1153,14 +1197,14 @@ public class TCFLaunch extends Launch {
         IProcesses processes = getService(IProcesses.class);
         processes.removeListener(prs_listener);
         IStreams streams = getService(IStreams.class);
-        for (String id : stream_ids.keySet()) {
+        for (String id : process_stream_ids.keySet()) {
             streams.disconnect(id, new IStreams.DoneDisconnect() {
                 public void doneDisconnect(IToken token, Exception error) {
                     if (error != null) channel.terminate(error);
                 }
             });
         }
-        stream_ids.clear();
+        process_stream_ids.clear();
         process_input_stream_id = null;
         process = null;
     }
@@ -1194,9 +1238,9 @@ public class TCFLaunch extends Launch {
                 }
             }));
         }
-        if (stream_ids.size() > 0) {
+        if (process_stream_ids.size() > 0) {
             IStreams streams = getService(IStreams.class);
-            for (String id : stream_ids.keySet()) {
+            for (String id : process_stream_ids.keySet()) {
                 cmds.add(streams.disconnect(id, new IStreams.DoneDisconnect() {
                     public void doneDisconnect(IToken token, Exception error) {
                         cmds.remove(token);
@@ -1205,9 +1249,19 @@ public class TCFLaunch extends Launch {
                     }
                 }));
             }
-            stream_ids.clear();
+            process_stream_ids.clear();
         }
         process_input_stream_id = null;
+        if (dprintf_stream_id != null) {
+            IStreams streams = getService(IStreams.class);
+            cmds.add(streams.disconnect(dprintf_stream_id, new IStreams.DoneDisconnect() {
+                public void doneDisconnect(IToken token, Exception error) {
+                    cmds.remove(token);
+                    if (error != null) channel.terminate(error);
+                    else if (cmds.isEmpty()) channel.close();
+                }
+            }));
+        }
         if (cmds.isEmpty()) channel.close();
     }
 
