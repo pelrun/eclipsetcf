@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.locator.services;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -158,11 +159,18 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			}
 
 			if (peerNode.getPeer() != peer) {
-				if ("RemotePeer".equals(peerNode.getPeer().getClass().getSimpleName())) { //$NON-NLS-1$
+				if (!peerNode.isStatic()) {
 					peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
 				} else {
-					// Merge user configured properties between the peers
-					model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, false);
+					String value = peerNode.getPeer().getAttributes().get(IPersistableNodeProperties.PROPERTY_URI);
+					URI uri = value != null ? URI.create(value) : null;
+					File file = uri != null && "file".equals(uri.getScheme()) ? new File(uri.normalize()) : null; //$NON-NLS-1$
+					if (file != null && !file.exists()) {
+						peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+					} else {
+						// Merge user configured properties between the peers
+						model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, false);
+					}
 				}
 			}
 
