@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,7 +64,8 @@ public interface IBreakpoints extends IService {
         PROP_TEMPORARY = "Temporary",             // Boolean
         PROP_EVENT_TYPE = "EventType",            // String
         PROP_EVENT_ARGS = "EventArgs",            // String or Object
-        PROP_CLIENT_DATA = "ClientData";          // Object
+        PROP_CLIENT_DATA = "ClientData",          // Object
+        PROP_ACTION = "Action";                   // String - expression or script
 
     /**
      * @deprecated

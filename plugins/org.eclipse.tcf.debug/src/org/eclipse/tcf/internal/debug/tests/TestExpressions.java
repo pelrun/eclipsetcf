@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,23 +25,28 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IBreakpoints;
+import org.eclipse.tcf.services.IDPrintf;
 import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.services.IExpressions;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IStackTrace;
+import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.services.ISymbols;
+import org.eclipse.tcf.services.IExpressions.Value;
 
 class TestExpressions implements ITCFTest,
     IRunControl.RunControlListener, IExpressions.ExpressionsListener, IBreakpoints.BreakpointsListener {
 
     private final TCFTestSuite test_suite;
     private final RunControl test_rc;
-    private final IDiagnostics diag;
-    private final IExpressions expr;
-    private final ISymbols syms;
-    private final IStackTrace stk;
-    private final IRunControl rc;
-    private final IBreakpoints bp;
+    private final IDiagnostics srv_diag;
+    private final IExpressions srv_expr;
+    private final ISymbols srv_syms;
+    private final IStackTrace srv_stk;
+    private final IRunControl srv_rc;
+    private final IBreakpoints srv_bp;
+    private final IDPrintf srv_dprintf;
+    private final IStreams srv_streams;
     private final Random rnd = new Random();
 
     private String test_id;
@@ -54,6 +59,7 @@ class TestExpressions implements ITCFTest,
     private boolean run_to_bp_done;
     private boolean loc_info_done;
     private boolean no_cpp;
+    private boolean dprintf_done;
     private boolean test_done;
     private boolean cancel_test_sent;
     private IRunControl.RunControlContext test_ctx;
@@ -63,6 +69,7 @@ class TestExpressions implements ITCFTest,
     private String[] stack_trace;
     private IStackTrace.StackTraceContext[] stack_frames;
     private String[] local_var_expr_ids;
+    private final Set<IToken> cmds = new HashSet<IToken>();
     private final Map<String,String> global_var_ids = new HashMap<String,String>();
     private final Map<String,String> local_var_ids = new HashMap<String,String>();
     private final Map<String,SymbolLocation> global_var_location = new HashMap<String,SymbolLocation>();
@@ -81,7 +88,7 @@ class TestExpressions implements ITCFTest,
         "tcf_cpp_test_bool",
     };
 
-    private static String[] test_expressions = {
+    private static final String[] test_expressions = {
         "func2_local1",
         "func2_local2",
         "func2_local3",
@@ -136,6 +143,20 @@ class TestExpressions implements ITCFTest,
         "enum_val1 == 1 && enum_val2 == 2 && enum_val3 == 3",
     };
 
+    private static final String[] test_dprintfs = {
+        "$printf", null,
+        "$printf(", null,
+        "$printf()", null,
+        "$printf(1)", null,
+        "$printf(\"abc\")", "abc",
+        "$printf(\"%s\",\"abc\")", "abc",
+        "$printf(\"%d\",1)", "1",
+        "$printf(\"%d\",enum_val2)", "2",
+        "$printf(\"%u\",func2_local3.f_enum)", "3",
+        "$printf(\"%g\",func2_local3.f_float)", "3.14",
+        "$printf(\"%g\",func2_local3.f_double)", "2.71",
+    };
+
     @SuppressWarnings("unused")
     private static class SymbolLocation {
         Exception error;
@@ -145,23 +166,25 @@ class TestExpressions implements ITCFTest,
     TestExpressions(TCFTestSuite test_suite, RunControl test_rc, IChannel channel) {
         this.test_suite = test_suite;
         this.test_rc = test_rc;
-        diag = channel.getRemoteService(IDiagnostics.class);
-        expr = channel.getRemoteService(IExpressions.class);
-        syms = channel.getRemoteService(ISymbols.class);
-        stk = channel.getRemoteService(IStackTrace.class);
-        rc = channel.getRemoteService(IRunControl.class);
-        bp = channel.getRemoteService(IBreakpoints.class);
+        srv_diag = channel.getRemoteService(IDiagnostics.class);
+        srv_expr = channel.getRemoteService(IExpressions.class);
+        srv_syms = channel.getRemoteService(ISymbols.class);
+        srv_stk = channel.getRemoteService(IStackTrace.class);
+        srv_rc = channel.getRemoteService(IRunControl.class);
+        srv_bp = channel.getRemoteService(IBreakpoints.class);
+        srv_dprintf = channel.getRemoteService(IDPrintf.class);
+        srv_streams = channel.getRemoteService(IStreams.class);
     }
 
     public void start() {
-        if (diag == null || expr == null || stk == null || rc == null || bp == null) {
+        if (srv_diag == null || srv_expr == null || srv_stk == null || srv_rc == null || srv_bp == null) {
             test_suite.done(this, null);
         }
         else {
-            expr.addListener(this);
-            rc.addListener(this);
-            bp.addListener(this);
-            diag.getTestList(new IDiagnostics.DoneGetTestList() {
+            srv_expr.addListener(this);
+            srv_rc.addListener(this);
+            srv_bp.addListener(this);
+            srv_diag.getTestList(new IDiagnostics.DoneGetTestList() {
                 public void doneGetTestList(IToken token, Throwable error, String[] list) {
                     if (!test_suite.isActive(TestExpressions.this)) return;
                     if (error != null) {
@@ -224,8 +247,9 @@ class TestExpressions implements ITCFTest,
     @SuppressWarnings("unchecked")
     private void runTest() {
         timer = 0;
+        if (cmds.size() > 0) return;
         if (bp_id == null) {
-            bp.set(null, new IBreakpoints.DoneCommand() {
+            srv_bp.set(null, new IBreakpoints.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) {
                         exit(error);
@@ -243,7 +267,7 @@ class TestExpressions implements ITCFTest,
             m.put(IBreakpoints.PROP_ID, bp_id);
             m.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
             m.put(IBreakpoints.PROP_LOCATION, "tcf_test_func3");
-            bp.set(new Map[]{ m }, new IBreakpoints.DoneCommand() {
+            srv_bp.set(new Map[]{ m }, new IBreakpoints.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) {
                         exit(error);
@@ -257,7 +281,7 @@ class TestExpressions implements ITCFTest,
             return;
         }
         if (test_ctx_id == null) {
-            diag.runTest(test_id, new IDiagnostics.DoneRunTest() {
+            srv_diag.runTest(test_id, new IDiagnostics.DoneRunTest() {
                 public void doneRunTest(IToken token, Throwable error, String id) {
                     if (error != null) {
                         exit(error);
@@ -277,7 +301,7 @@ class TestExpressions implements ITCFTest,
             return;
         }
         if (test_ctx == null) {
-            rc.getContext(test_ctx_id, new IRunControl.DoneGetContext() {
+            srv_rc.getContext(test_ctx_id, new IRunControl.DoneGetContext() {
                 public void doneGetContext(IToken token, Exception error, IRunControl.RunControlContext ctx) {
                     if (error != null) {
                         exit(error);
@@ -296,7 +320,7 @@ class TestExpressions implements ITCFTest,
             return;
         }
         if (thread_id == null) {
-            rc.getChildren(process_id, new IRunControl.DoneGetChildren() {
+            srv_rc.getChildren(process_id, new IRunControl.DoneGetChildren() {
                 public void doneGetChildren(IToken token, Exception error, String[] ids) {
                     if (error != null) {
                         exit(error);
@@ -316,7 +340,7 @@ class TestExpressions implements ITCFTest,
             return;
         }
         if (thread_ctx == null) {
-            rc.getContext(thread_id, new IRunControl.DoneGetContext() {
+            srv_rc.getContext(thread_id, new IRunControl.DoneGetContext() {
                 public void doneGetContext(IToken token, Exception error, IRunControl.RunControlContext ctx) {
                     if (error != null) {
                         exit(error);
@@ -355,7 +379,7 @@ class TestExpressions implements ITCFTest,
             return;
         }
         if (sym_func3 == null) {
-            diag.getSymbol(process_id, "tcf_test_func3", new IDiagnostics.DoneGetSymbol() {
+            srv_diag.getSymbol(process_id, "tcf_test_func3", new IDiagnostics.DoneGetSymbol() {
                 public void doneGetSymbol(IToken token, Throwable error, IDiagnostics.ISymbol symbol) {
                     if (error != null) {
                         exit(error);
@@ -382,7 +406,7 @@ class TestExpressions implements ITCFTest,
         }
         assert test_done || !canResume(thread_id);
         if (stack_trace == null) {
-            stk.getChildren(thread_id, new IStackTrace.DoneGetChildren() {
+            srv_stk.getChildren(thread_id, new IStackTrace.DoneGetChildren() {
                 public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                     if (error != null) {
                         exit(error);
@@ -399,7 +423,7 @@ class TestExpressions implements ITCFTest,
             return;
         }
         if (stack_frames == null) {
-            stk.getContext(stack_trace, new IStackTrace.DoneGetContext() {
+            srv_stk.getContext(stack_trace, new IStackTrace.DoneGetContext() {
                 public void doneGetContext(IToken token, Exception error, IStackTrace.StackTraceContext[] frames) {
                     if (error != null) {
                         exit(error);
@@ -416,7 +440,7 @@ class TestExpressions implements ITCFTest,
             return;
         }
         if (local_var_expr_ids == null) {
-            expr.getChildren(stack_trace[stack_trace.length - 2], new IExpressions.DoneGetChildren() {
+            srv_expr.getChildren(stack_trace[stack_trace.length - 2], new IExpressions.DoneGetChildren() {
                 public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                     if (error != null || context_ids == null) {
                         // Need to continue tests even if local variables info is not available.
@@ -434,7 +458,7 @@ class TestExpressions implements ITCFTest,
         }
         for (final String id : local_var_expr_ids) {
             if (expr_ctx.get(id) == null) {
-                expr.getContext(id, new IExpressions.DoneGetContext() {
+                srv_expr.getContext(id, new IExpressions.DoneGetContext() {
                     public void doneGetContext(IToken token, Exception error, IExpressions.Expression ctx) {
                         if (error != null) {
                             exit(error);
@@ -449,10 +473,10 @@ class TestExpressions implements ITCFTest,
                 return;
             }
         }
-        if (syms != null && local_var_expr_ids.length > 0) {
+        if (srv_syms != null && local_var_expr_ids.length > 0) {
             for (final String nm : global_var_names) {
                 if (!global_var_ids.containsKey(nm)) {
-                    syms.find(process_id, new BigInteger(suspended_pc), nm, new ISymbols.DoneFind() {
+                    srv_syms.find(process_id, new BigInteger(suspended_pc), nm, new ISymbols.DoneFind() {
                         public void doneFind(IToken token, Exception error, String symbol_id) {
                             if (error != null) {
                                 if (nm.startsWith("tcf_cpp_") && error instanceof IErrorReport &&
@@ -478,10 +502,10 @@ class TestExpressions implements ITCFTest,
                 }
             }
         }
-        if (syms != null && !loc_info_done) {
+        if (srv_syms != null && !loc_info_done) {
             for (final String id : global_var_ids.values()) {
                 if (id != null && global_var_location.get(id) == null) {
-                    syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
+                    srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
                         public void doneGetLocationInfo(IToken token, Exception error, Map<String, Object> props) {
                             SymbolLocation l = new SymbolLocation();
                             l.error = error;
@@ -514,7 +538,7 @@ class TestExpressions implements ITCFTest,
             }
             for (final String id : local_var_ids.values()) {
                 if (id != null && local_var_location.get(id) == null) {
-                    syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
+                    srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
                         public void doneGetLocationInfo(IToken token, Exception error, Map<String, Object> props) {
                             SymbolLocation l = new SymbolLocation();
                             l.error = error;
@@ -557,7 +581,7 @@ class TestExpressions implements ITCFTest,
                 if (txt.indexOf("(bool)") >= 0) continue;
             }
             if (expr_ctx.get(txt) == null) {
-                expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
+                srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
                     public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
                         if (error != null) {
                             exit(error);
@@ -574,7 +598,7 @@ class TestExpressions implements ITCFTest,
         }
         for (final String id : local_var_expr_ids) {
             if (expr_val.get(id) == null) {
-                expr.evaluate(id, new IExpressions.DoneEvaluate() {
+                srv_expr.evaluate(id, new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
                         if (error != null) {
                             exit(error);
@@ -590,7 +614,7 @@ class TestExpressions implements ITCFTest,
         }
         for (final String id : expr_ctx.keySet()) {
             if (expr_val.get(id) == null) {
-                expr.evaluate(expr_ctx.get(id).getID(), new IExpressions.DoneEvaluate() {
+                srv_expr.evaluate(expr_ctx.get(id).getID(), new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
                         if (error != null) {
                             exit(error);
@@ -610,13 +634,13 @@ class TestExpressions implements ITCFTest,
                 return;
             }
         }
-        if (syms != null) {
+        if (srv_syms != null) {
             for (final String id : expr_val.keySet()) {
                 if (expr_sym.get(id) == null) {
                     IExpressions.Value v = expr_val.get(id);
                     String type_id = v.getTypeID();
                     if (type_id != null) {
-                        syms.getContext(type_id, new ISymbols.DoneGetContext() {
+                        srv_syms.getContext(type_id, new ISymbols.DoneGetContext() {
                             public void doneGetContext(IToken token, Exception error, ISymbols.Symbol ctx) {
                                 if (error != null) {
                                     exit(error);
@@ -637,7 +661,7 @@ class TestExpressions implements ITCFTest,
             for (final String id : expr_sym.keySet()) {
                 if (expr_chld.get(id) == null) {
                     ISymbols.Symbol sym = expr_sym.get(id);
-                    syms.getChildren(sym.getID(), new ISymbols.DoneGetChildren() {
+                    srv_syms.getChildren(sym.getID(), new ISymbols.DoneGetChildren() {
                         public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                             if (error != null) {
                                 exit(error);
@@ -653,8 +677,102 @@ class TestExpressions implements ITCFTest,
                 }
             }
         }
+        if (srv_dprintf != null && !dprintf_done) {
+            cmds.add(srv_dprintf.open(null, new IDPrintf.DoneCommandOpen() {
+                int test_cnt;
+                int char_cnt;
+                @Override
+                public void doneCommandOpen(IToken token, Exception error, final String id) {
+                    cmds.remove(token);
+                    if (error != null) {
+                        exit(error);
+                        return;
+                    }
+                    cmds.add(srv_streams.connect(id, new IStreams.DoneConnect() {
+                        @Override
+                        public void doneConnect(IToken token, Exception error) {
+                            cmds.remove(token);
+                            if (error != null) {
+                                exit(error);
+                                return;
+                            }
+                        }
+                    }));
+                    cmds.add(srv_streams.read(id, 256, new IStreams.DoneRead() {
+                        @Override
+                        public void doneRead(IToken token, Exception error, int lost_size, byte[] data, boolean eos) {
+                            cmds.remove(token);
+                            if (error != null) {
+                                exit(error);
+                                return;
+                            }
+                            if (eos) {
+                                exit(new Exception("Unexpected EOS"));
+                                return;
+                            }
+                            for (byte b : data) {
+                                while (test_dprintfs[test_cnt * 2 + 1] == null) test_cnt++;
+                                char ch = test_dprintfs[test_cnt * 2 + 1].charAt(char_cnt++);
+                                if (b != ch) {
+                                    exit(new Exception("Invalid ouptput of $printf"));
+                                    return;
+                                }
+                                if (char_cnt == test_dprintfs[test_cnt * 2 + 1].length()) {
+                                    char_cnt = 0;
+                                    test_cnt++;
+                                }
+                            }
+                            if (test_cnt >= test_dprintfs.length / 2) {
+                                cmds.add(srv_streams.disconnect(id, new IStreams.DoneDisconnect() {
+                                    @Override
+                                    public void doneDisconnect(IToken token, Exception error) {
+                                        cmds.remove(token);
+                                        if (error != null) {
+                                            exit(error);
+                                            return;
+                                        }
+                                        runTest();
+                                    }
+                                }));
+                            }
+                            else {
+                                cmds.add(srv_streams.read(id, 256, this));
+                            }
+                        }
+                    }));
+                    for (int n = 0; n < test_dprintfs.length; n += 2) {
+                        String txt = test_dprintfs[n];
+                        final String res = test_dprintfs[n + 1];
+                        cmds.add(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
+                            public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
+                                cmds.remove(token);
+                                if (error != null) {
+                                    if (res != null) exit(error);
+                                }
+                                else {
+                                    if (res == null) exit(new Exception("Expressions service was expected to return error"));
+                                    expr_to_dispose.add(ctx.getID());
+                                    cmds.add(srv_expr.evaluate(ctx.getID(), new IExpressions.DoneEvaluate() {
+                                        @Override
+                                        public void doneEvaluate(IToken token, Exception error, Value value) {
+                                            cmds.remove(token);
+                                            if (error != null) {
+                                                exit(error);
+                                                return;
+                                            }
+                                        }
+                                    }));
+                                }
+                            }
+                        }));
+                    }
+                }
+            }));
+            dprintf_done = true;
+            return;
+        }
         for (final String id : expr_to_dispose) {
-            expr.dispose(id, new IExpressions.DoneDispose() {
+            srv_expr.dispose(id, new IExpressions.DoneDispose() {
                 public void doneDispose(IToken token, Exception error) {
                     if (error != null) {
                         exit(error);
@@ -672,9 +790,9 @@ class TestExpressions implements ITCFTest,
 
     private void exit(Throwable x) {
         if (!test_suite.isActive(this)) return;
-        expr.removeListener(this);
-        bp.removeListener(this);
-        rc.removeListener(this);
+        srv_expr.removeListener(this);
+        srv_bp.removeListener(this);
+        srv_rc.removeListener(this);
         test_suite.done(this, x);
     }
 
@@ -712,7 +830,7 @@ class TestExpressions implements ITCFTest,
         for (String id : context_ids) {
             if (id.equals(test_ctx_id)) {
                 if (test_done) {
-                    bp.set(null, new IBreakpoints.DoneCommand() {
+                    srv_bp.set(null, new IBreakpoints.DoneCommand() {
                         public void doneCommand(IToken token, Exception error) {
                             exit(error);
                         }
