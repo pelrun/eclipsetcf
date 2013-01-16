@@ -13,7 +13,7 @@
 TCF ContextQuery service interface.
 """
 
-from tcf import services
+from .. import services
 
 # Service name.
 NAME = "ContextQuery"

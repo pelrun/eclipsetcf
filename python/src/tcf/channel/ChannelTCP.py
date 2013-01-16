@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,20 +7,25 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
-import socket, types
-from tcf import protocol
-from StreamChannel import StreamChannel
+import socket
+import types
+
+from .. import protocol
+from .StreamChannel import StreamChannel
+
 
 class ChannelTCP(StreamChannel):
-    "ChannelTCP is a channel implementation that works on top of TCP sockets as a transport."
+    """ChannelTCP is a channel implementation that works on top of TCP sockets
+    as a transport."""
 
     def __init__(self, remote_peer, host, port):
         super(ChannelTCP, self).__init__(remote_peer)
         self.closed = False
         self.started = False
         channel = self
+
         class CreateSocket(object):
             def __call__(self):
                 try:
@@ -49,15 +54,18 @@ class ChannelTCP(StreamChannel):
             self.start()
 
     def get(self):
-        if self.closed: return -1
+        if self.closed:
+            return -1
         try:
             return ord(self.socket.recv(1))
         except socket.error as x:
-            if self.closed: return -1
+            if self.closed:
+                return -1
             raise x
 
     def getBuf(self, buf):
-        if self.closed: return -1
+        if self.closed:
+            return -1
         try:
             return self.socket.recv_into(buf)
         except TypeError:
@@ -66,11 +74,13 @@ class ChannelTCP(StreamChannel):
             self.getBuf = super(ChannelTCP, self).getBuf
             return self.getBuf(buf)
         except socket.error as x:
-            if self.closed: return -1
+            if self.closed:
+                return -1
             raise x
 
     def put(self, b):
-        if self.closed: return
+        if self.closed:
+            return
         t = type(b)
         if t is types.StringType:
             s = b
@@ -81,7 +91,8 @@ class ChannelTCP(StreamChannel):
         self.socket.send(s)
 
     def putBuf(self, buf):
-        if self.closed: return
+        if self.closed:
+            return
         t = type(buf)
         if t is types.StringType:
             s = buf

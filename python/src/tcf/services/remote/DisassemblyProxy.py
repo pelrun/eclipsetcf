@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,8 +9,8 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-from tcf.services import disassembly
-from tcf.channel.Command import Command
+from .. import disassembly
+from ...channel.Command import Command
 
 
 class DisassemblyProxy(disassembly.DisassemblyService):

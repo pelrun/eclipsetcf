@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,24 +7,29 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 import types
-from AbstractChannel import AbstractChannel, EOS, EOM
+from .AbstractChannel import AbstractChannel, EOS, EOM
 
 ESC = 3
 
+
 class StreamChannel(AbstractChannel):
-    """
-    Abstract channel implementation for stream oriented transport protocols.
+    """Abstract channel implementation for stream oriented transport protocols.
 
-    StreamChannel implements communication link connecting two end points (peers).
-    The channel asynchronously transmits messages: commands, results and events.
+    StreamChannel implements communication link connecting two end points
+    (peers).
+    The channel asynchronously transmits messages: commands, results and
+    events.
 
-    StreamChannel uses escape sequences to represent End-Of-Message and End-Of-Stream markers.
+    StreamChannel uses escape sequences to represent End-Of-Message and
+    End-Of-Stream markers.
 
-    Clients can subclass StreamChannel to support particular stream oriented transport (wire) protocol.
-    Also, see ChannelTCP for a concrete IChannel implementation that works on top of TCP sockets as a transport.
+    Clients can subclass StreamChannel to support particular stream oriented
+    transport (wire) protocol.
+    Also, see ChannelTCP for a concrete IChannel implementation that works on
+    top of TCP sockets as a transport.
     """
 
     def __init__(self, remote_peer, local_peer=None):
@@ -36,6 +41,7 @@ class StreamChannel(AbstractChannel):
 
     def get(self):
         pass
+
     def put(self, n):
         pass
 
@@ -45,49 +51,61 @@ class StreamChannel(AbstractChannel):
         while i < l:
             b = self.get()
             if b < 0:
-                if i == 0: return -1
+                if i == 0:
+                    return -1
                 break
             buf[i] = b
             i += 1
-            if i >= self.bin_data_size: break
+            if i >= self.bin_data_size:
+                break
         return i
 
     def putBuf(self, buf):
-        for b in buf: self.put(b & 0xff)
+        for b in buf:
+            self.put(b & 0xff)
 
     def read(self):
         while True:
             while self.buf_pos >= self.buf_len:
                 self.buf_len = self.getBuf(self.buf)
                 self.buf_pos = 0
-                if self.buf_len < 0: return EOS
+                if self.buf_len < 0:
+                    return EOS
             res = self.buf[self.buf_pos] & 0xff
             self.buf_pos += 1
             if self.bin_data_size > 0:
                 self.bin_data_size -= 1
                 return res
-            if res != ESC: return res
+            if res != ESC:
+                return res
             while self.buf_pos >= self.buf_len:
                 self.buf_len = self.getBuf(self.buf)
                 self.buf_pos = 0
-                if self.buf_len < 0: return EOS
+                if self.buf_len < 0:
+                    return EOS
             n = self.buf[self.buf_pos] & 0xff
             self.buf_pos += 1
-            if n == 0: return ESC
-            elif n == 1: return EOM
-            elif n == 2: return EOS
+            if n == 0:
+                return ESC
+            elif n == 1:
+                return EOM
+            elif n == 2:
+                return EOS
             elif n == 3:
                 for i in xrange(0, 100000, 7):
                     while self.buf_pos >= self.buf_len:
                         self.buf_len = self.getBuf(self.buf)
                         self.buf_pos = 0
-                        if self.buf_len < 0: return EOS
+                        if self.buf_len < 0:
+                            return EOS
                     m = self.buf[self.buf_pos] & 0xff
                     self.buf_pos += 1
                     self.bin_data_size |= (m & 0x7f) << i
-                    if (m & 0x80) == 0: break
+                    if (m & 0x80) == 0:
+                        break
             else:
-                if n < 0: return EOS
+                if n < 0:
+                    return EOS
                 assert False
 
     def writeByte(self, n):

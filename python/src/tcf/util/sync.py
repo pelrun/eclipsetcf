@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -11,8 +11,8 @@
 
 import threading
 import types
-from tcf import protocol
-from tcf.channel.Command import Command
+from .. import protocol
+from ..channel.Command import Command
 
 
 class DispatchWrapper(object):
@@ -91,7 +91,7 @@ class CommandControl(object):
 
         class GenericCommand(Command):
             _result = None
-            def done(self, error, args): #@IgnorePep8
+            def done(self, error, args):  # @IgnorePep8
                 resultArgs = None
                 if not error and args:
                     # error result is usually in args[0],

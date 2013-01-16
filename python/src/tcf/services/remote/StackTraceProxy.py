@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,10 +7,11 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
-from tcf.services import stacktrace
-from tcf.channel.Command import Command
+from .. import stacktrace
+from ...channel.Command import Command
+
 
 class StackTraceProxy(stacktrace.StackTraceService):
     def __init__(self, channel):
@@ -19,9 +20,14 @@ class StackTraceProxy(stacktrace.StackTraceService):
     def getChildren(self, parent_context_id, done):
         done = self._makeCallback(done)
         service = self
+
         class GetChildrenCommand(Command):
             def __init__(self):
-                super(GetChildrenCommand, self).__init__(service.channel, service, "getChildren", (parent_context_id,))
+                super(GetChildrenCommand, self).__init__(service.channel,
+                                                         service,
+                                                         "getChildren",
+                                                         (parent_context_id,))
+
             def done(self, error, args):
                 contexts = None
                 if not error:
@@ -34,9 +40,13 @@ class StackTraceProxy(stacktrace.StackTraceService):
     def getContext(self, ids, done):
         done = self._makeCallback(done)
         service = self
+
         class GetContextCommand(Command):
             def __init__(self):
-                super(GetContextCommand, self).__init__(service.channel, service, "getContext", (ids,))
+                super(GetContextCommand, self).__init__(service.channel,
+                                                        service, "getContext",
+                                                        (ids,))
+
             def done(self, error, args):
                 ctxs = None
                 if not error:
@@ -47,7 +57,8 @@ class StackTraceProxy(stacktrace.StackTraceService):
         return GetContextCommand().token
 
     def toContextArray(self, ctxProps):
-        if ctxProps is None: return None
+        if ctxProps is None:
+            return None
         ctxs = []
         for props in ctxProps:
             ctxs.append(stacktrace.StackTraceContext(props))

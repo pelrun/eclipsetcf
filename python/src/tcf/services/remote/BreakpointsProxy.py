@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,16 +7,18 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
-from tcf import channel
-from tcf.services import breakpoints
-from tcf.channel.Command import Command
+from .. import breakpoints
+from ... import channel
+from ...channel.Command import Command
+
 
 class BPCommand(Command):
     def __init__(self, service, cmd, cb, *args):
         super(BPCommand, self).__init__(service.channel, service, cmd, args)
         self.__cb = cb
+
     def done(self, error, args):
         if not error:
             assert len(args) == 1
@@ -28,6 +30,7 @@ class ChannelEventListener(channel.EventListener):
     def __init__(self, service, listener):
         self.service = service
         self.listener = listener
+
     def event(self, name, data):
         try:
             args = channel.fromJSONSequence(data)
@@ -44,9 +47,10 @@ class ChannelEventListener(channel.EventListener):
                 assert len(args) == 1
                 self.listener.contextRemoved(args[0])
             else:
-                raise IOError("Breakpoints service: unknown event: " + name);
+                raise IOError("Breakpoints service: unknown event: " + name)
         except Exception as x:
             self.service.channel.terminate(x)
+
 
 class BreakpointsProxy(breakpoints.BreakpointsService):
     def __init__(self, channel):
@@ -80,9 +84,12 @@ class BreakpointsProxy(breakpoints.BreakpointsService):
     def getIDs(self, done):
         done = self._makeCallback(done)
         service = self
+
         class GetIDsCommand(Command):
             def __init__(self):
-                super(GetIDsCommand, self).__init__(service.channel, service, "getIDs", None)
+                super(GetIDsCommand, self).__init__(service.channel, service,
+                                                    "getIDs", None)
+
             def done(self, error, args):
                 ids = None
                 if not error:
@@ -92,49 +99,63 @@ class BreakpointsProxy(breakpoints.BreakpointsService):
                 done.doneGetIDs(self.token, error, ids)
         return GetIDsCommand().token
 
-    def getProperties(self, id, done):
+    def getProperties(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class GetPropertiesCommand(Command):
             def __init__(self):
-                super(GetPropertiesCommand, self).__init__(service.channel, service, "getProperties", (id,))
+                super(GetPropertiesCommand, self).__init__(service.channel,
+                                                           service,
+                                                           "getProperties",
+                                                           (contextID,))
+
             def done(self, error, args):
-                map = None
+                props = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    map = args[1]
-                done.doneGetProperties(self.token, error, map)
+                    props = args[1]
+                done.doneGetProperties(self.token, error, props)
         return GetPropertiesCommand().token
 
-    def getStatus(self, id, done):
+    def getStatus(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class GetStatusCommand(Command):
             def __init__(self):
-                super(GetStatusCommand, self).__init__(service.channel, service, "getStatus", (id,))
+                super(GetStatusCommand, self).__init__(service.channel,
+                                                       service, "getStatus",
+                                                       (contextID,))
+
             def done(self, error, args):
-                map = None
+                states = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    map = args[1]
-                done.doneGetStatus(self.token, error, map)
+                    states = args[1]
+                done.doneGetStatus(self.token, error, states)
         return GetStatusCommand().token
 
-    def getCapabilities(self, id, done):
+    def getCapabilities(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class GetCapabilitiesCommand(Command):
             def __init__(self):
-                super(GetCapabilitiesCommand, self).__init__(service.channel, service, "getCapabilities", (id,))
+                super(GetCapabilitiesCommand, self).__init__(service.channel,
+                                                             service,
+                                                             "getCapabilities",
+                                                             (contextID,))
+
             def done(self, error, args):
-                map = None
+                capabilities = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    map = args[1]
-                done.doneGetCapabilities(self.token, error, map)
+                    capabilities = args[1]
+                done.doneGetCapabilities(self.token, error, capabilities)
         return GetCapabilitiesCommand().token
 
     def addListener(self, listener):

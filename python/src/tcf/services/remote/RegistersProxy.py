@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,12 +7,13 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
-from tcf import channel
-from tcf.services import registers
-from tcf.channel import toByteArray
-from tcf.channel.Command import Command
+from .. import registers
+from ... import channel
+from ...channel import toByteArray
+from ...channel.Command import Command
+
 
 class Context(registers.RegistersContext):
     def __init__(self, service, props):
@@ -25,10 +26,13 @@ class Context(registers.RegistersContext):
     def get(self, done):
         service = self.service
         done = service._makeCallback(done)
-        id = self.getID()
+        contextID = self.getID()
+
         class GetCommand(Command):
             def __init__(self):
-                super(GetCommand, self).__init__(service.channel, service, "get", (id,))
+                super(GetCommand, self).__init__(service.channel, service,
+                                                 "get", (contextID,))
+
             def done(self, error, args):
                 val = None
                 if not error:
@@ -41,11 +45,14 @@ class Context(registers.RegistersContext):
     def set(self, value, done):
         service = self.service
         done = service._makeCallback(done)
-        id = self.getID()
+        contextID = self.getID()
         binary = bytearray(value)
+
         class SetCommand(Command):
             def __init__(self):
-                super(SetCommand, self).__init__(service.channel, service, "set", (id, binary))
+                super(SetCommand, self).__init__(service.channel, service,
+                                                 "set", (contextID, binary))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -53,13 +60,17 @@ class Context(registers.RegistersContext):
                 done.doneSet(self.token, error)
         return SetCommand().token
 
-    def search(self, filter, done):
+    def search(self, filterOn, done):
         service = self.service
         done = service._makeCallback(done)
-        id = self.getID()
+        contextID = self.getID()
+
         class SearchCommand(Command):
             def __init__(self):
-                super(SearchCommand, self).__init__(service.channel, service, "search", (id, filter))
+                super(SearchCommand, self).__init__(service.channel, service,
+                                                    "search",
+                                                    (contextID, filterOn))
+
             def done(self, error, args):
                 paths = None
                 if not error:
@@ -69,6 +80,7 @@ class Context(registers.RegistersContext):
                 done.doneSearch(self.token, error, paths)
         return SearchCommand().token
 
+
 class RegistersProxy(registers.RegistersService):
     def __init__(self, channel):
         self.channel = channel
@@ -77,9 +89,14 @@ class RegistersProxy(registers.RegistersService):
     def getChildren(self, parent_context_id, done):
         done = self._makeCallback(done)
         service = self
+
         class GetChildrenCommand(Command):
             def __init__(self):
-                super(GetChildrenCommand, self).__init__(service.channel, service, "getChildren", (parent_context_id,))
+                super(GetChildrenCommand, self).__init__(service.channel,
+                                                         service,
+                                                         "getChildren",
+                                                         (parent_context_id,))
+
             def done(self, error, args):
                 contexts = None
                 if not error:
@@ -89,27 +106,35 @@ class RegistersProxy(registers.RegistersService):
                 done.doneGetChildren(self.token, error, contexts)
         return GetChildrenCommand().token
 
-    def getContext(self, id, done):
+    def getContext(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class GetContextCommand(Command):
             def __init__(self):
-                super(GetContextCommand, self).__init__(service.channel, service, "getContext", (id,))
+                super(GetContextCommand, self).__init__(service.channel,
+                                                        service, "getContext",
+                                                        (contextID,))
+
             def done(self, error, args):
                 ctx = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    if args[1]: ctx = Context(service, args[1])
+                    if args[1]:
+                        ctx = Context(service, args[1])
                 done.doneGetContext(self.token, error, ctx)
         return GetContextCommand().token
 
     def getm(self, locs, done):
         done = self._makeCallback(done)
         service = self
+
         class GetMCommand(Command):
             def __init__(self):
-                super(GetMCommand, self).__init__(service.channel, service, "getm", (locs,))
+                super(GetMCommand, self).__init__(service.channel, service,
+                                                  "getm", (locs,))
+
             def done(self, error, args):
                 val = None
                 if not error:
@@ -123,9 +148,12 @@ class RegistersProxy(registers.RegistersService):
         done = self._makeCallback(done)
         service = self
         binary = bytearray(value)
+
         class SetMCommand(Command):
             def __init__(self):
-                super(SetMCommand, self).__init__(service.channel, service, "setm", (locs, binary))
+                super(SetMCommand, self).__init__(service.channel, service,
+                                                  "setm", (locs, binary))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -144,6 +172,7 @@ class RegistersProxy(registers.RegistersService):
             del self.listeners[listener]
             self.channel.removeEventListener(self, l)
 
+
 class NamedValueInfo(registers.NamedValue):
     def __init__(self, m):
         desc = m.get("Description")
@@ -151,17 +180,21 @@ class NamedValueInfo(registers.NamedValue):
         value = toByteArray(m.get("Value"))
         super(NamedValueInfo, self).__init__(value, name, desc)
 
+
 def _toValuesArray(o):
-    if o is None: return None
+    if o is None:
+        return None
     arr = []
     for m in o:
         arr.append(NamedValueInfo(m))
     return arr
 
+
 class ChannelEventListener(channel.EventListener):
     def __init__(self, service, listener):
         self.service = service
         self.listener = listener
+
     def event(self, name, data):
         try:
             args = channel.fromJSONSequence(data)
@@ -171,6 +204,6 @@ class ChannelEventListener(channel.EventListener):
                 assert len(args) == 1
                 self.listener.registerChanged(args[0])
             else:
-                raise IOError("Registers service: unknown event: " + name);
+                raise IOError("Registers service: unknown event: " + name)
         except Exception as x:
             self.service.channel.terminate(x)

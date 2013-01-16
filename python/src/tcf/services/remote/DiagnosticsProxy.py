@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,12 +7,13 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 import time
-from tcf import errors
-from tcf.services import diagnostics
-from tcf.channel.Command import Command
+from .. import diagnostics
+from ... import errors
+from ...channel.Command import Command
+
 
 class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def __init__(self, channel):
@@ -21,9 +22,12 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def echo(self, s, done):
         done = self._makeCallback(done)
         service = self
+
         class EchoCommand(Command):
             def __init__(self):
-                super(EchoCommand, self).__init__(service.channel, service, "echo", (s,))
+                super(EchoCommand, self).__init__(service.channel, service,
+                                                  "echo", (s,))
+
             def done(self, error, args):
                 result = None
                 if not error:
@@ -35,9 +39,12 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def echoFP(self, n, done):
         done = self._makeCallback(done)
         service = self
+
         class EchoFPCommand(Command):
             def __init__(self):
-                super(EchoFPCommand, self).__init__(service.channel, service, "echoFP", (n,))
+                super(EchoFPCommand, self).__init__(service.channel, service,
+                                                    "echoFP", (n,))
+
             def done(self, error, args):
                 n = None
                 if not error:
@@ -47,20 +54,23 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
         return EchoFPCommand().token
 
     def echoERR(self, err, done):
-        map = None
+        errMap = None
         if isinstance(err, errors.ErrorReport):
-            map = err.getAttributes()
+            errMap = err.getAttributes()
         else:
-            map = {
+            errMap = {
                 errors.ERROR_TIME : int(time.time() * 1000),
                 errors.ERROR_CODE : errors.TCF_ERROR_OTHER,
                 errors.ERROR_FORMAT : err.message
             }
         done = self._makeCallback(done)
         service = self
+
         class EchoERRCommand(Command):
             def __init__(self):
-                super(EchoERRCommand, self).__init__(service.channel, service, "echoERR", (map,))
+                super(EchoERRCommand, self).__init__(service.channel, service,
+                                                     "echoERR", (errMap,))
+
             def done(self, error, args):
                 err = None
                 result = None
@@ -74,9 +84,13 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def getTestList(self, done):
         done = self._makeCallback(done)
         service = self
+
         class GetTestListCommand(Command):
             def __init__(self):
-                super(GetTestListCommand, self).__init__(service.channel, service, "getTestList", None)
+                super(GetTestListCommand, self).__init__(service.channel,
+                                                         service,
+                                                         "getTestList", None)
+
             def done(self, error, args):
                 arr = None
                 if not error:
@@ -89,9 +103,12 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def runTest(self, s, done):
         done = self._makeCallback(done)
         service = self
+
         class RunTestCommand(Command):
             def __init__(self):
-                super(RunTestCommand, self).__init__(service.channel, service, "runTest", (s,))
+                super(RunTestCommand, self).__init__(service.channel, service,
+                                                     "runTest", (s,))
+
             def done(self, error, args):
                 result = None
                 if not error:
@@ -104,9 +121,13 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def cancelTest(self, s, done):
         done = self._makeCallback(done)
         service = self
+
         class CancelTestCommand(Command):
             def __init__(self):
-                super(CancelTestCommand, self).__init__(service.channel, service, "cancelTest", (s,))
+                super(CancelTestCommand, self).__init__(service.channel,
+                                                        service, "cancelTest",
+                                                        (s,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -117,9 +138,14 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def getSymbol(self, context_id, symbol_name, done):
         done = self._makeCallback(done)
         service = self
+
         class GetSymbolCommand(Command):
             def __init__(self):
-                super(GetSymbolCommand, self).__init__(service.channel, service, "getSymbol", (context_id, symbol_name))
+                super(GetSymbolCommand, self).__init__(service.channel,
+                                                       service, "getSymbol",
+                                                       (context_id,
+                                                        symbol_name))
+
             def done(self, error, args):
                 sym = None
                 if not error:
@@ -132,9 +158,14 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def createTestStreams(self, inp_buf_size, out_buf_size, done):
         done = self._makeCallback(done)
         service = self
+
         class CreateTestStreamsCommand(Command):
             def __init__(self):
-                super(CreateTestStreamsCommand, self).__init__(service.channel, service, "createTestStreams", (inp_buf_size, out_buf_size))
+                super(CreateTestStreamsCommand,
+                      self).__init__(service.channel, service,
+                                     "createTestStreams",
+                                     (inp_buf_size, out_buf_size))
+
             def done(self, error, args):
                 inp_id = None
                 out_id = None
@@ -146,12 +177,16 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
                 done.doneCreateTestStreams(self.token, error, inp_id, out_id)
         return CreateTestStreamsCommand().token
 
-    def disposeTestStream(self, id, done):
+    def disposeTestStream(self, streamID, done):
         done = self._makeCallback(done)
         service = self
+
         class DisposeTestStreamCommand(Command):
             def __init__(self):
-                super(DisposeTestStreamCommand, self).__init__(service.channel, service, "disposeTestStream", (id,))
+                super(DisposeTestStreamCommand,
+                      self).__init__(service.channel, service,
+                                     "disposeTestStream", (streamID,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -162,13 +197,19 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
     def not_implemented_command(self, done):
         done = self._makeCallback(done)
         service = self
+
         class NotImplementedCommand(Command):
             def __init__(self):
-                super(NotImplementedCommand, self).__init__(service.channel, service, "not implemented command", None)
+                super(NotImplementedCommand,
+                      self).__init__(service.channel, service,
+                                     "not implemented command", None)
+
             def done(self, error, args):
                 done.doneNotImplementedCommand(self.token, error)
         return NotImplementedCommand().token
 
+
 def _toSymbol(o):
-    if o is None: return None
+    if o is None:
+        return None
     return diagnostics.Symbol(o)

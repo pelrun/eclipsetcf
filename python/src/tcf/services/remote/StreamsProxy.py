@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,11 +7,12 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
-from tcf.services import streams
-from tcf import channel
-from tcf.channel.Command import Command
+from .. import streams
+from ... import channel
+from ...channel.Command import Command
+
 
 class StreamsProxy(streams.StreamsService):
     def __init__(self, channel):
@@ -21,9 +22,12 @@ class StreamsProxy(streams.StreamsService):
     def connect(self, stream_id, done):
         done = self._makeCallback(done)
         service = self
+
         class ConnectCommand(Command):
             def __init__(self):
-                super(ConnectCommand, self).__init__(service.channel, service, "connect", (stream_id,))
+                super(ConnectCommand, self).__init__(service.channel, service,
+                                                     "connect", (stream_id,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -34,9 +38,13 @@ class StreamsProxy(streams.StreamsService):
     def disconnect(self, stream_id, done):
         done = self._makeCallback(done)
         service = self
+
         class DisconnectCommand(Command):
             def __init__(self):
-                super(DisconnectCommand, self).__init__(service.channel, service, "disconnect", (stream_id,))
+                super(DisconnectCommand, self).__init__(service.channel,
+                                                        service, "disconnect",
+                                                        (stream_id,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -47,9 +55,12 @@ class StreamsProxy(streams.StreamsService):
     def eos(self, stream_id, done):
         done = self._makeCallback(done)
         service = self
+
         class EOSCommand(Command):
             def __init__(self):
-                super(EOSCommand, self).__init__(service.channel, service, "eos", (stream_id,))
+                super(EOSCommand, self).__init__(service.channel, service,
+                                                 "eos", (stream_id,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -60,9 +71,12 @@ class StreamsProxy(streams.StreamsService):
     def read(self, stream_id, size, done):
         done = self._makeCallback(done)
         service = self
+
         class ReadCommand(Command):
             def __init__(self):
-                super(ReadCommand, self).__init__(service.channel, service, "read", (stream_id, size))
+                super(ReadCommand, self).__init__(service.channel, service,
+                                                  "read", (stream_id, size))
+
             def done(self, error, args):
                 lost_size = 0
                 data = None
@@ -79,9 +93,13 @@ class StreamsProxy(streams.StreamsService):
     def subscribe(self, stream_type, listener, done):
         done = self._makeCallback(done)
         service = self
+
         class SubscribeCommand(Command):
             def __init__(self):
-                super(SubscribeCommand, self).__init__(service.channel, service, "subscribe", (stream_type,))
+                super(SubscribeCommand, self).__init__(service.channel,
+                                                       service, "subscribe",
+                                                       (stream_type,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -96,26 +114,36 @@ class StreamsProxy(streams.StreamsService):
     def unsubscribe(self, stream_type, listener, done):
         done = self._makeCallback(done)
         service = self
+
         class UnsubscribeCommand(Command):
             def __init__(self):
-                super(UnsubscribeCommand, self).__init__(service.channel, service, "unsubscribe", (stream_type,))
+                super(UnsubscribeCommand, self).__init__(service.channel,
+                                                         service,
+                                                         "unsubscribe",
+                                                         (stream_type,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
                     error = self.toError(args[0])
                 if not error:
                     l = service.listeners.pop(listener, None)
-                    if l: service.channel.removeEventListener(service, l)
+                    if l:
+                        service.channel.removeEventListener(service, l)
                 done.doneUnsubscribe(self.token, error)
         return UnsubscribeCommand().token
 
     def write(self, stream_id, buf, offset, size, done):
         done = self._makeCallback(done)
         service = self
-        binary = buf[offset:offset+size]
+        binary = buf[offset:offset + size]
+
         class WriteCommand(Command):
             def __init__(self):
-                super(WriteCommand, self).__init__(service.channel, service, "write", (stream_id, binary))
+                super(WriteCommand, self).__init__(service.channel, service,
+                                                   "write",
+                                                   (stream_id, binary))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -128,6 +156,7 @@ class ChannelEventListener(channel.EventListener):
     def __init__(self, service, listener):
         self.service = service
         self.listener = listener
+
     def event(self, name, data):
         try:
             args = channel.fromJSONSequence(data)
@@ -141,6 +170,6 @@ class ChannelEventListener(channel.EventListener):
                 assert len(args) == 2
                 self.listener.disposed(args[0], args[1])
             else:
-                raise IOError("Streams service: unknown event: " + name);
+                raise IOError("Streams service: unknown event: " + name)
         except Exception as x:
             self.service.channel.terminate(x)

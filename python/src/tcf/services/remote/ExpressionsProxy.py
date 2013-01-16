@@ -1,4 +1,4 @@
-# *******************************************************************************
+# *****************************************************************************
 # * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
@@ -7,24 +7,29 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
-from tcf import channel
-from tcf.services import expressions
-from tcf.channel.Command import Command
+from .. import expressions
+from ... import channel
+from ...channel.Command import Command
+
 
 class ExpressionsProxy(expressions.ExpressionsService):
     def __init__(self, channel):
         self.channel = channel
         self.listeners = {}
 
-    def assign(self, id, value, done):
+    def assign(self, contextID, value, done):
         done = self._makeCallback(done)
         service = self
         value = bytearray(value)
+
         class AssignCommand(Command):
             def __init__(self):
-                super(AssignCommand, self).__init__(service.channel, service, "assign", (id, value))
+                super(AssignCommand, self).__init__(service.channel, service,
+                                                    "assign",
+                                                    (contextID, value))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -35,9 +40,14 @@ class ExpressionsProxy(expressions.ExpressionsService):
     def create(self, parent_id, language, expression, done):
         done = self._makeCallback(done)
         service = self
+
         class CreateCommand(Command):
             def __init__(self):
-                super(CreateCommand, self).__init__(service.channel, service, "create", (parent_id, language, expression))
+                super(CreateCommand, self).__init__(service.channel, service,
+                                                    "create",
+                                                    (parent_id, language,
+                                                     expression))
+
             def done(self, error, args):
                 ctx = None
                 if not error:
@@ -47,12 +57,15 @@ class ExpressionsProxy(expressions.ExpressionsService):
                 done.doneCreate(self.token, error, ctx)
         return CreateCommand().token
 
-    def dispose(self, id, done):
+    def dispose(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class DisposeCommand(Command):
             def __init__(self):
-                super(DisposeCommand, self).__init__(service.channel, service, "dispose", (id,))
+                super(DisposeCommand, self).__init__(service.channel, service,
+                                                     "dispose", (contextID,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -60,12 +73,15 @@ class ExpressionsProxy(expressions.ExpressionsService):
                 done.doneDispose(self.token, error)
         return DisposeCommand().token
 
-    def evaluate(self, id, done):
+    def evaluate(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class EvalCommand(Command):
             def __init__(self):
-                super(EvalCommand, self).__init__(service.channel, service, "evaluate", (id,))
+                super(EvalCommand, self).__init__(service.channel, service,
+                                                  "evaluate", (contextID,))
+
             def done(self, error, args):
                 value = None
                 if not error:
@@ -73,15 +89,21 @@ class ExpressionsProxy(expressions.ExpressionsService):
                     value = channel.toByteArray(args[0])
                     error = self.toError(args[1])
                     props = args[2]
-                done.doneEvaluate(self.token, error, expressions.Value(value, props))
+                done.doneEvaluate(self.token, error,
+                                  expressions.Value(value, props))
         return EvalCommand().token
 
     def getChildren(self, parent_context_id, done):
         done = self._makeCallback(done)
         service = self
+
         class GetChildrenCommand(Command):
             def __init__(self):
-                super(GetChildrenCommand, self).__init__(service.channel, service, "getChildren", (parent_context_id,))
+                super(GetChildrenCommand, self).__init__(service.channel,
+                                                         service,
+                                                         "getChildren",
+                                                         (parent_context_id,))
+
             def done(self, error, args):
                 contexts = None
                 if not error:
@@ -91,18 +113,23 @@ class ExpressionsProxy(expressions.ExpressionsService):
                 done.doneGetChildren(self.token, error, contexts)
         return GetChildrenCommand().token
 
-    def getContext(self, id, done):
+    def getContext(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class GetContextCommand(Command):
             def __init__(self):
-                super(GetContextCommand, self).__init__(service.channel, service, "getContext", (id,))
+                super(GetContextCommand, self).__init__(service.channel,
+                                                        service, "getContext",
+                                                        (contextID,))
+
             def done(self, error, args):
                 ctx = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    if args[1]: ctx = expressions.Expression(args[1])
+                    if args[1]:
+                        ctx = expressions.Expression(args[1])
                 done.doneGetContext(self.token, error, ctx)
         return GetContextCommand().token
 
@@ -122,6 +149,7 @@ class ChannelEventListener(channel.EventListener):
     def __init__(self, service, listener):
         self.service = service
         self.listener = listener
+
     def event(self, name, data):
         try:
             args = channel.fromJSONSequence(data)
@@ -129,6 +157,6 @@ class ChannelEventListener(channel.EventListener):
                 assert len(args) == 1
                 self.listener.valueChanged(args[0])
             else:
-                raise IOError("Expressions service: unknown event: " + name);
+                raise IOError("Expressions service: unknown event: " + name)
         except Exception as x:
             self.service.channel.terminate(x)

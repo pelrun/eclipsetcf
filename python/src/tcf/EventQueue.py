@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -10,7 +10,6 @@
 # *****************************************************************************
 
 import threading
-import protocol
 
 
 class EventQueue(object):
@@ -39,6 +38,7 @@ class EventQueue(object):
                     self.__lock.notifyAll()
             self.__thread.join()
         except Exception as e:
+            from . import protocol
             protocol.log("Failed to shutdown TCF event dispatch thread", e)
 
     def isShutdown(self):
@@ -46,6 +46,7 @@ class EventQueue(object):
             return self.__is_shutdown
 
     def __error(self, x):
+        from . import protocol
         protocol.log("Unhandled exception in TCF event dispatch", x)
 
     def __call__(self):

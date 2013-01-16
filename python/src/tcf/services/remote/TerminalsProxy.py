@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,9 +9,10 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-from tcf.services import terminals
-from tcf import channel
-from tcf.channel.Command import Command
+from .. import terminals
+from ... import channel
+from ...channel.Command import Command
+
 
 class TerminalContext(terminals.TerminalContext):
     def __init__(self, service, props):
@@ -22,10 +23,12 @@ class TerminalContext(terminals.TerminalContext):
         service = self.service
         done = service._makeCallback(done)
         context_id = self.getID()
+
         class ExitCommand(Command):
             def __init__(self):
                 super(ExitCommand, self).__init__(
                     service.channel, service, "exit", (context_id,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -39,43 +42,57 @@ class TerminalsProxy(terminals.TerminalsService):
         self.channel = channel
         self.listeners = {}
 
-    def getContext(self, id, done):
+    def getContext(self, contextID, done):
         done = self._makeCallback(done)
         service = self
+
         class GetContextCommand(Command):
             def __init__(self):
                 super(GetContextCommand, self).__init__(
-                    service.channel, service, "getContext", (id,))
+                    service.channel, service, "getContext", (contextID,))
+
             def done(self, error, args):
                 ctx = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    if args[1]: ctx = TerminalContext(service, args[1])
+                    if args[1]:
+                        ctx = TerminalContext(service, args[1])
                 done.doneGetContext(self.token, error, ctx)
         return GetContextCommand().token
 
     def launch(self, terminal_type, encoding, environment, done):
         done = self._makeCallback(done)
         service = self
+
         class LaunchCommand(Command):
             def __init__(self):
-                super(LaunchCommand, self).__init__(service.channel, service, "launch", (terminal_type, encoding, environment))
+                super(LaunchCommand, self).__init__(service.channel, service,
+                                                    "launch",
+                                                    (terminal_type, encoding,
+                                                     environment))
+
             def done(self, error, args):
                 ctx = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    if args[1]: ctx = TerminalContext(service, args[1])
+                    if args[1]:
+                        ctx = TerminalContext(service, args[1])
                 done.doneLaunch(self.token, error, ctx)
         return LaunchCommand().token
 
     def setWinSize(self, context_id, newWidth, newHeight, done):
         done = self._makeCallback(done)
         service = self
+
         class SetWinSizeCommand(Command):
             def __init__(self):
-                super(SetWinSizeCommand, self).__init__(service.channel, service, "setWinSize", (context_id, newWidth, newHeight))
+                super(SetWinSizeCommand, self).__init__(service.channel,
+                                                        service, "setWinSize",
+                                                        (context_id, newWidth,
+                                                         newHeight))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -86,9 +103,12 @@ class TerminalsProxy(terminals.TerminalsService):
     def exit(self, context_id, done):
         done = self._makeCallback(done)
         service = self
+
         class ExitCommand(Command):
             def __init__(self):
-                super(ExitCommand, self).__init__(service.channel, service, "exit", (context_id,))
+                super(ExitCommand, self).__init__(service.channel, service,
+                                                  "exit", (context_id,))
+
             def done(self, error, args):
                 if not error:
                     assert len(args) == 1
@@ -103,13 +123,15 @@ class TerminalsProxy(terminals.TerminalsService):
 
     def removeListener(self, listener):
         l = self.listeners.pop(listener, None)
-        if l: self.channel.removeEventListener(self, l)
+        if l:
+            self.channel.removeEventListener(self, l)
 
 
 class ChannelEventListener(channel.EventListener):
     def __init__(self, service, listener):
         self.service = service
         self.listener = listener
+
     def event(self, name, data):
         try:
             args = channel.fromJSONSequence(data)
@@ -120,6 +142,6 @@ class ChannelEventListener(channel.EventListener):
                 assert len(args) == 3
                 self.listener.winSizeChanged(args[0], args[1], args[2])
             else:
-                raise IOError("Terminals service: unknown event: " + name);
+                raise IOError("Terminals service: unknown event: " + name)
         except Exception as x:
             self.service.channel.terminate(x)

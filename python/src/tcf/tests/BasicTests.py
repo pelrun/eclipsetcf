@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import time
 import threading
 import atexit
 import tcf
+
 from tcf import protocol, channel, errors
 from tcf.util import sync
 
@@ -40,7 +41,7 @@ def test():
     global _services
     protocol.startEventQueue()
     atexit.register(protocol.getEventQueue().shutdown)
-    #testTimer()
+    # testTimer()
     try:
         c = tcf.connect("TCP:127.0.0.1:1534")
     except Exception as e:

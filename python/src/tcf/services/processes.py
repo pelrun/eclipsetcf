@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -21,7 +21,7 @@ available for client to read/write using Streams service. Stream type of such
 streams is set to "Processes".
 """
 
-from tcf import services
+from .. import services
 
 NAME = "Processes"
 
@@ -57,7 +57,7 @@ PROP_STDERR_ID = "StdErrID"
 # Number, bit position in the signal mask
 SIG_INDEX = "Index"
 
-#String, signal name, for example "SIGHUP"
+# String, signal name, for example "SIGHUP"
 SIG_NAME = "Name"
 
 # Number, signal code, as defined by OS

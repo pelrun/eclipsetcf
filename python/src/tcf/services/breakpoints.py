@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -26,44 +26,44 @@ status reflects dynamic target agent reports about breakpoint current state,
 like actual addresses where breakpoint is planted or planting errors.
 """
 
-from tcf import services
+from .. import services
 
 # Service name.
 NAME = "Breakpoints"
 
 # Breakpoint property names.
-PROP_ID = "ID"                           # String
-PROP_ENABLED = "Enabled"                 # Boolean
-PROP_TYPE = "BreakpointType"             # String
-PROP_CONTEXT_NAMES = "ContextNames"      # Array
-PROP_CONTEXT_IDS = "ContextIds"          # Array
-PROP_EXECUTABLE_PATHS = "ExecPaths"      # Array
-PROP_CONTEXT_QUERY = "ContextQuery"      # String, see IContextQuery
-PROP_LOCATION = "Location"               # String
-PROP_SIZE = "Size"                       # Number
-PROP_ACCESS_MODE = "AccessMode"          # Number
-PROP_FILE = "File"                       # String
-PROP_LINE = "Line"                       # Number
-PROP_COLUMN = "Column"                   # Number
-PROP_PATTERN = "MaskValue"               # Number
-PROP_MASK = "Mask"                       # Number
-PROP_STOP_GROUP = "StopGroup"            # Array
-PROP_IGNORE_COUNT = "IgnoreCount"        # Number
-PROP_TIME = "Time"                       # Number
-PROP_SCALE = "TimeScale"                 # String
-PROP_UNITS = "TimeUnits"                 # String
-PROP_CONDITION = "Condition"             # String
-PROP_TEMPORARY = "Temporary"             # Boolean
-PROP_EVENT_TYPE = "EventType"            # String
-PROP_EVENT_ARGS = "EventArgs"            # String or Object
-PROP_CLIENT_DATA = "ClientData"          # Object
+PROP_ID = "ID"  # String
+PROP_ENABLED = "Enabled"  # Boolean
+PROP_TYPE = "BreakpointType"  # String
+PROP_CONTEXT_NAMES = "ContextNames"  # Array
+PROP_CONTEXT_IDS = "ContextIds"  # Array
+PROP_EXECUTABLE_PATHS = "ExecPaths"  # Array
+PROP_CONTEXT_QUERY = "ContextQuery"  # String, see IContextQuery
+PROP_LOCATION = "Location"  # String
+PROP_SIZE = "Size"  # Number
+PROP_ACCESS_MODE = "AccessMode"  # Number
+PROP_FILE = "File"  # String
+PROP_LINE = "Line"  # Number
+PROP_COLUMN = "Column"  # Number
+PROP_PATTERN = "MaskValue"  # Number
+PROP_MASK = "Mask"  # Number
+PROP_STOP_GROUP = "StopGroup"  # Array
+PROP_IGNORE_COUNT = "IgnoreCount"  # Number
+PROP_TIME = "Time"  # Number
+PROP_SCALE = "TimeScale"  # String
+PROP_UNITS = "TimeUnits"  # String
+PROP_CONDITION = "Condition"  # String
+PROP_TEMPORARY = "Temporary"  # Boolean
+PROP_EVENT_TYPE = "EventType"  # String
+PROP_EVENT_ARGS = "EventArgs"  # String or Object
+PROP_CLIENT_DATA = "ClientData"  # Object
 
 # Deprecated
-PROP_CONTEXTNAMES = "ContextNames"       # Array
-PROP_CONTEXTIDS = "ContextIds"           # Array
-PROP_EXECUTABLEPATHS = "ExecPaths"       # Array
-PROP_ACCESSMODE = "AccessMode"           # Number
-PROP_IGNORECOUNT = "IgnoreCount"         # Number
+PROP_CONTEXTNAMES = "ContextNames"  # Array
+PROP_CONTEXTIDS = "ContextIds"  # Array
+PROP_EXECUTABLEPATHS = "ExecPaths"  # Array
+PROP_ACCESSMODE = "AccessMode"  # Number
+PROP_IGNORECOUNT = "IgnoreCount"  # Number
 
 
 # BreakpointType values
@@ -88,36 +88,36 @@ TIMEUNIT_INSTRUCTION_COUNT = "InstructionCount"
 
 # Breakpoint status field names.
 STATUS_INSTANCES = "Instances"  # Array of Map<String,Object>
-STATUS_ERROR = "Error"          # String
-STATUS_FILE = "File"            # String
-STATUS_LINE = "Line"            # Number
-STATUS_COLUMN = "Column"        # Number
+STATUS_ERROR = "Error"  # String
+STATUS_FILE = "File"  # String
+STATUS_LINE = "Line"  # Number
+STATUS_COLUMN = "Column"  # Number
 
 # Breakpoint instance field names.
-INSTANCE_ERROR = "Error"                   # String
-INSTANCE_CONTEXT = "LocationContext"       # String
-INSTANCE_ADDRESS = "Address"               # Number
-INSTANCE_SIZE = "Size"                     # Number
-INSTANCE_TYPE = "BreakpointType"           # String
+INSTANCE_ERROR = "Error"  # String
+INSTANCE_CONTEXT = "LocationContext"  # String
+INSTANCE_ADDRESS = "Address"  # Number
+INSTANCE_SIZE = "Size"  # Number
+INSTANCE_TYPE = "BreakpointType"  # String
 INSTANCE_MEMORY_CONTEXT = "MemoryContext"  # String
-INSTANCE_HIT_COUNT = "HitCount"            # Number
+INSTANCE_HIT_COUNT = "HitCount"  # Number
 
 # Breakpoint service capabilities.
-CAPABILITY_CONTEXT_ID = "ID"                   # String
-CAPABILITY_HAS_CHILDREN = "HasChildren"        # Boolean
+CAPABILITY_CONTEXT_ID = "ID"  # String
+CAPABILITY_HAS_CHILDREN = "HasChildren"  # Boolean
 CAPABILITY_BREAKPOINT_TYPE = "BreakpointType"  # Boolean
-CAPABILITY_LOCATION = "Location"               # Boolean
-CAPABILITY_CONDITION = "Condition"             # Boolean
-CAPABILITY_FILE_LINE = "FileLine"              # Boolean
-CAPABILITY_FILE_MAPPING = "FileMapping"        # Boolean
-CAPABILITY_CONTEXT_IDS = "ContextIds"          # Boolean
-CAPABILITY_CONTEXT_NAMES = "ContextNames"      # Boolean
-CAPABILITY_CONTEXT_QUERY = "ContextQuery"      # Boolean
-CAPABILITY_STOP_GROUP = "StopGroup"            # Boolean
-CAPABILITY_TEMPORARY = "Temporary"             # Boolean
-CAPABILITY_IGNORE_COUNT = "IgnoreCount"        # Boolean
-CAPABILITY_ACCESS_MODE = "AccessMode"          # Number
-CAPABILITY_CLIENT_DATA = "ClientData"          # Boolean
+CAPABILITY_LOCATION = "Location"  # Boolean
+CAPABILITY_CONDITION = "Condition"  # Boolean
+CAPABILITY_FILE_LINE = "FileLine"  # Boolean
+CAPABILITY_FILE_MAPPING = "FileMapping"  # Boolean
+CAPABILITY_CONTEXT_IDS = "ContextIds"  # Boolean
+CAPABILITY_CONTEXT_NAMES = "ContextNames"  # Boolean
+CAPABILITY_CONTEXT_QUERY = "ContextQuery"  # Boolean
+CAPABILITY_STOP_GROUP = "StopGroup"  # Boolean
+CAPABILITY_TEMPORARY = "Temporary"  # Boolean
+CAPABILITY_IGNORE_COUNT = "IgnoreCount"  # Boolean
+CAPABILITY_ACCESS_MODE = "AccessMode"  # Number
+CAPABILITY_CLIENT_DATA = "ClientData"  # Boolean
 
 # Deprecated
 

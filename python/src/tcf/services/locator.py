@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -22,7 +22,7 @@ then locator.getPeers() can be used to get list of available peers (hosts and
 targets).
 """
 
-from tcf import services
+from .. import services
 
 # Peer data retention period in milliseconds.
 DATA_RETENTION_PERIOD = 60 * 1000

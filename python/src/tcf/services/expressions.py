@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -16,7 +16,7 @@ The service can be used to retrieve or modify values of variables or any data
 structures in remote target memory.
 """
 
-from tcf import services
+from .. import services
 
 # Service name.
 NAME = "Expressions"

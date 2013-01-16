@@ -1,5 +1,5 @@
 #******************************************************************************
-# Copyright (c) 2011 Wind River Systems, Inc. and others.
+# Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -10,23 +10,30 @@
 #******************************************************************************
 
 import threading
-from tcf import protocol, channel
+from .. import protocol, channel
+
 
 class Task(object):
-    """
-    A <tt>Task</tt> is an utility class that represents the result of an asynchronous
-    communication over TCF framework.  Methods are provided to check if the communication is
-    complete, to wait for its completion, and to retrieve the result of
-    the communication.
+    """A <tt>Task</tt> is an utility class that represents the result of an
+    asynchronous communication over TCF framework.
 
-    Task is useful when communication is requested by a thread other then TCF dispatch thread.
-    If client has a global state, for example, cached remote data, multithreading should be avoided,
-    because it is extremely difficult to ensure absence of racing conditions or deadlocks in such environment.
-    Such clients should consider message driven design, see DataCache and its usage as an example.
+    Methods are provided to check if the communication is complete, to wait for
+    its completion, and to retrieve the result of the communication.
 
-    If a client is extending Task it should implement run() method to perform actual communications.
-    The run() method will be execute by TCF dispatch thread, and client code should then call either done() or
-    error() to indicate that task computations are complete.
+    Task is useful when communication is requested by a thread other then TCF
+    dispatch thread.
+    If client has a global state, for example, cached remote data,
+    multithreading should be avoided,
+    because it is extremely difficult to ensure absence of racing conditions or
+    deadlocks in such environment.
+    Such clients should consider message driven design, see DataCache and its
+    usage as an example.
+
+    If a client is extending Task it should implement run() method to perform
+    actual communications.
+    The run() method will be execute by TCF dispatch thread, and client code
+    should then call either done() or error() to indicate that task
+    computations are complete.
     """
     __result = None
     __is_done = False
@@ -59,6 +66,7 @@ class Task(object):
                 if self.__channel.getState() != channel.STATE_OPEN:
                     raise Exception("Channel is closed")
                 task = self
+
                 class CancelOnClose(channel.ChannelListener):
                     def onChannelClosed(self, error):
                         task.cancel(True)
@@ -81,7 +89,8 @@ class Task(object):
     def done(self, result):
         with self._lock:
             assert protocol.isDispatchThread()
-            if self.__canceled: return
+            if self.__canceled:
+                return
             assert not self.__is_done
             assert not self.__error
             assert self.__result is None
@@ -94,14 +103,16 @@ class Task(object):
     def error(self, error):
         """
         Set a error and notify all threads waiting for the task to complete.
-        The method is supposed to be called in response to executing of run() method of this task.
+        The method is supposed to be called in response to executing of run()
+        method of this task.
 
         @param error - computation error.
         """
         assert protocol.isDispatchThread()
         assert error
         with self._lock:
-            if self.__canceled: return
+            if self.__canceled:
+                return
             assert self.__error is None
             assert self.__result is None
             assert not self.__is_done
@@ -113,7 +124,8 @@ class Task(object):
     def cancel(self):
         assert protocol.isDispatchThread()
         with self._lock:
-            if self.isDone(): return False
+            if self.isDone():
+                return False
             self.__canceled = True
             self.__error = Exception("Canceled")
             if self.__channel:
@@ -175,6 +187,7 @@ class Task(object):
 
     def getResult(self):
         return self.__result
+
 
 class TimeoutException(Exception):
     pass

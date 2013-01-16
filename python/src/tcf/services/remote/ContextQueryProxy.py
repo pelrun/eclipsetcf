@@ -9,8 +9,8 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-from tcf.services import contextquery
-from tcf.channel.Command import Command
+from .. import contextquery
+from ...channel.Command import Command
 
 
 class ContextQueryProxy(contextquery.ContextQueryService):

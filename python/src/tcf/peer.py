@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -26,8 +26,8 @@ All peers of particular service manager represent identical sets of services.
 
 import os
 import time
-from tcf import protocol, transport, services, channel
-from tcf.services import locator
+from . import protocol, transport, services, channel
+from .services import locator
 
 # Peer unique ID
 ATTR_ID = "ID"

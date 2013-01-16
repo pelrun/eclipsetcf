@@ -1,5 +1,5 @@
 #******************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,34 +9,34 @@
 # *     Wind River Systems - initial API and implementation
 #******************************************************************************
 
-from tcf import services
+from .. import services
 
 # Service name.
 NAME = "Symbols"
 
 
 class SymbolClass:
-    unknown = 0                # unknown symbol class
-    value = 1                  # constant value
-    reference = 2              # variable data object
-    function = 3               # function body
-    type = 4                   # a type @ReservedAssignment
-    comp_unit = 5              # a compilation unit
-    block = 6                  # a block of code
-    namespace = 7              # a namespace
+    unknown = 0  # unknown symbol class
+    value = 1  # constant value
+    reference = 2  # variable data object
+    function = 3  # function body
+    type = 4  # a type @ReservedAssignment
+    comp_unit = 5  # a compilation unit
+    block = 6  # a block of code
+    namespace = 7  # a namespace
 
 
 class TypeClass:
-    unknown = 0                # unknown type class
-    cardinal = 1               # unsigned integer
-    integer = 2                # signed integer
-    real = 3                   # float, double
-    pointer = 4                # pointer to anything.
-    array = 5                  # array of anything.
-    composite = 6              # struct, union, or class.
-    enumeration = 7            # enumeration type.
-    function = 8               # function type.
-    member_ptr = 9             # a pointer on member type
+    unknown = 0  # unknown type class
+    cardinal = 1  # unsigned integer
+    integer = 2  # signed integer
+    real = 3  # float, double
+    pointer = 4  # pointer to anything.
+    array = 5  # array of anything.
+    composite = 6  # struct, union, or class.
+    enumeration = 7  # enumeration type.
+    function = 8  # function type.
+    member_ptr = 9  # a pointer on member type
 
 SYM_FLAG_PARAMETER = 0x000001
 SYM_FLAG_TYPEDEF = 0x000002

@@ -1,5 +1,5 @@
-# *******************************************************************************
-# * Copyright (c) 2011 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,14 +7,18 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-# *******************************************************************************
+# *****************************************************************************
 
 "Internal utility methods used for logging/tracing."
 
-from tcf import protocol
-import locale, time, cStringIO
+import cStringIO
+import locale
+import time
+
+from .. import protocol
 
 DECIMAL_DELIMITER = locale.localeconv().get('decimal_point', '.')
+
 
 def getDebugTime():
     """
@@ -31,15 +35,20 @@ def getDebugTime():
     # Record the time
     tm = int(time.time() * 1000)
     seconds = (tm / 1000) % 1000
-    if seconds < 100: traceBuilder.write('0')
-    if seconds < 10: traceBuilder.write('0')
+    if seconds < 100:
+        traceBuilder.write('0')
+    if seconds < 10:
+        traceBuilder.write('0')
     traceBuilder.write(str(seconds))
     traceBuilder.write(DECIMAL_DELIMITER)
     millis = tm % 1000
-    if millis < 100: traceBuilder.write('0')
-    if millis < 10: traceBuilder.write('0')
+    if millis < 100:
+        traceBuilder.write('0')
+    if millis < 10:
+        traceBuilder.write('0')
     traceBuilder.write(str(millis))
     return traceBuilder.getvalue()
+
 
 def trace(msg):
     """

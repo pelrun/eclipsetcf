@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -11,7 +11,7 @@
 
 import collections
 import threading
-from tcf import protocol
+from .. import protocol
 
 _providers = []
 _lock = threading.RLock()
@@ -134,7 +134,7 @@ class DefaultServiceProvider(ServiceProvider):
 
     def getLocalService(self, channel):
         # TODO DiagnosticsService
-        #return [DiagnosticsService(channel)]
+        # return [DiagnosticsService(channel)]
         return []
 
     def getServiceProxy(self, channel, service_name):
