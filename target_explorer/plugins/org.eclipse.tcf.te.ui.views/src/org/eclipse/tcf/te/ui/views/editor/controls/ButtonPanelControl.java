@@ -145,7 +145,7 @@ public class ButtonPanelControl extends BaseControl {
 		// Create a "Apply" button if requested
 		if (hasApplyButton() && getEditor() != null) {
 			applyButton = new Button(parent, SWT.PUSH);
-			applyButton.setText(Messages.ButtonsPanelControl_applyButton_label);
+			applyButton.setText(Messages.ButtonPanelControl_applyButton_label);
 			applyButton.setImage(UIPlugin.getImage(ImageConsts.APPLY_ENABLED));
 			applyButton.setBackground(parent.getBackground());
 

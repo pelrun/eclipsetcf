@@ -573,6 +573,12 @@
             id="org.eclipse.tcf.te.ui.command.showIn.systemManagement"
             name="%command.showInSM.name">
       </command>
+      <command
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            description="%command.apply.description"
+            id="org.eclipse.tcf.te.ui.views.command.apply"
+            name="%command.apply.name">
+      </command>
    </extension>
 
    <extension point="org.eclipse.ui.commandImages">
@@ -587,6 +593,11 @@
       <image
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter"
             icon="platform:/plugin/org.eclipse.ui.navigator/icons/full/elcl16/filter_ps.gif">
+      </image>
+      <image
+            commandId="org.eclipse.tcf.te.ui.views.command.apply"
+            disabledIcon="icons/dtool16/apply.gif"
+            icon="icons/etool16/apply.gif">
       </image>
    </extension>
 
@@ -847,7 +858,7 @@
             properties="parentCategoryId,validAddToCategoriesCount"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
-      
+
       <propertyTester
             class="org.eclipse.tcf.te.ui.views.internal.quickfilter.QuickFilterTester"
             id="org.eclipse.tcf.te.ui.views.quickfilter.QuickFilterTester"

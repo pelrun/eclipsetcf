@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.ui.views.editor.pages;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionManager;
 import org.eclipse.jface.action.IAction;
@@ -17,11 +18,14 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
@@ -66,6 +70,54 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 				}
 			});
 		}
+	}
+
+	// The default apply changes action class definition
+	static protected class ApplyAction extends Action implements IPropertyListener, IDisposable {
+		private final IEditorPart part;
+
+		/**
+         * Constructor
+         */
+        public ApplyAction(IEditorPart part) {
+        	super(Messages.AbstractCustomFormToolkitEditorPage_ApplyAction_label, IAction.AS_PUSH_BUTTON);
+        	Assert.isNotNull(part);
+        	this.part = part;
+        	setToolTipText(Messages.AbstractCustomFormToolkitEditorPage_ApplyAction_tooltip);
+        	setImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.APPLY_ENABLED));
+        	setDisabledImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.APPLY_DISABLED));
+
+        	part.addPropertyListener(this);
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.tcf.te.runtime.interfaces.IDisposable#dispose()
+         */
+        @Override
+        public void dispose() {
+        	if (part != null) part.dispose();
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.action.Action#run()
+         */
+        @Override
+        public void run() {
+        	if (part != null && part.isDirty()) {
+        		part.doSave(new NullProgressMonitor());
+        	}
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.ui.IPropertyListener#propertyChanged(java.lang.Object, int)
+         */
+        @Override
+        public void propertyChanged(Object source, int propId) {
+			if (propId == IEditorPart.PROP_DIRTY) {
+				boolean dirty = part != null && part.isDirty();
+				setEnabled(dirty);
+			}
+        }
 	}
 
 	/**
@@ -203,8 +255,11 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		// help action button into the toolbar
 		if (getContextHelpId() != null) {
 			manager.add(new Separator());
+			Action applyAction = doCreateApplyAction(getEditor());
+			if (applyAction != null) manager.add(applyAction);
+			manager.add(new Separator());
 			Action helpAction = doCreateHelpAction(getContextHelpId());
-			if(helpAction != null) manager.add(helpAction);
+			if (helpAction != null) manager.add(helpAction);
 		}
 	}
 
@@ -217,6 +272,17 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected Action doCreateHelpAction(String contextHelpId) {
 		Assert.isNotNull(contextHelpId);
 		return new HelpAction(contextHelpId);
+	}
+
+	/**
+	 * Creates the apply action.
+	 *
+	 * @param part The editor part. Must not be <code>null</code>.
+	 * @return The apply action or <code>null</code>.
+	 */
+	protected Action doCreateApplyAction(IEditorPart part) {
+		Assert.isNotNull(part);
+		return new ApplyAction(part);
 	}
 
 	/**

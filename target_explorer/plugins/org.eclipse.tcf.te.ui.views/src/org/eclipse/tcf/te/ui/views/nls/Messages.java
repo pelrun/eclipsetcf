@@ -46,8 +46,10 @@ public class Messages extends NLS {
 
 	public static String AbstractCustomFormToolkitEditorPage_HelpAction_label;
 	public static String AbstractCustomFormToolkitEditorPage_HelpAction_tooltip;
+	public static String AbstractCustomFormToolkitEditorPage_ApplyAction_label;
+	public static String AbstractCustomFormToolkitEditorPage_ApplyAction_tooltip;
 
-	public static String ButtonsPanelControl_applyButton_label;
+	public static String ButtonPanelControl_applyButton_label;
 
 	public static String CommonFilterDescriptorLabelProvider_ContentExtensionDescription;
 
