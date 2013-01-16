@@ -1582,6 +1582,7 @@ class TestRCBP1 implements ITCFTest, IRunControl.RunControlListener {
                     final IRegisters.RegistersContext ctx = reg_map.get(id);
                     if (!ctx.isReadable()) continue;
                     if (ctx.isReadOnce()) continue;
+                    if (ctx.getSize() == 0) continue;
                     cmds.add(ctx.get(new IRegisters.DoneGet() {
                         public void doneGet(IToken token, Exception error, final byte[] value) {
                             cmds.remove(token);
