@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?><!--
-    Copyright (c) 2010 Wind River Systems, Inc. and others.
+    Copyright (c) 2013 Wind River Systems, Inc. and others.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
@@ -12,10 +12,10 @@
 
 <plugin>
 
-  	<extension point="org.eclipse.tcf.debug.ui.launch_context">
-   		<class name="org.eclipse.tcf.internal.cdt.ui.TCFLaunchContext" />
-   	</extension>
-   	
+    <extension point="org.eclipse.tcf.debug.ui.launch_context">
+        <class name="org.eclipse.tcf.internal.cdt.ui.TCFLaunchContext" />
+    </extension>
+
     <extension
          point="org.eclipse.core.runtime.adapters">
       <factory
@@ -33,6 +33,11 @@
          <adapter type="org.eclipse.cdt.debug.ui.IPinProvider"/>
          <adapter type="org.eclipse.cdt.debug.core.ICWatchpointTarget"/>
          <adapter type="org.eclipse.tcf.internal.debug.ui.model.ISourceNotFoundPresentation"/>
+      </factory>
+      <factory
+            adaptableType="org.eclipse.cdt.dsf.debug.internal.ui.disassembly.DisassemblyPart"
+            class="org.eclipse.tcf.internal.cdt.ui.DisassemblyPartAdapterFactory">
+         <adapter type="org.eclipse.tcf.internal.debug.ui.model.ITCFDisassemblyPart"/>
       </factory>
     </extension>
 

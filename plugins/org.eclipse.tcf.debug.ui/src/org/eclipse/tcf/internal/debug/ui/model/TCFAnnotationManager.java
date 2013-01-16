@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,7 +65,10 @@ import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -80,24 +84,27 @@ public class TCFAnnotationManager {
         TYPE_TOP_FRAME = "org.eclipse.tcf.debug.top_frame",
         TYPE_STACK_FRAME = "org.eclipse.tcf.debug.stack_frame";
 
-    class TCFAnnotation extends Annotation {
+    static class TCFAnnotation extends Annotation {
 
         final String ctx;
         final String bp_id;
+        final BigInteger addr;
         final ILineNumbers.CodeArea area;
         final Image image;
         final String text;
         final String type;
         final int hash_code;
 
-        IAnnotationModel model;
-        IBreakpoint breakpoint;
-        TCFAnnotation planted;
+        final ArrayList<IAnnotationModel> models = new ArrayList<IAnnotationModel>();
 
-        TCFAnnotation(String ctx, String bp_id, ILineNumbers.CodeArea area, Image image, String text, String type) {
+        IBreakpoint breakpoint;
+
+        TCFAnnotation(String ctx, String bp_id, BigInteger addr,
+                ILineNumbers.CodeArea area, Image image, String text, String type) {
             super(type, false, text);
             this.ctx = ctx;
             this.bp_id = bp_id;
+            this.addr = addr;
             this.area = area;
             this.image = image;
             this.text = text;
@@ -110,10 +117,8 @@ public class TCFAnnotationManager {
         }
 
         void dispose() {
-            assert Thread.currentThread() == display.getThread();
-            if (model != null) {
+            for (IAnnotationModel model : models) {
                 model.removeAnnotation(this);
-                model = null;
             }
         }
 
@@ -125,6 +130,10 @@ public class TCFAnnotationManager {
             if (bp_id != a.bp_id) {
                 if (bp_id == null) return false;
                 if (!bp_id.equals(a.bp_id)) return false;
+            }
+            if (addr != a.addr) {
+                if (addr == null) return false;
+                if (!addr.equals(a.addr)) return false;
             }
             if (!area.equals(a.area)) return false;
             if (!image.equals(a.image)) return false;
@@ -142,13 +151,13 @@ public class TCFAnnotationManager {
         public String toString() {
             StringBuffer bf = new StringBuffer();
             bf.append('[');
+            bf.append(addr != null ? addr.toString(16) : "null");
+            bf.append(',');
             bf.append(area);
             bf.append(',');
             bf.append(text);
             bf.append(',');
             bf.append(type);
-            bf.append(',');
-            bf.append(model);
             bf.append(']');
             return bf.toString();
         }
@@ -156,7 +165,8 @@ public class TCFAnnotationManager {
 
     private class WorkbenchWindowInfo {
         final HashSet<TCFAnnotation> annotations = new HashSet<TCFAnnotation>();
-        final Map<IEditorInput,ITextEditor> editors = new HashMap<IEditorInput,ITextEditor>();
+        final Map<IEditorInput,IEditorPart> editors = new HashMap<IEditorInput,IEditorPart>();
+        final Map<IViewPart,ITCFDisassemblyPart> views = new HashMap<IViewPart,ITCFDisassemblyPart>();
 
         ITCFAnnotationProvider provider;
         UpdateTask update_task;
@@ -181,9 +191,11 @@ public class TCFAnnotationManager {
 
     private final TCFLaunch.LaunchListener launch_listener = new TCFLaunch.LaunchListener() {
 
+        @Override
         public void onCreated(TCFLaunch launch) {
         }
 
+        @Override
         public void onConnected(final TCFLaunch launch) {
             updateAnnotations(null, launch);
             TCFBreakpointsStatus bps = launch.getBreakpointsStatus();
@@ -203,14 +215,17 @@ public class TCFAnnotationManager {
             });
         }
 
+        @Override
         public void onDisconnected(final TCFLaunch launch) {
             assert Protocol.isDispatchThread();
             updateAnnotations(null, launch);
         }
 
+        @Override
         public void onProcessOutput(TCFLaunch launch, String process_id, int stream_id, byte[] data) {
         }
 
+        @Override
         public void onProcessStreamError(TCFLaunch launch, String process_id,
                 int stream_id, Exception error, int lost_size) {
         }
@@ -218,6 +233,7 @@ public class TCFAnnotationManager {
 
     private final ISelectionListener selection_listener = new ISelectionListener() {
 
+        @Override
         public void selectionChanged(IWorkbenchPart part, ISelection selection) {
             updateAnnotations(part.getSite().getWorkbenchWindow(), (TCFLaunch)null);
             if (selection instanceof IStructuredSelection) {
@@ -235,33 +251,65 @@ public class TCFAnnotationManager {
 
     private final IWindowListener window_listener = new IWindowListener() {
 
+        @Override
         public void windowActivated(IWorkbenchWindow window) {
         }
 
+        @Override
         public void windowClosed(IWorkbenchWindow window) {
             assert windows.get(window) != null;
             window.getSelectionService().removeSelectionListener(
                     IDebugUIConstants.ID_DEBUG_VIEW, selection_listener);
+            window.getActivePage().removePartListener(part_listener);
             windows.remove(window).dispose();
         }
 
+        @Override
         public void windowDeactivated(IWorkbenchWindow window) {
         }
 
+        @Override
         public void windowOpened(IWorkbenchWindow window) {
             if (windows.get(window) != null) return;
             window.getSelectionService().addSelectionListener(
                     IDebugUIConstants.ID_DEBUG_VIEW, selection_listener);
             windows.put(window, new WorkbenchWindowInfo());
+            window.getActivePage().addPartListener(part_listener);
             updateAnnotations(window, (TCFLaunch)null);
+        }
+    };
+
+    private final IPartListener part_listener = new IPartListener() {
+
+        @Override
+        public void partActivated(IWorkbenchPart part) {
+        }
+
+        @Override
+        public void partBroughtToTop(IWorkbenchPart part) {
+        }
+
+        @Override
+        public void partClosed(IWorkbenchPart part) {
+        }
+
+        @Override
+        public void partDeactivated(IWorkbenchPart part) {
+        }
+
+        @Override
+        public void partOpened(IWorkbenchPart part) {
+            updateAnnotations(part.getSite().getPage().getWorkbenchWindow(), (TCFLaunch)null);
         }
     };
 
     private final ILaunchConfigurationListener launch_conf_listener = new ILaunchConfigurationListener() {
 
+        @Override
         public void launchConfigurationAdded(ILaunchConfiguration cfg) {
         }
 
+        @Override
         public void launchConfigurationChanged(final ILaunchConfiguration cfg) {
             displayExec(new Runnable() {
                 public void run() {
@@ -279,6 +327,7 @@ public class TCFAnnotationManager {
             });
         }
 
+        @Override
         public void launchConfigurationRemoved(ILaunchConfiguration cfg) {
         }
     };
@@ -415,7 +464,7 @@ public class TCFAnnotationManager {
     private void addBreakpointErrorAnnotation(Set<TCFAnnotation> set, TCFLaunch launch, String ctx, String id, String error) {
         ILineNumbers.CodeArea area = getBreakpointCodeArea(launch, id);
         if (area != null) {
-            TCFAnnotation a = new TCFAnnotation(ctx, id, area,
+            TCFAnnotation a = new TCFAnnotation(ctx, id, null, area,
                     ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
                     "Cannot plant breakpoint: " + error,
                     TYPE_BP_INSTANCE);
@@ -445,14 +494,28 @@ public class TCFAnnotationManager {
         assert Thread.currentThread() == display.getThread();
         WorkbenchWindowInfo win_info = windows.get(window);
         if (win_info == null) return;
-        Map<IEditorInput,ITextEditor> editors = new HashMap<IEditorInput,ITextEditor>();
+        Map<IEditorInput,IEditorPart> editors = new HashMap<IEditorInput,IEditorPart>();
         for (IEditorReference ref : window.getActivePage().getEditorReferences()) {
-            IEditorPart part = ref.getEditor(false);
-            if (!(part instanceof ITextEditor)) continue;
-            ITextEditor editor = (ITextEditor)part;
+            IEditorPart editor = ref.getEditor(false);
+            if (editor == null) continue;
             editors.put(editor.getEditorInput(), editor);
         }
-        boolean flush_all = node == null || !editors.equals(win_info.editors) || changed_launch_cfgs.contains(node.launch);
+        Map<IViewPart,ITCFDisassemblyPart> views = new HashMap<IViewPart,ITCFDisassemblyPart>();
+        for (IViewReference ref : window.getActivePage().getViewReferences()) {
+            IViewPart view = ref.getView(false);
+            if (view == null) continue;
+            ITCFDisassemblyPart disasm = (ITCFDisassemblyPart)view.getAdapter(ITCFDisassemblyPart.class);
+            if (disasm != null) views.put(view, disasm);
+        }
+        boolean flush_all =
+                node == null ||
+                !views.keySet().equals(win_info.views.keySet()) ||
+                !editors.equals(win_info.editors) ||
+                changed_launch_cfgs.contains(node.launch);
+        win_info.views.clear();
+        win_info.views.putAll(views);
+        win_info.editors.clear();
+        win_info.editors.putAll(editors);
         Iterator<TCFAnnotation> i = win_info.annotations.iterator();
         while (i.hasNext()) {
             TCFAnnotation a = i.next();
@@ -461,17 +524,44 @@ public class TCFAnnotationManager {
             i.remove();
         }
         if (set == null || set.size() == 0) return;
-        win_info.editors.clear();
-        win_info.editors.putAll(editors);
+        win_info.annotations.addAll(set);
         ISourcePresentation presentation = TCFModelPresentation.getDefault();
+        // Disassembly views
         for (TCFAnnotation a : set) {
-            win_info.annotations.add(a);
+            if (a.addr == null) continue;
+            for (ITCFDisassemblyPart disasm : views.values()) {
+                IAnnotationModel ann_model = disasm.getAnnotationModel();
+                if (ann_model == null) continue;
+                Position p = disasm.getAddressPosition(a.addr);
+                if (p == null) continue;
+                if (a.breakpoint != null && hidePlantingAnnotation(ann_model, a.breakpoint, p)) continue;
+                ann_model.addAnnotation(a, p);
+                a.models.add(ann_model);
+            }
+        }
+        // Disassembly editor
+        for (TCFAnnotation a : set) {
+            if (a.addr == null) continue;
+            IEditorPart editor = editors.get(TCFModel.DisassemblyEditorInput.INSTANCE);
+            if (editor == null) continue;
+            ITCFDisassemblyPart disasm = (ITCFDisassemblyPart)editor.getAdapter(ITCFDisassemblyPart.class);
+            if (disasm == null) continue;
+            IAnnotationModel ann_model = disasm.getAnnotationModel();
+            if (ann_model == null) continue;
+            Position p = disasm.getAddressPosition(a.addr);
+            if (p == null) continue;
+            if (a.breakpoint != null && hidePlantingAnnotation(ann_model, a.breakpoint, p)) continue;
+            ann_model.addAnnotation(a, p);
+            a.models.add(ann_model);
+        }
+        // Source editors
+        for (TCFAnnotation a : set) {
             Object source_element = TCFSourceLookupDirector.lookup(node.launch, a.ctx, a.area);
             if (source_element == null) continue;
             IEditorInput editor_input = presentation.getEditorInput(source_element);
-            ITextEditor editor = editors.get(editor_input);
-            if (editor == null) continue;
-            IDocumentProvider doc_provider = editor.getDocumentProvider();
+            IEditorPart editor = editors.get(editor_input);
+            if (!(editor instanceof ITextEditor)) continue;
+            IDocumentProvider doc_provider = ((ITextEditor)editor).getDocumentProvider();
             IAnnotationModel ann_model = doc_provider.getAnnotationModel(editor_input);
             if (ann_model == null) continue;
             IRegion region = null;
@@ -492,9 +582,8 @@ public class TCFAnnotationManager {
             if (region == null) continue;
             Position p = new Position(region.getOffset(), region.getLength());
             if (a.breakpoint != null && hidePlantingAnnotation(ann_model, a.breakpoint, p)) continue;
-            if (a.planted != null && a.planted.model == null) continue;
             ann_model.addAnnotation(a, p);
-            a.model = ann_model;
+            a.models.add(ann_model);
         }
     }
 
@@ -598,8 +687,10 @@ public class TCFAnnotationManager {
                                         String bp_name = "Breakpoint";
                                         IBreakpoint bp = TCFBreakpointsModel.getBreakpointsModel().getBreakpoint(id);
                                         if (bp != null) bp_name = bp.getMarker().getAttribute(TCFBreakpointsModel.ATTR_MESSAGE, bp_name);
+                                        int i = bp_name.indexOf(':');
+                                        if (i > 0) bp_name = bp_name.substring(0, i);
                                         if (error != null) {
-                                            TCFAnnotation a = new TCFAnnotation(memory.id, id,  area,
+                                            TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, area,
                                                     ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
                                                     bp_name + " failed to plant at 0x" + addr.toString(16) + ": " + error,
                                                     TYPE_BP_INSTANCE);
@@ -608,7 +699,7 @@ public class TCFAnnotationManager {
                                         }
                                         else {
                                             String location = " planted at 0x" + addr.toString(16) + ", line " + area.start_line;
-                                            TCFAnnotation a = new TCFAnnotation(memory.id, id, area,
+                                            TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, area,
                                                     ImageCache.getImage(ImageCache.IMG_BREAKPOINT_INSTALLED),
                                                     bp_name + location,
                                                     TYPE_BP_INSTANCE);
@@ -616,11 +707,10 @@ public class TCFAnnotationManager {
                                             set.add(a);
                                             ILineNumbers.CodeArea org_area = getBreakpointCodeArea(launch, id);
                                             if (org_area != null) {
-                                                TCFAnnotation b = new TCFAnnotation(memory.id, id, org_area,
+                                                TCFAnnotation b = new TCFAnnotation(memory.id, id, null, org_area,
                                                         ImageCache.getImage(ImageCache.IMG_BREAKPOINT_WARNING),
                                                         "Breakpoint location is adjusted: " + location,
                                                         TYPE_BP_INSTANCE);
-                                                b.planted = a;
                                                 set.add(b);
                                             }
                                         }
@@ -651,13 +741,13 @@ public class TCFAnnotationManager {
                         }
                         addr_str += ", line: " + line_data.area.start_line;
                         if (frame.getFrameNo() == 0) {
-                            a = new TCFAnnotation(line_data.context_id, null, line_data.area,
+                            a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
                                     DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER_TOP),
                                     "Current Instruction Pointer" + addr_str,
                                     TYPE_TOP_FRAME);
                         }
                         else {
-                            a = new TCFAnnotation(line_data.context_id, null, line_data.area,
+                            a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
                                     DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER),
                                     "Call Stack Frame" + addr_str,
                                     TYPE_STACK_FRAME);
@@ -670,7 +760,7 @@ public class TCFAnnotationManager {
                     if (!line_cache.validate(this)) return;
                     TCFSourceRef line_data = line_cache.getData();
                     if (line_data != null && line_data.area != null) {
-                        TCFAnnotation a = new TCFAnnotation(line_data.context_id, null, line_data.area,
+                        TCFAnnotation a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
                                 DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER),
                                 "Last Instruction Pointer position",
                                 TYPE_STACK_FRAME);
