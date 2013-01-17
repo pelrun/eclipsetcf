@@ -677,7 +677,7 @@ class TestExpressions implements ITCFTest,
                 }
             }
         }
-        if (srv_dprintf != null && !dprintf_done) {
+        if (srv_dprintf != null && !dprintf_done && local_var_expr_ids.length > 0) {
             cmds.add(srv_dprintf.open(null, new IDPrintf.DoneCommandOpen() {
                 int test_cnt;
                 int char_cnt;
