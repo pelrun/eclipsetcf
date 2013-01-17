@@ -799,6 +799,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 fCallback.unlockScroller();
                 fCallback.doPending();
                 fCallback.updateVisibleArea();
+                request.ctx.getModel().updateAnnotations(fCallback.getSite().getWorkbenchWindow());
             }
             else {
                 fCallback.unlockScroller();
@@ -814,6 +815,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         fCallback.unlockScroller();
         fCallback.doPending();
         fCallback.updateVisibleArea();
+        request.ctx.getModel().updateAnnotations(fCallback.getSite().getWorkbenchWindow());
     }
 
     private void insertEmptySpace(Request request, BigInteger startAddress, BigInteger endAddress) {

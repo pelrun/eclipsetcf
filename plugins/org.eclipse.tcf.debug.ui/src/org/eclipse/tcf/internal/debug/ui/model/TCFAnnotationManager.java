@@ -522,15 +522,18 @@ public class TCFAnnotationManager {
             a.dispose();
             i.remove();
         }
-        if (set == null || set.size() == 0) return;
-        win_info.annotations.addAll(set);
+        if (set != null) win_info.annotations.addAll(set);
         ISourcePresentation presentation = TCFModelPresentation.getDefault();
         // Disassembly views
-        for (TCFAnnotation a : set) {
+        for (TCFAnnotation a : win_info.annotations) {
             if (a.addr == null) continue;
             for (ITCFDisassemblyPart disasm : views.values()) {
                 IAnnotationModel ann_model = disasm.getAnnotationModel();
                 if (ann_model == null) continue;
+                if (a.models.contains(ann_model)) {
+                    ann_model.removeAnnotation(a);
+                    a.models.remove(ann_model);
+                }
                 Position p = disasm.getAddressPosition(a.addr);
                 if (p == null) continue;
                 if (a.breakpoint != null && hidePlantingAnnotation(ann_model, a.breakpoint, p)) continue;
@@ -539,7 +542,7 @@ public class TCFAnnotationManager {
             }
         }
         // Disassembly editor
-        for (TCFAnnotation a : set) {
+        for (TCFAnnotation a : win_info.annotations) {
             if (a.addr == null) continue;
             IEditorPart editor = editors.get(TCFModel.DisassemblyEditorInput.INSTANCE);
             if (editor == null) continue;
@@ -547,6 +550,10 @@ public class TCFAnnotationManager {
             if (disasm == null) continue;
             IAnnotationModel ann_model = disasm.getAnnotationModel();
             if (ann_model == null) continue;
+            if (a.models.contains(ann_model)) {
+                ann_model.removeAnnotation(a);
+                a.models.remove(ann_model);
+            }
             Position p = disasm.getAddressPosition(a.addr);
             if (p == null) continue;
             if (a.breakpoint != null && hidePlantingAnnotation(ann_model, a.breakpoint, p)) continue;
@@ -554,6 +561,7 @@ public class TCFAnnotationManager {
             a.models.add(ann_model);
         }
         // Source editors
+        if (set == null) return;
         for (TCFAnnotation a : set) {
             Object source_element = TCFSourceLookupDirector.lookup(node.launch, a.ctx, a.area);
             if (source_element == null) continue;

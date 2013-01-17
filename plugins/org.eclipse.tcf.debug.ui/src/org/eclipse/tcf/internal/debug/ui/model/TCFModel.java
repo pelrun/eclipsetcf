@@ -374,7 +374,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     ((TCFNodeExecContext)node).onContainerResumed();
                 }
             }
-            annotation_manager.updateAnnotations(null, launch);
+            updateAnnotations(null);
         }
 
         public void containerSuspended(String context, String pc, String reason,
@@ -401,7 +401,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             launch_node.onAnyContextSuspendedOrChanged();
             if (!func_call && action_cnt == 0) {
                 setDebugViewSelection(node, reason);
-                annotation_manager.updateAnnotations(null, launch);
+                updateAnnotations(null);
                 TCFNodePropertySource.refresh(node);
             }
             action_results.remove(context);
@@ -456,7 +456,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             if (node instanceof TCFNodeExecContext) {
                 ((TCFNodeExecContext)node).onContextResumed();
             }
-            annotation_manager.updateAnnotations(null, launch);
+            updateAnnotations(null);
         }
 
         public void contextSuspended(String id, String pc, String reason, Map<String,Object> params) {
@@ -473,7 +473,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             launch_node.onAnyContextSuspendedOrChanged();
             if (!func_call && active_actions.get(id) == null) {
                 setDebugViewSelection(node, reason);
-                annotation_manager.updateAnnotations(null, launch);
+                updateAnnotations(null);
                 TCFNodePropertySource.refresh(node);
             }
             onMemoryChanged(id, false, true);
@@ -568,7 +568,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         public void onContextActionStart(TCFAction action) {
             final String id = action.getContextID();
             active_actions.put(id, action);
-            annotation_manager.updateAnnotations(null, launch);
+            updateAnnotations(null);
         }
 
         public void onContextActionResult(String id, String reason) {
@@ -599,7 +599,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                             }
                         }
                         for (TCFModelProxy p : model_proxies) p.post();
-                        annotation_manager.updateAnnotations(null, launch);
+                        updateAnnotations(null);
                         TCFNodePropertySource.refresh(node);
                     }
                     launch.removePendingClient(this);
@@ -960,11 +960,11 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         launch_node.onAnyContextAddedOrRemoved();
         // Close debug session if the last context is removed:
         onContextOrProcessRemoved();
-        annotation_manager.updateAnnotations(null, launch);
+        updateAnnotations(null);
     }
 
     void onContextRunning() {
-        annotation_manager.updateAnnotations(null, launch);
+        updateAnnotations(null);
     }
 
     Map<String,Object> getContextMap() {
@@ -1621,6 +1621,14 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         proxy.setSelection(node);
     }
 
+    /**
+     * Update debugger annotations in a workbench window.
+     * @param window - workbench window, null means update all windows.
+     */
+    public void updateAnnotations(IWorkbenchWindow window) {
+        annotation_manager.updateAnnotations(window, launch);
+    }
+
     private synchronized Object displaySourceStart(IWorkbenchPage page, boolean wait) {
         Object generation = new Object();
         if (wait) launch.addPendingClient(generation);
@@ -1810,7 +1818,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     if (!displaySourceCheck(page, generation)) return;
                     displaySource(page, editor_id, editor_input, line);
                     if (wait_for_pc_update_after_step) launch.addPendingClient(annotation_manager);
-                    annotation_manager.updateAnnotations(page.getWorkbenchWindow(), launch);
+                    updateAnnotations(page.getWorkbenchWindow());
                 }
                 finally {
                     displaySourceEnd(generation);
