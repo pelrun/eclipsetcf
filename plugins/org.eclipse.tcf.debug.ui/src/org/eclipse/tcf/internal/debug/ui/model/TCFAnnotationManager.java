@@ -109,7 +109,7 @@ public class TCFAnnotationManager {
             this.image = image;
             this.text = text;
             this.type = type;
-            hash_code = area.hashCode() + image.hashCode() + text.hashCode() + type.hashCode();
+            hash_code = image.hashCode() + text.hashCode() + type.hashCode();
         }
 
         protected Image getImage() {
@@ -135,7 +135,10 @@ public class TCFAnnotationManager {
                 if (addr == null) return false;
                 if (!addr.equals(a.addr)) return false;
             }
-            if (!area.equals(a.area)) return false;
+            if (area != a.area) {
+                if (area == null) return false;
+                if (!area.equals(a.area)) return false;
+            }
             if (!image.equals(a.image)) return false;
             if (!text.equals(a.text)) return false;
             if (!type.equals(a.type)) return false;
@@ -471,6 +474,13 @@ public class TCFAnnotationManager {
         }
     }
 
+    private boolean isLineAdjusted(ILineNumbers.CodeArea x, ILineNumbers.CodeArea y) {
+        if (x == null || y == null) return false;
+        if (x.start_line == 0 || y.start_line == 0) return false;
+        if (x.start_line != y.start_line) return true;
+        return false;
+    }
+
     private boolean hidePlantingAnnotation(IAnnotationModel model, IBreakpoint bp, Position p) {
         // Check if a breakpoint annotation does not need to be shown
         // since it has same position as the breakpoint marker.
@@ -563,6 +573,7 @@ public class TCFAnnotationManager {
         // Source editors
         if (set == null) return;
         for (TCFAnnotation a : set) {
+            if (a.area == null) continue;
             Object source_element = TCFSourceLookupDirector.lookup(node.launch, a.ctx, a.area);
             if (source_element == null) continue;
             IEditorInput editor_input = presentation.getEditorInput(source_element);
@@ -681,49 +692,49 @@ public class TCFAnnotationManager {
                                 if (!ctx_id.equals(node.id) && !ctx_id.equals(bp_group)) continue;
                                 error = (String)m.get(IBreakpoints.INSTANCE_ERROR);
                                 BigInteger addr = JSON.toBigInteger((Number)m.get(IBreakpoints.INSTANCE_ADDRESS));
+                                ILineNumbers.CodeArea area = null;
+                                ILineNumbers.CodeArea org_area = getBreakpointCodeArea(launch, id);
                                 if (addr != null) {
-                                    ILineNumbers.CodeArea area = null;
                                     TCFDataCache<TCFSourceRef> line_cache = memory.getLineInfo(addr);
                                     if (line_cache != null) {
                                         if (!line_cache.validate(this)) return;
                                         TCFSourceRef line_data = line_cache.getData();
-                                        if (line_data != null && line_data.area != null) area = line_data.area;
-                                    }
-                                    if (area == null) area = getBreakpointCodeArea(launch, id);
-                                    if (area != null) {
-                                        String bp_name = "Breakpoint";
-                                        IBreakpoint bp = TCFBreakpointsModel.getBreakpointsModel().getBreakpoint(id);
-                                        if (bp != null) bp_name = bp.getMarker().getAttribute(TCFBreakpointsModel.ATTR_MESSAGE, bp_name);
-                                        int i = bp_name.indexOf(':');
-                                        if (i > 0) bp_name = bp_name.substring(0, i);
-                                        if (error != null) {
-                                            TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, area,
-                                                    ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
-                                                    bp_name + " failed to plant at 0x" + addr.toString(16) + ": " + error,
-                                                    TYPE_BP_INSTANCE);
-                                            set.add(a);
-                                            error = null;
-                                        }
-                                        else {
-                                            String location = " planted at 0x" + addr.toString(16) + ", line " + area.start_line;
-                                            TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, area,
-                                                    ImageCache.getImage(ImageCache.IMG_BREAKPOINT_INSTALLED),
-                                                    bp_name + location,
-                                                    TYPE_BP_INSTANCE);
-                                            a.breakpoint = bp;
-                                            set.add(a);
-                                            ILineNumbers.CodeArea org_area = getBreakpointCodeArea(launch, id);
-                                            if (org_area != null) {
-                                                TCFAnnotation b = new TCFAnnotation(memory.id, id, null, org_area,
-                                                        ImageCache.getImage(ImageCache.IMG_BREAKPOINT_WARNING),
-                                                        "Breakpoint location is adjusted: " + location,
-                                                        TYPE_BP_INSTANCE);
-                                                set.add(b);
-                                            }
-                                        }
+                                        if (line_data != null) area = line_data.area;
                                     }
                                 }
-                                if (error != null) addBreakpointErrorAnnotation(set, launch, memory.id, id, error);
+                                if (area == null) area = org_area;
+                                String bp_name = "Breakpoint";
+                                IBreakpoint bp = TCFBreakpointsModel.getBreakpointsModel().getBreakpoint(id);
+                                if (bp != null) bp_name = bp.getMarker().getAttribute(TCFBreakpointsModel.ATTR_MESSAGE, bp_name);
+                                int i = bp_name.indexOf(':');
+                                if (i > 0) bp_name = bp_name.substring(0, i);
+                                if (error != null) {
+                                    String location = "";
+                                    if (addr != null) location = " at 0x" + addr.toString(16);
+                                    if (org_area == null) org_area = area;
+                                    TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, org_area,
+                                            ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
+                                            bp_name + " failed to plant" + location + ": " + error,
+                                            TYPE_BP_INSTANCE);
+                                    set.add(a);
+                                    error = null;
+                                }
+                                else if (area != null && addr != null) {
+                                    String location = " planted at 0x" + addr.toString(16) + ", line " + area.start_line;
+                                    TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, area,
+                                            ImageCache.getImage(ImageCache.IMG_BREAKPOINT_INSTALLED),
+                                            bp_name + location,
+                                            TYPE_BP_INSTANCE);
+                                    a.breakpoint = bp;
+                                    set.add(a);
+                                    if (isLineAdjusted(area, org_area)) {
+                                        TCFAnnotation b = new TCFAnnotation(memory.id, id, null, org_area,
+                                                ImageCache.getImage(ImageCache.IMG_BREAKPOINT_WARNING),
+                                                "Breakpoint location is adjusted: " + location,
+                                                TYPE_BP_INSTANCE);
+                                        set.add(b);
+                                    }
+                                }
                             }
                         }
                     }

@@ -42,7 +42,7 @@ public class DisassemblyPartAdapterFactory implements IAdapterFactory {
                     @Override
                     public Position getAddressPosition(BigInteger addr) {
                         AddressRangePosition pos = dpart.getPositionOfAddress(addr);
-                        if (pos != null) return new Position(pos.offset, Math.max(0, pos.length-1));
+                        if (pos != null && pos.fValid) return new Position(pos.offset, Math.max(0, pos.length-1));
                         return null;
                     }
                 };
