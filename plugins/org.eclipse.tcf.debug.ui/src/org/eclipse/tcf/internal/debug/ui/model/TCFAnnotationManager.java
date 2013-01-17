@@ -260,7 +260,6 @@ public class TCFAnnotationManager {
             assert windows.get(window) != null;
             window.getSelectionService().removeSelectionListener(
                     IDebugUIConstants.ID_DEBUG_VIEW, selection_listener);
-            window.getActivePage().removePartListener(part_listener);
             windows.remove(window).dispose();
         }
 
