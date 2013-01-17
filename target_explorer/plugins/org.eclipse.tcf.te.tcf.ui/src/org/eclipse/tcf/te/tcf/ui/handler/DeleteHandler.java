@@ -241,17 +241,23 @@ public class DeleteHandler extends AbstractHandler {
 			Assert.isNotNull(type);
 
 			if (TYPE.Remove.equals(type)) {
+				// Remove the node from the persistence storage
 				IURIPersistenceService service = ServiceManager.getInstance().getService(IURIPersistenceService.class);
-				if (service == null) {
-					throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
-				}
+				if (service == null) throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
 				service.delete(node, null);
 
+				// Close the configuration editor if open
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				IEditorPart editor = page.findEditor(new EditorInput(node));
 				if (editor != null) {
 					page.closeEditor(editor, false);
 				}
+
+				// Check if there is a delete handler delegate for the element
+				IUIService uiService = ServiceManager.getInstance().getService(node, IUIService.class);
+				IDeleteHandlerDelegate delegate = uiService != null ? uiService.getDelegate(node, IDeleteHandlerDelegate.class) : null;
+				// If a delegate is available, signal the execution of the remove
+				if (delegate != null) delegate.postDelete(node);
 			}
 			else if (TYPE.Unlink.equals(type)) {
 				Assert.isNotNull(parentCategory);

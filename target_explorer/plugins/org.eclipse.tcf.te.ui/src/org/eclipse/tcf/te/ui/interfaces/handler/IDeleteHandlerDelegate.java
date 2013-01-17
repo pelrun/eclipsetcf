@@ -28,4 +28,12 @@ public interface IDeleteHandlerDelegate {
 	 * @return <code>True</code> if the tree path is deletable, <code>false</code> otherwise.
 	 */
 	public boolean canDelete(TreePath treePath);
+
+	/**
+	 * Called from the delete handler to signal that the given element
+	 * has been removed.
+	 *
+	 * @param element The removed element. Must not be <code>null</code>.
+	 */
+	public void postDelete(Object element);
 }
