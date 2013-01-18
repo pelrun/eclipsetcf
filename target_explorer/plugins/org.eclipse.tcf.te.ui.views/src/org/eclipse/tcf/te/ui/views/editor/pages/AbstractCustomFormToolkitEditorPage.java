@@ -26,6 +26,7 @@ import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
@@ -84,8 +85,8 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
         	Assert.isNotNull(part);
         	this.part = part;
         	setToolTipText(Messages.AbstractCustomFormToolkitEditorPage_ApplyAction_tooltip);
-        	setImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.APPLY_ENABLED));
-        	setDisabledImageDescriptor(UIPlugin.getImageDescriptor(ImageConsts.APPLY_DISABLED));
+        	setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
+        	setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT_DISABLED));
 
         	part.addPropertyListener(this);
         }
@@ -251,12 +252,16 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected void createToolbarContributionItems(IToolBarManager manager) {
 		Assert.isNotNull(manager);
 
-		// If the page is associated with a context help id, add a default
-		// help action button into the toolbar
-		if (getContextHelpId() != null) {
+		// If the page should have an apply button, add one to the toolbar
+		if (hasApplyAction()) {
 			manager.add(new Separator());
 			Action applyAction = doCreateApplyAction(getEditor());
 			if (applyAction != null) manager.add(applyAction);
+		}
+
+		// If the page is associated with a context help id, add a default
+		// help action button into the toolbar
+		if (getContextHelpId() != null) {
 			manager.add(new Separator());
 			Action helpAction = doCreateHelpAction(getContextHelpId());
 			if (helpAction != null) manager.add(helpAction);
@@ -283,6 +288,18 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected Action doCreateApplyAction(IEditorPart part) {
 		Assert.isNotNull(part);
 		return new ApplyAction(part);
+	}
+
+	/**
+	 * Returns if or if not the page should have an apply button in
+	 * the toolbar.
+	 * <p>
+	 * The default implementation returns <code>false</code>.
+	 *
+	 * @return <code>True</code> if the page does have an apply button, <code>false</code> otherwise.
+	 */
+	protected boolean hasApplyAction() {
+		return false;
 	}
 
 	/**

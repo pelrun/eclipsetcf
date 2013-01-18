@@ -596,8 +596,8 @@
       </image>
       <image
             commandId="org.eclipse.tcf.te.ui.views.command.apply"
-            disabledIcon="icons/dtool16/apply.gif"
-            icon="icons/etool16/apply.gif">
+            disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/save_edit.gif"
+            icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/save_edit.gif">
       </image>
    </extension>
 

@@ -67,14 +67,4 @@ public interface ImageConsts {
      * The key to access the favorites category image.
      */
     public static final String FAVORITES = "Favorites"; //$NON-NLS-1$
-
-    /**
-     * The key to access the apply image (disabled).
-     */
-    public static final String APPLY_DISABLED = "Apply.Disabled"; //$NON-NLS-1$
-
-    /**
-     * The key to access the apply image (enabled).
-     */
-    public static final String APPLY_ENABLED = "Apply.Enabled"; //$NON-NLS-1$
 }

@@ -20,11 +20,11 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.ui.controls.BaseControl;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
-import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
-import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.FormPage;
@@ -146,7 +146,7 @@ public class ButtonPanelControl extends BaseControl {
 		if (hasApplyButton() && getEditor() != null) {
 			applyButton = new Button(parent, SWT.PUSH);
 			applyButton.setText(Messages.ButtonPanelControl_applyButton_label);
-			applyButton.setImage(UIPlugin.getImage(ImageConsts.APPLY_ENABLED));
+			applyButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_SAVE_EDIT));
 			applyButton.setBackground(parent.getBackground());
 
 			GridData layoutData = new GridData(SWT.TRAIL, SWT.CENTER, false, false);
