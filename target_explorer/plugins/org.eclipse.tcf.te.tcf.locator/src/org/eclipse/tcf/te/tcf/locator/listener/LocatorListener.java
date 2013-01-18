@@ -20,6 +20,7 @@ import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
@@ -191,7 +192,37 @@ public class LocatorListener implements ILocator.LocatorListener {
 
 		if (model != null && id != null) {
 			// find the corresponding model node to remove
-			final IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+
+			// If we cannot find a model node, it is probably because the remove is sent for the
+			// non-loopback addresses of the localhost. We have to double check this.
+			if (peerNode == null) {
+				int beginIndex = id.indexOf(':');
+				int endIndex = id.lastIndexOf(':');
+				String ip = id.substring(beginIndex+1, endIndex);
+
+				// Get the loopback address
+				String loopback = IPAddressUtil.getInstance().getIPv4LoopbackAddress();
+				// Empty IP address means loopback
+				if ("".equals(ip)) ip = loopback; //$NON-NLS-1$
+				else {
+					if (IPAddressUtil.getInstance().isLocalHost(ip)) {
+						ip = loopback;
+					}
+				}
+				// Build up the new id to lookup
+				StringBuilder newId = new StringBuilder();
+				newId.append(id.substring(0, beginIndex));
+				newId.append(':');
+				newId.append(ip);
+				newId.append(':');
+				newId.append(id.substring(endIndex));
+
+				// Try the lookup again
+				peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+			}
+
+			// If the model node is found in the model, process the removal.
 			if (peerNode != null) {
 				if (peerNode.isStatic()) {
 					boolean changed = peerNode.setChangeEventsEnabled(false);
@@ -243,11 +274,12 @@ public class LocatorListener implements ILocator.LocatorListener {
 
 					final IModelListener[] listeners = model.getListener();
 					if (listeners.length > 0) {
+						final IPeerModel finPeerNode = peerNode;
 						Protocol.invokeLater(new Runnable() {
 							@Override
 							public void run() {
 								for (IModelListener listener : listeners) {
-									listener.locatorModelChanged(model, peerNode, false);
+									listener.locatorModelChanged(model, finPeerNode, false);
 								}
 							}
 						});
