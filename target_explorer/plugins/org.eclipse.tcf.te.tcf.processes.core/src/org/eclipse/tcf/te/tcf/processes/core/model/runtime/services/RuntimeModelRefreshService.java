@@ -260,12 +260,20 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 						public void doneGetContext(IToken token, Exception error, SysMonitorContext context) {
 							((IProcessContextNode)node).setSysMonitorContext(context);
 
-							// Get the process context
-							service.getContext(contextId, new IProcesses.DoneGetContext() {
+							// Get the command line of the context
+							sysMonService.getCommandLine(contextId, new ISysMonitor.DoneGetCommandLine() {
 								@Override
-								public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
-									((IProcessContextNode)node).setProcessContext(context);
-									callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+								public void doneGetCommandLine(IToken token, Exception error, String[] cmd_line) {
+									node.setProperty(IProcessContextNodeProperties.PROPERTY_CMD_LINE, error == null ? cmd_line : null);
+
+									// Get the process context
+									service.getContext(contextId, new IProcesses.DoneGetContext() {
+										@Override
+										public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
+											((IProcessContextNode)node).setProcessContext(context);
+											callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+										}
+									});
 								}
 							});
 						}
@@ -345,51 +353,59 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 														node.setType(parent == null ? TYPE.Process : TYPE.Thread);
 														contexts.put(node.getUUID(), node);
 
-														// Query the corresponding process context
-														service.getContext(contextId, new IProcesses.DoneGetContext() {
+														// Get the command line of the context
+														sysMonService.getCommandLine(contextId, new ISysMonitor.DoneGetCommandLine() {
 															@Override
-															public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
-																// Errors are ignored
-																node.setProcessContext(context);
-																if (context != null) node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
+															public void doneGetCommandLine(IToken token, Exception error, String[] cmd_line) {
+																node.setProperty(IProcessContextNodeProperties.PROPERTY_CMD_LINE, error == null ? cmd_line : null);
 
-																// Get the asynchronous refresh context adapter
-																final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
+																// Query the corresponding process context
+																service.getContext(contextId, new IProcesses.DoneGetContext() {
+																	@Override
+																	public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
+																		// Errors are ignored
+																		node.setProcessContext(context);
+																		if (context != null) node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
 
-																// Refresh the children of the node if the depth is still larger than 0
-																if (depth - 1 > 0 && (refreshable == null || !refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS))) {
-																	if (refreshable != null) {
-																		// Mark the refresh as in progress
-																		refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
-																		// Create a new pending operation node and associate it with the refreshable
-																		PendingOperationModelNode pendingNode = new PendingOperationNode();
-																		pendingNode.setParent(node);
-																		refreshable.setPendingOperationNode(pendingNode);
-																	}
+																		// Get the asynchronous refresh context adapter
+																		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
 
-																	// Don't send change events while refreshing
-																	final boolean changed = node.setChangeEventsEnabled(false);
-																	// Initiate the refresh
-																	List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
-																	refreshContextChildren(oldChildren, model, node, depth - 1, new Callback() {
-																		@Override
-                                                                        protected void internalDone(Object caller, IStatus status) {
-																			// Mark the refresh as done
-																			refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
-																			// Reset the pending operation node
-																			refreshable.setPendingOperationNode(null);
-																			// Re-enable the change events if they had been enabled before
-																			if (changed) node.setChangeEventsEnabled(true);
-																			// Trigger a refresh of the view content
-																			ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
-																			EventManager.getInstance().fireEvent(event);
-																			// Finally invoke the callback
+																		// Refresh the children of the node if the depth is still larger than 0
+																		if (depth - 1 > 0 && (refreshable == null || !refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS))) {
+																			if (refreshable != null) {
+																				// Mark the refresh as in progress
+																				refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
+																				// Create a new pending operation node and associate it with the refreshable
+																				PendingOperationModelNode pendingNode = new PendingOperationNode();
+																				pendingNode.setParent(node);
+																				refreshable.setPendingOperationNode(pendingNode);
+																			}
+
+																			// Don't send change events while refreshing
+																			final boolean changed = node.setChangeEventsEnabled(false);
+																			// Initiate the refresh
+																			List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
+																			refreshContextChildren(oldChildren, model, node, depth - 1, new Callback() {
+																				@Override
+		                                                                        protected void internalDone(Object caller, IStatus status) {
+																					// Mark the refresh as done
+																					refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
+																					// Reset the pending operation node
+																					refreshable.setPendingOperationNode(null);
+																					// Re-enable the change events if they had been enabled before
+																					if (changed) node.setChangeEventsEnabled(true);
+																					// Trigger a refresh of the view content
+																					ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
+																					EventManager.getInstance().fireEvent(event);
+																					// Finally invoke the callback
+																					innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+																				}
+																			});
+																		} else {
 																			innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
 																		}
-																	});
-																} else {
-																	innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
-																}
+																	}
+																});
 															}
 														});
 													} else {

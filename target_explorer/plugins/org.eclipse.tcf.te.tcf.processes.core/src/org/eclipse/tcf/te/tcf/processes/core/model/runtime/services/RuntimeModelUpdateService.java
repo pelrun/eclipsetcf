@@ -16,6 +16,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 
 /**
@@ -76,6 +77,7 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 		if (dst instanceof IProcessContextNode && src instanceof IProcessContextNode) {
 			((IProcessContextNode)dst).setSysMonitorContext(((IProcessContextNode)src).getSysMonitorContext());
 			((IProcessContextNode)dst).setProcessContext(((IProcessContextNode)src).getProcessContext());
+			dst.setProperty(IProcessContextNodeProperties.PROPERTY_CMD_LINE, src.getProperty(IProcessContextNodeProperties.PROPERTY_CMD_LINE));
 		}
 
 		// Re-enable the change events

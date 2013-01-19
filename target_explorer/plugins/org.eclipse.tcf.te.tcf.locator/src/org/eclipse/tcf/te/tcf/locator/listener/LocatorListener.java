@@ -219,7 +219,7 @@ public class LocatorListener implements ILocator.LocatorListener {
 				newId.append(id.substring(endIndex));
 
 				// Try the lookup again
-				peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+				peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(newId.toString());
 			}
 
 			// If the model node is found in the model, process the removal.

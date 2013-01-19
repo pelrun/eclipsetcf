@@ -580,7 +580,6 @@
                moveable="true"
                name="%column.name.pid"
                resizable="true"
-               style="SWT.RIGHT"
                visible="true"
                width="50">
          </column>
@@ -591,8 +590,7 @@
                moveable="true"
                name="%column.name.ppid"
                resizable="true"
-               style="SWT.RIGHT"
-               visible="true"
+               visible="false"
                width="50">
          </column>
          <column
@@ -602,7 +600,6 @@
                moveable="true"
                name="%column.name.state"
                resizable="true"
-               style="SWT.RIGHT"
                visible="true"
                width="50">
          </column>
@@ -613,7 +610,16 @@
                moveable="true"
                name="%column.name.user"
                resizable="true"
-               style="SWT.RIGHT"
+               visible="true"
+               width="50">
+         </column>
+         <column
+               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.CommandLineComparator"
+               id="cmdline"
+               labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.CommandLineLabelProvider"
+               moveable="true"
+               name="%column.name.cmdline"
+               resizable="true"
                visible="true"
                width="100">
          </column>

@@ -25,4 +25,9 @@ public interface IProcessContextNodeProperties {
 	 * The context name. If set, used in the UI to represent the context node.
 	 */
 	public static final String PROPERTY_NAME = IModelNode.PROPERTY_NAME;
+
+	/**
+	 * The command line of the context. The command line is a string array.
+	 */
+	public static final String PROPERTY_CMD_LINE = "cmdline"; //$NON-NLS-1$
 }
