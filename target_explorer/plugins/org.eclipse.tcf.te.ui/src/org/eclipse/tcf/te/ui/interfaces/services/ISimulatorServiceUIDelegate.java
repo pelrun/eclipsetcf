@@ -30,4 +30,12 @@ public interface ISimulatorServiceUIDelegate {
 	 * @return The simulator service name.
 	 */
 	public String getName();
+
+    /**
+     * Configure the simulator.
+     *
+     * @param oldConfig The previous configuration or <code>null</code>.
+     * @return The new configuration or <code>null</code>.
+     */
+    public String configure(String oldConfig);
 }
