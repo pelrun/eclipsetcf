@@ -179,6 +179,13 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 				throw new IOException("URI must denote an absolute file path."); //$NON-NLS-1$
 			}
 
+			if (!file.exists()) {
+				IPath path = new Path(file.getCanonicalPath());
+				if (path.getFileExtension() == null) {
+					file = path.addFileExtension(getDefaultFileExtension()).toFile();
+				}
+			}
+
 			Reader reader = null;
 			try {
 				reader = new InputStreamReader(new FileInputStream(file), "UTF-8"); //$NON-NLS-1$
@@ -228,6 +235,13 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			// The file must be absolute
 			if (!file.isAbsolute()) {
 				throw new IOException("URI must denote an absolute file path."); //$NON-NLS-1$
+			}
+
+			if (!file.exists()) {
+				IPath path = new Path(file.getCanonicalPath());
+				if (path.getFileExtension() == null) {
+					file = path.addFileExtension(getDefaultFileExtension()).toFile();
+				}
 			}
 
 			// If the file defaultFileExtension is no set, default to "properties"
