@@ -157,17 +157,14 @@ public class Callback extends PropertiesContainer implements ICallback {
 			return;
 		}
 
-		status = checkStatusIntegrity(status);
-
-		setProperty(PROPERTY_IS_DONE, true);
-		setProperty(PROPERTY_STATUS, status);
-
-		ICallback parentCallback = (ICallback) getProperty(PROPERTY_PARENT_CALLBACK);
-		if (parentCallback != null && parentCallback.isDone()) {
-			CoreBundleActivator.getTraceHandler().trace("WARNING: parent callback called twice!!", 1, this); //$NON-NLS-1$
-		}
+		setProperty(PROPERTY_IS_DONE, null);
+		setProperty(PROPERTY_STATUS, checkStatusIntegrity(status));
 
 		internalDone(caller, status);
+
+		if (getProperty(PROPERTY_IS_DONE) == null) {
+			setProperty(PROPERTY_IS_DONE, true);
+		}
 
 		if (isDone()) {
 			if (getProperty(PROPERTY_PROGRESS_MONITOR) instanceof IProgressMonitor) {
@@ -182,14 +179,19 @@ public class Callback extends PropertiesContainer implements ICallback {
 				}
 			}
 
-			parentCallback = (ICallback) getProperty(PROPERTY_PARENT_CALLBACK);
-			if (parentCallback != null && !parentCallback.isDone()) {
-				copyProperties(this, parentCallback);
-				if (!ProgressHelper.isCancelOrError(this,
+			ICallback parentCallback = (ICallback) getProperty(PROPERTY_PARENT_CALLBACK);
+			if (parentCallback != null) {
+				if (parentCallback.isDone()) {
+					CoreBundleActivator.getTraceHandler().trace("WARNING: parent callback called twice!!", 1, this); //$NON-NLS-1$
+				}
+				else {
+					copyProperties(this, parentCallback);
+					if (!ProgressHelper.isCancelOrError(this,
 													getStatus(),
 													(IProgressMonitor) getProperty(PROPERTY_PROGRESS_MONITOR),
 													parentCallback)) {
-					parentCallback.done(caller, getStatus());
+						parentCallback.done(caller, getStatus());
+					}
 				}
 			}
 		}
