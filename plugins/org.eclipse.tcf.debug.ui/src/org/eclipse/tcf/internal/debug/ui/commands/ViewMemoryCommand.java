@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,6 +25,7 @@ import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExpression;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeRegister;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNumberFormat;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.services.IExpressions;
 import org.eclipse.tcf.services.IRegisters;
@@ -125,6 +126,7 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
             }.get();
         }
         catch (Exception x) {
+            if (node.getChannel().getState() != IChannel.STATE_OPEN) return null;
             Activator.log("Cannot get memory address", x);
             return null;
         }
