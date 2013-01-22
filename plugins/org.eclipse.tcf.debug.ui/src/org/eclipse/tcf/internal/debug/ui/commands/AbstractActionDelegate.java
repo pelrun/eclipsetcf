@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import org.eclipse.core.commands.IHandlerListener;
 import org.eclipse.core.commands.common.EventManager;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
@@ -132,7 +133,9 @@ public abstract class AbstractActionDelegate extends EventManager implements
         if (window == null) return false;
         part = window.getActivePage().getActivePart();
         if (part == null) return false;
-        selection = part.getSite().getSelectionProvider().getSelection();
+        ISelectionProvider selection_provider = part.getSite().getSelectionProvider();
+        if (selection_provider == null) return false;
+        selection = selection_provider.getSelection();
         if (selection == null) return false;
         selectionChanged();
         return enabled;
