@@ -74,17 +74,32 @@ public final class StatusHandlerUtil {
 				String token = tokenizer.nextToken();
 				if (token.trim().startsWith("Error text:")) { //$NON-NLS-1$
 					token = token.replaceAll("Error text:", " "); //$NON-NLS-1$ //$NON-NLS-2$
-					message.append(template != null ? NLS.bind(template, token.trim()) : token.trim());
+					message.append(token.trim());
 					break;
 				}
 			}
 		} else if (msg != null) {
-			message.append(template != null ? NLS.bind(template, msg.trim()) : msg.trim());
-		} else if (template != null) {
-			message.append(NLS.bind(template, "")); //$NON-NLS-1$
+			message.append(msg.trim());
 		}
 
-		if (message.length() > 0) {
+		// If the status is associated with an exception, the exception message may contain additional
+		// detailed information. Append it to the message
+		if (status.getException() != null && status.getException().getLocalizedMessage() != null
+				&& !status.getException().getLocalizedMessage().contains(message.toString())) {
+			message.append("\n\n"); //$NON-NLS-1$
+			message.append(status.getException().getLocalizedMessage());
+		}
+
+		// Construct the final message string
+		String fullMsg = null;
+		if (message.length() > 0) fullMsg = message.toString().trim();
+
+		// Apply the template if any
+		if (template != null) fullMsg = NLS.bind(template, fullMsg != null ? fullMsg : ""); //$NON-NLS-1$
+
+		if (fullMsg != null) {
+			// Normalize any possible "\r\n"
+			fullMsg = fullMsg.replaceAll("\r\n", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 			try {
 	            final Field f = status.getClass().getDeclaredField("message"); //$NON-NLS-1$
 				AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -94,7 +109,7 @@ public final class StatusHandlerUtil {
 						return null;
 					}
 				});
-				f.set(status, message.toString());
+				f.set(status, fullMsg);
             }
             catch (Exception e) {}
 		}

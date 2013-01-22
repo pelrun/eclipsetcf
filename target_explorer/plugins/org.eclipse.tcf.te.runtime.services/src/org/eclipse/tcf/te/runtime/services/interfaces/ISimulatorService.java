@@ -26,21 +26,21 @@ public interface ISimulatorService extends IService {
 	 * Starts the simulator.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
-	 * @param settings The encoded simulator settings or <code>null</code>.
+	 * @param config The encoded simulator settings or <code>null</code>.
 	 * @param callback The callback to invoke once the operation finishes. Must not be <code>null</code>.
 	 * @param monitor The progress monitor or <code>null</code>.
 	 */
-	public void start(Object context, String settings, ICallback callback, IProgressMonitor monitor);
+	public void start(Object context, String config, ICallback callback, IProgressMonitor monitor);
 
 	/**
 	 * Stops the simulator.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
-	 * @param settings The encoded simulator settings or <code>null</code>.
+	 * @param config The encoded simulator settings or <code>null</code>.
 	 * @param callback The callback to invoke once the operation finishes. Must not be <code>null</code>.
 	 * @param monitor The progress monitor or <code>null</code>.
 	 */
-	public void stop(Object context, String settings, ICallback callback, IProgressMonitor monitor);
+	public void stop(Object context, String config, ICallback callback, IProgressMonitor monitor);
 
 	/**
 	 * Checks if the simulator is running.
@@ -48,8 +48,8 @@ public interface ISimulatorService extends IService {
 	 * The result of the check is return as {@link Boolean} object by the callback's {@link ICallback#getResult()} method.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
-	 * @param settings The encoded simulator settings or <code>null</code>.
+	 * @param config The encoded simulator settings or <code>null</code>.
 	 * @param callback The callback to invoke once the operation finishes. Must not be <code>null</code>.
 	 */
-	public void isRunning(Object context, String settings, ICallback callback);
+	public void isRunning(Object context, String config, ICallback callback);
 }
