@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.ui.navigator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ILabelDecorator;
@@ -123,13 +124,25 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 	 * @param label The label. Must not be <code>null</code>.
 	 * @return <code>True</code> if the address shall be appended, <code>false</code> otherwise.
 	 */
-	protected boolean isAppendAddressText(String label) {
+	protected boolean isAppendAddressText(final String label) {
 		Assert.isNotNull(label);
 
 		boolean append = "TCF Agent".equals(label) || "TCF Proxy".equals(label); //$NON-NLS-1$ //$NON-NLS-2$
 
 		if (!append) {
-			append = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelByName(label).length > 1;
+			final AtomicInteger count = new AtomicInteger();
+
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					count.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelByName(label).length);
+				}
+			};
+
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+
+			append = count.get() > 1;
 		}
 
 		return append;
