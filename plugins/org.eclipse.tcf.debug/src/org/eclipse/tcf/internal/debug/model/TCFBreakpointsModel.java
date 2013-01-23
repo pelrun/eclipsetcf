@@ -193,6 +193,7 @@ public class TCFBreakpointsModel {
             if (marker.getAttribute(ATTR_REQESTED_LINE, -1) >= 0) keys.remove(ATTR_LINE);
             if (marker.getAttribute(ATTR_REQESTED_CHAR, -1) >= 0) keys.remove(ATTR_CHAR);
             keys.remove(ATTR_INSTALL_COUNT);
+            keys.remove(ATTR_TCF_STAMP);
             keys.remove(ATTR_MESSAGE);
             keys.remove(ATTR_STATUS);
             return keys;
@@ -610,7 +611,11 @@ public class TCFBreakpointsModel {
             client_data.put(CDATA_CLIENT_ID, Activator.getClientID());
             if (type != null) client_data.put(CDATA_TYPE, type);
             if (file != null) client_data.put(CDATA_FILE, file);
-            client_data.put(CDATA_MARKER, p);
+            Map<String,Object> x = new HashMap<String,Object>(p);
+            x.remove(ATTR_INSTALL_COUNT);
+            x.remove(ATTR_TCF_STAMP);
+            x.remove(ATTR_STATUS);
+            client_data.put(CDATA_MARKER, x);
         }
         for (Map.Entry<String,Object> e : p.entrySet()) {
             String key = e.getKey();

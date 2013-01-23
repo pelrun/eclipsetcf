@@ -12,7 +12,6 @@ package org.eclipse.tcf.internal.cdt.ui;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +38,6 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointListener;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.tcf.internal.debug.model.ITCFBreakpointListener;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpoint;
@@ -250,7 +248,7 @@ class TCFBreakpointStatusListener {
         private void createOrUpdateBreakpoint(final String id) {
             Map<String,Object> properties = status.getProperties(id);
             if (properties == null) return;
-            if (bp_model.isLocal(properties)) return;
+            if (TCFBreakpointsModel.isLocal(properties)) return;
             final boolean create = foreign.add(id);
             final Map<String, Object> markerAttrs = bp_model.toMarkerAttributes(properties);
             markerAttrs.put(IBreakpoint.PERSISTED, Boolean.FALSE);
