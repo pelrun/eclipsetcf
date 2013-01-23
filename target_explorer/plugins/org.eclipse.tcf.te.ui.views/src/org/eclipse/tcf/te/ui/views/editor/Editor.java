@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBinding;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBindingExtensionPointManager;
@@ -25,6 +26,7 @@ import org.eclipse.tcf.te.ui.views.interfaces.IEditorPage;
 import org.eclipse.tcf.te.ui.views.interfaces.IEditorSaveAsAdapter;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistable;
@@ -33,6 +35,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.XMLMemento;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.IFormPage;
+import org.eclipse.ui.internal.part.NullEditorInput;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
@@ -41,6 +44,7 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 /**
  * Editor implementation.
  */
+@SuppressWarnings("restriction")
 public final class Editor extends FormEditor implements IPersistableEditor, ITabbedPropertySheetPageContributor {
 
 	// The reference to an memento to restore once the editor got activated
@@ -109,10 +113,10 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 	 * @return The page object or null if it does not exists.
 	 */
 	private IFormPage getPage(int index) {
-		for(int i=0;i<pages.size();i++) {
+		for (int i = 0; i < pages.size(); i++) {
 			Object page = pages.get(i);
 			if (page instanceof IFormPage) {
-				IFormPage fpage = (IFormPage)page;
+				IFormPage fpage = (IFormPage) page;
 				if (fpage.getIndex() == index) {
 					return fpage;
 				}
@@ -126,7 +130,38 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 	 */
 	@Override
 	public void setActivePage(int pageIndex) {
-	    super.setActivePage(pageIndex);
+		if (getPage(pageIndex) != null) {
+			super.setActivePage(pageIndex);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.MultiPageEditorPart#getEditor(int)
+	 */
+	@Override
+	protected IEditorPart getEditor(int pageIndex) {
+	    return getPage(pageIndex) != null ? super.getEditor(pageIndex) : null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.forms.editor.FormEditor#createPageContainer(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	protected Composite createPageContainer(Composite parent) {
+		// Create page container is the first method called by the final
+		// MultiPageEditorPart#createPartControl. Use it as hook to close
+		// editors with a NullEditorInput.
+		if (getEditorInput() instanceof NullEditorInput) {
+//			DisplayUtil.safeAsyncExec(new Runnable() {
+//				@Override
+//				public void run() {
+//					close(false);
+//				}
+//			});
+			close(false);
+		}
+
+	    return super.createPageContainer(parent);
 	}
 
 	/**

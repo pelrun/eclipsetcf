@@ -23,11 +23,13 @@ import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.internal.part.NullEditorInput;
 
 /**
  * The element factory to create an peer model editor input from a memento which is read
  * from an external persistent storage and holds a peer id.
  */
+@SuppressWarnings("restriction")
 public class PeerModelFactory implements IElementFactory {
 
 	/* (non-Javadoc)
@@ -73,6 +75,6 @@ public class PeerModelFactory implements IElementFactory {
 			}
 		}
 
-		return node.get() != null ? new EditorInput(node.get()) : null;
+		return node.get() != null ? new EditorInput(node.get()) : new NullEditorInput();
 	}
 }
