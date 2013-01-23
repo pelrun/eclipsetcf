@@ -41,6 +41,9 @@
 			<!-- Not deployed to nexus yet. Must be build locally -->
 			<!-- before running this profile.                     -->
 			<!-- See http://wiki.eclipse.org/Platform-releng/Platform_Build#Building for details -->
+			<!-- -->
+			<!-- Works only if the build runs at a Eclipse build server -->
+			
 			<build>
 				<plugins>
 					<plugin>
@@ -74,6 +77,52 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		
+		<profile>
+			<id>validate</id>
+			<!-- The validate profile is does work only inside the WR network. -->
+			<!-- The profile requires a custom plug-in to generate the validation report -->
+			
+			<pluginRepositories>
+				<pluginRepository>
+					<id>wr</id>
+					<url>http://szg-bld-wb.wrs.com/wb-sd/maven/</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+				</pluginRepository>
+			</pluginRepositories>
+			
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.windriver.tycho-ext</groupId>
+						<artifactId>manifest-validation-plugin</artifactId>
+						<version>1.0.2</version>
+						<executions>
+							<execution>
+								<id>clean</id>
+								<phase>clean</phase>
+								<goals>
+									<goal>clean</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>validate</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>validate-required-bundle-versions</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+			
 		</profile>
 	</profiles>
 </project>

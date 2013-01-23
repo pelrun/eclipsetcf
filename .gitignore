@@ -11,3 +11,4 @@ bin/
 target/
 coverage/
 artifacts/
+/ManifestValidationResult.html
