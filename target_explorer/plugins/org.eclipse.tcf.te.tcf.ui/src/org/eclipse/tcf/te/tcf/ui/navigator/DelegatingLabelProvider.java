@@ -23,6 +23,8 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerImageDescriptor;
@@ -123,7 +125,14 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 	 */
 	protected boolean isAppendAddressText(String label) {
 		Assert.isNotNull(label);
-		return "TCF Agent".equals(label) || "TCF Proxy".equals(label); //$NON-NLS-1$ //$NON-NLS-2$
+
+		boolean append = "TCF Agent".equals(label) || "TCF Proxy".equals(label); //$NON-NLS-1$ //$NON-NLS-2$
+
+		if (!append) {
+			append = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelByName(label).length > 1;
+		}
+
+		return append;
 	}
 
 	/* (non-Javadoc)

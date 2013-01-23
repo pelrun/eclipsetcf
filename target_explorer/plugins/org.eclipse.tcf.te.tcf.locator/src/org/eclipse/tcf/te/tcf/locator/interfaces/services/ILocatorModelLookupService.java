@@ -52,6 +52,14 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	public IPeerModel[] lkupPeerModelByAgentId(String parentId, String agentId);
 
 	/**
+	 * Lookup matching peer model instances for the given name.
+	 *
+	 * @param name The name. Must not be <code>null</code>.
+	 * @return The peer model instances, or an empty list if the given name could not be matched.
+	 */
+	public IPeerModel[] lkupPeerModelByName(String name);
+
+	/**
 	 * Lookup matching peer model instances which supports the listed local and remote services.
 	 * <p>
 	 * <b>Note:</b> This method must be called outside the TCF dispatch thread.

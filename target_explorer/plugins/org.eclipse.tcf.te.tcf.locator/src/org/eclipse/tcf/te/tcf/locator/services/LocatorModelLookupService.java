@@ -124,6 +124,25 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupPeerModelByName(java.lang.String)
+	 */
+	@Override
+	public IPeerModel[] lkupPeerModelByName(String name) {
+		Assert.isNotNull(name);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		List<IPeerModel> nodes = new ArrayList<IPeerModel>();
+		for (IPeerModel candidate : getLocatorModel().getPeers()) {
+			IPeer peer = candidate.getPeer();
+			if (name.equals(peer.getName())) {
+				nodes.add(candidate);
+			}
+		}
+
+		return nodes.toArray(new IPeerModel[nodes.size()]);
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupPeerModelBySupportedServices(java.lang.String[], java.lang.String[])
 	 */
 	@Override
