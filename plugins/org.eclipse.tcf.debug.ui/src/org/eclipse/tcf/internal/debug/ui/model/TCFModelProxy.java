@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -190,6 +190,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     private final ChildrenUpdate children_update = new ChildrenUpdate();
 
     private TCFNode pending_node;
+    private boolean pending_count;
 
     TCFModelProxy(TCFModel model) {
         this.model = model;
@@ -358,13 +359,14 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             }
             else if (!node.getLockedData(children_count_update, null)) {
                 pending_node = node;
+                pending_count = true;
                 res = EMPTY_NODE_ARRAY;
             }
             else {
                 children_update.setLength(children_count_update.count);
                 if (!node.getLockedData(children_update, null)) {
-                    assert false;
                     pending_node = node;
+                    pending_count = false;
                     res = EMPTY_NODE_ARRAY;
                 }
                 else {
@@ -613,7 +615,9 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 post();
             }
         }
-        else if (pending_node.getLockedData(children_count_update, this)) {
+        else if (pending_count ?
+                    pending_node.getLockedData(children_count_update, this) :
+                    pending_node.getLockedData(children_update, this)) {
             assert false;
             Protocol.invokeLater(this);
         }

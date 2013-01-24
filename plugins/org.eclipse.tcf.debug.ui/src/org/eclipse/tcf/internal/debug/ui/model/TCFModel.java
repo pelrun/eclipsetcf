@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -510,11 +510,24 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             }
         }
 
-        public void registerChanged(String context) {
-            TCFNode node = getNode(context);
-            if (node instanceof TCFNodeRegister) {
-                ((TCFNodeRegister)node).onValueChanged();
-            }
+        public void registerChanged(final String id) {
+            /*
+             * We need to propagate register changes to parent node,
+             * because, for example, stack frames might need to be updated.
+             * For that we need to know parent of the register.
+             * It means we have to create register node if it does not exist yet.
+             */
+            // TODO: async handling of registerChanged event - potential data coherency issue
+            Runnable done = new Runnable() {
+                @Override
+                public void run() {
+                    TCFNode node = getNode(id);
+                    if (node instanceof TCFNodeRegister) {
+                        ((TCFNodeRegister)node).onValueChanged();
+                    }
+                }
+            };
+            if (createNode(id, done)) done.run();
         }
     };
 
@@ -1297,7 +1310,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             assert res != null;
             assert res != this;
             context_map.put(id, res);
-            for (Runnable r : waiting_list) r.run();
+            for (Runnable r : waiting_list) {
+                if (createNode(id, r)) r.run();
+            }
         }
 
         void onContextRemoved() {

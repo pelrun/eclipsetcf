@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -934,6 +934,9 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     last_stack_trace = empty_node_array;
                     return true;
                 }
+                // Force creation of register nodes.
+                // It helps dispatching of registerChanged events to stack frames.
+                if (!children_regs.validate(done)) return false;
                 children = children_stack;
             }
             else {
