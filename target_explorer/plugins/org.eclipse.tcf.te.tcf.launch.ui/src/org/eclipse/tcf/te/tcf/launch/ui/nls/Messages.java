@@ -98,4 +98,7 @@ public class Messages extends NLS {
 //	public static String PathMapEditorPage_column_source;
 //	public static String PathMapEditorPage_column_destination;
 	public static String PathMapEditorPage_column_contextquery;
+
+	public static String AbstractDiagnosticsCommandHandler_progress_title;
+	public static String AbstractDiagnosticsCommandHandler_progress_button_cancel;
 }

@@ -102,7 +102,7 @@ public class MemoryMapTab extends TCFMemoryMapTab {
 	@Override
 	protected void updateLaunchConfigurationDialog() {
 		super.updateLaunchConfigurationDialog();
-		performApply(parentEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
+		performApply(AbstractTcfLaunchTabContainerEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
 		parentEditorPage.checkLaunchConfigDirty();
 	}
 

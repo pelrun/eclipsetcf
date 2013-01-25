@@ -48,7 +48,7 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	 * @param peerModel The peer model.
 	 * @return The launch configuration.
 	 */
-	public ILaunchConfigurationWorkingCopy getLaunchConfig(final IPeerModel peerModel) {
+	public static ILaunchConfigurationWorkingCopy getLaunchConfig(final IPeerModel peerModel) {
 		ILaunchConfigurationWorkingCopy wc = null;
 		if (peerModel != null) {
 			IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);

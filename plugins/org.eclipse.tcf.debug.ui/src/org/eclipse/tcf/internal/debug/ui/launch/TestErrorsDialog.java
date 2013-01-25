@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-class TestErrorsDialog extends Dialog {
+public class TestErrorsDialog extends Dialog {
 
     private static final int
         SIZING_TEXT_WIDTH = 600,
@@ -37,7 +37,7 @@ class TestErrorsDialog extends Dialog {
     private Image image;
     private Text text;
 
-    TestErrorsDialog(Shell parent, Image image, Collection<Throwable> errors) {
+    public TestErrorsDialog(Shell parent, Image image, Collection<Throwable> errors) {
         super(parent);
         this.image = image;
         this.errors = errors;

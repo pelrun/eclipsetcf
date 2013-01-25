@@ -172,13 +172,13 @@
    <extension point="org.eclipse.ui.menus">
    <!-- Project explorer menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?before=additions">
-         <separator name="org.eclipse.tcf.te.tcf.ui.launch.remote.app.launch" visible="true"/>
+         <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
          <command
-               commandId="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.run"
+               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
                disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/run_exc.gif"
                icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/run_exc.gif"
-               id="org.eclipse.tcf.te.tcf.ui.launch.remote.app.run"
-               label="%LaunchShortcutHandler.Remote.App.run.name"
+               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.run"
+               label="%command.run.name"
                style="push">
             <visibleWhen checkEnabled="false">
                <with variable="selection">
@@ -203,11 +203,11 @@
             </visibleWhen>
          </command>
          <command
-               commandId="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.debug"
+               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug"
                disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/debug_exc.gif"
                icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/debug_exc.gif"
-               id="org.eclipse.tcf.te.tcf.ui.launch.remote.app.debug"
-               label="%LaunchShortcutHandler.Remote.App.debug.name"
+               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.debug"
+               label="%command.debug.name"
                style="push">
             <visibleWhen checkEnabled="false">
                <with variable="selection">
@@ -232,18 +232,18 @@
             </visibleWhen>
          </command>
       </menuContribution>
+      
    <!-- Target explorer menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?before=additions">
-         <separator name="org.eclipse.tcf.te.tcf.ui.launch.remote.app.launch" visible="true"/>
+         <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
          <command
-               commandId="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.run"
+               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
                disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/run_exc.gif"
                icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/run_exc.gif"
-               id="org.eclipse.tcf.te.tcf.ui.launch.remote.app.run"
-               label="%LaunchShortcutHandler.Remote.App.run.name"
+               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.run"
+               label="%command.run.name"
                style="push">
             <visibleWhen checkEnabled="false">
-            <with variable="selection">
                <with variable="selection">
                   <iterate 
                         operator="and" 
@@ -255,18 +255,16 @@
                            args="run"/>
                   </iterate>
                </with>
-            </with>
             </visibleWhen>
          </command>
          <command
-               commandId="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.debug"
+               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug"
                disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/debug_exc.gif"
                icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/debug_exc.gif"
-               id="org.eclipse.tcf.te.tcf.ui.launch.remote.app.debug"
-               label="%LaunchShortcutHandler.Remote.App.debug.name"
+               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.debug"
+               label="%command.debug.name"
                style="push">
             <visibleWhen checkEnabled="false">
-            <with variable="selection">
                <with variable="selection">
                   <iterate 
                         operator="and" 
@@ -278,9 +276,39 @@
                            args="debug"/>
                   </iterate>
                </with>
-            </with>
             </visibleWhen>
          </command>
+      </menuContribution>
+      
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.connection">
+         <menu
+               id="org.eclipse.tcf.te.tcf.launch.ui.menu.diagnostics"
+               label="%menu.diagnostics.label">
+            <command
+                  commandId="org.eclipse.tcf.te.tcf.launch.ui.command.runtests"
+                  id="org.eclipse.tcf.te.tcf.launch.ui.commands.runtests"
+                  label="%command.runtests.label"
+                  tooltip="%command.runtests.tooltip">
+            </command>
+            <command
+                  commandId="org.eclipse.tcf.te.tcf.launch.ui.command.runtestsloop"
+                  id="org.eclipse.tcf.te.tcf.launch.ui.commands.runtestsloop"
+                  label="%command.runtestsloop.label"
+                  tooltip="%command.runtestsloop.tooltip">
+            </command>
+            <separator name="additions"/>
+            
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Diagnostics"/>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </menu>
       </menuContribution>
    </extension>
 
@@ -288,17 +316,31 @@
    <extension point="org.eclipse.ui.commands">
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
-            id="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.run"
-            name="%LaunchShortcutHandler.Remote.App.run.name"/>
+            helpContextId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command_Run"
+            id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
+            name="%command.run.name"/>
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
-            id="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.debug"
-            name="%LaunchShortcutHandler.Remote.App.debug.name"/>
+            helpContextId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command_RunDebug"
+            id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug"
+            name="%command.debug.name"/>
+            
+      <!-- "Eclipse Diagnostics Tests" related commands -->
+      <command
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.launch.ui.command_RunTests"
+            id="org.eclipse.tcf.te.tcf.launch.ui.command.runtests"
+            name="%command.runtests.name"/>
+      <command
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.launch.ui.command_RunTestsLoop"
+            id="org.eclipse.tcf.te.tcf.launch.ui.command.runtestsloop"
+            name="%command.runtestsloop.name"/>
    </extension>
 
 <!-- Handler contributions -->
    <extension point="org.eclipse.ui.handlers">
-      <handler commandId="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.run">
+      <handler commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run">
          <class class="org.eclipse.tcf.te.launch.ui.handler.LaunchShortcutHandler">
             <parameter name="mode" value="run"/>
             <parameter name="typeId" value="org.eclipse.tcf.te.tcf.launch.type.remote.app"/>
@@ -325,7 +367,7 @@
             </with>
          </enabledWhen>
       </handler>
-      <handler commandId="org.eclipse.tcf.te.tcf.ui.launch.remote.app.command.debug">
+      <handler commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug">
          <class class="org.eclipse.tcf.te.launch.ui.handler.LaunchShortcutHandler">
             <parameter name="mode" value="debug"/>
             <parameter name="typeId" value="org.eclipse.tcf.te.tcf.launch.type.remote.app"/>
@@ -351,6 +393,27 @@
                </iterate>
             </with>
          </enabledWhen>
+      </handler>
+      
+      <!-- "Eclipse Diagnostics Tests" related handler -->
+      <handler
+            class="org.eclipse.tcf.te.tcf.launch.ui.handler.RunTestsCommandHandler"
+            commandId="org.eclipse.tcf.te.tcf.launch.ui.command.runtests">
+         <activeWhen>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.View"/>
+            </with>
+         </activeWhen>
+      </handler>
+
+      <handler
+            class="org.eclipse.tcf.te.tcf.launch.ui.handler.RunTestsLoopCommandHandler"
+            commandId="org.eclipse.tcf.te.tcf.launch.ui.command.runtestsloop">
+         <activeWhen>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.View"/>
+            </with>
+         </activeWhen>
       </handler>
    </extension>
 

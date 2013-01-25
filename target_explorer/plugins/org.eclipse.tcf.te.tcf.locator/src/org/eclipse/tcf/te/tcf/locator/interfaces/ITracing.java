@@ -26,6 +26,11 @@ public interface ITracing {
 	public static String ID_TRACE_LOCATOR_LISTENER = "trace/locatorListener"; //$NON-NLS-1$
 
 	/**
+	 * If enabled, prints information about locator model property tester invocations.
+	 */
+	public static String ID_TRACE_PROPERTY_TESTER = "trace/propertyTester"; //$NON-NLS-1$
+
+	/**
 	 * If enabled, prints information about channel state change listener method invocations.
 	 */
 	public static String ID_TRACE_CHANNEL_STATE_CHANGE_LISTENER = "trace/channelStateChangeListener"; //$NON-NLS-1$

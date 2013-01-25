@@ -18,6 +18,8 @@ import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
@@ -266,6 +268,11 @@ public class LocatorModelPropertyTester extends PropertyTester {
 			services = queryService.queryLocalServices(node);
 		} else {
 			services = queryService.queryRemoteServices(node);
+		}
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_PROPERTY_TESTER)) {
+			CoreBundleActivator.getTraceHandler().trace("testServices: property = " + property + ", expectedValue = " + expectedValue + ", services = " + services, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_PROPERTY_TESTER, LocatorModelPropertyTester.this);
 		}
 
 		if (services != null) {
