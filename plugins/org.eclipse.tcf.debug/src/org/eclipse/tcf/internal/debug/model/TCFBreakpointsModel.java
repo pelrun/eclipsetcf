@@ -595,7 +595,8 @@ public class TCFBreakpointsModel {
      * @param p - the marker attributes.
      * @return TCF breakpoint properties.
      */
-    public Map<String,Object> toBreakpointAttributes(IChannel channel, String id, String file, String type, Map<String,Object> p) {
+    public Map<String,Object> toBreakpointAttributes(IChannel channel, String id,
+            String marker_file, String marker_type, Map<String,Object> p) {
         assert !disposed;
         assert Protocol.isDispatchThread();
         Map<String,Object> m = new HashMap<String,Object>();
@@ -609,8 +610,8 @@ public class TCFBreakpointsModel {
         if (client_data != null) {
             m.put(IBreakpoints.PROP_CLIENT_DATA, client_data);
             client_data.put(CDATA_CLIENT_ID, Activator.getClientID());
-            if (type != null) client_data.put(CDATA_TYPE, type);
-            if (file != null) client_data.put(CDATA_FILE, file);
+            if (marker_type != null) client_data.put(CDATA_TYPE, marker_type);
+            if (marker_file != null) client_data.put(CDATA_FILE, marker_file);
             Map<String,Object> x = new HashMap<String,Object>(p);
             x.remove(ATTR_INSTALL_COUNT);
             x.remove(ATTR_TCF_STAMP);
@@ -642,8 +643,9 @@ public class TCFBreakpointsModel {
         if (enabled != null && enabled.booleanValue() && bp_manager.isEnabled()) {
             m.put(IBreakpoints.PROP_ENABLED, enabled);
         }
-        if (file == null) file = (String)p.get(ATTR_REQESTED_FILE);
+        String file = (String)p.get(ATTR_REQESTED_FILE);
         if (file == null || file.length() == 0) file = (String)p.get(ATTR_FILE);
+        if (file == null || file.length() == 0) file = marker_file;
         if (file != null && file.length() > 0) {
             String name = file;
             boolean file_mapping = false;
@@ -685,6 +687,9 @@ public class TCFBreakpointsModel {
                     expr = "&(" + expr + ')';
                 }
                 m.put(IBreakpoints.PROP_LOCATION, expr);
+                if (m.get(IBreakpoints.PROP_FILE) != null && m.get(IBreakpoints.PROP_LINE) == null) {
+                    m.put(IBreakpoints.PROP_LINE, Integer.valueOf(1));
+                }
             }
         }
         else if (p.get(ATTR_FUNCTION) != null) {
