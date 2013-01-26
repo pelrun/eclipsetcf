@@ -82,7 +82,7 @@ public class LaunchProcessStep extends AbstractTcfLaunchStep {
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#execute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void execute(IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, final ICallback callback) {
+	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ICommonTCFLaunchAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		Assert.isTrue(channel != null && channel.getState() == IChannel.STATE_OPEN, "channel is missing or closed"); //$NON-NLS-1$
 
@@ -93,7 +93,7 @@ public class LaunchProcessStep extends AbstractTcfLaunchStep {
 		// Construct the launcher object
 		final ProcessLauncher launcher = new ProcessLauncher();
 
-		Map<String, Object> launchAttributes = new HashMap<String, Object>();
+		final Map<String, Object> launchAttributes = new HashMap<String, Object>();
 
 		launchAttributes.put(IProcessLauncher.PROP_PROCESS_PATH, StepperAttributeUtil.getStringProperty(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, fullQualifiedId, data));
 

@@ -182,7 +182,7 @@ public class ConcurrentTestCase extends CoreTestCase {
 		}
 
 		/* (non-Javadoc)
-		 * @see com.windriver.core.runtime.concurrent.executors.AbstractDelegatingExecutorService#createExecutorServiceDelegate()
+		 * @see org.eclipse.tcf.te.runtime.concurrent.executors.AbstractDelegatingExecutorService#createExecutorServiceDelegate()
 		 */
 		@Override
 		protected ExecutorService createExecutorServiceDelegate() {

@@ -45,7 +45,7 @@ public class RuntimeModelChannelService extends AbstractModelService<IRuntimeMod
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelChannelService#getChannel()
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService#getChannel()
 	 */
 	@Override
 	public IChannel getChannel() {
@@ -54,7 +54,7 @@ public class RuntimeModelChannelService extends AbstractModelService<IRuntimeMod
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelChannelService#openChannel(com.windriver.te.tcf.core.model.interfaces.services.IModelChannelService.DoneOpenChannel)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService#openChannel(org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService.DoneOpenChannel)
 	 */
 	@Override
 	public void openChannel(final DoneOpenChannel done) {
@@ -103,7 +103,7 @@ public class RuntimeModelChannelService extends AbstractModelService<IRuntimeMod
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelChannelService#closeChannel()
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService#closeChannel()
 	 */
 	@Override
 	public void closeChannel() {

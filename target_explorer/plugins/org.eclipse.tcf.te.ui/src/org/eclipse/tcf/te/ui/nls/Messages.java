@@ -100,4 +100,6 @@ public class Messages extends NLS {
 	public static String TreeViewerSearchDialog_UseOptions;
 
 	public static String ViewerStateManager_MkdirFailed;
+
+	public static String TriggerCommandEventListener_error_executionFailed;
 }

@@ -45,6 +45,14 @@
             id="org.eclipse.tcf.te.ui.command.refresh"
             name="%command.refresh.name">
       </command>
+      
+      <command
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            description="%command.showConsoleView.description"
+            helpContextId="org.eclipse.tcf.te.ui.command_ShowConsoleView"
+            id="org.eclipse.tcf.te.ui.command.showConsoleView"
+            name="%command.showConsoleView.name">
+      </command>
    </extension>
    
 <!-- Command image contributions -->   
@@ -60,6 +68,14 @@
             disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dlcl16/refresh_nav.gif"
             icon="platform:/plugin/org.eclipse.ui/icons/full/elcl16/refresh_nav.gif">
       </image>
+   </extension>
+
+<!-- COmmand handler contributions -->
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            class="org.eclipse.tcf.te.ui.handler.ShowConsoleViewCommandHandler"
+            commandId="org.eclipse.tcf.te.ui.command.showConsoleView">
+      </handler>
    </extension>
    
 <!-- Context and binding contributions -->
@@ -128,6 +144,13 @@
       </executorUtilDelegate>
    </extension>
 
+<!-- Event listener contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.eventListeners">
+      <eventListener class="org.eclipse.tcf.te.ui.events.TriggerCommandEventListener">
+         <eventType class="org.eclipse.tcf.te.runtime.events.TriggerCommandEvent"/>
+      </eventListener>
+   </extension>
+   
 <!-- Preference page contributions -->
    <extension point="org.eclipse.ui.preferencePages">
       <page

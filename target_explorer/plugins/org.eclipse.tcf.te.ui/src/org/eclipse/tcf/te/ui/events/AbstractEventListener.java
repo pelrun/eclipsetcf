@@ -16,8 +16,7 @@ import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Abstract event listener implementation firing the event
- *                  within the platforms UI thread.
+ * Abstract event listener implementation firing the event within the platforms UI thread.
  */
 public abstract class AbstractEventListener implements IEventListener, IEventFireDelegate {
 

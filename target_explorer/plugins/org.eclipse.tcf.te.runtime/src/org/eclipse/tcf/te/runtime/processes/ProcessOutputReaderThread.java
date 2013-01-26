@@ -32,8 +32,8 @@ public class ProcessOutputReaderThread extends Thread {
 	private InputStream[] streams;
 	// The reader instances to wrap the input streams
 	private BufferedReader[] reader;
-	// String buffer to collect the read lines
-	private StringBuffer lines;
+	// String builder to collect the read lines
+	private StringBuilder lines;
 	private String lastLine;
 
 	// finished reading all the output
@@ -74,7 +74,7 @@ public class ProcessOutputReaderThread extends Thread {
 			reader[i] = new BufferedReader(new InputStreamReader(streams[i]));
 		}
 
-		lines = new StringBuffer();
+		lines = new StringBuilder();
 	}
 
 	/**

@@ -36,7 +36,7 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelLookupService#lkupModelNodeByUUID(java.util.UUID)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService#lkupModelNodeByUUID(java.util.UUID)
 	 */
 	@Override
 	public IModelNode lkupModelNodeByUUID(UUID uuid) {
@@ -44,7 +44,7 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelLookupService#lkupModelNodesById(java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService#lkupModelNodesById(java.lang.String)
 	 */
 	@Override
 	public IModelNode[] lkupModelNodesById(String id) {
@@ -81,7 +81,7 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelLookupService#lkupModelNodesByName(java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService#lkupModelNodesByName(java.lang.String)
 	 */
 	@Override
     public IModelNode[] lkupModelNodesByName(String name) {

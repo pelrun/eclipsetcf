@@ -95,7 +95,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.IModel#dispose()
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#dispose()
 	 */
 	@Override
 	public void dispose() {
@@ -107,7 +107,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.IModel#isDisposed()
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#isDisposed()
 	 */
 	@Override
 	public boolean isDisposed() {
@@ -116,7 +116,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.IModel#getService(java.lang.Class)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#getService(java.lang.Class)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
@@ -150,7 +150,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.IModel#setFactory(com.windriver.te.tcf.core.model.interfaces.IModelNodeFactory)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#setFactory(org.eclipse.tcf.te.runtime.model.interfaces.factory.IFactory)
 	 */
 	@Override
 	public void setFactory(IFactory factory) {
@@ -159,7 +159,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.IModel#getFactory()
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#getFactory()
 	 */
 	@Override
 	public IFactory getFactory() {
@@ -168,7 +168,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.gdbremote.model.interfaces.IRuntimeModel#getPeerModel()
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider#getPeerModel()
 	 */
 	@Override
 	public IPeerModel getPeerModel() {

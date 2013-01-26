@@ -34,7 +34,7 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelUpdateService#add(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService#add(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode)
 	 */
 	@Override
     public void add(IModelNode node) {
@@ -43,7 +43,7 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelUpdateService#remove(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService#remove(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode)
 	 */
 	@Override
     public void remove(IModelNode node) {
@@ -52,7 +52,7 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.model.interfaces.services.IModelUpdateService#update(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode, org.eclipse.tcf.te.runtime.model.interfaces.IModelNode)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService#update(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode, org.eclipse.tcf.te.runtime.model.interfaces.IModelNode)
 	 */
 	@Override
 	public void update(IModelNode dst, IModelNode src) {
