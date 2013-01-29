@@ -19,7 +19,9 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -61,8 +63,11 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		this.defaultFileExtension = defaultFileExtension;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#getPersistedClass(java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#getPersistedClass(
+	 * java.lang.Object)
 	 */
 	@Override
 	public Class<?> getPersistedClass(Object context) {
@@ -76,16 +81,34 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		return defaultFileExtension;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#write(java.lang.Object, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#writeList(java.lang
+	 * .Object[], java.lang.Object)
+	 */
+	@Override
+	public Object writeList(Object[] context, Object container) throws IOException {
+		return write(context, container, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#write(java.lang.Object
+	 * , java.lang.Object)
 	 */
 	@Override
 	public final Object write(Object context, Object container) throws IOException {
+		return write(context, container, false);
+	}
+
+	private Object write(Object context, Object container, boolean isList) throws IOException {
 		Assert.isNotNull(context);
 		Assert.isNotNull(container);
 
 		if (container instanceof URI) {
-			URI uri = (URI)container;
+			URI uri = (URI) container;
 
 			// Only "file:" URIs are supported
 			if (!"file".equalsIgnoreCase(uri.getScheme())) { //$NON-NLS-1$
@@ -106,14 +129,25 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 				file = path.addFileExtension(getDefaultFileExtension()).toFile();
 			}
 
-			Writer writer = null;
-			try {
-				writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8"); //$NON-NLS-1$
-				Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-				gson.toJson(internalToMap(context), Map.class, writer);
-			} finally {
-				if (writer != null) {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8"); //$NON-NLS-1$
+			if (!isList) {
+				try {
+					gson.toJson(internalToMap(context), Map.class, writer);
+				}
+				finally {
+					writer.close();
+				}
+			}
+			else {
+				List<String> encoded = new ArrayList<String>();
+				for (Object entry : (Object[]) context) {
+					encoded.add(gson.toJson(internalToMap(entry)));
+				}
+				try {
+					gson.toJson(encoded, List.class, writer);
+				}
+				finally {
 					writer.close();
 				}
 			}
@@ -121,22 +155,33 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		else if (String.class.equals(container)) {
 			Gson gson = new GsonBuilder().create();
 
-			container = gson.toJson(internalToMap(context));
+			if (!isList) {
+				container = gson.toJson(internalToMap(context));
+			}
+			else {
+				List<String> encoded = new ArrayList<String>();
+				for (Object entry : (Object[]) context) {
+					encoded.add(gson.toJson(internalToMap(entry)));
+				}
+				container = gson.toJson(encoded);
+			}
 		}
 
 		return container;
 	}
 
 	/*
-	 * Convert the context to a Map, extract and use variables and add them to the map as key VARIABLE.
+	 * Convert the context to a Map, extract and use variables and add them to the map as key
+	 * VARIABLE.
 	 */
-	private Map<String,Object> internalToMap(Object context) {
+	private Map<String, Object> internalToMap(Object context) {
 		try {
-			Map<String,Object> data = toMap(context);
+			Map<String, Object> data = toMap(context);
 
 			if (data != null) {
-				Map<String,String> variables = null;
-				IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
+				Map<String, String> variables = null;
+				IVariableDelegate[] delegates = PersistenceManager.getInstance()
+				                .getVariableDelegates(this);
 				for (IVariableDelegate delegate : delegates) {
 					variables = delegate.getVariables(data);
 				}
@@ -153,18 +198,36 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#read(java.lang.Object, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#readList(java.lang
+	 * .Class, java.lang.Object)
+	 */
+	@Override
+	public Object[] readList(Class<?> contextClass, Object container) throws IOException {
+		return (Object[])read(contextClass, container, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#read(java.lang.Object,
+	 * java.lang.Object)
 	 */
 	@Override
 	public final Object read(Object context, Object container) throws IOException {
+		return read(context, container, false);
+	}
+
+	private Object read(Object context, Object container, boolean isList) throws IOException {
 		Assert.isNotNull(container);
 
 		Gson gson = new GsonBuilder().create();
-		Map<String, Object> data = null;
+		List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
 
 		if (container instanceof URI) {
-			URI uri = (URI)container;
+			URI uri = (URI) container;
 
 			// Only "file:" URIs are supported
 			if (!"file".equalsIgnoreCase(uri.getScheme())) { //$NON-NLS-1$
@@ -186,43 +249,74 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 				}
 			}
 
-			Reader reader = null;
-			try {
-				reader = new InputStreamReader(new FileInputStream(file), "UTF-8"); //$NON-NLS-1$
-				data = gson.fromJson(reader, Map.class);
-			} finally {
-				if (reader != null) {
+			Reader reader = new InputStreamReader(new FileInputStream(file), "UTF-8"); //$NON-NLS-1$
+			if (!isList) {
+				try {
+					data.add(gson.fromJson(reader, Map.class));
+				}
+				finally {
+					reader.close();
+				}
+			}
+			else {
+				try {
+					List<String> strings = gson.fromJson(reader, List.class);
+					for (String string : strings) {
+						data.add(gson.fromJson(string, Map.class));
+					}
+				}
+				finally {
 					reader.close();
 				}
 			}
 		}
 		else if (container instanceof String) {
-			data = gson.fromJson((String)container, Map.class);
+			if (!isList) {
+				data.add(gson.fromJson((String) container, Map.class));
+			}
+			else {
+				List<String> strings = gson.fromJson((String) container, List.class);
+				for (String string : strings) {
+					data.add(gson.fromJson(string, Map.class));
+				}
+			}
 		}
 
-		if (data != null) {
-			Map<String,String> variables = new HashMap<String, String>();
-			if (data.containsKey(VARIABLES)) {
-				variables = (Map<String,String>)data.remove(VARIABLES);
+		for (Map<String, Object> entry : data) {
+			Map<String, String> variables = new HashMap<String, String>();
+			if (entry.containsKey(VARIABLES)) {
+				variables = (Map<String, String>) entry.remove(VARIABLES);
 			}
-			IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
+			IVariableDelegate[] delegates = PersistenceManager.getInstance()
+			                .getVariableDelegates(this);
 			for (IVariableDelegate delegate : delegates) {
-				data = delegate.putVariables(data, variables);
+				entry = delegate.putVariables(entry, variables);
 			}
 		}
 
-		return data != null ? fromMap(data, context) : context;
+		if (!isList) {
+			return !data.isEmpty() ? fromMap(data.get(0), context) : context;
+		}
+
+		List<Object> list = new ArrayList<Object>();
+		for (Map<String, Object> entry : data) {
+			list.add(fromMap(entry, context));
+		}
+		return list.toArray();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#delete(java.lang.Object, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#delete(java.lang.Object
+	 * , java.lang.Object)
 	 */
 	@Override
 	public boolean delete(Object context, Object container) throws IOException {
 		Assert.isNotNull(container);
 
 		if (container instanceof URI) {
-			URI uri = (URI)container;
+			URI uri = (URI) container;
 
 			// Only "file:" URIs are supported
 			if (!"file".equalsIgnoreCase(uri.getScheme())) { //$NON-NLS-1$
@@ -266,15 +360,15 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	 */
 	@SuppressWarnings("unchecked")
 	protected Map<String, Object> toMap(final Object context) throws IOException {
-		Map<String, Object> result = new HashMap<String,Object>();
+		Map<String, Object> result = new HashMap<String, Object>();
 
-		Map<String,Object> attrs = null;
+		Map<String, Object> attrs = null;
 		if (context instanceof Map) {
-			attrs = (Map<String, Object>)context;
+			attrs = (Map<String, Object>) context;
 		}
 		else if (context instanceof IPropertiesContainer) {
-			IPropertiesContainer container = (IPropertiesContainer)context;
-			attrs = new HashMap<String,Object>(container.getProperties());
+			IPropertiesContainer container = (IPropertiesContainer) context;
+			attrs = new HashMap<String, Object>(container.getProperties());
 		}
 
 		if (attrs != null) {
@@ -297,13 +391,13 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	 *
 	 * @throws IOException
 	 */
-	protected Object fromMap(Map<String,Object> map, Object context) throws IOException {
+	protected Object fromMap(Map<String, Object> map, Object context) throws IOException {
 		if (context == null || Map.class.equals(context)) {
 			return map;
 		}
 		else if (context instanceof Map) {
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-			Map<String,Object> newMap = new HashMap<String, Object>((Map)context);
+			Map<String, Object> newMap = new HashMap<String, Object>((Map) context);
 			newMap.putAll(map);
 			return newMap;
 		}
@@ -314,7 +408,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			return container;
 		}
 		else if (context instanceof IPropertiesContainer) {
-			IPropertiesContainer container = (IPropertiesContainer)context;
+			IPropertiesContainer container = (IPropertiesContainer) context;
 			container.setProperties(map);
 
 			return container;

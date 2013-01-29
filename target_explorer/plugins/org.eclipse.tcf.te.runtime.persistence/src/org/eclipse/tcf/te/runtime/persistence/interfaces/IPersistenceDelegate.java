@@ -29,9 +29,11 @@ public interface IPersistenceDelegate extends IExecutableExtension {
 	 */
 	public Object write(Object context, Object container) throws IOException;
 
+	public Object writeList(Object[] context, Object container) throws IOException;
+
 	/**
 	 * Get the class or interface for the context.
-	 * 
+	 *
 	 * @param context The context to persist. Must not be <code>null</code>.
 	 * @return The class or interface for the given context.
 	 */
@@ -47,6 +49,8 @@ public interface IPersistenceDelegate extends IExecutableExtension {
 	 * @return The new or updated context instance.
 	 */
 	public Object read(Object context, Object container) throws IOException;
+
+	public Object[] readList(Class<?> contextClass, Object container) throws IOException;
 
 	/**
 	 * Deletes the given context inside the container or the whole container.
