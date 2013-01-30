@@ -215,14 +215,11 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 
 							boolean isStatic = peer.isStatic();
 
-							boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
+							boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
+							boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId()) && !startedByCurrentUser;
 							if (!isNeighborhood && !isStatic) {
-								// "Value-add's" are not saved to the category persistence automatically
-								if (isProxyOrValueAdd(peer)) {
-									Managers.getCategoryManager().addTransient(catID, categorizable.getId());
-								} else {
-									Managers.getCategoryManager().add(catID, categorizable.getId());
-								}
+								// "Neighborhood" is always transient
+								Managers.getCategoryManager().addTransient(catID, categorizable.getId());
 								isNeighborhood = true;
 							}
 
