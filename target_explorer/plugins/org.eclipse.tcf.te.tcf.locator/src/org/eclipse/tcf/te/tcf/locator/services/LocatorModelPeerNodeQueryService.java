@@ -71,21 +71,15 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				// If the peer is a remote peer
-				// --> an agent is running and has been associated with the peer model.
-				if (node.isRemote()) {
-					queryServicesAsync(node, new DoneQueryServices() {
-						@Override
-						public void doneQueryServices(Throwable error) {
-							if (error == null) {
-								services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
-							}
-							completed.set(true);
+				queryServicesAsync(node, new DoneQueryServices() {
+					@Override
+					public void doneQueryServices(Throwable error) {
+						if (error == null) {
+							services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
 						}
-					});
-				} else {
-					completed.set(true);
-				}
+						completed.set(true);
+					}
+				});
 			}
 		});
 
@@ -137,21 +131,15 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				// If the peer is a remote peer
-				// --> an agent is running and has been associated with the peer model.
-				if (node.isRemote()) {
-					queryServicesAsync(node, new DoneQueryServices() {
-						@Override
-						public void doneQueryServices(Throwable error) {
-							if (error == null) {
-								services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
-							}
-							completed.set(true);
+				queryServicesAsync(node, new DoneQueryServices() {
+					@Override
+					public void doneQueryServices(Throwable error) {
+						if (error == null) {
+							services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
 						}
-					});
-				} else {
-					completed.set(true);
-				}
+						completed.set(true);
+					}
+				});
 			}
 		});
 
