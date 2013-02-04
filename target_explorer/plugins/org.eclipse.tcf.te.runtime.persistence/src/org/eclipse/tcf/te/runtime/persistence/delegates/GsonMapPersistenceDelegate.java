@@ -63,11 +63,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		this.defaultFileExtension = defaultFileExtension;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#getPersistedClass(
-	 * java.lang.Object)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#getPersistedClass(java.lang.Object)
 	 */
 	@Override
 	public Class<?> getPersistedClass(Object context) {
@@ -81,25 +78,25 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		return defaultFileExtension;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#writeList(java.lang
-	 * .Object[], java.lang.Object)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#writeList(java.lang.Object[], java.lang.Object)
 	 */
 	@Override
 	public Object writeList(Object[] context, Object container) throws IOException {
+		Assert.isNotNull(context);
+		Assert.isNotNull(container);
+
 		return write(context, container, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#write(java.lang.Object
-	 * , java.lang.Object)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#write(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public final Object write(Object context, Object container) throws IOException {
+		Assert.isNotNull(context);
+		Assert.isNotNull(container);
+
 		return write(context, container, false);
 	}
 
@@ -198,25 +195,21 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#readList(java.lang
-	 * .Class, java.lang.Object)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#readList(java.lang.Class, java.lang.Object)
 	 */
 	@Override
 	public Object[] readList(Class<?> contextClass, Object container) throws IOException {
+		Assert.isNotNull(container);
 		return (Object[])read(contextClass, container, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#read(java.lang.Object,
-	 * java.lang.Object)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#read(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public final Object read(Object context, Object container) throws IOException {
+		Assert.isNotNull(container);
 		return read(context, container, false);
 	}
 
@@ -305,11 +298,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		return list.toArray();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#delete(java.lang.Object
-	 * , java.lang.Object)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate#delete(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public boolean delete(Object context, Object container) throws IOException {
