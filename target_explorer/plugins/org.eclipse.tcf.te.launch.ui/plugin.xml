@@ -501,7 +501,6 @@
          </dynamic>
       </menuContribution>
       
-      
    <!-- Launches editor page toolbar contributions -->
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <separator
@@ -540,7 +539,6 @@
                label="%Refresh.menu.name"
                style="push"/>
       </menuContribution>
-      
    </extension>
 
 <!-- Command contributions -->

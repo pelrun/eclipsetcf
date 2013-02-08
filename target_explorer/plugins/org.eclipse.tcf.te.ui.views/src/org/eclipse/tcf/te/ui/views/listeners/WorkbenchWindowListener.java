@@ -9,80 +9,28 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.listeners;
 
-import org.eclipse.ui.IPartService;
-import org.eclipse.ui.IWindowListener;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPartReference;
-import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.IPerspectiveListener;
 
 /**
  * The window listener implementation. Takes care of the
  * management of the global listeners per workbench window.
  */
-public class WorkbenchWindowListener implements IWindowListener {
-	// The global part listener instance
-	private final WorkbenchPartListener partListener = new WorkbenchPartListener();
-	// The global perspective listener instance
-	private final WorkbenchPerspectiveListener perspectiveListener = new WorkbenchPerspectiveListener();
+public class WorkbenchWindowListener extends AbstractWindowListener {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWindowListener#windowActivated(org.eclipse.ui.IWorkbenchWindow)
+	 * @see org.eclipse.tcf.te.ui.views.listeners.AbstractWindowListener#createPartListener()
 	 */
 	@Override
-	public void windowActivated(IWorkbenchWindow window) {
+	protected IPartListener2 createPartListener() {
+    	return new WorkbenchPartListener();
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWindowListener#windowDeactivated(org.eclipse.ui.IWorkbenchWindow)
+	 * @see org.eclipse.tcf.te.ui.views.listeners.AbstractWindowListener#createPerspectiveListener()
 	 */
 	@Override
-	public void windowDeactivated(IWorkbenchWindow window) {
+	protected IPerspectiveListener createPerspectiveListener() {
+	    return new WorkbenchPerspectiveListener();
 	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWindowListener#windowClosed(org.eclipse.ui.IWorkbenchWindow)
-	 */
-	@Override
-	public void windowClosed(IWorkbenchWindow window) {
-		// On close, remove all global listeners from the window
-		if (window != null) {
-			if (window.getPartService() != null) {
-				window.getPartService().removePartListener(partListener);
-			}
-			window.removePerspectiveListener(perspectiveListener);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWindowListener#windowOpened(org.eclipse.ui.IWorkbenchWindow)
-	 */
-	@Override
-	public void windowOpened(IWorkbenchWindow window) {
-		// On open, register all global listener to the window
-		if (window != null) {
-			if (window.getPartService() != null) {
-				// Get the part service
-				IPartService service = window.getPartService();
-				// Unregister the part listener, just in case
-				service.removePartListener(partListener);
-				// Register the part listener
-				service.addPartListener(partListener);
-				// Signal the active part to the part listener after registration
-				IWorkbenchPage page = window.getActivePage();
-				if (page != null) {
-					IWorkbenchPartReference partRef = page.getActivePartReference();
-					if (partRef != null) partListener.partActivated(partRef);
-				}
-			}
-
-			// Register the perspective listener
-			window.addPerspectiveListener(perspectiveListener);
-			// Signal the active perspective to the perspective listener after registration
-			if (window.getActivePage() != null) {
-				perspectiveListener.perspectiveActivated(window.getActivePage(), window.getActivePage().getPerspective());
-			}
-		}
-
-	}
-
 }

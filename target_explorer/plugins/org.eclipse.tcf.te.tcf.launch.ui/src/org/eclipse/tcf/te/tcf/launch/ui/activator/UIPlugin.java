@@ -13,6 +13,9 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
+import org.eclipse.tcf.te.tcf.launch.ui.internal.listeners.WindowListener;
+import org.eclipse.ui.IWindowListener;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -24,6 +27,9 @@ public class UIPlugin extends AbstractUIPlugin {
 	private static UIPlugin plugin;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
+
+	// The window listener instance
+	private IWindowListener windowListener;
 
 	/**
 	 * The constructor
@@ -69,6 +75,11 @@ public class UIPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+
+		if (windowListener == null && PlatformUI.getWorkbench() != null) {
+			windowListener = new WindowListener();
+			PlatformUI.getWorkbench().addWindowListener(windowListener);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -76,6 +87,11 @@ public class UIPlugin extends AbstractUIPlugin {
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
+		if (windowListener != null && PlatformUI.getWorkbench() != null) {
+			PlatformUI.getWorkbench().removeWindowListener(windowListener);
+			windowListener = null;
+		}
+
 		plugin = null;
 		traceHandler = null;
 		super.stop(context);
