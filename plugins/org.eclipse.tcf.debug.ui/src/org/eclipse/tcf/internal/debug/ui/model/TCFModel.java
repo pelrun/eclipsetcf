@@ -1303,6 +1303,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
         void wait(Runnable r) {
             assert context_map.get(id) == this;
+            if (waiting_list.contains(r)) return;
             waiting_list.add(r);
         }
 
