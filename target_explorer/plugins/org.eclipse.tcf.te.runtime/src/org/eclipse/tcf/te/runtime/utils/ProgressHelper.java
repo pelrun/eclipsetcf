@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -32,15 +32,10 @@ public final class ProgressHelper {
 	/**
 	 * Checks if there was an error or the operation was canceled.
 	 *
-	 * @param caller
-	 *            The caller or <code>null</code>.
-	 * @param status
-	 *            The status. <code>null</code> if status should not be checked.
-	 * @param progress
-	 *            The progress monitor. <code>null</code> if cancel should not
-	 *            be checked.
-	 * @param callback
-	 *            The callback to call on cancel or error.
+	 * @param caller The caller or <code>null</code>.
+	 * @param status The status. <code>null</code> if status should not be checked.
+	 * @param progress The progress monitor. <code>null</code> if cancel should not be checked.
+	 * @param callback The callback to call on cancel or error.
 	 *
 	 * @return <code>false</code> if everything is OK.
 	 */
@@ -49,22 +44,17 @@ public final class ProgressHelper {
 
 		if (!status.isOK() || (progress != null && progress.isCanceled())) {
 			if (status.getSeverity() == IStatus.CANCEL || (progress != null && progress.isCanceled())) {
-				status = new Status(IStatus.CANCEL, status.getPlugin(),
-									status.getCode(), status.getMessage(),
-									new OperationCanceledException());
-			} else if (status.getSeverity() == IStatus.ERROR) {
+				status = new Status(IStatus.CANCEL, status.getPlugin(), status.getCode(), status.getMessage(), new OperationCanceledException());
+			}
+			else if (status.getSeverity() == IStatus.ERROR) {
 				Throwable e = status.getException();
 				try {
 					throw e;
-				} catch (Throwable thrown) {
+				}
+				catch (Throwable thrown) {
 					e = thrown;
 				}
-				CoreBundleActivator.getTraceHandler().trace(
-						status.getMessage(),
-						1,
-						ITraceIds.TRACE_CALLBACKS,
-						status.getSeverity(),
-						caller != null ? caller.getClass() : ProgressHelper.class);
+				CoreBundleActivator.getTraceHandler().trace(status.getMessage(), 1, ITraceIds.TRACE_CALLBACKS, status.getSeverity(), caller != null ? caller.getClass() : ProgressHelper.class);
 				status = new Status(IStatus.ERROR, status.getPlugin(), status.getCode(), status.getMessage(), e);
 			}
 
@@ -82,12 +72,9 @@ public final class ProgressHelper {
 	/**
 	 * Checks if the operation was canceled.
 	 *
-	 * @param caller
-	 *            The caller or <code>null</code>.
-	 * @param progress
-	 *            The progress monitor. Must not be <code>null</code>
-	 * @param callback
-	 *            The callback to call on cancel or error.
+	 * @param caller The caller or <code>null</code>.
+	 * @param progress The progress monitor. Must not be <code>null</code>
+	 * @param callback The callback to call on cancel or error.
 	 *
 	 * @return <code>false</code> if everything is OK.
 	 */
@@ -99,12 +86,9 @@ public final class ProgressHelper {
 	/**
 	 * Checks if the operation was canceled.
 	 *
-	 * @param caller
-	 *            The caller or <code>null</code>.
-	 * @param status
-	 *            The status. Must not be <code>null</code>.
-	 * @param callback
-	 *            The callback to call on cancel or error.
+	 * @param caller The caller or <code>null</code>.
+	 * @param status The status. Must not be <code>null</code>.
+	 * @param callback The callback to call on cancel or error.
 	 *
 	 * @return <code>false</code> if everything is OK.
 	 */
@@ -116,15 +100,10 @@ public final class ProgressHelper {
 	/**
 	 * Checks if the operation was canceled.
 	 *
-	 * @param caller
-	 *            The caller or <code>null</code>.
-	 * @param status
-	 *            The status. <code>null</code> if status should not be checked.
-	 * @param progress
-	 *            The progress monitor. <code>null</code> if cancel should not
-	 *            be checked.
-	 * @param callback
-	 *            The callback to call on cancel or error.
+	 * @param caller The caller or <code>null</code>.
+	 * @param status The status. <code>null</code> if status should not be checked.
+	 * @param progress The progress monitor. <code>null</code> if cancel should not be checked.
+	 * @param callback The callback to call on cancel or error.
 	 *
 	 * @return <code>false</code> if everything is OK.
 	 */
@@ -132,9 +111,7 @@ public final class ProgressHelper {
 		if (status == null) status = Status.OK_STATUS;
 
 		if (status.getSeverity() == IStatus.CANCEL || (progress != null && progress.isCanceled())) {
-			status = new Status(IStatus.CANCEL, status.getPlugin(),
-					status.getCode(), status.getMessage(),
-					new OperationCanceledException());
+			status = new Status(IStatus.CANCEL, status.getPlugin(), status.getCode(), status.getMessage(), new OperationCanceledException());
 
 			if (callback != null) {
 				if (caller instanceof ICallback) {
@@ -150,12 +127,9 @@ public final class ProgressHelper {
 	/**
 	 * Checks if there was an error.
 	 *
-	 * @param caller
-	 *            The caller or <code>null</code>.
-	 * @param status
-	 *            The status. <code>null</code> if status should not be checked.
-	 * @param callback
-	 *            The callback to call on cancel or error.
+	 * @param caller The caller or <code>null</code>.
+	 * @param status The status. <code>null</code> if status should not be checked.
+	 * @param callback The callback to call on cancel or error.
 	 *
 	 * @return <code>false</code> if everything is OK.
 	 */
@@ -167,15 +141,14 @@ public final class ProgressHelper {
 				Throwable e = status.getException();
 				try {
 					throw e;
-				} catch (Throwable thrown) {
+				}
+				catch (Throwable thrown) {
 					e = thrown;
 				}
-				CoreBundleActivator.getTraceHandler().trace(
-						status.getMessage(),
-						1,
-						ITraceIds.TRACE_CALLBACKS,
-						status.getSeverity(),
-						caller != null ? caller.getClass() : ProgressHelper.class);
+				CoreBundleActivator
+				                .getTraceHandler()
+				                .trace(status.getMessage(), 1, ITraceIds.TRACE_CALLBACKS, status.getSeverity(), caller != null ? caller
+				                                .getClass() : ProgressHelper.class);
 				status = new Status(IStatus.ERROR, status.getPlugin(), status.getCode(), status.getMessage(), e);
 			}
 
@@ -191,20 +164,19 @@ public final class ProgressHelper {
 	}
 
 	/**
-	 * Wraps the given progress monitor into a {@link SubProgressMonitor}. If
-	 * the given monitor is <code>null</code>, a {@link NullProgressMonitor} is returned.
+	 * Wraps the given progress monitor into a {@link SubProgressMonitor}. If the given monitor is
+	 * <code>null</code>, a {@link NullProgressMonitor} is returned.
 	 *
-	 * @param progress
-	 *            The global progress monitor or <code>null</code>.
-	 * @param ticksToUse
-	 *            The ticks to use.
+	 * @param progress The global progress monitor or <code>null</code>.
+	 * @param ticksToUse The ticks to use.
 	 *
 	 * @return The progress monitor to use.
 	 */
 	public static final IProgressMonitor getProgressMonitor(IProgressMonitor progress, int ticksToUse) {
 		if (progress != null) {
 			progress = new SubProgressMonitor(progress, ticksToUse, SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK);
-		} else {
+		}
+		else {
 			progress = new NullProgressMonitor();
 		}
 		return progress;
@@ -213,12 +185,9 @@ public final class ProgressHelper {
 	/**
 	 * Start a task.
 	 *
-	 * @param progress
-	 *            The progress monitor or <code>null</code>.
-	 * @param name
-	 *            The name (label) of the task.
-	 * @param ticks
-	 *            The ticks for this task.
+	 * @param progress The progress monitor or <code>null</code>.
+	 * @param name The name (label) of the task.
+	 * @param ticks The ticks for this task.
 	 */
 	public static final void beginTask(IProgressMonitor progress, String name, int ticks) {
 		if (progress != null) {
@@ -230,10 +199,8 @@ public final class ProgressHelper {
 	/**
 	 * Set a new task name.
 	 *
-	 * @param progress
-	 *            The progress monitor or <code>null</code>.
-	 * @param taskName
-	 *            The name (label) of the task.
+	 * @param progress The progress monitor or <code>null</code>.
+	 * @param taskName The name (label) of the task.
 	 */
 	public static final void setTaskName(IProgressMonitor progress, String taskName) {
 		if (progress != null) {
@@ -244,13 +211,10 @@ public final class ProgressHelper {
 	/**
 	 * Set a new sub task name.
 	 *
-	 * @param progress
-	 *            The progress monitor or <code>null</code>.
-	 * @param subTask
-	 *            The name (label) of the sub task.
+	 * @param progress The progress monitor or <code>null</code>.
+	 * @param subTask The name (label) of the sub task.
 	 */
-	public static final void setSubTaskName(IProgressMonitor progress,
-			String subTaskName) {
+	public static final void setSubTaskName(IProgressMonitor progress, String subTaskName) {
 		if (progress != null) {
 			progress.subTask(subTaskName);
 		}
@@ -259,13 +223,10 @@ public final class ProgressHelper {
 	/**
 	 * Add the given amount of worked steps to the progress monitor.
 	 * <p>
-	 * If the given amount of worked steps is less or equal than 0, the method
-	 * will do nothing.
+	 * If the given amount of worked steps is less or equal than 0, the method will do nothing.
 	 *
-	 * @param progress
-	 *            The progress monitor or <code>null</code>.
-	 * @param worked
-	 *            The amount of worked steps.
+	 * @param progress The progress monitor or <code>null</code>.
+	 * @param worked The amount of worked steps.
 	 */
 	public static final void worked(IProgressMonitor progress, int worked) {
 		if (progress != null && !progress.isCanceled() && worked > 0) {
@@ -276,8 +237,7 @@ public final class ProgressHelper {
 	/**
 	 * Set the progress monitor done.
 	 *
-	 * @param progress
-	 *            The progress monitor or <code>null</code>.
+	 * @param progress The progress monitor or <code>null</code>.
 	 */
 	public static final void done(IProgressMonitor progress) {
 		if (progress != null) {
@@ -290,8 +250,7 @@ public final class ProgressHelper {
 	/**
 	 * Set the progress monitor canceled.
 	 *
-	 * @param progress
-	 *            The progress monitor or <code>null</code>.
+	 * @param progress The progress monitor or <code>null</code>.
 	 */
 	public static final void cancel(IProgressMonitor progress) {
 		if (progress != null && !progress.isCanceled()) {
@@ -302,11 +261,10 @@ public final class ProgressHelper {
 	/**
 	 * Get the canceled state of the progress monitor.
 	 *
-	 * @param progress
-	 *            The progress monitor or <code>null</code>.
+	 * @param progress The progress monitor or <code>null</code>.
 	 *
-	 * @return <code>True</code> if the progress monitor is not
-	 *         <code>null</code> and if the progress monitor is canceled.
+	 * @return <code>True</code> if the progress monitor is not <code>null</code> and if the
+	 *         progress monitor is canceled.
 	 */
 	public static final boolean isCanceled(IProgressMonitor progress) {
 		if (progress != null) {
