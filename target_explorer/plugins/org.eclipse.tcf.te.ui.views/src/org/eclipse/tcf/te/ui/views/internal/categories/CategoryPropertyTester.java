@@ -23,9 +23,16 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.tcf.te.ui.views.Managers;
+import org.eclipse.tcf.te.ui.views.ViewsUtil;
+import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.handler.CategoryAddToContributionItem;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
+import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.navigator.CommonNavigator;
+import org.eclipse.ui.navigator.INavigatorActivationService;
+import org.eclipse.ui.navigator.INavigatorContentService;
 
 /**
  * Category property tester.
@@ -129,6 +136,28 @@ public class CategoryPropertyTester extends PropertyTester {
 		if ("isCategoryID".equals(property) && receiver instanceof ICategory) { //$NON-NLS-1$
 			String id = ((ICategory)receiver).getId();
 			return id.equals(expectedValue);
+		}
+
+		if ("isHiddenByPreferences".equals(property) && receiver instanceof ICategory && expectedValue instanceof Boolean) { //$NON-NLS-1$
+			String prefKey = ((ICategory)receiver).getId() + ".hide"; //$NON-NLS-1$
+			boolean isHidden = UIPlugin.getScopedPreferences().getBoolean(prefKey) || Boolean.getBoolean(prefKey);
+			return ((Boolean)expectedValue).booleanValue() == isHidden;
+		}
+
+		if ("isVisibleNavigatorContent".equals(property) && receiver instanceof ICategory && expectedValue instanceof Boolean) { //$NON-NLS-1$
+			boolean isVisible = false;
+
+			String navContentID = args != null && args.length == 1 && args[0] instanceof String ? (String)args[0] : null;
+			IWorkbenchPart part = ViewsUtil.getPart(IUIConstants.ID_EXPLORER);
+
+			if (part instanceof CommonNavigator) {
+				CommonNavigator navigator = (CommonNavigator)part;
+				INavigatorContentService service = navigator.getNavigatorContentService();
+				INavigatorActivationService activationService = service != null ? service.getActivationService() : null;
+				isVisible = activationService != null && navContentID != null && activationService.isNavigatorExtensionActive(navContentID);
+			}
+
+			return ((Boolean)expectedValue).booleanValue() == isVisible;
 		}
 
 		return false;

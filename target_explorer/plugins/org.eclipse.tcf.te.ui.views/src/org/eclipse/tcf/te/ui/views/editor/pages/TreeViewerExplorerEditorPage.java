@@ -52,7 +52,6 @@ import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
 import org.eclipse.tcf.te.ui.utils.TreeViewerUtil;
 import org.eclipse.ui.ISources;
-import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.forms.IManagedForm;
@@ -482,22 +481,18 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
                 }
 				@Override
                 public void run() throws Exception {
+					IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+					Assert.isNotNull(handlerSvc);
+
 					ISelection selection = event.getSelection();
-					EvaluationContext ctx = new EvaluationContext(null, selection);
+					EvaluationContext ctx = new EvaluationContext(handlerSvc.getCurrentState(), selection);
 					ctx.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
 					ctx.addVariable(ISources.ACTIVE_MENU_SELECTION_NAME, selection);
-					ctx.addVariable(ISources.ACTIVE_WORKBENCH_WINDOW_NAME, PlatformUI.getWorkbench().getActiveWorkbenchWindow());
-					IWorkbenchPartSite site = getSite();
-					ctx.addVariable(ISources.ACTIVE_PART_ID_NAME, site.getId());
-					ctx.addVariable(ISources.ACTIVE_PART_NAME, TreeViewerExplorerEditorPage.this);
-					ctx.addVariable(ISources.ACTIVE_SITE_NAME, site);
-					ctx.addVariable(ISources.ACTIVE_SHELL_NAME, site.getShell());
 					ctx.setAllowPluginActivation(true);
 
 					ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
 					Assert.isNotNull(pCmd);
-					IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
-					Assert.isNotNull(handlerSvc);
+
 					handlerSvc.executeCommandInContext(pCmd, null, ctx);
                 }});
 		} else {

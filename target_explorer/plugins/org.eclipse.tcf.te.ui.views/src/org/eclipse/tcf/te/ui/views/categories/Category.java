@@ -9,20 +9,31 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.categories;
 
+import org.eclipse.core.expressions.EvaluationContext;
+import org.eclipse.core.expressions.EvaluationResult;
+import org.eclipse.core.expressions.Expression;
+import org.eclipse.core.expressions.ExpressionConverter;
+import org.eclipse.core.expressions.IEvaluationContext;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.extensions.ExecutableExtension;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.ui.views.Managers;
+import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 /**
@@ -34,6 +45,8 @@ public class Category extends ExecutableExtension implements ICategory, IDisposa
 	private Image image = null;
 	// The sorting rank
 	private int rank = -1;
+	// The converted expression
+	private Expression expression;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.extensions.ExecutableExtension#setInitializationData(org.eclipse.core.runtime.IConfigurationElement, java.lang.String, java.lang.Object)
@@ -57,6 +70,13 @@ public class Category extends ExecutableExtension implements ICategory, IDisposa
 			try {
 				rank = Integer.valueOf(attrRank).intValue();
 			} catch (NumberFormatException e) { /* ignored on purpose */ }
+		}
+
+		// Read the "enablement" sub element of the extension
+		IConfigurationElement[] children = config.getChildren("enablement"); //$NON-NLS-1$
+		// Only one "enablement" element is expected
+		if (children != null && children.length > 0) {
+			expression = ExpressionConverter.getDefault().perform(children[0]);
 		}
 	}
 
@@ -134,6 +154,36 @@ public class Category extends ExecutableExtension implements ICategory, IDisposa
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.interfaces.ICategory#isEnabled()
+	 */
+	@Override
+	public boolean isEnabled() {
+		// The category is enabled if no "enablement" expression is found
+		boolean enabled = true;
+
+		if (expression != null) {
+			// Get the handler service
+			IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+			Assert.isNotNull(handlerSvc);
+
+			// Get the current state
+			IEvaluationContext currentState = handlerSvc.getCurrentState();
+
+			// Construct the evaluation context to pass to the expression
+			// The expressions default variable is the category itself.
+			IEvaluationContext ctx = new EvaluationContext(currentState, this);
+			try {
+				enabled = expression.evaluate(ctx).equals(EvaluationResult.TRUE);
+			} catch (CoreException e) {
+				IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), e.getLocalizedMessage(), e);
+				UIPlugin.getDefault().getLog().log(status);
+			}
+		}
+
+	    return enabled;
+	}
+
+	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -143,6 +193,8 @@ public class Category extends ExecutableExtension implements ICategory, IDisposa
 		buffer.append(getId());
 		buffer.append("] {rank="); //$NON-NLS-1$
 		buffer.append(getRank());
+		buffer.append(", enabled="); //$NON-NLS-1$
+		buffer.append(isEnabled());
 		buffer.append("}"); //$NON-NLS-1$
 		return buffer.toString();
 	}

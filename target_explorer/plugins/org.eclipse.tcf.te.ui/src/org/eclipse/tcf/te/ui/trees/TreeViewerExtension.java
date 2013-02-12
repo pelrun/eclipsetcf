@@ -21,6 +21,7 @@ import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.expressions.EvaluationResult;
 import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.expressions.ExpressionConverter;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -44,6 +45,8 @@ import org.eclipse.swt.dnd.ImageTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.osgi.framework.Bundle;
 
 /**
@@ -306,7 +309,8 @@ public class TreeViewerExtension {
 		if(children == null || children.length == 0)
 			return true;
 		final IConfigurationElement config = children[0];
-		final EvaluationContext context = new EvaluationContext(null, input);
+		IEvaluationContext currentState = ((IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class)).getCurrentState();
+		final EvaluationContext context = new EvaluationContext(currentState, input);
 		context.addVariable("input", input); //$NON-NLS-1$
 		context.setAllowPluginActivation(true);
 		final boolean[] result = new boolean[1];

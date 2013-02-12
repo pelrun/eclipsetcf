@@ -202,22 +202,19 @@ public class View extends CommonNavigator implements ITabbedPropertySheetPageCon
 		Command command = service != null ? service.getCommand(ICommonActionConstants.OPEN) : null;
 		if (command != null && command.isDefined() && command.isEnabled()) {
 			try {
+				IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+				Assert.isNotNull(handlerSvc);
+
 				ISelection selection = dblClickEvent.getSelection();
-				EvaluationContext ctx = new EvaluationContext(null, selection);
+				EvaluationContext ctx = new EvaluationContext(handlerSvc.getCurrentState(), selection);
 				ctx.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
 				ctx.addVariable(ISources.ACTIVE_MENU_SELECTION_NAME, selection);
-				ctx.addVariable(ISources.ACTIVE_WORKBENCH_WINDOW_NAME, PlatformUI.getWorkbench().getActiveWorkbenchWindow());
-				ctx.addVariable(ISources.ACTIVE_PART_ID_NAME, getViewSite().getId());
-				ctx.addVariable(ISources.ACTIVE_PART_NAME, this);
-				ctx.addVariable(ISources.ACTIVE_SITE_NAME, getViewSite());
-				ctx.addVariable(ISources.ACTIVE_SHELL_NAME, getViewSite().getShell());
 				ctx.addVariable("altPressed", Boolean.valueOf(dblClickEvent instanceof AltDoubleClickEvent)); //$NON-NLS-1$
 				ctx.setAllowPluginActivation(true);
 
 				ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
 				Assert.isNotNull(pCmd);
-				IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
-				Assert.isNotNull(handlerSvc);
+
 				handlerSvc.executeCommandInContext(pCmd, null, ctx);
 			} catch (Exception e) {
 				// If the platform is in debug mode, we print the exception to the log view

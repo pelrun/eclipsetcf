@@ -33,6 +33,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupSer
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IUIConstants;
 import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
@@ -40,7 +41,6 @@ import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
-import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.internal.navigator.NavigatorFilterService;
@@ -153,7 +153,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 			final IPeerModel[] peers = model.getPeers();
 			final List<IPeerModel> candidates = new ArrayList<IPeerModel>();
 
-					if (IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
+					if (org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
 						for (IPeerModel peer : peers) {
 							ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
 							if (categorizable == null) {
@@ -184,6 +184,14 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 
 							// Static peers, or if launched by current user -> add automatically to "My Targets"
 							boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
+							if (!startedByCurrentUser) {
+								// If the "Neighborhood" category is not visible, ignore the startedByCurrentUser flag
+								ICategory neighborhoodCat = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_NEIGHBORHOOD, false);
+								if (neighborhoodCat != null && !neighborhoodCat.isEnabled()) {
+									startedByCurrentUser = true;
+								}
+							}
+
 							boolean isMyTargets = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
 							if (!isMyTargets && (isStatic || startedByCurrentUser)) {
 								// "Value-add's" are not saved to the category persistence automatically
@@ -216,6 +224,14 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 							boolean isStatic = peer.isStatic();
 
 							boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
+							if (startedByCurrentUser) {
+								// If the "My Targets" category is not visible, ignore the startedByCurrentUser flag
+								ICategory myTargetsCat = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_MY_TARGETS, false);
+								if (myTargetsCat != null && !myTargetsCat.isEnabled()) {
+									startedByCurrentUser = false;
+								}
+							}
+
 							boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
 							if (!isNeighborhood && !isStatic && !startedByCurrentUser) {
 								// "Neighborhood" is always transient
@@ -355,9 +371,9 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 		List<TreePath> pathes = new ArrayList<TreePath>();
 
 		if (element instanceof IPeerModel) {
-			if (Managers.getCategoryManager().belongsTo(IUIConstants.ID_CAT_FAVORITES, ((IPeerModel)element).getPeerId())) {
+			if (Managers.getCategoryManager().belongsTo(org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES, ((IPeerModel)element).getPeerId())) {
 				// Get the "Favorites" category
-				ICategory favCategory = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_FAVORITES, false);
+				ICategory favCategory = CategoriesExtensionPointManager.getInstance().getCategory(org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES, false);
 				if (favCategory != null) {
 					pathes.add(new TreePath(new Object[] { favCategory }));
 				}

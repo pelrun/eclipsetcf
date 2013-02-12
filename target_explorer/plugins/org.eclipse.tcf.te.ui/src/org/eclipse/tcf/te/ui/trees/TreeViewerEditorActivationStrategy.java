@@ -17,6 +17,7 @@ import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.expressions.EvaluationResult;
 import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.expressions.ExpressionConverter;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -29,6 +30,8 @@ import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.te.ui.interfaces.IViewerCellEditorFactory;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerService;
 
 /**
  * <code>TreeViewerEditorActivationStrategy</code> is a subclass of
@@ -91,7 +94,8 @@ public class TreeViewerEditorActivationStrategy extends ColumnViewerEditorActiva
 	private IViewerCellEditorFactory getFactory(ColumnViewerEditorActivationEvent event) {
 		// Prepare the evaluation context.
 		ISelection selection = viewer.getSelection();
-		final EvaluationContext context = new EvaluationContext(null, selection);
+		IEvaluationContext currentState = ((IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class)).getCurrentState();
+		final EvaluationContext context = new EvaluationContext(currentState, selection);
 		context.addVariable("selection", selection); //$NON-NLS-1$
 		context.addVariable("event", event); //$NON-NLS-1$
 		context.setAllowPluginActivation(true);

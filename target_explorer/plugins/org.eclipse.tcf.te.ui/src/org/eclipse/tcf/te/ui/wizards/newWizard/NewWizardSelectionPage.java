@@ -19,6 +19,7 @@ import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.expressions.EvaluationResult;
 import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.expressions.ExpressionConverter;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -61,6 +62,7 @@ import org.eclipse.ui.activities.ITriggerPoint;
 import org.eclipse.ui.activities.WorkbenchActivityHelper;
 import org.eclipse.ui.dialogs.FilteredTree;
 import org.eclipse.ui.dialogs.PatternFilter;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.internal.activities.ws.WorkbenchTriggerPoints;
 import org.eclipse.ui.internal.dialogs.WizardPatternFilter;
 import org.eclipse.ui.internal.dialogs.WorkbenchWizardElement;
@@ -146,8 +148,9 @@ public class NewWizardSelectionPage extends WizardPage {
 						if (expression != null) {
 							// The selection passed to the expression is the "System Management" view tree selection
 							ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
-							ISelection selection = selectionService != null ? selectionService.getSelection("org.eclipse.tcf.te.ui.views.View") : null; //$NON-NLS-1$
-							EvaluationContext evalContext = new EvaluationContext(null, selection);
+							ISelection selection = selectionService != null ? selectionService.getSelection("org.eclipse.tcf.te.ui.views.View") : StructuredSelection.EMPTY; //$NON-NLS-1$
+							IEvaluationContext currentState = ((IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class)).getCurrentState();
+							EvaluationContext evalContext = new EvaluationContext(currentState, selection);
 							evalContext.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
 							evalContext.setAllowPluginActivation(true);
 							if (!expression.evaluate(evalContext).equals(EvaluationResult.TRUE)) {

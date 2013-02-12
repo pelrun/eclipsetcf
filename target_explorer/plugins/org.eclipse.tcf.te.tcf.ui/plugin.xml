@@ -138,6 +138,33 @@
       </commonFilter>
    </extension>
 
+<!-- View categories contributions -->
+   <extension point="org.eclipse.tcf.te.ui.views.categories">
+      <category
+            class="org.eclipse.tcf.te.ui.views.categories.Category"
+            icon="icons/obj16/targets.gif"
+            id="org.eclipse.tcf.te.tcf.ui.category.mytargets"
+            label="%category.mytargets.name"
+            rank="10">
+         <enablement>
+            <test property="org.eclipse.tcf.te.ui.views.isHiddenByPreferences" value="false"/>
+            <test property="org.eclipse.tcf.te.ui.views.isVisibleNavigatorContent" args="org.eclipse.tcf.te.tcf.ui.navigator.content" value="true"/>
+         </enablement>
+      </category>
+
+      <category
+            class="org.eclipse.tcf.te.ui.views.categories.Category"
+            icon="icons/obj16/neighborhood.gif"
+            id="org.eclipse.tcf.te.tcf.ui.category.neighborhood"
+            label="%category.neighborhood.name"
+            rank="20">
+         <!-- The "Neighborhood" category does not check for isHiddenByPreferences -->
+         <enablement>
+            <test property="org.eclipse.tcf.te.ui.views.isVisibleNavigatorContent" args="org.eclipse.tcf.te.tcf.ui.navigator.content" value="true"/>
+         </enablement>
+      </category>
+   </extension>
+
 <!-- Decorator contributions -->   
    <extension point="org.eclipse.ui.decorators">
       <decorator

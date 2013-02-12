@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.expressions.EvaluationResult;
 import org.eclipse.core.expressions.Expression;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -25,6 +26,8 @@ import org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.ui.ISources;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerService;
 
 /**
  * Terminal launcher delegate manager implementation.
@@ -128,7 +131,8 @@ public class LauncherDelegateManager extends AbstractExtensionPointManager<ILaun
 			if (enablement != null) {
 				if (selection != null) {
 					// Set the default variable to selection.
-					EvaluationContext context = new EvaluationContext(null, selection);
+					IEvaluationContext currentState = ((IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class)).getCurrentState();
+					EvaluationContext context = new EvaluationContext(currentState, selection);
 					// Set the "selection" variable to the selection.
 					context.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
 					// Allow plugin activation
@@ -137,8 +141,7 @@ public class LauncherDelegateManager extends AbstractExtensionPointManager<ILaun
 					try {
 						isApplicable = enablement.evaluate(context).equals(EvaluationResult.TRUE);
 					} catch (CoreException e) {
-						IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-						                            e.getLocalizedMessage(), e);
+						IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), e.getLocalizedMessage(), e);
 						UIPlugin.getDefault().getLog().log(status);
 					}
 				} else {

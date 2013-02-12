@@ -29,8 +29,6 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNod
 import org.eclipse.tcf.te.tcf.processes.core.model.steps.AttachStep;
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
 import org.eclipse.ui.ISources;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -92,26 +90,19 @@ public class AttachHandler extends AbstractHandler {
 						Command command = service != null ? service.getCommand("org.eclipse.tcf.te.launch.command.showInDebugView") : null; //$NON-NLS-1$
 						if (command != null && command.isDefined() && command.isEnabled()) {
 							try {
+								IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+								Assert.isNotNull(handlerSvc);
+
 								ISelection selection = HandlerUtil.getCurrentSelection(event);
-								EvaluationContext ctx = new EvaluationContext(null, selection);
+								EvaluationContext ctx = new EvaluationContext(handlerSvc.getCurrentState(), selection);
 								ctx.addVariable("launch", launch); //$NON-NLS-1$
 								ctx.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
 								ctx.addVariable(ISources.ACTIVE_MENU_SELECTION_NAME, selection);
-								ctx.addVariable(ISources.ACTIVE_WORKBENCH_WINDOW_NAME, HandlerUtil.getActiveWorkbenchWindow(event));
-								IWorkbenchPart part = HandlerUtil.getActivePart(event);
-								if (part != null) {
-									IWorkbenchPartSite site = part.getSite();
-									ctx.addVariable(ISources.ACTIVE_PART_ID_NAME, site.getId());
-									ctx.addVariable(ISources.ACTIVE_PART_NAME, part);
-									ctx.addVariable(ISources.ACTIVE_SITE_NAME, site);
-									ctx.addVariable(ISources.ACTIVE_SHELL_NAME, site.getShell());
-								}
 								ctx.setAllowPluginActivation(true);
 
 								ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
 								Assert.isNotNull(pCmd);
-								IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
-								Assert.isNotNull(handlerSvc);
+
 								handlerSvc.executeCommandInContext(pCmd, null, ctx);
 							} catch (Exception e) {
 								// If the platform is in debug mode, we print the exception to the log view

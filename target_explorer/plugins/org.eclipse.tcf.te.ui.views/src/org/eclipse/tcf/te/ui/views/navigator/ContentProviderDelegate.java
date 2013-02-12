@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
@@ -39,16 +38,15 @@ public class ContentProviderDelegate implements ICommonContentProvider {
 			// Get all contributed categories if there are any
 			ICategory[] categories = CategoriesExtensionPointManager.getInstance().getCategories(false);
 			// Filter out possible hidden categories
-			List<ICategory> filtered = new ArrayList<ICategory>();
+			List<ICategory> visibleCategories = new ArrayList<ICategory>();
 			for (ICategory category : categories) {
-				String key = category.getId() + ".hide"; //$NON-NLS-1$
-				if (UIPlugin.getScopedPreferences().getBoolean(key) || Boolean.getBoolean(key)) {
-					continue;
-				}
-				filtered.add(category);
+				// If the category is not enabled by expression --> not shown
+				if (!category.isEnabled()) continue;
+				// Add category to the list of visible categories
+				visibleCategories.add(category);
 			}
 
-			children = filtered.toArray(new ICategory[filtered.size()]);
+			children = visibleCategories.toArray(new ICategory[visibleCategories.size()]);
 		}
 
 		return children;

@@ -306,7 +306,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 		@Override
 		public boolean select(Viewer viewer, Object parentElement, Object element) {
 			if (element instanceof ICategory) {
-				return true;
+				return ((ICategory)element).isEnabled();
 			}
 			else if (element instanceof IModelNode) {
 				if (isGhost((IModelNode) element)) {

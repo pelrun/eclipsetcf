@@ -18,11 +18,11 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
-import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.navigator.CommonDropAdapter;
 
 /**
@@ -71,7 +71,7 @@ public class CommonDnD {
 	public static boolean dropLocalSelection(CommonDropAdapter dropAdapter, Object target, int operations, IStructuredSelection selection) {
 		if (target instanceof ICategory) {
 			ICategory hovered = (ICategory) target;
-			if (IUIConstants.ID_CAT_FAVORITES.equals(hovered.getId())
+			if (org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES.equals(hovered.getId())
 							|| IUIConstants.ID_CAT_MY_TARGETS.equals(hovered.getId())) {
 				Iterator<?> iterator = selection.iterator();
 				while (iterator.hasNext()) {
@@ -82,7 +82,7 @@ public class CommonDnD {
 					Managers.getCategoryManager().add(hovered.getId(), ((IPeerModel)element).getPeerId());
 				}
 				// Fire a refresh of the view
-				ViewsUtil.refresh(IUIConstants.ID_EXPLORER);
+				ViewsUtil.refresh(org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_EXPLORER);
 			}
 		} else if (target instanceof IRoot) {
 			Iterator<?> iterator = selection.iterator();
@@ -114,7 +114,7 @@ public class CommonDnD {
 			}
 
 			// Fire a refresh of the view
-			ViewsUtil.refresh(IUIConstants.ID_EXPLORER);
+			ViewsUtil.refresh(org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_EXPLORER);
 		}
 
 		return false;
@@ -164,7 +164,7 @@ public class CommonDnD {
 
 				// If the target is the "Favorites" or the "My Targets" category,
 				// force DROP_LINK operation
-				if ((IUIConstants.ID_CAT_FAVORITES.equals(category.getId()) || IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId()))
+				if ((org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES.equals(category.getId()) || IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId()))
 								&& (operation & DND.DROP_LINK) == 0) {
 					overrideOperation = DND.DROP_LINK;
 				}

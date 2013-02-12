@@ -103,10 +103,13 @@ public abstract class AbstractAction extends AbstractTerminalAction {
 			// Get the command
 			final Command command = service.getCommand(getCommandId());
 			if (command != null && command.isDefined()) {
+				IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+				Assert.isNotNull(handlerSvc);
+
 				// Construct a selection element
 				IStructuredSelection selection = data != null ? new StructuredSelection(data) : new StructuredSelection();
 				// Construct the application context
-				EvaluationContext context = new EvaluationContext(null, selection);
+				EvaluationContext context = new EvaluationContext(handlerSvc.getCurrentState(), selection);
 				// Apply the selection to the "activeMenuSelection" and "selection" variable too
 				context.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
 				context.addVariable(ISources.ACTIVE_MENU_SELECTION_NAME, selection);
@@ -116,8 +119,7 @@ public abstract class AbstractAction extends AbstractTerminalAction {
 				try {
 					ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
 					Assert.isNotNull(pCmd);
-					IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
-					Assert.isNotNull(handlerSvc);
+
 					handlerSvc.executeCommandInContext(pCmd, null, context);
 				} catch (Exception e) {
 					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),

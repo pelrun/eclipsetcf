@@ -10,6 +10,8 @@
       </documentation>
    </annotation>
 
+   <include schemaLocation="schema://org.eclipse.core.expressions/schema/expressionLanguage.exsd"/>
+
    <element name="extension">
       <annotation>
          <appinfo>
@@ -54,10 +56,11 @@
          </documentation>
       </annotation>
       <complexType>
-         <choice>
+         <sequence>
             <element ref="class" minOccurs="0" maxOccurs="1"/>
             <element ref="description" minOccurs="0" maxOccurs="1"/>
-         </choice>
+            <element ref="enablement" minOccurs="0" maxOccurs="1"/>
+         </sequence>
          <attribute name="id" type="string" use="required">
             <annotation>
                <documentation>

@@ -33,9 +33,16 @@ public interface ICategory extends IExecutableExtension {
 
 	/**
 	 * Check whether the given categorizable element belongs to this category.
+	 *
 	 * @param element The categorizable element.
-	 * @return <code>true</code> if the element should be shown within this category.
+	 * @return <code>True</code> if the element should be shown within this category.
 	 */
 	public boolean belongsTo(Object element);
 
+	/**
+	 * Returns whether this category is enabled or not.
+	 *
+	 * @return <code>True</code> if the category is enabled, <code>false</code> otherwise.
+	 */
+	public boolean isEnabled();
 }

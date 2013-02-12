@@ -198,6 +198,7 @@ public abstract class AbstractCategoryContributionItem extends CompoundContribut
 
 			List<ICategory> candidates = new ArrayList<ICategory>();
 			for (ICategory category : allCategories) {
+				if (!category.isEnabled()) continue;
 				if (isValid(parentCategory, element, category)
 						&& (!onlyEnabled || isEnabled(selection, category))) {
 					candidates.add(category);

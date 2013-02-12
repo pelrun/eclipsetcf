@@ -40,13 +40,13 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IUIConstants;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.interfaces.handler.IDeleteHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
-import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategoryManager;
 import org.eclipse.ui.IEditorPart;
@@ -76,7 +76,7 @@ public class DeleteHandler extends AbstractHandler {
 				@Override
 				protected void internalDone(Object caller, IStatus status) {
 					// Refresh the view
-					ViewsUtil.refresh(IUIConstants.ID_EXPLORER);
+					ViewsUtil.refresh(org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_EXPLORER);
 				}
 			});
 		}
@@ -375,7 +375,7 @@ public class DeleteHandler extends AbstractHandler {
 			} else if (category != null) {
 				// If the parent category is "Favorites", it is always
 				// an "unlink" operation
-				if (IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
+				if (org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
 					Operation op = new Operation();
 					op.node = node;
 					op.type = Operation.TYPE.Unlink;

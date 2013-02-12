@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
-import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 
 /**
@@ -87,7 +87,7 @@ public class CategorizableAdapter implements ICategorizable {
 			}
 
 			// ALL: Destination is "Neighborhood" -> not valid
-			if (IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
+			if (org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
 				return true;
 			}
 		}

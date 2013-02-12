@@ -17,6 +17,7 @@ import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.expressions.EvaluationResult;
 import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.expressions.ExpressionConverter;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IStatus;
@@ -26,6 +27,8 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.te.runtime.extensions.AbstractExtensionPointManager;
 import org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerService;
 
 /**
  * Label Provider Delegate extension point manager implementation.
@@ -97,7 +100,8 @@ public class LabelProviderDelegateExtensionPointManager extends AbstractExtensio
 			if (enablement != null) {
 				if (context != null) {
 					// Set the default variable to the delegate context.
-					EvaluationContext evalContext = new EvaluationContext(null, context);
+					IEvaluationContext currentState = ((IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class)).getCurrentState();
+					EvaluationContext evalContext = new EvaluationContext(currentState, context);
 					evalContext.addVariable("context", context); //$NON-NLS-1$
 					// Allow plugin activation
 					evalContext.setAllowPluginActivation(true);
@@ -105,8 +109,7 @@ public class LabelProviderDelegateExtensionPointManager extends AbstractExtensio
 					try {
 						isApplicable = enablement.evaluate(evalContext).equals(EvaluationResult.TRUE);
 					} catch (CoreException e) {
-						IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-										e.getLocalizedMessage(), e);
+						IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), e.getLocalizedMessage(), e);
 						Platform.getLog(UIPlugin.getDefault().getBundle()).log(status);
 					}
 				} else {

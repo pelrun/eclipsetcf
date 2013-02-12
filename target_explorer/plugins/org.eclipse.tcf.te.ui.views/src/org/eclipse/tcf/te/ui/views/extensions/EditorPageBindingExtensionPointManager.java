@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.expressions.EvaluationResult;
 import org.eclipse.core.expressions.Expression;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IStatus;
@@ -25,6 +26,8 @@ import org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.ISources;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerService;
 
 
 /**
@@ -114,7 +117,8 @@ public class EditorPageBindingExtensionPointManager extends AbstractExtensionPoi
 				Object node = input.getAdapter(Object.class);
 				if (node != null) {
 					// Set the default variable to the data source model node instance.
-					EvaluationContext context = new EvaluationContext(null, node);
+					IEvaluationContext currentState = ((IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class)).getCurrentState();
+					EvaluationContext context = new EvaluationContext(currentState, node);
 					// Set the "activeEditorInput" variable to the data source model node instance.
 					context.addVariable(ISources.ACTIVE_EDITOR_INPUT_NAME, node);
 					// Allow plugin activation
@@ -123,8 +127,7 @@ public class EditorPageBindingExtensionPointManager extends AbstractExtensionPoi
 					try {
 						isApplicable = enablement.evaluate(context).equals(EvaluationResult.TRUE);
 					} catch (CoreException e) {
-						IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-						                            e.getLocalizedMessage(), e);
+						IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), e.getLocalizedMessage(), e);
 						UIPlugin.getDefault().getLog().log(status);
 					}
 				} else {

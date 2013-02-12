@@ -25,7 +25,6 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
@@ -34,9 +33,7 @@ import org.eclipse.tcf.te.tcf.processes.ui.internal.preferences.IPreferenceConst
 import org.eclipse.tcf.te.tcf.processes.ui.internal.preferences.PreferencesInitializer;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.ISources;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.CompoundContributionItem;
 import org.eclipse.ui.commands.ICommandService;
@@ -153,18 +150,15 @@ public class ConfigIntervalDynamicContribution extends CompoundContributionItem 
 	                    }
 						@Override
 						public void run() throws Exception {
-							EvaluationContext ctx = new EvaluationContext(null, StructuredSelection.EMPTY);
-							IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-							Shell shell = window.getShell();
-							ctx.addVariable(ISources.ACTIVE_SHELL_NAME, shell);
-							IEditorInput editorInput = window.getActivePage().getActiveEditor().getEditorInput();
-							ctx.addVariable(ISources.ACTIVE_EDITOR_INPUT_NAME, editorInput);
+							IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+							Assert.isNotNull(handlerSvc);
+
+							EvaluationContext ctx = new EvaluationContext(handlerSvc.getCurrentState(), StructuredSelection.EMPTY);
 							ctx.setAllowPluginActivation(true);
 
 							ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
 							Assert.isNotNull(pCmd);
-							IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
-							Assert.isNotNull(handlerSvc);
+
 							handlerSvc.executeCommandInContext(pCmd, null, ctx);
 						}
 					});
