@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -33,7 +33,6 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupSer
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.ui.interfaces.IUIConstants;
 import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
@@ -41,6 +40,7 @@ import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
+import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.internal.navigator.NavigatorFilterService;
@@ -142,131 +142,143 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 		// The category id if the parent element is a category node
 		final String catID = category != null ? category.getId() : null;
 
+		// Determine if both the "My Targets" and "Neighborhood" categories are hidden
+		boolean allHidden = false;
+
+		ICategory myTargetsCat = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_MY_TARGETS, false);
+		ICategory neighborhoodCat = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_NEIGHBORHOOD, false);
+
+		allHidden = neighborhoodCat != null && !neighborhoodCat.isEnabled() && myTargetsCat != null && !myTargetsCat.isEnabled();
+
 		// If the parent element is a category, than we assume
 		// the locator model as parent element.
 		if (parentElement instanceof ICategory) {
 			parentElement = Model.getModel();
 		}
+		// If the parent element is the root element and "all"
+		// categories are hidden, assume the locator model as parent element
+		if (parentElement instanceof IRoot && allHidden) {
+			parentElement = Model.getModel();
+		}
+
 		// If it is the locator model, get the peers
 		if (parentElement instanceof ILocatorModel) {
 			final ILocatorModel model = (ILocatorModel)parentElement;
 			final IPeerModel[] peers = model.getPeers();
 			final List<IPeerModel> candidates = new ArrayList<IPeerModel>();
 
-					if (org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
-						for (IPeerModel peer : peers) {
-							ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
-							if (categorizable == null) {
-								categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
-							}
-							Assert.isNotNull(categorizable);
+			if (IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
+				for (IPeerModel peer : peers) {
+					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+					if (categorizable == null) {
+						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
+					}
+					Assert.isNotNull(categorizable);
 
-							boolean isFavorite = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-							if (isFavorite && !candidates.contains(peer)) {
-								candidates.add(peer);
-							}
+					boolean isFavorite = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
+					if (isFavorite && !candidates.contains(peer)) {
+						candidates.add(peer);
+					}
+				}
+			}
+			else if (IUIConstants.ID_CAT_MY_TARGETS.equals(catID)) {
+				for (IPeerModel peer : peers) {
+					// Check for filtered nodes (Value-add's and Proxies)
+					if (isFiltered(peer)) {
+						continue;
+					}
+
+					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+					if (categorizable == null) {
+						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
+					}
+					Assert.isNotNull(categorizable);
+
+					boolean isStatic = peer.isStatic();
+
+					// Static peers, or if launched by current user -> add automatically to "My Targets"
+					boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
+					if (!startedByCurrentUser) {
+						// If the "Neighborhood" category is not visible, ignore the startedByCurrentUser flag
+						if (neighborhoodCat != null && !neighborhoodCat.isEnabled()) {
+							startedByCurrentUser = true;
 						}
 					}
-					else if (IUIConstants.ID_CAT_MY_TARGETS.equals(catID)) {
-						for (IPeerModel peer : peers) {
-							// Check for filtered nodes (Value-add's and Proxies)
-							if (isFiltered(peer)) {
-								continue;
-							}
 
-							ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
-							if (categorizable == null) {
-								categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
-							}
-							Assert.isNotNull(categorizable);
+					boolean isMyTargets = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
+					if (!isMyTargets && (isStatic || startedByCurrentUser)) {
+						// "Value-add's" are not saved to the category persistence automatically
+						if (isProxyOrValueAdd(peer)) {
+							Managers.getCategoryManager().addTransient(catID, categorizable.getId());
+						} else {
+							Managers.getCategoryManager().add(catID, categorizable.getId());
+						}
+						isMyTargets = true;
+					}
 
-							boolean isStatic = peer.isStatic();
+					if (isMyTargets && !candidates.contains(peer)) {
+						candidates.add(peer);
+					}
+				}
+			}
+			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
+				for (IPeerModel peer : peers) {
+					// Check for filtered nodes (Value-add's and Proxies)
+					if (isFiltered(peer)) {
+						continue;
+					}
 
-							// Static peers, or if launched by current user -> add automatically to "My Targets"
-							boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
-							if (!startedByCurrentUser) {
-								// If the "Neighborhood" category is not visible, ignore the startedByCurrentUser flag
-								ICategory neighborhoodCat = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_NEIGHBORHOOD, false);
-								if (neighborhoodCat != null && !neighborhoodCat.isEnabled()) {
-									startedByCurrentUser = true;
-								}
-							}
+					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+					if (categorizable == null) {
+						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
+					}
+					Assert.isNotNull(categorizable);
 
-							boolean isMyTargets = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-							if (!isMyTargets && (isStatic || startedByCurrentUser)) {
-								// "Value-add's" are not saved to the category persistence automatically
-								if (isProxyOrValueAdd(peer)) {
-									Managers.getCategoryManager().addTransient(catID, categorizable.getId());
-								} else {
-									Managers.getCategoryManager().add(catID, categorizable.getId());
-								}
-								isMyTargets = true;
-							}
+					boolean isStatic = peer.isStatic();
 
-							if (isMyTargets && !candidates.contains(peer)) {
-								candidates.add(peer);
-							}
+					boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
+					if (startedByCurrentUser) {
+						// If the "My Targets" category is not visible, ignore the startedByCurrentUser flag
+						if (myTargetsCat != null && !myTargetsCat.isEnabled()) {
+							startedByCurrentUser = false;
 						}
 					}
-					else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
-						for (IPeerModel peer : peers) {
-							// Check for filtered nodes (Value-add's and Proxies)
-							if (isFiltered(peer)) {
-								continue;
-							}
 
-							ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
-							if (categorizable == null) {
-								categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
-							}
-							Assert.isNotNull(categorizable);
-
-							boolean isStatic = peer.isStatic();
-
-							boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
-							if (startedByCurrentUser) {
-								// If the "My Targets" category is not visible, ignore the startedByCurrentUser flag
-								ICategory myTargetsCat = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_MY_TARGETS, false);
-								if (myTargetsCat != null && !myTargetsCat.isEnabled()) {
-									startedByCurrentUser = false;
-								}
-							}
-
-							boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-							if (!isNeighborhood && !isStatic && !startedByCurrentUser) {
-								// "Neighborhood" is always transient
-								Managers.getCategoryManager().addTransient(catID, categorizable.getId());
-								isNeighborhood = true;
-							}
-
-							if (isNeighborhood && !candidates.contains(peer)) {
-								candidates.add(peer);
-							}
-						}
+					boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
+					if (!isNeighborhood && !isStatic && !startedByCurrentUser) {
+						// "Neighborhood" is always transient
+						Managers.getCategoryManager().addTransient(catID, categorizable.getId());
+						isNeighborhood = true;
 					}
-					else if (catID != null) {
-						for (IPeerModel peer : peers) {
-							ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
-							if (categorizable == null) {
-								categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
-							}
-							Assert.isNotNull(categorizable);
 
-							boolean belongsTo = category.belongsTo(peer);
-							if (belongsTo) {
-								candidates.add(peer);
-							}
-						}
+					if (isNeighborhood && !candidates.contains(peer)) {
+						candidates.add(peer);
 					}
-					else {
-						for (IPeerModel peer : peers) {
-							// Check for filtered nodes (Value-add's and Proxies)
-							if (isFiltered(peer)) {
-								continue;
-							}
-							candidates.add(peer);
-						}
+				}
+			}
+			else if (catID != null) {
+				for (IPeerModel peer : peers) {
+					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+					if (categorizable == null) {
+						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
 					}
+					Assert.isNotNull(categorizable);
+
+					boolean belongsTo = category.belongsTo(peer);
+					if (belongsTo) {
+						candidates.add(peer);
+					}
+				}
+			}
+			else {
+				for (IPeerModel peer : peers) {
+					// Check for filtered nodes (Value-add's and Proxies)
+					if (isFiltered(peer)) {
+						continue;
+					}
+					candidates.add(peer);
+				}
+			}
 
 			children = candidates.toArray(new IPeerModel[candidates.size()]);
 		}
@@ -371,9 +383,9 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 		List<TreePath> pathes = new ArrayList<TreePath>();
 
 		if (element instanceof IPeerModel) {
-			if (Managers.getCategoryManager().belongsTo(org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES, ((IPeerModel)element).getPeerId())) {
+			if (Managers.getCategoryManager().belongsTo(IUIConstants.ID_CAT_FAVORITES, ((IPeerModel)element).getPeerId())) {
 				// Get the "Favorites" category
-				ICategory favCategory = CategoriesExtensionPointManager.getInstance().getCategory(org.eclipse.tcf.te.ui.views.interfaces.IUIConstants.ID_CAT_FAVORITES, false);
+				ICategory favCategory = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_FAVORITES, false);
 				if (favCategory != null) {
 					pathes.add(new TreePath(new Object[] { favCategory }));
 				}

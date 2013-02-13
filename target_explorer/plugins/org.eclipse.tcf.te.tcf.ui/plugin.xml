@@ -78,13 +78,20 @@
             labelProvider="org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider"
             name="%navigatorContent.name"
             priority="normal">
-            <enablement>
+            <triggerPoints>
                <or>
+                  <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.IRoot"/>
                   <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.ICategory"/>
                   <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
                   <instanceof value="org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode"/>
                </or>
-            </enablement>
+            </triggerPoints>
+            <possibleChildren>
+               <or>
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode"/>
+               </or>               
+            </possibleChildren>
             <commonSorter
                   class="org.eclipse.tcf.te.ui.trees.TreeViewerSorter"
                   id="org.eclipse.tcf.te.tcf.ui.navigator.sorter"/>
@@ -136,33 +143,6 @@
             name="%PeersByCurrentUserFilter.name"
             visibleInUI="true">
       </commonFilter>
-   </extension>
-
-<!-- View categories contributions -->
-   <extension point="org.eclipse.tcf.te.ui.views.categories">
-      <category
-            class="org.eclipse.tcf.te.ui.views.categories.Category"
-            icon="icons/obj16/targets.gif"
-            id="org.eclipse.tcf.te.tcf.ui.category.mytargets"
-            label="%category.mytargets.name"
-            rank="10">
-         <enablement>
-            <test property="org.eclipse.tcf.te.ui.views.isHiddenByPreferences" value="false"/>
-            <test property="org.eclipse.tcf.te.ui.views.isVisibleNavigatorContent" args="org.eclipse.tcf.te.tcf.ui.navigator.content" value="true"/>
-         </enablement>
-      </category>
-
-      <category
-            class="org.eclipse.tcf.te.ui.views.categories.Category"
-            icon="icons/obj16/neighborhood.gif"
-            id="org.eclipse.tcf.te.tcf.ui.category.neighborhood"
-            label="%category.neighborhood.name"
-            rank="20">
-         <!-- The "Neighborhood" category does not check for isHiddenByPreferences -->
-         <enablement>
-            <test property="org.eclipse.tcf.te.ui.views.isVisibleNavigatorContent" args="org.eclipse.tcf.te.tcf.ui.navigator.content" value="true"/>
-         </enablement>
-      </category>
    </extension>
 
 <!-- Decorator contributions -->   
