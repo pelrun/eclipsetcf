@@ -61,6 +61,12 @@ public class CoreBundleActivator implements BundleActivator {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = bundleContext;
+
+		// To workaround Bug 388125 (Oracle bug 7179799) with Java 7, force
+		// "java.net.preferIPv4Stack" to be set to "true"
+		if (System.getProperty("java.net.preferIPv4Stack") == null) { //$NON-NLS-1$
+			System.setProperty("java.net.preferIPv4Stack", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
 	}
 
 	/* (non-Javadoc)
