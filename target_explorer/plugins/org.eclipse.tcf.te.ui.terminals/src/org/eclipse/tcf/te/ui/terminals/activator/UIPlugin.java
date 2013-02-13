@@ -110,45 +110,47 @@ public class UIPlugin extends AbstractUIPlugin {
 
 			@Override
 			public boolean preShutdown(IWorkbench workbench, boolean forced) {
-				// Find all "Terminals" views
-				IViewReference[] refs = workbench.getActiveWorkbenchWindow().getActivePage().getViewReferences();
-				for (IViewReference ref : refs) {
-					IViewPart part = ref.getView(false);
-					if (part instanceof TerminalsView) {
-						/*
-						 * The terminal tabs to save to the views memento on shutdown can
-						 * be determined only _before_ the saveState(memento) method of the
-						 * view is called. Within saveState, it is already to late and the
-						 * terminals might be in CLOSED state already. This depends on the
-						 * terminal type and the corresponding connector implementation.
-						 *
-						 * To be safe, we determine the still opened terminals on shutdown
-						 * separately here in the preShutdown.
-						 */
-						final List<CTabItem> saveables = new ArrayList<CTabItem>();
+				if (workbench != null && workbench.getActiveWorkbenchWindow() != null && workbench.getActiveWorkbenchWindow().getActivePage() != null) {
+					// Find all "Terminals" views
+					IViewReference[] refs = workbench.getActiveWorkbenchWindow().getActivePage().getViewReferences();
+					for (IViewReference ref : refs) {
+						IViewPart part = ref.getView(false);
+						if (part instanceof TerminalsView) {
+							/*
+							 * The terminal tabs to save to the views memento on shutdown can
+							 * be determined only _before_ the saveState(memento) method of the
+							 * view is called. Within saveState, it is already to late and the
+							 * terminals might be in CLOSED state already. This depends on the
+							 * terminal type and the corresponding connector implementation.
+							 *
+							 * To be safe, we determine the still opened terminals on shutdown
+							 * separately here in the preShutdown.
+							 */
+							final List<CTabItem> saveables = new ArrayList<CTabItem>();
 
-						// Get the tab folder
-						CTabFolder tabFolder = (CTabFolder)((TerminalsView)part).getAdapter(CTabFolder.class);
-						if (tabFolder != null && !tabFolder.isDisposed()) {
-							// Get the list of tab items
-							CTabItem[] items = tabFolder.getItems();
-							// Loop the tab items and find the still connected ones
-							for (CTabItem item : items) {
-								// Ignore disposed items
-								if (item.isDisposed()) continue;
-								// Get the terminal view control
-								ITerminalViewControl terminal = (ITerminalViewControl)item.getData();
-								if (terminal == null || terminal.getState() != TerminalState.CONNECTED) {
-									continue;
+							// Get the tab folder
+							CTabFolder tabFolder = (CTabFolder)((TerminalsView)part).getAdapter(CTabFolder.class);
+							if (tabFolder != null && !tabFolder.isDisposed()) {
+								// Get the list of tab items
+								CTabItem[] items = tabFolder.getItems();
+								// Loop the tab items and find the still connected ones
+								for (CTabItem item : items) {
+									// Ignore disposed items
+									if (item.isDisposed()) continue;
+									// Get the terminal view control
+									ITerminalViewControl terminal = (ITerminalViewControl)item.getData();
+									if (terminal == null || terminal.getState() != TerminalState.CONNECTED) {
+										continue;
+									}
+									// Still connected -> Add to the list
+									saveables.add(item);
 								}
-								// Still connected -> Add to the list
-								saveables.add(item);
 							}
-						}
 
-						// Push the determined saveable items to the memento handler
-						TerminalsViewMementoHandler mementoHandler = (TerminalsViewMementoHandler)((TerminalsView)part).getAdapter(TerminalsViewMementoHandler.class);
-						if (mementoHandler != null) mementoHandler.setSaveables(saveables);
+							// Push the determined saveable items to the memento handler
+							TerminalsViewMementoHandler mementoHandler = (TerminalsViewMementoHandler)((TerminalsView)part).getAdapter(TerminalsViewMementoHandler.class);
+							if (mementoHandler != null) mementoHandler.setSaveables(saveables);
+						}
 					}
 				}
 
