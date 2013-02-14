@@ -26,6 +26,8 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
 import org.eclipse.tcf.te.runtime.stepper.stepper.Stepper;
 import org.eclipse.tcf.te.tests.CoreTestCase;
+import org.eclipse.tcf.te.tests.stepper.steps.ParameterizedTestStep;
+import org.eclipse.tcf.te.tests.stepper.steps.TestStep;
 
 /**
  * Stepper engine test cases.

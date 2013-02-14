@@ -39,7 +39,7 @@
 <!-- Test stepper engine contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step
-            class="org.eclipse.tcf.te.tests.stepper.TestStep"
+            class="org.eclipse.tcf.te.tests.stepper.steps.TestStep"
             id="org.eclipse.tcf.te.tests.stepper.step1"
             label="Test Step 1">
       </step>
@@ -48,7 +48,7 @@
             id="org.eclipse.tcf.te.tests.stepper.step2"
             label="Test Step 2">
          <class
-               class="org.eclipse.tcf.te.tests.stepper.ParameterizedTestStep">
+               class="org.eclipse.tcf.te.tests.stepper.steps.ParameterizedTestStep">
             <parameter
                   name="param1"
                   value="value1">
@@ -57,7 +57,7 @@
       </step>
 
       <step
-            class="org.eclipse.tcf.te.tests.stepper.TestStep"
+            class="org.eclipse.tcf.te.tests.stepper.steps.TestStep"
             id="org.eclipse.tcf.te.tests.stepper.step3"
             label="Test Step 3">
          <description>
@@ -66,7 +66,7 @@
       </step>
 
       <step
-            class="org.eclipse.tcf.te.tests.stepper.TestStep"
+            class="org.eclipse.tcf.te.tests.stepper.steps.TestStep"
             id="org.eclipse.tcf.te.tests.stepper.step4"
             label="Test Step 4">
          <requires
@@ -75,9 +75,15 @@
       </step>
 
       <step
-            class="org.eclipse.tcf.te.tests.stepper.TestStep"
+            class="org.eclipse.tcf.te.tests.stepper.steps.TestStep"
             id="org.eclipse.tcf.te.tests.stepper.step5"
             label="Test Step 5">
+      </step>
+      
+      <step
+            class="org.eclipse.tcf.te.tests.stepper.steps.ValidateChannelStep"
+            id="org.eclipse.tcf.te.tests.channelStepTests.validate"
+            label="Validate Channel Step">
       </step>
    </extension>
 
@@ -184,6 +190,23 @@
                   id="org.eclipse.tcf.te.tests.stepper.step5"
                   removable="true"
                   singleton="true">
+            </reference>
+         </references>
+      </stepGroup>
+      
+      <stepGroup
+            id="org.eclipse.tcf.te.tests.channelStepTests"
+            label="Test TCF Channel Steps"
+            locked="true">
+         <references>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.stepper.OpenChannelStep">
+            </reference>
+            <reference
+                  id="org.eclipse.tcf.te.tests.channelStepTests.validate">
+            </reference>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.stepper.CloseChannelStep">
             </reference>
          </references>
       </stepGroup>

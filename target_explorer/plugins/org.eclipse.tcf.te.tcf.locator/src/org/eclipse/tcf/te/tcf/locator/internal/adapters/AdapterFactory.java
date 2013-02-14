@@ -18,6 +18,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
@@ -92,6 +93,11 @@ public class AdapterFactory implements IAdapterFactory {
 					else Protocol.invokeAndWait(runnable);
 
 					return node.get();
+				}
+			}
+			if (IStepContext.class.equals(adapterType)) {
+				if (adaptableObject instanceof IPeerModel) {
+					return new PeerModelStepContextAdapter((IPeerModel)adaptableObject);
 				}
 			}
 		}

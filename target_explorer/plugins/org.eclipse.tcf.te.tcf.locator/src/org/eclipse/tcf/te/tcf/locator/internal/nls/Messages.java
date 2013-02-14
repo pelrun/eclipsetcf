@@ -68,4 +68,6 @@ public class Messages extends NLS {
 	// **** Declare externalized string id's down here *****
 
 	public static String PeersPersistenceDelegate_error_noRootLocation;
+
+	public static String AbstractPeerModelContextStep_error_invalidPeerModel;
 }

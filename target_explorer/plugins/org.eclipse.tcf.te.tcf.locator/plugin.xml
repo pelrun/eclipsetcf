@@ -16,6 +16,7 @@
             adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"
             class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
+         <adapter type="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext"/>
       </factory>
       <factory
             adaptableType="org.eclipse.tcf.protocol.IPeer"
@@ -117,4 +118,17 @@
       </service>
    </extension>
 
+<!-- Step contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
+      <step
+            class="org.eclipse.tcf.te.tcf.locator.steps.OpenChannelStep"
+            id="org.eclipse.tcf.te.tcf.stepper.OpenChannelStep"
+            label="%OpenChannelStep.name">
+      </step>
+      <step
+            class="org.eclipse.tcf.te.tcf.locator.steps.CloseChannelStep"
+            id="org.eclipse.tcf.te.tcf.stepper.CloseChannelStep"
+            label="%CloseChannelStep.name">
+      </step>
+   </extension>
 </plugin>
