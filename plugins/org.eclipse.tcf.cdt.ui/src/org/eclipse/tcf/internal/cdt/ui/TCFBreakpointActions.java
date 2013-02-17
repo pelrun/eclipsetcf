@@ -10,8 +10,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.cdt.debug.core.CDebugCorePlugin;
@@ -26,8 +28,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.debug.core.DebugPlugin;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
@@ -130,6 +130,20 @@ public class TCFBreakpointActions {
                         return;
                     }
                     resumed = true;
+                    String rc_grp = ctx_data.getRCGroup();
+                    if (rc_grp != null) {
+                        List<BreakpointActionAdapter> l = new ArrayList<BreakpointActionAdapter>();
+                        for (BreakpointActionAdapter a : active_actions.values()) {
+                            if (a.node.isDisposed()) continue;
+                            if (a == BreakpointActionAdapter.this) continue;
+                            TCFDataCache<IRunControl.RunControlContext> a_ctx_cache = a.node.getRunContext();
+                            if (!a_ctx_cache.validate(this)) return;
+                            IRunControl.RunControlContext a_ctx_data = ctx_cache.getData();
+                            if (a_ctx_data == null) continue;
+                            if (rc_grp.equals(a_ctx_data.getRCGroup())) l.add(a);
+                        }
+                        for (BreakpointActionAdapter a : l) a.abort();
+                    }
                     ctx_data.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
                         public void doneCommand(IToken token, Exception error) {
                             if (error != null && !aborted) error(error);
