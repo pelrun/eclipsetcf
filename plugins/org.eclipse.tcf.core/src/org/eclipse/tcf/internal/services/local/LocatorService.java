@@ -328,7 +328,10 @@ public class LocatorService implements ILocator {
         //
         // To workaround Bug 388125 (Oracle bug 7179799) with Java 7, force
         // "java.net.preferIPv4Stack" to be set to "true"
-        if (System.getProperty("java.net.preferIPv4Stack") == null) { //$NON-NLS-1$
+        //
+        // Applies on Windows platforms only.
+        boolean isWin = System.getProperty("os.name", "").toLowerCase().startsWith("windows");
+        if (isWin && System.getProperty("java.net.preferIPv4Stack") == null) { //$NON-NLS-1$
             System.setProperty("java.net.preferIPv4Stack", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         }
     }
