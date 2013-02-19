@@ -323,6 +323,14 @@ public class LocatorService implements ILocator {
                 return null;
             }
         });
+        
+        // Bug #400659 (https://bugs.eclipse.org/bugs/show_bug.cgi?id=400659):
+        //
+        // To workaround Bug 388125 (Oracle bug 7179799) with Java 7, force
+        // "java.net.preferIPv4Stack" to be set to "true"
+        if (System.getProperty("java.net.preferIPv4Stack") == null) { //$NON-NLS-1$
+            System.setProperty("java.net.preferIPv4Stack", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+        }
     }
 
     private static DatagramSocket createSocket(boolean slave) throws SocketException {
