@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.core.activator;
 
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
+import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.core.internal.Startup;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -64,7 +65,9 @@ public class CoreBundleActivator implements BundleActivator {
 
 		// To workaround Bug 388125 (Oracle bug 7179799) with Java 7, force
 		// "java.net.preferIPv4Stack" to be set to "true"
-		if (System.getProperty("java.net.preferIPv4Stack") == null) { //$NON-NLS-1$
+        //
+        // Applies on Windows platforms only.
+		if (Host.isWindowsHost() && System.getProperty("java.net.preferIPv4Stack") == null) { //$NON-NLS-1$
 			System.setProperty("java.net.preferIPv4Stack", "true"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
