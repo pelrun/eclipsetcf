@@ -125,6 +125,7 @@ public class TransportSection extends AbstractSection {
 		// Create the transport type control
 		transportTypeControl = new TransportSectionTypeControl(this);
 		transportTypeControl.setFormToolkit(toolkit);
+		transportTypeControl.setAdjustBackgroundColor(true);
 		transportTypeControl.setupPanel(client);
 
 		createEmptySpace(client, 2, toolkit);
@@ -133,11 +134,29 @@ public class TransportSection extends AbstractSection {
 		transportTypePanelControl = new TransportSectionTypePanelControl(this);
 
 		// Create and add the panels
-		TcpTransportPanel tcpTransportPanel = new TcpTransportPanel(transportTypePanelControl);
+		TcpTransportPanel tcpTransportPanel = new TcpTransportPanel(transportTypePanelControl) {
+			@Override
+			protected boolean isAdjustBackgroundColor() {
+				return true;
+			}
+		};
+		PipeTransportPanel pipeTransportPanle = new PipeTransportPanel(transportTypePanelControl) {
+			@Override
+			protected boolean isAdjustBackgroundColor() {
+				return true;
+			}
+		};
+		CustomTransportPanel customTransportPanel = new CustomTransportPanel(transportTypePanelControl) {
+			@Override
+			protected boolean isAdjustBackgroundColor() {
+				return true;
+			}
+		};
+
 		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_TCP, tcpTransportPanel);
 		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_SSL, tcpTransportPanel);
-		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_PIPE, new PipeTransportPanel(transportTypePanelControl));
-		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_CUSTOM, new CustomTransportPanel(transportTypePanelControl));
+		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_PIPE, pipeTransportPanle);
+		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_CUSTOM, customTransportPanel);
 
 		// Setup the panel control
 		transportTypePanelControl.setupPanel(client, transportTypeControl.getTransportTypes(), toolkit);
@@ -461,6 +480,36 @@ public class TransportSection extends AbstractSection {
 		// If dirty, mark the form part dirty.
 		// Otherwise call refresh() to reset the dirty (and stale) flag
 		markDirty(isDirty);
+	}
+
+	/**
+	 * Updates the given set of attributes with the current values of the
+	 * page widgets.
+	 *
+	 * @param attributes The attributes to update. Must not be <code>null</code>:
+	 */
+	public void updateAttributes(IPropertiesContainer attributes) {
+		Assert.isNotNull(attributes);
+
+		if (transportTypePanelControl != null) {
+			String[] ids = transportTypePanelControl.getConfigurationPanelIds();
+			for (String id : ids) {
+				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(id);
+				if (panel instanceof IDataExchangeNode) {
+					if (panel instanceof IDataExchangeNode3) {
+						((IDataExchangeNode3)panel).removeData(attributes);
+					}
+				}
+			}
+			IWizardConfigurationPanel panel = transportTypePanelControl.getActiveConfigurationPanel();
+			if (panel instanceof IDataExchangeNode) {
+				((IDataExchangeNode)panel).extractData(attributes);
+			}
+		}
+
+		if (transportTypeControl != null) {
+			attributes.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl.getSelectedTransportType());
+		}
 	}
 
 	/**
