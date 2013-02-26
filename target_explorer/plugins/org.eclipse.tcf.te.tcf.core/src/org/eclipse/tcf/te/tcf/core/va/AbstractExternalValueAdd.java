@@ -277,7 +277,9 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 			}
 
 			// Stop the output reader thread
-			launcher.getOutputReader().interrupt();
+			if (launcher.getOutputReader() != null) {
+				launcher.getOutputReader().interrupt();
+			}
 		} else {
 			error = new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, this.getId()));
 		}
