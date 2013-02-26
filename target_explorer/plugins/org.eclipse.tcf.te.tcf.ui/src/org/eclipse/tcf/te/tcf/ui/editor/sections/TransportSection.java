@@ -57,14 +57,14 @@ import org.eclipse.ui.forms.widgets.Section;
 public class TransportSection extends AbstractSection {
 	// The section sub controls
 	private TransportSectionTypeControl transportTypeControl = null;
-	/* default */ TransportSectionTypePanelControl transportTypePanelControl = null;
+	/* default */TransportSectionTypePanelControl transportTypePanelControl = null;
 
 	// Reference to the original data object
-	/* default */ IPeerModel od;
+	/* default */IPeerModel od;
 	// Reference to a copy of the original data
-	/* default */ final IPropertiesContainer odc = new PropertiesContainer();
+	/* default */final IPropertiesContainer odc = new PropertiesContainer();
 	// Reference to the properties container representing the working copy for the section
-	/* default */ final IPropertiesContainer wc = new PropertiesContainer();
+	/* default */final IPropertiesContainer wc = new PropertiesContainer();
 
 	/**
 	 * Constructor.
@@ -77,17 +77,25 @@ public class TransportSection extends AbstractSection {
 		createClient(getSection(), form.getToolkit());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
 	 */
 	@Override
 	public void dispose() {
 		super.dispose();
-		if (transportTypeControl != null) { transportTypeControl.dispose(); transportTypeControl = null; }
-		if (transportTypePanelControl != null) { transportTypePanelControl.dispose(); transportTypePanelControl = null; }
+		if (transportTypeControl != null) {
+			transportTypeControl.dispose();
+			transportTypeControl = null;
+		}
+		if (transportTypePanelControl != null) {
+			transportTypePanelControl.dispose();
+			transportTypePanelControl = null;
+		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#getAdapter(java.lang.Class)
 	 */
 	@Override
@@ -101,8 +109,11 @@ public class TransportSection extends AbstractSection {
 		return super.getAdapter(adapter);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#createClient(org.eclipse.ui.forms.widgets.Section, org.eclipse.ui.forms.widgets.FormToolkit)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.tcf.te.ui.forms.parts.AbstractSection#createClient(org.eclipse.ui.forms.widgets
+	 * .Section, org.eclipse.ui.forms.widgets.FormToolkit)
 	 */
 	@Override
 	protected void createClient(Section section, FormToolkit toolkit) {
@@ -134,29 +145,42 @@ public class TransportSection extends AbstractSection {
 		transportTypePanelControl = new TransportSectionTypePanelControl(this);
 
 		// Create and add the panels
-		TcpTransportPanel tcpTransportPanel = new TcpTransportPanel(transportTypePanelControl) {
-			@Override
-			protected boolean isAdjustBackgroundColor() {
-				return true;
-			}
-		};
-		PipeTransportPanel pipeTransportPanle = new PipeTransportPanel(transportTypePanelControl) {
-			@Override
-			protected boolean isAdjustBackgroundColor() {
-				return true;
-			}
-		};
-		CustomTransportPanel customTransportPanel = new CustomTransportPanel(transportTypePanelControl) {
-			@Override
-			protected boolean isAdjustBackgroundColor() {
-				return true;
-			}
-		};
-
-		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_TCP, tcpTransportPanel);
-		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_SSL, tcpTransportPanel);
-		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_PIPE, pipeTransportPanle);
-		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_CUSTOM, customTransportPanel);
+		if (isTransportTypeSupported(ITransportTypes.TRANSPORT_TYPE_TCP)) {
+			TcpTransportPanel tcpTransportPanel = new TcpTransportPanel(transportTypePanelControl) {
+				@Override
+				protected boolean isAdjustBackgroundColor() {
+					return true;
+				}
+			};
+			transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_TCP, tcpTransportPanel);
+		}
+		if (isTransportTypeSupported(ITransportTypes.TRANSPORT_TYPE_SSL)) {
+			TcpTransportPanel sslTransportPanel = new TcpTransportPanel(transportTypePanelControl) {
+				@Override
+				protected boolean isAdjustBackgroundColor() {
+					return true;
+				}
+			};
+			transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_SSL, sslTransportPanel);
+		}
+		if (isTransportTypeSupported(ITransportTypes.TRANSPORT_TYPE_PIPE)) {
+			PipeTransportPanel pipeTransportPanle = new PipeTransportPanel(transportTypePanelControl) {
+				@Override
+				protected boolean isAdjustBackgroundColor() {
+					return true;
+				}
+			};
+			transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_PIPE, pipeTransportPanle);
+		}
+		if (isTransportTypeSupported(ITransportTypes.TRANSPORT_TYPE_CUSTOM)) {
+			CustomTransportPanel customTransportPanel = new CustomTransportPanel(transportTypePanelControl) {
+				@Override
+				protected boolean isAdjustBackgroundColor() {
+					return true;
+				}
+			};
+			transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_CUSTOM, customTransportPanel);
+		}
 
 		// Setup the panel control
 		transportTypePanelControl.setupPanel(client, transportTypeControl.getTransportTypes(), toolkit);
@@ -165,7 +189,8 @@ public class TransportSection extends AbstractSection {
 		transportTypePanelControl.getPanel().setLayoutData(layoutData);
 		toolkit.adapt(transportTypePanelControl.getPanel());
 
-		transportTypePanelControl.showConfigurationPanel(transportTypeControl.getSelectedTransportType());
+		transportTypePanelControl.showConfigurationPanel(transportTypeControl
+		                .getSelectedTransportType());
 
 		// Adjust the control enablement
 		updateEnablement();
@@ -175,23 +200,36 @@ public class TransportSection extends AbstractSection {
 	}
 
 	/**
+	 * Override to control the availability of transport types.
+	 *
+	 * @param transportType
+	 * @return <code>true</code> if the given transport type should is available.
+	 */
+	public boolean isTransportTypeSupported(String transportType) {
+		return true;
+	}
+
+	/**
 	 * Indicates whether the sections parent page has become the active in the editor.
 	 *
-	 * @param active <code>True</code> if the parent page should be visible, <code>false</code> otherwise.
+	 * @param active <code>True</code> if the parent page should be visible, <code>false</code>
+	 *            otherwise.
 	 */
 	public void setActive(boolean active) {
 		// If the parent page has become the active and it does not contain
 		// unsaved data, than fill in the data from the selected node
 		if (active) {
 			// Leave everything unchanged if the page is in dirty state
-			if (getManagedForm().getContainer() instanceof AbstractEditorPage
-							&& !((AbstractEditorPage)getManagedForm().getContainer()).isDirty()) {
-				Object node = ((AbstractEditorPage)getManagedForm().getContainer()).getEditorInputNode();
+			if (getManagedForm().getContainer() instanceof AbstractEditorPage && !((AbstractEditorPage) getManagedForm()
+			                .getContainer()).isDirty()) {
+				Object node = ((AbstractEditorPage) getManagedForm().getContainer())
+				                .getEditorInputNode();
 				if (node instanceof IPeerModel) {
-					setupData((IPeerModel)node);
+					setupData((IPeerModel) node);
 				}
 			}
-		} else {
+		}
+		else {
 			// Evaluate the dirty state even if going inactive
 			dataChanged(null);
 		}
@@ -200,8 +238,8 @@ public class TransportSection extends AbstractSection {
 	/**
 	 * Initialize the page widgets based of the data from the given peer node.
 	 * <p>
-	 * This method may called multiple times during the lifetime of the page and
-	 * the given configuration node might be even <code>null</code>.
+	 * This method may called multiple times during the lifetime of the page and the given
+	 * configuration node might be even <code>null</code>.
 	 *
 	 * @param node The peer node or <code>null</code>.
 	 */
@@ -249,9 +287,10 @@ public class TransportSection extends AbstractSection {
 					}
 
 					for (String id : transportTypePanelControl.getConfigurationPanelIds()) {
-						IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(id);
+						IWizardConfigurationPanel panel = transportTypePanelControl
+						                .getConfigurationPanel(id);
 						if (panel instanceof IDataExchangeNode3) {
-							((IDataExchangeNode3)panel).copyData(src, odc);
+							((IDataExchangeNode3) panel).copyData(src, odc);
 						}
 					}
 				}
@@ -280,9 +319,10 @@ public class TransportSection extends AbstractSection {
 
 					if (transportTypePanelControl != null) {
 						transportTypePanelControl.showConfigurationPanel(transportType);
-						IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportType);
+						IWizardConfigurationPanel panel = transportTypePanelControl
+						                .getConfigurationPanel(transportType);
 						if (panel instanceof IDataExchangeNode) {
-							((IDataExchangeNode)panel).setupData(wc);
+							((IDataExchangeNode) panel).setupData(wc);
 						}
 					}
 				}
@@ -301,8 +341,8 @@ public class TransportSection extends AbstractSection {
 	/**
 	 * Stores the page widgets current values to the given peer node.
 	 * <p>
-	 * This method may called multiple times during the lifetime of the page and
-	 * the given peer node might be even <code>null</code>.
+	 * This method may called multiple times during the lifetime of the page and the given peer node
+	 * might be even <code>null</code>.
 	 *
 	 * @param node The GDB Remote configuration node or <code>null</code>.
 	 */
@@ -321,10 +361,11 @@ public class TransportSection extends AbstractSection {
 		String oldTransportType = wc.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
 		if (oldTransportType != null) {
 			// Get the current transport type configuration panel
-			IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(oldTransportType);
+			IWizardConfigurationPanel panel = transportTypePanelControl
+			                .getConfigurationPanel(oldTransportType);
 			// And clean out the current transport type specific attributes from the working copy
 			if (panel instanceof IDataExchangeNode3) {
-				((IDataExchangeNode3)panel).removeData(wc);
+				((IDataExchangeNode3) panel).removeData(wc);
 			}
 		}
 
@@ -333,10 +374,11 @@ public class TransportSection extends AbstractSection {
 		// And write the new transport to the working copy
 		wc.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportType);
 		// Get the new transport type configuration panel
-		IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportType);
+		IWizardConfigurationPanel panel = transportTypePanelControl
+		                .getConfigurationPanel(transportType);
 		// And extract the new attributes into the working copy
 		if (panel instanceof IDataExchangeNode) {
-			((IDataExchangeNode)panel).extractData(wc);
+			((IDataExchangeNode) panel).extractData(wc);
 		}
 
 		// If the data has not changed compared to the original data copy,
@@ -361,7 +403,8 @@ public class TransportSection extends AbstractSection {
 				// To update the peer attributes, the peer needs to be recreated
 				IPeer oldPeer = node.getPeer();
 				// Create a write able copy of the peer attributes
-				Map<String, String> attributes = new HashMap<String, String>(oldPeer.getAttributes());
+				Map<String, String> attributes = new HashMap<String, String>(oldPeer
+				                .getAttributes());
 				// Clean out the removed attributes
 				for (String key : removed) {
 					attributes.remove(key);
@@ -371,7 +414,8 @@ public class TransportSection extends AbstractSection {
 					String value = wc.getStringProperty(key);
 					if (value != null) {
 						attributes.put(key, value);
-					} else {
+					}
+					else {
 						attributes.remove(key);
 					}
 				}
@@ -383,7 +427,8 @@ public class TransportSection extends AbstractSection {
 				}
 
 				// Create the new peer
-				IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector)oldPeer).getParent(), attributes) : new Peer(attributes);
+				IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector) oldPeer)
+				                .getParent(), attributes) : new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
 				node.setProperty(IPeerModelProperties.PROP_INSTANCE, newPeer);
@@ -394,7 +439,8 @@ public class TransportSection extends AbstractSection {
 				node.setProperty("dns.lastIP.transient", null); //$NON-NLS-1$
 				node.setProperty("dns.skip.transient", null); //$NON-NLS-1$
 
-				ILocatorModelUpdateService service = node.getModel().getService(ILocatorModelUpdateService.class);
+				ILocatorModelUpdateService service = node.getModel()
+				                .getService(ILocatorModelUpdateService.class);
 				service.updatePeerServices(node, null, null);
 
 				if (changed) {
@@ -404,13 +450,14 @@ public class TransportSection extends AbstractSection {
 		});
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#isValid()
 	 */
 	@Override
 	public boolean isValid() {
-	    // Validation is skipped while the controls are updated
-	    if (isUpdating()) return true;
+		// Validation is skipped while the controls are updated
+		if (isUpdating()) return true;
 
 		boolean valid = super.isValid();
 
@@ -431,7 +478,8 @@ public class TransportSection extends AbstractSection {
 		return valid;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
 	 */
 	@Override
@@ -455,8 +503,8 @@ public class TransportSection extends AbstractSection {
 	 * @param e The event which triggered the invocation or <code>null</code>.
 	 */
 	public void dataChanged(TypedEvent e) {
-	    // dataChanged is not evaluated while the controls are updated
-	    if (isUpdating()) return;
+		// dataChanged is not evaluated while the controls are updated
+		if (isUpdating()) return;
 
 		boolean isDirty = false;
 
@@ -465,12 +513,14 @@ public class TransportSection extends AbstractSection {
 			if ("".equals(transportType)) { //$NON-NLS-1$
 				String value = odc.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
 				isDirty |= value != null && !"".equals(value.trim()); //$NON-NLS-1$
-			} else {
+			}
+			else {
 				isDirty |= !odc.isProperty(IPeer.ATTR_TRANSPORT_NAME, transportType);
 			}
 
 			if (transportTypePanelControl != null) {
-				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportType);
+				IWizardConfigurationPanel panel = transportTypePanelControl
+				                .getConfigurationPanel(transportType);
 				if (panel != null) {
 					isDirty |= panel.dataChanged(odc, e);
 				}
@@ -480,11 +530,13 @@ public class TransportSection extends AbstractSection {
 		// If dirty, mark the form part dirty.
 		// Otherwise call refresh() to reset the dirty (and stale) flag
 		markDirty(isDirty);
+
+		// Adjust the control enablement
+		updateEnablement();
 	}
 
 	/**
-	 * Updates the given set of attributes with the current values of the
-	 * page widgets.
+	 * Updates the given set of attributes with the current values of the page widgets.
 	 *
 	 * @param attributes The attributes to update. Must not be <code>null</code>:
 	 */
@@ -497,18 +549,19 @@ public class TransportSection extends AbstractSection {
 				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(id);
 				if (panel instanceof IDataExchangeNode) {
 					if (panel instanceof IDataExchangeNode3) {
-						((IDataExchangeNode3)panel).removeData(attributes);
+						((IDataExchangeNode3) panel).removeData(attributes);
 					}
 				}
 			}
 			IWizardConfigurationPanel panel = transportTypePanelControl.getActiveConfigurationPanel();
 			if (panel instanceof IDataExchangeNode) {
-				((IDataExchangeNode)panel).extractData(attributes);
+				((IDataExchangeNode) panel).extractData(attributes);
 			}
 		}
 
 		if (transportTypeControl != null) {
-			attributes.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl.getSelectedTransportType());
+			attributes.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl
+			                .getSelectedTransportType());
 		}
 	}
 
@@ -517,7 +570,7 @@ public class TransportSection extends AbstractSection {
 	 */
 	protected void updateEnablement() {
 		// Determine the input
-		final Object input = getManagedForm().getInput();
+		final Object input = od; // getManagedForm().getInput();
 
 		// Determine if the peer is a static peer
 		final AtomicBoolean isStatic = new AtomicBoolean();
@@ -526,8 +579,8 @@ public class TransportSection extends AbstractSection {
 			@Override
 			public void run() {
 				if (input instanceof IPeerModel) {
-					isStatic.set(((IPeerModel)input).isStatic());
-					isRemote.set(((IPeerModel)input).isRemote());
+					isStatic.set(((IPeerModel) input).isStatic());
+					isRemote.set(((IPeerModel) input).isRemote());
 				}
 			}
 		};
@@ -537,11 +590,14 @@ public class TransportSection extends AbstractSection {
 
 		// The transport type control is enabled for static peers
 		if (transportTypeControl != null) {
-			SWTControlUtil.setEnabled(transportTypeControl.getEditFieldControl(), isStatic.get() && !isRemote.get());
+			boolean enabled = input == null || (isStatic.get() && !isRemote.get());
+			SWTControlUtil.setEnabled(transportTypeControl.getEditFieldControl(), enabled);
 			if (transportTypePanelControl != null) {
-				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportTypeControl.getSelectedTransportType());
+				IWizardConfigurationPanel panel = transportTypePanelControl
+				                .getConfigurationPanel(transportTypeControl
+				                                .getSelectedTransportType());
 				if (panel != null) {
-					panel.setEnabled(isStatic.get() && !isRemote.get());
+					panel.setEnabled(enabled);
 				}
 			}
 		}
