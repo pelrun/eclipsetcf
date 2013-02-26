@@ -183,6 +183,9 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 				boolean isStatic = peerNode.isStatic();
 				if (isStatic) {
 					for (IPeerModel candidate : oldChildren) {
+						if (candidate.isStatic()) {
+							continue;
+						}
 						String peerID = peerNode.getPeerId();
 						String clientID = candidate.getPeer().getAttributes().get("ClientID"); //$NON-NLS-1$
 						if (clientID != null && clientID.equals(peerID)) {
