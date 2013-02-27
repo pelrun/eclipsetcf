@@ -323,7 +323,7 @@ public class LocatorService implements ILocator {
                 return null;
             }
         });
-        
+
         // Bug #400659 (https://bugs.eclipse.org/bugs/show_bug.cgi?id=400659):
         //
         // To workaround Bug 388125 (Oracle bug 7179799) with Java 7, force

@@ -1006,33 +1006,45 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 return "";
             }
         }
-        String s = null;
-        if (data == null) s = "N/A";
-        if (s == null && radix == 10) {
+        if (data == null) return "N/A";
+        if (radix == 2) {
+            StringBuffer bf = new StringBuffer();
+            int i = size * 8;
+            while (i > 0) {
+                if (i % 4 == 0 && bf.length() > 0) bf.append(',');
+                i--;
+                int j = i / 8;
+                if (big_endian) j = size - j - 1;
+                if ((data[offs + j] & (1 << (i % 8))) != 0) {
+                    bf.append('1');
+                }
+                else {
+                    bf.append('0');
+                }
+            }
+            return bf.toString();
+        }
+        if (radix == 10) {
             switch (t) {
             case integer:
-                s = TCFNumberFormat.toBigInteger(data, offs, size, big_endian, true).toString();
-                break;
+                return TCFNumberFormat.toBigInteger(data, offs, size, big_endian, true).toString();
             case real:
-                s = TCFNumberFormat.toFPString(data, offs, size, big_endian);
-                break;
+                return TCFNumberFormat.toFPString(data, offs, size, big_endian);
             }
         }
-        if (s == null) {
-            s = TCFNumberFormat.toBigInteger(data, offs, size, big_endian, false).toString(radix);
-            switch (radix) {
-            case 8:
-                if (!s.startsWith("0")) s = "0" + s;
-                break;
-            case 16:
-                if (s.length() < size * 2) {
-                    StringBuffer bf = new StringBuffer();
-                    while (bf.length() + s.length() < size * 2) bf.append('0');
-                    bf.append(s);
-                    s = bf.toString();
-                }
-                break;
+        String s = TCFNumberFormat.toBigInteger(data, offs, size, big_endian, false).toString(radix);
+        switch (radix) {
+        case 8:
+            if (!s.startsWith("0")) s = "0" + s;
+            break;
+        case 16:
+            if (s.length() < size * 2) {
+                StringBuffer bf = new StringBuffer();
+                while (bf.length() + s.length() < size * 2) bf.append('0');
+                bf.append(s);
+                s = bf.toString();
             }
+            break;
         }
         assert s != null;
         return s;
@@ -1438,6 +1450,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         bf.append(", ");
         bf.append("Oct: ", SWT.BOLD);
         bf.append(toNumberString(8, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+        bf.append('\n');
+        bf.append("Bin: ", SWT.BOLD);
+        bf.append(toNumberString(2), StyledStringBuffer.MONOSPACED);
         bf.append('\n');
     }
 
