@@ -183,7 +183,7 @@ public class TransportSection extends AbstractSection {
 		}
 
 		// Setup the panel control
-		transportTypePanelControl.setupPanel(client, transportTypeControl.getTransportTypes(), toolkit);
+		transportTypePanelControl.setupPanel(client, transportTypePanelControl.getConfigurationPanelIds(), toolkit);
 		GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		layoutData.horizontalSpan = 2;
 		transportTypePanelControl.getPanel().setLayoutData(layoutData);
