@@ -30,7 +30,6 @@ import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.MultiPageSelectionProvider;
 
-
 /**
  * Abstract details editor page implementation.
  */
@@ -45,8 +44,10 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		super("", ""); // //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.part.EditorPart#setInitializationData(org.eclipse.core.runtime.IConfigurationElement, java.lang.String, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.part.EditorPart#setInitializationData(org.eclipse.core.runtime.
+	 * IConfigurationElement, java.lang.String, java.lang.Object)
 	 */
 	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) {
@@ -57,14 +58,15 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 			// Throws an exception if the id is empty or null.
 			id = config.getAttribute("id"); //$NON-NLS-1$
 			if (id == null || id.trim().length() == 0) {
-				IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-								NLS.bind(Messages.Extension_error_missingRequiredAttribute, "id", config.getContributor().getName())); //$NON-NLS-1$
+				IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), NLS
+				                .bind(Messages.Extension_error_missingRequiredAttribute, "id", config.getContributor().getName())); //$NON-NLS-1$
 				UIPlugin.getDefault().getLog().log(status);
 			}
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.editor.FormPage#getId()
 	 */
 	@Override
@@ -72,8 +74,10 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		return id;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.forms.editor.FormPage#createFormContent(org.eclipse.ui.forms.IManagedForm)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.ui.forms.editor.FormPage#createFormContent(org.eclipse.ui.forms.IManagedForm)
 	 */
 	@Override
 	protected void createFormContent(IManagedForm managedForm) {
@@ -82,7 +86,8 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		managedForm.setInput(getEditorInputNode());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.ui.part.EditorPart#setInput(org.eclipse.ui.IEditorInput)
 	 */
 	@Override
@@ -92,10 +97,12 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		if (getManagedForm() != null) {
 			getManagedForm().setInput(getEditorInputNode());
 		}
-		getSite().getSelectionProvider().setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
+		getSite().getSelectionProvider()
+		                .setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.ui.part.EditorPart#setInputWithNotify(org.eclipse.ui.IEditorInput)
 	 */
 	@Override
@@ -105,10 +112,12 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		if (getManagedForm() != null) {
 			getManagedForm().setInput(getEditorInputNode());
 		}
-		getSite().getSelectionProvider().setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
+		getSite().getSelectionProvider()
+		                .setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.editor.FormPage#setActive(boolean)
 	 */
 	@Override
@@ -118,8 +127,10 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 			ISelection selection = getEditorInput() != null ? new StructuredSelection(getEditorInputNode()) : null;
 			getSite().getSelectionProvider().setSelection(selection);
 			if (getSite().getSelectionProvider() instanceof MultiPageSelectionProvider) {
-				SelectionChangedEvent changedEvent = new SelectionChangedEvent(getSite().getSelectionProvider(), selection);
-				((MultiPageSelectionProvider) getSite().getSelectionProvider()).firePostSelectionChanged(changedEvent);
+				SelectionChangedEvent changedEvent = new SelectionChangedEvent(getSite()
+				                .getSelectionProvider(), selection);
+				((MultiPageSelectionProvider) getSite().getSelectionProvider())
+				                .firePostSelectionChanged(changedEvent);
 			}
 		}
 	}
@@ -135,8 +146,7 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	}
 
 	/**
-	 * Called from the parent properties editor <code>doSave(IProgressMonitor)</code>
-	 * method.
+	 * Called from the parent properties editor <code>doSave(IProgressMonitor)</code> method.
 	 *
 	 * @param monitor The progress monitor or <code>null</code>
 	 * @see Editor#doSave(IProgressMonitor)
@@ -146,8 +156,7 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	}
 
 	/**
-	 * Called from the parent properties editor <code>doSave(IProgressMonitor)</code>
-	 * method.
+	 * Called from the parent properties editor <code>doSave(IProgressMonitor)</code> method.
 	 *
 	 * @param monitor The progress monitor or <code>null</code>
 	 * @see Editor#doSave(IProgressMonitor)
@@ -156,25 +165,29 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		// do nothing
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
 	 */
 	@Override
 	public final void validate() {
 		// Get the scrolled form
-		ScrolledForm form = getManagedForm().getForm();
+		if (getManagedForm() != null) {
+			ScrolledForm form = getManagedForm().getForm();
 
-		ValidationResult result = doValidate();
-		if (result != null) {
-			form.setMessage(result.getMessage(), result.getMessageType());
-		}
-		else {
-			form.setMessage(null, IMessageProvider.NONE);
+			ValidationResult result = doValidate();
+			if (result != null) {
+				form.setMessage(result.getMessage(), result.getMessageType());
+			}
+			else {
+				form.setMessage(null, IMessageProvider.NONE);
+			}
 		}
 	}
 
 	/**
 	 * Do the validation.
+	 *
 	 * @return The validation result or <code>null</code>.
 	 */
 	protected abstract ValidationResult doValidate();
