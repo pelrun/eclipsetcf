@@ -848,6 +848,14 @@
             class="org.eclipse.tcf.te.ui.views.internal.categories.CategoryPropertyTester"
             id="org.eclipse.tcf.te.ui.views.categories.CategoryPropertyTester"
             namespace="org.eclipse.tcf.te.ui.views"
+            properties="isCategoryEnabled"
+            type="java.lang.Object">
+      </propertyTester>
+
+      <propertyTester
+            class="org.eclipse.tcf.te.ui.views.internal.categories.CategoryPropertyTester"
+            id="org.eclipse.tcf.te.ui.views.categories.CategoryPropertyTester"
+            namespace="org.eclipse.tcf.te.ui.views"
             properties="isCategoryID,belongsTo,isHiddenByPreferences,isVisibleNavigatorContent"
             type="org.eclipse.tcf.te.ui.views.interfaces.ICategory">
       </propertyTester>

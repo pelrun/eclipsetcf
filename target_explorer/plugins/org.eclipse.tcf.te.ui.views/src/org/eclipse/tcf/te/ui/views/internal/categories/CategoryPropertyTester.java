@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.handler.CategoryAddToContributionItem;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
@@ -136,6 +137,13 @@ public class CategoryPropertyTester extends PropertyTester {
 		if ("isCategoryID".equals(property) && receiver instanceof ICategory) { //$NON-NLS-1$
 			String id = ((ICategory)receiver).getId();
 			return id.equals(expectedValue);
+		}
+
+		if ("isCategoryEnabled".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
+			String categoryId = args != null && args.length == 1 && args[0] instanceof String ? (String)args[0] : null;
+			ICategory category = categoryId != null ? CategoriesExtensionPointManager.getInstance().getCategory(categoryId, false) : null;
+
+			return category != null && (category.isEnabled() == ((Boolean)expectedValue).booleanValue());
 		}
 
 		if ("isHiddenByPreferences".equals(property) && receiver instanceof ICategory && expectedValue instanceof Boolean) { //$NON-NLS-1$
