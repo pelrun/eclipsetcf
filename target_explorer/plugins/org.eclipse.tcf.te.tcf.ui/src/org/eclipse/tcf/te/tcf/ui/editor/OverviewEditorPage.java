@@ -139,7 +139,7 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	 */
 	@Override
 	protected ValidationResult doValidate() {
-		ValidationResult result = new ValidationResult();
+		ValidationResult result = super.doValidate();
 
 		if (infoSection != null) {
 			infoSection.isValid();

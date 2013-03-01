@@ -190,5 +190,7 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	 *
 	 * @return The validation result or <code>null</code>.
 	 */
-	protected abstract ValidationResult doValidate();
+	protected ValidationResult doValidate() {
+		return new ValidationResult();
+	}
 }
