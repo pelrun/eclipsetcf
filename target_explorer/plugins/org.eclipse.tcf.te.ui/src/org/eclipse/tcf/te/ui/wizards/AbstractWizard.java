@@ -73,7 +73,7 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	 * @return The name of the wizards dialog settings section.
 	 */
 	protected String getWizardSectionName() {
-		return getClass().getSimpleName();
+		return getClass().getName();
 	}
 
 	/* (non-Javadoc)

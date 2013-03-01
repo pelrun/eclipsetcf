@@ -246,9 +246,9 @@ public class BaseControl extends PlatformObject implements IValidatable {
 		Assert.isNotNull(parentSection);
 
 		// Store the settings of the control within it's own section.
-		IDialogSettings section = parentSection.getSection(this.getClass().getName());
+		IDialogSettings section = parentSection.getSection(this.getClass().getSimpleName());
 		if (section == null) {
-			section = parentSection.addNewSection(this.getClass().getName());
+			section = parentSection.addNewSection(this.getClass().getSimpleName());
 		}
 
 		// now, call the hook for actually reading the single properties from the dialog settings.
@@ -286,9 +286,9 @@ public class BaseControl extends PlatformObject implements IValidatable {
 		Assert.isNotNull(parentSection);
 
 		// Store the settings of the control within it's own section.
-		IDialogSettings section = parentSection.getSection(this.getClass().getName());
+		IDialogSettings section = parentSection.getSection(this.getClass().getSimpleName());
 		if (section == null) {
-			section = parentSection.addNewSection(this.getClass().getName());
+			section = parentSection.addNewSection(this.getClass().getSimpleName());
 		}
 
 		// now, call the hook for actually writing the single properties to the dialog settings.
