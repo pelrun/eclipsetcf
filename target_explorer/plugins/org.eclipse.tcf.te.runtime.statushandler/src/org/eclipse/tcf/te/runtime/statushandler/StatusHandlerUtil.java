@@ -40,9 +40,9 @@ public final class StatusHandlerUtil {
 	 * @param title The dialog title or <code>null</code>.
 	 * @param contextHelpId The context help id or <code>null</code>.
 	 * @param caller The caller or <code>null</code>.
-	 * @param done The callback or <code>null</code>.
+	 * @param callback The callback or <code>null</code>.
 	 */
-	public static void handleStatus(IStatus status, Object context, String template, String title, String contextHelpId, Object caller, ICallback done) {
+	public static void handleStatus(IStatus status, Object context, String template, String title, String contextHelpId, Object caller, ICallback callback) {
 		Assert.isNotNull(status);
 		Assert.isNotNull(context);
 
@@ -56,9 +56,10 @@ public final class StatusHandlerUtil {
 
 			updateMessage(status, template);
 
-			handlers[0].handleStatus(status, data, null);
+			handlers[0].handleStatus(status, data, callback);
 		} else {
 			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
+			callback.done(caller, status);
 		}
 	}
 
