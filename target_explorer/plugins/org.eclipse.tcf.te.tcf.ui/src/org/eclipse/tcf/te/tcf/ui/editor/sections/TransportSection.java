@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
@@ -134,7 +135,18 @@ public class TransportSection extends AbstractSection {
 		section.setClient(client);
 
 		// Create the transport type control
-		transportTypeControl = new TransportSectionTypeControl(this);
+		transportTypeControl = new TransportSectionTypeControl(this) {
+			@Override
+			public String[] getTransportTypes() {
+				List<String> types = new ArrayList<String>();
+			    for (String type : super.getTransportTypes()) {
+			    	if (isTransportTypeSupported(type)) {
+			    		types.add(type);
+			    	}
+                }
+			    return types.toArray(new String[types.size()]);
+			}
+		};
 		transportTypeControl.setFormToolkit(toolkit);
 		transportTypeControl.setAdjustBackgroundColor(true);
 		transportTypeControl.setupPanel(client);
@@ -150,6 +162,10 @@ public class TransportSection extends AbstractSection {
 				@Override
 				protected boolean isAdjustBackgroundColor() {
 					return true;
+				}
+				@Override
+				protected boolean hasHistory() {
+				    return true;
 				}
 			};
 			transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_TCP, tcpTransportPanel);
@@ -599,6 +615,34 @@ public class TransportSection extends AbstractSection {
 				if (panel != null) {
 					panel.setEnabled(enabled);
 				}
+			}
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#saveWidgetValues(org.eclipse.jface.dialogs.IDialogSettings)
+	 */
+	@Override
+	public void saveWidgetValues(IDialogSettings settings) {
+		super.saveWidgetValues(settings);
+
+		if (settings != null) {
+			if (transportTypePanelControl != null) {
+				transportTypePanelControl.saveWidgetValues(settings, TransportSection.class.getSimpleName());
+			}
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#restoreWidgetValues(org.eclipse.jface.dialogs.IDialogSettings)
+	 */
+	@Override
+	public void restoreWidgetValues(IDialogSettings settings) {
+		super.restoreWidgetValues(settings);
+
+		if (settings != null) {
+			if (transportTypePanelControl != null) {
+				transportTypePanelControl.restoreWidgetValues(settings, TransportSection.class.getSimpleName());
 			}
 		}
 	}

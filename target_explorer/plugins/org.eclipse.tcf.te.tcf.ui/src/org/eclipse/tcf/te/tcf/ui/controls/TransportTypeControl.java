@@ -65,7 +65,7 @@ public class TransportTypeControl extends BaseEditBrowseTextControl {
 		super.setupPanel(parent);
 
 		List<String> transportTypeLabels = new ArrayList<String>();
-		for (String transportType : TRANSPORT_TYPES) {
+		for (String transportType : getTransportTypes()) {
 			String label = getTransportTypeLabel(transportType);
 			if (label != null) transportTypeLabels.add(label);
 		}
