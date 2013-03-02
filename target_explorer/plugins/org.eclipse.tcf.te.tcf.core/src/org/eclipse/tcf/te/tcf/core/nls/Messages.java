@@ -93,6 +93,10 @@ public class Messages extends NLS {
 
 	public static String AbstractExternalValueAdd_error_invalidLocation;
 	public static String AbstractExternalValueAdd_output;
+	public static String AbstractExternalValueAdd_error_cause;
+	public static String AbstractExternalValueAdd_error_processDied;
+	public static String AbstractExternalValueAdd_error_failedToReadOutput;
+	public static String AbstractExternalValueAdd_error_invalidPeerAttributes;
 
 	public static String ValueAddLauncher_launch_command;
 

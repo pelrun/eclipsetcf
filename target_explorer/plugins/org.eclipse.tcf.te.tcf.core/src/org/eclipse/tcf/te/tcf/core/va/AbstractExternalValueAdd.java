@@ -191,8 +191,12 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				try {
 					// Check if the process exited right after the launch
 					int exitCode = process.exitValue();
-					// Died -> Fail the launch
-					error = new IOException("Value-add process died with exit code " + exitCode); //$NON-NLS-1$
+					// Died -> Read the error output if there is any
+					String output = launcher.getOutputReader() != null ? launcher.getOutputReader().getOutput() : null;
+					String cause = output != null && !"".equals(output) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, output) : null; //$NON-NLS-1$
+					// Create the exception
+					String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, Integer.valueOf(exitCode));
+					error = new IOException(cause != null ? message + cause : message);
 				} catch (IllegalThreadStateException e) {
 					// Still running -> Associate the process with the entry
 					entry.process = process;
@@ -218,7 +222,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					counter--;
 				}
 				if (output == null) {
-					error = new IOException("Failed to read output from value-add."); //$NON-NLS-1$
+					error = new IOException(Messages.AbstractExternalValueAdd_error_failedToReadOutput);
 				}
 			}
 
@@ -265,7 +269,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 					entry.peer = new Peer(attrs);
 				} else {
-					error = new IOException("Invalid or incomplete peer attributes reported by value-add."); //$NON-NLS-1$
+					error = new IOException(Messages.AbstractExternalValueAdd_error_invalidPeerAttributes);
 				}
 			}
 
