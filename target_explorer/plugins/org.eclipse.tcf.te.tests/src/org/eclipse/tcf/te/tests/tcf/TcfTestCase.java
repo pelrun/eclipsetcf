@@ -145,6 +145,13 @@ public class TcfTestCase extends CoreTestCase {
 		output = output.replace("Server-Properties:", " "); //$NON-NLS-1$ //$NON-NLS-2$
 		output = output.trim();
 
+		// Expectation is that the agent is printing the server properties as single line.
+		// If we have still a newline in the string, ignore everything after it
+		if (output.indexOf('\n') != -1) {
+			output = output.substring(0, output.indexOf('\n'));
+			output = output.trim();
+		}
+
 		// Read into an object
 		Object object = parseOne(output);
 		@SuppressWarnings("unchecked")
