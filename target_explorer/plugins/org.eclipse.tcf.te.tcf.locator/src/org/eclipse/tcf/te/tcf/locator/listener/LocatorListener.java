@@ -81,16 +81,26 @@ public class LocatorListener implements ILocator.LocatorListener {
 				peerNode = model.validatePeerNodeForAdd(peerNode);
 				// Add the peer node to the model
 				if (peerNode != null) {
-					model.getService(ILocatorModelUpdateService.class).add(peerNode);
-					// And schedule for immediate status update
-					Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
-					Protocol.invokeLater(runnable);
-					// Trigger an immediate status update for all matching static peers too
 					IPeerModel[] matches = model.getService(ILocatorModelLookupService.class).lkupMatchingStaticPeerModels(peerNode);
-					for (IPeerModel match : matches) {
+					if (matches.length == 0) {
+						model.getService(ILocatorModelUpdateService.class).add(peerNode);
 						// And schedule for immediate status update
-						runnable = new ScannerRunnable(model.getScanner(), match);
+						Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
 						Protocol.invokeLater(runnable);
+					} else {
+						for (IPeerModel match : matches) {
+							IPeer myPeer = model.validatePeer(peer);
+							if (myPeer != null) {
+								boolean changed = match.setChangeEventsEnabled(false);
+								// Merge user configured properties between the peers
+								model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(match, myPeer, true);
+								if (changed) match.setChangeEventsEnabled(true);
+								match.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, match.getPeer());
+								// And schedule for immediate status update
+								Runnable runnable = new ScannerRunnable(model.getScanner(), match);
+								Protocol.invokeLater(runnable);
+							}
+						}
 					}
 				}
 			} else {
