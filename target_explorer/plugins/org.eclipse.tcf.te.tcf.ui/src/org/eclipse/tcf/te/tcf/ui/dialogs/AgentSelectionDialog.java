@@ -19,6 +19,8 @@ import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
@@ -49,7 +51,7 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	/* default */ final String[] services;
 
 	// The table viewer
-	private TableViewer viewer;
+	TableViewer viewer;
 
 	// The selection. Will be filled in if either "OK" or "Cancel" is pressed
 	private ISelection selection;
@@ -144,6 +146,14 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	    	nodes.addAll(Arrays.asList(service.lkupPeerModelBySupportedServices(null, services)));
 	    }
 	    viewer.setInput(nodes.size() > 0 ? nodes.toArray(new IPeerModel[nodes.size()]) : null);
+	    viewer.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				if (!viewer.getSelection().isEmpty()) {
+					okPressed();
+				}
+			}
+		});
 
 	    return top;
 	}
