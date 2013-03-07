@@ -593,9 +593,9 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		}
 		// If the child peer's IP address appears to be the address of the
 		// localhost, drop the child peer
-		if (peer.getAttributes().get(IPeer.ATTR_IP_HOST) != null && IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST))) {
-			return null;
-		}
+//		if (peer.getAttributes().get(IPeer.ATTR_IP_HOST) != null && IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST))) {
+//			return null;
+//		}
 		// If the child peer's IP address and port are the same as the parent's
 		// IP address and port, drop the child node
 		Map<String, String> parentPeerAttributes = parent.getPeer().getAttributes();
