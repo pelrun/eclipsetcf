@@ -139,6 +139,10 @@ public class DeleteHandler extends AbstractHandler {
 								canDelete = false;
 								break;
 							}
+							else if (!IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
+								canDelete = false;
+								break;
+							}
 						}
 					}
 				}
