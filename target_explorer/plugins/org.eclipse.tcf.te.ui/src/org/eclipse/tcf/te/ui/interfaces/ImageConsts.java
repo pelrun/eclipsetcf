@@ -46,6 +46,11 @@ public interface ImageConsts {
      */
     public final static String  IMAGE_DIR_OVR = "ovr16/"; //$NON-NLS-1$
 
+	/**
+	 * The directory where to load model object images from, relative to the image root directory.
+	 */
+	public final static String IMAGE_DIR_OBJ = "obj16/"; //$NON-NLS-1$
+
     // ***** The image constants *****
 
     /**
@@ -72,7 +77,7 @@ public interface ImageConsts {
      * The key to access the viewer filter configuration image (enabled).
      */
     public static final String  VIEWER_COLLAPSE_ALL = "ViewerCollapseAll_enabled"; //$NON-NLS-1$
-    
+
     /**
      * The key to access the viewer filter configuration image (disabled).
      */
@@ -97,7 +102,7 @@ public interface ImageConsts {
      * The key to access the target object red overlay image.
      */
     public static final String RED_OVR = "RedOverlay"; //$NON-NLS-1$
-    
+
     /**
      * The key to access the filtering decoration image.
      */

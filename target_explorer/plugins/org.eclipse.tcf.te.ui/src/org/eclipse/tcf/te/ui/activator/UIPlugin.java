@@ -9,25 +9,17 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.activator;
 
-import java.io.InputStream;
 import java.net.URL;
-import java.util.Arrays;
 
-import org.eclipse.core.runtime.ISafeRunnable;
-import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.tcf.te.runtime.model.MessageModelNode;
 import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
-import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.trees.ViewerStateManager;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -41,47 +33,11 @@ public class UIPlugin extends AbstractUIPlugin {
 	private static volatile ScopedEclipsePreferences scopedPreferences;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
-	// The pending images used to display the animation.
-	/* default */ Image[] pendingImages;
 
 	/**
 	 * The constructor
 	 */
 	public UIPlugin() {
-	}
-
-	/**
-	 * Load the pending images used to animate.
-	 */
-	/* default */ void loadPendingImages() {
-		SafeRunner.run(new ISafeRunnable() {
-			@Override
-			public void handleException(Throwable exception) {
-				// Ignore it.
-			}
-
-			@Override
-			public void run() throws Exception {
-				InputStream is = null;
-				try {
-					URL url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_ELCL + "pending.gif"); //$NON-NLS-1$
-					if (url != null) {
-						is = url.openStream();
-						ImageData[] imageDatas = new ImageLoader().load(is);
-						pendingImages = new Image[imageDatas.length];
-						Display display = PlatformUI.getWorkbench().getDisplay();
-						for (int i = 0; i < imageDatas.length; i++) {
-							pendingImages[i] = new Image(display, imageDatas[i]);
-						}
-					}
-				}
-				finally {
-					if (is != null) {
-						try { is.close(); } catch (Exception e) {}
-					}
-				}
-			}
-		});
 	}
 
 	/**
@@ -132,13 +88,6 @@ public class UIPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		// Images should be loaded in the UI thread
-		DisplayUtil.safeAsyncExec(new Runnable() {
-			@Override
-			public void run() {
-				loadPendingImages();
-			}
-		});
 		// Load the tree viewer's state.
 		ViewerStateManager.getInstance().loadViewerStates();
 	}
@@ -150,25 +99,10 @@ public class UIPlugin extends AbstractUIPlugin {
 	public void stop(BundleContext context) throws Exception {
 		// Save the tree viewer's state.
 		ViewerStateManager.getInstance().storeViewerStates();
-		if (pendingImages != null && pendingImages.length > 0) {
-			for (Image img : pendingImages) {
-				img.dispose();
-			}
-		}
-		pendingImages = null;
 		plugin = null;
 		scopedPreferences = null;
 		traceHandler = null;
 		super.stop(context);
-	}
-
-	/**
-	 * Returns the image list used to animate the pending state.
-	 *
-	 * @return A image list.
-	 */
-	public final Image[] getPendingImages() {
-		return pendingImages != null ? Arrays.copyOf(pendingImages, pendingImages.length) : new Image[0];
 	}
 
 	/* (non-Javadoc)
@@ -204,6 +138,9 @@ public class UIPlugin extends AbstractUIPlugin {
 		registry.put(ImageConsts.RED_X_OVR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "busy.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.BUSY_OVR, ImageDescriptor.createFromURL(url));
+
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "pending.gif"); //$NON-NLS-1$
+		registry.put(MessageModelNode.OBJECT_MESSAGE_PENDING_ID, ImageDescriptor.createFromURL(url));
 	}
 
 	/**

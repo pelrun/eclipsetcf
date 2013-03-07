@@ -73,21 +73,6 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		String property = evt.getPropertyName();
-		if(property.equals("query_started")) { //$NON-NLS-1$
-			Object source = evt.getSource();
-			Pending pending = pendings.get(source);
-			if(pending != null) {
-				pending.startAnimation();
-			}
-		}
-		else if(property.equals("query_done")) { //$NON-NLS-1$
-			Object source = evt.getSource();
-			Pending pending = pendings.remove(source);
-			if(pending != null) {
-				pending.stopAnimation();
-			}
-		}
 	}
 
 	/*
@@ -102,9 +87,6 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 		}
 		commonViewerListener.cancel();
 		providers.clear();
-		for(Pending pending : pendings.values()) {
-			pending.stopAnimation();
-		}
 		pendings.clear();
 	}
 
