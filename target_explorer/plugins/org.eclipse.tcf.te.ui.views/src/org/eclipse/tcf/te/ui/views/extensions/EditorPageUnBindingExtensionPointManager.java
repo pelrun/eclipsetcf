@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.ui.views.extensions;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.expressions.EvaluationContext;
@@ -32,28 +31,28 @@ import org.eclipse.ui.handlers.IHandlerService;
 
 
 /**
- * Details editor page binding extension point manager implementation.
+ * Editor page unbinding extension point manager implementation.
  */
-public class EditorPageBindingExtensionPointManager extends AbstractExtensionPointManager<EditorPageBinding> {
+public class EditorPageUnBindingExtensionPointManager extends AbstractExtensionPointManager<EditorPageUnBinding> {
 
 	/*
 	 * Thread save singleton instance creation.
 	 */
 	private static class LazyInstance {
-		public static EditorPageBindingExtensionPointManager instance = new EditorPageBindingExtensionPointManager();
+		public static EditorPageUnBindingExtensionPointManager instance = new EditorPageUnBindingExtensionPointManager();
 	}
 
 	/**
 	 * Constructor.
 	 */
-	EditorPageBindingExtensionPointManager() {
+	EditorPageUnBindingExtensionPointManager() {
 		super();
 	}
 
 	/**
 	 * Returns the singleton instance of the extension point manager.
 	 */
-	public static EditorPageBindingExtensionPointManager getInstance() {
+	public static EditorPageUnBindingExtensionPointManager getInstance() {
 		return LazyInstance.instance;
 	}
 
@@ -70,21 +69,21 @@ public class EditorPageBindingExtensionPointManager extends AbstractExtensionPoi
 	 */
 	@Override
 	protected String getConfigurationElementName() {
-		return "editorPageBinding"; //$NON-NLS-1$
+		return "editorPageUnBinding"; //$NON-NLS-1$
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.extensions.AbstractExtensionPointManager#doCreateExtensionProxy(org.eclipse.core.runtime.IConfigurationElement)
 	 */
 	@Override
-	protected ExecutableExtensionProxy<EditorPageBinding> doCreateExtensionProxy(IConfigurationElement element) throws CoreException {
-		return new ExecutableExtensionProxy<EditorPageBinding>(element) {
+	protected ExecutableExtensionProxy<EditorPageUnBinding> doCreateExtensionProxy(IConfigurationElement element) throws CoreException {
+		return new ExecutableExtensionProxy<EditorPageUnBinding>(element) {
 			/* (non-Javadoc)
 			 * @see org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy#newInstance()
 			 */
 			@Override
-			public EditorPageBinding newInstance() {
-				EditorPageBinding instance = new EditorPageBinding();
+			public EditorPageUnBinding newInstance() {
+				EditorPageUnBinding instance = new EditorPageUnBinding();
 				try {
 					instance.setInitializationData(getConfigurationElement(), null, null);
 				} catch (CoreException e) {
@@ -98,15 +97,15 @@ public class EditorPageBindingExtensionPointManager extends AbstractExtensionPoi
 	}
 
 	/**
-	 * Returns the applicable editor page bindings for the given data source model node..
+	 * Returns the applicable editor page unbindings for the given data source model node..
 	 *
 	 * @param input The active editor input or <code>null</code>.
-	 * @return The list of applicable editor page bindings or an empty array.
+	 * @return The list of applicable editor page unbindings or an empty array.
 	 */
-	public EditorPageBinding[] getApplicableEditorPageBindings(IEditorInput input) {
-		List<EditorPageBinding> applicable = new ArrayList<EditorPageBinding>();
+	public EditorPageUnBinding[] getApplicableEditorPageUnBindings(IEditorInput input) {
+		List<EditorPageUnBinding> applicable = new ArrayList<EditorPageUnBinding>();
 
-		for (EditorPageBinding binding : getEditorPageBindings()) {
+		for (EditorPageUnBinding binding : getEditorPageUnBindings()) {
 			Expression enablement = binding.getEnablement();
 
 			// The page binding is applicable by default if no expression
@@ -142,53 +141,24 @@ public class EditorPageBindingExtensionPointManager extends AbstractExtensionPoi
 			if (isApplicable) applicable.add(binding);
 		}
 
-		for (EditorPageUnBinding unBinding : EditorPageUnBindingExtensionPointManager.getInstance().getApplicableEditorPageUnBindings(input)) {
-			Iterator<EditorPageBinding> it = applicable.iterator();
-			while (it.hasNext()) {
-				EditorPageBinding binding = it.next();
-				if (binding.getPageId().equals(unBinding.getPageId())) {
-					it.remove();
-				}
-			}
-        }
-
-		return applicable.toArray(new EditorPageBinding[applicable.size()]);
+		return applicable.toArray(new EditorPageUnBinding[applicable.size()]);
 	}
 
 	/**
-	 * Returns the list of all contributed editor page bindings.
+	 * Returns the list of all contributed editor page unbindings.
 	 *
-	 * @return The list of contributed editor page bindings, or an empty array.
+	 * @return The list of contributed editor page unbindings, or an empty array.
 	 */
-	public EditorPageBinding[] getEditorPageBindings() {
-		List<EditorPageBinding> contributions = new ArrayList<EditorPageBinding>();
-		Collection<ExecutableExtensionProxy<EditorPageBinding>> editorPageBindings = getExtensions().values();
-		for (ExecutableExtensionProxy<EditorPageBinding> editorPageBinding : editorPageBindings) {
-			EditorPageBinding instance = editorPageBinding.getInstance();
+	public EditorPageUnBinding[] getEditorPageUnBindings() {
+		List<EditorPageUnBinding> contributions = new ArrayList<EditorPageUnBinding>();
+		Collection<ExecutableExtensionProxy<EditorPageUnBinding>> editorPageUnBindings = getExtensions().values();
+		for (ExecutableExtensionProxy<EditorPageUnBinding> editorPageUnBinding : editorPageUnBindings) {
+			EditorPageUnBinding instance = editorPageUnBinding.getInstance();
 			if (instance != null && !contributions.contains(instance)) {
 				contributions.add(instance);
 			}
 		}
 
-		return contributions.toArray(new EditorPageBinding[contributions.size()]);
-	}
-
-	/**
-	 * Returns the editor page binding identified by its unique id. If no editor
-	 * page binding with the specified id is registered, <code>null</code> is returned.
-	 *
-	 * @param id The unique id of the editor page binding or <code>null</code>
-	 *
-	 * @return The editor page instance or <code>null</code>.
-	 */
-	public EditorPageBinding getEditorPageBinding(String id) {
-		EditorPageBinding contribution = null;
-		if (getExtensions().containsKey(id)) {
-			ExecutableExtensionProxy<EditorPageBinding> proxy = getExtensions().get(id);
-			// Get the extension instance
-			contribution = proxy.getInstance();
-		}
-
-		return contribution;
+		return contributions.toArray(new EditorPageUnBinding[contributions.size()]);
 	}
 }
