@@ -69,6 +69,14 @@ public abstract class AbstractLaunchTabContainerEditorPage extends AbstractCusto
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#hasApplyAction()
+	 */
+	@Override
+	protected boolean hasApplyAction() {
+	    return true;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#getContextHelpId()
 	 */
 	@Override
