@@ -16,6 +16,7 @@ Export-Package: org.eclipse.tcf.te.runtime.services,
  org.eclipse.tcf.te.runtime.services.filetransfer,
  org.eclipse.tcf.te.runtime.services.interfaces,
  org.eclipse.tcf.te.runtime.services.interfaces.constants,
+ org.eclipse.tcf.te.runtime.services.interfaces.delegates,
  org.eclipse.tcf.te.runtime.services.interfaces.filetransfer,
  org.eclipse.tcf.te.runtime.services.internal;x-internal:=true,
  org.eclipse.tcf.te.runtime.services.nls;x-internal:=true

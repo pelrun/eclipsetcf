@@ -25,6 +25,9 @@ import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPe
 import org.eclipse.tcf.te.launch.core.selection.interfaces.IRemoteSelectionContext;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.IAttachLaunchAttributes;
 
 /**
@@ -134,6 +137,13 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 
 	private String getDefaultLaunchName(IModelNode context) {
 		if (context != null) {
+			IUIService uiService = ServiceManager.getInstance().getService(context, IUIService.class);
+			if (uiService != null) {
+				ILabelProviderDelegate labelProviderDelegate = uiService.getDelegate(context, ILabelProviderDelegate.class);
+				if (labelProviderDelegate != null) {
+					return labelProviderDelegate.getText(context);
+				}
+			}
 			return context.getName();
 		}
 		return ""; //$NON-NLS-1$
