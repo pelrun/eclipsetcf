@@ -99,7 +99,9 @@ public class FilterMRUContribution extends CompoundContributionItem {
 		for (int i = 0; i < filterSet.size(); i++) {
 	    	String filterId = filterSet.get(i);
 	    	ICommonFilterDescriptor filterDescriptor = fdMap.get(filterId);
-	    	items.add(new ActionContributionItem(new FilterMRUAction((i+1), filterDescriptor, filterService, commonViewer)));
+	    	if (filterDescriptor != null) {
+	    		items.add(new ActionContributionItem(new FilterMRUAction((i+1), filterDescriptor, filterService, commonViewer)));
+	    	}
 	    }
 	    return items.toArray(new IContributionItem[items.size()]);
     }
