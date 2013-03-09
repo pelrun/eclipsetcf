@@ -22,7 +22,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -37,8 +36,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.internal.cdt.ui.launch.PeerListControl.PeerInfo;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
+import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl;
+import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl.PeerInfo;
+import org.eclipse.tcf.internal.debug.ui.launch.RemoteFileSelectionDialog;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IChannel.IChannelListener;
 import org.eclipse.tcf.services.IFileSystem;
@@ -122,7 +123,8 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
             if (fSelectedPeer == null) {
                 setErrorMessage("No target selected.");
                 valid = false;
-            } else if (!fPeerHasProcessesService) {
+            }
+            else if (!fPeerHasProcessesService) {
                 setErrorMessage("Selected target does not support 'Processes' service");
                 valid = false;
             }
@@ -242,15 +244,7 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
     protected void updatePeerFromConfig(ILaunchConfiguration config) {
         try {
             String peerId = config.getAttribute(TCFLaunchDelegate.ATTR_PEER_ID, (String) null);
-            if (peerId != null) {
-                PeerInfo info = fPeerList.findPeerInfo(peerId);
-                if (info != null) {
-                    fPeerList.setSelection(new StructuredSelection(info));
-                    handlePeerSelectionChanged();
-                } else {
-                    fPeerList.setInitialSelectedPeerId(peerId);
-                }
-            }
+            fPeerList.setInitialSelection(peerId);
         }
         catch (CoreException e) {
             // Ignore

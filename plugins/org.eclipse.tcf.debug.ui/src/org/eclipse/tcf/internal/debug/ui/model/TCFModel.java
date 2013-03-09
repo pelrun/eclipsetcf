@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.model;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1962,6 +1963,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             if (!multiline && error instanceof IErrorReport) {
                 msg = Command.toErrorString(((IErrorReport)error).getAttributes());
             }
+            else if (error instanceof UnknownHostException) {
+                msg = "Unknown host: " + error.getMessage();
+            }
             else {
                 msg = error.getLocalizedMessage();
             }
@@ -1976,8 +1980,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 else if (ch != '.' && ch != ';') {
                     buf.append(';');
                 }
-                buf.append("Caused by:");
-                buf.append(multiline ? '\n' : ' ');
+                if (multiline) buf.append("Caused by:\n");
+                else buf.append(' ');
             }
         }
         if (buf.length() > 0) {

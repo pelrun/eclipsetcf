@@ -62,8 +62,23 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         ATTR_USE_LOCAL_AGENT = ITCFConstants.ID_TCF_DEBUG_MODEL + ".UseLocalAgent",
         ATTR_SIGNALS_DONT_STOP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".SignalsDontStop",
         ATTR_SIGNALS_DONT_PASS = ITCFConstants.ID_TCF_DEBUG_MODEL + ".SignalsDontPath",
+        ATTR_FILES = ITCFConstants.ID_TCF_DEBUG_MODEL + ".Files",
         ATTR_PATH_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".PathMap",
-        ATTR_MEMORY_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".MemoryMap";
+        ATTR_MEMORY_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".MemoryMap",
+        ATTR_ATTACH_PATH = ITCFConstants.ID_TCF_DEBUG_MODEL + ".Attach";
+
+    public static final String
+        FILES_CONTEXT_FULL_NAME = "Context",
+        FILES_CONTEXT_ID = "ContextID",
+        FILES_FILE_NAME = "File",
+        FILES_LOAD_SYMBOLS = "LoadSymbols",
+        FILES_RELOCATE = "Relocate",
+        FILES_ADDRESS = IMemoryMap.PROP_ADDRESS,
+        FILES_OFFSET = IMemoryMap.PROP_OFFSET,
+        FILES_SIZE = IMemoryMap.PROP_SIZE,
+        FILES_DOWNLOAD = "Download",
+        FILES_SET_PC = "SetPC",
+        FILES_ENABLE_OSA = "EnableOSA";
 
     public static class PathMapRule extends TCFPathMapRule {
 

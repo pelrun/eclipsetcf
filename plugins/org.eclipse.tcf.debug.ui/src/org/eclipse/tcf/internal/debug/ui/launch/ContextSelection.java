@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,18 +8,12 @@
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.internal.cdt.launch;
+package org.eclipse.tcf.internal.debug.ui.launch;
 
 public class ContextSelection {
     public String fPeerId;
     public String fContextId;
+    public String fContextFullName;
+    public String fContextName;
     public boolean fIsAttached;
-    public ContextSelection(String peerId, String contextId) {
-        this(peerId, contextId, true);
-    }
-    public ContextSelection(String peerId, String contextId, boolean isAttached) {
-        fPeerId = peerId;
-        fContextId = contextId;
-        fIsAttached = isAttached;
-    }
 }

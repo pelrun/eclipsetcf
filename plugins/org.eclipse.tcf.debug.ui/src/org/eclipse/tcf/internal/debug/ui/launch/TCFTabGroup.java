@@ -24,8 +24,9 @@ public class TCFTabGroup extends AbstractLaunchConfigurationTabGroup {
 
     public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
         setTabs(new ILaunchConfigurationTab[] {
-            new TCFMainTab(),
             new TCFTargetTab(),
+            new TCFDownloadTab(),
+            new TCFMainTab(),
             new TCFArgumentsTab(),
             new EnvironmentTab(),
             new TCFMemoryMapTab(),

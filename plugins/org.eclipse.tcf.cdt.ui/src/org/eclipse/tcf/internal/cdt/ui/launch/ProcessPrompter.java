@@ -15,19 +15,22 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.IStatusHandler;
 import org.eclipse.jface.window.Window;
-import org.eclipse.tcf.internal.cdt.launch.ContextSelection;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
+import org.eclipse.tcf.internal.debug.ui.launch.ContextSelection;
+import org.eclipse.tcf.internal.debug.ui.launch.ContextSelectionDialog;
 import org.eclipse.ui.PlatformUI;
 
 public class ProcessPrompter implements IStatusHandler {
 
     public Object handleStatus(IStatus status, Object source) throws CoreException {
         ILaunchConfiguration config = (ILaunchConfiguration) source;
-        String peerId = config.getAttribute(TCFLaunchDelegate.ATTR_PEER_ID, (String) null);
-        String contextId = config.getAttribute("attach_to_process", (String) null);
-        if (peerId == null || contextId == null) {
-            ContextSelection selection = new ContextSelection(peerId, contextId);
-            ProcessSelectionDialog diag = new ProcessSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow());
+        String peerId = config.getAttribute(TCFLaunchDelegate.ATTR_PEER_ID, (String)null);
+        String contextPath = config.getAttribute(TCFLaunchDelegate.ATTR_ATTACH_PATH, (String)null);
+        if (peerId == null || contextPath == null) {
+            ContextSelection selection = new ContextSelection();
+            selection.fPeerId = peerId;
+            selection.fContextFullName = contextPath;
+            ContextSelectionDialog diag = new ContextSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow(), true);
             diag.setSelection(selection);
             if (diag.open() == Window.OK) {
                 return diag.getSelection();
@@ -35,5 +38,4 @@ public class ProcessPrompter implements IStatusHandler {
         }
         return null;
     }
-
 }

@@ -22,6 +22,7 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.IStatusHandler;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
+import org.eclipse.tcf.internal.debug.ui.launch.ContextSelection;
 import org.eclipse.tcf.util.TCFTask;
 
 /**
@@ -90,7 +91,7 @@ public class TCFCDTLaunchDelegate extends TCFLaunchDelegate {
         if (prompter != null) {
             Object result = prompter.handleStatus(contextPrompt, config);
             if (result instanceof ContextSelection) {
-                return (ContextSelection) result;
+                return (ContextSelection)result;
             }
         }
         return null;

@@ -30,7 +30,9 @@ public class ImageCache {
     public static final String
         IMG_TCF = "icons/tcf.gif",
         IMG_TARGET_TAB = "icons/target_tab.gif",
+        IMG_DOWNLOAD_TAB = "icons/download_tab.gif",
         IMG_TARGET_WIZARD = "icons/full/wizban/debug_wiz.png",
+        IMG_APPLICATION_TAB = "icons/application_tab.gif",
         IMG_ARGUMENTS_TAB = "icons/arguments_tab.gif",
         IMG_ATTRIBUTE = "icons/attribute.gif",
         IMG_PATH = "icons/path.gif",

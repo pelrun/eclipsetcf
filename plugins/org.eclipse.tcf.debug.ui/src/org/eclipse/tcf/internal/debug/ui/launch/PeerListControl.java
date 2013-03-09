@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,14 +8,12 @@
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.internal.cdt.ui.launch;
+package org.eclipse.tcf.internal.debug.ui.launch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.viewers.ISelection;
@@ -42,10 +40,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.tcf.internal.cdt.ui.Activator;
-import org.eclipse.tcf.internal.cdt.ui.ImageCache;
+import org.eclipse.tcf.internal.debug.launch.TCFUserDefPeer;
+import org.eclipse.tcf.internal.debug.ui.Activator;
+import org.eclipse.tcf.internal.debug.ui.ImageCache;
+import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.protocol.IChannel;
-import org.eclipse.tcf.protocol.IChannel.IChannelListener;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
@@ -56,21 +55,22 @@ public class PeerListControl implements ISelectionProvider {
     private Tree peer_tree;
     private final PeerInfo peer_info = new PeerInfo();
     private Display display;
-    private final ListenerList fSelectionListeners = new ListenerList(ListenerList.IDENTITY);
-    private String fInitialPeerId = "*";
+    private final ListenerList selection_listeners = new ListenerList(ListenerList.IDENTITY);
+    private String initial_peer_id;
 
-    static class PeerInfo {
+    public static class PeerInfo {
+        public String id;
+        public IPeer peer;
+
         PeerInfo parent;
-        int index;
-        String id;
         Map<String,String> attrs;
         PeerInfo[] children;
         boolean children_pending;
         Throwable children_error;
-        IPeer peer;
         IChannel channel;
         ILocator locator;
         LocatorListener listener;
+        Runnable item_update;
     }
 
     private class LocatorListener implements ILocator.LocatorListener {
@@ -89,17 +89,11 @@ public class PeerListControl implements ISelectionProvider {
                 public void run() {
                     if (parent.children_error != null) return;
                     PeerInfo[] arr = parent.children;
-                    String agentId = attrs.get(IPeer.ATTR_AGENT_ID);
-                    for (PeerInfo p : arr) {
-                        assert !p.id.equals(id);
-                        if (agentId != null && agentId.equals(p.attrs.get(IPeer.ATTR_AGENT_ID)))
-                            return;
-                    }
+                    for (PeerInfo p : arr) assert !p.id.equals(id);
                     PeerInfo[] buf = new PeerInfo[arr.length + 1];
                     System.arraycopy(arr, 0, buf, 0, arr.length);
                     PeerInfo info = new PeerInfo();
                     info.parent = parent;
-                    info.index = arr.length;
                     info.id = id;
                     info.attrs = attrs;
                     info.peer = peer;
@@ -147,7 +141,6 @@ public class PeerListControl implements ISelectionProvider {
                             });
                         }
                         else {
-                            arr[i].index = j;
                             buf[j++] = arr[i];
                         }
                     }
@@ -193,8 +186,26 @@ public class PeerListControl implements ISelectionProvider {
         createPeerListArea(parent);
     }
 
-    public void setInitialSelectedPeerId(String peerId) {
-        fInitialPeerId = peerId;
+    public void setInitialSelection(String id) {
+        if (id == null) return;
+        if (id.length() == 0) return;
+        PeerInfo info = findPeerInfo(id);
+        if (info != null) {
+            setSelection(new StructuredSelection(info));
+            fireSelectionChangedEvent();
+            onPeerSelected(info);
+        }
+        else {
+            String p = id;
+            for (;;) {
+                int i = p.lastIndexOf('/');
+                if (i < 0) break;
+                p = p.substring(0, i);
+                TreeItem item = findItem(p);
+                if (item != null) item.setExpanded(true);
+            }
+            initial_peer_id = id;
+        }
     }
 
     public Tree getTree() {
@@ -204,20 +215,18 @@ public class PeerListControl implements ISelectionProvider {
     private void createPeerListArea(Composite parent) {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NONE);
+        GridLayout layout = new GridLayout(2, false);
         composite.setFont(font);
-        GridLayout layout = new GridLayout(1, false);
-        layout.marginWidth = 0;
-        layout.marginHeight = 0;
         composite.setLayout(layout);
-        composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
+        composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 
         peer_tree = new Tree(composite, SWT.VIRTUAL | SWT.BORDER | SWT.SINGLE);
         GridData gd = new GridData(GridData.FILL_BOTH);
-        gd.heightHint = 80;
-        gd.minimumWidth = 400;
+        gd.minimumHeight = 150;
+        gd.minimumWidth = 470;
         peer_tree.setLayoutData(gd);
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             TreeColumn column = new TreeColumn(peer_tree, SWT.LEAD, i);
             column.setMoveable(true);
             switch (i) {
@@ -230,14 +239,18 @@ public class PeerListControl implements ISelectionProvider {
                 column.setWidth(100);
                 break;
             case 2:
+                column.setText("User");
+                column.setWidth(100);
+                break;
+            case 3:
                 column.setText("Transport");
                 column.setWidth(60);
                 break;
-            case 3:
+            case 4:
                 column.setText("Host");
                 column.setWidth(100);
                 break;
-            case 4:
+            case 5:
                 column.setText("Port");
                 column.setWidth(40);
                 break;
@@ -247,6 +260,7 @@ public class PeerListControl implements ISelectionProvider {
         peer_tree.setHeaderVisible(true);
         peer_tree.setFont(font);
         peer_tree.addListener(SWT.SetData, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 TreeItem item = (TreeItem)event.item;
                 PeerInfo info = findPeerInfo(item);
@@ -255,21 +269,50 @@ public class PeerListControl implements ISelectionProvider {
                 }
                 else {
                     fillItem(item, info);
+                    onPeerListChanged();
                 }
-            }
-        });
-        peer_tree.addTreeListener(new TreeListener() {
-            public void treeCollapsed(TreeEvent e) {
-                updateItems((TreeItem)e.item, false);
-            }
-            public void treeExpanded(TreeEvent e) {
-                updateItems((TreeItem)e.item, true);
             }
         });
         peer_tree.addSelectionListener(new SelectionAdapter() {
             @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                TreeItem[] selections = peer_tree.getSelection();
+                if (selections.length == 0) return;
+                final PeerInfo info = findPeerInfo(selections[0]);
+                if (info == null) return;
+                new PeerPropsDialog(peer_tree.getShell(), getImage(info), info.attrs,
+                        info.peer instanceof TCFUserDefPeer).open();
+                if (!(info.peer instanceof TCFUserDefPeer)) return;
+                Protocol.invokeLater(new Runnable() {
+                    public void run() {
+                        ((TCFUserDefPeer)info.peer).updateAttributes(info.attrs);
+                        TCFUserDefPeer.savePeers();
+                    }
+                });
+            }
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 fireSelectionChangedEvent();
+                TreeItem[] selections = peer_tree.getSelection();
+                if (selections.length > 0) {
+                    assert selections.length == 1;
+                    PeerInfo info = findPeerInfo(selections[0]);
+                    if (info != null) {
+                        initial_peer_id = null;
+                        onPeerSelected(info);
+                    }
+                }
+                onPeerListChanged();
+            }
+        });
+        peer_tree.addTreeListener(new TreeListener() {
+            @Override
+            public void treeCollapsed(TreeEvent e) {
+                updateItems((TreeItem)e.item, false);
+            }
+            @Override
+            public void treeExpanded(TreeEvent e) {
+                updateItems((TreeItem)e.item, true);
             }
         });
     }
@@ -322,7 +365,7 @@ public class PeerListControl implements ISelectionProvider {
                 else {
                     final IChannel channel = parent.peer.openChannel();
                     parent.channel = channel;
-                    parent.channel.addChannelListener(new IChannelListener() {
+                    parent.channel.addChannelListener(new IChannel.IChannelListener() {
                         boolean opened = false;
                         boolean closed = false;
                         public void congestionLevel(int level) {
@@ -357,8 +400,7 @@ public class PeerListControl implements ISelectionProvider {
                             opened = true;
                             parent.locator = parent.channel.getRemoteService(ILocator.class);
                             if (parent.locator == null) {
-                                doneLoadChildren(parent, new Exception("Service not supported: " + ILocator.NAME), null);
-                                parent.channel.close();
+                                parent.channel.terminate(new Exception("Service not supported: " + ILocator.NAME));
                             }
                             else {
                                 doneLoadChildren(parent, null, createLocatorListener(parent));
@@ -373,21 +415,16 @@ public class PeerListControl implements ISelectionProvider {
     private PeerInfo[] createLocatorListener(PeerInfo peer) {
         assert Protocol.isDispatchThread();
         Map<String,IPeer> map = peer.locator.getPeers();
-        List<PeerInfo> filteredPeers = new ArrayList<PeerInfo>();
-        Set<String> agentIds = new HashSet<String>();
+        PeerInfo[] buf = new PeerInfo[map.size()];
+        int n = 0;
         for (IPeer p : map.values()) {
-            String agentID = p.getAgentID();
-            if (agentID != null && agentIds.add(agentID)) {
-                PeerInfo info = new PeerInfo();
-                info.parent = peer;
-                info.index = filteredPeers.size();
-                info.id = p.getID();
-                info.attrs = new HashMap<String,String>(p.getAttributes());
-                info.peer = p;
-                filteredPeers.add(info);
-            }
+            PeerInfo info = new PeerInfo();
+            info.parent = peer;
+            info.id = p.getID();
+            info.attrs = new HashMap<String,String>(p.getAttributes());
+            info.peer = p;
+            buf[n++] = info;
         }
-        PeerInfo[] buf = filteredPeers.toArray(new PeerInfo[filteredPeers.size()]);
         peer.listener = new LocatorListener(peer);
         peer.locator.addListener(peer.listener);
         return buf;
@@ -407,6 +444,39 @@ public class PeerListControl implements ISelectionProvider {
                 updateItems(parent);
             }
         });
+    }
+
+    private ArrayList<PeerInfo> filterPeerList(PeerInfo parent, boolean expanded) {
+        ArrayList<PeerInfo> lst = new ArrayList<PeerInfo>();
+        HashMap<String,PeerInfo> local_agents = new HashMap<String,PeerInfo>();
+        HashSet<String> ids = new HashSet<String>();
+        for (PeerInfo p : parent.children) {
+            String id = p.attrs.get(IPeer.ATTR_AGENT_ID);
+            if (id == null) continue;
+            if (!"TCP".equals(p.attrs.get(IPeer.ATTR_TRANSPORT_NAME))) continue;
+            if (!"127.0.0.1".equals(p.attrs.get(IPeer.ATTR_IP_HOST))) continue;
+            local_agents.put(id, p);
+            ids.add(p.id);
+        }
+        for (PeerInfo p : parent.children) {
+            PeerInfo i = local_agents.get(p.attrs.get(IPeer.ATTR_AGENT_ID));
+            if (i != null && i != p) continue;
+            lst.add(p);
+        }
+        if (parent != peer_info && expanded) {
+            for (PeerInfo p : peer_info.children) {
+                if (p.peer instanceof TCFUserDefPeer && !ids.contains(p.id)) {
+                    PeerInfo x = new PeerInfo();
+                    x.parent = parent;
+                    x.id = p.id;
+                    x.attrs = p.attrs;
+                    x.peer = p.peer;
+                    ids.add(x.id);
+                    lst.add(x);
+                }
+            }
+        }
+        return lst;
     }
 
     private void updateItems(TreeItem parent_item, boolean reload) {
@@ -429,140 +499,158 @@ public class PeerListControl implements ISelectionProvider {
     private void updateItems(final PeerInfo parent) {
         if (display == null) return;
         assert Thread.currentThread() == display.getThread();
-        TreeItem[] items = null;
-        boolean expanded = true;
-        if (parent.children == null || parent.children_error != null) {
-            if (parent == peer_info) {
-                peer_tree.setItemCount(1);
-                items = peer_tree.getItems();
-            }
-            else {
-                TreeItem item = findItem(parent);
-                if (item == null) return;
-                expanded = item.getExpanded();
-                item.setItemCount(1);
-                items = item.getItems();
-            }
-            assert items.length == 1;
-            items[0].removeAll();
-            if (parent.children_pending) {
-                items[0].setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
-                items[0].setText("Connecting...");
-            }
-            else if (parent.children_error != null) {
-                String msg = parent.children_error.getMessage();
-                if (msg == null) msg = parent.children_error.getClass().getName();
-                else msg = msg.replace('\n', ' ');
-                items[0].setForeground(display.getSystemColor(SWT.COLOR_RED));
-                items[0].setText(msg);
-            }
-            else if (expanded) {
-                loadChildren(parent);
-                items[0].setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
-                items[0].setText("Connecting...");
-            }
-            else {
-                Protocol.invokeAndWait(new Runnable() {
-                    public void run() {
-                        disconnectPeer(parent);
+        parent.item_update = new Runnable() {
+            public void run() {
+                if (display == null) return;
+                if (parent.item_update != this) return;
+                if (Thread.currentThread() != display.getThread()) {
+                    display.asyncExec(this);
+                    return;
+                }
+                parent.item_update = null;
+                TreeItem[] items = null;
+                boolean expanded = true;
+                if (parent.children == null || parent.children_error != null) {
+                    if (parent == peer_info) {
+                        peer_tree.setItemCount(1);
+                        items = peer_tree.getItems();
                     }
-                });
-                items[0].setText("");
-            }
-            int n = peer_tree.getColumnCount();
-            for (int i = 1; i < n; i++) items[0].setText(i, "");
-            items[0].setImage((Image)null);
-        }
-        else {
-            PeerInfo[] arr = parent.children;
-            if (parent == peer_info) {
-                peer_tree.setItemCount(arr.length);
-                items = peer_tree.getItems();
-            }
-            else {
-                TreeItem item = findItem(parent);
-                if (item == null) return;
-                expanded = item.getExpanded();
-                item.setItemCount(expanded ? arr.length : 1);
-                items = item.getItems();
-            }
-            if (expanded) {
-                assert items.length == arr.length;
-                for (int i = 0; i < items.length; i++) fillItem(items[i], arr[i]);
-                if (fInitialPeerId != null && items.length > 0) {
-                    if ("*".equals(fInitialPeerId)) {
-                        fInitialPeerId = null;
-                        peer_tree.setSelection(items[0]);
-                        fireSelectionChangedEvent();
-                    } else {
-                        int i = 0;
-                        for (PeerInfo peerInfo : arr) {
-                            if (fInitialPeerId.equals(peerInfo.id)) {
-                                fInitialPeerId = null;
-                                peer_tree.setSelection(items[i]);
-                                fireSelectionChangedEvent();
-                                break;
+                    else {
+                        TreeItem item = findItem(parent);
+                        if (item == null) return;
+                        expanded = item.getExpanded();
+                        item.setItemCount(1);
+                        items = item.getItems();
+                    }
+                    assert items.length == 1;
+                    if (parent.children_pending) {
+                        items[0].setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+                        fillItem(items[0], "Connecting...");
+                    }
+                    else if (parent.children_error != null) {
+                        String msg = TCFModel.getErrorMessage(parent.children_error, false);
+                        items[0].setForeground(display.getSystemColor(SWT.COLOR_RED));
+                        fillItem(items[0], msg);
+                    }
+                    else if (expanded) {
+                        loadChildren(parent);
+                        items[0].setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+                        fillItem(items[0], "Connecting...");
+                    }
+                    else {
+                        Protocol.invokeAndWait(new Runnable() {
+                            public void run() {
+                                disconnectPeer(parent);
                             }
-                            i++;
-                        }
+                        });
+                        fillItem(items[0], "");
                     }
                 }
-            }
-            else {
-                Protocol.invokeAndWait(new Runnable() {
-                    public void run() {
-                        disconnectPeer(parent);
+                else {
+                    ArrayList<PeerInfo> lst = null;
+                    if (parent == peer_info) {
+                        lst = filterPeerList(parent, expanded);
+                        peer_tree.setItemCount(lst.size() > 0 ? lst.size() : 1);
+                        items = peer_tree.getItems();
                     }
-                });
-                items[0].setText("");
-                int n = peer_tree.getColumnCount();
-                for (int i = 1; i < n; i++) items[0].setText(i, "");
+                    else {
+                        TreeItem item = findItem(parent);
+                        if (item == null) return;
+                        expanded = item.getExpanded();
+                        lst = filterPeerList(parent, expanded);
+                        item.setItemCount(expanded && lst.size() > 0 ? lst.size() : 1);
+                        items = item.getItems();
+                    }
+                    if (expanded && lst.size() > 0) {
+                        assert items.length == lst.size();
+                        for (int i = 0; i < items.length; i++) fillItem(items[i], lst.get(i));
+                    }
+                    else if (expanded) {
+                        fillItem(items[0], "No peers");
+                    }
+                    else {
+                        Protocol.invokeAndWait(new Runnable() {
+                            public void run() {
+                                disconnectPeer(parent);
+                            }
+                        });
+                        fillItem(items[0], "");
+                    }
+                }
+                onPeerListChanged();
+                if (initial_peer_id != null) {
+                    setInitialSelection(initial_peer_id);
+                }
+            }
+        };
+        if (parent.children_pending) parent.item_update.run();
+        else Protocol.invokeLater(200, parent.item_update);
+    }
+
+    public TreeItem findItem(String path) {
+        assert Thread.currentThread() == display.getThread();
+        if (path == null) return null;
+        int z = path.lastIndexOf('/');
+        if (z < 0) {
+            int n = peer_tree.getItemCount();
+            for (int i = 0; i < n; i++) {
+                TreeItem x = peer_tree.getItem(i);
+                PeerInfo p = (PeerInfo)x.getData("TCFPeerInfo");
+                if (p != null && p.id.equals(path)) return x;
             }
         }
-    }
-
-    public PeerInfo findPeerInfo(String peerId) {
-        return findPeerInfo(peer_info, peerId);
-    }
-
-    private PeerInfo findPeerInfo(PeerInfo parent, String peerId) {
-        if (peerId.equals(parent.id)) return parent;
-        PeerInfo[] children = parent.children;
-        if (children == null) return null;
-        for (PeerInfo child : children) {
-            PeerInfo info = findPeerInfo(child, peerId);
-            if (info != null) return info;
+        else {
+            TreeItem y = findItem(path.substring(0, z));
+            if (y == null) return null;
+            String id = path.substring(z + 1);
+            int n = y.getItemCount();
+            for (int i = 0; i < n; i++) {
+                TreeItem x = y.getItem(i);
+                PeerInfo p = (PeerInfo)x.getData("TCFPeerInfo");
+                if (p != null && p.id.equals(id)) return x;
+            }
         }
         return null;
     }
 
-    public PeerInfo findPeerInfo(TreeItem item) {
-        assert Thread.currentThread() == display.getThread();
-        if (item == null) return peer_info;
-        TreeItem parent = item.getParentItem();
-        PeerInfo info = findPeerInfo(parent);
-        if (info == null) return null;
-        if (info.children == null) return null;
-        if (info.children_error != null) return null;
-        int i = parent == null ? peer_tree.indexOf(item) : parent.indexOf(item);
-        if (i < 0 || i >= info.children.length) return null;
-        assert info.children[i].index == i;
-        return info.children[i];
-    }
-
-    private TreeItem findItem(PeerInfo info) {
+    public TreeItem findItem(PeerInfo info) {
         if (info == null) return null;
         assert info.parent != null;
         if (info.parent == peer_info) {
             int n = peer_tree.getItemCount();
-            if (info.index >= n) return null;
-            return peer_tree.getItem(info.index);
+            for (int i = 0; i < n; i++) {
+                TreeItem x = peer_tree.getItem(i);
+                if (x.getData("TCFPeerInfo") == info) return x;
+            }
         }
-        TreeItem i = findItem(info.parent);
+        else {
+            TreeItem y = findItem(info.parent);
+            if (y == null) return null;
+            int n = y.getItemCount();
+            for (int i = 0; i < n; i++) {
+                TreeItem x = y.getItem(i);
+                if (x.getData("TCFPeerInfo") == info) return x;
+            }
+        }
+        return null;
+    }
+
+    public String getPath(PeerInfo info) {
+        if (info == peer_info) return "";
+        if (info.parent == peer_info) return info.id;
+        return getPath(info.parent) + "/" + info.id;
+    }
+
+    public PeerInfo findPeerInfo(String path) {
+        TreeItem i = findItem(path);
         if (i == null) return null;
-        int n = i.getItemCount();
-        if (info.index >= n) return null;
-        return i.getItem(info.index);
+        return (PeerInfo)i.getData("TCFPeerInfo");
+    }
+
+    private PeerInfo findPeerInfo(TreeItem item) {
+        assert Thread.currentThread() == display.getThread();
+        if (item == null) return peer_info;
+        return (PeerInfo)item.getData("TCFPeerInfo");
     }
 
     private void fillItem(TreeItem item, PeerInfo info) {
@@ -570,29 +658,39 @@ public class PeerListControl implements ISelectionProvider {
         Object data = item.getData("TCFPeerInfo");
         if (data != null && data != info) item.removeAll();
         item.setData("TCFPeerInfo", info);
-        String text[] = new String[5];
+        String text[] = new String[6];
         text[0] = info.attrs.get(IPeer.ATTR_NAME);
         text[1] = info.attrs.get(IPeer.ATTR_OS_NAME);
-        text[2] = info.attrs.get(IPeer.ATTR_TRANSPORT_NAME);
-        text[3] = info.attrs.get(IPeer.ATTR_IP_HOST);
-        text[4] = info.attrs.get(IPeer.ATTR_IP_PORT);
+        text[2] = info.attrs.get(IPeer.ATTR_USER_NAME);
+        text[3] = info.attrs.get(IPeer.ATTR_TRANSPORT_NAME);
+        text[4] = info.attrs.get(IPeer.ATTR_IP_HOST);
+        text[5] = info.attrs.get(IPeer.ATTR_IP_PORT);
         for (int i = 0; i < text.length; i++) {
             if (text[i] == null) text[i] = "";
         }
         item.setText(text);
         item.setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
-        item.setImage(ImageCache.getImage(getImageName(info)));
+        item.setImage(getImage(info));
         if (!canHaveChildren(info)) item.setItemCount(0);
         else if (info.children == null || info.children_error != null) item.setItemCount(1);
         else item.setItemCount(info.children.length);
     }
 
-    private String getImageName(PeerInfo info) {
-        return ImageCache.IMG_TARGET_TAB;
+    private void fillItem(TreeItem item, String text) {
+        item.setText(text);
+        item.setData("TCFPeerInfo", null);
+        int n = peer_tree.getColumnCount();
+        for (int i = 1; i < n; i++) item.setText(i, "");
+        item.setImage((Image)null);
+        item.removeAll();
+    }
+
+    private Image getImage(PeerInfo info) {
+        return ImageCache.getImage(ImageCache.IMG_TARGET_TAB);
     }
 
     public void addSelectionChangedListener(ISelectionChangedListener listener) {
-        fSelectionListeners .add(listener);
+        selection_listeners.add(listener);
     }
 
     public ISelection getSelection() {
@@ -606,7 +704,7 @@ public class PeerListControl implements ISelectionProvider {
     }
 
     public void removeSelectionChangedListener(ISelectionChangedListener listener) {
-        fSelectionListeners.remove(listener);
+        selection_listeners.remove(listener);
     }
 
     public void setSelection(ISelection selection) {
@@ -626,14 +724,20 @@ public class PeerListControl implements ISelectionProvider {
 
     private void fireSelectionChangedEvent() {
         SelectionChangedEvent event = new SelectionChangedEvent(this, getSelection());
-        Object[] listeners = fSelectionListeners.getListeners();
+        Object[] listeners = selection_listeners.getListeners();
         for (Object listener : listeners) {
             try {
                 ((ISelectionChangedListener) listener).selectionChanged(event);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Activator.log(e);
             }
         }
     }
 
+    protected void onPeerListChanged() {
+    }
+
+    protected void onPeerSelected(PeerInfo info) {
+    }
 }

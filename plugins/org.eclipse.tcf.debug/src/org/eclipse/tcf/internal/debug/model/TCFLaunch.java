@@ -40,6 +40,7 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IService;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IContextQuery;
 import org.eclipse.tcf.services.IFileSystem;
@@ -412,6 +413,34 @@ public class TCFLaunch extends Launch {
                 }
             }
 
+            if (cfg != null && getService(IMemory.class) != null) {
+                String s = cfg.getAttribute(TCFLaunchDelegate.ATTR_FILES, (String)null);
+                if (s != null) {
+                    @SuppressWarnings("unchecked")
+                    Collection<Map<String,Object>> c = (Collection<Map<String,Object>>)JSON.parseOne(s.getBytes("UTF-8"));
+                    final ElfLoader loader = new ElfLoader(channel);
+                    for (final Map<String,Object> m : c) {
+                        Boolean b1 = (Boolean)m.get(TCFLaunchDelegate.FILES_DOWNLOAD);
+                        Boolean b2 = (Boolean)m.get(TCFLaunchDelegate.FILES_SET_PC);
+                        if (b1 != null && b1.booleanValue() || b2 != null && b2.booleanValue()) {
+                            new LaunchStep() {
+                                @Override
+                                void start() throws Exception {
+                                    loader.load(m, this);
+                                }
+                            };
+                        }
+                    }
+                    new LaunchStep() {
+                        @Override
+                        void start() throws Exception {
+                            loader.dispose();
+                            done();
+                        }
+                    };
+                }
+            }
+
             // Call client launch sequence:
             new LaunchStep() {
                 @Override
@@ -478,7 +507,7 @@ public class TCFLaunch extends Launch {
             return;
         }
         final HashMap<String,ArrayList<IMemoryMap.MemoryRegion>> maps = new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
-        TCFLaunchDelegate.getMemMapsAttribute(maps, cfg);
+        getMemMaps(maps, cfg);
         final HashSet<IToken> cmds = new HashSet<IToken>(); // Pending commands
         final Runnable done_all = new Runnable() {
             boolean launch_done;
@@ -506,7 +535,7 @@ public class TCFLaunch extends Launch {
                 try {
                     Set<String> set = new HashSet<String>(maps.keySet());
                     maps.clear();
-                    TCFLaunchDelegate.getMemMapsAttribute(maps, getLaunchConfiguration());
+                    getMemMaps(maps, getLaunchConfiguration());
                     for (String id : maps.keySet()) {
                         ArrayList<IMemoryMap.MemoryRegion> map = maps.get(id);
                         TCFMemoryRegion[] arr = map.toArray(new TCFMemoryRegion[map.size()]);
@@ -534,7 +563,7 @@ public class TCFLaunch extends Launch {
         }
         final HashSet<String> deleted_maps = new HashSet<String>();
         final HashMap<String,ArrayList<IMemoryMap.MemoryRegion>> maps = new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
-        TCFLaunchDelegate.getMemMapsAttribute(maps, cfg);
+        getMemMaps(maps, cfg);
         final HashSet<String> mems = new HashSet<String>(); // Already processed memory IDs
         final HashSet<IToken> cmds = new HashSet<IToken>(); // Pending commands
         final HashMap<String,String> mem2map = new HashMap<String,String>();
@@ -631,7 +660,7 @@ public class TCFLaunch extends Launch {
                 try {
                     maps.clear();
                     mems.clear();
-                    TCFLaunchDelegate.getMemMapsAttribute(maps, getLaunchConfiguration());
+                    getMemMaps(maps, getLaunchConfiguration());
                     for (String id : mem2map.values()) {
                         if (maps.get(id) == null) deleted_maps.add(id);
                     }
@@ -642,6 +671,40 @@ public class TCFLaunch extends Launch {
                 }
             }
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getMemMaps(Map<String,ArrayList<IMemoryMap.MemoryRegion>> maps, ILaunchConfiguration cfg) throws Exception {
+        // Parse ATTR_FILES
+        String s = cfg.getAttribute(TCFLaunchDelegate.ATTR_FILES, (String)null);
+        if (s != null) {
+            Collection<Map<String,Object>> c = (Collection<Map<String,Object>>)JSON.parseOne(s.getBytes("UTF-8"));
+            for (Map<String,Object> m : c) {
+                Boolean b = (Boolean)m.get(TCFLaunchDelegate.FILES_LOAD_SYMBOLS);
+                if (b != null && b.booleanValue()) {
+                    String id = (String)m.get(TCFLaunchDelegate.FILES_CONTEXT_ID);
+                    if (id == null) id = (String)m.get(TCFLaunchDelegate.FILES_CONTEXT_FULL_NAME);
+                    if (id != null) {
+                        Map<String,Object> map = new HashMap<String,Object>();
+                        map.put(IMemoryMap.PROP_FILE_NAME, m.get(TCFLaunchDelegate.FILES_FILE_NAME));
+                        b = (Boolean)m.get(TCFLaunchDelegate.FILES_RELOCATE);
+                        if (b != null && b.booleanValue()) {
+                            map.put(IMemoryMap.PROP_ADDRESS, m.get(TCFLaunchDelegate.FILES_ADDRESS));
+                            map.put(IMemoryMap.PROP_OFFSET, m.get(TCFLaunchDelegate.FILES_OFFSET));
+                            map.put(IMemoryMap.PROP_SIZE, m.get(TCFLaunchDelegate.FILES_SIZE));
+                        }
+                        ArrayList<IMemoryMap.MemoryRegion> l = maps.get(id);
+                        if (l == null) {
+                            l = new ArrayList<IMemoryMap.MemoryRegion>();
+                            maps.put(id, l);
+                        }
+                        l.add(new TCFMemoryRegion(map));
+                    }
+                }
+            }
+        }
+        // Parse ATTR_MEMORY_MAP
+        TCFLaunchDelegate.getMemMapsAttribute(maps, cfg);
     }
 
     private void readPathMapConfiguration(ILaunchConfiguration cfg) throws CoreException {
@@ -1212,7 +1275,7 @@ public class TCFLaunch extends Launch {
     public void onLastContextRemoved() {
         ILaunchConfiguration cfg = getLaunchConfiguration();
         try {
-            if (cfg.getAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, true)) {
+            if (process != null && cfg.getAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, true)) {
                 last_context_exited = true;
                 closeChannel();
             }

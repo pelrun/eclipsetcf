@@ -66,11 +66,20 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         comp.setLayout(topLayout);
 
         createVerticalSpacer(comp, 1);
+        createHeader(comp);
+        createVerticalSpacer(comp, 1);
         createProjectGroup(comp);
         createApplicationGroup(comp);
         createWorkingDirGroup(comp);
         createVerticalSpacer(comp, 1);
         createOptionButtons(comp, 1);
+    }
+
+    private void createHeader(Composite parent) {
+        Label label = new Label(parent, SWT.NONE);
+        label.setText("Launching an application requires a target that supports Processes service");
+        GridData gd = new GridData();
+        label.setLayoutData(gd);
     }
 
     private void createProjectGroup(Composite parent) {
@@ -493,11 +502,11 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
     }
 
     public String getName() {
-        return "Main";
+        return "Application";
     }
 
     @Override
     public Image getImage() {
-        return ImageCache.getImage(ImageCache.IMG_TCF);
+        return ImageCache.getImage(ImageCache.IMG_APPLICATION_TAB);
     }
 }

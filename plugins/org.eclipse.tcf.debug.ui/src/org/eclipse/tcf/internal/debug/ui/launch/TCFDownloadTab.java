@@ -1,24 +1,26 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2013 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Wind River Systems - initial API and implementation
+ *     Xilinx - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.launch;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -46,15 +48,14 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
-import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
-import org.eclipse.tcf.services.IPathMap;
+import org.eclipse.tcf.protocol.JSON;
+import org.eclipse.tcf.util.TCFTask;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
-// TODO: add source lookup container that represents ATTR_PATH_MAP
-public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
+public class TCFDownloadTab extends AbstractLaunchConfigurationTab {
 
     private TableViewer viewer;
     private Button button_add;
@@ -65,25 +66,23 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     private MenuItem item_remove;
 
     private static final String[] column_ids = {
-        IPathMap.PROP_SOURCE,
-        IPathMap.PROP_DESTINATION,
-        IPathMap.PROP_CONTEXT_QUERY,
+        TCFLaunchDelegate.FILES_CONTEXT_FULL_NAME,
+        TCFLaunchDelegate.FILES_FILE_NAME,
     };
 
     private static final int[] column_size = {
         300,
-        300,
-        100,
+        400,
     };
 
-    private static final String TAB_ID = "org.eclipse.tcf.launch.pathMapTab"; //$NON-NLS-1$
+    private final List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
 
-    private ArrayList<PathMapRule> map;
+    private static final String TAB_ID = "org.eclipse.tcf.launch.downloadTab"; //$NON-NLS-1$
 
-    private class FileMapContentProvider implements IStructuredContentProvider  {
+    private class FileListContentProvider implements IStructuredContentProvider  {
 
         public Object[] getElements(Object input) {
-            return map.toArray(new PathMapRule[map.size()]);
+            return list.toArray(new Map[list.size()]);
         }
 
         public void inputChanged(Viewer viewer, Object old_input, Object new_input) {
@@ -93,7 +92,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         }
     }
 
-    private class FileMapLabelProvider extends LabelProvider implements ITableLabelProvider {
+    private class FileListLabelProvider extends LabelProvider implements ITableLabelProvider {
 
         public Image getColumnImage(Object element, int column) {
             if (column == 0) return ImageCache.getImage(ImageCache.IMG_ATTRIBUTE);
@@ -101,8 +100,9 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         }
 
         public String getColumnText(Object element, int column) {
-            PathMapRule e = (PathMapRule)element;
-            Object o = e.getProperties().get(column_ids[column]);
+            @SuppressWarnings("unchecked")
+            Map<String,String> e = (Map<String,String>)element;
+            Object o = e.get(column_ids[column]);
             if (o == null) return ""; //$NON-NLS-1$
             return o.toString();
         }
@@ -111,12 +111,12 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     private Exception init_error;
 
     public String getName() {
-        return "Path Map"; //$NON-NLS-1$
+        return "Download"; //$NON-NLS-1$
     }
 
     @Override
     public Image getImage() {
-        return ImageCache.getImage(ImageCache.IMG_PATH);
+        return ImageCache.getImage(ImageCache.IMG_DOWNLOAD_TAB);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         Label map_label = new Label(parent, SWT.WRAP);
         map_label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         map_label.setFont(font);
-        map_label.setText("File Path Map Rules:"); //$NON-NLS-1$
+        map_label.setText("Files to download during launch:"); //$NON-NLS-1$
 
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
@@ -155,8 +155,8 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
         table.setFont(font);
-        viewer.setContentProvider(new FileMapContentProvider());
-        viewer.setLabelProvider(new FileMapLabelProvider());
+        viewer.setContentProvider(new FileListContentProvider());
+        viewer.setLabelProvider(new FileListLabelProvider());
         viewer.setColumnProperties(column_ids);
 
         for (int i = 0; i < column_ids.length; i++) {
@@ -202,14 +202,12 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         button_add.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                // To guarantee a predictable path map properties iteration order,
-                // we have to use a LinkedHashMap.
-                PathMapRule pathMapRule = new PathMapRule(new LinkedHashMap<String,Object>());
-                PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, pathMapRule, true);
+                Map<String,Object> m = new HashMap<String,Object>();
+                DownloadFileDialog dialog = new DownloadFileDialog(getShell(), getPeerID(), m);
                 if (dialog.open() == Window.OK) {
-                    map.add(pathMapRule);
-                    viewer.add(pathMapRule);
-                    viewer.setSelection(new StructuredSelection(pathMapRule), true);
+                    list.add(m);
+                    viewer.add(m);
+                    viewer.setSelection(new StructuredSelection(m), true);
                     viewer.getTable().setFocus();
                     updateLaunchConfigurationDialog();
                 }
@@ -240,9 +238,10 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 for (Iterator<?> i = ((IStructuredSelection)viewer.getSelection()).iterator(); i.hasNext();) {
-                    PathMapRule pathMapRule = (PathMapRule)i.next();
-                    map.remove(pathMapRule);
-                    viewer.remove(pathMapRule);
+                    @SuppressWarnings("unchecked")
+                    Map<String,String> m = (Map<String,String>)i.next();
+                    list.remove(m);
+                    viewer.remove(m);
                 }
                 updateLaunchConfigurationDialog();
             }
@@ -256,31 +255,51 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     }
 
     private void onEdit(IStructuredSelection selection) {
-        PathMapRule pathMapRule = (PathMapRule)selection.getFirstElement();
-        PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, pathMapRule, true);
+        @SuppressWarnings("unchecked")
+        Map<String,Object> m = (Map<String,Object>)selection.getFirstElement();
+        DownloadFileDialog dialog = new DownloadFileDialog(getShell(), getPeerID(), m);
         dialog.open();
-        viewer.refresh(pathMapRule);
-        viewer.setSelection(new StructuredSelection(pathMapRule), true);
+        viewer.refresh(m);
+        viewer.setSelection(new StructuredSelection(m), true);
         viewer.getTable().setFocus();
         updateLaunchConfigurationDialog();
+    }
+
+    private String getPeerID() {
+        String peer_id = "TCP:127.0.0.1:1534";
+        for (ILaunchConfigurationTab t : getLaunchConfigurationDialog().getTabs()) {
+            if (t instanceof TCFTargetTab) peer_id = ((TCFTargetTab)t).getPeerID();
+        }
+        return peer_id;
     }
 
     protected final TableViewer getViewer() {
         return viewer;
     }
 
-    List<IPathMap.PathMapRule> getPathMap() {
-        List<IPathMap.PathMapRule> l = new ArrayList<IPathMap.PathMapRule>();
-        for (PathMapRule r : map) l.add(r);
-        return Collections.unmodifiableList(l);
-    }
-
     public void initializeFrom(ILaunchConfiguration config) {
         setErrorMessage(null);
         setMessage(null);
         try {
-            String s = config.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
-            map = TCFLaunchDelegate.parsePathMapAttribute(s);
+            list.clear();
+            final String s = config.getAttribute(TCFLaunchDelegate.ATTR_FILES, ""); //$NON-NLS-1$
+            list.addAll(new TCFTask<Collection<Map<String,Object>>>(10000) {
+                @Override
+                public void run() {
+                    try {
+                        ArrayList<Map<String,Object>> l = new ArrayList<Map<String,Object>>();
+                        if (s != null && s.length() > 0) {
+                            @SuppressWarnings("unchecked")
+                            Collection<Map<String,Object>> c = (Collection<Map<String,Object>>)JSON.parseOne(s.getBytes("UTF-8"));
+                            for (Map<String,Object> m : c) l.add(new HashMap<String,Object>(m));
+                        }
+                        done(l);
+                    }
+                    catch (Throwable e) {
+                        error(e);
+                    }
+                }
+            }.get());
             viewer.setInput(config);
             button_remove.setEnabled(!viewer.getSelection().isEmpty());
             button_edit.setEnabled(((IStructuredSelection)viewer.getSelection()).size()==1);
@@ -295,15 +314,27 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     }
 
     public void performApply(ILaunchConfigurationWorkingCopy config) {
-        for (PathMapRule m : map) m.getProperties().remove(IPathMap.PROP_ID);
-        StringBuffer bf = new StringBuffer();
-        for (PathMapRule m : map) bf.append(m.toString());
-        if (bf.length() == 0) config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
-        else config.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
+        if (list.size() == 0) {
+            config.removeAttribute(TCFLaunchDelegate.ATTR_FILES);
+        }
+        else {
+            String s = new TCFTask<String>(10000) {
+                @Override
+                public void run() {
+                    try {
+                        done(JSON.toJSON(list));
+                    }
+                    catch (Throwable e) {
+                        error(e);
+                    }
+                }
+            }.getE();
+            config.setAttribute(TCFLaunchDelegate.ATTR_FILES, s);
+        }
     }
 
     public void setDefaults(ILaunchConfigurationWorkingCopy config) {
-        config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
+        config.removeAttribute(TCFLaunchDelegate.ATTR_FILES);
     }
 
     @Override

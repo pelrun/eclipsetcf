@@ -266,7 +266,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 done = true;
                 /* Don't call setUpdatePending() if pending state was reset by the view */
                 if (context_cnt != fContextCount) return;
-                assert fCallback.getUpdatePending();
+                if (!fCallback.getUpdatePending()) return;
                 fCallback.setUpdatePending(false);
             }
         }
