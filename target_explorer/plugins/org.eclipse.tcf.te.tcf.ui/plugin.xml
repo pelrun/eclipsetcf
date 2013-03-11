@@ -330,7 +330,29 @@
                mnemonic="%command.offline.mnemonic"
                style="push"
                tooltip="%command.offline.tooltip">
-            <visibleWhen checkEnabled="true"/>
+            <visibleWhen checkEnabled="true">
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="false"/>
+                        <or>
+                           <not>
+                              <test
+                                    forcePluginActivation="true"
+                                    property="org.eclipse.tcf.te.runtime.services.hasService"
+                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                           </not>
+                           <test
+                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                 args="org.eclipse.tcf.te.tcf.ui.command.offline"
+                                 value="true"/>
+                        </or>
+                     </and>                        
+                  </iterate>
+               </with>
+            </visibleWhen>
          </command>
       </menuContribution>
  
@@ -365,7 +387,21 @@
                <with variable="selection">
                   <count value="+"/>
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                        <or>
+                           <not>
+                              <test
+                                    forcePluginActivation="true"
+                                    property="org.eclipse.tcf.te.runtime.services.hasService"
+                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                           </not>
+                           <test
+                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                 args="org.eclipse.tcf.te.ui.command.refresh"
+                                 value="true"/>
+                        </or>
+                     </and>
                   </iterate>
                </with>
             </visibleWhen>

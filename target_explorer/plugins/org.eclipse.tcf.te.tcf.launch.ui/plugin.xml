@@ -248,11 +248,25 @@
                   <iterate 
                         operator="and" 
                         ifEmpty="false">
-                     <test 
-                           forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
-                           value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
-                           args="run"/>
+                     <and>
+                        <test 
+                              forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
+                              value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
+                              args="run"/>
+                        <or>
+                           <not>
+                              <test
+                                    forcePluginActivation="true"
+                                    property="org.eclipse.tcf.te.runtime.services.hasService"
+                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                           </not>
+                           <test
+                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                 args="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
+                                 value="true"/>
+                        </or>
+                     </and>
                   </iterate>
                </with>
             </visibleWhen>
@@ -269,11 +283,25 @@
                   <iterate 
                         operator="and" 
                         ifEmpty="false">
-                     <test 
-                           forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
-                           value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
-                           args="debug"/>
+                     <and>
+                        <test 
+                              forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
+                              value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
+                              args="debug"/>
+                        <or>
+                           <not>
+                              <test
+                                    forcePluginActivation="true"
+                                    property="org.eclipse.tcf.te.runtime.services.hasService"
+                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                           </not>
+                           <test
+                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                 args="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug"
+                                 value="true"/>
+                        </or>
+                     </and>
                   </iterate>
                </with>
             </visibleWhen>
@@ -303,7 +331,21 @@
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
                      <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Diagnostics"/>
+                        <and>
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Diagnostics"/>
+                           <or>
+                              <not>
+                                 <test
+                                       forcePluginActivation="true"
+                                       property="org.eclipse.tcf.te.runtime.services.hasService"
+                                       value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                              </not>
+                              <test
+                                    property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                    args="org.eclipse.tcf.te.tcf.launch.ui.menu.diagnostics"
+                                    value="true"/>
+                           </or>
+                        </and>
                      </adapt>
                   </iterate>
                </with>
