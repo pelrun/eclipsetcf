@@ -164,6 +164,9 @@ public class CategoryPropertyTester extends PropertyTester {
 				INavigatorActivationService activationService = service != null ? service.getActivationService() : null;
 				isVisible = activationService != null && navContentID != null && activationService.isNavigatorExtensionActive(navContentID);
 			}
+			else {
+				return true;
+			}
 
 			return ((Boolean)expectedValue).booleanValue() == isVisible;
 		}

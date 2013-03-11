@@ -9,17 +9,23 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.handler;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.tcf.te.ui.views.ViewsUtil;
+import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
+import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.EditorPart;
 
 /**
@@ -32,27 +38,78 @@ public class ShowInSystemManagementHandler extends AbstractHandler {
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		// Show the view
-		ViewsUtil.show(IUIConstants.ID_EXPLORER);
-
 		// Get the active part
 		IWorkbenchPart part = HandlerUtil.getActivePart(event);
-		// Get the current selection
-		ISelection selection = HandlerUtil.getCurrentSelection(event);
+		// The element to select
+		Object element = null;
 
 		// If the handler is invoked from an editor part, ignore the selection and
 		// construct an artificial selection from the active editor input.
 		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
-			Object element = input != null ? input.getAdapter(Object.class) : null;
-			if (element != null) selection = new StructuredSelection(element);
+			element = input != null ? input.getAdapter(Object.class) : null;
 		}
 
-		// Pass on to the view
-		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-			ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, selection);
+		if (element != null) {
+			setAndCheckSelection(IUIConstants.ID_EXPLORER, element);
 		}
 
 		return null;
+	}
+
+	private void setAndCheckSelection(final String id, final Object element) {
+		Assert.isNotNull(id);
+
+		final AtomicReference<IViewPart> viewPart = new AtomicReference<IViewPart>();
+		// Create the runnable
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				// Check the active workbench window and active page instances
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
+				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+					// show the view
+					try {
+						viewPart.set(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(id));
+					}
+					catch (Exception e) {
+					}
+				}
+			}
+		};
+		// Execute asynchronously
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getDisplay().syncExec(runnable);
+		}
+
+		// Create the runnable
+		runnable = new Runnable() {
+			@Override
+			public void run() {
+				IViewPart part = viewPart.get();
+				((CommonNavigator)part).getCommonViewer().setSelection(new StructuredSelection(element), true);
+				IStructuredSelection newSel = (IStructuredSelection)((CommonNavigator)part).getCommonViewer().getSelection();
+				if (newSel == null || newSel.isEmpty() || !newSel.getFirstElement().equals(element)) {
+					for (ICategory category : CategoriesExtensionPointManager.getInstance().getCategories(false)) {
+						if (category.belongsTo(element)) {
+            				if (part instanceof CommonNavigator) {
+	            				((CommonNavigator)part).getCommonViewer().setSelection(new StructuredSelection(category), true);
+            					((CommonNavigator)part).getCommonViewer().expandToLevel(category, 1);
+            				}
+            				((CommonNavigator)part).getCommonViewer().setSelection(new StructuredSelection(element), true);
+            				newSel = (IStructuredSelection)((CommonNavigator)part).getCommonViewer().getSelection();
+        					if (newSel != null && !newSel.isEmpty() && newSel.getFirstElement().equals(element)) {
+        						return;
+        					}
+                        }
+					}
+				}
+			}
+		};
+
+		// Execute asynchronously
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(runnable);
+		}
 	}
 }
