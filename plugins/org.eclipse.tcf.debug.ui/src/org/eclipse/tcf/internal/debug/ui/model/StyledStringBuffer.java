@@ -38,6 +38,12 @@ class StyledStringBuffer {
         RGB fg;
     }
 
+    private boolean full_error_reports;
+
+    void enableFullErrorReports(boolean full_error_reports) {
+        this.full_error_reports = full_error_reports;
+    }
+
     StyledStringBuffer append(int pos, int font, RGB bg, RGB fg) {
         Style x = new Style();
         x.pos = pos;
@@ -103,16 +109,23 @@ class StyledStringBuffer {
 
     StyledStringBuffer append(Throwable x, RGB color) {
         if (x == null) return this;
-        String[] a = ("Exception: " + TCFModel.getErrorMessage(x, true)).split("\n");
-        for (String s : a) {
-            int i = s.indexOf(':');
-            if (i >= 0) {
-                append(s.substring(0, i + 1), SWT.BOLD, null, color);
-                append(s.substring(i + 1), SWT.ITALIC, null, color);
+        if (full_error_reports) {
+            String[] a = ("Exception: " + TCFModel.getErrorMessage(x, true)).split("\n");
+            for (String s : a) {
+                int i = s.indexOf(':');
+                if (i >= 0) {
+                    append(s.substring(0, i + 1), SWT.BOLD, null, color);
+                    append(s.substring(i + 1), SWT.ITALIC, null, color);
+                }
+                else {
+                    append(s, SWT.ITALIC, null, color);
+                }
+                bf.append('\n');
             }
-            else {
-                append(s, SWT.ITALIC, null, color);
-            }
+        }
+        else {
+            append("Exception: ", SWT.BOLD, null, color);
+            append(TCFModel.getErrorMessage(x, false), SWT.ITALIC, null, color);
             bf.append('\n');
         }
         return this;

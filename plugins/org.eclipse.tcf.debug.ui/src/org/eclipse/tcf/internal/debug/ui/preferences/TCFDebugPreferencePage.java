@@ -41,6 +41,7 @@ public class TCFDebugPreferencePage extends FieldEditorPreferencePage implements
 
         createPerformanceGroup(parent);
         createStackTraceGroup(parent);
+        createMiscGroup(parent);
     }
 
     private void createPerformanceGroup(Composite parent) {
@@ -160,6 +161,24 @@ public class TCFDebugPreferencePage extends FieldEditorPreferencePage implements
         limitEditor.setValidateStrategy(IntegerWithBooleanFieldEditor.VALIDATE_ON_FOCUS_LOST);
         limitEditor.fillIntoGrid(group, 3);
         addField(limitEditor);
+
+        group.setLayout(layout);
+    }
+
+    private void createMiscGroup(Composite parent) {
+        Group group = new Group(parent, SWT.NONE);
+        group.setText("Misc");
+        GridLayout layout = new GridLayout(3, false);
+        group.setLayout(layout);
+        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        BooleanFieldEditor fullErrorReports = new BooleanFieldEditor(
+                TCFPreferences.PREF_FULL_ERROR_REPORTS,
+                "Show full (long) error reports in details panes of the debugger views",
+                group);
+
+        fullErrorReports.fillIntoGrid(group, 3);
+        addField(fullErrorReports);
 
         group.setLayout(layout);
     }

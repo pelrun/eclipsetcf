@@ -224,6 +224,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private boolean show_function_arg_values;
     private boolean delay_children_list_updates;
     private boolean auto_children_list_updates;
+    private boolean show_full_error_reports;
 
     private final Map<String,String> action_results = new HashMap<String,String>();
     private final HashMap<String,TCFAction> active_actions = new HashMap<String,TCFAction>();
@@ -721,6 +722,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 show_function_arg_values = prefs.getBoolean(TCFPreferences.PREF_STACK_FRAME_ARG_VALUES);
                 auto_children_list_updates = prefs.getBoolean(TCFPreferences.PREF_AUTO_CHILDREN_LIST_UPDATES);
                 delay_children_list_updates = prefs.getBoolean(TCFPreferences.PREF_DELAY_CHILDREN_LIST_UPDATES);
+                show_full_error_reports = prefs.getBoolean(TCFPreferences.PREF_FULL_ERROR_REPORTS);
                 Protocol.invokeLater(new Runnable() {
                     public void run() {
                         for (TCFNode n : id2node.values()) {
@@ -941,6 +943,10 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     public boolean getDelayChildrenListUpdates() {
         return delay_children_list_updates;
+    }
+
+    public boolean getShowFullErrorReports() {
+        return show_full_error_reports;
     }
 
     void onProxyInstalled(TCFModelProxy mp) {

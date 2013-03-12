@@ -28,7 +28,8 @@ public class TCFPreferences {
         PREF_VIEW_UPDATES_THROTTLE = "ViewUpdatesThrottle",
         PREF_TARGET_TRAFFIC_THROTTLE = "TargetTrafficThrottle",
         PREF_AUTO_CHILDREN_LIST_UPDATES = "AutoChildrenListUpdates",
-        PREF_DELAY_CHILDREN_LIST_UPDATES = "DelayChildrenListUpdates";
+        PREF_DELAY_CHILDREN_LIST_UPDATES = "DelayChildrenListUpdates",
+        PREF_FULL_ERROR_REPORTS = "FullErrorReports";
 
     public static IPreferenceStore getPreferenceStore() {
         return Activator.getDefault().getPreferenceStore();

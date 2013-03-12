@@ -241,9 +241,12 @@ public class TCFDetailPane implements IDetailPane, IPropertyChangeListener {
 
     private StyledStringBuffer getDetailText(ArrayList<TCFNode> nodes, Runnable done) {
         StyledStringBuffer bf = new StyledStringBuffer();
-        for (TCFNode n : nodes) {
-            if (n instanceof IDetailsProvider) {
-                if (!((IDetailsProvider)n).getDetailText(bf, done)) return null;
+        if (nodes.size() > 0) {
+            bf.enableFullErrorReports(nodes.get(0).model.getShowFullErrorReports());
+            for (TCFNode n : nodes) {
+                if (n instanceof IDetailsProvider) {
+                    if (!((IDetailsProvider)n).getDetailText(bf, done)) return null;
+                }
             }
         }
         return bf;
