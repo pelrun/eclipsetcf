@@ -83,6 +83,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
     private static int expr_cnt;
 
+    private final Runnable post_delta = new Runnable() {
+        @Override
+        public void run() {
+            postAllChangedDelta();
+        }
+    };
+
     TCFNodeExpression(final TCFNode parent, final String script,
             final String field_id, final String var_id, final String reg_id,
             final int index, final boolean deref) {
@@ -1117,6 +1124,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (!value.validate()) pending = value;
             if (!type.validate()) pending = type;
             if (pending != null) {
+                if (script != null) {
+                    if (!rem_expression.validate(done)) return false;
+                    IExpressions.Expression exp_data = rem_expression.getData();
+                    if (exp_data != null && exp_data.hasFuncCall()) {
+                        /* Don't wait, it can take very long time */
+                        pending.wait(post_delta);
+                        result.setForeground(ColorCache.rgb_disabled, 0);
+                        result.setLabel(script + " (Running)", 0);
+                        return true;
+                    }
+                }
                 pending.wait(done);
                 return false;
             }

@@ -18,6 +18,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IMemoryBlockRetrievalExtension;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
 import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModelProxy;
@@ -41,6 +42,18 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
         long size;
     }
 
+    private final Runnable on_value_changed = new Runnable() {
+        @Override
+        public void run() {
+            Display.getDefault().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    selectionChanged();
+                }
+            });
+        }
+    };
+
     private Block getBlockInfo(final TCFNode node) {
         try {
             return new TCFTask<Block>(node.getChannel()) {
@@ -52,7 +65,12 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
                         long size = -1;
                         if (node instanceof TCFNodeExpression) {
                             TCFDataCache<IExpressions.Value> val_cache = ((TCFNodeExpression)node).getValue();
-                            if (!val_cache.validate(this)) return;
+                            if (!val_cache.validate(on_value_changed)) {
+                                /* Don't wait until the value is evaluated -
+                                 * it can take long time if the expression contains a function call. */
+                                done(null);
+                                return;
+                            }
                             IExpressions.Value val_data = val_cache.getData();
                             if (val_data != null) {
                                 addr = JSON.toBigInteger(val_data.getAddress());
