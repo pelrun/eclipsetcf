@@ -241,45 +241,21 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
     public boolean getDetailText(StyledStringBuffer bf, Runnable done) {
         if (!context.validate(done)) return false;
         if (!value.validate(done)) return false;
-        int pos = bf.length();
-        bf.append(context.getError(), ColorCache.rgb_error);
-        if (bf.length() == pos) bf.append(value.getError(), ColorCache.rgb_error);
-        if (bf.length() == pos) {
-            IRegisters.RegistersContext ctx = context.getData();
-            if (ctx != null) {
-                if (ctx.getDescription() != null) {
-                    bf.append(ctx.getDescription());
-                    bf.append('\n');
-                }
-                int l = bf.length();
-                Number addr = ctx.getMemoryAddress();
-                if (addr != null) {
-                    bf.append("Address: ", SWT.BOLD);
-                    bf.append("0x", StyledStringBuffer.MONOSPACED);
-                    bf.append(JSON.toBigInteger(addr).toString(16), StyledStringBuffer.MONOSPACED);
-                }
-                if (ctx.isReadable()) {
-                    if (l < bf.length()) bf.append(", ");
-                    bf.append("readable");
-                }
-                if (ctx.isReadOnce()) {
-                    if (l < bf.length()) bf.append(", ");
-                    bf.append("read once");
-                }
-                if (ctx.isWriteable()) {
-                    if (l < bf.length()) bf.append(", ");
-                    bf.append("writable");
-                }
-                if (ctx.isWriteOnce()) {
-                    if (l < bf.length()) bf.append(", ");
-                    bf.append("write once");
-                }
-                if (ctx.hasSideEffects()) {
-                    if (l < bf.length()) bf.append(", ");
-                    bf.append("side effects");
-                }
-                if (l < bf.length()) bf.append('\n');
+        if (context.getError() != null) {
+            bf.append(context.getError(), ColorCache.rgb_error);
+            return true;
+        }
+        IRegisters.RegistersContext ctx = context.getData();
+        if (ctx != null) {
+            if (ctx.getDescription() != null) {
+                bf.append(ctx.getDescription());
+                bf.append('\n');
             }
+        }
+        if (value.getError() != null) {
+            bf.append(value.getError(), ColorCache.rgb_error);
+        }
+        else {
             byte[] v = value.getData();
             if (v != null) {
                 bf.append("Hex: ", SWT.BOLD);
@@ -295,6 +271,42 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 bf.append(toNumberString(2), StyledStringBuffer.MONOSPACED);
                 bf.append('\n');
             }
+        }
+        if (ctx != null) {
+            int l = bf.length();
+            BigInteger addr = JSON.toBigInteger(ctx.getMemoryAddress());
+            if (addr != null) {
+                bf.append("Address: ", SWT.BOLD);
+                bf.append("0x", StyledStringBuffer.MONOSPACED);
+                bf.append(addr.toString(16), StyledStringBuffer.MONOSPACED);
+            }
+            BigInteger size = JSON.toBigInteger(ctx.getSize());
+            if (size != null && size.compareTo(BigInteger.ZERO) > 0) {
+                if (l < bf.length()) bf.append(", ");
+                bf.append("Size: ", SWT.BOLD);
+                bf.append(size.toString(10), StyledStringBuffer.MONOSPACED);
+            }
+            if (ctx.isReadable()) {
+                if (l < bf.length()) bf.append(", ");
+                bf.append("readable");
+            }
+            if (ctx.isReadOnce()) {
+                if (l < bf.length()) bf.append(", ");
+                bf.append("read once");
+            }
+            if (ctx.isWriteable()) {
+                if (l < bf.length()) bf.append(", ");
+                bf.append("writable");
+            }
+            if (ctx.isWriteOnce()) {
+                if (l < bf.length()) bf.append(", ");
+                bf.append("write once");
+            }
+            if (ctx.hasSideEffects()) {
+                if (l < bf.length()) bf.append(", ");
+                bf.append("side effects");
+            }
+            if (l < bf.length()) bf.append('\n');
         }
         return true;
     }
