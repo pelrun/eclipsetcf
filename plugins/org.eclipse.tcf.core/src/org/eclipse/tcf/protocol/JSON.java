@@ -135,24 +135,37 @@ public final class JSON {
         if (inp_pos >= inp.length) return -1;
         int ch = inp[inp_pos++];
         if (ch < 0) {
+            int n = 0;
             if ((ch & 0xe0) == 0xc0) {
-                ch = (ch & 0x1f) << 6;
-                ch |= inp[inp_pos++] & 0x3f;
+                ch &= 0x1f;
+                n = 1;
             }
             else if ((ch & 0xf0) == 0xe0) {
-                ch = (ch & 0x0f) << 12;
-                ch |= (inp[inp_pos++] & 0x3f) << 6;
-                ch |= inp[inp_pos++] & 0x3f;
+                ch &= 0x0f;
+                n = 2;
             }
-            else if ((ch & 0xf0) == 0xf0) {
-                ch = (ch & 0x0f) << 18;
-                ch |= (inp[inp_pos++] & 0x3f) << 12;
-                ch |= (inp[inp_pos++] & 0x3f) << 6;
-                ch |= inp[inp_pos++] & 0x3f;
+            else if ((ch & 0xf8) == 0xf0) {
+                ch &= 0x07;
+                n = 3;
             }
-            else {
-                ch &= 0xff;
+            else if ((ch & 0xfc) == 0xf8) {
+                ch &= 0x03;
+                n = 4;
             }
+            else if ((ch & 0xfe) == 0xfc) {
+                ch &= 0x01;
+                n = 5;
+            }
+            while (n > 0) {
+                if (inp_pos >= inp.length || (inp[inp_pos] & 0xc0) != 0x80) break;
+                ch = (ch << 6) | (inp[inp_pos++] & 0x3f);
+                n--;
+            }
+            while (n > 0) {
+                ch = ch << 6;
+                n--;
+            }
+            if (ch < 0) ch = 0;
         }
         return ch;
     }
@@ -277,11 +290,11 @@ public final class JSON {
             read();
             tmp_buf_pos = 0;
             for (;;) {
-                if (cur_ch <= 0) error();
+                if (cur_ch < 0) error();
                 if (cur_ch == '"') break;
                 if (cur_ch == '\\') {
                     read();
-                    if (cur_ch <= 0) error();
+                    if (cur_ch < 0) error();
                     switch (cur_ch) {
                     case '"':
                     case '\\':
