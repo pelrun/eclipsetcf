@@ -163,9 +163,11 @@ public abstract class AbstractServiceManager {
 				if (serviceType.getClass().getName().equals(clazz)) {
 					return true;
 				}
-				for (Class<? extends IService> type : serviceTypes) {
-					if (type.equals(serviceType)) {
-						return true;
+				if (serviceTypes != null) {
+					for (Class<? extends IService> type : serviceTypes) {
+						if (type.equals(serviceType)) {
+							return true;
+						}
 					}
 				}
 			}
