@@ -96,4 +96,19 @@ public interface IPeerModelProperties {
 	 * Property: The last error the scanner encounter trying to open a channel to this peer.
 	 */
 	public static String PROP_LAST_SCANNER_ERROR = "lastScannerError"; //$NON-NLS-1$
+
+	/**
+	 * Property: Launch simulator
+	 */
+	public static final String PROP_SIM_ENABLED = "SimulatorEnabled"; //$NON-NLS-1$
+
+	/**
+	 * Property: Simulator properties
+	 */
+	public static final String PROP_SIM_PROPERTIES = "SimulatorProperties"; //$NON-NLS-1$
+
+	/**
+	 * Property: Last selected simulator type
+	 */
+	public static final String PROP_SIM_TYPE = "SimulatorType"; //$NON-NLS-1$
 }

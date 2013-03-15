@@ -23,6 +23,11 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 public interface ISimulatorService extends IService {
 
 	/**
+	 * The constants for the simulator state.
+	 */
+	public enum State { Stopped, Starting, Started, Stopping }
+
+	/**
 	 * Starts the simulator.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
@@ -52,4 +57,26 @@ public interface ISimulatorService extends IService {
 	 * @param callback The callback to invoke once the operation finishes. Must not be <code>null</code>.
 	 */
 	public void isRunning(Object context, String config, ICallback callback);
+
+	/**
+	 * Get the state of the simulator for the given context.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param config The encoded simulator settings or <code>null</code>.
+	 * @return The simulator state.
+	 */
+	public State getState(Object context, String config);
+
+	/**
+	 * Get the default config for the simulator.
+	 * The returned config does not need to be valid!
+	 * @return The default config or <code>null</code>.
+	 */
+	public String getDefaultConfig();
+
+	/**
+	 * Validate a simulator config.
+	 * @param config The config to validate.
+	 * @return <code>true</code> if the config is valid.
+	 */
+	public boolean isValidConfig(String config);
 }

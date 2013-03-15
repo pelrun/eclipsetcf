@@ -40,9 +40,8 @@ public interface ISimulatorServiceUIDelegate {
     public String configure(String oldConfig);
 
     /**
-     * Returns the default configuration of the simulator.
-     *
-     * @return The default configuration or <code>null</code>.
+     * Returns <code>true</code> if the simulator is configurable.
+     * @return <code>true</code> if the simulator is configurable.
      */
-    public String getDefaultConfiguration();
+    public boolean canConfigure();
 }

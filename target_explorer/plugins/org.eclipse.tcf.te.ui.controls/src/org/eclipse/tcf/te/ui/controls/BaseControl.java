@@ -246,9 +246,21 @@ public class BaseControl extends PlatformObject implements IValidatable {
 		Assert.isNotNull(parentSection);
 
 		// Store the settings of the control within it's own section.
-		IDialogSettings section = parentSection.getSection(this.getClass().getSimpleName());
-		if (section == null) {
-			section = parentSection.addNewSection(this.getClass().getSimpleName());
+		String sectionName = this.getClass().getSimpleName();
+		Class<?> enclosing = this.getClass().getEnclosingClass();
+        while ((sectionName == null || sectionName.trim().length() == 0) && enclosing != null) {
+            sectionName = enclosing.getSimpleName();
+            enclosing = this.getClass().getEnclosingClass();
+        }
+		IDialogSettings section = null;
+        if (sectionName != null && sectionName.trim().length() > 0) {
+			section = parentSection.getSection(sectionName);
+			if (section == null) {
+				section = parentSection.addNewSection(sectionName);
+			}
+		}
+		else {
+		    section = parentSection;
 		}
 
 		// now, call the hook for actually reading the single properties from the dialog settings.
@@ -285,11 +297,23 @@ public class BaseControl extends PlatformObject implements IValidatable {
 		IDialogSettings parentSection = doGetParentSection(settings);
 		Assert.isNotNull(parentSection);
 
-		// Store the settings of the control within it's own section.
-		IDialogSettings section = parentSection.getSection(this.getClass().getSimpleName());
-		if (section == null) {
-			section = parentSection.addNewSection(this.getClass().getSimpleName());
-		}
+        // Store the settings of the control within it's own section.
+        String sectionName = this.getClass().getSimpleName();
+        Class<?> enclosing = this.getClass().getEnclosingClass();
+        while ((sectionName == null || sectionName.trim().length() == 0) && enclosing != null) {
+            sectionName = enclosing.getSimpleName();
+            enclosing = this.getClass().getEnclosingClass();
+        }
+        IDialogSettings section = null;
+        if (sectionName != null && sectionName.trim().length() > 0) {
+            section = parentSection.getSection(sectionName);
+            if (section == null) {
+                section = parentSection.addNewSection(sectionName);
+            }
+        }
+        else {
+            section = parentSection;
+        }
 
 		// now, call the hook for actually writing the single properties to the dialog settings.
 		doSaveWidgetValues(section, idPrefix);

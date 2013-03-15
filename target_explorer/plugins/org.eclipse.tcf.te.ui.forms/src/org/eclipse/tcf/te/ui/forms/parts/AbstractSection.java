@@ -33,6 +33,7 @@ import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.forms.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.forms.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatable;
+import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.ui.forms.AbstractFormPart;
 import org.eclipse.ui.forms.IManagedForm;
@@ -57,6 +58,9 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	// <b>Note:</b> This flag default to <code>true</code> on instantiation.
 	private boolean updating = true;
 
+	// Flag to remember the read-only state
+	/* default */ boolean readOnly = false;
+
 	/**
 	 * Constructor.
 	 *
@@ -80,6 +84,15 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 		super(parent, form.getToolkit(), titleBar ? (ExpandableComposite.TITLE_BAR | style) : style);
 		initialize(form);
 		configureSection(getSection());
+	}
+
+	/**
+	 * Get the validation container.
+	 * @return The validation container.
+	 */
+	protected IValidatingContainer getValidatingContainer() {
+		Object container = getManagedForm().getContainer();
+		return container instanceof IValidatingContainer ? (IValidatingContainer)container : null;
 	}
 
 	/**
@@ -325,6 +338,22 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 
 			getManagedForm().dirtyStateChanged();
 		}
+	}
+
+	/**
+	 * Set the sections read only state.
+	 * @param readOnly <code>true</code> if the sections controls should be read only.
+	 */
+	public void setReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
+	}
+
+	/**
+	 * Get the read only state of this section.
+	 * @return The read onyly state.
+	 */
+	public boolean isReadOnly() {
+		return readOnly;
 	}
 
 	/* (non-Javadoc)

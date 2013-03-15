@@ -58,6 +58,14 @@
             properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isStaticPeer,isRedirected,isProxy,isValueAdd,isOfType"
             type="org.eclipse.tcf.protocol.IPeer">
       </propertyTester>
+
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.locator.internal.SimulatorPropertyTester"
+            id="org.eclipse.tcf.te.tcf.locator.SimulatorPropertyTester"
+            namespace="org.eclipse.tcf.te.tcf.locator"
+            properties="isSimulatorState,canStartSimulator"
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+      </propertyTester>
    </extension>
 
 <!-- Persistence delegate contributions -->

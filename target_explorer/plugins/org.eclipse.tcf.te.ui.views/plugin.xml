@@ -17,6 +17,7 @@
                   id="org.eclipse.tcf.te.ui.views.View#Popup"
                   allowsPlatformContributions="true">
                   <insertionPoint name="group.new" separator="true"/>
+                  <insertionPoint name="group.open"/>
                   <insertionPoint name="group.goto"/>
                   <insertionPoint name="group.expandto" separator="true"/>
                   <insertionPoint name="group.expand"/>
@@ -307,7 +308,7 @@
 
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.properties">
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.open">
          <command
                commandId="org.eclipse.ui.file.properties"
                helpContextId="org.eclipse.tcf.te.ui.views.command_Properties"
@@ -682,15 +683,17 @@
       <handler
             commandId="org.eclipse.ui.navigator.Open"
             class="org.eclipse.tcf.te.ui.views.handler.OpenCommandHandler">
-          <enabledWhen>
+         <enabledWhen>
             <with variable="selection">
                <count value="1"/>
             </with>
          </enabledWhen>
          <activeWhen>
-            <with variable="activePartId">
-               <equals value="org.eclipse.tcf.te.ui.views.View"/>
-            </with>
+            <and>
+               <with variable="activePartId">
+                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
+               </with>
+            </and>
          </activeWhen>
       </handler>
       

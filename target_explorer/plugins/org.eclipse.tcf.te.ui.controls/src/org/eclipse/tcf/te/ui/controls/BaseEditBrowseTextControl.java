@@ -568,7 +568,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		if (!isLabelIsButton()) {
 			labelControl = toolkit != null ? toolkit.createLabel(parent, null) : new Label(parent, SWT.NONE);
 		} else {
-			labelControl = toolkit != null ? toolkit.createButton(parent, null, getLabelButtonStyle() | SWT.NO_FOCUS) : new Button(parent, getLabelButtonStyle() | SWT.NO_FOCUS);
+			labelControl = toolkit != null ? toolkit.createButton(parent, null, getLabelButtonStyle()) : new Button(parent, getLabelButtonStyle());
 			SWTControlUtil.setSelection((Button)labelControl, false);
 		}
 		SWTControlUtil.setText(labelControl, getEditFieldLabel());
