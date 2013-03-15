@@ -220,14 +220,14 @@ public class TCFTerminalShell extends AbstractTerminalShell {
                     streams = ((TCFConnectorService)sessionProvider).getService(IStreams.class);
                     fSessionProvider.onStreamsConnecting();
                     terminals.launch(ptyType, encoding, environment, new ITerminals.DoneLaunch() {
+                        @Override
                         public void doneLaunch(IToken token, Exception error, ITerminals.TerminalContext ctx) {
-
                             if (ctx != null) {
                                 terminalContext = ctx;
                                 terminals.addListener(listeners);
+                                fSessionProvider.onStreamsID(ctx.getStdInID());
+                                fSessionProvider.onStreamsID(ctx.getStdOutID());
                             }
-                            fSessionProvider.onStreamsID(ctx.getStdInID());
-                            fSessionProvider.onStreamsID(ctx.getStdOutID());
                             fSessionProvider.onStreamsConnected();
                             if (error != null) error(error);
                             else done(ctx);
