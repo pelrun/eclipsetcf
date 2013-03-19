@@ -54,10 +54,10 @@
 		<!-- P2 repository URL's -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<cdt-site>http://download.eclipse.org/tools/cdt/releases/juno</cdt-site>
-		<!--
 		<tm-site>http://download.eclipse.org/tm/updates/3.4/</tm-site>
-		-->
+		<!--
 		<tm-site>http://download.eclipse.org/tm/builds/juno/nightly/</tm-site>
+		-->
 		<rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site>
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20130118183705/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/snapshots</swtbot-site>
