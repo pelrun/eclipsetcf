@@ -209,7 +209,7 @@
 						</dependency>
 						<dependency>
 							<groupId>org.eclipse.tycho.extras</groupId>
-					                <artifactId>tycho-sourceref-jgit</artifactId>
+							<artifactId>tycho-sourceref-jgit</artifactId>
 							<version>${tycho-extras-version}</version>
 						</dependency>
 					</dependencies>
