@@ -34,10 +34,11 @@ public interface ISimulatorServiceUIDelegate {
     /**
      * Configure the simulator.
      *
+     * @param context The context for which the simulator should be configured.
      * @param oldConfig The previous configuration or <code>null</code>.
      * @return The new configuration or <code>null</code>.
      */
-    public String configure(String oldConfig);
+    public String configure(Object context, String oldConfig);
 
     /**
      * Returns <code>true</code> if the simulator is configurable.

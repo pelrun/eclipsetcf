@@ -10,10 +10,11 @@
  */
 package org.eclipse.tcf.te.tcf.locator.internal;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService.State;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -24,41 +25,50 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
  */
 public class SimulatorPropertyTester extends org.eclipse.core.expressions.PropertyTester {
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String, java.lang.Object[], java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String,
+	 * java.lang.Object[], java.lang.Object)
 	 */
 	@Override
 	public boolean test(final Object receiver, String property, Object[] args, Object expectedValue) {
 		if (receiver instanceof IPeerModel) {
+			final IPeerModel peerModel = (IPeerModel) receiver;
+			final IPropertiesContainer simSetting = new PropertiesContainer();
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					simSetting.setProperty(IPeerModelProperties.PROP_SIM_ENABLED, peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_ENABLED));
+					simSetting.setProperty(IPeerModelProperties.PROP_SIM_TYPE, peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_TYPE));
+					simSetting.setProperty(IPeerModelProperties.PROP_SIM_PROPERTIES, peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_PROPERTIES));
+				}
+			};
 
-			if ("isSimulatorState".equals(property) && expectedValue instanceof String) { //$NON-NLS-1$
-				// Get the simulator service
-				ISimulatorService service = ServiceManager.getInstance().getService(receiver, ISimulatorService.class);
-				if (service != null) {
-					State state = service.getState(receiver, null);
+			if (Protocol.isDispatchThread()) {
+				runnable.run();
+			}
+			else {
+				Protocol.invokeAndWait(runnable);
+			}
 
-					return state.toString().equalsIgnoreCase((String)expectedValue);
+			ISimulatorService simService = null;
+			for (IService service : ServiceManager.getInstance().getServices(receiver, ISimulatorService.class, false)) {
+				if (service instanceof ISimulatorService &&
+								service.getId().equals(simSetting.getStringProperty(IPeerModelProperties.PROP_SIM_TYPE))) {
+					simService = (ISimulatorService) service;
+					break;
 				}
 			}
-			if ("canStartSimulator".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
-				// Get the simulator service
-				ISimulatorService service = ServiceManager.getInstance().getService(receiver, ISimulatorService.class);
-				if (service != null) {
-					State state = service.getState(receiver, null);
-					final AtomicBoolean simEnabled = new AtomicBoolean(false);
 
-					Runnable runnable = new Runnable() {
-						@Override
-						public void run() {
-							simEnabled.set(Boolean.valueOf(((IPeerModel)receiver).getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_ENABLED)).booleanValue());
-						}
-					};
-					if (Protocol.isDispatchThread())
-						runnable.run();
-					else
-						Protocol.invokeAndWait(runnable);
-
-					return (state.equals(State.Stopped) && simEnabled.get()) == ((Boolean)expectedValue).booleanValue();
+			if (simService != null) {
+				if ("isSimulatorState".equals(property) && expectedValue instanceof String) { //$NON-NLS-1$
+					State state = simService.getState(receiver, simSetting.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES));
+					return state.toString().equalsIgnoreCase((String) expectedValue);
+				}
+				if ("canStartSimulator".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
+					State state = simService.getState(receiver, simSetting.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES));
+					return state.equals(State.Stopped) &&
+									simSetting.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED) == ((Boolean) expectedValue).booleanValue();
 				}
 			}
 		}

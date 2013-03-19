@@ -55,7 +55,7 @@ import org.eclipse.ui.forms.widgets.Section;
 /**
  * Peer transport section implementation.
  */
-public class TransportSection extends AbstractSection {
+public class TransportSection extends AbstractSection implements IDataExchangeNode {
 	// The section sub controls
 	private TransportSectionTypeControl transportTypeControl = null;
 	/* default */TransportSectionTypePanelControl transportTypePanelControl = null;
@@ -251,7 +251,41 @@ public class TransportSection extends AbstractSection {
 		}
 	}
 
-	/**
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+    @Override
+    public void setupData(IPropertiesContainer data) {
+		Assert.isNotNull(data);
+
+		// Mark the control update as in-progress now
+		setIsUpdating(true);
+
+		if (transportTypeControl != null) {
+			String transportType = data.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
+			if (transportType != null && !"".equals(transportType)) { //$NON-NLS-1$
+				transportTypeControl.setSelectedTransportType(transportType);
+
+				if (transportTypePanelControl != null) {
+					transportTypePanelControl.showConfigurationPanel(transportType);
+					IWizardConfigurationPanel panel = transportTypePanelControl
+					                .getConfigurationPanel(transportType);
+					if (panel instanceof IDataExchangeNode) {
+						((IDataExchangeNode) panel).setupData(data);
+					}
+				}
+			}
+		}
+
+		// Mark the control update as completed now
+		setIsUpdating(false);
+		// Re-evaluate the dirty state
+		dataChanged(null);
+		// Adjust the control enablement
+		updateEnablement();
+    }
+
+    /**
 	 * Initialize the page widgets based of the data from the given peer node.
 	 * <p>
 	 * This method may called multiple times during the lifetime of the page and the given
@@ -325,36 +359,46 @@ public class TransportSection extends AbstractSection {
 		}
 
 		if (updateWidgets) {
-			// Mark the control update as in-progress now
-			setIsUpdating(true);
+			setupData(wc);
+		}
+		else {
+			// Re-evaluate the dirty state
+			dataChanged(null);
+			// Adjust the control enablement
+			updateEnablement();
+		}
+	}
 
-			if (transportTypeControl != null) {
-				String transportType = wc.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
-				if (transportType != null && !"".equals(transportType)) { //$NON-NLS-1$
-					transportTypeControl.setSelectedTransportType(transportType);
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+    @Override
+    public void extractData(IPropertiesContainer data) {
+		Assert.isNotNull(data);
 
-					if (transportTypePanelControl != null) {
-						transportTypePanelControl.showConfigurationPanel(transportType);
-						IWizardConfigurationPanel panel = transportTypePanelControl
-						                .getConfigurationPanel(transportType);
-						if (panel instanceof IDataExchangeNode) {
-							((IDataExchangeNode) panel).setupData(wc);
-						}
+		if (transportTypePanelControl != null) {
+			String[] ids = transportTypePanelControl.getConfigurationPanelIds();
+			for (String id : ids) {
+				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(id);
+				if (panel instanceof IDataExchangeNode) {
+					if (panel instanceof IDataExchangeNode3) {
+						((IDataExchangeNode3) panel).removeData(data);
 					}
 				}
 			}
-
-			// Mark the control update as completed now
-			setIsUpdating(false);
+			IWizardConfigurationPanel panel = transportTypePanelControl.getActiveConfigurationPanel();
+			if (panel instanceof IDataExchangeNode) {
+				((IDataExchangeNode) panel).extractData(data);
+			}
 		}
 
-		// Re-evaluate the dirty state
-		dataChanged(null);
-		// Adjust the control enablement
-		updateEnablement();
-	}
+		if (transportTypeControl != null) {
+			data.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl
+			                .getSelectedTransportType());
+		}
+    }
 
-	/**
+    /**
 	 * Stores the page widgets current values to the given peer node.
 	 * <p>
 	 * This method may called multiple times during the lifetime of the page and the given peer node
@@ -373,29 +417,7 @@ public class TransportSection extends AbstractSection {
 		// Get the current key set from the working copy
 		Set<String> currentKeySet = wc.getProperties().keySet();
 
-		// Get the current transport type from the working copy
-		String oldTransportType = wc.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
-		if (oldTransportType != null) {
-			// Get the current transport type configuration panel
-			IWizardConfigurationPanel panel = transportTypePanelControl
-			                .getConfigurationPanel(oldTransportType);
-			// And clean out the current transport type specific attributes from the working copy
-			if (panel instanceof IDataExchangeNode3) {
-				((IDataExchangeNode3) panel).removeData(wc);
-			}
-		}
-
-		// Get the new transport type from the widget
-		String transportType = transportTypeControl.getSelectedTransportType();
-		// And write the new transport to the working copy
-		wc.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportType);
-		// Get the new transport type configuration panel
-		IWizardConfigurationPanel panel = transportTypePanelControl
-		                .getConfigurationPanel(transportType);
-		// And extract the new attributes into the working copy
-		if (panel instanceof IDataExchangeNode) {
-			((IDataExchangeNode) panel).extractData(wc);
-		}
+		extractData(wc);
 
 		// If the data has not changed compared to the original data copy,
 		// we are done here and return immediately
