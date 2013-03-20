@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -140,6 +140,8 @@ public class TCFLaunch extends Launch {
     private boolean shutdown;
     private boolean last_context_exited;
     private long actions_interval;
+
+    private final LinkedList<TCFTask<Boolean>> disconnect_wait_list = new LinkedList<TCFTask<Boolean>>();
 
     private final HashSet<Object> pending_clients = new HashSet<Object>();
     private long pending_clients_timestamp;
@@ -487,7 +489,11 @@ public class TCFLaunch extends Launch {
         runShutdownSequence(new Runnable() {
             public void run() {
                 shutdown = true;
-                if (DebugPlugin.getDefault() != null) fireTerminate();
+                fireTerminate();
+                for (TCFTask<Boolean> tsk : disconnect_wait_list) {
+                    tsk.done(Boolean.TRUE);
+                }
+                disconnect_wait_list.clear();
             }
         });
         // Log severe exceptions: bug 386067
@@ -1125,6 +1131,7 @@ public class TCFLaunch extends Launch {
             }
             else if (!connecting) {
                 disconnected = true;
+                shutdown = true;
             }
         }
         fireChanged();
@@ -1356,16 +1363,20 @@ public class TCFLaunch extends Launch {
     @Override
     public void disconnect() throws DebugException {
         try {
-            new TCFTask<Boolean>() {
+            new TCFTask<Boolean>(8000) {
                 public void run() {
-                    closeChannel();
-                    done(true);
+                    if (channel == null || shutdown) {
+                        done(true);
+                    }
+                    else {
+                        disconnect_wait_list.add(this);
+                        closeChannel();
+                    }
                 }
             }.get();
         }
         catch (IllegalStateException x) {
             // Don't report this exception - it means Eclipse is being shut down
-            disconnected = true;
         }
         catch (Exception x) {
             throw new TCFError(x);
