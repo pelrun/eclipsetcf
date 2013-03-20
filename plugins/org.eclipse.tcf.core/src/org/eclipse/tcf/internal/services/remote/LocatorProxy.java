@@ -25,7 +25,6 @@ import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
 
-
 public class LocatorProxy implements ILocator {
 
     private final IChannel channel;
@@ -173,6 +172,21 @@ public class LocatorProxy implements ILocator {
             public void done(Exception error, Object[] args) {
                 if (error != null) channel.terminate(error);
                 done.doneSync(token);
+            }
+        }.token;
+    }
+    
+    public IToken getAgentID(final DoneGetAgentID done) {
+        return new Command(channel, this, "getAgentID", null) {
+            @Override
+            public void done(Exception error, Object[] args) {
+                String agentID = null;
+                if (error == null) {
+                    assert args.length == 2;
+                    error = toError(args[0]);
+                    if (args[1] instanceof String) agentID = (String)args[1];
+                }
+                done.doneGetAgentID(token, error, agentID);
             }
         }.token;
     }

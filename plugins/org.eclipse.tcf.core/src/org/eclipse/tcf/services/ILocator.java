@@ -98,6 +98,18 @@ public interface ILocator extends IService {
     interface DoneSync {
         void doneSync(IToken token);
     }
+    
+    /**
+     * Get agent ID of the agent providing the locator service.
+     * <p>
+     * The agent ID can be used to identify the agent among all the peers
+     * returned by {@link #getPeers()}.
+     */
+    IToken getAgentID(DoneGetAgentID done);
+    
+    interface DoneGetAgentID {
+        void doneGetAgentID(IToken token, Exception error, String agentID);
+    }
 
     /**
      * Add a listener for ILocator service events.

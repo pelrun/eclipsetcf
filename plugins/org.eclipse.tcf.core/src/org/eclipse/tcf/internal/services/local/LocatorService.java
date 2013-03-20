@@ -1208,6 +1208,10 @@ public class LocatorService implements ILocator {
         throw new Error("Channel sync cannot be done on local peer");
     }
 
+    public IToken getAgentID(DoneGetAgentID done) {
+        throw new Error("Channel get agent ID cannot be done on local peer");
+    }
+    
     public void addListener(LocatorListener listener) {
         assert listener != null;
         assert Protocol.isDispatchThread();
