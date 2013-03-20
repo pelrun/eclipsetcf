@@ -699,6 +699,10 @@ public class TCFLaunch extends Launch {
                             map.put(IMemoryMap.PROP_OFFSET, m.get(TCFLaunchDelegate.FILES_OFFSET));
                             map.put(IMemoryMap.PROP_SIZE, m.get(TCFLaunchDelegate.FILES_SIZE));
                         }
+                        b = (Boolean)m.get(TCFLaunchDelegate.FILES_ENABLE_OSA);
+                        if (b != null && b.booleanValue()) {
+                            map.put(IMemoryMap.PROP_OSA, new HashMap<String,Object>());
+                        }
                         ArrayList<IMemoryMap.MemoryRegion> l = maps.get(id);
                         if (l == null) {
                             l = new ArrayList<IMemoryMap.MemoryRegion>();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -98,7 +98,7 @@ public interface ILocator extends IService {
     interface DoneSync {
         void doneSync(IToken token);
     }
-    
+
     /**
      * Get agent ID of the agent providing the locator service.
      * <p>
@@ -106,7 +106,7 @@ public interface ILocator extends IService {
      * returned by {@link #getPeers()}.
      */
     IToken getAgentID(DoneGetAgentID done);
-    
+
     interface DoneGetAgentID {
         void doneGetAgentID(IToken token, Exception error, String agentID);
     }

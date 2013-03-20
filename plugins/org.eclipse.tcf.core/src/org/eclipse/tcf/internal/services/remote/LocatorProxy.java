@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -175,7 +175,7 @@ public class LocatorProxy implements ILocator {
             }
         }.token;
     }
-    
+
     public IToken getAgentID(final DoneGetAgentID done) {
         return new Command(channel, this, "getAgentID", null) {
             @Override
