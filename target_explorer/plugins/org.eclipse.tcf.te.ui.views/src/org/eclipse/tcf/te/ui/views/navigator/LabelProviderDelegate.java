@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.views.navigator;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
+import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 
 /**
  * Category label provider delegate implementation.
@@ -26,6 +27,10 @@ public class LabelProviderDelegate extends LabelProvider {
 		if (element instanceof ICategory) {
 			return ((ICategory)element).getLabel();
 		}
+		if (element instanceof NewWizardNode) {
+			return ((NewWizardNode)element).getLabel();
+		}
+
 	    return super.getText(element);
 	}
 
@@ -36,6 +41,9 @@ public class LabelProviderDelegate extends LabelProvider {
 	public Image getImage(Object element) {
 		if (element instanceof ICategory) {
 			return ((ICategory)element).getImage();
+		}
+		if (element instanceof NewWizardNode) {
+			return ((NewWizardNode)element).getImage();
 		}
 	    return super.getImage(element);
 	}

@@ -12,14 +12,14 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.services;
 
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.PropertiesHandlerDelegate;
-import org.eclipse.tcf.te.ui.interfaces.handler.IPropertiesHandlerDelegate;
+import org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.EditorHandlerDelegate;
+import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 
 /**
  * UI service implementation.
  */
 public class UIService extends AbstractService implements IUIService {
-	private final IPropertiesHandlerDelegate propertiesHandlerDelegate = new PropertiesHandlerDelegate();
+	private final IEditorHandlerDelegate editorHandlerDelegate = new EditorHandlerDelegate();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IUIService#getDelegate(java.lang.Object, java.lang.Class)
@@ -28,8 +28,8 @@ public class UIService extends AbstractService implements IUIService {
 	@Override
 	public <V> V getDelegate(Object context, Class<? extends V> clazz) {
 
-		if (IPropertiesHandlerDelegate.class.isAssignableFrom(clazz)) {
-			return (V) propertiesHandlerDelegate;
+		if (IEditorHandlerDelegate.class.isAssignableFrom(clazz)) {
+			return (V) editorHandlerDelegate;
 		}
 
 		return null;

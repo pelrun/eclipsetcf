@@ -138,7 +138,7 @@ public class MenuListener implements IMenuListener2 {
 									IAction action = new Action() {
 										@Override
 										public void run() {
-											ViewsUtil.openProperties(new StructuredSelection(context));
+											ViewsUtil.openEditor(new StructuredSelection(context));
 										}
 									};
 									action.setText(NLS.bind(ActionMessages.EditLaunchConfigurationAction_1, lc.getName()));

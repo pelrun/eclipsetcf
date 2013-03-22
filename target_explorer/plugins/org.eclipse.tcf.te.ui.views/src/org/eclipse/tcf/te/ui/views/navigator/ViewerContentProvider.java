@@ -17,6 +17,7 @@ import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
 import org.eclipse.tcf.te.ui.views.internal.ViewRoot;
+import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.navigator.ICommonContentExtensionSite;
 import org.eclipse.ui.navigator.ICommonContentProvider;
@@ -24,7 +25,7 @@ import org.eclipse.ui.navigator.ICommonContentProvider;
 /**
  * Category content provider delegate implementation.
  */
-public class ContentProviderDelegate implements ICommonContentProvider {
+public class ViewerContentProvider implements ICommonContentProvider {
 	private final static Object[] NO_ELEMENTS = new Object[0];
 
 	/* (non-Javadoc)
@@ -48,6 +49,9 @@ public class ContentProviderDelegate implements ICommonContentProvider {
 
 			children = visibleCategories.toArray(new ICategory[visibleCategories.size()]);
 		}
+		if (parentElement instanceof ICategory) {
+			children = ((ICategory)parentElement).getChildren();
+		}
 
 		return children;
 	}
@@ -60,6 +64,9 @@ public class ContentProviderDelegate implements ICommonContentProvider {
 		if (element instanceof ICategory) {
 			return ViewRoot.getInstance();
 		}
+		if (element instanceof NewWizardNode) {
+			return ((NewWizardNode)element).getParent();
+		}
 		return null;
 	}
 
@@ -68,6 +75,9 @@ public class ContentProviderDelegate implements ICommonContentProvider {
 	 */
 	@Override
 	public boolean hasChildren(Object element) {
+		if (element instanceof ICategory) {
+			return ((ICategory)element).getChildren() != null;
+		}
 		return false;
 	}
 

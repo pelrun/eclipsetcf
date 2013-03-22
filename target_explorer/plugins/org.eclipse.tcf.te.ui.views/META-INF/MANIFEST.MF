@@ -48,5 +48,6 @@ Export-Package: org.eclipse.tcf.te.ui.views,
  org.eclipse.tcf.te.ui.views.internal.services;x-internal:=true,
  org.eclipse.tcf.te.ui.views.listeners,
  org.eclipse.tcf.te.ui.views.navigator,
+ org.eclipse.tcf.te.ui.views.navigator.nodes,
  org.eclipse.tcf.te.ui.views.nls;x-internal:=true,
  org.eclipse.tcf.te.ui.views.perspective

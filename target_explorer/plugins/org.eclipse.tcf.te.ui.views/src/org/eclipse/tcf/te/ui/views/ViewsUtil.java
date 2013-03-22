@@ -19,7 +19,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
-import org.eclipse.tcf.te.ui.views.handler.PropertiesCommandHandler;
+import org.eclipse.tcf.te.ui.views.handler.OpenEditorHandler;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IViewReference;
@@ -217,11 +217,11 @@ public class ViewsUtil {
 	}
 
 	/**
-	 * Opens the properties editor or dialog on the given selection.
+	 * Opens the editor on the given selection.
 	 *
 	 * @param selection The selection. Must not be <code>null</code>.
 	 */
-	public static void openProperties(final ISelection selection) {
+	public static void openEditor(final ISelection selection) {
 		Assert.isNotNull(selection);
 
 		// Create the runnable
@@ -230,7 +230,7 @@ public class ViewsUtil {
 			public void run() {
 				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 				Assert.isNotNull(window);
-				PropertiesCommandHandler.openEditorOnSelection(window, selection);
+				OpenEditorHandler.openEditorOnSelection(window, selection);
 			}
 		};
 

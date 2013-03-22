@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.views.interfaces;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.interfaces.extensions.IExecutableExtension;
+import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 
 /**
  * Main view category node.
@@ -45,4 +46,11 @@ public interface ICategory extends IExecutableExtension {
 	 * @return <code>True</code> if the category is enabled, <code>false</code> otherwise.
 	 */
 	public boolean isEnabled();
+
+	/**
+	 * Returns an array of children that are always available in this category.
+	 * This might be a list of {@link NewWizardNode}
+	 * @return The children or <code>null</code>
+	 */
+	public Object[] getChildren();
 }

@@ -13,17 +13,17 @@ package org.eclipse.tcf.te.tcf.ui.handler;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.ui.interfaces.handler.IPropertiesHandlerDelegate;
+import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IEditorInput;
 
 /**
- * AbstractPeerModelPropertiesHandlerDelegate
+ * AbstractPeerModelEditorHandlerDelegate
  */
-public abstract class AbstractPeerModelPropertiesHandlerDelegate implements IPropertiesHandlerDelegate {
+public abstract class AbstractPeerModelEditorHandlerDelegate implements IEditorHandlerDelegate {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IPropertiesHandlerDelegate#getEditorInput(java.lang.Object)
+	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate#getEditorInput(java.lang.Object)
 	 */
 	@Override
 	public IEditorInput getEditorInput(Object element) {

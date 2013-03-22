@@ -1,5 +1,5 @@
 /**
- * PropertiesHandlerDelegate.java
+ * EditorHandlerDelegate.java
  * Created on Jan 25, 2012
  *
  * Copyright (c) 2012 Wind River Systems, Inc.
@@ -15,7 +15,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.editor.ProcessMonitorEditorPage;
-import org.eclipse.tcf.te.tcf.ui.handler.AbstractPeerModelPropertiesHandlerDelegate;
+import org.eclipse.tcf.te.tcf.ui.handler.AbstractPeerModelEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.views.editor.Editor;
 import org.eclipse.ui.IEditorPart;
@@ -25,13 +25,13 @@ import org.eclipse.ui.forms.editor.IFormPage;
 /**
  * Processes properties command handler implementation.
  */
-public class PropertiesHandlerDelegate extends AbstractPeerModelPropertiesHandlerDelegate {
+public class EditorHandlerDelegate extends AbstractPeerModelEditorHandlerDelegate {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IPropertiesHandlerDelegate#postOpenProperties(org.eclipse.ui.IEditorPart, java.lang.Object)
+	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate#postOpenProperties(org.eclipse.ui.IEditorPart, java.lang.Object)
 	 */
 	@Override
-	public void postOpenProperties(IEditorPart editor, final Object element) {
+	public void postOpenEditor(IEditorPart editor, final Object element) {
 		if (editor instanceof FormEditor) {
 			final FormEditor formEditor = (FormEditor)editor;
 			DisplayUtil.safeAsyncExec(new Runnable() {

@@ -143,7 +143,7 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 								// Set the selection
 								ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, selection);
 								// And open the properties on the selection
-								if (isOpenPropertiesOnPerformFinish()) ViewsUtil.openProperties(selection);
+								if (isOpenEditorOnPerformFinish()) ViewsUtil.openEditor(selection);
 								// Allow subclasses to add logic to the performFinish().
 								DisplayUtil.safeAsyncExec(new Runnable() {
 									@Override
@@ -169,12 +169,12 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 	}
 
 	/**
-	 * Returns if or if not the wizard should open the properties editor
+	 * Returns if or if not the wizard should open the editor
 	 * on "Finish". The default is <code>true</code>.
 	 *
-	 * @return <code>True</code> to open the properties editor, <code>false</code> otherwise.
+	 * @return <code>True</code> to open the editor, <code>false</code> otherwise.
 	 */
-	protected boolean isOpenPropertiesOnPerformFinish() {
+	protected boolean isOpenEditorOnPerformFinish() {
 		return true;
 	}
 

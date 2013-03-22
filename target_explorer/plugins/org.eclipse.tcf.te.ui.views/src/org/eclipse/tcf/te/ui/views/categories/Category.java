@@ -131,6 +131,14 @@ public class Category extends ExecutableExtension implements ICategory, IDisposa
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.interfaces.ICategory#getChildren()
+	 */
+	@Override
+	public Object[] getChildren() {
+	    return null;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.interfaces.ICategory#getRank()
 	 */
 	@Override

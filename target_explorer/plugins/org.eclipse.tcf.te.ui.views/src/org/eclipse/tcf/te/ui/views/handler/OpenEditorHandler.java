@@ -17,9 +17,12 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.ui.interfaces.handler.IPropertiesHandlerDelegate;
+import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
@@ -27,29 +30,50 @@ import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
-
+import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
- * Properties command handler implementation.
+ * TCF tree elements open command handler implementation.
  */
-public class PropertiesCommandHandler extends AbstractHandler {
+public class OpenEditorHandler extends AbstractHandler {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
-	@Override
+    @Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		// Get the active selection
+		// The selection is the Target Explorer tree selection
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
+		// The active part is the Target Explorer view instance
+		IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		// Get the currently active workbench window
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-		if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		// ALT - Key pressed?
+		Object ctrlPressed = HandlerUtil.getVariable(event, "ctrlPressed"); //$NON-NLS-1$
 
-		if (selection != null && window != null) openEditorOnSelection(window, selection);
+		boolean expand = ctrlPressed instanceof Boolean ? ((Boolean)ctrlPressed).booleanValue() : false;
+
+		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			// If the tree node is expandable, expand or collapse it
+			TreeViewer viewer = ((CommonNavigator)part).getCommonViewer();
+			Object element = ((IStructuredSelection)selection).getFirstElement();
+			if (selection instanceof TreeSelection) {
+				TreePath[] path = ((TreeSelection)selection).getPaths();
+				if (path != null && path.length > 0) {
+					element = path[0].getLastSegment();
+				}
+			}
+			if (viewer.isExpandable(element) && expand) {
+				viewer.setExpandedState(element, !viewer.getExpandedState(element));
+			}
+			else {
+				openEditorOnSelection(window, selection);
+			}
+		}
 
 		return null;
 	}
@@ -71,22 +95,19 @@ public class PropertiesCommandHandler extends AbstractHandler {
 				IWorkbenchPage page = window.getActivePage();
 				// Create the editor input object
 				IUIService service = ServiceManager.getInstance().getService(element, IUIService.class);
-				IPropertiesHandlerDelegate delegate = service != null ? service.getDelegate(element, IPropertiesHandlerDelegate.class) : null;
-				IEditorInput input = delegate != null ? delegate.getEditorInput(element) : new EditorInput(element);
+				IEditorHandlerDelegate delegate = service != null ? service.getDelegate(element, IEditorHandlerDelegate.class) : null;
+				IEditorInput input = (delegate != null) ? delegate.getEditorInput(element) : new EditorInput(element);
 				try {
 					// Opens the Target Explorer properties editor
 					IEditorPart editor = page.openEditor(input, IUIConstants.ID_EDITOR);
 					// Lookup the ui service for post action
-					if (delegate != null) {
-						delegate.postOpenProperties(editor, element);
-					}
+					if (delegate != null)
+						delegate.postOpenEditor(editor, element);
 				} catch (PartInitException e) {
-					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-												Messages.PropertiesCommandHandler_error_initPartFailed, e);
+					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), Messages.OpenCommandHandler_error_openEditor, e);
 					UIPlugin.getDefault().getLog().log(status);
 				}
 			}
 		}
 	}
-
 }

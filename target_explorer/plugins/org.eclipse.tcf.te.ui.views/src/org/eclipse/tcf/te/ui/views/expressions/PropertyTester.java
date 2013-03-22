@@ -11,7 +11,7 @@ package org.eclipse.tcf.te.ui.views.expressions;
 
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.ui.interfaces.handler.IPropertiesHandlerDelegate;
+import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBindingExtensionPointManager;
 import org.eclipse.ui.IEditorInput;
@@ -29,17 +29,11 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
 
 		if ("hasApplicableEditorBindings".equals(property)) { //$NON-NLS-1$
-			// Create a fake editor input object
-			IEditorInput input = new EditorInput(receiver);
-			boolean result = (expectedValue != null ? expectedValue : Boolean.TRUE).equals(Boolean.valueOf(EditorPageBindingExtensionPointManager.getInstance().getApplicableEditorPageBindings(input).length > 0));
+			IUIService service = ServiceManager.getInstance().getService(receiver, IUIService.class);
+			IEditorHandlerDelegate delegate = service != null ? service.getDelegate(receiver, IEditorHandlerDelegate.class) : null;
+			IEditorInput input = (delegate != null) ? delegate.getEditorInput(receiver) : new EditorInput(receiver);
 
-			if (!result) {
-				IUIService service = ServiceManager.getInstance().getService(receiver, IUIService.class);
-				IPropertiesHandlerDelegate delegate = service != null ? service.getDelegate(receiver, IPropertiesHandlerDelegate.class) : null;
-				result = delegate != null;
-			}
-
-			return result;
+			return (expectedValue != null ? expectedValue : Boolean.TRUE).equals(Boolean.valueOf(EditorPageBindingExtensionPointManager.getInstance().getApplicableEditorPageBindings(input).length > 0));
 		}
 
 		return false;

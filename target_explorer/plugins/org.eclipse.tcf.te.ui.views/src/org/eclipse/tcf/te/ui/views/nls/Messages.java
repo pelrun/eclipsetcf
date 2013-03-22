@@ -35,6 +35,8 @@ public class Messages extends NLS {
 
 	public static String PropertiesCommandHandler_error_initPartFailed;
 
+	public static String OpenCommandHandler_error_openEditor;
+
 	public static String AddToCategoryAction_single_text;
 
 	public static String RemoveFromCategoryAction_single_text;
