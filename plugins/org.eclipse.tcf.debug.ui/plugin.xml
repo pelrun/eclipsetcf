@@ -136,6 +136,13 @@
             class="org.eclipse.tcf.internal.debug.ui.trace.TraceView"
             id="org.eclipse.tcf.TraceView">
       </view>
+      <view
+            name="TCF Profiler"
+            icon="icons/profiler.png"
+            category="org.eclipse.debug.ui"
+            class="org.eclipse.tcf.internal.debug.ui.profiler.ProfilerView"
+            id="org.eclipse.tcf.ProfilerView">
+      </view>
    </extension>
 
    <extension
