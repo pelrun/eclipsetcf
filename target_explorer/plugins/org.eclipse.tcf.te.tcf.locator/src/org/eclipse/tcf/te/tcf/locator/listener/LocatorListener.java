@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.listener;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -16,10 +17,12 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
@@ -81,26 +84,61 @@ public class LocatorListener implements ILocator.LocatorListener {
 				peerNode = model.validatePeerNodeForAdd(peerNode);
 				// Add the peer node to the model
 				if (peerNode != null) {
-					IPeerModel[] matches = model.getService(ILocatorModelLookupService.class).lkupMatchingStaticPeerModels(peerNode);
-					if (matches.length == 0) {
-						model.getService(ILocatorModelUpdateService.class).add(peerNode);
-						// And schedule for immediate status update
-						Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
-						Protocol.invokeLater(runnable);
-					} else {
-						for (IPeerModel match : matches) {
-							IPeer myPeer = model.validatePeer(peer);
-							if (myPeer != null) {
-								boolean changed = match.setChangeEventsEnabled(false);
-								// Merge user configured properties between the peers
-								model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(match, myPeer, true);
-								if (changed) match.setChangeEventsEnabled(true);
-								match.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, match.getPeer());
+					// If there are reachable static peers without an agent ID associated or
+					// static peers with unknown link state, refresh the agent ID's first.
+					List<IPeerModel> nodes = new ArrayList<IPeerModel>();
+
+					for (IPeerModel node : model.getPeers()) {
+						// Skip static nodes
+						if (!node.isStatic()) continue;
+						// We expect the agent ID to be set
+						if (node.getPeer().getAgentID() == null || "".equals(node.getPeer().getAgentID())) { //$NON-NLS-1$
+							nodes.add(node);
+						}
+					}
+
+					// Create the runnable to execute after the agent ID refresh (if needed)
+					final IPeerModel finPeerNode = peerNode;
+					final IPeer finPeer = peer;
+					final Runnable runnable = new Runnable() {
+						@Override
+						public void run() {
+							IPeerModel[] matches = model.getService(ILocatorModelLookupService.class).lkupMatchingStaticPeerModels(finPeerNode);
+							if (matches.length == 0) {
+								model.getService(ILocatorModelUpdateService.class).add(finPeerNode);
 								// And schedule for immediate status update
-								Runnable runnable = new ScannerRunnable(model.getScanner(), match);
-								Protocol.invokeLater(runnable);
+								Runnable runnable2 = new ScannerRunnable(model.getScanner(), finPeerNode);
+								Protocol.invokeLater(runnable2);
+							} else {
+								for (IPeerModel match : matches) {
+									IPeer myPeer = model.validatePeer(finPeer);
+									if (myPeer != null) {
+										boolean changed = match.setChangeEventsEnabled(false);
+										// Merge user configured properties between the peers
+										model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(match, myPeer, true);
+										if (changed) match.setChangeEventsEnabled(true);
+										match.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, match.getPeer());
+										// And schedule for immediate status update
+										Runnable runnable2 = new ScannerRunnable(model.getScanner(), match);
+										Protocol.invokeLater(runnable2);
+									}
+								}
 							}
 						}
+					};
+
+					if (nodes.size() > 0) {
+						// Refresh the agent ID's first
+						model.getService(ILocatorModelRefreshService.class).refreshAgentIDs(nodes.toArray(new IPeerModel[nodes.size()]), new Callback() {
+							@Override
+							protected void internalDone(Object caller, IStatus status) {
+								// Ignore errors
+								runnable.run();
+							}
+						});
+					} else {
+						// No need to refresh the agent ID's -> run runnable
+						runnable.run();
 					}
 				}
 			} else {

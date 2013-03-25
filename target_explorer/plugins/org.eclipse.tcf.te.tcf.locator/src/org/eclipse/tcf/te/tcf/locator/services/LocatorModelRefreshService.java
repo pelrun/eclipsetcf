@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -23,18 +23,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
@@ -479,5 +486,126 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		}
 
 		return rootLocations.toArray(new File[rootLocations.size()]);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService#refreshAgentIDs(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel[], org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 */
+	@Override
+	public void refreshAgentIDs(IPeerModel[] nodes, final ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// This method might be called reentrant while processing. Return immediately
+		// in this case.
+		if (REFRESH_STATIC_PEERS_GUARD.get()) {
+			return;
+		}
+		REFRESH_STATIC_PEERS_GUARD.set(true);
+
+		// Get the parent locator model
+		ILocatorModel model = getLocatorModel();
+
+		// If the parent model is already disposed, the service will drop out immediately
+		if (model.isDisposed()) {
+			return;
+		}
+
+		// The callback collector will fire once all static peers have been refreshed
+		final AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
+			@SuppressWarnings("synthetic-access")
+            @Override
+			protected void internalDone(Object caller, IStatus status) {
+				// Release the guard
+				REFRESH_STATIC_PEERS_GUARD.set(false);
+				// And invoke the final callback;
+				invokeCallback(callback);
+			}
+		}, new CallbackInvocationDelegate());
+
+		// Loop all static peers and try to get the agent ID
+		for (IPeerModel node : (nodes != null ? nodes : model.getPeers())) {
+			// If not static --> ignore
+			if (!node.isStatic()) continue;
+			// Refresh the agent ID
+			refreshAgentID(node, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+		}
+
+		// Mark the collector initialization as done
+		collector.initDone();
+	}
+
+	/**
+	 * Refreshes the agent ID of the given static peer node, if reachable.
+	 *
+	 * @param node The peer model node. Must not be <code>null</code>.
+	 * @param callback The callback. Must not be <code>null</code>.
+	 */
+	protected void refreshAgentID(final IPeerModel node, final ICallback callback)  {
+		Assert.isNotNull(node);
+		Assert.isNotNull(callback);
+
+		// If the peer is not static or associated with an remote peer
+		// --> skip the node
+		if (!node.isStatic() || node.isRemote()) {
+			callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+			return;
+		}
+
+		Assert.isTrue(node.getPeer() instanceof Peer);
+
+		// Try to open a channel to the node
+		Map<String, Boolean> flags = new HashMap<String, Boolean>();
+		flags.put(IChannelManager.FLAG_FORCE_NEW, Boolean.TRUE);
+		flags.put(IChannelManager.FLAG_NO_VALUE_ADD, Boolean.FALSE);
+
+		Tcf.getChannelManager().openChannel(node.getPeer(), flags, new IChannelManager.DoneOpenChannel() {
+
+			@Override
+			public void doneOpenChannel(Throwable error, final IChannel channel) {
+				if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
+					// Get the locator service
+					ILocator service = channel.getRemoteService(ILocator.class);
+					if (service != null) {
+						// Query the agent ID
+						service.getAgentID(new ILocator.DoneGetAgentID() {
+							@Override
+							public void doneGetAgentID(IToken token, Exception error, String agentID) {
+								// Close the channel
+								Tcf.getChannelManager().closeChannel(channel);
+
+								// Update the peer
+								if (agentID == null || "".equals(agentID)) { //$NON-NLS-1$
+									if (node.getPeer().getAgentID() != null) {
+										// Remove the old agent ID
+										Map<String, String> attrs = new HashMap<String, String>(channel.getRemotePeer().getAttributes());
+										attrs.remove(IPeer.ATTR_AGENT_ID);
+										node.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
+									}
+								} else if (node.getPeer().getAgentID() == null || !agentID.equals(node.getPeer().getAgentID())){
+									// Set the new agent ID
+									Map<String, String> attrs = new HashMap<String, String>(channel.getRemotePeer().getAttributes());
+									attrs.put(IPeer.ATTR_AGENT_ID, agentID);
+									node.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
+								}
+
+								// Invoke the callback
+								callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+							}
+						});
+					} else {
+						// Close the channel
+						Tcf.getChannelManager().closeChannel(channel);
+						// Invoke the callback
+						callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+					}
+				} else {
+					// Close the channel in any case
+					if (channel != null) Tcf.getChannelManager().closeChannel(channel);
+					// Invoke the callback
+					callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+				}
+
+			}
+		});
 	}
 }

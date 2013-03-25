@@ -209,6 +209,12 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 			// Look only at the static peers here
 			if (!candidate.isStatic()) continue;
 
+			// If the agent id is available, match up the agent id first.
+			if (candidate.getPeer().getAgentID() != null && candidate.getPeer().getAgentID().equals(peerNode.getPeer().getAgentID())) {
+				nodes.add(candidate);
+				continue;
+			}
+
 			// Get the transport types. Transport type must match and must be either "TCP" or "SSL".
 			String t1 = peerNode.getPeer().getTransportName();
 			String t2 = candidate.getPeer().getTransportName();
