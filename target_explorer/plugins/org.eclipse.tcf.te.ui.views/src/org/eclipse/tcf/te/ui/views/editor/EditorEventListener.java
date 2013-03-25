@@ -20,6 +20,8 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.events.AbstractEventListener;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.tracing.ITraceIds;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.ISources;
 import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.services.IEvaluationService;
@@ -30,7 +32,7 @@ import org.eclipse.ui.services.IEvaluationService;
  * The event listener is registered by an editor instance for a given editor input
  * and is supposed to receive events for the editor input only.
  */
-public final class EditorEventListener extends AbstractEventListener implements IDisposable {
+public final class EditorEventListener extends AbstractEventListener implements IDisposable, IPropertyListener {
 	// Reference to the parent editor
 	private final Editor editor;
 	// Flag to remember the disposed state
@@ -50,6 +52,8 @@ public final class EditorEventListener extends AbstractEventListener implements 
     	// Register the event listener if the editor input is a properties container
 		Object node = editor.getEditorInput() != null ? editor.getEditorInput().getAdapter(Object.class) : null;
 		if (node instanceof IPropertiesContainer) EventManager.getInstance().addEventListener(this, ChangeEvent.class, node);
+
+		editor.addPropertyListener(this);
     }
 
     /* (non-Javadoc)
@@ -120,4 +124,20 @@ public final class EditorEventListener extends AbstractEventListener implements 
 			}
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.IPropertyListener#propertyChanged(java.lang.Object, int)
+	 */
+    @Override
+    public void propertyChanged(Object source, int propId) {
+    	if (source == this.editor) {
+    		if (IEditorPart.PROP_DIRTY == propId) {
+    			// Request a re-evaluation if all expressions referring the "activeEditorInput" source.
+    			IEvaluationService service = (IEvaluationService)editor.getSite().getService(IEvaluationService.class);
+    			if (service != null) {
+    				service.requestEvaluation(ISources.ACTIVE_EDITOR_INPUT_NAME);
+    			}
+    		}
+    	}
+    }
 }

@@ -877,7 +877,7 @@
             class="org.eclipse.tcf.te.ui.views.expressions.PropertyTester"
             id="org.eclipse.tcf.te.ui.views.PropertyTester"
             namespace="org.eclipse.tcf.te.ui.views"
-            properties="hasApplicableEditorBindings"
+            properties="isDirty,hasApplicableEditorBindings"
             type="java.lang.Object">
       </propertyTester>
 

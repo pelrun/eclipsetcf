@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.views.expressions;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
+import org.eclipse.tcf.te.ui.views.editor.Editor;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBindingExtensionPointManager;
 import org.eclipse.ui.IEditorInput;
@@ -34,6 +35,11 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 			IEditorInput input = (delegate != null) ? delegate.getEditorInput(receiver) : new EditorInput(receiver);
 
 			return (expectedValue != null ? expectedValue : Boolean.TRUE).equals(Boolean.valueOf(EditorPageBindingExtensionPointManager.getInstance().getApplicableEditorPageBindings(input).length > 0));
+		}
+
+		if ("isDirty".equals(property) && receiver instanceof Editor && expectedValue instanceof Boolean) { //$NON-NLS-1$
+			Editor editor = (Editor) receiver;
+			return ((Boolean)expectedValue).booleanValue() == editor.isDirty();
 		}
 
 		return false;
