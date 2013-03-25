@@ -305,8 +305,10 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 				UIPlugin.getTraceHandler().trace("Commit(" + onSave + ") reseted the dirty state to false.", //$NON-NLS-1$ //$NON-NLS-2$
 												 ITraceIds.TRACE_SECTIONS_DIRTY_STATE, this);
 			}
-
-			getManagedForm().dirtyStateChanged();
+			if (onSave)
+				getManagedForm().dirtyStateChanged();
+			else
+				markDirty();
 		}
 	}
 
