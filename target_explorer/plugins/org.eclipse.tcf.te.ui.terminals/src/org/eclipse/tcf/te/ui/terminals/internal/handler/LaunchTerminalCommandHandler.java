@@ -65,6 +65,7 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 			}
 
 			LaunchTerminalSettingsDialog dialog = new LaunchTerminalSettingsDialog(shell, start);
+			dialog.setSelection(selection);
 			if (dialog.open() == Window.OK) {
 				// Get the terminal settings from the dialog
 				IPropertiesContainer properties = dialog.getSettings();
