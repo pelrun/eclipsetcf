@@ -61,7 +61,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 	/* default */TransportSectionTypePanelControl transportTypePanelControl = null;
 
 	// Reference to the original data object
-	/* default */IPeerModel od;
+	protected IPeerModel od;
 	// Reference to a copy of the original data
 	/* default */final IPropertiesContainer odc = new PropertiesContainer();
 	// Reference to the properties container representing the working copy for the section
@@ -628,7 +628,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 
 		// The transport type control is enabled for static peers
 		if (transportTypeControl != null) {
-			boolean enabled = input == null || (isStatic.get() && !isRemote.get());
+			boolean enabled = !isReadOnly() && (input == null || (isStatic.get() && !isRemote.get()));
 			SWTControlUtil.setEnabled(transportTypeControl.getEditFieldControl(), enabled);
 			if (transportTypePanelControl != null) {
 				IWizardConfigurationPanel panel = transportTypePanelControl
