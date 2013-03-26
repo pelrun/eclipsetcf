@@ -14,11 +14,19 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.runtime.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
@@ -36,7 +44,9 @@ import org.eclipse.ui.part.MultiPageSelectionProvider;
 public abstract class AbstractEditorPage extends FormPage implements IEditorPage, IValidatingContainer {
 	// The unique page id
 	private String id;
-
+	private Composite messageComp = null;
+	private Label message = null;
+	private Label messageType = null;
 	/**
 	 * Constructor.
 	 */
@@ -84,6 +94,19 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		super.createFormContent(managedForm);
 		Assert.isNotNull(managedForm);
 		managedForm.setInput(getEditorInputNode());
+
+		messageComp = new Composite(managedForm.getForm().getForm().getHead(), SWT.NONE);
+		GridLayout gl = new GridLayout(2, false);
+		gl.marginHeight = 0;
+		gl.marginWidth = 0;
+		gl.marginLeft = 0;
+		gl.marginRight = 0;
+		messageComp.setLayout(gl);
+
+		messageType = new Label(messageComp, SWT.NONE);
+		GridData gd = new GridData(20, 20);
+		messageType.setLayoutData(gd);
+		message = new Label(messageComp, SWT.NONE);
 	}
 
 	/*
@@ -171,17 +194,33 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	 */
 	@Override
 	public final void validate() {
-		// Get the scrolled form
-		if (getManagedForm() != null) {
+		if (getManagedForm() != null && messageComp != null && message != null && messageType != null) {
 			ScrolledForm form = getManagedForm().getForm();
-
 			ValidationResult result = doValidate();
-			if (result != null) {
-				form.setMessage(result.getMessage(), result.getMessageType());
+
+			if (result != null && result.getMessage() != null) {
+				messageType.setImage(getMessageImage(result.getMessageType()));
+				message.setText(result.getMessage());
+				messageComp.pack();
+				form.setHeadClient(messageComp);
 			}
 			else {
-				form.setMessage(null, IMessageProvider.NONE);
+				form.setHeadClient(null);
 			}
+			form.reflow(true);
+		}
+	}
+
+	protected Image getMessageImage(int messageType) {
+		switch (messageType) {
+		case IMessageProvider.INFORMATION:
+			return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_INFO);
+		case IMessageProvider.WARNING:
+			return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_WARNING);
+		case IMessageProvider.ERROR:
+			return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_ERROR);
+		default:
+			return null;
 		}
 	}
 
