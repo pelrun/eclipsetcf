@@ -11,16 +11,21 @@ package org.eclipse.tcf.te.ui.terminals.internal.handler;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
@@ -58,6 +63,7 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 		Shell shell = HandlerUtil.getActiveShell(event);
 		// Get the current selection
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
+
 		if (commandId.equals("org.eclipse.tcf.te.ui.terminals.command.launchToolbar")) { //$NON-NLS-1$
 			if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
 				UIPlugin.getTraceHandler().trace("(a) Attempt to open launch terminal settings dialog after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
@@ -65,7 +71,10 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 			}
 
 			LaunchTerminalSettingsDialog dialog = new LaunchTerminalSettingsDialog(shell, start);
-			dialog.setSelection(selection);
+
+			if(isValidSelection(selection)){
+				dialog.setSelection(selection);
+			}
 			if (dialog.open() == Window.OK) {
 				// Get the terminal settings from the dialog
 				IPropertiesContainer properties = dialog.getSettings();
@@ -100,7 +109,9 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 
 				// Create the launch terminal settings dialog
 				LaunchTerminalSettingsDialog dialog = new LaunchTerminalSettingsDialog(shell, start);
-				dialog.setSelection(selection);
+				if(isValidSelection(selection)){
+					dialog.setSelection(selection);
+				}
 				if (dialog.open() == Window.OK) {
 					// Get the terminal settings from the dialog
 					IPropertiesContainer properties = dialog.getSettings();
@@ -130,4 +141,18 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 		return null;
 	}
 
+	private boolean isValidSelection(ISelection selection) {
+		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			Object element = ((IStructuredSelection) selection).getFirstElement();
+			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
+			if (service != null) {
+				Map<String, String> props = service.getTargetAddress(element);
+				if (props != null && props.containsKey(IPropertiesAccessServiceConstants.PROP_ADDRESS)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 }
