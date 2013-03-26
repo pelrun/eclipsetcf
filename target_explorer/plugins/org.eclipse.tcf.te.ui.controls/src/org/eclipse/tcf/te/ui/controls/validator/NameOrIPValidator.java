@@ -108,7 +108,7 @@ public class NameOrIPValidator extends Validator {
 			else if (!ipOrHostName.matches(NAME_REGEX)) {
 				setMessage(getMessageText(ERROR_INVALID_NAME), getMessageTextType(ERROR_INVALID_NAME, ERROR));
 			}
-			else if (isAttribute(ATTR_CHECK_AVAILABLE)){
+			else if (isAttribute(ATTR_CHECK_AVAILABLE) && !"localhost".equals(ipOrHostName.trim())){ //$NON-NLS-1$
 				// info message when name was entered to check
 				setMessage(getMessageText(INFO_CHECK_NAME), getMessageTextType(INFO_CHECK_NAME, INFORMATION));
 			}
