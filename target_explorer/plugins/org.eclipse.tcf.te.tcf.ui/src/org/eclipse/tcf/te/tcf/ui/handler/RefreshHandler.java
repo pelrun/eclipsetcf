@@ -26,6 +26,7 @@ import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
+import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
@@ -71,7 +72,8 @@ public class RefreshHandler extends AbstractHandler {
 		// The selection must be a structured selection and must not be empty
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			// The list of locator model instances to refresh
-			List<ILocatorModel> toRefresh = new ArrayList<ILocatorModel>();
+			List<ILocatorModel> locatorToRefresh = new ArrayList<ILocatorModel>();
+			List<IPeerModel> peerToRefresh = new ArrayList<IPeerModel>();
 
 			// Iterate the selection and determine the model instances
 			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
@@ -84,15 +86,18 @@ public class RefreshHandler extends AbstractHandler {
 				ILocatorModel model = (ILocatorModel)node.getAdapter(ILocatorModel.class);
 				Assert.isNotNull(model);
 				// If not yet in the list, add it
-				if (!toRefresh.contains(model)) {
-					toRefresh.add(model);
+				if (!locatorToRefresh.contains(model)) {
+					locatorToRefresh.add(model);
+				}
+				if (!peerToRefresh.contains(node)) {
+					peerToRefresh.add(node);
 				}
 			}
 
 			// Trigger an refresh on all determined models and wait for the
 			// refresh to complete. Once completed, fire the parent callback.
 			AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
-			for (ILocatorModel model : toRefresh) {
+			for (ILocatorModel model : locatorToRefresh) {
 				final ILocatorModel finModel = model;
 				final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
 
@@ -109,6 +114,21 @@ public class RefreshHandler extends AbstractHandler {
 				};
 				Protocol.invokeLater(runnable);
 			}
+
+			for (IPeerModel model : peerToRefresh) {
+				final IPeerModel finModel = model;
+				final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						new ScannerRunnable(null, finModel).run();
+						innerCallback.done(this, Status.OK_STATUS);
+					}
+				};
+				Protocol.invokeLater(runnable);
+			}
+
 			// Mark the collector as fully initialized
 			collector.initDone();
 		} else {

@@ -46,6 +46,11 @@ public class AdapterFactory implements IAdapterFactory {
 				Assert.isTrue(false);
 			}
 		}
+		if (ILocatorModel.class.isAssignableFrom(adapterType)) {
+			if (adaptableObject instanceof IPeerModel) {
+				return ((IPeerModel)adaptableObject).getModel();
+			}
+		}
 		if (adaptableObject instanceof IPeerModel || adaptableObject instanceof IPeer || adaptableObject instanceof IPeerModelProvider) {
 			if (IPersistableURIProvider.class.equals(adapterType)) {
 				return peerModelPersistableURIProvider;
