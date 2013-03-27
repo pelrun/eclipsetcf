@@ -198,6 +198,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private final IExpressionManager expr_manager;
     private final TCFAnnotationManager annotation_manager;
 
+    private InitialSelection initial_selection;
+
     private final List<ISuspendTriggerListener> suspend_trigger_listeners =
         new LinkedList<ISuspendTriggerListener>();
 
@@ -636,14 +638,18 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         boolean done;
         InitialSelection(TCFModelProxy proxy) {
             this.proxy = proxy;
+            initial_selection = this;
         }
         public void run() {
             if (done) return;
+            if (initial_selection != this) return;
             if (launch_node != null) {
                 ArrayList<TCFNodeExecContext> nodes = new ArrayList<TCFNodeExecContext>();
                 if (!searchSuspendedThreads(launch_node.getFilteredChildren(), nodes)) return;
                 if (nodes.size() == 0) {
                     setDebugViewSelectionForProxy(proxy, launch_node, "Launch");
+                    // No usable selection. Re-run when a context is suspended.
+                    return;
                 }
                 else if (nodes.size() == 1) {
                     TCFNodeExecContext n = nodes.get(0);
@@ -656,6 +662,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     }
                 }
             }
+            initial_selection = null;
             done = true;
         }
         private boolean searchSuspendedThreads(TCFChildren c, ArrayList<TCFNodeExecContext> nodes) {
@@ -1607,6 +1614,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         if (node == null) return;
         if (node.isDisposed()) return;
         runSuspendTrigger(node);
+        if (initial_selection != null) Protocol.invokeLater(initial_selection);
         if (reason == null) return;
         for (TCFModelProxy proxy : model_proxies) {
             if (proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) {
