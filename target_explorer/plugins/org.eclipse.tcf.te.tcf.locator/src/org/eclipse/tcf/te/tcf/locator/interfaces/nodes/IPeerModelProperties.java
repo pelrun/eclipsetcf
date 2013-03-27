@@ -111,4 +111,9 @@ public interface IPeerModelProperties {
 	 * Property: Last selected simulator type
 	 */
 	public static final String PROP_SIM_TYPE = "SimulatorType"; //$NON-NLS-1$
+
+	/**
+	 * Property: Auto-start the debugger after the agent launch.
+	 */
+	public static final String PROP_AUTO_START_DEBUGGER = "autoStartDebugger"; //$NON-NLS-1$
 }
