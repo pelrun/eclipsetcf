@@ -37,7 +37,9 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -83,6 +85,8 @@ public class ProfilerView extends ViewPart {
         final String ctx;
 
         boolean stopped;
+        boolean unsupported;
+        int sample_count;
 
         ProfileData(String ctx) {
             this.ctx = ctx;
@@ -160,8 +164,11 @@ public class ProfilerView extends ViewPart {
                             if (error != null) {
                                 Activator.log(error);
                             }
-                            else if (!disposed && data != null && data.length > 0) {
-                                for (Map<String,Object> m : data) addSamples(p, m);
+                            else if (!disposed && data != null) {
+                                p.unsupported = data.length == 0;
+                                if (data.length > 0) {
+                                    for (Map<String,Object> m : data) addSamples(p, m);
+                                }
                             }
                         }
                     }));
@@ -189,6 +196,7 @@ public class ProfilerView extends ViewPart {
 
     private class Update implements Runnable {
         final int max_table_size = 100;
+        final TCFNode selection;
         final List<ProfileEntry> lst = new ArrayList<ProfileEntry>(max_table_size);
         final Map<BigInteger,String> funcs = new HashMap<BigInteger,String>();
         final TCFNodeExecContext node;
@@ -200,6 +208,7 @@ public class ProfilerView extends ViewPart {
         @SuppressWarnings("unchecked")
         Update() {
             assert Protocol.isDispatchThread();
+            selection = ProfilerView.this.selection;
             ProfileData p = null;
             if (selection != null) {
                 Map<String,ProfileData> m = data.get(selection.getModel());
@@ -296,10 +305,14 @@ public class ProfilerView extends ViewPart {
                     }
                 }
             }
-            enable_start =
+            final boolean enable_start =
                     (selection instanceof TCFNodeExecContext) &&
                     selection.getChannel().getRemoteService(IProfiler.class) != null;
-            enable_stop = node != null && !prof_data.stopped;
+            final boolean enable_stop = node != null && !prof_data.stopped;
+            final boolean stopped = node != null && prof_data.stopped;
+            final boolean running = node != null && !stopped;
+            final boolean unsupported = node != null && prof_data.unsupported;
+            final int sample_count = prof_data == null ? 0 : prof_data.sample_count;
             parent.getDisplay().asyncExec(new Runnable() {
                 @Override
                 public void run() {
@@ -308,6 +321,21 @@ public class ProfilerView extends ViewPart {
                     profile = lst.toArray(new ProfileEntry[lst.size()]);
                     profile_node = node;
                     viewer.setInput(profile);
+                    if (!enable_start) {
+                        status.setText("Selected context does not support profiling");
+                    }
+                    else if (unsupported) {
+                        status.setText("No suitable profiler found for selected context");
+                    }
+                    else if (stopped) {
+                        status.setText("Profiler stopped. Press 'Start' button to restart profiling");
+                    }
+                    else if (running) {
+                        status.setText("Profiler runnning. " + sample_count + " samples");
+                    }
+                    else {
+                        status.setText("Idle. Press 'Start' button to start profiling");
+                    }
                 }
             });
         }
@@ -379,11 +407,10 @@ public class ProfilerView extends ViewPart {
 
     private boolean disposed;
     private boolean launch_listener_ok;
-    private boolean enable_start;
-    private boolean enable_stop;
     private TCFNode selection;
     private Update last_update;
     private Composite parent;
+    private Label status;
     private TableViewer viewer;
     private ProfileEntry[] profile;
     private TCFNode profile_node;
@@ -409,7 +436,15 @@ public class ProfilerView extends ViewPart {
         this.parent = parent;
 
         Font font = parent.getFont();
-        viewer = new TableViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
+        Composite composite = new Composite(parent, SWT.NONE);
+        GridLayout layout = new GridLayout(1, false);
+        composite.setFont(font);
+        composite.setLayout(layout);
+        composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        status = new Label(composite, SWT.NONE);
+        status.setFont(font);
+        status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        viewer = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
         final Table table = viewer.getTable();
         table.setLayoutData(new GridData(GridData.FILL_BOTH));
         table.setHeaderVisible(true);
@@ -512,6 +547,7 @@ public class ProfilerView extends ViewPart {
                 }
             });
         }
+        updateView();
     }
 
     private void addSamples(ProfileData p, Map<String,Object> props) {
@@ -559,6 +595,7 @@ public class ProfilerView extends ViewPart {
     }
 
     private void addSample(ProfileData p, BigInteger[] trace, int len, int cnt) {
+        p.sample_count += cnt;
         List<ProfileSample> lp = p.get(trace[0]);
         if (lp != null) {
             for (ProfileSample s : lp) {
