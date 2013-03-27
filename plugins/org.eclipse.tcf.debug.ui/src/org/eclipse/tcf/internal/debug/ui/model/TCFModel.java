@@ -1329,8 +1329,10 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         }
 
         public void run() {
-            assert context_map.get(id) == this;
-            if (service_list.size() == 0) {
+            if (context_map.get(id) != this) {
+                done(context_map.get(id));
+            }
+            else if (service_list.size() == 0) {
                 done(new Exception("Invalid context ID"));
             }
             else {
