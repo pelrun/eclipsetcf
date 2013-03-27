@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -101,13 +101,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 		IPeer peer = peerNode.getPeer();
 		if (peer == null) return;
 
-		// Don't scan proxies or value-add's
-		boolean isProxy = peer.getAttributes().containsKey("Proxy"); //$NON-NLS-1$
-
+		// Don't scan value-adds
 		String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
 		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
-		if (isProxy || isValueAdd) return;
+		if (isValueAdd) return;
 
 		// Do not open a channel to incomplete peer nodes
 		if (peerNode.isComplete()) {
