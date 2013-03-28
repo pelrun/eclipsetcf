@@ -63,6 +63,7 @@ public final class EditorEventListener extends AbstractEventListener implements 
     public void dispose() {
     	disposed = true;
     	EventManager.getInstance().removeEventListener(this);
+    	editor.removePropertyListener(this);
     }
 
 	/* (non-Javadoc)

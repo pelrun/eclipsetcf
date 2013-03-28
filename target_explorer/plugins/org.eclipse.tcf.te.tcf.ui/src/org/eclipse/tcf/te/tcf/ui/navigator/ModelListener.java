@@ -77,8 +77,9 @@ public class ModelListener extends ModelAdapter {
 				if (listener != null) {
 					listener.locatorModelChanged(model, peerModel, added);
 				}
-				// If no -> Default behavior is to close the editor (if any)
-				else if (!added) {
+				// If no -> Default behavior for dynamic discovered peers is to close the editor (if any).
+				// 			For static peers, leave the editor untouched.
+				else if (!added && !peerModel.isStatic()) {
 					Display display = PlatformUI.getWorkbench().getDisplay();
 					if (display != null && !display.isDisposed()) {
 						display.asyncExec(new Runnable() {
