@@ -22,14 +22,17 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.ssh.nls.Messages;
 import org.eclipse.tm.internal.terminal.provisional.api.AbstractSettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.ssh.SshConnector;
@@ -42,8 +45,11 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 @SuppressWarnings("restriction")
 public class SshWizardConfigurationPanel extends AbstractConfigurationPanel implements IDataExchangeNode {
 
+	private static final String SAVE_PASSWORD = "savePassword"; //$NON-NLS-1$
+
     private SshSettings sshSettings;
 	private ISettingsPage sshSettingsPage;
+	private Button passwordButton;
 
 	/**
 	 * Constructor.
@@ -91,6 +97,9 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 
 		// Create the encoding selection combo
 		createEncodingUI(panel, true);
+
+		// if password for host should be saved or no
+		createPasswordUI(panel, true);
 
 		setControl(panel);
 	}
@@ -169,6 +178,7 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 */
 	@Override
 	protected void fillSettingsForHost(String host){
+		boolean savePassword = false;
 		if (host != null && host.length() != 0){
 			if (hostSettingsMap.containsKey(host)){
 				Map<String, String> hostSettings = hostSettingsMap.get(host);
@@ -187,9 +197,16 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				if (hostSettings.get(ITerminalsConnectorConstants.PROP_SSH_USER) != null) {
 					sshSettings.setUser(hostSettings.get(ITerminalsConnectorConstants.PROP_SSH_USER));
 				}
-				String password = accessSecurePassword(sshSettings.getHost());
-				if (password != null) {
-					sshSettings.setPassword(password);
+				if (hostSettings.get(SAVE_PASSWORD) != null) {
+					savePassword = new Boolean(hostSettings.get(SAVE_PASSWORD)).booleanValue();
+				}
+				if (!savePassword){
+					sshSettings.setPassword(""); //$NON-NLS-1$
+				} else {
+					String password = accessSecurePassword(sshSettings.getHost());
+					if (password != null) {
+						sshSettings.setPassword(password);
+					}
 				}
 
 				String encoding = hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING);
@@ -198,9 +215,11 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 			} else {
 				sshSettings.setHost(getSelectionHost());
 				sshSettings.setUser(getDefaultUser());
+				savePassword = false;
 			}
 			// set settings in page
 			sshSettingsPage.loadSettings();
+			passwordButton.setSelection(savePassword);
 		}
 	}
 
@@ -218,6 +237,7 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 */
 	@Override
 	protected void saveSettingsForHost(boolean add){
+		boolean savePassword = passwordButton.getSelection();
 		String host = getHostFromSettings();
 		if (host != null && host.length() != 0) {
 			if (hostSettingsMap.containsKey(host)){
@@ -228,9 +248,15 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, Integer.toString(sshSettings.getKeepalive()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				hostSettings.put(SAVE_PASSWORD, Boolean.toString(savePassword));
 
-				if (sshSettings.getPassword() != null && sshSettings.getPassword().length() != 0){
+				if (savePassword && sshSettings.getPassword() != null && sshSettings.getPassword().length() != 0){
 					saveSecurePassword(host, sshSettings.getPassword());
+				}
+
+				// maybe unchecked the password button - so try to remove a saved password - if any
+				if (!savePassword){
+					removeSecurePassword(host);
 				}
 			} else if (add) {
 				Map<String, String> hostSettings = new HashMap<String, String>();
@@ -240,9 +266,10 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, Integer.toString(sshSettings.getKeepalive()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				hostSettings.put(SAVE_PASSWORD, Boolean.toString(savePassword));
 				hostSettingsMap.put(host, hostSettings);
 
-				if (sshSettings.getPassword() != null && sshSettings.getPassword().length() != 0){
+				if (savePassword && sshSettings.getPassword() != null && sshSettings.getPassword().length() != 0){
 					saveSecurePassword(host, sshSettings.getPassword());
 				}
 			}
@@ -337,4 +364,24 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		sshSettingsPage.saveSettings();
 	    return sshSettings.getHost();
     }
+
+	private void createPasswordUI(final Composite parent, boolean separator) {
+		Assert.isNotNull(parent);
+
+		if (separator) {
+			Label sep = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+			sep.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		}
+
+		Composite panel = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout(1, false);
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		panel.setLayout(layout);
+		panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+		passwordButton = new Button(panel, SWT.CHECK);
+		passwordButton.setLayoutData(new GridData(SWT.FILL, SWT.RIGHT, true, false));
+		passwordButton.setText(Messages.SshWizardConfigurationPanel_savePasword);
+	}
 }
