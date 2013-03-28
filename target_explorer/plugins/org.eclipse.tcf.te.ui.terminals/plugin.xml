@@ -130,15 +130,16 @@
                tooltip="%command.launch.tooltip">
                <visibleWhen checkEnabled="false">
                   <with variable="selection">
-                     <and>
+                     <count value="1"/>
+                     <iterate operator="and" ifEmpty="false">
                         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
                            <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Terminals"/>
-                        </adapt>                     
-                        <test
-                              forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.ui.terminals.hasApplicableLauncherDelegates"
-                              value="true"/>
-                     </and>
+                        </adapt>
+                     </iterate>
+                     <test
+                           forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.ui.terminals.hasApplicableLauncherDelegates"
+                           value="true"/>
                   </with>
                </visibleWhen>
          </command>
