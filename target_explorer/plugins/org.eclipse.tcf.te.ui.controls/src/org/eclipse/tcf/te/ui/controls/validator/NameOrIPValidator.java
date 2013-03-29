@@ -18,12 +18,12 @@ public class NameOrIPValidator extends Validator {
 	// regular expressions for validator
 	private static final String IP_CHARACTERS_REGEX = "[0-9\\.]+"; //$NON-NLS-1$
 	public static final String IP_REGEX = NameOrIPVerifyListener.IP_FRAGMENT_REGEX + "(\\." +  //$NON-NLS-1$
-		NameOrIPVerifyListener.IP_FRAGMENT_REGEX + "){3}"; //$NON-NLS-1$
+		NameOrIPVerifyListener.IP_FRAGMENT_REGEX + "){3}[ ]*"; //$NON-NLS-1$
 
 	// RFC 1034 - ftp://ftp.rfc-editor.org/in-notes/std/std13.txt
 	private static final String NAME_CHARACTERS_REGEX = "[0-9a-zA-Z\\-_\\.]+"; //$NON-NLS-1$
 	public static final String NAME_REGEX = NameOrIPVerifyListener.NAME_FRAGMENT_REGEX + "(\\." +  //$NON-NLS-1$
-		NameOrIPVerifyListener.NAME_FRAGMENT_REGEX + ")*"; //$NON-NLS-1$
+		NameOrIPVerifyListener.NAME_FRAGMENT_REGEX + ")*[ ]*"; //$NON-NLS-1$
 
 	// keys for info messages
 	public static final String INFO_MISSING_NAME_OR_IP = "NameOrIPValidator_Information_MissingNameOrIP"; //$NON-NLS-1$

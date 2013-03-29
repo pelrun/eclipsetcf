@@ -30,11 +30,11 @@ public class NameOrIPVerifyListener extends RegexVerifyListener {
 		"(" + NAME_FRAGMENT_REGEX + NAME_SEPERATOR_REGEX + "?)"; //$NON-NLS-1$ //$NON-NLS-2$
 	// multiple
 	public static final String OPEN_NAME_REGEX =
-		"((" + NAME_FRAGMENT_REGEX + "\\.)*" + OPEN_NAME_FRAGMENT_REGEX + "?)?"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		"((" + NAME_FRAGMENT_REGEX + "\\.)*" + OPEN_NAME_FRAGMENT_REGEX + "?)?[ ]*"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 	public static final String IP_FRAGMENT_REGEX = "([0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])"; //$NON-NLS-1$
-	public static final String OPEN_IP_REGEX = "((" + IP_FRAGMENT_REGEX + "?\\.){0,3}" + IP_FRAGMENT_REGEX + "?)?"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	public static final String OPEN_TIPC_REGEX = "((" + IP_FRAGMENT_REGEX + "?\\.){0,2}" + IP_FRAGMENT_REGEX + "?)?"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	public static final String OPEN_IP_REGEX = "((" + IP_FRAGMENT_REGEX + "?\\.){0,3}" + IP_FRAGMENT_REGEX + "?)?[ ]*"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	public static final String OPEN_TIPC_REGEX = "((" + IP_FRAGMENT_REGEX + "?\\.){0,2}" + IP_FRAGMENT_REGEX + "?)?[ ]*"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 	// arguments
 	public static final int ATTR_NAME = 1;
