@@ -319,6 +319,27 @@
                </with>
             </visibleWhen>
          </command>
+         <command
+               commandId="org.eclipse.ui.edit.rename"
+               helpContextId="org.eclipse.tcf.te.tcf.ui.command_Rename"
+               icon="icons/elcl16/rename.gif"
+               id="org.eclipse.tcf.te.tcf.ui.commands.rename"
+               label="%command.rename.label"
+               mnemonic="%command.rename.mnemonic"
+               style="push"
+               tooltip="%command.rename.tooltip">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
+                     </and>                        
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
 
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.categories">
@@ -357,27 +378,6 @@
       </menuContribution>
  
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.refresh">
-          <command
-                commandId="org.eclipse.ui.edit.rename"
-                helpContextId="org.eclipse.tcf.te.tcf.ui.command_Rename"
-                icon="icons/elcl16/rename.gif"
-                id="org.eclipse.tcf.te.tcf.ui.commands.rename"
-                label="%command.rename.label"
-                mnemonic="%command.rename.mnemonic"
-                style="push"
-                tooltip="%command.rename.tooltip">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <count value="1"/>
-                  <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
-                     </and>                        
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                label="%command.refresh.label"

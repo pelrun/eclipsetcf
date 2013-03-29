@@ -17,7 +17,6 @@
                   id="org.eclipse.tcf.te.ui.views.View#Popup"
                   allowsPlatformContributions="true">
                   <insertionPoint name="group.new" separator="true"/>
-                  <insertionPoint name="group.open"/>
                   <insertionPoint name="group.goto"/>
                   <insertionPoint name="group.expandto" separator="true"/>
                   <insertionPoint name="group.expand"/>

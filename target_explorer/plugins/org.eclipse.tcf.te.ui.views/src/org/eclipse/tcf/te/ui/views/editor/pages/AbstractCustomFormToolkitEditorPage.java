@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionManager;
+import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -252,17 +253,25 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected void createToolbarContributionItems(IToolBarManager manager) {
 		Assert.isNotNull(manager);
 
+		manager.add(new Separator("group.connect")); //$NON-NLS-1$
+		manager.add(new Separator("group.launch")); //$NON-NLS-1$
+		manager.add(new GroupMarker("group.launch.rundebug")); //$NON-NLS-1$
+		manager.add(new GroupMarker("group.launch.modes")); //$NON-NLS-1$
+		manager.add(new GroupMarker("group.launch.additions")); //$NON-NLS-1$
+		manager.add(new Separator("group.showIn")); //$NON-NLS-1$
+		manager.add(new Separator("group.save")); //$NON-NLS-1$
+
 		// If the page should have an apply button, add one to the toolbar
 		if (hasApplyAction()) {
-			manager.add(new Separator());
 			Action applyAction = doCreateApplyAction(getEditor());
 			if (applyAction != null) manager.add(applyAction);
 		}
 
+		manager.add(new Separator("group.help")); //$NON-NLS-1$
+
 		// If the page is associated with a context help id, add a default
 		// help action button into the toolbar
 		if (getContextHelpId() != null) {
-			manager.add(new Separator());
 			Action helpAction = doCreateHelpAction(getContextHelpId());
 			if (helpAction != null) manager.add(helpAction);
 		}

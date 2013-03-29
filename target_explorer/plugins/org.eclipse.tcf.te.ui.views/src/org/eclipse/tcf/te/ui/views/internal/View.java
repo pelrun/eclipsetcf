@@ -169,7 +169,11 @@ public class View extends CommonNavigator implements ITabbedPropertySheetPageCon
 				tbManager.appendToGroup("group.configure", new Separator("group.connect")); //$NON-NLS-1$ //$NON-NLS-2$
 				tbManager.appendToGroup("group.connect", new Separator("group.symbols.rd")); //$NON-NLS-1$ //$NON-NLS-2$
 				tbManager.appendToGroup("group.symbols.rd", new GroupMarker("group.symbols")); //$NON-NLS-1$ //$NON-NLS-2$
-				tbManager.appendToGroup("group.symbols", new Separator("group.refresh")); //$NON-NLS-1$ //$NON-NLS-2$
+				tbManager.appendToGroup("group.symbols", new Separator("group.launch")); //$NON-NLS-1$ //$NON-NLS-2$
+				tbManager.appendToGroup("group.launch", new GroupMarker("group.launch.rundebug")); //$NON-NLS-1$ //$NON-NLS-2$
+				tbManager.appendToGroup("group.launch.rundebug", new GroupMarker("group.launch.modes")); //$NON-NLS-1$ //$NON-NLS-2$
+				tbManager.appendToGroup("group.launch.modes", new GroupMarker("group.launch.additions")); //$NON-NLS-1$ //$NON-NLS-2$
+				tbManager.appendToGroup("group.launch.additions", new Separator("group.refresh")); //$NON-NLS-1$ //$NON-NLS-2$
 				tbManager.appendToGroup("group.refresh", new Separator(IWorkbenchActionConstants.MB_ADDITIONS)); //$NON-NLS-1$
 			}
 		}
