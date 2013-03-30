@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -212,7 +212,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 				IPeerModel[] peers = Model.getModel().getPeers();
 				if (peers != null && peers.length > 0) {
 					for (IPeerModel peer : peers) {
-						if (isProxyOrValueAdd(peer)) continue;
+						if (isValueAdd(peer)) continue;
 						Action action = new PeerAction(view, peer);
 						if (selectFirst) {
 							action.setChecked(true);
@@ -233,31 +233,29 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 	}
 
 	/**
-	 * Determines if the given peer model node is a proxy or a value-add.
+	 * Determines if the given peer model node is a value-add.
 	 *
 	 * @param peerModel The peer model node. Must not be <code>null</code>.
-	 * @return <code>True</code> if the peer model node is a proxy or value-add, <code>false</code> otherwise.
+	 * @return <code>True</code> if the peer model node is value-add, <code>false</code> otherwise.
 	 */
-	/* default */ final boolean isProxyOrValueAdd(final IPeerModel peerModel) {
+	/* default */ final boolean isValueAdd(final IPeerModel peerModel) {
 		Assert.isNotNull(peerModel);
-		final AtomicBoolean isProxyOrValueAdd = new AtomicBoolean();
+		final AtomicBoolean isValueAdd = new AtomicBoolean();
 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				boolean isProxy = peerModel.getPeer().getAttributes().containsKey("Proxy"); //$NON-NLS-1$
-
 				String value = peerModel.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
-				boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+				boolean isValueAddValue = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
-				isProxyOrValueAdd.set(isProxy || isValueAdd);
+				isValueAdd.set(isValueAddValue);
 			}
 		};
 
 		if (Protocol.isDispatchThread()) runnable.run();
 		else Protocol.invokeAndWait(runnable);
 
-		return isProxyOrValueAdd.get();
+		return isValueAdd.get();
 	}
 
 }

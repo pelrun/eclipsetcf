@@ -95,20 +95,18 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	}
 
 	/**
-	 * Determines if the given peer model node is a proxy or a value-add.
+	 * Determines if the given peer model node is a value-add.
 	 *
 	 * @param peerModel The peer model node. Must not be <code>null</code>.
-	 * @return <code>True</code> if the peer model node is a proxy or value-add, <code>false</code> otherwise.
+	 * @return <code>True</code> if the peer model node is a value-add, <code>false</code> otherwise.
 	 */
-	/* default */ final boolean isProxyOrValueAdd(IPeerModel peerModel) {
+	/* default */ final boolean isValueAdd(IPeerModel peerModel) {
 		Assert.isNotNull(peerModel);
-
-		boolean isProxy = peerModel.getPeer().getAttributes().containsKey("Proxy"); //$NON-NLS-1$
 
 		String value = peerModel.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
 		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
-		return isProxy || isValueAdd;
+		return isValueAdd;
 	}
 
 	/**
@@ -122,7 +120,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 
 		boolean filtered = false;
 
-		filtered |= isProxyOrValueAdd(peerModel) && UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_HIDE_PROXIES_AND_VALUEADDS);
+		filtered |= isValueAdd(peerModel) && UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_HIDE_PROXIES_AND_VALUEADDS);
 		if (!showInvisible) {
 			filtered |= !peerModel.isVisible();
 		}
@@ -208,7 +206,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 					boolean isMyTargets = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
 					if (!isMyTargets && (isStatic || startedByCurrentUser)) {
 						// "Value-add's" are not saved to the category persistence automatically
-						if (isProxyOrValueAdd(peer)) {
+						if (isValueAdd(peer)) {
 							Managers.getCategoryManager().addTransient(catID, categorizable.getId());
 						} else {
 							Managers.getCategoryManager().add(catID, categorizable.getId());
