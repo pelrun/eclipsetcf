@@ -317,6 +317,9 @@ public class LocatorListener implements ILocator.LocatorListener {
 				        if (remotePeer instanceof AbstractPeer) ((AbstractPeer)remotePeer).dispose();
 					}
 
+					// Clean out possible child nodes
+					peerNode.getModel().setChildren(peerNode.getPeerId(), null);
+
 					if (changed) peerNode.setChangeEventsEnabled(true);
 					peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, peer, peerNode.getPeer());
 

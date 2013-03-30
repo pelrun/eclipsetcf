@@ -435,6 +435,9 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			if (model != null) {
 				ILocatorModelUpdateService updateService = model.getService(ILocatorModelUpdateService.class);
 				updateService.updatePeerServices(peerNode, null, null);
+
+				// Clean out possible child nodes
+				model.setChildren(peerNode.getPeerId(), null);
 			}
 
 			// Clean out DNS name detection
