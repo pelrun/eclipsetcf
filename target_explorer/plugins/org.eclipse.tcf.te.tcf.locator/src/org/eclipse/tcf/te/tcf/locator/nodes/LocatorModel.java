@@ -591,11 +591,35 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		if (parentAgentID != null && parentAgentID.equals(peer.getAgentID())) {
 			return null;
 		}
-		// If the child peer's IP address appears to be the address of the
-		// localhost, drop the child peer
-//		if (peer.getAttributes().get(IPeer.ATTR_IP_HOST) != null && IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST))) {
-//			return null;
-//		}
+		// If the child peer represents the same agent as another child peer,
+		// drop the child peer
+		String agentID = node.getPeer().getAgentID();
+		if (agentID != null) {
+			IPeerModel[] matches = getService(ILocatorModelLookupService.class).lkupPeerModelByAgentId(parent.getPeerId(), agentID);
+			for (IPeerModel match : matches) {
+				if (agentID.equals(match.getPeer().getAgentID())) {
+					// Try to keep the peer with the real IP, filter the "127.0.0.1" peer
+					if ("127.0.0.1".equals(node.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST)) //$NON-NLS-1$
+							&& !"127.0.0.1".equals(match.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST))) { //$NON-NLS-1$
+						// Keep the other child node
+						return null;
+					}
+
+					if (!"127.0.0.1".equals(node.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST)) //$NON-NLS-1$
+							&& "127.0.0.1".equals(match.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST))) { //$NON-NLS-1$
+						// Keep the node
+						getService(ILocatorModelUpdateService.class).removeChild(match);
+					}
+
+					// If both nodes have a IP different from "127.0.0.1", keep the first node
+					if (!"127.0.0.1".equals(node.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST)) //$NON-NLS-1$
+							&& !"127.0.0.1".equals(match.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST))) { //$NON-NLS-1$
+						// Keep the other child node
+						return null;
+					}
+				}
+			}
+		}
 		// If the child peer's IP address and port are the same as the parent's
 		// IP address and port, drop the child node
 		Map<String, String> parentPeerAttributes = parent.getPeer().getAttributes();
