@@ -17,6 +17,16 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * TCF Profiler service interface.
+ *
+ * The service itself does not implement profiling, it manages creation/disposal of
+ * profiler instances and communications between clients and profilers.
+ * The service API is generic and it is supposed to support any kind of profiling and tracing.
+ * A TCF agent can optionally include a profiler. The profiler would register itself with the service.
+ * A client starts profiling by sending profiler configuration data for a debug context.
+ * Multiple different profilers can be active at same debug context at same time.
+ * If a client has started profiling, it is expected to read and process profiling data periodically.
+ * Profiling data format is a contract between the profiler and its clients,
+ * the service does not try to interpret the data.
  */
 public interface IProfiler extends IService {
 
