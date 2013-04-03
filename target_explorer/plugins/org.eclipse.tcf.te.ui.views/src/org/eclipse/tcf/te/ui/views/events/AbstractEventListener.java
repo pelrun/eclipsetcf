@@ -24,6 +24,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNodeProvider;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
@@ -126,14 +127,38 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 		if (scheduled) {
 			scheduleRefreshJob(node != null ? node : viewer, viewer);
 		} else {
-			if (node != null) {
-				viewer.refresh(node);
-			} else {
-				viewer.refresh();
-			}
+			refresh(viewer, node);
+		}
+	}
 
-			// Trigger a selection changed event if needed
-			triggerSelectionChanged(viewer, node);
+	/**
+	 * Check for the viewer busy state and fire the refresh asynchronously
+	 * if needed.
+	 *
+	 * @param viewer The viewer. Must not be <code>null</code>.
+	 * @param node The node to refresh or <code>null</code>.
+	 */
+	private void refresh(final CommonViewer viewer, final Object node) {
+		Assert.isNotNull(viewer);
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (node != null) {
+					viewer.refresh(node);
+				} else {
+					viewer.refresh();
+				}
+
+				// Trigger a selection changed event if needed
+				triggerSelectionChanged(viewer, node);
+			}
+		};
+
+		if (viewer.isBusy()) {
+			DisplayUtil.safeAsyncExec(runnable);
+		} else {
+			runnable.run();
 		}
 	}
 
