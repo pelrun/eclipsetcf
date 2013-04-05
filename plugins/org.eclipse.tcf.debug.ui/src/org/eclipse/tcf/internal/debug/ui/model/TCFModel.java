@@ -352,7 +352,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 if (node instanceof TCFNodeExecContext) {
                     ((TCFNodeExecContext)node).onContextChanged(ctx);
                 }
-                onMemoryChanged(id, true, false);
+                onMemoryChanged(id, true, false, false);
             }
         }
 
@@ -365,7 +365,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             if (node instanceof TCFNodeExecContext) {
                 ((TCFNodeExecContext)node).onMemoryChanged(addr, size);
             }
-            onMemoryChanged(id, true, false);
+            onMemoryChanged(id, true, false, false);
         }
     };
 
@@ -396,7 +396,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 if (!id.equals(context) && node instanceof TCFNodeExecContext) {
                     ((TCFNodeExecContext)node).onContainerSuspended(func_call);
                 }
-                onMemoryChanged(id, false, true);
+                onMemoryChanged(id, false, true, false);
             }
             TCFNode node = getNode(context);
             if (node instanceof TCFNodeExecContext) {
@@ -436,7 +436,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 if (node instanceof TCFNodeExecContext) {
                     ((TCFNodeExecContext)node).onContextChanged(ctx);
                 }
-                onMemoryChanged(id, true, false);
+                onMemoryChanged(id, true, false, false);
                 if (active_actions.get(id) == null) {
                     TCFNodePropertySource.refresh(node);
                 }
@@ -480,7 +480,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 updateAnnotations(null);
                 TCFNodePropertySource.refresh(node);
             }
-            onMemoryChanged(id, false, true);
+            onMemoryChanged(id, false, true, false);
         }
     };
 
@@ -492,7 +492,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 TCFNodeExecContext exe = (TCFNodeExecContext)node;
                 exe.onMemoryMapChanged();
             }
-            onMemoryChanged(id, true, false);
+            onMemoryChanged(id, true, false, true);
             refreshSourceView();
         }
     };
@@ -875,7 +875,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         Activator.log(bf.toString(), x);
     }
 
-    void onMemoryChanged(String id, boolean notify_references, boolean context_suspended) {
+    void onMemoryChanged(String id, boolean notify_references, boolean context_suspended, boolean mem_map) {
         if (channel == null) return;
         if (notify_references) {
             for (Object obj : context_map.values()) {
@@ -884,7 +884,12 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     if (id.equals(subctx.getProcessID()) && !id.equals(subctx.getID())) {
                         TCFNode subnode = getNode(subctx.getID());
                         if (subnode instanceof TCFNodeExecContext) {
-                            ((TCFNodeExecContext)subnode).onMemoryChanged(null, null);
+                            if (mem_map) {
+                                ((TCFNodeExecContext)subnode).onMemoryMapChanged();
+                            }
+                            else {
+                                ((TCFNodeExecContext)subnode).onMemoryChanged(null, null);
+                            }
                         }
                     }
                 }
