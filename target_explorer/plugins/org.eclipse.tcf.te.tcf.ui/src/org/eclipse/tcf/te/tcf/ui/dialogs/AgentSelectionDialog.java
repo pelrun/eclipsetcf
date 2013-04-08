@@ -181,7 +181,7 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 		Assert.isNotNull(parent);
 
 		showOnlyReachable = new Button(parent, SWT.CHECK);
-		SWTControlUtil.setText(showOnlyReachable, Messages.AgentSelectionDialog_button_showOnlyReachable);
+		SWTControlUtil.setText(showOnlyReachable, getShowOnlyReachableLabel());
 		SWTControlUtil.setSelection(showOnlyReachable, true);
 		showOnlyReachable.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -190,6 +190,15 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 				updateEnablement(viewer);
 			}
 		});
+	}
+
+	/**
+	 * Returns the label of the "Show only reachable targets" filter button.
+	 *
+	 * @return The label.
+	 */
+	protected String getShowOnlyReachableLabel() {
+		return Messages.AgentSelectionDialog_button_showOnlyReachable;
 	}
 
 	/* (non-Javadoc)
