@@ -145,6 +145,7 @@ public class Messages extends NLS {
 	public static String AgentSelectionDialog_dialogTitle;
 	public static String AgentSelectionDialog_title;
 	public static String AgentSelectionDialog_message;
+	public static String AgentSelectionDialog_button_showOnlyReachable;
 
 	public static String RedirectHandler_error_title;
 	public static String RedirectHandler_error_redirectFailed;

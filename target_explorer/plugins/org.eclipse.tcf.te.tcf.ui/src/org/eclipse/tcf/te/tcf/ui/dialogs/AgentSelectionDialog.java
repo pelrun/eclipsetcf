@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.ui.dialogs;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -24,7 +25,11 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -33,8 +38,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
@@ -51,7 +58,10 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	/* default */ final String[] services;
 
 	// The table viewer
-	TableViewer viewer;
+	/* default */ TableViewer viewer;
+
+	// Button to filter non-reachable targets
+	/* default */ Button showOnlyReachable;
 
 	// The selection. Will be filled in if either "OK" or "Cancel" is pressed
 	private ISelection selection;
@@ -135,6 +145,9 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	    };
 	    viewer.setLabelProvider(new DecoratingLabelProvider(labelProvider, labelProvider));
 
+	    // Create the filter buttons area
+	    createFilterButtons(top);
+
 	    // Subclasses may customize the viewer before setting the input
 	    configureTableViewer(viewer);
 
@@ -158,18 +171,48 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	    return top;
 	}
 
+	/**
+	 * Creates a set of filter buttons in between the main dialog area
+	 * and the button bar.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 */
+	protected void createFilterButtons(Composite parent) {
+		Assert.isNotNull(parent);
+
+		showOnlyReachable = new Button(parent, SWT.CHECK);
+		SWTControlUtil.setText(showOnlyReachable, Messages.AgentSelectionDialog_button_showOnlyReachable);
+		SWTControlUtil.setSelection(showOnlyReachable, true);
+		showOnlyReachable.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				viewer.refresh();
+				updateEnablement(viewer);
+			}
+		});
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.dialogs.TrayDialog#createButtonBar(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
 	protected Control createButtonBar(Composite parent) {
 	    Control buttonBar = super.createButtonBar(parent);
+	    updateEnablement(viewer);
+	    return buttonBar;
+	}
+
+	/**
+	 * Update the enablement of the dialog widgets.
+	 *
+	 * @param viewer The table viewer. Must not be <code>null</code>.
+	 */
+	protected void updateEnablement(TableViewer viewer) {
+		Assert.isNotNull(viewer);
 
 	    // Adjust the OK button enablement
 	    Button okButton = getButton(IDialogConstants.OK_ID);
-	    SWTControlUtil.setEnabled(okButton, viewer.getInput() != null && ((IPeerModel[])viewer.getInput()).length > 0);
-
-	    return buttonBar;
+	    SWTControlUtil.setEnabled(okButton, viewer.getTable().getItems().length > 0);
 	}
 
 	/**
@@ -182,6 +225,33 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	 */
 	protected void configureTableViewer(TableViewer viewer) {
 		Assert.isNotNull(viewer);
+
+		viewer.addFilter(new ViewerFilter() {
+
+			@Override
+			public boolean select(Viewer viewer, Object parentElement, final Object element) {
+				if (element instanceof IPeerModel) {
+					final AtomicInteger state = new AtomicInteger(IPeerModelProperties.STATE_UNKNOWN);
+
+					Runnable runnable = new Runnable() {
+						@Override
+						public void run() {
+							state.set(((IPeerModel)element).getIntProperty(IPeerModelProperties.PROP_STATE));
+						}
+					};
+
+					if (Protocol.isDispatchThread()) runnable.run();
+					else Protocol.invokeAndWait(runnable);
+
+					boolean isShowOnlyReachable = SWTControlUtil.getSelection(showOnlyReachable);
+					if (isShowOnlyReachable) {
+						return state.get() == IPeerModelProperties.STATE_CONNECTED || state.get() == IPeerModelProperties.STATE_REACHABLE || state.get() == IPeerModelProperties.STATE_WAITING_FOR_READY;
+					}
+				}
+
+				return true;
+			}
+		});
 	}
 
 	/**
