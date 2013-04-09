@@ -74,19 +74,19 @@ public class RenameDialog extends CustomTitleAreaDialog {
 		this.newName = this.oldName;
 	}
 
-	/*(non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.dialogs.CustomTitleAreaDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected Control createDialogArea(Composite parent) {
+	protected void createDialogAreaContent(Composite parent) {
+	    super.createDialogAreaContent(parent);
+
 		setDialogTitle(dialogTitle);
 		setTitle(title);
 		setDefaultMessage(defaultMessage, IMessageProvider.INFORMATION);
 
-		//set margins of dialog and apply dialog font
-		Composite container = (Composite) super.createDialogArea(parent);
 		//we need two columns
-		Composite comp = new Composite(container, SWT.NONE);
+		Composite comp = new Composite(parent, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
 		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -112,9 +112,7 @@ public class RenameDialog extends CustomTitleAreaDialog {
 			}
 		});
 
-		applyDialogFont(container);
-
-		return container;
+		applyDialogFont(comp);
 	}
 
 	/* (non-Javadoc)

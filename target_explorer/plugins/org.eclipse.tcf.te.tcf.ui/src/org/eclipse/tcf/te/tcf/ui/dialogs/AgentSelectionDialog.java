@@ -107,18 +107,18 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected Control createDialogArea(Composite parent) {
-	    Composite top = (Composite)super.createDialogArea(parent);
+	protected void createDialogAreaContent(Composite parent) {
+	    super.createDialogAreaContent(parent);
 
 		setDialogTitle(getDialogTitle());
 		setTitle(getTitle());
 		setDefaultMessage(getDefaultMessage(), IMessageProvider.NONE);
 
 	    // Create the table viewer
-	    viewer = new TableViewer(top, (supportsMultiSelection() ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER);
+	    viewer = new TableViewer(parent, (supportsMultiSelection() ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER);
 
 	    // Configure the table
 	    Table table = viewer.getTable();
@@ -146,7 +146,7 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	    viewer.setLabelProvider(new DecoratingLabelProvider(labelProvider, labelProvider));
 
 	    // Create the filter buttons area
-	    createFilterButtons(top);
+	    createFilterButtons(parent);
 
 	    // Subclasses may customize the viewer before setting the input
 	    configureTableViewer(viewer);
@@ -167,8 +167,6 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 				}
 			}
 		});
-
-	    return top;
 	}
 
 	/**

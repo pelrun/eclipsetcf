@@ -78,20 +78,19 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected Control createDialogArea(Composite parent) {
+	protected void createDialogAreaContent(Composite parent) {
+	    super.createDialogAreaContent(parent);
+
 		// Set dialog title and default message
 		setDialogTitle(modeNew ? Messages.AddEditFileTransferDialog_add_dialogTitle :  Messages.AddEditFileTransferDialog_edit_dialogTitle);
 		setTitle(modeNew ? Messages.AddEditFileTransferDialog_add_title :  Messages.AddEditFileTransferDialog_edit_title);
 		setDefaultMessage(modeNew ? Messages.AddEditFileTransferDialog_add_message :  Messages.AddEditFileTransferDialog_edit_message, IMessageProvider.INFORMATION);
 
-		// Get the parent container composite
-		Composite container = (Composite) super.createDialogArea(parent);
-
 		// Create the inner panel
-		Composite panel = new Composite(container, SWT.NULL);
+		Composite panel = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout(2, false);
 		layout.marginHeight = 0; layout.marginWidth = 0;
 		panel.setLayout(layout);
@@ -207,9 +206,7 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 		options.setupPanel(panel);
 		options.doCreateControlDecoration(target.getEditFieldControl());
 
-		applyDialogFont(container);
-
-		return container;
+		applyDialogFont(panel);
 	}
 
 	@Override

@@ -75,16 +75,15 @@ public class SerialPortAddressDialog extends CustomTitleAreaDialog {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.dialogs.CustomTitleAreaDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected Control createDialogArea(Composite parent) {
+	protected void createDialogAreaContent(Composite parent) {
+	    super.createDialogAreaContent(parent);
+
 		setDialogTitle(Messages.SerialLinePanel_customSerialDevice_title);
 
-		//set margins of dialog and apply dialog font
-		Composite container = (Composite) super.createDialogArea(parent);
-
-		Composite ttyComp = new Composite(container, SWT.NONE);
+		Composite ttyComp = new Composite(parent, SWT.NONE);
 		GridLayout gl = new GridLayout();
 		ttyComp.setLayout(gl);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -125,7 +124,7 @@ public class SerialPortAddressDialog extends CustomTitleAreaDialog {
 			}
 		});
 
-		Composite tcpComp = new Composite(container, SWT.NONE);
+		Composite tcpComp = new Composite(parent, SWT.NONE);
 		gl = new GridLayout(4, true);
 		tcpComp.setLayout(gl);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -239,11 +238,10 @@ public class SerialPortAddressDialog extends CustomTitleAreaDialog {
 		                              Messages.SerialPortAddressDialog_Error_InvalidPortRange);
 		portControl.setEditFieldValidator(portValidator);
 
-		applyDialogFont(container);
+		applyDialogFont(ttyComp);
+		applyDialogFont(tcpComp);
 
 		setupData();
-
-		return container;
 	}
 
 	private void setupData() {

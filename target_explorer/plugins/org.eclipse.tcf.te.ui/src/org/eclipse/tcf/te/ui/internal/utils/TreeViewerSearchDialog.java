@@ -30,7 +30,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
@@ -180,15 +179,14 @@ public class TreeViewerSearchDialog extends CustomTitleAreaDialog implements ISe
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
 	 */
-    @Override
-	protected Control createDialogArea(Composite parent) {
-		// Create the main container
-		Composite composite = (Composite) super.createDialogArea(parent);
-		Composite container = new Composite(composite, SWT.NONE);
+	@Override
+	protected void createDialogAreaContent(Composite parent) {
+	    super.createDialogAreaContent(parent);
+
+	    Composite container = new Composite(parent, SWT.NONE);
 		container.setLayout(new GridLayout());
 		container.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -204,8 +202,6 @@ public class TreeViewerSearchDialog extends CustomTitleAreaDialog implements ISe
 		String title = fSearchable.getSearchTitle();
 		getShell().setText(title);
 		this.setTitle(title);
-
-		return composite;
 	}
 
     /**
