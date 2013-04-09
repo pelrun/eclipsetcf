@@ -19,8 +19,8 @@ import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperManager;
+import org.eclipse.tcf.te.runtime.stepper.context.AbstractStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroup;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
@@ -34,12 +34,14 @@ import org.eclipse.tcf.te.tests.stepper.steps.TestStep;
  */
 public class StepperTests extends CoreTestCase {
 
-	protected static class TestStepContext implements IStepContext {
+	protected static class TestStepContext extends AbstractStepContext {
 
-		@Override
-		public Object getAdapter(Class adapter) {
-			return null;
-		}
+		/**
+         * Constructor.
+         */
+        public TestStepContext(Object contextObject) {
+        	super(contextObject);
+        }
 
 		@Override
 		public String getId() {
@@ -47,25 +49,9 @@ public class StepperTests extends CoreTestCase {
 		}
 
 		@Override
-		public String getSecondaryId() {
-			return null;
-		}
-
-		@Override
 		public String getName() {
 			return "TestStepContext"; //$NON-NLS-1$
 		}
-
-		@Override
-		public Object getContextObject() {
-			return this;
-		}
-
-		@Override
-		public String getInfo(IPropertiesContainer data) {
-			return getName();
-		}
-
 	}
 
 	/**
@@ -181,7 +167,7 @@ public class StepperTests extends CoreTestCase {
 				assertNull("Unexpected non-null value.", stepGroup.getStepGroupIterator()); //$NON-NLS-1$
 
 				try {
-					steps = stepGroup.getSteps(new TestStepContext());
+					steps = stepGroup.getSteps(new TestStepContext(this));
 				} catch (CoreException e) {
 					error = e;
 					message = e.getLocalizedMessage();
@@ -199,7 +185,7 @@ public class StepperTests extends CoreTestCase {
 
 				error = null; message = null; steps = null;
 				try {
-					steps = stepGroup.getSteps(new TestStepContext());
+					steps = stepGroup.getSteps(new TestStepContext(this));
 				} catch (CoreException e) {
 					error = e;
 					message = e.getLocalizedMessage();
@@ -217,7 +203,7 @@ public class StepperTests extends CoreTestCase {
 
 				error = null; message = null; steps = null;
 				try {
-					steps = stepGroup.getSteps(new TestStepContext());
+					steps = stepGroup.getSteps(new TestStepContext(this));
 				} catch (CoreException e) {
 					error = e;
 					message = e.getLocalizedMessage();
@@ -241,7 +227,7 @@ public class StepperTests extends CoreTestCase {
 
 				error = null; message = null; steps = null;
 				try {
-					steps = stepGroup.getSteps(new TestStepContext());
+					steps = stepGroup.getSteps(new TestStepContext(this));
 				} catch (CoreException e) {
 					error = e;
 					message = e.getLocalizedMessage();
@@ -257,7 +243,7 @@ public class StepperTests extends CoreTestCase {
 
 				error = null; message = null; steps = null;
 				try {
-					steps = stepGroup.getSteps(new TestStepContext());
+					steps = stepGroup.getSteps(new TestStepContext(this));
 				} catch (CoreException e) {
 					error = e;
 					message = e.getLocalizedMessage();
@@ -283,7 +269,7 @@ public class StepperTests extends CoreTestCase {
 		IPropertiesContainer properties = new PropertiesContainer();
 
 		// Initialize the stepper
-		stepper.initialize(new TestStepContext(), "org.eclipse.tcf.te.tests.stepper.stepGroup4", properties, null); //$NON-NLS-1$
+		stepper.initialize(new TestStepContext(this), "org.eclipse.tcf.te.tests.stepper.stepGroup4", properties, null); //$NON-NLS-1$
 
 		ExecutorsUtil.execute(new Runnable() {
 			@Override

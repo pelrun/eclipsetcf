@@ -32,8 +32,8 @@ import org.eclipse.tcf.te.launch.ui.tabs.AbstractLaunchConfigurationTab;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.dialogs.FSOpenFileDialog;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.IRemoteAppLaunchAttributes;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
+import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.ui.forms.IManagedForm;
@@ -196,27 +196,27 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 		Assert.isNotNull(configuration);
 
 		if (processImage != null) {
-			String image = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, ""); //$NON-NLS-1$
+			String image = DefaultPersistenceDelegate.getAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, ""); //$NON-NLS-1$
 			processImage.setEditFieldControlText(image);
 		}
 
 		if (processArguments != null) {
-			String arguments = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, ""); //$NON-NLS-1$
+			String arguments = DefaultPersistenceDelegate.getAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS, ""); //$NON-NLS-1$
 			processArguments.setEditFieldControlText(arguments);
 		}
 
 		if (stopAtEntry != null) {
-			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY, false);
+			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IProcessesStepAttributes.ATTR_STOP_AT_ENTRY, false);
 			stopAtEntry.setSelection(selected);
 		}
 
 		if (stopAtMain != null) {
-			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, false);
+			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IProcessesStepAttributes.ATTR_STOP_AT_MAIN, false);
 			stopAtMain.setSelection(selected);
 		}
 
 		if (attachChildren != null) {
-			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, false);
+			boolean selected = DefaultPersistenceDelegate.getAttribute(configuration, IProcessesStepAttributes.ATTR_ATTACH_CHILDREN, false);
 			attachChildren.setSelection(selected);
 		}
 	}
@@ -232,36 +232,36 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 			String image = processImage.getEditFieldControlText();
 
 			if (image != null && image.trim().length() > 0) {
-				DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, image);
+				DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, image);
 			} else {
-				DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, (String)null);
+				DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, (String)null);
 			}
 		} else {
-			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, (String)null);
+			DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, (String)null);
 		}
 
 		if (processArguments != null) {
 			String arguments = processArguments.getEditFieldControlText();
 
 			if (arguments != null && arguments.trim().length() > 0) {
-				DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, arguments);
+				DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS, arguments);
 			} else {
-				DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, (String)null);
+				DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS, (String)null);
 			}
 		} else {
-			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, (String)null);
+			DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS, (String)null);
 		}
 
 		if (stopAtEntry != null) {
-			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY, stopAtEntry.getSelection());
+			DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_STOP_AT_ENTRY, stopAtEntry.getSelection());
 		}
 
 		if (stopAtMain != null) {
-			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, stopAtMain.getSelection());
+			DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_STOP_AT_MAIN, stopAtMain.getSelection());
 		}
 
 		if (attachChildren != null) {
-			DefaultPersistenceDelegate.setAttribute(configuration, IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, attachChildren.getSelection());
+			DefaultPersistenceDelegate.setAttribute(configuration, IProcessesStepAttributes.ATTR_ATTACH_CHILDREN, attachChildren.getSelection());
 		}
 	}
 

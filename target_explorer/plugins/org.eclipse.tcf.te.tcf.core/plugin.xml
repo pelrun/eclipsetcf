@@ -10,4 +10,18 @@
       <class name="org.eclipse.tcf.te.tcf.core.internal.Startup"/>
    </extension>
 
+<!-- Launch Step contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
+      <step
+            id="org.eclipse.tcf.te.tcf.core.openChannelStep"
+            class="org.eclipse.tcf.te.tcf.core.steps.OpenChannelStep"
+            label="%OpenChannelStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.core.closeChannelStep"
+            class="org.eclipse.tcf.te.tcf.core.steps.CloseChannelStep"
+            label="%CloseChannelStep.name">
+         <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
+      </step>
+   </extension>
+
 </plugin>

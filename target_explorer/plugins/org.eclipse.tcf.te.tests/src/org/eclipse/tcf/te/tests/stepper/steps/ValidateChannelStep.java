@@ -16,10 +16,10 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
-import org.eclipse.tcf.te.runtime.stepper.extensions.AbstractStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.tcf.locator.interfaces.steps.IStepProperties;
+import org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep;
+import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 
 /**
  * Get the channel and validate that the channel is open
@@ -38,8 +38,8 @@ public class ValidateChannelStep extends AbstractStep {
 	 */
 	@Override
 	public void execute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
-		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(IStepProperties.ATTR_CHANNEL, fullQualifiedId, data);
-		data.setProperty(IStepProperties.ATTR_CHANNEL, channel);
+		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+		data.setProperty(ITcfStepAttributes.ATTR_CHANNEL, channel);
 		if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 			data.setProperty("ValidateChannelStep.result", true); //$NON-NLS-1$
 		}

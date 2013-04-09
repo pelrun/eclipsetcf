@@ -14,13 +14,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.tcf.te.launch.core.lm.interfaces.IFileTransferLaunchAttributes;
 import org.eclipse.tcf.te.launch.core.persistence.filetransfer.FileTransfersPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.steps.IFileSystemStepAttributes;
 import org.eclipse.tcf.te.tcf.launch.core.activator.CoreBundleActivator;
 
 /**
@@ -29,7 +29,6 @@ import org.eclipse.tcf.te.tcf.launch.core.activator.CoreBundleActivator;
 public class FileTransferIterator extends AbstractTcfLaunchStepGroupIterator {
 
 	private IFileTransferItem[] items = null;
-	private int iteration = -1;
 
 	/**
 	 * Constructor.
@@ -43,8 +42,8 @@ public class FileTransferIterator extends AbstractTcfLaunchStepGroupIterator {
 	 */
 	@Override
 	public void initialize(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) {
+		super.initialize(context, data, fullQualifiedId, monitor);
 		items = FileTransfersPersistenceDelegate.getFileTransfers(getLaunchConfiguration(context));
-		iteration = 0;
 	}
 
 	/* (non-Javadoc)
@@ -56,24 +55,18 @@ public class FileTransferIterator extends AbstractTcfLaunchStepGroupIterator {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupIterator#hasNext(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
-	 */
-	@Override
-	public boolean hasNext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) {
-		return iteration < getNumIterations();
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupIterator#next(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
 	public void next(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
-		if (iteration < 0) {
+		if (getIteration() < 0) {
 			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "iterator not initialized")); //$NON-NLS-1$
 		}
-		if (iteration >= getNumIterations()) {
+		if (getIteration() >= getNumIterations()) {
 			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "no more iterations")); //$NON-NLS-1$
 		}
-		StepperAttributeUtil.setProperty(IFileTransferLaunchAttributes.ATTR_ACTIVE_FILE_TRANSFER, fullQualifiedId, data, items[iteration++]);
+		StepperAttributeUtil.setProperty(IFileSystemStepAttributes.ATTR_FILE_TRANSFER_ITEM, fullQualifiedId, data, items[getIteration()]);
+
+		super.next(context, data, fullQualifiedId, monitor);
 	}
 }

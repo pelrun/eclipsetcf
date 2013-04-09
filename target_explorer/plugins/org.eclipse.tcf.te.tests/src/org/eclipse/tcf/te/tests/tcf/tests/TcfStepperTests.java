@@ -20,7 +20,7 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
 import org.eclipse.tcf.te.runtime.stepper.stepper.Stepper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.steps.IStepProperties;
+import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
 
 /**
@@ -71,7 +71,7 @@ public class TcfStepperTests extends TcfTestCase {
 		// Wait for the stepper to be finished
 		assertFalse("Timeout executing step group", ExecutorsUtil.waitAndExecute(0, new IStepper.ExecutionFinishedConditionTester(stepper))); //$NON-NLS-1$
 
-		IChannel channel = (IChannel)properties.getProperty(IStepProperties.ATTR_CHANNEL);
+		IChannel channel = (IChannel)properties.getProperty(ITcfStepAttributes.ATTR_CHANNEL);
 		assertNotNull("Failed to create channel.", channel); //$NON-NLS-1$
 		assertTrue("Failed to open channel.", properties.getBooleanProperty("ValidateChannelStep.result")); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue("Failed to close channel.", channel.getState() == IChannel.STATE_CLOSED); //$NON-NLS-1$

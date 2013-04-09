@@ -41,7 +41,7 @@ import org.eclipse.tcf.te.runtime.services.filetransfer.FileTransferItem;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.IRemoteAppLaunchAttributes;
+import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
 
 /**
  * RemoteAppLaunchManagerDelegate
@@ -50,7 +50,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 
 	private static final String[] MANDATORY_CONFIG_ATTRIBUTES = new String[] {
 		ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS,
-		IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE
+		IProcessesStepAttributes.ATTR_PROCESS_IMAGE
 	};
 
 	/**
@@ -67,8 +67,8 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	public void initLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.initLaunchConfigAttributes(wc, launchSpec);
 
-		wc.setAttribute(IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN, true);
-		wc.setAttribute(IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN, true);
+		wc.setAttribute(IProcessesStepAttributes.ATTR_STOP_AT_MAIN, true);
+		wc.setAttribute(IProcessesStepAttributes.ATTR_ATTACH_CHILDREN, true);
 		try {
 			wc.setAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, CdtUtils.getDefaultSourceLookupDirector().getMemento());
 			IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchSpec);
@@ -103,7 +103,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 				FileTransfersPersistenceDelegate.setFileTransfers(wc, transfers.toArray(new IFileTransferItem[transfers.size()]));
 				ReferencedProjectsPersistenceDelegate.setReferencedProjects(wc, projects.toArray(new IReferencedProjectItem[projects.size()]));
 				if (processPath != null && processPath.trim().length() > 0) {
-					DefaultPersistenceDelegate.setAttribute(wc, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, processPath);
+					DefaultPersistenceDelegate.setAttribute(wc, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, processPath);
 				}
 			}
 			else {
@@ -113,8 +113,8 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 
 				FileTransfersPersistenceDelegate.setFileTransfers(wc, transfers.toArray(new IFileTransferItem[transfers.size()]));
 				ReferencedProjectsPersistenceDelegate.setReferencedProjects(wc, projects.toArray(new IReferencedProjectItem[projects.size()]));
-				if (processPath != null && processPath.trim().length() > 0 && !DefaultPersistenceDelegate.hasAttribute(wc, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE)) {
-					DefaultPersistenceDelegate.setAttribute(wc, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, processPath);
+				if (processPath != null && processPath.trim().length() > 0 && !DefaultPersistenceDelegate.hasAttribute(wc, IProcessesStepAttributes.ATTR_PROCESS_IMAGE)) {
+					DefaultPersistenceDelegate.setAttribute(wc, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, processPath);
 				}
 			}
 		}
@@ -150,7 +150,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 
 			FileTransfersPersistenceDelegate.setFileTransfers(launchSpec, transfers.toArray(new IFileTransferItem[transfers.size()]));
 			ReferencedProjectsPersistenceDelegate.setReferencedProjects(launchSpec, projects.toArray(new IReferencedProjectItem[projects.size()]));
-			launchSpec.addAttribute(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, processPath);
+			launchSpec.addAttribute(IProcessesStepAttributes.ATTR_PROCESS_IMAGE, processPath);
 
 			launchSpec.setLaunchConfigName(getDefaultLaunchName(launchSpec));
 		}
@@ -164,7 +164,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	@Override
 	public String getDefaultLaunchName(ILaunchSpecification launchSpec) {
 		IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchSpec);
-		String processPath = (String)launchSpec.getAttribute(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, null);
+		String processPath = (String)launchSpec.getAttribute(IProcessesStepAttributes.ATTR_PROCESS_IMAGE, null);
 		String name = getDefaultLaunchName((contexts != null && contexts.length > 0 ? contexts[0] : null), processPath);
 		return name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchSpec);
 	}
@@ -175,7 +175,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	@Override
 	public String getDefaultLaunchName(ILaunchConfiguration launchConfig) {
 		IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchConfig);
-		String processPath = DefaultPersistenceDelegate.getAttribute(launchConfig, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, (String)null);
+		String processPath = DefaultPersistenceDelegate.getAttribute(launchConfig, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, (String)null);
 		String name = getDefaultLaunchName((contexts != null && contexts.length > 0 ? contexts[0] : null), processPath);
 		return name.trim().length() > 0 ? name.trim() : super.getDefaultLaunchName(launchConfig);
 	}
@@ -253,7 +253,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	@Override
 	protected int equals(String attributeKey, Object specValue, Object confValue, ILaunchSpecification launchSpec, ILaunchConfiguration launchConfig, String launchMode) {
 
-		if (IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE.equals(attributeKey)) {
+		if (IProcessesStepAttributes.ATTR_PROCESS_IMAGE.equals(attributeKey)) {
 			// get match of object
 			int match = specValue.equals(confValue) ? FULL_MATCH : NO_MATCH;
 			// compare objects in the list when they are not already equal
@@ -290,10 +290,10 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 		if (ILaunchContextLaunchAttributes.ATTR_LAUNCH_CONTEXTS.equals(attributeKey)) {
 			return getNumAttributes() * 256;
 		}
-		else if (IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE.equals(attributeKey)) {
+		else if (IProcessesStepAttributes.ATTR_PROCESS_IMAGE.equals(attributeKey)) {
 			return getNumAttributes() * 128;
 		}
-		else if (IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS.equals(attributeKey)) {
+		else if (IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS.equals(attributeKey)) {
 			return getNumAttributes() * 64;
 		}
 		else if (IFileTransferLaunchAttributes.ATTR_FILE_TRANSFERS.equals(attributeKey)) {
@@ -302,13 +302,13 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 		else if (IReferencedProjectLaunchAttributes.ATTR_REFERENCED_PROJECTS.equals(attributeKey)) {
 			return getNumAttributes() * 16;
 		}
-		else if (IRemoteAppLaunchAttributes.ATTR_STOP_AT_ENTRY.equals(attributeKey)) {
+		else if (IProcessesStepAttributes.ATTR_STOP_AT_ENTRY.equals(attributeKey)) {
 			return getNumAttributes() * 8;
 		}
-		else if (IRemoteAppLaunchAttributes.ATTR_STOP_AT_MAIN.equals(attributeKey)) {
+		else if (IProcessesStepAttributes.ATTR_STOP_AT_MAIN.equals(attributeKey)) {
 			return getNumAttributes() * 4;
 		}
-		else if (IRemoteAppLaunchAttributes.ATTR_ATTACH_CHILDREN.equals(attributeKey)) {
+		else if (IProcessesStepAttributes.ATTR_ATTACH_CHILDREN.equals(attributeKey)) {
 			return getNumAttributes() * 2;
 		}
 		else {
@@ -321,8 +321,8 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	 */
 	@Override
 	public String getDescription(ILaunchConfiguration config) {
-		String image = DefaultPersistenceDelegate.getAttribute(config, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, (String)null);
-		String args = DefaultPersistenceDelegate.getAttribute(config, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, ""); //$NON-NLS-1$
+		String image = DefaultPersistenceDelegate.getAttribute(config, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, (String)null);
+		String args = DefaultPersistenceDelegate.getAttribute(config, IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS, ""); //$NON-NLS-1$
 		if (image != null) {
 			return new Path(image).toPortableString() + " " + args; //$NON-NLS-1$
 		}

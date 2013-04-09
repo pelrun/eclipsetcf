@@ -29,7 +29,7 @@ import org.eclipse.tcf.te.runtime.services.filetransfer.FileTransferItem;
 import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.IRemoteAppLaunchAttributes;
+import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
 
 /**
@@ -96,7 +96,7 @@ public class TcfLaunchTests extends TcfTestCase {
 		assertFalse("Cannot delete console output file " + outFile.toOSString(), outFile.toFile().exists()); //$NON-NLS-1$
 
 		FileTransfersPersistenceDelegate.setFileTransfers(spec, new IFileTransferItem[]{new FileTransferItem(helloWorldLocation, tempDir)});
-		spec.addAttribute(IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, tempHelloWorld.toOSString());
+		spec.addAttribute(IProcessesStepAttributes.ATTR_PROCESS_IMAGE, tempHelloWorld.toOSString());
 
 		ILaunchConfiguration config = null;
 		try {

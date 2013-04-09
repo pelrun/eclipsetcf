@@ -11,4 +11,19 @@
       </delegate>
    </extension>
 
+<!-- Launch Step contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
+      <step
+            id="org.eclipse.tcf.te.tcf.processes.core.launchProcessStep"
+            class="org.eclipse.tcf.te.tcf.processes.core.steps.LaunchProcessStep"
+            label="%LaunchProcessStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.processes.core.resumeProcessStep"
+            class="org.eclipse.tcf.te.tcf.processes.core.steps.ResumeProcessStep"
+            label="%ResumeProcessStep.name">
+         <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
+         <requires id="org.eclipse.tcf.te.tcf.processes.core.launchProcessStep"/>
+      </step>
+   </extension>
+
 </plugin>

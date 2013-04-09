@@ -19,8 +19,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 import org.eclipse.tcf.te.launch.ui.model.LaunchNode;
 import org.eclipse.tcf.te.launch.ui.properties.BaseTitledSection;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.IRemoteAppLaunchAttributes;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
+import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
@@ -58,8 +58,8 @@ public class RemoteAppPropertiesSection extends BaseTitledSection {
 		Object input = ((IStructuredSelection) selection).getFirstElement();
 		Assert.isTrue(input instanceof LaunchNode);
 		ILaunchConfiguration node = ((LaunchNode)input).getLaunchConfiguration();
-		processImageValue = DefaultPersistenceDelegate.getAttribute(node, IRemoteAppLaunchAttributes.ATTR_PROCESS_IMAGE, ""); //$NON-NLS-1$
-		processArgsValue = DefaultPersistenceDelegate.getAttribute(node, IRemoteAppLaunchAttributes.ATTR_PROCESS_ARGUMENTS, ""); //$NON-NLS-1$
+		processImageValue = DefaultPersistenceDelegate.getAttribute(node, IProcessesStepAttributes.ATTR_PROCESS_IMAGE, ""); //$NON-NLS-1$
+		processArgsValue = DefaultPersistenceDelegate.getAttribute(node, IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS, ""); //$NON-NLS-1$
 	}
 
 	/*

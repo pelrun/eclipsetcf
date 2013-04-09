@@ -9,11 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.steps;
 
-import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.launch.core.steps.AbstractLaunchStep;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
@@ -22,14 +23,23 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 public abstract class AbstractTcfLaunchStep extends AbstractLaunchStep {
 
 	/**
-	 * Returns the active peer model that is currently used.
+	 * Returns the active peer model context that is currently used.
 	 *
+	 * @param context The step context. Must not be <code>null</code>.
 	 * @param data The data giving object. Must not be <code>null</code>.
-	 * @return The active peer model.
+	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
+	 * @return The active peer model context.
 	 */
-	protected IPeerModel getActivePeerModel(IFullQualifiedId fullQualifiedId, IPropertiesContainer data) {
-		IModelNode node = getActiveLaunchContext(fullQualifiedId, data);
-		Assert.isTrue(node instanceof IPeerModel);
-		return (IPeerModel)node;
+	protected IPeerModel getActivePeerModelContext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId) {
+		Object activeContext = getActiveContext(context, data, fullQualifiedId);
+		IPeerModel peerModel = null;
+		if (activeContext instanceof IPeerModel)
+			return (IPeerModel)activeContext;
+		if (activeContext instanceof IAdaptable)
+			peerModel = (IPeerModel)((IAdaptable)activeContext).getAdapter(IPeerModel.class);
+		if (peerModel == null)
+			peerModel = (IPeerModel)Platform.getAdapterManager().getAdapter(activeContext, IPeerModel.class);
+
+		return peerModel;
 	}
 }

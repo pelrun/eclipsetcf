@@ -87,7 +87,7 @@ public class AdapterFactory implements IAdapterFactory {
 				IStepContext adapter = adapters.get(adaptableObject);
 				// No adapter yet -> create a new one for this peer
 				if (adapter == null) {
-					adapter = new StepContextAdapter((ILaunch)adaptableObject);
+					adapter = new LaunchStepContext((ILaunch)adaptableObject);
 					adapters.put((ILaunch)adaptableObject, adapter);
 				}
 				return adapter;

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+
+<!-- Persistence delegate contributions -->
    <extension
          point="org.eclipse.tcf.te.runtime.persistence.delegates">
       <delegate
@@ -8,6 +10,8 @@
             id="org.eclipse.tcf.te.tcf.filesystem.core.map">
       </delegate>
    </extension>
+
+<!-- Persistence delegate binding contributions -->
    <extension
          point="org.eclipse.tcf.te.runtime.persistence.bindings">
       <binding
@@ -27,6 +31,8 @@
          </enablement>
        </binding>
    </extension>
+
+<!-- Property tester contributions -->
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
             class="org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.FSTreeNodePropertyTester"
@@ -42,6 +48,16 @@
             properties="isWindows"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
       </propertyTester>
+   </extension>
+
+<!-- Launch Step contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
+      <step
+            id="org.eclipse.tcf.te.tcf.filesystem.core.fileTransferStep"
+            class="org.eclipse.tcf.te.tcf.filesystem.core.steps.FileTransferStep"
+            label="%FileTransferStep.name">
+         <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
+      </step>
    </extension>
 
 </plugin>

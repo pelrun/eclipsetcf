@@ -127,17 +127,14 @@
       </service>
    </extension>
 
-<!-- Step contributions -->
+<!-- Launch Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step
-            class="org.eclipse.tcf.te.tcf.locator.steps.OpenChannelStep"
-            id="org.eclipse.tcf.te.tcf.stepper.OpenChannelStep"
-            label="%OpenChannelStep.name">
-      </step>
-      <step
-            class="org.eclipse.tcf.te.tcf.locator.steps.CloseChannelStep"
-            id="org.eclipse.tcf.te.tcf.stepper.CloseChannelStep"
-            label="%CloseChannelStep.name">
+            id="org.eclipse.tcf.te.tcf.locator.checkServiceStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.CheckServiceStep"
+            label="%CheckServiceStep.name">
+         <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
       </step>
    </extension>
+
 </plugin>

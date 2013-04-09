@@ -11,21 +11,21 @@
 package org.eclipse.tcf.te.launch.core.steps.iterators;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchContextLaunchAttributes;
-import org.eclipse.tcf.te.runtime.extensions.ExecutableExtension;
+import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupIterator;
+import org.eclipse.tcf.te.runtime.stepper.iterators.AbstractStepGroupIterator;
 
 /**
  * Abstract launch stepgroup iterator.
  */
-public abstract class AbstractLaunchStepGroupIterator extends ExecutableExtension implements IStepGroupIterator {
+public abstract class AbstractLaunchStepGroupIterator extends AbstractStepGroupIterator {
 
 	/**
 	 * Returns the launch object for the given step context.
@@ -39,28 +39,56 @@ public abstract class AbstractLaunchStepGroupIterator extends ExecutableExtensio
 	}
 
 	/**
-	 * Returns the active launch context model node that is currently used.
+	 * Returns the launch configuration for the given step context.
 	 *
-	 * @param data The data giving object. Must not be <code>null</code>.
-	 * @return The active launch context model node.
+	 * @param context The step context.
+	 * @return The launch configuration or <code>null</code>.
 	 */
-	protected IModelNode getActiveLaunchContext(IFullQualifiedId fullQualifiedId, IPropertiesContainer data) {
-		Assert.isNotNull(data);
-		Assert.isNotNull(fullQualifiedId);
-		Object context = StepperAttributeUtil.getProperty(ILaunchContextLaunchAttributes.ATTR_ACTIVE_LAUNCH_CONTEXT, fullQualifiedId, data);
-		Assert.isTrue(context instanceof IModelNode);
-		return (IModelNode)context;
+	protected ILaunchConfiguration getLaunchConfiguration(IStepContext context) {
+		Assert.isNotNull(context);
+		return (ILaunchConfiguration)context.getAdapter(ILaunchConfiguration.class);
 	}
 
 	/**
-	 * Returns the uses launch configuration.
+	 * Returns the launch configuration type for the given step context.
 	 *
 	 * @param context The step context.
-	 * @return
+	 * @return The launch configuration type or <code>null</code>.
 	 */
-	protected ILaunchConfiguration getLaunchConfiguration(IStepContext context) {
+	protected ILaunchConfigurationType getLaunchConfigurationType(IStepContext context) {
+		Assert.isNotNull(context);
+		return (ILaunchConfigurationType)context.getAdapter(ILaunchConfigurationType.class);
+	}
+
+	/**
+	 * Returns the current launch mode.
+	 *
+	 * @param context The step context.
+	 * @return The launch mode or <code>null</code>.
+	 */
+	protected String getLaunchMode(IStepContext context) {
 		ILaunch launch = getLaunch(context);
-		Assert.isNotNull(launch);
-		return launch.getLaunchConfiguration();
+		return launch != null ? launch.getLaunchMode() : null;
+	}
+
+	/**
+	 * Returns the active model node context that is currently used.
+	 *
+	 * @param context The step context. Must not be <code>null</code>.
+	 * @param data The data giving object. Must not be <code>null</code>.
+	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
+	 * @return The active model node context.
+	 */
+	protected IModelNode getActiveModelNodeContext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId) {
+		Object activeContext = getActiveContext(context, data, fullQualifiedId);
+		IModelNode modelNode = null;
+		if (activeContext instanceof IModelNode)
+			return (IModelNode)activeContext;
+		if (activeContext instanceof IAdaptable)
+			modelNode = (IModelNode)((IAdaptable)activeContext).getAdapter(IModelNode.class);
+		if (modelNode == null)
+			modelNode = (IModelNode)Platform.getAdapterManager().getAdapter(activeContext, IModelNode.class);
+
+		return modelNode;
 	}
 }

@@ -28,7 +28,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
-import org.eclipse.tcf.te.tcf.launch.core.interfaces.IAttachLaunchAttributes;
+import org.eclipse.tcf.te.tcf.launch.core.interfaces.steps.ITcfLaunchStepAttributes;
 
 /**
  * RemoteAppLaunchManagerDelegate
@@ -54,7 +54,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 	public void updateLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.updateLaunchConfigAttributes(wc, launchSpec);
 
-		wc.setAttribute(IAttachLaunchAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		wc.setAttribute(ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
 		wc.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
 		copySpecToConfig(launchSpec, wc);
 
@@ -68,7 +68,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 	public void initLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.initLaunchConfigAttributes(wc, launchSpec);
 
-		wc.setAttribute(IAttachLaunchAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		wc.setAttribute(ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
 		wc.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
 		try {
 			wc.setAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, CdtUtils.getDefaultSourceLookupDirector().getMemento());

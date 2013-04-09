@@ -102,7 +102,7 @@ public class AdapterFactory implements IAdapterFactory {
 			}
 			if (IStepContext.class.equals(adapterType)) {
 				if (adaptableObject instanceof IPeerModel) {
-					return new PeerModelStepContextAdapter((IPeerModel)adaptableObject);
+					return new PeerModelStepContext((IPeerModel)adaptableObject);
 				}
 			}
 		}
