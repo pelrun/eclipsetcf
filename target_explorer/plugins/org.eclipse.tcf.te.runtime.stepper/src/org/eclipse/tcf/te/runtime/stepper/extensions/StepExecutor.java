@@ -25,7 +25,6 @@ import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.ISharedConstants;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IExtendedStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -64,10 +63,10 @@ public class StepExecutor implements IStepExecutor {
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepExecutor#execute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStep, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	public final void execute(IStep step, IFullQualifiedId id, final IStepContext context, final IPropertiesContainer data, IProgressMonitor progress) throws CoreException {
+	public final void execute(final IStep step, IFullQualifiedId id, final IStepContext context, final IPropertiesContainer data, IProgressMonitor progress) throws CoreException {
 		Assert.isNotNull(step);
 		Assert.isNotNull(id);
-		//		Assert.isNotNull(context);
+		Assert.isNotNull(context);
 		Assert.isNotNull(data);
 		Assert.isNotNull(progress);
 
@@ -79,7 +78,7 @@ public class StepExecutor implements IStepExecutor {
 						+ " ***", //$NON-NLS-1$
 						0, ITraceIds.PROFILE_STEPPING, IStatus.WARNING, this);
 
-		int ticksToUse = (step instanceof IExtendedStep) ? ((IExtendedStep)step).getTotalWork(context, data) : IProgressMonitor.UNKNOWN;
+		int ticksToUse = step.getTotalWork(context, data);
 		progress = ProgressHelper.getProgressMonitor(progress, ticksToUse);
 		ProgressHelper.beginTask(progress, step.getLabel(), ticksToUse);
 
@@ -89,23 +88,13 @@ public class StepExecutor implements IStepExecutor {
 		// Catch any exception that might occur during execution.
 		// Errors are passed through by definition.
 		try {
-			// Execute the step. Spawn to the dispatch thread if necessary.
-			if (step instanceof IExtendedStep) {
-				IExtendedStep extendedStep = (IExtendedStep)step;
-
-				// IExtendedStep provides protocol for initialization and validation.
-				extendedStep.initializeFrom(context, data, id, progress);
-
-				// step is initialized -> now validate for execution.
-				// If the step if not valid for execution, validateExecute is throwing an exception.
-				extendedStep.validateExecute(context, data, id, progress);
-			}
-
+			step.initializeFrom(context, data, id, progress);
+			step.validateExecute(context, data, id, progress);
 			step.execute(context, data, id, progress, callback);
 
 			// Wait till the step finished, an execution occurred or the
 			// user hit cancel on the progress monitor.
-			ExecutorsUtil.waitAndExecute(0, callback.getDoneConditionTester(null));
+			ExecutorsUtil.waitAndExecute(0, callback.getDoneConditionTester(progress, step.getCancelTimeout()));
 
 			// Check the status of the step
 			normalizeStatus(step, id, context, data, callback.getStatus());
@@ -136,9 +125,7 @@ public class StepExecutor implements IStepExecutor {
 			}
 
 			// Give the step a chance for cleanup
-			if (step instanceof IExtendedStep) {
-				((IExtendedStep)step).cleanup(context, data, id, progress);
-			}
+			step.cleanup(context, data, id, progress);
 
 			long endTime = System.currentTimeMillis();
 			CoreBundleActivator.getTraceHandler().trace("StepExecutor#execute: *** DONE (" + step.getLabel() + ")", //$NON-NLS-1$ //$NON-NLS-2$

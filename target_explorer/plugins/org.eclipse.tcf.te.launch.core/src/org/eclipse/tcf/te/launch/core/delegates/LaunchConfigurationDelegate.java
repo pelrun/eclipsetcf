@@ -41,7 +41,6 @@ import org.eclipse.tcf.te.launch.core.lm.interfaces.ICommonLaunchAttributes;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchManagerDelegate;
 import org.eclipse.tcf.te.launch.core.nls.Messages;
 import org.eclipse.tcf.te.launch.core.persistence.projects.ReferencedProjectsPersistenceDelegate;
-import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.ISharedConstants;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -144,8 +143,6 @@ public class LaunchConfigurationDelegate extends org.eclipse.debug.core.model.La
 			// Execute
 			stepper.execute();
 
-			// Wait for the stepper to be finished
-			ExecutorsUtil.waitAndExecute(0, new IStepper.ExecutionFinishedConditionTester(stepper));
 		} catch (CoreException e) {
 			// We have to catch the CoreException here as we do want to open the
 			// launch configurations dialog on ERROR only.

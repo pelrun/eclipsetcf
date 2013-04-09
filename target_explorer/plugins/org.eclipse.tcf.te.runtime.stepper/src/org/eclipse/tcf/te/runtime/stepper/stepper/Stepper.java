@@ -32,7 +32,6 @@ import org.eclipse.tcf.te.runtime.stepper.FullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.StepperManager;
 import org.eclipse.tcf.te.runtime.stepper.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.runtime.stepper.extensions.StepExecutor;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IExtendedStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -43,7 +42,6 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.runtime.stepper.nls.Messages;
-import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 
 /**
@@ -83,7 +81,7 @@ public class Stepper implements IStepper {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param name The name of this stepper.
 	 */
 	public Stepper(String name) {
@@ -607,42 +605,23 @@ public class Stepper implements IStepper {
 	}
 
 	/**
-	 * Rollback the steps previously executed to the failed step. The rollback is executed in
-	 * reverse order and the step must be of type {@link IExtendedStep} to participate in the
-	 * rollback.
+	 * Rollback the steps previously executed to the failed step.
+	 * The rollback is executed in reverse order.
 	 *
-	 * @param executedSteps
-	 * @param progress
+	 * @param executedSteps The list of executed steps.
+	 * @param progress The progress monitor.
 	 */
 	protected final void rollback(final List<ExecutedContextStep> executedSteps, final IStatus rollBackStatus, IProgressMonitor progress) {
 		Assert.isNotNull(executedSteps);
 
-		final IProgressMonitor rollbackProgress = ProgressHelper.getProgressMonitor(progress, 1);
-		ProgressHelper.beginTask(rollbackProgress, "Cancel", executedSteps.size()); //$NON-NLS-1$
-		final Callback finalCallback = new Callback();
-		final Callback rollbackCallback = new Callback() {
-			@Override
-			protected void internalDone(Object caller, IStatus status) {
-				if (!executedSteps.isEmpty()) {
-					setProperty(PROPERTY_IS_DONE, false);
-					ExecutedContextStep executedStep = executedSteps
-									.remove(executedSteps.size() - 1);
-					if (executedStep.step instanceof IExtendedStep) {
-						IExtendedStep step = (IExtendedStep) executedStep.step;
-						step.rollback(getContext(), getData(), rollBackStatus, executedStep.id, rollbackProgress, this);
-					}
-					else {
-						this.done(this, status);
-					}
-				}
-				else {
-					finalCallback.done(this, Status.OK_STATUS);
-				}
-			}
-		};
 
-		rollbackCallback.done(this, rollBackStatus);
-		ExecutorsUtil.waitAndExecute(0, finalCallback.getDoneConditionTester(null));
+		while (!executedSteps.isEmpty()) {
+			ExecutedContextStep executedStep = executedSteps.remove(executedSteps.size() - 1);
+			Callback callback = new Callback();
+			progress.setTaskName("Rollback " + executedStep.step.getLabel()); //$NON-NLS-1$
+			executedStep.step.rollback(getContext(), getData(), rollBackStatus, executedStep.id, progress, callback);
+			ExecutorsUtil.waitAndExecute(60000, callback.getDoneConditionTester(null));
+		}
 	}
 
 	/**

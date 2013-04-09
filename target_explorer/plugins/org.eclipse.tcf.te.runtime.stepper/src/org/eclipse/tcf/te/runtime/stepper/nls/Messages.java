@@ -64,4 +64,6 @@ public class Messages extends NLS {
 	public static String StepExecutor_warning_stepFailed;
 	public static String StepExecutor_error_stepFailed;
 	public static String StepExecutor_stepFailed_debugInfo;
+	public static String StepExecutor_warning_rollbackTimeout;
+
 }

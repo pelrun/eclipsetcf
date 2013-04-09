@@ -18,6 +18,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
@@ -62,6 +63,7 @@ public class OpenChannelStep extends AbstractPeerStep {
 	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
 		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
+			ProgressHelper.setSubTaskName(monitor, "Closing TCF channel"); //$NON-NLS-1$
 			Tcf.getChannelManager().closeChannel(channel);
 		}
 		super.rollback(context, data, status, fullQualifiedId, monitor, callback);

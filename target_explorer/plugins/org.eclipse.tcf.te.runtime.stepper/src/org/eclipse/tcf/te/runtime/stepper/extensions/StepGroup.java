@@ -32,7 +32,6 @@ import org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy;
 import org.eclipse.tcf.te.runtime.interfaces.extensions.IExecutableExtension;
 import org.eclipse.tcf.te.runtime.stepper.StepperManager;
 import org.eclipse.tcf.te.runtime.stepper.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IExtendedStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroup;
@@ -398,8 +397,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 				// If either the groupable, the reference or the extension is
 				// marked singleton, than this is an failure.
 				checkFailed = step.isSingleton() || reference.isSingleton()
-								|| (step.getExtension() instanceof IExtendedStep
-												&& ((IExtendedStep)step.getExtension()).isSingleton());
+								|| (step.getExtension() instanceof IStep && ((IStep)step.getExtension()).isSingleton());
 				if (checkFailed) {
 					break;
 				}

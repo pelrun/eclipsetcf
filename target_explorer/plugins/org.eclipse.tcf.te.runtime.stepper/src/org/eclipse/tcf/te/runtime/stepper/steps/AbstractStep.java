@@ -27,7 +27,6 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IExtendedStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
@@ -37,7 +36,7 @@ import org.eclipse.tcf.te.runtime.stepper.nls.Messages;
 /**
  * An abstract step implementation.
  */
-public abstract class AbstractStep extends ExecutableExtension implements IExtendedStep {
+public abstract class AbstractStep extends ExecutableExtension implements IStep {
 	// List of string id's of the step dependencies.
 	private final List<String> dependencies = new ArrayList<String>();
 
@@ -177,5 +176,14 @@ public abstract class AbstractStep extends ExecutableExtension implements IExten
 			activeContext = context.getContextObject();
 
 		return activeContext;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IExtendedStep#getCancelTimeout()
+	 */
+	@Override
+	public int getCancelTimeout() {
+		// default timeout is 1 minute
+	    return 60000;
 	}
 }

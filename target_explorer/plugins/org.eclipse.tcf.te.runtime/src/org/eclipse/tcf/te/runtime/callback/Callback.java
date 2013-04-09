@@ -20,8 +20,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.runtime.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.runtime.interfaces.IConditionTester;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.runtime.nls.Messages;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 
 /**
  * Default implementation of the <code>ICallback</code> interface.
@@ -54,19 +56,31 @@ public class Callback extends PropertiesContainer implements ICallback {
 	private class CallbackDoneConditionTester implements IConditionTester {
 		final ICallback callback;
 		final IProgressMonitor monitor;
+		int cancelTimeout = -1;
+		long cancelTime = -1;
 
 		/**
 		 * Constructor.
 		 *
-		 * @param callback
-		 *            The callback to check. Must not be <code>null</code>.
-		 * @param monitor
-		 *            The progress monitor to check.
+		 * @param callback The callback to check. Must not be <code>null</code>.
+		 * @param monitor The progress monitor to check or <code>null</code>.
 		 */
 		public CallbackDoneConditionTester(ICallback callback, IProgressMonitor monitor) {
+			this(callback, monitor, -1);
+		}
+
+		/**
+		 * Constructor.
+		 *
+		 * @param callback The callback to check. Must not be <code>null</code>.
+		 * @param monitor The progress monitor to check or <code>null</code>.
+		 * @param cancelTimeout Timeout in milliseconds to wait for callback.isDone() when progress monitor was canceled.
+		 */
+		public CallbackDoneConditionTester(ICallback callback, IProgressMonitor monitor, int cancelTimeout) {
 			Assert.isNotNull(callback);
 			this.callback = callback;
 			this.monitor = monitor;
+			this.cancelTimeout = cancelTimeout;
 		}
 
 		/* (non-Javadoc)
@@ -74,10 +88,25 @@ public class Callback extends PropertiesContainer implements ICallback {
 		 */
 		@Override
 		public boolean isConditionFulfilled() {
-			if (monitor == null) {
+			if (monitor == null)
 				return callback.isDone();
+
+			// handle cancel timeout
+			if (cancelTimeout > 0 && !callback.isDone() && monitor.isCanceled()) {
+				if (cancelTime == -1) {
+					cancelTime = System.currentTimeMillis();
+					monitor.subTask("Cancelling..."); //$NON-NLS-1$
+				}
+				else {
+					long currentTime = System.currentTimeMillis();
+					if ((currentTime - cancelTime) >= cancelTimeout) {
+						callback.done(this, StatusHelper.getStatus(new OperationCanceledException(Messages.Callback_warning_cancelTimeout)));
+						return true;
+					}
+				}
 			}
-			return monitor.isCanceled() || callback.isDone();
+
+			return callback.isDone();
 		}
 
 		/* (non-Javadoc)
@@ -137,12 +166,22 @@ public class Callback extends PropertiesContainer implements ICallback {
 	/**
 	 * Get a condition tester for this callback.
 	 *
-	 * @param monitor
-	 *            The progress monitor or <code>null</code>.
+	 * @param monitor The progress monitor to check or <code>null</code>.
 	 * @return The condition tester.
 	 */
 	public final IConditionTester getDoneConditionTester(IProgressMonitor monitor) {
 		return new CallbackDoneConditionTester(this, monitor);
+	}
+
+	/**
+	 * Get a condition tester for this callback.
+	 *
+	 * @param monitor The progress monitor to check or <code>null</code>.
+	 * @param cancelTimeout Timeout in milliseconds to wait for callback.isDone() when progress monitor was canceled.
+	 * @return The condition tester.
+	 */
+	public final IConditionTester getDoneConditionTester(IProgressMonitor monitor, int cancelTimeout) {
+		return new CallbackDoneConditionTester(this, monitor, cancelTimeout);
 	}
 
 	/* (non-Javadoc)
@@ -153,7 +192,8 @@ public class Callback extends PropertiesContainer implements ICallback {
 		Assert.isNotNull(status);
 
 		if (isDone()) {
-			CoreBundleActivator.getTraceHandler().trace("WARNING: callback called twice!!", 1, this); //$NON-NLS-1$
+			if (getStatus() != null && getStatus().getSeverity() != IStatus.CANCEL)
+				CoreBundleActivator.getTraceHandler().trace("WARNING: callback called twice!!", 1, this); //$NON-NLS-1$
 			return;
 		}
 
