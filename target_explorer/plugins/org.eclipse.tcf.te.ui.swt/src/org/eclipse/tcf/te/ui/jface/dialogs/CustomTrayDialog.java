@@ -16,10 +16,12 @@ import java.util.List;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.TrayDialog;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.ui.swt.activator.UIPlugin;
 import org.eclipse.ui.PlatformUI;
@@ -129,19 +131,53 @@ public class CustomTrayDialog extends TrayDialog {
 	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected Control createDialogArea(Composite parent) {
+	protected final Control createDialogArea(Composite parent) {
 		if (contextHelpId != null) {
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, contextHelpId);
 		}
 
 		// Let the super implementation create the dialog area control
 		Control control = super.createDialogArea(parent);
-		// But fix the layout data for the top control
+		// Setup the inner panel as scrollable composite
 		if (control instanceof Composite) {
-			configureDialogAreaControl((Composite)control);
+			ScrolledComposite sc = new ScrolledComposite((Composite)control, SWT.V_SCROLL);
+
+			GridLayout layout = new GridLayout(1, true);
+			layout.marginHeight = 0; layout.marginWidth = 0;
+			layout.verticalSpacing = 0; layout.horizontalSpacing = 0;
+
+			sc.setLayout(layout);
+			sc.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
+
+			sc.setExpandHorizontal(true);
+			sc.setExpandVertical(true);
+
+			// Give subclasses the chance to configure the new dialog area control
+			configureDialogAreaControl(sc);
+
+			Composite composite = new Composite(sc, SWT.NONE);
+			composite.setLayout(new GridLayout());
+
+			// Setup the dialog area content
+			createDialogAreaContent(composite);
+
+			sc.setContent(composite);
+			sc.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+			// Return the scrolled composite as new dialog area control
+			control = sc;
 		}
 
 		return control;
+	}
+
+	/**
+	 * Creates the dialog area content.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 */
+	protected void createDialogAreaContent(Composite parent) {
+		Assert.isNotNull(parent);
 	}
 
 	/**
@@ -151,10 +187,6 @@ public class CustomTrayDialog extends TrayDialog {
 	 */
 	protected void configureDialogAreaControl(Composite composite) {
 		Assert.isNotNull(composite);
-		Layout layout = composite.getLayout();
-		if (layout == null || layout instanceof GridLayout) {
-			composite.setLayout(new GridLayout());
-		}
 	}
 
 	/**

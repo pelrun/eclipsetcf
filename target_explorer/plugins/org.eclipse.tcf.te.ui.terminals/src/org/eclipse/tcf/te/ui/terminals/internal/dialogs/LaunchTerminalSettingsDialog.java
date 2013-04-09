@@ -270,20 +270,20 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     }
 
     /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
      */
     @Override
-    protected Control createDialogArea(Composite parent) {
-		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
+    protected void createDialogAreaContent(Composite parent) {
+        super.createDialogAreaContent(parent);
+
+        if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
 			UIPlugin.getTraceHandler().trace("Creating dialog area after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
 												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
 		}
 
     	setDialogTitle(Messages.LaunchTerminalSettingsDialog_title);
 
-        Composite composite = (Composite)super.createDialogArea(parent);
-
-        Composite panel = new Composite(composite, SWT.NONE);
+        Composite panel = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
         layout.marginHeight = 0; layout.marginWidth = 0;
         panel.setLayout(layout);
@@ -356,14 +356,12 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
 
 		restoreWidgetValues();
 
-        applyDialogFont(composite);
+        applyDialogFont(panel);
 
 		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
 			UIPlugin.getTraceHandler().trace("Created dialog area after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
 												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
 		}
-
-        return composite;
     }
 
     /**

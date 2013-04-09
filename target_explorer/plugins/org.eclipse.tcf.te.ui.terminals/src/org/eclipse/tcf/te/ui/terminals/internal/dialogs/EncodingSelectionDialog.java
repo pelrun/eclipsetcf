@@ -14,7 +14,6 @@ import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
@@ -122,15 +121,15 @@ public class EncodingSelectionDialog extends CustomTrayDialog {
     }
 
     /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
      */
     @Override
-    protected Control createDialogArea(Composite parent) {
+    protected void createDialogAreaContent(Composite parent) {
+        super.createDialogAreaContent(parent);
+
     	setDialogTitle(Messages.EncodingSelectionDialog_title);
 
-        Composite composite = (Composite)super.createDialogArea(parent);
-
-        Composite panel = new Composite(composite, SWT.NONE);
+        Composite panel = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
         layout.marginHeight = 0; layout.marginWidth = 0;
         panel.setLayout(layout);
@@ -139,8 +138,7 @@ public class EncodingSelectionDialog extends CustomTrayDialog {
         encodingPanel = new EncodingPanel();
         encodingPanel.setupPanel(panel, null);
 
-        applyDialogFont(composite);
-        return composite;
+        applyDialogFont(panel);
     }
 
     /* (non-Javadoc)
