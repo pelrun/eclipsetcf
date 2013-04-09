@@ -61,7 +61,8 @@ public class TCFLaunchContext implements ITCFLaunchContext {
             return ((IResource)selection).getLocation();
         }
         if (selection instanceof ICElement) {
-            return ((ICElement)selection).getResource().getLocation();
+            IResource res = ((ICElement)selection).getResource();
+            if (res != null) return res.getLocation();
         }
         return null;
     }
