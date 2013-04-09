@@ -12,9 +12,11 @@ package org.eclipse.tcf.te.tcf.ui.editor.controls;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.tcf.te.tcf.ui.controls.TransportTypeControl;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.TransportSection;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
+import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 
 /**
  * Transport section transport type control implementation.
@@ -66,5 +68,24 @@ public class TransportSectionTypeControl extends TransportTypeControl {
 	public void modifyText(ModifyEvent e) {
 		super.modifyText(e);
 		transportSection.dataChanged(e);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl#doAdjustEditFieldControlLayoutData(org.eclipse.swt.layout.GridData)
+	 */
+	@Override
+	protected void doAdjustEditFieldControlLayoutData(GridData layoutData) {
+	    super.doAdjustEditFieldControlLayoutData(layoutData);
+
+	    int maxWidth = -1;
+	    for (String type : getTransportTypes()) {
+	    	maxWidth = Math.max(type.length(), maxWidth);
+	    }
+
+	    if (maxWidth != -1) {
+	    	layoutData.horizontalAlignment = GridData.HORIZONTAL_ALIGN_BEGINNING;
+	    	layoutData.grabExcessHorizontalSpace = false;
+	    	layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(getEditFieldControl(), maxWidth + 4);
+	    }
 	}
 }

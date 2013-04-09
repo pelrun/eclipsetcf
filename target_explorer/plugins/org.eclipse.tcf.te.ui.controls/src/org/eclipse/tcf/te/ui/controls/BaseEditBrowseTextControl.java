@@ -1192,7 +1192,9 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 
 		// If not yet set, assure that the buttons fill in the available space
 		if (button.getLayoutData() == null) {
-			button.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+			GridData layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+			layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(button, SWTControlUtil.getText(button).length() + 4);
+			button.setLayoutData(layoutData);
 		}
 	}
 
