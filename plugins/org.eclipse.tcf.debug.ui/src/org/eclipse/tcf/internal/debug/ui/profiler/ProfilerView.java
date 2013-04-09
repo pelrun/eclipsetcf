@@ -181,34 +181,57 @@ public class ProfilerView extends ViewPart {
         }
     };
 
-    private final Comparator<List<ProfileSample>> samples_comparator = new Comparator<List<ProfileSample>>() {
+    private class SampleComparator implements Comparator<ProfileEntry> {
+        final int sorting;
+        SampleComparator(int sorting) {
+            this.sorting = sorting;
+        }
         @Override
-        public int compare(List<ProfileSample> x, List<ProfileSample> y) {
-            int x_cnt = 0;
-            int y_cnt = 0;
-            for (ProfileSample sx : x) x_cnt += sx.cnt;
-            for (ProfileSample sy : y) y_cnt += sy.cnt;
-            if (x_cnt > y_cnt) return -1;
-            if (x_cnt < y_cnt) return +1;
+        public int compare(ProfileEntry x, ProfileEntry y) {
+            int r = 0;
+            switch (sorting) {
+            case 0:
+                r = x.addr.compareTo(y.addr);
+                break;
+            case 1:
+                break;
+            case 2:
+                if (x.name == y.name) break;
+                if (x.name == null) return -1;
+                if (y.name == null) return +1;
+                r = x.name.compareTo(y.name);
+                break;
+            case 3:
+                if (x.file_base == y.file_base) break;
+                if (x.file_base == null) return -1;
+                if (y.file_base == null) return +1;
+                r = x.file_base.compareTo(y.file_base);
+                break;
+            }
+            if (r != 0) return r;
+            if (x.count > y.count) return -1;
+            if (x.count < y.count) return +1;
             return 0;
         }
     };
 
     private class Update implements Runnable {
-        final int max_table_size = 100;
         final TCFNode selection;
-        final List<ProfileEntry> lst = new ArrayList<ProfileEntry>(max_table_size);
+        final int sorting;
+        final List<ProfileEntry> lst = new ArrayList<ProfileEntry>();
         final Map<BigInteger,String> funcs = new HashMap<BigInteger,String>();
         final TCFNodeExecContext node;
         final ProfileData prof_data;
         final List<ProfileSample>[] samples;
         final ISymbols symbols;
         final ILineNumbers line_numbers;
+        boolean done;
         int pos;
         @SuppressWarnings("unchecked")
         Update() {
             assert Protocol.isDispatchThread();
             selection = ProfilerView.this.selection;
+            sorting = ProfilerView.this.sorting;
             ProfileData p = null;
             if (selection != null) {
                 Map<String,ProfileData> m = data.get(selection.getModel());
@@ -226,19 +249,19 @@ public class ProfilerView extends ViewPart {
                 symbols = node.getChannel().getRemoteService(ISymbols.class);
                 line_numbers = node.getChannel().getRemoteService(ILineNumbers.class);
                 samples = p.values().toArray(new List[p.values().size()]);
-                Arrays.sort(samples, samples_comparator);
             }
         }
 
         @Override
         public void run() {
+            if (done) return;
             if (last_update != this) return;
             if (samples != null && pos < samples.length) {
                 if (node.isDisposed()) {
                     lst.clear();
                 }
                 else {
-                    while (pos < samples.length && lst.size() < max_table_size) {
+                    while (pos < samples.length) {
                         List<ProfileSample> s = samples[pos];
                         int count = 0;
                         BigInteger addr = null;
@@ -305,6 +328,9 @@ public class ProfilerView extends ViewPart {
                     }
                 }
             }
+            done = true;
+            final ProfileEntry[] entries = lst.toArray(new ProfileEntry[lst.size()]);
+            Arrays.sort(entries, new SampleComparator(sorting));
             final boolean enable_start =
                     (selection instanceof TCFNodeExecContext) &&
                     selection.getChannel().getRemoteService(IProfiler.class) != null;
@@ -318,9 +344,9 @@ public class ProfilerView extends ViewPart {
                 public void run() {
                     action_start.setEnabled(enable_start);
                     action_stop.setEnabled(enable_stop);
-                    profile = lst.toArray(new ProfileEntry[lst.size()]);
                     profile_node = node;
-                    viewer.setInput(profile);
+                    profile = entries;
+                    viewer.setInput(entries);
                     if (!enable_start) {
                         status.setText("Selected context does not support profiling");
                     }
@@ -408,6 +434,7 @@ public class ProfilerView extends ViewPart {
     private boolean disposed;
     private boolean launch_listener_ok;
     private TCFNode selection;
+    private int sorting;
     private Update last_update;
     private Composite parent;
     private Label status;
@@ -455,9 +482,34 @@ public class ProfilerView extends ViewPart {
         viewer.setColumnProperties(column_ids);
 
         for (int i = 0; i < column_ids.length; i++) {
-            TableColumn c = new TableColumn(table, SWT.NONE, i);
+            final int n = i;
+            final TableColumn c = new TableColumn(table, SWT.NONE, i);
             c.setText(column_ids[i]);
             c.setWidth(column_size[i]);
+            if (i != 4) {
+                c.addSelectionListener(new SelectionListener() {
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        table.setSortDirection(SWT.DOWN);
+                        table.setSortColumn(c);
+                        sorting = n;
+                        Protocol.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateView();
+                            }
+                        });
+                    }
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent e) {
+                    }
+                });
+            }
+            if (i == 1) {
+                table.setSortDirection(SWT.DOWN);
+                table.setSortColumn(c);
+                sorting = n;
+            }
         }
 
         table.addSelectionListener(new SelectionListener() {
