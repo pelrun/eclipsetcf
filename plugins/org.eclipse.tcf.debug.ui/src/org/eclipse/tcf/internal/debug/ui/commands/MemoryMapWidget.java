@@ -265,30 +265,7 @@ public class MemoryMapWidget {
                 SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION |
                 SWT.H_SCROLL | SWT.V_SCROLL);
         map_table.setFont(font);
-        GridData data = new GridData(GridData.FILL_BOTH);
-        data.widthHint = SIZING_TABLE_WIDTH;
-        data.heightHint = SIZING_TABLE_HEIGHT;
-        map_table.setLayoutData(data);
-
-        int w = SIZING_TABLE_WIDTH / (column_names.length + 12);
-        for (int i = 0; i < column_names.length; i++) {
-            final TableColumn column = new TableColumn(map_table, SWT.LEAD, i);
-            column.setMoveable(false);
-            column.setText(column_names[i]);
-            switch (i) {
-            case 0:
-                column.setWidth(w * 10);
-                break;
-            case 1:
-            case 2:
-            case 4:
-                column.setWidth(w * 2);
-                break;
-            default:
-                column.setWidth(w);
-                break;
-            }
-        }
+        configureTableLayout(map_table, SIZING_TABLE_WIDTH, SIZING_TABLE_HEIGHT, column_names);
         map_table.setHeaderVisible(true);
         map_table.setLinesVisible(true);
         map_table.addSelectionListener(new SelectionAdapter() {
@@ -316,6 +293,33 @@ public class MemoryMapWidget {
         createMapButtons(composite);
     }
 
+    protected void configureTableLayout(Table table, int widthHint, int heighHint, String[] columnNames) {
+        GridData data = new GridData(GridData.FILL_BOTH);
+        data.widthHint = widthHint;
+        data.heightHint = heighHint;
+        table.setLayoutData(data);
+
+        int w = widthHint / (columnNames.length + 12);
+        for (int i = 0; i < columnNames.length; i++) {
+            final TableColumn column = new TableColumn(table, SWT.LEAD, i);
+            column.setMoveable(false);
+            column.setText(columnNames[i]);
+            switch (i) {
+            case 0:
+                column.setWidth(w * 10);
+                break;
+            case 1:
+            case 2:
+            case 4:
+                column.setWidth(w * 2);
+                break;
+            default:
+                column.setWidth(w);
+                break;
+            }
+        }
+    }
+    
     protected final TableViewer getViewer() {
         return table_viewer;
     }

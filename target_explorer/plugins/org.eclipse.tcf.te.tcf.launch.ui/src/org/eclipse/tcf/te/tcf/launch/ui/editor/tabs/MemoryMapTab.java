@@ -10,7 +10,6 @@
 package org.eclipse.tcf.te.tcf.launch.ui.editor.tabs;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -42,38 +41,47 @@ public class MemoryMapTab extends TCFMemoryMapTab {
 		 */
         public MyMemoryMapWidget(Composite composite, TCFNode node) {
 	        super(composite, node);
-
-	        TableViewer viewer = getViewer();
-	        if (viewer != null) {
-	        	Table table = viewer.getTable();
-	        	Object layoutData = table.getLayoutData();
-	        	if (layoutData instanceof GridData) {
-	        		((GridData)layoutData).widthHint = SWT.DEFAULT;
-	        	}
-
-	        	TableColumn[] columns = table.getColumns();
-	        	for (int i = 0; i < columns.length; i++) {
-	        		switch (i) {
-	        		case 0:
-	        			columns[i].setData("widthHint", Integer.valueOf(37)); //$NON-NLS-1$
-						break;
-					case 1:
-	                case 2:
-	        			columns[i].setData("widthHint", Integer.valueOf(10)); //$NON-NLS-1$
-	                    break;
-	                case 4:
-	        			columns[i].setData("widthHint", Integer.valueOf(18)); //$NON-NLS-1$
-	                    break;
-	                default:
-	        			columns[i].setData("widthHint", Integer.valueOf(7)); //$NON-NLS-1$
-	                    break;
-	        		}
-	        	}
-
-	        	TableUtils.adjustTableColumnWidth(viewer);
-	        }
         }
 
+        /* (non-Javadoc)
+         * @see org.eclipse.tcf.internal.debug.ui.commands.MemoryMapWidget#configureTableLayout(org.eclipse.swt.widgets.Table, int, int, java.lang.String[])
+         */
+        @Override
+        protected void configureTableLayout(Table table, int widthHint, int heighHint, String[] columnNames) {
+        	Assert.isNotNull(table);
+
+            GridData data = new GridData(GridData.FILL_BOTH);
+            data.widthHint = SWT.DEFAULT;
+            data.heightHint = heighHint;
+            table.setLayoutData(data);
+
+            for (int i = 0; i < columnNames.length; i++) {
+                final TableColumn column = new TableColumn(table, SWT.LEAD, i);
+                column.setMoveable(false);
+                column.setText(columnNames[i]);
+                switch (i) {
+        		case 0:
+        			column.setWidth(37);
+        			column.setData("widthHint", Integer.valueOf(37)); //$NON-NLS-1$
+					break;
+				case 1:
+                case 2:
+        			column.setWidth(10);
+        			column.setData("widthHint", Integer.valueOf(10)); //$NON-NLS-1$
+                    break;
+                case 4:
+        			column.setWidth(18);
+        			column.setData("widthHint", Integer.valueOf(18)); //$NON-NLS-1$
+                    break;
+                default:
+        			column.setWidth(7);
+        			column.setData("widthHint", Integer.valueOf(7)); //$NON-NLS-1$
+                    break;
+                }
+            }
+
+        	TableUtils.adjustTableColumnWidth(table);
+        }
 	}
 
 	/**

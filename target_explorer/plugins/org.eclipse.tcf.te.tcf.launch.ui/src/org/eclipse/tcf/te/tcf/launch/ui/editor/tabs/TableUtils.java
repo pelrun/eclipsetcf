@@ -30,8 +30,19 @@ public final class TableUtils {
 	public static void adjustTableColumnWidth(Viewer viewer) {
 		if (!(viewer instanceof TableViewer)) return;
 
-		final TableViewer tableViewer = (TableViewer)viewer;
-		final Table table = tableViewer.getTable();
+		TableViewer tableViewer = (TableViewer)viewer;
+		adjustTableColumnWidth(tableViewer.getTable());
+	}
+
+	/**
+	 * Determines the current visible width of the table and
+	 * adjust the column width according to there relative weight.
+	 *
+	 * @param table The table or <code>null</code>.
+	 */
+	public static void adjustTableColumnWidth(final Table table) {
+		if (table == null) return;
+
 		table.addControlListener(new ControlListener() {
 
 			@Override
