@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.tcf.launch.ui.editor.tabs;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEditorPage;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
@@ -63,19 +62,37 @@ public class PathMapTab extends TCFPathMapTab {
 	    super.createControl(parent);
 
 	    TableViewer viewer = getViewer();
-	    if (viewer != null) {
-	    	TableColumn[] columns = viewer.getTable().getColumns();
-	    	for (TableColumn column : columns) {
-	    		// Set the width hints for the table resize listener
-	    		if (column.getWidth() == 300) column.setData("widthHint", Integer.valueOf(27)); //$NON-NLS-1$
-	    		else if (column.getWidth() == 100) column.setData("widthHint", Integer.valueOf(15)); //$NON-NLS-1$
+	    if (viewer != null) TableUtils.adjustTableColumnWidth(viewer);
+	}
 
-	    		String label = column.getText();
-	    		String key = "PathMapEditorPage_column_" + label.toLowerCase(); //$NON-NLS-1$
-	    		if (Messages.hasString(key)) column.setText(Messages.getString(key));
-	    	}
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#getColumnText(int)
+	 */
+	@Override
+	protected String getColumnText(int column) {
+		String text = super.getColumnText(column);
+		String key = "PathMapEditorPage_column_" + text; //$NON-NLS-1$
+		if (Messages.hasString(key)) text = Messages.getString(key);
+	    return text;
+	}
 
-	    	TableUtils.adjustTableColumnWidth(viewer);
-	    }
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#getColumnWidth(int)
+	 */
+	@Override
+	protected int getColumnWidth(int column) {
+		int width = -1;
+		switch (column) {
+		case 0:
+		case 1:
+			width = 27;
+			break;
+		case 2:
+			width = 15;
+			break;
+		default:
+			width = -1;
+		}
+	    return width != -1 ? width : super.getColumnWidth(column);
 	}
 }

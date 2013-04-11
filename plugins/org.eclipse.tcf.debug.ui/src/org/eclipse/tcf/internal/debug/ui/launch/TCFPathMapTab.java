@@ -151,6 +151,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
         viewer = new TableViewer(composite, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
         Table table = viewer.getTable();
+
         table.setLayoutData(new GridData(GridData.FILL_BOTH));
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
@@ -161,8 +162,8 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
         for (int i = 0; i < column_ids.length; i++) {
             TableColumn c = new TableColumn(table, SWT.NONE, i);
-            c.setText(column_ids[i]);
-            c.setWidth(column_size[i]);
+            c.setText(getColumnText(i));
+            c.setWidth(getColumnWidth(i));
         }
         createTableButtons(composite);
         viewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -179,6 +180,14 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
                 }
             }
         });
+    }
+    
+    protected String getColumnText(int column) {
+        return column_ids[column];
+    }
+    
+    protected int getColumnWidth(int column) {
+        return column_size[column];
     }
 
     private void createTableButtons(Composite parent) {
