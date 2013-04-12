@@ -12,7 +12,6 @@ package org.eclipse.tcf;
 
 import java.util.LinkedList;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
@@ -103,12 +102,7 @@ class EventQueue implements IEventQueue, Runnable {
 
     public synchronized void invokeLater(final Runnable r) {
         assert r != null;
-        if (shutdown) {
-            // If not in debug mode, silently ignore this case to avoid
-            // confusion and bad impression to the user.
-            if (Platform.inDebugMode()) throw new IllegalStateException("TCF event dispatcher has shut down"); //$NON-NLS-1$
-            return;
-        }
+        if (shutdown) throw new IllegalStateException("TCF event dispatcher has shut down"); //$NON-NLS-1$
         queue.add(r);
         if (waiting) {
             waiting = false;

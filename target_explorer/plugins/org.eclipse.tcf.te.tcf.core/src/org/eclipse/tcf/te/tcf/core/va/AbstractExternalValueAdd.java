@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
@@ -23,12 +24,10 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
@@ -364,13 +363,17 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(done);
 
-		AsyncCallbackCollector collector = new AsyncCallbackCollector(done, new CallbackInvocationDelegate());
-
-		for (String id : entries.keySet()) {
-			ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
-			shutdown(id, callback);
+		// On shutdown all, we don't care about the alive state of the value-add.
+		// We force the value-add to shutdown if not yet gone by destroying the process.
+		for (Entry<String, ValueAddEntry> entry : entries.entrySet()) {
+			ValueAddEntry value = entry.getValue();
+			if (value.process != null) {
+				value.process.destroy();
+			}
 		}
+		// Clear all entries from the list
+		entries.clear();
 
-		collector.initDone();
+		done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
 	}
 }

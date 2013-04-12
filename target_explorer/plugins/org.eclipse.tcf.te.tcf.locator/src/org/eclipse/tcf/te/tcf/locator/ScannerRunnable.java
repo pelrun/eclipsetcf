@@ -92,6 +92,10 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	public void run() {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
+		// If the parent scanner is terminated, don't do anything
+		IScanner scanner = getParentScanner();
+		if (scanner != null && scanner.isTerminated()) return;
+
 		// If a scanner runnable already active for this peer node, there
 		// is no need to run another scan.
 		if (peerNode.getProperty("scanner.transient") != null) return; //$NON-NLS-1$

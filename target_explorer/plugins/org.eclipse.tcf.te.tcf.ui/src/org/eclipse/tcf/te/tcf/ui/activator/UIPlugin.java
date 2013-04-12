@@ -18,6 +18,8 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.IWorkbench;
@@ -87,8 +89,14 @@ public class UIPlugin extends AbstractUIPlugin {
 					if (!proceedShutdown && !forced) break;
 				}
 
-				// Close all channels now
-				if (proceedShutdown || forced) Tcf.getChannelManager().closeAll(!Protocol.isDispatchThread());
+				if (proceedShutdown || forced) {
+					// Terminate the scanner
+					ILocatorModel model = Model.getModel(true);
+					if (model != null) model.getScanner().terminate();
+
+					// Close all channels now
+					Tcf.getChannelManager().closeAll(!Protocol.isDispatchThread());
+				}
 
 				return proceedShutdown;
 			}
