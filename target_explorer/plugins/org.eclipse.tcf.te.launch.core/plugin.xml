@@ -48,6 +48,14 @@
       </propertyTester>
    </extension>
 
+<!-- Source path computers contibutions -->
+   <extension point="org.eclipse.debug.core.sourcePathComputers">
+      <sourcePathComputer
+            class="org.eclipse.tcf.te.launch.core.computers.SourcePathComputerDelegate"
+            id="org.eclipse.tcf.te.launch.core.sourcePathComputer">
+      </sourcePathComputer>
+   </extension>
+
 <!-- Launch Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step

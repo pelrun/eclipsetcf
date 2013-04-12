@@ -17,7 +17,6 @@ import java.util.List;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
-import org.eclipse.tcf.te.core.cdt.CdtUtils;
 import org.eclipse.tcf.te.launch.core.lm.delegates.DefaultLaunchManagerDelegate;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchContextLaunchAttributes;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
@@ -70,12 +69,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 
 		wc.setAttribute(ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
 		wc.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
-		try {
-			wc.setAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, CdtUtils.getDefaultSourceLookupDirector().getMemento());
-		}
-		catch (Exception e) {
 
-		}
 		copySpecToConfig(launchSpec, wc);
 
 		wc.rename(getDefaultLaunchName(wc));

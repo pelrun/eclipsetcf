@@ -30,13 +30,13 @@
          <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService"/>
       </service>
    </extension>
-
+   
 <!-- Launch Configuration Type contributions -->
    <extension point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
             id="org.eclipse.tcf.te.tcf.launch.type.remote.app"
             sourceLocatorId="org.eclipse.tcf.debug.SourceLocator"
-            sourcePathComputerId="org.eclipse.tcf.debug.SourcePathComputer"
+            sourcePathComputerId="org.eclipse.tcf.te.launch.core.sourcePathComputer"
             delegate="org.eclipse.tcf.te.tcf.launch.core.delegates.LaunchConfigurationDelegate"
             modes="run,debug"
             name="%LaunchType.Remote.App.name"/>
@@ -44,7 +44,7 @@
             id="org.eclipse.tcf.te.tcf.launch.type.attach"
             public="false"
             sourceLocatorId="org.eclipse.tcf.debug.SourceLocator"
-            sourcePathComputerId="org.eclipse.tcf.debug.SourcePathComputer"
+            sourcePathComputerId="org.eclipse.tcf.te.launch.core.sourcePathComputer"
             delegate="org.eclipse.tcf.te.tcf.launch.core.delegates.LaunchConfigurationDelegate"
             modes="debug"
             name="%LaunchType.Attach.name"/>

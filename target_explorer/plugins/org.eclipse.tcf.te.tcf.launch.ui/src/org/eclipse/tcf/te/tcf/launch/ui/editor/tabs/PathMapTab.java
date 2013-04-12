@@ -55,6 +55,14 @@ public class PathMapTab extends TCFPathMapTab {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#getName()
+	 */
+	@Override
+	public String getName() {
+	    return Messages.PathMapEditorPage_name;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#createControl(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
