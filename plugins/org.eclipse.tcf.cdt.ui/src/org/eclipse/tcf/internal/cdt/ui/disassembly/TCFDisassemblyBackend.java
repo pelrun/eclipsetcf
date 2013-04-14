@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -549,9 +549,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 addr_bits = mem.getAddressSize() * 8;
 
                 int accessSize = 0;
-                BigInteger bit = new BigInteger("1");
-                BigInteger mem_end = bit.shiftLeft(addr_bits);
-                mem_end = mem_end.subtract(bit);
+                BigInteger mem_end = BigInteger.ONE.shiftLeft(addr_bits);
+                mem_end = mem_end.subtract(BigInteger.ONE);
 
                 final BigInteger requestedLineEndAddr = startAddress.add(BigInteger.valueOf(linesHint * mem.getAddressSize()));
 
@@ -824,7 +823,9 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             fCallback.lockScroller();
             for (;;) {
                 AddressRangePosition p = fCallback.getPositionOfAddress(startAddress);
-                if (!p.fValid) fCallback.getDocument().insertDisassemblyLine(p, startAddress, 1, "", " ", null, 0);
+                if (p != null && !p.fValid && p.containsAddress(startAddress)) {
+                    fCallback.getDocument().insertDisassemblyLine(p, startAddress, 1, "", " ", null, 0);
+                }
                 startAddress = startAddress.add(BigInteger.ONE);
                 if (startAddress.compareTo(endAddress) >= 0) break;
             }
