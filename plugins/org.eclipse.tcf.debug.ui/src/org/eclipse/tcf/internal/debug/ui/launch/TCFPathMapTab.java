@@ -181,11 +181,11 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             }
         });
     }
-    
+
     protected String getColumnText(int column) {
         return column_ids[column];
     }
-    
+
     protected int getColumnWidth(int column) {
         return column_size[column];
     }

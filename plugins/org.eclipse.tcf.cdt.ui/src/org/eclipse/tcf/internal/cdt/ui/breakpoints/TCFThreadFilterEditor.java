@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2012 QNX Software Systems and others.
+ * Copyright (c) 2004, 2013 QNX Software Systems and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -88,20 +88,21 @@ public class TCFThreadFilterEditor {
         private final String fScopeId;
         private final String fSessionId;
         private final String fBpGroup;
+        private final Object fAdditionalInfo;
 
         Context(IRunControl.RunControlContext ctx, Context parent) {
             this(ctx, parent.fSessionId);
         }
 
         Context(IRunControl.RunControlContext ctx, String sessionId) {
-            String name = ctx.getName() != null ? ctx.getName() : ctx.getID();
-            fName = name;
+            fName =  ctx.getName();
             fSessionId = sessionId;
             fScopeId = sessionId != null ? sessionId + '/' + ctx.getID() : ctx.getID();
             fId = ctx.getID();
             fParentId = ctx.getParentID();
             fIsContainer = !ctx.hasState();
             fBpGroup = ctx.getBPGroup();
+            fAdditionalInfo = ctx.getProperties().get("AdditionalInfo");
         }
 
 
@@ -301,7 +302,10 @@ public class TCFThreadFilterEditor {
         public String getText(Object element) {
             if (element instanceof Context) {
                 Context ctx = (Context) element;
-                return ctx.fName;
+                String s = ctx.fName;
+                if (s == null) s = ctx.fId;
+                if (ctx.fAdditionalInfo != null) s += ctx.fAdditionalInfo.toString();
+                return s;
             }
             if (element instanceof ILaunch) {
                 ILaunchConfiguration config = ((ILaunch) element).getLaunchConfiguration();

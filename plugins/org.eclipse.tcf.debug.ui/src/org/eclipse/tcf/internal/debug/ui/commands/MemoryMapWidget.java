@@ -319,7 +319,7 @@ public class MemoryMapWidget {
             }
         }
     }
-    
+
     protected final TableViewer getViewer() {
         return table_viewer;
     }

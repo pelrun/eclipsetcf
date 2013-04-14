@@ -89,6 +89,7 @@ public class ContextListControl {
     static class ContextInfo {
         String name;
         String id;
+        Object additional_info;
         boolean is_attached;
         boolean is_container;
         boolean has_state;
@@ -442,6 +443,7 @@ public class ContextListControl {
                                         info.parent = parent;
                                         info.id = context.getID();
                                         info.name = context.getName();
+                                        info.additional_info = context.getProperties().get("AdditionalInfo");
                                         info.is_container = context.isContainer();
                                         info.has_state = context.hasState();
                                         info.is_attached = true;
@@ -615,11 +617,16 @@ public class ContextListControl {
                 bf.append(s);
             }
         }
-        else if (info.name != null) {
-            bf.append(info.name);
-        }
         else {
-            bf.append(info.id);
+            if (info.name != null) {
+                bf.append(info.name);
+            }
+            else {
+                bf.append(info.id);
+            }
+            if (info.additional_info != null) {
+                bf.append(info.additional_info.toString());
+            }
         }
         item.setText(bf.toString());
         item.setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
