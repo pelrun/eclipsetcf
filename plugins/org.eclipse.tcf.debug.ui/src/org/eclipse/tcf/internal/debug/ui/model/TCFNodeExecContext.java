@@ -1051,6 +1051,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         if (!run_context.validate(done)) return false;
         String image_name = null;
         boolean suspended_by_bp = false;
+        ChildrenStateInfo children_state_info = null;
         StringBuffer label = new StringBuffer();
         Throwable error = run_context.getError();
         if (error != null) {
@@ -1175,19 +1176,18 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                             }
                         }
                     }
-                    last_children_state_info = null;
                 }
                 else {
                     // Thread container (process)
-                    ChildrenStateInfo i = new ChildrenStateInfo();
-                    if (!hasSuspendedChildren(i, done)) return false;
-                    if (i.suspended) image_name = ImageCache.IMG_PROCESS_SUSPENDED;
+                    children_state_info = new ChildrenStateInfo();
+                    if (!hasSuspendedChildren(children_state_info, done)) return false;
+                    if (children_state_info.suspended) image_name = ImageCache.IMG_PROCESS_SUSPENDED;
                     else image_name = ImageCache.IMG_PROCESS_RUNNING;
-                    suspended_by_bp = i.breakpoint;
-                    last_children_state_info = i;
+                    suspended_by_bp = children_state_info.breakpoint;
                 }
             }
         }
+        last_children_state_info = children_state_info;
         last_image = ImageCache.getImageDescriptor(image_name);
         if (suspended_by_bp) last_image = ImageCache.addOverlay(last_image, ImageCache.IMG_BREAKPOINT_OVERLAY);
         result.setImageDescriptor(last_image, 0);
@@ -1241,7 +1241,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             ChildrenStateInfo info = exe.last_children_state_info;
             if (info != null) {
                 if (!model.getAutoChildrenListUpdates()) {
-                    // Manual manual updates.
+                    // Manual updates.
                     return;
                 }
                 if (!info.suspended && !info.not_active && model.getDelayChildrenListUpdates()) {
@@ -1269,7 +1269,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             ChildrenStateInfo info = exe.last_children_state_info;
             if (info != null) {
                 if (!model.getAutoChildrenListUpdates()) {
-                    // Manual manual updates.
+                    // Manual updates.
                     return;
                 }
                 if (!info.suspended && !info.not_active && model.getDelayChildrenListUpdates()) {
@@ -1287,6 +1287,14 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             else if (ITCFDebugUIConstants.ID_CONTEXT_QUERY_VIEW.equals(view_id)) {
                 p.addDelta(parent, IModelDelta.CONTENT);
             }
+        }
+        // Update parent icon overlays
+        TCFNode n = parent;
+        while (n instanceof TCFNodeExecContext) {
+            TCFNodeExecContext e = (TCFNodeExecContext)n;
+            ChildrenStateInfo info = e.last_children_state_info;
+            if (info != null && info.suspended) e.postStateChangedDelta();
+            n = n.parent;
         }
     }
 
