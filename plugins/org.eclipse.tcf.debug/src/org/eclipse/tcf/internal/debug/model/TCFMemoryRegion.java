@@ -44,4 +44,10 @@ public class TCFMemoryRegion extends org.eclipse.tcf.util.TCFMemoryRegion implem
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        if (addr == null) return 0;
+        return addr.hashCode();
+    }
 }

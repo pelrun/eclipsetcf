@@ -30,7 +30,7 @@ public class TCFPresentationProvider {
 
     public static Iterable<ITCFPresentationProvider> getPresentationProviders() {
         if (providers == null) {
-            providers = new  ArrayList<ITCFPresentationProvider>();
+            ArrayList<ITCFPresentationProvider> list = new ArrayList<ITCFPresentationProvider>();
             try {
                 IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(
                         Activator.PLUGIN_ID, "presentation_provider"); //$NON-NLS-1$
@@ -44,7 +44,7 @@ public class TCFPresentationProvider {
                             String nm = e[j].getName();
                             if (nm.equals("class")) { //$NON-NLS-1$
                                 Class<?> c = bundle.loadClass(e[j].getAttribute("name")); //$NON-NLS-1$
-                                providers.add((ITCFPresentationProvider)c.newInstance());
+                                list.add((ITCFPresentationProvider)c.newInstance());
                             }
                         }
                     }
@@ -56,6 +56,7 @@ public class TCFPresentationProvider {
             catch (Exception x) {
                 Activator.log("Cannot access presentation provider extension points", x);
             }
+            providers = list;
         }
         return providers;
     }

@@ -118,7 +118,7 @@ public final class Protocol {
         event_queue.invokeLater(new Runnable() {
 
             public void run() {
-                new LocatorService();
+                LocatorService.createLocalInstance();
             }
         });
         timer_dispatcher.setName("TCF Timer Dispatcher");

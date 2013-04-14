@@ -229,7 +229,7 @@ public class TCFConnectorService extends StandardConnectorService implements ITC
             String host = getHostName().toLowerCase();
             int port = getConnectPort();
             if (port <= 0) {
-                //Default fallback
+                // Default fallback
                 port = TCFConnectorServiceManager.TCF_PORT;
             }
             IPeer peer = null;

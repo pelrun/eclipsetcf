@@ -96,7 +96,7 @@ public class ServerTCP extends ServerSocket {
         if (addr.isLinkLocalAddress()) return getTransientPeer(addr);
         String host = addr.getHostAddress();
         for (ServerPeer p : peers) {
-            if (addr.equals(p.getAttributes().get(IPeer.ATTR_IP_HOST))) return p;
+            if (host.equals(p.getAttributes().get(IPeer.ATTR_IP_HOST))) return p;
         }
         String port = Integer.toString(getLocalPort());
         Map<String,String> attrs = new HashMap<String,String>();

@@ -149,7 +149,7 @@ class TestStreams implements ITCFTest, IStreams.StreamsListener {
 
     private void testReadWrite(final boolean skip_zeros, final Runnable done) {
         final byte[] data_out = new byte[rnd.nextInt(10000) + 1000];
-        new Random().nextBytes(data_out);
+        rnd.nextBytes(data_out);
         if (skip_zeros) data_out[0] = 1;
         final HashSet<IToken> cmds = new HashSet<IToken>();
         IStreams.DoneRead done_read = new IStreams.DoneRead() {

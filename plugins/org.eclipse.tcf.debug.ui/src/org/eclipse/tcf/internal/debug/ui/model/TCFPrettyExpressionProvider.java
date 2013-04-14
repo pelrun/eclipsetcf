@@ -35,7 +35,7 @@ public class TCFPrettyExpressionProvider {
 
     public static Collection<ITCFPrettyExpressionProvider> getProviders() {
         if (providers == null) {
-            providers = new  ArrayList<ITCFPrettyExpressionProvider>();
+            ArrayList<ITCFPrettyExpressionProvider> list = new ArrayList<ITCFPrettyExpressionProvider>();
             try {
                 IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(
                         Activator.PLUGIN_ID, "pretty_expression_provider"); //$NON-NLS-1$
@@ -49,7 +49,7 @@ public class TCFPrettyExpressionProvider {
                             String nm = e[j].getName();
                             if (nm.equals("class")) { //$NON-NLS-1$
                                 Class<?> c = bundle.loadClass(e[j].getAttribute("name")); //$NON-NLS-1$
-                                providers.add((ITCFPrettyExpressionProvider)c.newInstance());
+                                list.add((ITCFPrettyExpressionProvider)c.newInstance());
                             }
                         }
                     }
@@ -61,6 +61,7 @@ public class TCFPrettyExpressionProvider {
             catch (Exception x) {
                 Activator.log("Cannot access pretty expression provider extension points", x);
             }
+            providers = list;
         }
         return providers;
     }

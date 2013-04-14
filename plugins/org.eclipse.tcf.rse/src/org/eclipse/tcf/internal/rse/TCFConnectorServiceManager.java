@@ -18,7 +18,7 @@ import org.eclipse.rse.core.subsystems.ISubSystem;
 
 public class TCFConnectorServiceManager extends AbstractConnectorServiceManager {
 
-    public static int TCF_PORT = 1534;
+    public static final int TCF_PORT = 1534;
 
     private static final TCFConnectorServiceManager manager =
         new TCFConnectorServiceManager();

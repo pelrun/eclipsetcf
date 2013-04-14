@@ -37,7 +37,7 @@ public class TCFAnnotationProvider {
     public static ITCFAnnotationProvider getAnnotationProvider(Object selection) {
         if (selection == null) return null;
         if (providers == null) {
-            providers = new  ArrayList<ITCFAnnotationProvider>();
+            ArrayList<ITCFAnnotationProvider> list  = new  ArrayList<ITCFAnnotationProvider>();
             try {
                 IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(
                         Activator.PLUGIN_ID, "annotation_provider"); //$NON-NLS-1$
@@ -51,7 +51,7 @@ public class TCFAnnotationProvider {
                             String nm = e[j].getName();
                             if (nm.equals("class")) { //$NON-NLS-1$
                                 Class<?> c = bundle.loadClass(e[j].getAttribute("name")); //$NON-NLS-1$
-                                providers.add((ITCFAnnotationProvider)c.newInstance());
+                                list.add((ITCFAnnotationProvider)c.newInstance());
                             }
                         }
                     }
@@ -63,6 +63,7 @@ public class TCFAnnotationProvider {
             catch (Exception x) {
                 Activator.log("Cannot access annotation provider extension points", x);
             }
+            providers = list;
         }
         for (ITCFAnnotationProvider p : providers) {
             if (p.isSupportedSelection(selection)) return p;

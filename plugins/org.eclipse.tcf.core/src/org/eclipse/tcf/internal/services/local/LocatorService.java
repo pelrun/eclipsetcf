@@ -63,6 +63,8 @@ public class LocatorService implements ILocator {
     private static final int PREF_PACKET_SIZE = 1500 - 40 - 8;
 
     private static LocatorService locator;
+    private static LocalPeer local_peer;
+
     private static final Map<String,IPeer> peers = new HashMap<String,IPeer>();
     private static final ArrayList<LocatorListener> listeners = new ArrayList<LocatorListener>();
     private static final HashSet<String> error_log = new HashSet<String>();
@@ -169,8 +171,6 @@ public class LocatorService implements ILocator {
 
     private static final HashMap<String,AddressCacheItem> addr_cache = new HashMap<String,AddressCacheItem>();
     private static boolean addr_request;
-
-    private static LocalPeer local_peer;
 
     private DatagramSocket socket;
     private long last_master_packet_time;
@@ -350,9 +350,12 @@ public class LocatorService implements ILocator {
         return socket;
     }
 
-    public LocatorService() {
-        locator = this;
+    public static void createLocalInstance() {
         local_peer = new LocalPeer();
+        locator = new LocatorService();
+    }
+
+    public LocatorService() {
         try {
             loopback_addr = InetAddress.getByName(null);
             out_buf[0] = 'T';
