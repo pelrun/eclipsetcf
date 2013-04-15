@@ -23,8 +23,6 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tcf.te.ui.terminals.actions.SelectEncodingAction;
-import org.eclipse.tcf.te.ui.terminals.actions.TabScrollLockAction;
-import org.eclipse.tcf.te.ui.terminals.actions.ToggleCommandFieldAction;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.control.actions.AbstractTerminalAction;
@@ -72,16 +70,16 @@ public class TabFolderMenuHandler extends PlatformObject {
 			removeInvalidContributions(manager);
 			updateMenuItems(true);
 		}
-		
+
 		/**
 		 * Bug 392249: Remove contributions that appear in the context in Eclipse 4.x which are
 		 * not visible in Eclipse 3.8.x. Re-evaluate from time to time!
-		 * 
+		 *
 		 * @param manager The menu manager or <code>null</code>
 		 */
 		private void removeInvalidContributions(IMenuManager manager) {
 			if (manager == null) return;
-			
+
 			IContributionItem[] items = manager.getItems();
 			for (IContributionItem item : items) {
 				String id = item.getId();
@@ -153,12 +151,12 @@ public class TabFolderMenuHandler extends PlatformObject {
 
 		// Create the menu manager if not done before
 		contextMenuManager = new MenuManager("#PopupMenu"); //$NON-NLS-1$
-		
+
 		// Bug 392249: Register our menu listener after registering the context menu
 		//             for contributions. That way we can use our menu listener to get
 		//             rid of unwanted/misguided contributions. At least until this is
 		//             fixed in the Eclipse 4.x platform.
-		
+
 		// Create the context menu
 		contextMenu = contextMenuManager.createContextMenu(tabFolder);
 
@@ -244,28 +242,6 @@ public class TabFolderMenuHandler extends PlatformObject {
 			}
 		});
 
-		// Create and add the toggle command input field action
-		add (new ToggleCommandFieldAction(getParentView()) {
-			/* (non-Javadoc)
-			 * @see org.eclipse.tm.internal.terminal.control.actions.AbstractTerminalAction#getTarget()
-			 */
-			@Override
-			protected ITerminalViewControl getTarget() {
-				return getActiveTerminalViewControl();
-			}
-		});
-
-		// Create and add the scroll lock action
-		add (new TabScrollLockAction() {
-			/* (non-Javadoc)
-			 * @see org.eclipse.tcf.internal.terminal.control.actions.AbstractTerminalAction#getTarget()
-			 */
-			@Override
-			protected ITerminalViewControl getTarget() {
-				return getActiveTerminalViewControl();
-			}
-		});
-
 		// Create and add the select encoding action
 		add (new SelectEncodingAction((TabFolderManager)getParentView().getAdapter(TabFolderManager.class)) {
 			/* (non-Javadoc)
@@ -316,10 +292,6 @@ public class TabFolderMenuHandler extends PlatformObject {
 			}
 			// Add a separator after the select all action
 			if (action instanceof TerminalActionSelectAll) {
-				manager.add(new Separator());
-			}
-			// Add a separator after the scroll lock action
-			if (action instanceof TabScrollLockAction) {
 				manager.add(new Separator());
 			}
 		}
