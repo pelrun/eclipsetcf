@@ -12,23 +12,32 @@ package org.eclipse.tcf.te.ui.views;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.handler.OpenEditorHandler;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
+import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
+import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
@@ -231,6 +240,54 @@ public class ViewsUtil {
 				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 				Assert.isNotNull(window);
 				OpenEditorHandler.openEditorOnSelection(window, selection);
+			}
+		};
+
+		// Execute asynchronously
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(runnable);
+		}
+	}
+
+	/**
+	 * Reopens the given editor and set the given page as active page.
+	 *
+	 * @param editor The editor. Must not be <code>null</code>.
+	 * @param pageId The id of the active page or <code>null</code>.
+	 * @param save <code>True</code> to save the editor contents if required, <code>false</code> to discard any unsaved changes.
+
+	 */
+	public static void reopenEditor(final IEditorPart editor, final String pageId, final boolean save) {
+		Assert.isNotNull(editor);
+
+		// Create the runnable
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+				Assert.isNotNull(window);
+				IWorkbenchPage page = window.getActivePage();
+				Assert.isNotNull(page);
+
+				// Determine the editor input
+				IEditorInput input = editor.getEditorInput();
+				// Close the editor
+				page.closeEditor(editor, save);
+				try {
+					// Reopen the editor
+	                IEditorPart newEditor = page.openEditor(input, IUIConstants.ID_EDITOR);
+	                // Set the active page
+	                if (newEditor instanceof FormEditor && pageId != null) {
+	                	((FormEditor)newEditor).setActivePage(pageId);
+	                }
+                }
+                catch (PartInitException e) {
+					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), Messages.ViewsUtil_reopen_error, e);
+					UIPlugin.getDefault().getLog().log(status);
+                }
+
+
 			}
 		};
 

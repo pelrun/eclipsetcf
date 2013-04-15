@@ -64,4 +64,6 @@ public class Messages extends NLS {
 
 	public static String UpdateActiveExtensionsOperation_OperationName;
 	public static String UpdateActiveFiltersOperation_OperationName;
+
+	public static String ViewsUtil_reopen_error;
 }
