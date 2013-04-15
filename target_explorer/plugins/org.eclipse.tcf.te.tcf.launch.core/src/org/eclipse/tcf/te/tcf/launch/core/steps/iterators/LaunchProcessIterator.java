@@ -33,18 +33,19 @@ public class LaunchProcessIterator extends AbstractTcfLaunchStepGroupIterator {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupIterator#getNumIterations()
+	 * @see org.eclipse.tcf.te.runtime.stepper.iterators.AbstractStepGroupIterator#initialize(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	public int getNumIterations() {
-		return 1;
+	public void initialize(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+	    super.initialize(context, data, fullQualifiedId, monitor);
+	    setIterations(1);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupIterator#next(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
+	 * @see org.eclipse.tcf.te.runtime.stepper.iterators.AbstractStepGroupIterator#internalNext(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	public void next(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+	public void internalNext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
 		String processImage = DefaultPersistenceDelegate.getAttribute(getLaunchConfiguration(context), IProcessesStepAttributes.ATTR_PROCESS_IMAGE, (String)null);
 		String processArguments = DefaultPersistenceDelegate.getAttribute(getLaunchConfiguration(context), IProcessesStepAttributes.ATTR_PROCESS_ARGUMENTS, (String)null);
 
@@ -65,7 +66,5 @@ public class LaunchProcessIterator extends AbstractTcfLaunchStepGroupIterator {
 		StepperAttributeUtil.setProperty(IProcessesStepAttributes.ATTR_STOP_AT_MAIN, fullQualifiedId, data, stopAtMain);
 		StepperAttributeUtil.setProperty(IProcessesStepAttributes.ATTR_OUTPUT_CONSOLE, fullQualifiedId, data, outputConsole);
 		StepperAttributeUtil.setProperty(IProcessesStepAttributes.ATTR_OUTPUT_FILE, fullQualifiedId, data, outputFile);
-
-		super.next(context, data, fullQualifiedId, monitor);
 	}
 }

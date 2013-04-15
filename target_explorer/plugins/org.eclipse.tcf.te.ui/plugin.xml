@@ -30,39 +30,90 @@
       </category>
 
       <command
+            id="org.eclipse.tcf.te.ui.command.newWizards"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             defaultHandler="org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardCommandHandler"
             description="%command.newWizards.description"
             helpContextId="org.eclipse.tcf.te.ui.command_NewWizards"
-            id="org.eclipse.tcf.te.ui.command.newWizards"
             name="%command.newWizards.name">
       </command>
 
       <command
+            id="org.eclipse.tcf.te.ui.command.refresh"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             description="%command.refresh.description"
             helpContextId="org.eclipse.tcf.te.ui.command_Refresh"
-            id="org.eclipse.tcf.te.ui.command.refresh"
             name="%command.refresh.name">
       </command>
       
       <command
+            id="org.eclipse.tcf.te.ui.command.showConsoleView"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             description="%command.showConsoleView.description"
             helpContextId="org.eclipse.tcf.te.ui.command_ShowConsoleView"
-            id="org.eclipse.tcf.te.ui.command.showConsoleView"
             name="%command.showConsoleView.name">
+      </command>
+
+      <command
+            id="org.eclipse.tcf.te.ui.command.connect"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.ui.command_Connect"
+            description="%command.connect.description"
+            name="%command.connect.name">
+      </command>
+
+      <command
+            id="org.eclipse.tcf.te.ui.editor.command.connect"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.ui.command_Connect"
+            description="%command.connect.description"
+            name="%command.connect.name">
+      </command>
+
+      <command
+            id="org.eclipse.tcf.te.ui.command.disconnect"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.ui.command_Disconnect"
+            description="%command.disconnect.description"
+            name="%command.disconnect.name">
+      </command>
+
+      <command 
+            id="org.eclipse.tcf.te.ui.editor.command.disconnect"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.ui.command_Disconnect"
+            description="%command.disconnect.description"
+            name="%command.disconnect.name">
       </command>
    </extension>
    
 <!-- Command image contributions -->   
    <extension point="org.eclipse.ui.commandImages">
       <image
+            commandId="org.eclipse.tcf.te.ui.command.connect"
+            disabledIcon="icons/dlcl16/connect.gif"
+            icon="icons/elcl16/connect.gif">
+      </image>
+      <image
+            commandId="org.eclipse.tcf.te.ui.editor.command.connect"
+            disabledIcon="icons/dlcl16/connect.gif"
+            icon="icons/elcl16/connect.gif">
+      </image>
+      <image
+            commandId="org.eclipse.tcf.te.ui.command.disconnect"
+            disabledIcon="icons/dlcl16/disconnect.gif"
+            icon="icons/elcl16/disconnect.gif">
+      </image>
+      <image
+            commandId="org.eclipse.tcf.te.ui.editor.command.disconnect"
+            disabledIcon="icons/dlcl16/disconnect.gif"
+            icon="icons/elcl16/disconnect.gif">
+      </image>
+      <image
             commandId="org.eclipse.tcf.te.ui.command.newWizards"
             disabledIcon="icons/dlcl16/newtarget_wiz.gif"
             icon="icons/elcl16/newtarget_wiz.gif">
       </image>
-      
       <image
             commandId="org.eclipse.tcf.te.ui.command.refresh"
             disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dlcl16/refresh_nav.gif"
@@ -70,11 +121,212 @@
       </image>
    </extension>
 
-<!-- COmmand handler contributions -->
+<!-- Command handler contributions -->
    <extension point="org.eclipse.ui.handlers">
       <handler
             class="org.eclipse.tcf.te.ui.handler.ShowConsoleViewCommandHandler"
             commandId="org.eclipse.tcf.te.ui.command.showConsoleView">
+      </handler>
+      
+      <handler commandId="org.eclipse.tcf.te.ui.command.connect">
+         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
+            <parameter name="operation" value="connect"/>
+         </class>
+         <activeWhen>
+            <with variable="systemManagerViewSelection">
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="connect"/>
+                     </not>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="disconnect"/>
+                     </not>
+                  </adapt>
+               </iterate>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="systemManagerViewSelection">
+               <count value="1"/>
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           value="connect"/>
+                  </adapt>
+               </iterate>
+            </with>
+         </enabledWhen>
+      </handler>
+      <handler commandId="org.eclipse.tcf.te.ui.editor.command.connect">
+         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
+            <parameter name="operation" value="connect"/>
+         </class>
+         <activeWhen>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.services.hasService"
+                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
+                  <not>
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                           value="connect"/>
+                  </not>
+                  <not>
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                           value="disconnect"/>
+                  </not>
+               </adapt>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <and>
+               <with variable="activeEditor">
+                  <test property="org.eclipse.tcf.te.ui.views.isDirty" value="false"/>
+               </with>
+               <with variable="activeEditorInput">
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           value="connect"/>
+                  </adapt>
+               </with>
+            </and>
+         </enabledWhen>
+      </handler>
+
+      <handler commandId="org.eclipse.tcf.te.ui.command.disconnect">
+         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
+            <parameter name="operation" value="disconnect"/>
+         </class>
+         <activeWhen>
+            <with variable="systemManagerViewSelection">
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="connect"/>
+                     </not>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="disconnect"/>
+                     </not>
+                  </adapt>
+               </iterate>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="systemManagerViewSelection">
+               <count value="1"/>
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           value="disconnect"/>
+                  </adapt>
+               </iterate>
+            </with>
+         </enabledWhen>
+      </handler>
+      <handler commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
+         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
+            <parameter name="operation" value="disconnect"/>
+         </class>
+         <activeWhen>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.services.hasService"
+                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
+                  <not>
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                           value="connect"/>
+                  </not>
+                  <not>
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                           value="disconnect"/>
+                  </not>
+               </adapt>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                        value="disconnect"/>
+               </adapt>
+            </with>
+         </enabledWhen>
+      </handler>
+
+      <handler commandId="org.eclipse.tcf.te.ui.command.disconnect">
+         <class class="org.eclipse.tcf.te.ui.handler.CancelStepperCommandHandler">
+            <parameter name="operation" value="connect"/>
+         </class>
+         <activeWhen>
+            <with variable="systemManagerViewSelection">
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunning"
+                           value="connect"/>
+                  </adapt>
+               </iterate>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="systemManagerViewSelection">
+               <count value="1"/>
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunning"
+                           value="connect"/>
+                  </adapt>
+               </iterate>
+            </with>
+         </enabledWhen>
+      </handler>
+      <handler commandId="org.eclipse.tcf.te.ui.editor.command.disconnect"> 
+         <class class="org.eclipse.tcf.te.ui.handler.CancelStepperCommandHandler">
+            <parameter name="operation" value="connect"/>
+         </class>
+         <activeWhen>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.stepper.isRunning"
+                        value="connect"/>
+               </adapt>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.stepper.isRunning"
+                        value="connect"/>
+               </adapt>
+            </with>
+         </enabledWhen>
       </handler>
    </extension>
    

@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.launch.ui.internal.services;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
@@ -55,25 +56,25 @@ public class DebugService extends AbstractService implements IDebugService {
 		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(listener);
     }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IDebugService#attach(java.lang.Object, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
-	 */
-	@Override
-	public void attach(final Object context, final IPropertiesContainer data, final ICallback callback) {
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.runtime.services.interfaces.IDebugService#attach(java.lang.Object, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+     */
+    @Override
+    public void attach(final Object context, final IPropertiesContainer data, final IProgressMonitor monitor, final ICallback callback) {
 		if (!Protocol.isDispatchThread()) {
-			internalAttach(context, data, callback);
+			internalAttach(context, data, monitor, callback);
 		}
 		else {
 			ExecutorsUtil.execute(new Runnable() {
 				@Override
 				public void run() {
-					internalAttach(context, data, callback);
+					internalAttach(context, data, monitor, callback);
 				}
 			});
 		}
 	}
 
-	protected void internalAttach(final Object context, final IPropertiesContainer data, final ICallback callback) {
+	protected void internalAttach(final Object context, final IPropertiesContainer data, final IProgressMonitor monitor, final ICallback callback) {
 		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		Assert.isNotNull(context);
@@ -129,6 +130,34 @@ public class DebugService extends AbstractService implements IDebugService {
 		else {
 			callback.done(this, Status.OK_STATUS);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IDebugService#detach(java.lang.Object, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 */
+	@Override
+	public void detach(Object context, IPropertiesContainer data, final IProgressMonitor monitor, ICallback callback) {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(callback);
+
+		if (context instanceof IModelNode) {
+			ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
+			for (ILaunch launch : launches) {
+				try {
+					if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && !launch.isTerminated()) {
+						IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
+						if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
+							launch.terminate();
+						}
+					}
+				} catch (Exception e) {
+					callback.done(this, StatusHelper.getStatus(e));
+					return;
+				}
+			}
+		}
+		callback.done(this, Status.OK_STATUS);
 	}
 
 	/* (non-Javadoc)

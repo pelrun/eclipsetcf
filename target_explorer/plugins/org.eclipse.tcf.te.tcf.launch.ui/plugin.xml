@@ -352,6 +352,31 @@
             </visibleWhen>
          </menu>
       </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.hasRunControl"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.hasRunControl"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.hasRunControl"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
    </extension>
 
 <!-- Command contributions -->

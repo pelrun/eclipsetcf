@@ -27,13 +27,7 @@ public interface IStepGroupIterator extends IExecutableExtension {
 	 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
 	 * @param monitor The progress monitor. Must not be <code>null</code>.
 	 */
-	public void initialize(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor);
-
-	/**
-	 * Return the number of calculated iterations. If the iterator was not initialized,
-	 * <code>-1</code> is returned.
-	 */
-	public int getNumIterations();
+	public void initialize(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException;
 
 	/**
 	 * Check if there is a next iteration possible.
@@ -44,7 +38,7 @@ public interface IStepGroupIterator extends IExecutableExtension {
 	 * @param monitor The progress monitor. Must not be <code>null</code>.
 	 * @return <code>true</code> if another iteration is possible.
 	 */
-	public boolean hasNext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor);
+	public boolean hasNext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException;
 
 	/**
 	 * Set the next iteration to the data using the full qualified id.

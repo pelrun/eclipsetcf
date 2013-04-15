@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.runtime.services.internal;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IMenuService;
 
-
 /**
  * Services plug-in property tester implementation.
  */

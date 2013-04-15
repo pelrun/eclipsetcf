@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -8,31 +8,51 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.launch.core.steps.iterators;
+package org.eclipse.tcf.te.tcf.locator.iterators;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
+import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 
 /**
- * LaunchContextIterator
+ * Step group iterator for file transfer.
  */
-public class LaunchContextIterator extends AbstractLaunchStepGroupIterator {
+public class StartDebuggerIterator extends AbstractPeerModelStepGroupIterator {
 
-	private IModelNode[] contexts = null;
+	/**
+	 * Constructor.
+	 */
+	public StartDebuggerIterator() {
+		super();
+	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupIterator#initialize(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
+	 * @see org.eclipse.tcf.te.runtime.stepper.iterators.AbstractStepGroupIterator#initialize(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
 	public void initialize(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
-		super.initialize(context, data, fullQualifiedId, monitor);
-		contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(getLaunchConfiguration(context));
-		setIterations(contexts != null ? contexts.length : 0);
+	    super.initialize(context, data, fullQualifiedId, monitor);
+
+	    final AtomicBoolean autoStartDbg = new AtomicBoolean(false);
+
+		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				String value = peer.getAttributes().get(IPeerModelProperties.PROP_AUTO_START_DEBUGGER);
+				autoStartDbg.set(value != null ? Boolean.parseBoolean(value) : false);
+			}
+		};
+		Protocol.invokeAndWait(runnable);
+
+		setIterations(autoStartDbg.get() ? 1 : 0);
 	}
 
 	/* (non-Javadoc)
@@ -40,6 +60,5 @@ public class LaunchContextIterator extends AbstractLaunchStepGroupIterator {
 	 */
 	@Override
 	public void internalNext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
-		setActiveContext(contexts[getIteration()], data, fullQualifiedId);
 	}
 }

@@ -31,6 +31,8 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.menus.CommandContributionItem;
+import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.IMenuService;
 
 /**
@@ -258,9 +260,16 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		manager.add(new GroupMarker("group.launch.rundebug")); //$NON-NLS-1$
 		manager.add(new GroupMarker("group.launch.modes")); //$NON-NLS-1$
 		manager.add(new GroupMarker("group.launch.additions")); //$NON-NLS-1$
-		manager.add(new Separator("group.showIn")); //$NON-NLS-1$
-		manager.add(new Separator("group.save")); //$NON-NLS-1$
 
+		manager.add(new Separator("group.showIn")); //$NON-NLS-1$
+		if (hasShowInSystemManagementAction()) {
+			manager.add(new CommandContributionItem(new CommandContributionItemParameter(PlatformUI.getWorkbench(),
+                        "org.eclipse.tcf.te.ui.views.command.showIn.systemManagement", //$NON-NLS-1$
+                        "org.eclipse.tcf.te.ui.command.showIn.systemManagement", //$NON-NLS-1$
+						  CommandContributionItem.STYLE_PUSH)));
+		}
+
+		manager.add(new Separator("group.save")); //$NON-NLS-1$
 		// If the page should have an apply button, add one to the toolbar
 		if (hasApplyAction()) {
 			Action applyAction = doCreateApplyAction(getEditor());
@@ -268,7 +277,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		}
 
 		manager.add(new Separator("group.help")); //$NON-NLS-1$
-
 		// If the page is associated with a context help id, add a default
 		// help action button into the toolbar
 		if (getContextHelpId() != null) {
@@ -297,6 +305,18 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected Action doCreateApplyAction(IEditorPart part) {
 		Assert.isNotNull(part);
 		return new ApplyAction(part);
+	}
+
+	/**
+	 * Returns if or if not the page should have an
+	 * ShowInSystemManagementView button in the toolbar.
+	 * <p>
+	 * The default implementation returns <code>true</code>.
+	 *
+	 * @return <code>True</code> if the page does have an ShowInSystemManagementView button, <code>false</code> otherwise.
+	 */
+	protected boolean hasShowInSystemManagementAction() {
+		return true;
 	}
 
 	/**

@@ -127,7 +127,7 @@
       </service>
    </extension>
 
-<!-- Launch Step contributions -->
+<!-- Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step
             id="org.eclipse.tcf.te.tcf.locator.checkServiceStep"
@@ -135,6 +135,55 @@
             label="%CheckServiceStep.name">
          <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
       </step>
+      <step
+            id="org.eclipse.tcf.te.tcf.locator.startSimulatorStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.StartSimulatorStep"
+            label="%StartSimulatorStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.StopSimulatorStep"
+            label="%StopSimulatorStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.StartDebuggerStep"
+            label="%StartDebuggerStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.StopDebuggerStep"
+            label="%StopDebuggerStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.WaitForReadyStep"
+            label="%WaitForReadyStep.name"/>
+   </extension>
+
+<!-- Step group contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.stepGroups">
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.connectStepGroup">
+         <references>
+            <reference id="org.eclipse.tcf.te.tcf.locator.startSimulatorStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"/>
+         </references>
+      </stepGroup>
+
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.disconnectStepGroup">
+         <references>
+            <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
+         </references>
+      </stepGroup>
+      
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"
+            iterator="org.eclipse.tcf.te.tcf.locator.iterators.StartDebuggerIterator">
+         <references>
+            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep"/>
+         </references>
+      </stepGroup>
    </extension>
 
 </plugin>

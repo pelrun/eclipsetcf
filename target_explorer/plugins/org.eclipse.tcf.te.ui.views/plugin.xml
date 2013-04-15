@@ -948,16 +948,17 @@
       <factory
             adaptableType="org.eclipse.tcf.te.ui.views.internal.View"
             class="org.eclipse.tcf.te.ui.views.internal.adapters.ViewAdapterFactory">
-         <adapter
-               type="org.eclipse.ui.navigator.CommonViewer">
-         </adapter>
+         <adapter type="org.eclipse.ui.navigator.CommonViewer"/>
       </factory>
       <factory
             adaptableType="org.eclipse.tcf.te.ui.views.editor.Editor"
             class="org.eclipse.tcf.te.ui.views.internal.adapters.EditorAdapterFactory">
-         <adapter
-               type="org.eclipse.jface.viewers.TreeViewer">
-         </adapter>
+         <adapter type="org.eclipse.jface.viewers.TreeViewer"/>
+      </factory>
+      <factory
+            adaptableType="org.eclipse.tcf.te.ui.views.editor.EditorInput"
+            class="org.eclipse.tcf.te.ui.views.internal.adapters.EditorAdapterFactory">
+         <adapter type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode"/>
       </factory>
    </extension>
 

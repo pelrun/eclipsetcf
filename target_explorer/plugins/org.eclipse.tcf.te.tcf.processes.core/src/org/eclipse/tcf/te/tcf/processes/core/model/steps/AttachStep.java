@@ -63,7 +63,7 @@ public class AttachStep {
 				IDebugService dbgService = ServiceManager.getInstance().getService(peerNode, IDebugService.class, false);
 				if (dbgService != null) {
 					// Attach to the peer node first
-					dbgService.attach(peerNode, new PropertiesContainer(), new Callback() {
+					dbgService.attach(peerNode, new PropertiesContainer(), null, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							callback.setProperty("launch", getProperty("launch")); //$NON-NLS-1$ //$NON-NLS-2$

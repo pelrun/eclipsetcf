@@ -254,51 +254,8 @@
 
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
-<!--   
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.redirect">
-         <command
-               commandId="org.eclipse.tcf.te.tcf.ui.command.redirect"
-               helpContextId="org.eclipse.tcf.te.tcf.ui.command_Redirect"
-               id="org.eclipse.tcf.te.tcf.ui.commands.redirect"
-               label="%command.redirect.label"
-               mnemonic="%command.redirect.mnemonic"
-               style="push"
-               tooltip="%command.redirect.tooltip">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <count value="+"/>
-                  <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
-                     </and>                        
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
 
-         <command
-               commandId="org.eclipse.tcf.te.tcf.ui.command.resetredirect"
-               helpContextId="org.eclipse.tcf.te.tcf.ui.command_ResetRedirect"
-               id="org.eclipse.tcf.te.tcf.ui.commands.resetredirect"
-               label="%command.resetredirect.label"
-               mnemonic="%command.resetredirect.mnemonic"
-               style="push"
-               tooltip="%command.resetredirect.tooltip">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <count value="+"/>
-                  <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
-                     </and>                        
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
--->      
+   <!-- View context menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.delete">
          <command
                commandId="org.eclipse.ui.edit.delete"
@@ -308,8 +265,7 @@
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.delete.label"
                mnemonic="%command.delete.mnemonic"
-               style="push"
-               tooltip="%command.delete.description">
+               tooltip="%command.delete.tooltip">
             <visibleWhen checkEnabled="false">
                <with variable="selection">
                   <count value="+"/>
@@ -326,7 +282,6 @@
                id="org.eclipse.tcf.te.tcf.ui.commands.rename"
                label="%command.rename.label"
                mnemonic="%command.rename.mnemonic"
-               style="push"
                tooltip="%command.rename.tooltip">
             <visibleWhen checkEnabled="false">
                <with variable="selection">
@@ -341,16 +296,12 @@
             </visibleWhen>
          </command>
       </menuContribution>
-
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.categories">
          <command
                commandId="org.eclipse.tcf.te.tcf.ui.command.offline"
                helpContextId="org.eclipse.tcf.te.tcf.ui.command_Offline"
                id="org.eclipse.tcf.te.tcf.ui.commands.offline"
-               label="%command.offline.label"
-               mnemonic="%command.offline.mnemonic"
-               style="push"
-               tooltip="%command.offline.tooltip">
+               mnemonic="%command.offline.mnemonic">
             <visibleWhen checkEnabled="true">
                <with variable="selection">
                   <count value="+"/>
@@ -376,13 +327,12 @@
             </visibleWhen>
          </command>
       </menuContribution>
- 
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.refresh">
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                label="%command.refresh.label"
                style="push"
-               tooltip="%command.refresh.description">
+               tooltip="%command.refresh.tooltip">
             <visibleWhen checkEnabled="false">
                <with variable="selection">
                   <count value="+"/>
@@ -407,77 +357,79 @@
             </visibleWhen>
          </command>
       </menuContribution>
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.command.debug">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                        <or>
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                           <not>
+                              <test
+                                    forcePluginActivation="true"
+                                    property="org.eclipse.tcf.te.runtime.services.hasService"
+                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                           </not>
+                           <test
+                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                 args="org.eclipse.tcf.te.tcf.ui.command.debug"
+                                 value="true"/>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command> 
+      </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"/>
+      </menuContribution>
+
    </extension>
 
 <!-- Command contributions -->
    <extension point="org.eclipse.ui.commands">
-<!--   
       <command
-            categoryId="org.eclipse.tcf.te.ui.commands.category"
-            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Redirect"
-            id="org.eclipse.tcf.te.tcf.ui.command.redirect"
-            name="%command.redirect.name">
-      </command>
-      <command
-            categoryId="org.eclipse.tcf.te.ui.commands.category"
-            helpContextId="org.eclipse.tcf.te.tcf.ui.command_ResetRedirect"
-            id="org.eclipse.tcf.te.tcf.ui.command.resetredirect"
-            name="%command.resetredirect.name">
-      </command>
--->      
-      <command
+            id="org.eclipse.tcf.te.tcf.ui.command.offline"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             helpContextId="org.eclipse.tcf.te.tcf.ui.command_Offline"
-            id="org.eclipse.tcf.te.tcf.ui.command.offline"
-            name="%command.offline.name">
+            name="%command.offline.label"
+            description="%command.offline.tooltip">
       </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.command.debug"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Debug"
+            name="%command.debug.label"
+            description="%command.debug.tooltip">
+      </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.editor.command.debug"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Debug"
+            name="%command.debug.label"
+            description="%command.debug.tooltip">
+      </command>
+   </extension>
+
+<!-- Command image contributions -->
+   <extension point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.eclipse.tcf.te.tcf.ui.command.debug"
+            icon="icons/etool16/debug_exc.gif">
+      </image>
+      <image
+            commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"
+            icon="icons/etool16/debug_exc.gif">
+      </image>
    </extension>
 
 <!-- Handler contributions -->
    <extension point="org.eclipse.ui.handlers">
-<!--   
-      <handler
-            class="org.eclipse.tcf.te.tcf.ui.handler.RedirectHandler"
-            commandId="org.eclipse.tcf.te.tcf.ui.command.redirect">
-            <activeWhen>
-               <with variable="activePartId">
-                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
-               </with>
-            </activeWhen>
-            <enabledWhen>
-               <with variable="selection">
-                  <count value="1"/>
-                  <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isRedirected" value="false"/>
-                     </and>
-                  </iterate>
-               </with>
-            </enabledWhen>
-      </handler>
-      
-      <handler
-            class="org.eclipse.tcf.te.tcf.ui.handler.ResetRedirectHandler"
-            commandId="org.eclipse.tcf.te.tcf.ui.command.resetredirect">
-            <activeWhen>
-               <with variable="activePartId">
-                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
-               </with>
-            </activeWhen>
-            <enabledWhen>
-               <with variable="selection">
-                  <count value="1"/>
-                  <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isRedirected" value="true"/>
-                     </and>
-                  </iterate>
-               </with>
-            </enabledWhen>
-      </handler>
--->
       <handler
             commandId="org.eclipse.ui.edit.delete"
             class="org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler">
@@ -569,6 +521,46 @@
                         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel"/>
                      </and>
                   </iterate>
+               </with>
+            </enabledWhen>
+      </handler>
+
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.command.debug"
+            class="org.eclipse.tcf.te.tcf.ui.handler.StartDebugCommandHandler">
+         <activeWhen>
+            <with variable="systemManagerViewSelection">
+               <iterate operator="and" ifEmpty="false">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+               </iterate>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="systemManagerViewSelection">
+               <count value="1"/>
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                     <test property="org.eclipse.tcf.te.launch.core.isLaunched" value="false"/>
+                  </adapt>
+                </iterate>
+            </with>
+         </enabledWhen>
+      </handler>
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"
+            class="org.eclipse.tcf.te.tcf.ui.handler.StartDebugCommandHandler">
+            <activeWhen>
+               <with variable="activeEditorInput">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+               </with>
+            </activeWhen>
+            <enabledWhen>
+               <with variable="activeEditorInput">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                     <test property="org.eclipse.tcf.te.launch.core.isLaunched" value="false"/>
+                  </adapt>
                </with>
             </enabledWhen>
       </handler>

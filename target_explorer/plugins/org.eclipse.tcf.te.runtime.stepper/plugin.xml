@@ -6,4 +6,15 @@
    <extension-point id="steps" name="%Extension.Steps.name" schema="schema/steps.exsd"/>
    <extension-point id="stepGroups" name="%Extension.StepGroups.name" schema="schema/stepGroups.exsd"/>
 
+<!-- Property tester contributions -->
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="org.eclipse.tcf.te.runtime.stepper.internal.PropertyTester"
+            id="org.eclipse.tcf.te.runtime.services.PropertyTester"
+            namespace="org.eclipse.tcf.te.runtime.stepper"
+            properties="isEnabled,isRunning,isRunningOrCanceled"
+            type="java.lang.Object">
+      </propertyTester>
+   </extension>
+
 </plugin>

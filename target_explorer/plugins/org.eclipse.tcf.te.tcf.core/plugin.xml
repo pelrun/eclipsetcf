@@ -22,6 +22,10 @@
             label="%CloseChannelStep.name">
          <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
       </step>
+      <step
+            id="org.eclipse.tcf.te.tcf.core.shutDownStep"
+            class="org.eclipse.tcf.te.tcf.core.steps.ShutDownStep"
+            label="%ShutDownStep.name"/>
    </extension>
 
 </plugin>

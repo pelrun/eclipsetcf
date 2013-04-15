@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.services.interfaces;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 
@@ -25,9 +26,21 @@ public interface IDebugService extends IService {
 	 *
 	 * @param context The debug context. Must not be <code>null</code>.
 	 * @param data The data properties to parameterize the attach. Must not be <code>null</code>.
+	 * @param monitor The progress monitor.
 	 * @param callback The callback to invoke once the operation completed. Must not be <code>null</code>.
 	 */
-	public void attach(Object context, IPropertiesContainer data, ICallback callback);
+	public void attach(Object context, IPropertiesContainer data, IProgressMonitor monitor, ICallback callback);
+
+	/**
+	 * Terminates a debug session for the given context and detaches it. The detach
+	 * can be parameterized via the data properties.
+	 *
+	 * @param context The debug context. Must not be <code>null</code>.
+	 * @param data The data properties to parameterize the detach. Must not be <code>null</code>.
+	 * @param monitor The progress monitor.
+	 * @param callback The callback to invoke once the operation completed. Must not be <code>null</code>.
+	 */
+	public void detach(Object context, IPropertiesContainer data, IProgressMonitor monitor, ICallback callback);
 
 	/**
 	 * Returns if or if not the debugger has been launched for the given context.
