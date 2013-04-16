@@ -68,7 +68,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	// The locator model listener instance
 	/* default */ IModelListener modelListener = null;
 
-	// Internal map of RemotePeerDiscoverRootNodes per peer id
+	// Internal map of PeerRedirectorGroupNodes per peer id
 	private final Map<String, PeerRedirectorGroupNode> roots = new HashMap<String, PeerRedirectorGroupNode>();
 
 	// Flag to remember if invisible nodes are to be included in the list of
