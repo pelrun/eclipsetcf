@@ -29,4 +29,8 @@ public interface IWireTypeNetwork {
 	 */
 	public static final String PROPERTY_NETWORK_PORT = "port"; //$NON-NLS-1$
 
+	/**
+	 * The network port is a "auto port" (automatically determined and read-only to the user).
+	 */
+	public static final String PROPERTY_NETWORK_PORT_IS_AUTO = "autoPort"; //$NON-NLS-1$
 }

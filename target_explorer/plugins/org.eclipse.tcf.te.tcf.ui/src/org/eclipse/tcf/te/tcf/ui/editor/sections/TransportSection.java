@@ -268,8 +268,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 
 				if (transportTypePanelControl != null) {
 					transportTypePanelControl.showConfigurationPanel(transportType);
-					IWizardConfigurationPanel panel = transportTypePanelControl
-					                .getConfigurationPanel(transportType);
+					IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportType);
 					if (panel instanceof IDataExchangeNode) {
 						((IDataExchangeNode) panel).setupData(data);
 					}
@@ -557,8 +556,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 			}
 
 			if (transportTypePanelControl != null) {
-				IWizardConfigurationPanel panel = transportTypePanelControl
-				                .getConfigurationPanel(transportType);
+				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportType);
 				if (panel != null) {
 					isDirty |= panel.dataChanged(odc, e);
 				}

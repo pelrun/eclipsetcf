@@ -14,6 +14,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
@@ -139,6 +140,9 @@ public class TcpTransportPanel extends NetworkCablePanel {
 			if (port != null) isDirty |= !port.equals(data.getStringProperty(IPeer.ATTR_IP_PORT));
 		}
 
+		boolean autoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+		isDirty |= isAutoPort() != autoPort;
+
 		return isDirty;
 	}
 
@@ -158,6 +162,8 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		if (portControl != null) {
 			portControl.setEditFieldControlText(data.getStringProperty(IPeer.ATTR_IP_PORT));
 		}
+
+		setIsAutoPort(data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO));
 	}
 
 	/* (non-Javadoc)
@@ -178,6 +184,12 @@ public class TcpTransportPanel extends NetworkCablePanel {
 			String port = portControl.getEditFieldControlText();
 			data.setProperty(IPeer.ATTR_IP_PORT, !"".equals(port) ? port : null); //$NON-NLS-1$
 		}
+
+		if (isAutoPort()) {
+			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, Boolean.TRUE.toString());
+		} else {
+			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -188,6 +200,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		if (data == null) return;
 		data.setProperty(IPeer.ATTR_IP_HOST, null);
 		data.setProperty(IPeer.ATTR_IP_PORT, null);
+		data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
 	}
 
 	/* (non-Javadoc)
@@ -199,5 +212,6 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		Assert.isNotNull(dst);
 		dst.setProperty(IPeer.ATTR_IP_HOST, src.getStringProperty(IPeer.ATTR_IP_HOST));
 		dst.setProperty(IPeer.ATTR_IP_PORT, src.getStringProperty(IPeer.ATTR_IP_PORT));
+		dst.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, src.getStringProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO));
 	}
 }

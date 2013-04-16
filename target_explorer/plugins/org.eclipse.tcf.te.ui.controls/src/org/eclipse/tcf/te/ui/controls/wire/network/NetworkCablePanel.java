@@ -37,6 +37,8 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 	private NetworkAddressControl addressControl = null;
 	private NetworkPortControl portControl = null;
 
+	private boolean isAutoPort = false;
+
 	/**
 	 * Constructor.
 	 *
@@ -169,6 +171,33 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 		return false;
 	}
 
+	/**
+	 * Set the auto port state.
+	 *
+	 * @param value <code>True</code> if the port is an "auto port", <code>false</code> otherwise.
+	 */
+	protected final void setIsAutoPort(boolean value) {
+		isAutoPort = value;
+
+		if (portControl != null) {
+	    	if (keepLabelsAlwaysEnabled()) {
+	    		SWTControlUtil.setEnabled(portControl.getEditFieldControl(), !isAutoPort);
+	    		SWTControlUtil.setEnabled(portControl.getButtonControl(), !isAutoPort);
+	    	} else {
+	    		portControl.setEnabled(!isAutoPort);
+	    	}
+		}
+	}
+
+	/**
+	 * Returns the auto port state.
+	 *
+	 * @return <code>True</code> if the port is an "auto port", <code>false</code> otherwise.
+	 */
+	protected final boolean isAutoPort() {
+		return isAutoPort;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel#setEnabled(boolean)
 	 */
@@ -185,10 +214,10 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 	    }
 	    if (portControl != null) {
 	    	if (keepLabelsAlwaysEnabled()) {
-	    		SWTControlUtil.setEnabled(portControl.getEditFieldControl(), enabled);
-	    		SWTControlUtil.setEnabled(portControl.getButtonControl(), enabled);
+	    		SWTControlUtil.setEnabled(portControl.getEditFieldControl(), enabled && !isAutoPort);
+	    		SWTControlUtil.setEnabled(portControl.getButtonControl(), enabled && !isAutoPort);
 	    	} else {
-	    		portControl.setEnabled(enabled);
+	    		portControl.setEnabled(enabled && !isAutoPort);
 	    	}
 	    }
 	}
@@ -244,6 +273,10 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 			if (port != null) isDirty |= !port.equals(container.get(IWireTypeNetwork.PROPERTY_NETWORK_PORT) != null ? container.get(IWireTypeNetwork.PROPERTY_NETWORK_PORT) : getDefaultPort() != null ? getDefaultPort() : ""); //$NON-NLS-1$
 		}
 
+		String autoPort = (String)container.get(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+		if (autoPort == null) autoPort = Boolean.FALSE.toString();
+		isDirty |= isAutoPort != Boolean.parseBoolean(autoPort);
+
 		return isDirty;
 	}
 
@@ -265,6 +298,9 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 			String port = (String)container.get(IWireTypeNetwork.PROPERTY_NETWORK_PORT);
 			portControl.setEditFieldControlText(port != null && !"".equals(port) ? port : getDefaultPort()); //$NON-NLS-1$
 		}
+
+		String autoPort = (String)container.get(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+		if (autoPort != null) setIsAutoPort(Boolean.parseBoolean(autoPort));
 	}
 
 	/* (non-Javadoc)
@@ -283,6 +319,12 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 
 		if (portControl != null) {
 			container.put(IWireTypeNetwork.PROPERTY_NETWORK_PORT, portControl.getEditFieldControlText());
+		}
+
+		if (isAutoPort) {
+			container.put(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, Boolean.TRUE.toString());
+		} else {
+			container.remove(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
 		}
 
 		data.setProperty(IWireTypeNetwork.PROPERTY_CONTAINER_NAME, !container.isEmpty() ? container : null);
