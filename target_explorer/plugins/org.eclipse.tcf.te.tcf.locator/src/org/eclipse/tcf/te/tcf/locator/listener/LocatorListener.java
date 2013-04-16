@@ -264,7 +264,7 @@ public class LocatorListener implements ILocator.LocatorListener {
 				newId.append(':');
 				newId.append(ip);
 				newId.append(':');
-				newId.append(id.substring(endIndex));
+				newId.append(id.substring(endIndex + 1));
 
 				// Try the lookup again
 				peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(newId.toString());

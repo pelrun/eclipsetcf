@@ -626,8 +626,34 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		}
 
 		// If the child node is already visible as root node, drop the child node
-		if (getService(ILocatorModelLookupService.class).lkupPeerModelById(node.getPeerId()) != null) {
+		String id = node.getPeerId();
+		if (isRootNode(id)) {
 			return null;
+		}
+
+		int beginIndex = id.indexOf(':');
+		int endIndex = id.lastIndexOf(':');
+		String ip = beginIndex != -1 && endIndex != -1 ? id.substring(beginIndex+1, endIndex) : ""; //$NON-NLS-1$
+
+		// Get the loopback address
+		String loopback = IPAddressUtil.getInstance().getIPv4LoopbackAddress();
+		// Empty IP address means loopback
+		if ("".equals(ip)) ip = loopback; //$NON-NLS-1$
+
+		// If the IP is a localhost IP, try the loopback IP
+		if (IPAddressUtil.getInstance().isLocalHost(ip)) {
+			// Build up the new id to lookup
+			StringBuilder newId = new StringBuilder();
+			newId.append(id.substring(0, beginIndex));
+			newId.append(':');
+			newId.append(loopback);
+			newId.append(':');
+			newId.append(id.substring(endIndex + 1));
+
+			// Try the lookup again
+			if (isRootNode(newId.toString())) {
+				return null;
+			}
 		}
 
 		// Get the peer from the peer node
@@ -681,6 +707,30 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		}
 
 		return node;
+	}
+
+	/**
+	 * Checks if the given peer id belongs to an already known root node
+	 * or to one of the discovered nodes.
+	 *
+	 * @param id The peer id. Must not be <code>null</code>.
+	 * @return <code>True</code> if the given id belongs to a root node, <code>false</code> otherwise.
+	 */
+	private boolean isRootNode(String id) {
+		Assert.isNotNull(id);
+
+		boolean isRoot = false;
+
+		if (getService(ILocatorModelLookupService.class).lkupPeerModelById(id) != null) {
+			isRoot = true;
+		} else {
+			Map<String, IPeer> peers = Protocol.getLocator().getPeers();
+			if (peers.containsKey(id)) {
+				isRoot = true;
+			}
+		}
+
+		return isRoot;
 	}
 
 	/**
