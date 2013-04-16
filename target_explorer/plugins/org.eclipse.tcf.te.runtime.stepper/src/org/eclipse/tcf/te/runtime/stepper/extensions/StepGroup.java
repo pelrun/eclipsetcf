@@ -842,9 +842,9 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		if (enablement != null) {
 			if (context != null) {
 				// Set the default variable to the context.
-				EvaluationContext evalContext = new EvaluationContext(null, context);
+				EvaluationContext evalContext = new EvaluationContext(null, context.getContextObject());
 				// Initialize the evaluation context named variables
-				evalContext.addVariable("context", context.getContextObject()); //$NON-NLS-1$
+				evalContext.addVariable("context", context); //$NON-NLS-1$
 				evalContext.addVariable("id", context.getId()); //$NON-NLS-1$
 				// Allow plugin activation
 				evalContext.setAllowPluginActivation(true);
