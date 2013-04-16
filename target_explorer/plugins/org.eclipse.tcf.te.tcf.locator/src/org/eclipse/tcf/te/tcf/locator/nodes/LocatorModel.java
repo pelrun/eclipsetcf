@@ -427,14 +427,62 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		// If the peer node is for local host, we ignore all peers not being
 		// associated with the loopback address.
 		if (IPAddressUtil.getInstance().isLocalHost(peerIP) && !loopback.equals(peerIP)) {
-			// Not loopback address -> drop the peer
-			result = null;
+			boolean drop = true;
 
-			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
-				CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd: local host peer but not loopback address -> peer node dropped" //$NON-NLS-1$
-															, ITracing.ID_TRACE_LOCATOR_MODEL, this);
+			// Simulator nodes appears on local host IP addresses too, but does not have
+			// a loopback peer available. We have to check the agent ID to determine if
+			// a specific node can be dropped
+			String agentID = peer.getAgentID();
+			if (agentID != null) {
+				// Get all discovered peers
+				Map<String, IPeer> peers = Protocol.getLocator().getPeers();
+				// Sort them by agent id
+				Map<String, List<IPeer>> byAgentID = new HashMap<String, List<IPeer>>();
+
+				for (IPeer candidate : peers.values()) {
+					if (candidate.getAgentID() == null) continue;
+
+					List<IPeer> l = byAgentID.get(candidate.getAgentID());
+					if (l == null) {
+						l = new ArrayList<IPeer>();
+						byAgentID.put(candidate.getAgentID(), l);
+					}
+					Assert.isNotNull(l);
+					if (!l.contains(candidate)) l.add(candidate);
+				}
+
+				// Check all peers found for the same agent ID as the current peer to validate
+				List<IPeer> candidates = byAgentID.get(agentID);
+				if (candidates != null && candidates.size() > 1) {
+					// Check if the found peers contains one with the loopback address
+					drop = false;
+					for (IPeer candidate : candidates) {
+						String ip = candidate.getAttributes().get(IPeer.ATTR_IP_HOST);
+						if (IPAddressUtil.getInstance().isLocalHost(ip) && loopback.equals(ip)) {
+							drop = true;
+							break;
+						}
+					}
+				} else {
+					// No other node for this agent ID -> do not drop the peer
+					drop = false;
+				}
 			}
-		} else {
+
+
+			if (drop) {
+				// Not loopback address -> drop the peer
+				result = null;
+
+				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+					CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd: local host peer but not loopback address -> peer node dropped", //$NON-NLS-1$
+																ITracing.ID_TRACE_LOCATOR_MODEL, this);
+				}
+			}
+		}
+
+		// Continue filtering if the node is not yet dropped
+		if (result != null) {
 			// Peers are filtered by agent id. Don't add the peer node
 			// if we have another peer node already having the same agent id
 			String agentId = peer.getAgentID();
