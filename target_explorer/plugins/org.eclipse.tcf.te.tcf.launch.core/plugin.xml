@@ -149,11 +149,9 @@
             <reference id="org.eclipse.tcf.te.tcf.core.closeChannelStep"/>
             <reference id="org.eclipse.tcf.te.launch.core.removeLaunchStep">
                <enablement>
-                  <with variable="context">
-                     <not>
-                        <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
-                     </not>
-                  </with>
+                  <not>
+                     <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
+                  </not>
                </enablement>
             </reference>
          </references>
@@ -169,17 +167,13 @@
             <reference id="org.eclipse.tcf.te.tcf.locator.checkServiceStep">
                <parameter name="remoteService" value="RunControl"/>
                <enablement>
-                  <with variable="context">
-                     <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
-                  </with>
+                  <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
                </enablement>
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.processes.core.launchProcessStep"/>
             <reference id="org.eclipse.tcf.te.tcf.processes.core.resumeProcessStep">
                <enablement>
-                  <with variable="context">
-                     <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
-                  </with>
+                  <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
                </enablement>
             </reference>
          </references>
@@ -207,9 +201,7 @@
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.attachDebuggerStep">
                <enablement>
-                  <with variable="context">
-                     <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
-                  </with>
+                  <test property="org.eclipse.tcf.te.launch.core.launchMode" value="debug"/>
                </enablement>
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.core.closeChannelStep"/>
