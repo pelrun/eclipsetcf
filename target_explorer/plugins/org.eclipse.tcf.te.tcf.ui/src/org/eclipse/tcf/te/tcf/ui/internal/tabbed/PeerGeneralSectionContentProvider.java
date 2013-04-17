@@ -28,6 +28,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
+import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
 import org.eclipse.ui.forms.widgets.Section;
 
 
@@ -88,13 +89,26 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 				if (name.endsWith(".silent") || name.contains(".transient")) continue; //$NON-NLS-1$ //$NON-NLS-2$
 				// Create the properties node
 				NodePropertiesTableTableNode propertiesNode = new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : ""); //$NON-NLS-1$
-				// Check the label provider if the value to show is replaced
-				if (provider != null) {
-					String text = provider.getText(propertiesNode);
-					if (text != null && !"".equals(text)) { //$NON-NLS-1$
-						propertiesNode = new NodePropertiesTableTableNode(name, text);
-					}
+
+				// Possible replacement for the node properties table table node value
+				String text = null;
+
+				// Get the label provider delegate for the input element
+				ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(inputElement, false);
+				if (delegates != null && delegates.length > 0) {
+					text = delegates[0].getText(propertiesNode);
 				}
+
+				// Fallback to the label provider
+				if (text == null && provider != null) {
+					text = provider.getText(propertiesNode);
+				}
+
+				// Replace the node properties table table node value
+				if (text != null && !"".equals(text)) { //$NON-NLS-1$
+					propertiesNode = new NodePropertiesTableTableNode(name, text);
+				}
+
 				// Add the properties node
 				nodes.add(propertiesNode);
 			}

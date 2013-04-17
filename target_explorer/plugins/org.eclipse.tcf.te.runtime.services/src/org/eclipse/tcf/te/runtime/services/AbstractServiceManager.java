@@ -384,6 +384,47 @@ public abstract class AbstractServiceManager {
 	}
 
 	/**
+	 * Get the service of the given type and the given id.
+	 *
+	 * @param id The service id or <code>null</code>.
+	 * @param serviceType The service type the service should at least implement or extend.
+	 * @param unique <code>true</code> if a new instance of the service is needed.
+	 *
+	 * @return The service or <code>null</code>.
+	 */
+	@SuppressWarnings("unchecked")
+	public <V extends IService> V getService(String id, Class<? extends V> serviceType, boolean unique) {
+		Assert.isNotNull(id);
+		Assert.isNotNull(serviceType);
+
+		Collection<ServiceProxy> proxies = services.values();
+		if (!proxies.isEmpty()) {
+			List<ServiceProxy> candidates = new ArrayList<ServiceProxy>();
+			boolean isInterface = serviceType.isInterface();
+			for (ServiceProxy proxy : proxies) {
+				if (proxy.isMatching(serviceType) && id.equals(proxy.getId())) {
+					if (!isInterface) {
+						V service = (V)proxy.getService(unique);
+						service.setId(proxy.getId());
+						return service;
+					}
+					candidates.add(proxy);
+				}
+			}
+
+			V service = null;
+			if (!candidates.isEmpty()) {
+				service = (V)candidates.get(0).getService(unique);
+				service.setId(candidates.get(0).getId());
+			}
+
+			return service;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Get a service list for the given service context that implements at least the needed service type.
 	 *
 	 * @param context The service context or <code>null</code>.
