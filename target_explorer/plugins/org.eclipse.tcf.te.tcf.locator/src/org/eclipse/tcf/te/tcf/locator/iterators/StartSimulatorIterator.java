@@ -10,26 +10,22 @@
 
 package org.eclipse.tcf.te.tcf.locator.iterators;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
 /**
- * Step group iterator for debugger attach.
+ * Step group iterator for simulator start.
  */
-public class StartDebuggerIterator extends AbstractPeerModelStepGroupIterator {
+public class StartSimulatorIterator extends AbstractPeerModelStepGroupIterator {
 
 	/**
 	 * Constructor.
 	 */
-	public StartDebuggerIterator() {
+	public StartSimulatorIterator() {
 		super();
 	}
 
@@ -40,19 +36,9 @@ public class StartDebuggerIterator extends AbstractPeerModelStepGroupIterator {
 	public void initialize(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
 	    super.initialize(context, data, fullQualifiedId, monitor);
 
-	    final AtomicBoolean autoStartDbg = new AtomicBoolean(false);
+	    SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(getActivePeerModelContext(context, data, fullQualifiedId));
 
-		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				String value = peer.getAttributes().get(IPeerModelProperties.PROP_AUTO_START_DEBUGGER);
-				autoStartDbg.set(value != null ? Boolean.parseBoolean(value) : false);
-			}
-		};
-		Protocol.invokeAndWait(runnable);
-
-		setIterations(autoStartDbg.get() ? 1 : 0);
+		setIterations(result != null ? 1 : 0);
 	}
 
 	/* (non-Javadoc)
