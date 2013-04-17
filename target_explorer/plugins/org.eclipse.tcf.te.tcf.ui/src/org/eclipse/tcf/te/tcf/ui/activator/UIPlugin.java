@@ -17,8 +17,18 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
+import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
@@ -91,8 +101,52 @@ public class UIPlugin extends AbstractUIPlugin {
 
 				if (proceedShutdown || forced) {
 					// Terminate the scanner
-					ILocatorModel model = Model.getModel(true);
+					final ILocatorModel model = Model.getModel(true);
 					if (model != null) model.getScanner().terminate();
+
+					// Disconnect all connected connections via the stepper service
+					if (model != null) {
+						final AsyncCallbackCollector collector = new AsyncCallbackCollector();
+
+						Runnable runnable = new Runnable() {
+							@Override
+							public void run() {
+								// Get all peer model objects
+								IPeerModel[] peers = model.getPeers();
+								// Loop them and check if disconnect is available
+								for (IPeerModel peerModel : peers) {
+									IStepperService service = ServiceManager.getInstance().getService(peerModel, IStepperService.class);
+									if (service != null) {
+										String stepGroupId = service.getStepGroupId(peerModel, IStepperService.OPERATION_DISCONNECT);
+										IStepContext stepContext = service.getStepContext(peerModel, IStepperService.OPERATION_DISCONNECT);
+										String name = service.getStepGroupName(peerModel, IStepperService.OPERATION_DISCONNECT);
+										boolean isEnabled = service.isEnabled(peerModel, IStepperService.OPERATION_DISCONNECT);
+
+										if (isEnabled && stepGroupId != null && stepContext != null) {
+											IPropertiesContainer data = new PropertiesContainer();
+											StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
+															stepContext,
+															data,
+															stepGroupId,
+															IStepperService.OPERATION_DISCONNECT);
+
+											ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+											job.setJobCallback(callback);
+
+											job.schedule();
+										}
+									}
+								}
+
+								collector.initDone();
+							}
+						};
+
+						Assert.isTrue(!Protocol.isDispatchThread());
+						Protocol.invokeAndWait(runnable);
+
+						ExecutorsUtil.waitAndExecute(0, collector.getConditionTester());
+					}
 
 					// Close all channels now
 					Tcf.getChannelManager().closeAll(!Protocol.isDispatchThread());
