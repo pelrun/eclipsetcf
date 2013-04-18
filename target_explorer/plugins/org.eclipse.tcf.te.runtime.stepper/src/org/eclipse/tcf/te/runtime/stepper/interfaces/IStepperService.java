@@ -58,4 +58,12 @@ public interface IStepperService extends IService {
 	 * @return <code>true</code> if the operation is enabled.
 	 */
 	public boolean isEnabled(Object context, String operation);
+
+	/**
+	 * Returns <code>true</code> if the given operation can be canceled.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param operation The operation. Must not be <code>null</code>.
+	 * @return <code>true</code> if the operation can be canceled.
+	 */
+	public boolean isCancelable(Object context, String operation);
 }

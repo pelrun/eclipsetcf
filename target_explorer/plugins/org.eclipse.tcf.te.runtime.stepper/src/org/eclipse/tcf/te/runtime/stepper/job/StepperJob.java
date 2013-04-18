@@ -37,6 +37,56 @@ public class StepperJob extends Job {
 	private ICallback jobCallback = null;
 	private boolean isFinished = false;
 	private boolean isCanceled = false;
+	private final boolean isCancelable;
+
+	private class NotCancelableProgressMonitor implements IProgressMonitor {
+
+		private final IProgressMonitor monitor;
+
+        public NotCancelableProgressMonitor(IProgressMonitor monitor) {
+        	this.monitor = monitor;
+        }
+
+        @Override
+        public void beginTask(String name, int totalWork) {
+        	monitor.beginTask(name, totalWork);
+        }
+
+        @Override
+        public void done() {
+        	monitor.done();
+        }
+
+        @Override
+        public void internalWorked(double work) {
+        	monitor.internalWorked(work);
+        }
+
+        @Override
+        public boolean isCanceled() {
+	        return false;
+        }
+
+        @Override
+        public void setCanceled(boolean value) {
+        	monitor.setCanceled(false);
+        }
+
+        @Override
+        public void setTaskName(String name) {
+        	monitor.setTaskName(name);
+        }
+
+        @Override
+        public void subTask(String name) {
+        	monitor.subTask(name);
+        }
+
+        @Override
+        public void worked(int work) {
+        	monitor.worked(work);
+        }
+	}
 
 	/**
 	 * Constructor.
@@ -47,7 +97,7 @@ public class StepperJob extends Job {
 	 * @param stepGroupId The step group id to execute.
 	 * @param operation The operation to execute.
 	 */
-	public StepperJob(String name, IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String operation) {
+    public StepperJob(String name, IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String operation, boolean isCancelable) {
 		super(name);
 		setPriority(Job.INTERACTIVE);
 
@@ -60,6 +110,7 @@ public class StepperJob extends Job {
 		this.data = data;
 		this.stepGroupId = stepGroupId;
 		this.operation = operation;
+		this.isCancelable = isCancelable;
 
 		if (stepContext.getContextObject() instanceof ISchedulingRule) {
 			setRule((ISchedulingRule)stepContext.getContextObject());
@@ -92,11 +143,22 @@ public class StepperJob extends Job {
 		return jobCallback;
 	}
 
+	/**
+	 * Return <code>true</code> if thsi job is cancelable.
+	 */
+	public boolean isCancelable() {
+		return isCancelable;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.runtime.jobs.Job#run(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
 	protected final IStatus run(IProgressMonitor monitor) {
+
+		if (!isCancelable) {
+			monitor = new NotCancelableProgressMonitor(monitor);
+		}
 
 		// The stepper instance to be used
 		IStepper stepper = new Stepper(getName());
@@ -134,7 +196,7 @@ public class StepperJob extends Job {
 	}
 
 	public boolean isCanceled() {
-		return isCanceled;
+		return isCanceled && isCancelable;
 	}
 
 	/* (non-Javadoc)
@@ -142,7 +204,9 @@ public class StepperJob extends Job {
 	 */
 	@Override
 	protected void canceling() {
-	    super.canceling();
-	    isCanceled = true;
+		if (isCancelable) {
+			super.canceling();
+			isCanceled = true;
+		}
 	}
 }

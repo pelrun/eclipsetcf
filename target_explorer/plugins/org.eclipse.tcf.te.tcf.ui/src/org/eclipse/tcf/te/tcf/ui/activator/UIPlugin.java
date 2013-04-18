@@ -128,7 +128,8 @@ public class UIPlugin extends AbstractUIPlugin {
 															stepContext,
 															data,
 															stepGroupId,
-															IStepperService.OPERATION_DISCONNECT);
+															IStepperService.OPERATION_DISCONNECT,
+															false);
 
 											ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
 											job.setJobCallback(callback);

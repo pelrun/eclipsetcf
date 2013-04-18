@@ -80,8 +80,8 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 										stepContext,
 										data,
 										stepGroupId,
-										operation);
-
+										operation,
+										service.isCancelable(element, operation));
 						job.schedule();
 					}
 				}
