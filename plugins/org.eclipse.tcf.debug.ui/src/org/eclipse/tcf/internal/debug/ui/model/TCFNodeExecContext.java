@@ -469,7 +469,6 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                         // Add ancestor names
                         TCFNodeExecContext p = TCFNodeExecContext.this;
                         ArrayList<String> lst = new ArrayList<String>();
-                        if (res.contains("/")) res = "\"" + res + "\"";
                         lst.add(res);
                         while (p.parent instanceof TCFNodeExecContext) {
                             p = (TCFNodeExecContext)p.parent;
@@ -479,7 +478,6 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                             String name = null;
                             if (run_ctx_data != null) name = run_ctx_data.getName();
                             if (name == null) name = "";
-                            if (name.contains("/")) name = "\"" + name + "\"";
                             lst.add(name);
                         }
                         StringBuffer bf = new StringBuffer();
