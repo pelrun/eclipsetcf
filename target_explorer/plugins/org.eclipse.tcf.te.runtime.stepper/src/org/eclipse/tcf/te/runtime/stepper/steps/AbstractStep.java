@@ -109,7 +109,7 @@ public abstract class AbstractStep extends ExecutableExtension implements IStep 
 	 */
 	@Override
 	public int getTotalWork(IStepContext context, IPropertiesContainer data) {
-		return 10;
+		return 100;
 	}
 
 	/* (non-Javadoc)

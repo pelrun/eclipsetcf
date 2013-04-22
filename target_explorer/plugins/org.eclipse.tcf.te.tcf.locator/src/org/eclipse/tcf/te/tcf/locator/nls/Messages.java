@@ -19,7 +19,7 @@ import org.eclipse.osgi.util.NLS;
 public class Messages extends NLS {
 
 	// The plug-in resource bundle name
-	private static final String BUNDLE_NAME = "org.eclipse.tcf.te.tcf.locator.internal.nls.Messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "org.eclipse.tcf.te.tcf.locator.nls.Messages"; //$NON-NLS-1$
 
 	/**
 	 * Static constructor.
