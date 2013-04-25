@@ -498,6 +498,20 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 				// Get the peer for the previous node
 				IPeer previousPeer = previousNode.getPeer();
 				if (previousPeer != null) {
+					// Get the IP address of the previous node
+					String previousPeerIP = previousPeer.getAttributes().get(IPeer.ATTR_IP_HOST);
+					if (IPAddressUtil.getInstance().isLocalHost(previousPeerIP) && !loopback.equals(previousPeerIP) && loopback.equals(peerIP)) {
+						// Remove the previous node from the model
+						getService(ILocatorModelUpdateService.class).remove(previousNode);
+
+						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+							CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd: Previous peer removed and replaced by new peer representing the loopback address" //$NON-NLS-1$
+											, ITracing.ID_TRACE_LOCATOR_MODEL, this);
+						}
+
+						continue;
+					}
+
 					// Get the ports
 					String peerPort = peer.getAttributes().get(IPeer.ATTR_IP_PORT);
 					if (peerPort == null || "".equals(peerPort)) peerPort = "1534"; //$NON-NLS-1$ //$NON-NLS-2$

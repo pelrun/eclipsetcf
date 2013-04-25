@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -60,11 +60,9 @@ public class ViewsUtil {
 			@Override
 			public void run() {
 				// Check the active workbench window and active page instances
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
-				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
 					// Get the view reference
-					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					                .getActivePage().findViewReference(id);
+					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findViewReference(id);
 					// Return the view part from the reference, but do not restore it
 					part.set(reference != null ? reference.getPart(false) : null);
 				}
@@ -90,12 +88,10 @@ public class ViewsUtil {
 			@Override
 			public void run() {
 				// Check the active workbench window and active page instances
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
-				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
 					// Show the view
 					try {
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-						                .showView(id);
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(id);
 					}
 					catch (PartInitException e) { /* ignored on purpose */
 					}
@@ -122,19 +118,15 @@ public class ViewsUtil {
 			@Override
 			public void run() {
 				// Check the active workbench window and active page instances
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
-				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
 					// Get the view reference
-					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					                .getActivePage().findViewReference(id);
+					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findViewReference(id);
 					// Get the view part from the reference, but do not restore it
 					IWorkbenchPart part = reference != null ? reference.getPart(false) : null;
 					// If the part is a common navigator, get the common viewer
-					Viewer viewer = part instanceof CommonNavigator ? ((CommonNavigator) part)
-					                .getCommonViewer() : null;
+					Viewer viewer = part instanceof CommonNavigator ? ((CommonNavigator) part).getCommonViewer() : null;
 					// If not a common navigator, try to adapt to the viewer
-					if (viewer == null) viewer = part != null ? (Viewer) part
-					                .getAdapter(Viewer.class) : null;
+					if (viewer == null) viewer = part != null ? (Viewer) part.getAdapter(Viewer.class) : null;
 					// Refresh the viewer
 					if (viewer != null) viewer.refresh();
 				}
@@ -162,22 +154,17 @@ public class ViewsUtil {
 			@Override
 			public void run() {
 				// Check the active workbench window and active page instances
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
-				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
 					// Get the view reference
-					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					                .getActivePage().findViewReference(id);
+					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findViewReference(id);
 					// Get the view part from the reference, but do not restore it
 					IWorkbenchPart part = reference != null ? reference.getPart(false) : null;
 					// If the part is a common navigator, get the common viewer
-					Viewer viewer = part instanceof CommonNavigator ? ((CommonNavigator) part)
-					                .getCommonViewer() : null;
+					Viewer viewer = part instanceof CommonNavigator ? ((CommonNavigator) part).getCommonViewer() : null;
 					// If not a common navigator, try to adapt to the viewer
-					if (viewer == null) viewer = part != null ? (Viewer) part
-					                .getAdapter(Viewer.class) : null;
+					if (viewer == null) viewer = part != null ? (Viewer) part.getAdapter(Viewer.class) : null;
 					// Refresh the viewer
-					if (viewer instanceof StructuredViewer) ((StructuredViewer) viewer)
-					                .refresh(element, true);
+					if (viewer instanceof StructuredViewer) ((StructuredViewer) viewer).refresh(element, true);
 					else if (viewer != null) viewer.refresh();
 				}
 			}
@@ -203,16 +190,13 @@ public class ViewsUtil {
 			@Override
 			public void run() {
 				// Check the active workbench window and active page instances
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
-				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
 					// Get the view reference
-					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					                .getActivePage().findViewReference(id);
+					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findViewReference(id);
 					// Get the view part from the reference, but do not restore it
 					IWorkbenchPart part = reference != null ? reference.getPart(false) : null;
 					// Get the selection provider
-					ISelectionProvider selectionProvider = part != null && part.getSite() != null ? part
-					                .getSite().getSelectionProvider() : null;
+					ISelectionProvider selectionProvider = part != null && part.getSite() != null ? part.getSite().getSelectionProvider() : null;
 					// And apply the selection
 					if (selectionProvider != null) selectionProvider.setSelection(selection);
 				}
@@ -310,8 +294,7 @@ public class ViewsUtil {
 		Assert.isNotNull(id);
 		Assert.isNotNull(categoryId);
 
-		ICategory category = CategoriesExtensionPointManager.getInstance()
-		                .getCategory(categoryId, false);
+		ICategory category = CategoriesExtensionPointManager.getInstance().getCategory(categoryId, false);
 		if (category != null) goInto(id, category);
 	}
 
@@ -350,19 +333,15 @@ public class ViewsUtil {
 			@Override
 			public void run() {
 				// Check the active workbench window and active page instances
-				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
-				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
 					// Get the view reference
-					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					                .getActivePage().findViewReference(id);
+					IViewReference reference = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findViewReference(id);
 					// Get the view part from the reference, but do not restore it
 					IWorkbenchPart part = reference != null ? reference.getPart(false) : null;
 					// Get the action bars
-					IActionBars actionBars = part != null && part.getSite() instanceof IViewSite ? ((IViewSite) part
-					                .getSite()).getActionBars() : null;
+					IActionBars actionBars = part != null && part.getSite() instanceof IViewSite ? ((IViewSite) part.getSite()).getActionBars() : null;
 					// Get the "Go Into" action
-					IAction action = actionBars != null ? actionBars
-					                .getGlobalActionHandler(IWorkbenchActionConstants.GO_INTO) : null;
+					IAction action = actionBars != null ? actionBars.getGlobalActionHandler(IWorkbenchActionConstants.GO_INTO) : null;
 					// Run the action
 					if (action != null) action.run();
 				}

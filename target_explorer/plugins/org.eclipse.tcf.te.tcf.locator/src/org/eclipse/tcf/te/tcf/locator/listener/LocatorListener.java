@@ -105,14 +105,18 @@ public class LocatorListener implements ILocator.LocatorListener {
 						public void run() {
 							IPeerModel[] matches = model.getService(ILocatorModelLookupService.class).lkupMatchingStaticPeerModels(finPeerNode);
 							if (matches.length == 0) {
-								model.getService(ILocatorModelUpdateService.class).add(finPeerNode);
-								// And schedule for immediate status update
-								Runnable runnable2 = new ScannerRunnable(model.getScanner(), finPeerNode);
-								Protocol.invokeLater(runnable2);
+								// If the peer node is still in the model, schedule for immediate status update
+								if (model.getService(ILocatorModelLookupService.class).lkupPeerModelById(finPeerNode.getPeerId()) != null) {
+									Runnable runnable2 = new ScannerRunnable(model.getScanner(), finPeerNode);
+									Protocol.invokeLater(runnable2);
+								}
 							} else {
 								for (IPeerModel match : matches) {
 									IPeer myPeer = model.validatePeer(finPeer);
 									if (myPeer != null) {
+										// Remove the preliminary added node from the model again
+										model.getService(ILocatorModelUpdateService.class).remove(finPeerNode);
+										// Update the matching static node
 										boolean changed = match.setChangeEventsEnabled(false);
 										// Merge user configured properties between the peers
 										model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(match, myPeer, true);
@@ -126,6 +130,10 @@ public class LocatorListener implements ILocator.LocatorListener {
 							}
 						}
 					};
+
+					// Preliminary add the node to the model now. If we have to refresh the agent ID,
+					// this is an asynchronous operation and other peerAdded events might be processed before.
+					model.getService(ILocatorModelUpdateService.class).add(peerNode);
 
 					if (nodes.size() > 0) {
 						// Refresh the agent ID's first
