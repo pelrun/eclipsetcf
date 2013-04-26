@@ -61,6 +61,9 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	// Mark if the used channel is a shared channel instance
 	/* default */ boolean sharedChannel = false;
 
+	// Optional callback to invoke once the scan has been completed
+	private final ICallback callback;
+
 	/**
 	 * Constructor.
 	 *
@@ -68,12 +71,25 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	 * @param peerNode The peer model instance. Must not be <code>null</code>.
 	 */
 	public ScannerRunnable(IScanner scanner, IPeerModel peerNode) {
+		this(scanner, peerNode, null);
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param scanner The parent model scanner or <code>null</code> if the runnable is constructed from outside a scanner.
+	 * @param peerNode The peer model instance. Must not be <code>null</code>.
+	 * @param callback The callback to invoke once the scan has been completed or <code>null</code>.
+	 */
+	public ScannerRunnable(IScanner scanner, IPeerModel peerNode, ICallback callback) {
 		super();
 
 		parentScanner = scanner;
 
 		Assert.isNotNull(peerNode);
 		this.peerNode = peerNode;
+
+		this.callback = callback;
 	}
 
 	/**
@@ -357,14 +373,12 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 										// Not yet known -> add it
 										peerNode = new PeerModel(model, peer);
 										peerNode.setParent(ScannerRunnable.this.peerNode);
+										peerNode.setProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE, true);
 										// Validate the peer node before adding
 										peerNode = model.validateChildPeerNodeForAdd(peerNode);
 										if (peerNode != null) {
 											// Add the child peer node to model
 											model.getService(ILocatorModelUpdateService.class).addChild(peerNode);
-											// And schedule for immediate status update
-											Runnable runnable = new ScannerRunnable(getParentScanner(), peerNode);
-											Protocol.invokeLater(runnable);
 										}
 									} else {
 										// The parent node should be set and match
@@ -472,6 +486,8 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			node.setChangeEventsEnabled(true);
 			node.fireChangeEvent("properties", null, peerNode.getProperties()); //$NON-NLS-1$
 		}
+
+		if (callback != null) callback.done(this, Status.OK_STATUS);
 	}
 
 	/* (non-Javadoc)

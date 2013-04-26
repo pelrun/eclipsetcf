@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.locator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,11 +22,17 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IScanner;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 
 /**
@@ -103,27 +110,15 @@ public class Scanner extends Job implements IScanner {
 						Scanner.this.setThread(Thread.currentThread());
 					}
 				});
-				// Loop the nodes and try to get an channel
-				for (IPeerModel peer : peers) {
-					// Check for the progress monitor getting canceled
-					if (monitor.isCanceled() || isTerminated()) break;
 
-					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
-						CoreBundleActivator.getTraceHandler().trace("Schedule scanner runnable for peer '" + peer.getName() + "' (" + peer.getPeerId() + ")", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-																	ITracing.ID_TRACE_SCANNER, Scanner.this);
-					}
-
-					// Create the scanner runnable
-					Runnable runnable = new ScannerRunnable(this, peer);
-					// Submit for execution
-					Protocol.invokeLater(runnable);
-				}
-				// The last runnable will terminate the job as soon all
-				// scanner runnable's are processed and will reschedule the job
-				final IStatus result = monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
-				Protocol.invokeLater(new Runnable() {
+				// Create the callback collector keeping track of all scan processes
+				final IProgressMonitor finMonitor = monitor;
+				final AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
 					@Override
-					public void run() {
+					protected void internalDone(Object caller, IStatus status) {
+						// Terminate the job as soon all scanner runnable's are process
+						// and reschedule the job
+						final IStatus result = finMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
 						Scanner.this.done(result);
 
 						Long delay = (Long)getConfiguration().get(IScanner.PROP_SCHEDULE);
@@ -131,13 +126,89 @@ public class Scanner extends Job implements IScanner {
 							Scanner.this.schedule(delay.longValue());
 						}
 					}
-				});
+				}, new CallbackInvocationDelegate());
+
+				// Loop the nodes and try to get an channel
+				for (IPeerModel peer : peers) {
+					// Check for the progress monitor getting canceled
+					if (monitor.isCanceled() || isTerminated()) break;
+					// Scan the peer
+					doScan(peer, collector, monitor);
+				}
+
+				// Mark the collector initialization done
+				collector.initDone();
 			} catch (IllegalStateException e) {
 				/* ignored on purpose */
 			}
 		}
 
 		return peers.length > 0 ? ASYNC_FINISH : Status.OK_STATUS;
+	}
+
+	/**
+	 * Scan the given peer model node and possible child nodes.
+	 *
+	 * @param peer The peer model node. Must not be <code>null</code>.
+	 * @param collector The callback collector. Must not be <code>null</code>.
+	 * @param monitor The progress monitor. Must not be <code>null</code>.
+	 */
+	/* default */ void doScan(final IPeerModel peer, final AsyncCallbackCollector collector, final IProgressMonitor monitor) {
+		Assert.isNotNull(peer);
+		Assert.isNotNull(collector);
+		Assert.isNotNull(monitor);
+
+		// Check for the progress monitor getting canceled
+		if (monitor.isCanceled() || isTerminated()) return;
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
+			CoreBundleActivator.getTraceHandler().trace("Schedule scanner runnable for peer '" + peer.getName() + "' (" + peer.getPeerId() + ")", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_SCANNER, Scanner.this);
+		}
+
+		final AtomicBoolean isExcluded = new AtomicBoolean(false);
+
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				isExcluded.set(peer.getBooleanProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE));
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		// If the PROP_SCANNER_EXCLUDE is not set, scan this node
+		if (!isExcluded.get()) {
+			// Create the callback
+			ICallback callback = new Callback() {
+				@Override
+				protected void internalDone(Object caller, IStatus status) {
+					// Check for the progress monitor getting canceled
+					if (!monitor.isCanceled() && !isTerminated()) {
+						// Get the children of the scanned peer model and make sure
+						// they are scanned too if not excluded
+						List<IPeerModel> candidates = Model.getModel().getChildren(peer.getPeerId());
+						if (candidates != null && candidates.size() > 0) {
+							for (IPeerModel candidate : candidates) {
+								doScan(candidate, collector, monitor);
+							}
+						}
+					}
+
+					// Remove the callback from the collector
+					collector.removeCallback(this);
+				}
+			};
+			// Add the callback to the collector
+			collector.addCallback(callback);
+			// Create the scanner runnable
+			Runnable scannerRunnable = new ScannerRunnable(this, peer, callback);
+			// Submit for execution
+			Protocol.invokeLater(scannerRunnable);
+		}
+
 	}
 
 	/* (non-Javadoc)

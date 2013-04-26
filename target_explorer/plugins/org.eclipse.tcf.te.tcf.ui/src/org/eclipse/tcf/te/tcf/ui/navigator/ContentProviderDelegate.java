@@ -25,9 +25,11 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerRedirector;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
@@ -67,6 +69,8 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 
 	// The locator model listener instance
 	/* default */ IModelListener modelListener = null;
+	// The tree view listener instance
+	/* default */ TreeViewerListener treeViewerListener = null;
 
 	// Internal map of PeerRedirectorGroupNodes per peer id
 	private final Map<String, PeerRedirectorGroupNode> roots = new HashMap<String, PeerRedirectorGroupNode>();
@@ -300,6 +304,20 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 		else if (parentElement instanceof PeerRedirectorGroupNode) {
 			List<IPeerModel> candidates = Model.getModel().getChildren(((PeerRedirectorGroupNode)parentElement).peerId);
 			if (candidates != null && candidates.size() > 0) {
+				// Mark all candidates to be included in the scan process and
+				// schedule an scan asynchronously
+				for (final IPeerModel candidate: candidates) {
+					Protocol.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							candidate.setProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE, false);
+
+							ScannerRunnable runnable = new ScannerRunnable(null, candidate);
+							runnable.run();
+						}
+					});
+				}
+
 				children = candidates.toArray();
 			}
 		}
@@ -437,6 +455,16 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	 */
 	@Override
 	public void dispose() {
+		if (modelListener != null) {
+			Model.getModel().removeListener(modelListener);
+			modelListener = null;
+		}
+
+		if (treeViewerListener != null) {
+			treeViewerListener.dispose();
+			treeViewerListener = null;
+		}
+
 		roots.clear();
 	}
 
@@ -456,6 +484,13 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 					model.addListener(modelListener);
 				}
 			});
+		}
+
+		// Create and attach the tree listener if not yet done
+		if (treeViewerListener == null && viewer instanceof CommonViewer) {
+			CommonViewer v = (CommonViewer)viewer;
+			treeViewerListener = new TreeViewerListener(v);
+			v.addTreeListener(treeViewerListener);
 		}
 
 		if (model != null && newInput instanceof IRoot) {

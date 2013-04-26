@@ -116,4 +116,10 @@ public interface IPeerModelProperties {
 	 * Property: Auto-start the debugger after the agent launch.
 	 */
 	public static final String PROP_AUTO_START_DEBUGGER = "autoStartDebugger"; //$NON-NLS-1$
+
+	/**
+	 * Property: Exclude from scanner process. If set to <code>true</code>, the node will not be scanned
+	 *           by the scanner.
+	 */
+	public static String PROP_SCANNER_EXCLUDE = "scanner.exclude.silent"; //$NON-NLS-1$
 }
