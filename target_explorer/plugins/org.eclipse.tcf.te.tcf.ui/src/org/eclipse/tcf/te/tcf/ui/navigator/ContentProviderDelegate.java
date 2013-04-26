@@ -456,7 +456,14 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	@Override
 	public void dispose() {
 		if (modelListener != null) {
-			Model.getModel().removeListener(modelListener);
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					Model.getModel().removeListener(modelListener);
+				}
+			};
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
 			modelListener = null;
 		}
 
