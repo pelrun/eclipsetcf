@@ -111,11 +111,12 @@ public class LocatorListener implements ILocator.LocatorListener {
 									Protocol.invokeLater(runnable2);
 								}
 							} else {
+								// Remove the preliminary added node from the model again
+								model.getService(ILocatorModelUpdateService.class).remove(finPeerNode);
+
 								for (IPeerModel match : matches) {
 									IPeer myPeer = model.validatePeer(finPeer);
 									if (myPeer != null) {
-										// Remove the preliminary added node from the model again
-										model.getService(ILocatorModelUpdateService.class).remove(finPeerNode);
 										// Update the matching static node
 										boolean changed = match.setChangeEventsEnabled(false);
 										// Merge user configured properties between the peers
