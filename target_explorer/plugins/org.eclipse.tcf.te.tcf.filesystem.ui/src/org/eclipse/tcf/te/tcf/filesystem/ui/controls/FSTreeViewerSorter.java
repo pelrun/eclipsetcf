@@ -3,7 +3,7 @@
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -12,12 +12,12 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementComparator;
-import org.eclipse.tcf.te.ui.trees.TreeViewerSorter;
+import org.eclipse.tcf.te.ui.trees.TreeViewerSorterCaseInsensitive;
 
 /**
  * File system tree control viewer sorter implementation.
  */
-public class FSTreeViewerSorter extends TreeViewerSorter {
+public class FSTreeViewerSorter extends TreeViewerSorterCaseInsensitive {
 	private final FSTreeElementComparator comparator;
 
 	/**

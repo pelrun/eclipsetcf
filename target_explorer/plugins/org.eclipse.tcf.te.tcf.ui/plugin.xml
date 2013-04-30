@@ -93,7 +93,7 @@
                </or>               
             </possibleChildren>
             <commonSorter
-                  class="org.eclipse.tcf.te.ui.trees.TreeViewerSorter"
+                  class="org.eclipse.tcf.te.ui.trees.TreeViewerSorterCaseInsensitive"
                   id="org.eclipse.tcf.te.tcf.ui.navigator.sorter"/>
             <commonWizard
                   type="new"

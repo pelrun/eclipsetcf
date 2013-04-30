@@ -28,8 +28,22 @@ import org.eclipse.swt.widgets.Tree;
 
 /**
  * Common sorter implementation.
+ * <p>
+ * <b>Note:</b> The default implementation is implementing a case sensitive sorting. Numbers comes
+ *              first, than uppercase before lowercase.
  */
 public class TreeViewerSorter extends TreePathViewerSorter {
+
+	/**
+	 * If or if not the sorting should happen case sensitive.
+	 * <p>
+	 * The default implementation returns <code>true</code>.
+	 *
+	 * @return <code>True</code> if the sorting is case sensitive, <code>false</code> otherwise.
+	 */
+	protected boolean isCaseSensitve() {
+		return true;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ViewerComparator#compare(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
@@ -147,12 +161,23 @@ public class TreeViewerSorter extends TreePathViewerSorter {
 	 */
 	protected int doCompare(Viewer viewer, Object node1, Object node2, String sortColumn, int index, int inverter) {
 		if (node1 == null && node2 == null) return 0;
-		if (node1 != null && node2 == null) return 1;
-		if (node1 == null && node2 != null) return -1;
+		if (node1 != null && node2 == null) return 1 * inverter;
+		if (node1 == null && node2 != null) return -1 * inverter;
 
 		// Get the labels
 		String text1 = doGetText(viewer, node1, index);
 		String text2 = doGetText(viewer, node2, index);
+
+		// If we fail to determine the labels, we cannot continue
+		if (text1 == null && text2 == null) return 0;
+		if (text1 != null && text2 == null) return 1 * inverter;
+		if (text1 == null && text2 != null) return -1 * inverter;
+
+		// Convert the labels to compare to lowercase if the sorting is case-insensitive
+		if (!isCaseSensitve()) {
+			text1 = text1.toLowerCase();
+			text2 = text2.toLowerCase();
+		}
 
 		// The tree sorts not strictly alphabetical. First comes entries starting with numbers,
 		// second entries starting with uppercase and than all the rest. Additional, if a label contains

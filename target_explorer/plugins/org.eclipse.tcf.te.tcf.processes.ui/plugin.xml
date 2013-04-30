@@ -104,7 +104,7 @@
                </or>
             </possibleChildren>
             <commonSorter
-                  class="org.eclipse.tcf.te.ui.trees.TreeViewerSorter">
+                  class="org.eclipse.tcf.te.ui.trees.TreeViewerSorterCaseInsensitive">
             </commonSorter>
       </navigatorContent>
 
