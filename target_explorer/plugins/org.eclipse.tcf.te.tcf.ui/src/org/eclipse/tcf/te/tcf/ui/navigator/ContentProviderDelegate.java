@@ -124,7 +124,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 
 		boolean filtered = false;
 
-		filtered |= isValueAdd(peerModel) && UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_HIDE_PROXIES_AND_VALUEADDS);
+		filtered |= isValueAdd(peerModel) && UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_HIDE_VALUEADDS);
 		if (!showInvisible) {
 			filtered |= !peerModel.isVisible();
 		}

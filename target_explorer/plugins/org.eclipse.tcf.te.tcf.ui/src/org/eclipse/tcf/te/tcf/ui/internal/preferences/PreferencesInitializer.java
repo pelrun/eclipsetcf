@@ -33,8 +33,8 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		IPreferenceStore store = UIPlugin.getDefault().getPreferenceStore();
 		// [Hidden] Hide dynamic target discovery navigator content extension: default on
 		store.setDefault(IPreferenceKeys.PREF_HIDE_DYNAMIC_TARGET_DISCOVERY_EXTENSION, true);
-		// [Hidden] Hide proxy and value-add's in the "System Management" view: default on
-		store.setDefault(IPreferenceKeys.PREF_HIDE_PROXIES_AND_VALUEADDS, true);
+		// [Hidden] Hide value-add's in the "System Management" view: default on
+		store.setDefault(IPreferenceKeys.PREF_HIDE_VALUEADDS, true);
 		// [Hidden] Activate current user filter: default off
 		store.setDefault(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER, false);
 	}
