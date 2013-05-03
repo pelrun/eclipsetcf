@@ -210,11 +210,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 					boolean isMyTargets = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
 					if (!isMyTargets && (isStatic || startedByCurrentUser)) {
 						// "Value-add's" are not saved to the category persistence automatically
-						if (isValueAdd(peer)) {
-							Managers.getCategoryManager().addTransient(catID, categorizable.getId());
-						} else {
-							Managers.getCategoryManager().add(catID, categorizable.getId());
-						}
+						Managers.getCategoryManager().addTransient(catID, categorizable.getId());
 						isMyTargets = true;
 					}
 
@@ -267,7 +263,8 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 					Assert.isNotNull(categorizable);
 
 					boolean belongsTo = category.belongsTo(peer);
-					if (belongsTo) {
+					if (belongsTo && !candidates.contains(peer)) {
+                        Managers.getCategoryManager().addTransient(catID, categorizable.getId());
 						candidates.add(peer);
 					}
 				}
@@ -278,7 +275,9 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 					if (isFiltered(peer)) {
 						continue;
 					}
-					candidates.add(peer);
+					if (!candidates.contains(peer)) {
+						candidates.add(peer);
+					}
 				}
 			}
 

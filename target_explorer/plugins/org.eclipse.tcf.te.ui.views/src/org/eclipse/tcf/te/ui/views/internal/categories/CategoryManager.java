@@ -279,16 +279,32 @@ public class CategoryManager implements ICategoryManager {
 		Assert.isNotNull(categoryId);
 		Assert.isNotNull(id);
 
+		boolean belongsTo = isLinked(categoryId, id);
+
+		List<String> ids = cat2id.get(categoryId);
+		if (!belongsTo) {
+			ids = _t_cat2id.get(categoryId);
+			if (ids != null && ids.contains(id)) {
+				belongsTo = true;
+			}
+		}
+
+		return belongsTo;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.interfaces.categories.ICategoryManager#isLinked(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public boolean isLinked(String categoryId, String id) {
+		Assert.isNotNull(categoryId);
+		Assert.isNotNull(id);
+
 		boolean belongsTo = false;
 
 		List<String> ids = cat2id.get(categoryId);
 		if (ids != null && ids.contains(id)) {
 			belongsTo = true;
-		} else {
-			ids = _t_cat2id.get(categoryId);
-			if (ids != null && ids.contains(id)) {
-				belongsTo = true;
-			}
 		}
 
 		return belongsTo;

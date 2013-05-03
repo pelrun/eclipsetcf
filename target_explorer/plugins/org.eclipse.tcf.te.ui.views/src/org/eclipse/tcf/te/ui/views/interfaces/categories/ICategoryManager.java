@@ -63,6 +63,16 @@ public interface ICategoryManager {
 	public boolean belongsTo(String categoryId, String id);
 
 	/**
+	 * Returns if or if not the given id is linked to the given category.
+	 *
+	 * @param categoryId The category id. Must not be <code>null</code>.
+	 * @param id The id. Must not be <code>null</code>.
+	 *
+	 * @return <code>True</code> if the id is linekd to the category, <code>false</code> if not.
+	 */
+	public boolean isLinked(String categoryId, String id);
+
+	/**
 	 * Returns the list of categories the given id belongs to.
 	 *
 	 * @param id The id. Must not be <code>null</code>.

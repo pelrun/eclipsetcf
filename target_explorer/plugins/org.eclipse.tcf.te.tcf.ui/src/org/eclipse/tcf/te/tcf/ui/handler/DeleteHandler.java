@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
@@ -135,9 +136,11 @@ public class DeleteHandler extends AbstractHandler {
 								canDelete = false;
 								break;
 							}
-							else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId()) && isStartedByCurrentUser) {
-								canDelete = false;
-								break;
+							else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
+								if (isStartedByCurrentUser) {
+									canDelete = false;
+									break;
+								}
 							}
 							else if (!IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
 								canDelete = false;
@@ -249,6 +252,7 @@ public class DeleteHandler extends AbstractHandler {
 				IURIPersistenceService service = ServiceManager.getInstance().getService(IURIPersistenceService.class);
 				if (service == null) throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
 				service.delete(node, null);
+				ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, new StructuredSelection(parentCategory));
 
 				// Close the configuration editor if open
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -276,6 +280,7 @@ public class DeleteHandler extends AbstractHandler {
 				Assert.isNotNull(categorizable);
 
 				manager.remove(parentCategory.getId(), categorizable.getId());
+				ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, new StructuredSelection(parentCategory));
 			}
 		}
 	}
@@ -397,8 +402,8 @@ public class DeleteHandler extends AbstractHandler {
 						op.type = Operation.TYPE.Remove;
 					} else {
 						op.type = Operation.TYPE.Unlink;
-						op.parentCategory = category;
 					}
+					op.parentCategory = category;
 
 					operations.add(op);
 				}

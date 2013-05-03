@@ -9,21 +9,45 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.navigator.dnd;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.util.LocalSelectionTransfer;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.ui.views.Managers;
-import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
+import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonDropAdapter;
+import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
  * Common DND operation implementations.
@@ -69,55 +93,173 @@ public class CommonDnD {
 	 * @return true if the dropping is successful.
 	 */
 	public static boolean dropLocalSelection(CommonDropAdapter dropAdapter, Object target, int operations, IStructuredSelection selection) {
-		if (target instanceof ICategory) {
-			ICategory hovered = (ICategory) target;
-			if (IUIConstants.ID_CAT_FAVORITES.equals(hovered.getId())
-							|| IUIConstants.ID_CAT_MY_TARGETS.equals(hovered.getId())) {
-				Iterator<?> iterator = selection.iterator();
-				while (iterator.hasNext()) {
-					Object element = iterator.next();
-					if (!isDraggableObject(element)) {
-						continue;
-					}
-					Managers.getCategoryManager().add(hovered.getId(), ((IPeerModel)element).getPeerId());
-				}
-				// Fire a refresh of the view
-				ViewsUtil.refresh(IUIConstants.ID_EXPLORER);
-			}
-		} else if (target instanceof IRoot) {
-			Iterator<?> iterator = selection.iterator();
-			while (iterator.hasNext()) {
-				Object element = iterator.next();
-				if (!isDraggableObject(element)) {
-					continue;
-				}
 
-				// To determine the parent category, we have to look at the tree path
-				TreePath[] pathes = selection instanceof TreeSelection ? ((TreeSelection)selection).getPathsFor(element) : null;
-				if (pathes != null && pathes.length > 0) {
-					for (TreePath path : pathes) {
-						ICategory category = null;
-						TreePath parentPath = path.getParentPath();
-						while (parentPath != null) {
-							if (parentPath.getLastSegment() instanceof ICategory) {
-								category = (ICategory)parentPath.getLastSegment();
-								break;
+		boolean result = false;
+		boolean refreshModel = false;
+
+		ICategory catToSelect = null;
+		Object elementToSelect = null;
+
+		Iterator<?> iterator = selection.iterator();
+		while (iterator.hasNext()) {
+			Object element = iterator.next();
+			if (!isDraggableObject(element)) {
+				continue;
+			}
+
+			ICategorizable categorizable = getCategorizable(element);
+			if (categorizable == null || !isDraggableObject(element)) {
+				continue;
+			}
+			ICategory[] parentCategories = getParentCategories(element, selection);
+			if (parentCategories.length == 0) {
+				continue;
+			}
+
+			for (ICategory parentCategory : parentCategories) {
+				if (target instanceof ICategory) {
+					ICategory category = (ICategory) target;
+
+					if (element instanceof IPeerModel && category.getId().equals(parentCategory.getId()) && ((IPeerModel)element).isStatic()) {
+						List<String> usedNames = getUsedNames();
+						Map<String,String> attrs = new HashMap<String,String>(((IPeerModel)element).getPeer().getAttributes());
+						attrs.put(IPeer.ATTR_ID, UUID.randomUUID().toString());
+						attrs.remove(IPersistableNodeProperties.PROPERTY_URI);
+						int i = 0;
+						String baseName = attrs.get(IPeer.ATTR_NAME);
+						baseName = baseName.replaceAll("\\s*\\([\\d*]\\)$", ""); //$NON-NLS-1$ //$NON-NLS-2$
+						String name = baseName + " (" + i + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+						while (usedNames.contains(name.toUpperCase())) {
+							i++;
+							name = baseName + " (" + i + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+						}
+						attrs.put(IPeer.ATTR_NAME, name);
+						IPeer newPeer = new Peer(attrs);
+						// Save the new peer
+						IURIPersistenceService persistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
+						if (persistenceService != null) {
+							try {
+								persistenceService.write(newPeer, null);
+								refreshModel = true;
+								if (catToSelect == null || elementToSelect == null) {
+									catToSelect = category;
+									elementToSelect = newPeer;
+								}
+								result = true;
 							}
-							parentPath = parentPath.getParentPath();
+							catch (Exception e) {
+							}
 						}
-
-						if (category != null) {
-							Managers.getCategoryManager().remove(category.getId(), ((IPeerModel)element).getPeerId());
+					}
+					else if (!Managers.getCategoryManager().isLinked(category.getId(), categorizable.getId()) &&
+								categorizable.isValid(ICategorizable.OPERATION.ADD, parentCategory, category)) {
+						Managers.getCategoryManager().add(category.getId(), categorizable.getId());
+						if (catToSelect == null || elementToSelect == null) {
+							catToSelect = category;
+							elementToSelect = element;
 						}
+						result = true;
+					}
+				}
+				else if (target instanceof IRoot) {
+					if (Managers.getCategoryManager().isLinked(parentCategory.getId(), categorizable.getId())) {
+						Managers.getCategoryManager().remove(parentCategory.getId(), categorizable.getId());
+						catToSelect = parentCategory;
+						result = true;
 					}
 				}
 			}
-
-			// Fire a refresh of the view
-			ViewsUtil.refresh(IUIConstants.ID_EXPLORER);
 		}
 
-		return false;
+		if (result) {
+			final CommonNavigator cNav = getCommonNavigator();
+			if (refreshModel) {
+				final ICategory finalCat = catToSelect;
+				final Object finalElement = elementToSelect;
+				final IPeer finalNewPeer = (elementToSelect instanceof IPeer) ? (IPeer)elementToSelect : null;
+                // Trigger a refresh of the model to read in the newly created static peer
+                final ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+                if (service != null) {
+                	Runnable runnable = new Runnable() {
+                		@Override
+                        public void run() {
+                            service.refresh(new Callback() {
+                            	@Override
+                                protected void internalDone(Object caller, org.eclipse.core.runtime.IStatus status) {
+            						IPeerModel peerModel = null;
+                    				if (finalNewPeer != null) {
+                    					ILocatorModelLookupService service = Model.getModel().getService(ILocatorModelLookupService.class);
+                    					if (service != null) {
+                    						peerModel = service.lkupPeerModelById(finalNewPeer.getID());
+                    					}
+                    				}
+                    				refresh(cNav, finalCat, peerModel != null ? peerModel : finalElement);
+                            	}
+                            });
+
+                		}
+                	};
+                	if (Protocol.isDispatchThread())
+                		runnable.run();
+                	else
+                		Protocol.invokeLater(runnable);
+                }
+                else {
+    				refresh(cNav, catToSelect, elementToSelect);
+                }
+			}
+			else {
+				refresh(cNav, catToSelect, elementToSelect);
+			}
+		}
+
+		return result;
+	}
+
+	protected static void refresh(final CommonNavigator cNav, final ICategory category, final Object element) {
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				cNav.getCommonViewer().refresh();
+				if (category != null) {
+					cNav.getCommonViewer().setSelection(new StructuredSelection(category), true);
+					cNav.getCommonViewer().expandToLevel(category, 1);
+				}
+				if (element != null)
+					cNav.getCommonViewer().setSelection(new TreeSelection(new TreePath(new Object[]{category, element})), true);
+			}
+		};
+
+		// Execute asynchronously
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(runnable);
+		}
+	}
+
+	protected static CommonNavigator getCommonNavigator() {
+		final AtomicReference<IViewPart> viewPart = new AtomicReference<IViewPart>();
+		// Create the runnable
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				// Check the active workbench window and active page instances
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null && PlatformUI
+				                .getWorkbench().getActiveWorkbenchWindow().getActivePage() != null) {
+					// show the view
+					try {
+						viewPart.set(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(IUIConstants.ID_EXPLORER));
+					}
+					catch (Exception e) {
+					}
+				}
+			}
+		};
+		// Execute asynchronously
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getDisplay().syncExec(runnable);
+		}
+
+		return viewPart.get() instanceof CommonNavigator ? (CommonNavigator)viewPart.get() : null;
 	}
 
 	/**
@@ -134,76 +276,60 @@ public class CommonDnD {
 		int overrideOperation = -1;
 		boolean valid = false;
 
-		// The default operation should be always "DROP_MOVE"
-		if ((operation & DND.DROP_MOVE) == 0) {
-			overrideOperation = DND.DROP_MOVE;
-		}
-
 		LocalSelectionTransfer transfer = LocalSelectionTransfer.getTransfer();
 		IStructuredSelection selection = (IStructuredSelection) transfer.getSelection();
 
-		if (target instanceof ICategory) {
-			ICategory category = (ICategory) target;
+		boolean allow = true;
+		boolean link = false;
+		boolean copy = false;
 
-			// Dragging to the "Neighborhood" category is not possible
-			if (!IUIConstants.ID_CAT_NEIGHBORHOOD.equals(category.getId())) {
-				boolean allow = true;
-				Iterator<?> iterator = selection.iterator();
-				while (iterator.hasNext()) {
-					Object element = iterator.next();
-					if (!isDraggableObject(element)) {
+		Iterator<?> iterator = selection.iterator();
+		while (allow && iterator.hasNext()) {
+			Object element = iterator.next();
+			if (!isDraggableObject(element)) {
+				allow = false;
+				break;
+			}
+
+			ICategorizable categorizable = getCategorizable(element);
+			if (categorizable == null || !isDraggableObject(element)) {
+				allow = false;
+				break;
+			}
+			ICategory[] parentCategories = getParentCategories(element, selection);
+			if (parentCategories.length == 0) {
+				allow = false;
+			}
+
+			for (ICategory parentCategory : parentCategories) {
+				if (target instanceof ICategory) {
+					ICategory category = (ICategory) target;
+
+					if (!link && element instanceof IPeerModel && category.getId().equals(parentCategory.getId()) && ((IPeerModel)element).isStatic()) {
+						overrideOperation = DND.DROP_COPY;
+						copy = true;
+					}
+					else if (!copy && !Managers.getCategoryManager().isLinked(category.getId(), categorizable.getId()) &&
+								categorizable.isValid(ICategorizable.OPERATION.ADD, parentCategory, category)) {
+						overrideOperation = DND.DROP_LINK;
+						link = true;
+					}
+					else {
 						allow = false;
 						break;
 					}
-					if (Managers.getCategoryManager().belongsTo(category.getId(), ((IPeerModel)element).getPeerId())) {
+
+				}
+				else if (target instanceof IRoot) {
+					overrideOperation = DND.DROP_DEFAULT;
+					if (!Managers.getCategoryManager().isLinked(parentCategory.getId(), categorizable.getId())) {
 						allow = false;
 						break;
 					}
 				}
-				valid = allow;
-
-				// If the target is the "Favorites" or the "My Targets" category,
-				// force DROP_LINK operation
-				if ((IUIConstants.ID_CAT_FAVORITES.equals(category.getId()) || IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId()))
-								&& (operation & DND.DROP_LINK) == 0) {
-					overrideOperation = DND.DROP_LINK;
-				}
 			}
-		} else if (target instanceof IRoot) {
-			// Allow to drag into empty space either from "Favorites"
-			// or "My Targets" category only
-			boolean allow = true;
-			Iterator<?> iterator = selection.iterator();
-			while (iterator.hasNext()) {
-				Object element = iterator.next();
-				if (!isDraggableObject(element)) {
-					allow = false;
-					break;
-				}
-
-				// To determine the parent category, we have to look at the tree path
-				TreePath[] pathes = selection instanceof TreeSelection ? ((TreeSelection)selection).getPathsFor(element) : null;
-				if (pathes != null && pathes.length > 0) {
-					for (TreePath path : pathes) {
-						ICategory category = null;
-						TreePath parentPath = path.getParentPath();
-						while (parentPath != null) {
-							if (parentPath.getLastSegment() instanceof ICategory) {
-								category = (ICategory)parentPath.getLastSegment();
-								break;
-							}
-							parentPath = parentPath.getParentPath();
-						}
-
-						if (category == null || IUIConstants.ID_CAT_NEIGHBORHOOD.equals(category.getId())) {
-							allow = false;
-							break;
-						}
-					}
-				}
-			}
-			valid = allow;
 		}
+		valid = allow;
 
 		if (dropAdapter != null) {
 			if (!valid) {
@@ -212,8 +338,66 @@ public class CommonDnD {
 			else if (overrideOperation != -1) {
 				dropAdapter.overrideOperation(overrideOperation);
 			}
+			else {
+				dropAdapter.overrideOperation(operation);
+			}
 		}
 
 		return valid;
+	}
+
+	protected static ICategory[] getParentCategories(Object element, ISelection selection) {
+		List<ICategory> candidates = new ArrayList<ICategory>();
+		// To determine the parent category, we have to look at the tree path
+		TreePath[] pathes = selection instanceof TreeSelection ? ((TreeSelection)selection).getPathsFor(element) : null;
+		if (pathes != null && pathes.length > 0) {
+			for (TreePath path : pathes) {
+				TreePath parentPath = path.getParentPath();
+				while (parentPath != null) {
+					if (parentPath.getLastSegment() instanceof ICategory) {
+						if (!candidates.contains(parentPath.getLastSegment())) {
+							candidates.add((ICategory)parentPath.getLastSegment());
+							break;
+						}
+					}
+					parentPath = parentPath.getParentPath();
+				}
+			}
+		}
+		return candidates.toArray(new ICategory[candidates.size()]);
+	}
+
+	protected static ICategorizable getCategorizable(Object element) {
+	    ICategorizable categorizable = element instanceof IAdaptable ? (ICategorizable)((IAdaptable)element).getAdapter(ICategorizable.class) : null;
+    	if (categorizable == null) categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(element, ICategorizable.class);
+    	return categorizable;
+	}
+
+	protected static List<String> getUsedNames() {
+		final List<String> usedNames = new ArrayList<String>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				// Get all peer model objects
+				IPeerModel[] peers = Model.getModel().getPeers();
+				// Loop them and find the ones which are of our handled types
+				for (IPeerModel peerModel : peers) {
+					if (peerModel.isStatic()) {
+						String name = peerModel.getPeer().getName();
+						Assert.isNotNull(name);
+						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
+							usedNames.add(name.trim().toUpperCase());
+						}
+					}
+				}
+			}
+		};
+
+		if (Protocol.isDispatchThread())
+			runnable.run();
+		else
+			Protocol.invokeAndWait(runnable);
+		return usedNames;
 	}
 }
