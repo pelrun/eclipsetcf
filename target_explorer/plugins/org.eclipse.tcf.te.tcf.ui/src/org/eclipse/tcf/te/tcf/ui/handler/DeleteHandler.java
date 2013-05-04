@@ -252,7 +252,9 @@ public class DeleteHandler extends AbstractHandler {
 				IURIPersistenceService service = ServiceManager.getInstance().getService(IURIPersistenceService.class);
 				if (service == null) throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
 				service.delete(node, null);
-				ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, new StructuredSelection(parentCategory));
+				if (parentCategory != null) {
+					ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, new StructuredSelection(parentCategory));
+				}
 
 				// Close the configuration editor if open
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -411,6 +413,7 @@ public class DeleteHandler extends AbstractHandler {
 					Operation op = new Operation();
 					op.node = node;
 					op.type = Operation.TYPE.Remove;
+					op.parentCategory = category;
 
 					operations.add(op);
 				}
