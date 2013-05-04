@@ -117,13 +117,15 @@ public class Scanner extends Job implements IScanner {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						// Terminate the job as soon all scanner runnable's are process
-						// and reschedule the job
+						// and reschedule the job (if not terminated)
 						final IStatus result = finMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
 						Scanner.this.done(result);
 
-						Long delay = (Long)getConfiguration().get(IScanner.PROP_SCHEDULE);
-						if (delay != null) {
-							Scanner.this.schedule(delay.longValue());
+						if (!isTerminated()) {
+							Long delay = (Long)getConfiguration().get(IScanner.PROP_SCHEDULE);
+							if (delay != null) {
+								Scanner.this.schedule(delay.longValue());
+							}
 						}
 					}
 				}, new CallbackInvocationDelegate());

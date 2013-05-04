@@ -110,22 +110,34 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 
 		// If the parent scanner is terminated, don't do anything
 		IScanner scanner = getParentScanner();
-		if (scanner != null && scanner.isTerminated()) return;
+		if (scanner != null && scanner.isTerminated()) {
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
 
 		// If a scanner runnable already active for this peer node, there
 		// is no need to run another scan.
-		if (peerNode.getProperty("scanner.transient") != null) return; //$NON-NLS-1$
+		if (peerNode.getProperty("scanner.transient") != null) { //$NON-NLS-1$
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
 		peerNode.setProperty("scanner.transient", this); //$NON-NLS-1$
 
 		// Determine the peer
 		IPeer peer = peerNode.getPeer();
-		if (peer == null) return;
+		if (peer == null) {
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
 
 		// Don't scan value-adds
 		String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
 		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
-		if (isValueAdd) return;
+		if (isValueAdd) {
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
 
 		// Do not open a channel to incomplete peer nodes
 		if (peerNode.isComplete()) {
