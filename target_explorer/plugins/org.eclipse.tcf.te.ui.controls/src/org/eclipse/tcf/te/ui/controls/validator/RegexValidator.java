@@ -15,6 +15,12 @@ package org.eclipse.tcf.te.ui.controls.validator;
  */
 public class RegexValidator extends Validator {
 
+	/**
+	 * Attribute to check if the text to validate does not match the given regex.
+	 */
+	public static final int ATTR_NOT_REGEX = 2;
+	// next attribute should start with 2^2
+
 	// keys for info messages
 	public static final String INFO_MISSING_VALUE = "RegexValidator_Information_MissingValue"; //$NON-NLS-1$
 
@@ -49,7 +55,8 @@ public class RegexValidator extends Validator {
 			return true;
 		}
 
-		if (!newText.matches(regex)) {
+		boolean match = newText.matches(regex);
+		if ((!isAttribute(ATTR_NOT_REGEX) && !match) || (isAttribute(ATTR_NOT_REGEX) && match)) {
 			setMessage(getMessageText(ERROR_INVALID_VALUE), getMessageTextType(ERROR_INVALID_VALUE, ERROR));
 			return getMessageType() != ERROR;
 		}

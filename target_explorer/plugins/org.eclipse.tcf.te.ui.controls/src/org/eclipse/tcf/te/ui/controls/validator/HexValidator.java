@@ -21,19 +21,19 @@ public class HexValidator extends RegexValidator {
 	/**
 	 * Allows entering decimal numbers.
 	 */
-	public static final int ATTR_ALLOW_DECIMAL = 2;
+	public static final int ATTR_ALLOW_DECIMAL = 4;
 
 	/**
 	 * Enables negative decimal numbers. Has effect only if {@link #ATTR_ALLOW_DECIMAL}
 	 * is set as well.
 	 */
-	public static final int ATTR_ALLOW_NEGATIVE_DECIMAL = 4;
+	public static final int ATTR_ALLOW_NEGATIVE_DECIMAL = 8;
 
 	/**
 	 * Enables negative hexadecimal numbers.
 	 */
-	public static final int ATTR_ALLOW_NEGATIVE_HEX = 8;
-	// next attribute should start with 2^4
+	public static final int ATTR_ALLOW_NEGATIVE_HEX = 16;
+	// next attribute should start with 2^5
 
 	// keys for error messages
 	public static final String ERROR_INVALID_VALUE_RANGE = "HexValidator_Error_InvalidValueRange"; //$NON-NLS-1$

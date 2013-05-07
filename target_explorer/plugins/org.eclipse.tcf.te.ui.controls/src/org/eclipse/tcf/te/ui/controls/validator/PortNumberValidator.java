@@ -21,9 +21,9 @@ public class PortNumberValidator extends NumberValidator {
 	protected static final String PORT_REGEX_DEC = "([0-9]{1,5})"; //$NON-NLS-1$
 	protected static final String PORT_REGEX_HEX = "(0(x|X)[0-9a-fA-F]{1,4})"; //$NON-NLS-1$
 
-	public static final int ATTR_HEX = 2;
-	public static final int ATTR_DECIMAL = 4;
-	// next attribute should start with 2^3
+	public static final int ATTR_HEX = 4;
+	public static final int ATTR_DECIMAL = 8;
+	// next attribute should start with 2^4
 
 	/**
 	 * Constructor
