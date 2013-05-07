@@ -67,17 +67,30 @@ public interface ISimulatorService extends IService {
 	public State getState(Object context, String config);
 
 	/**
-	 * Get the default config for the simulator.
-	 * The returned config does not need to be valid!
-	 * @return The default config or <code>null</code>.
+	 * Get the default configuration for the simulator.
+	 * <p>
+	 * The returned configuration does not need to be valid!
+	 *
+	 * @return The default configuration or <code>null</code>.
 	 */
 	public String getDefaultConfig();
 
 	/**
-	 * Validate a simulator config.
+	 * Validate a simulator configuration
+	 * .
 	 * @param context The context. Must not be <code>null</code>.
-	 * @param config The config to validate.
-	 * @return <code>true</code> if the config is valid.
+	 * @param config The configuration to validate.
+	 *
+	 * @return <code>true</code> if the configuration is valid.
 	 */
 	public boolean isValidConfig(Object context, String config);
+
+	/**
+	 * Returns the default simulator payload (guest) boot time. If the
+	 * method returns <code>-1</code>, the simulator start sequence will
+	 * not wait for the simulator payload (guest) to boot up.
+	 *
+	 * @return The default simulator payload (guest) boot time in seconds or <code>-1</code>.
+	 */
+	public int getDefaultPayloadBoottime();
 }

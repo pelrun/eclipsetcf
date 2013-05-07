@@ -17,4 +17,5 @@ import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
  * Abstract simulator service implementation.
  */
 public abstract class AbstractSimulatorService extends AbstractService implements ISimulatorService {
+
 }

@@ -38,12 +38,12 @@ public class WaitStep extends AbstractStep {
 	 */
 	@Override
 	public void execute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, ICallback callback) {
-		long timeout = 1000;
+		int timeout = 1000;
 		if (getParameters() != null) {
 			String value = getParameters().get("timeout"); //$NON-NLS-1$
 			if (value != null) {
 				try {
-					timeout = Long.parseLong(value);
+					timeout = Integer.parseInt(value);
 				}
 				catch (Exception e) {
 				}
@@ -61,6 +61,26 @@ public class WaitStep extends AbstractStep {
 			}
 		});
 		callback.done(this, monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#getCancelTimeout()
+	 */
+	@Override
+	public int getCancelTimeout() {
+		int timeout = 1000;
+		if (getParameters() != null) {
+			String value = getParameters().get("timeout"); //$NON-NLS-1$
+			if (value != null) {
+				try {
+					timeout = Integer.parseInt(value);
+				}
+				catch (Exception e) {
+				}
+			}
+		}
+
+		return Math.max(super.getCancelTimeout(), timeout + 10000);
 	}
 
 	/* (non-Javadoc)

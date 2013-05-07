@@ -169,6 +169,26 @@ public class Messages extends NLS {
 	public static String RenameHandler_dialog_error_nameExist;
 	public static String RenameHandler_dialog_promptNewName;
 
+	public static String TargetSelectorSection_title;
+	public static String TargetSelectorSection_button_enableSimulator;
+	public static String TargetSelectorSection_button_enableReal;
+
+	public static String SimulatorPayloadBoottimeControl_label;
+
+	public static String SimulatorTypeSelectionControl_label;
+	public static String SimulatorTypeSelectionControl_button_configure;
+	public static String SimulatorTypeSelectionControl_error_invalidConfiguration;
+
+	public static String AbstractConfigurationEditorPage_error_possibleCause;
+	public static String AbstractConfigurationEditorPage_error_save;
+
+	public static String AbstractConfigWizardPage_configName_label;
+	public static String AbstractConfigWizardPage_configName_infoMissingValue;
+	public static String AbstractConfigWizardPage_configName_nameInUse;
+	public static String AbstractConfigWizardPage_launchDbg_label;
+	public static String AbstractConfigWizardPage_advancedButton_label;
+	public static String AbstractConfigWizardPage_connectJob_label;
+
 	public static String LoggingPreferencePage_label;
 	public static String LoggingPreferencePage_enabled_label;
 	public static String LoggingPreferencePage_monitorEnabled_label;

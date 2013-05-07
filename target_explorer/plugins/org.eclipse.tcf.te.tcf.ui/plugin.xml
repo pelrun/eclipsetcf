@@ -37,6 +37,20 @@
             properties="canDelete,canMakeAvailableOffline"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
+            id="org.eclipse.tcf.te.tcf.ui.propertyTester.wizard"
+            namespace="org.eclipse.tcf.te.tcf.ui"
+            properties="isWizardId"
+            type="org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode">
+      </propertyTester>
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
+            id="org.eclipse.tcf.te.tcf.ui.propertyTester.simulator"
+            namespace="org.eclipse.tcf.te.tcf.ui"
+            properties="isValidSimulatorConfig"
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+      </propertyTester>
    </extension>
 
 <!-- Preference contributions -->   
