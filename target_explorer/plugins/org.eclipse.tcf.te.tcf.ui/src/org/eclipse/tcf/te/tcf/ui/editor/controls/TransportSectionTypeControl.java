@@ -85,7 +85,7 @@ public class TransportSectionTypeControl extends TransportTypeControl {
 	    if (maxWidth != -1) {
 	    	layoutData.horizontalAlignment = GridData.HORIZONTAL_ALIGN_BEGINNING;
 	    	layoutData.grabExcessHorizontalSpace = false;
-	    	layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(getEditFieldControl(), maxWidth + 4);
+	    	layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(getEditFieldControl(), maxWidth + 10);
 	    }
 	}
 }
