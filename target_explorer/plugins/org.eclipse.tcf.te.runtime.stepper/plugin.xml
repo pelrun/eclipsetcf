@@ -17,12 +17,4 @@
       </propertyTester>
    </extension>
 
-<!-- Launch Step contributions -->
-   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
-      <step
-            id="org.eclipse.tcf.te.runtime.stepper.waitStep"
-            class="org.eclipse.tcf.te.runtime.stepper.steps.WaitStep"
-            label="%WaitStep.name"/>
-   </extension>
-
 </plugin>

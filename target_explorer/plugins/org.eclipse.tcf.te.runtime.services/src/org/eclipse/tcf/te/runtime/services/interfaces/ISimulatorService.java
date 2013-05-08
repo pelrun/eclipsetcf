@@ -84,13 +84,4 @@ public interface ISimulatorService extends IService {
 	 * @return <code>true</code> if the configuration is valid.
 	 */
 	public boolean isValidConfig(Object context, String config);
-
-	/**
-	 * Returns the default simulator payload (guest) boot time. If the
-	 * method returns <code>-1</code>, the simulator start sequence will
-	 * not wait for the simulator payload (guest) to boot up.
-	 *
-	 * @return The default simulator payload (guest) boot time in seconds or <code>-1</code>.
-	 */
-	public int getDefaultPayloadBoottime();
 }

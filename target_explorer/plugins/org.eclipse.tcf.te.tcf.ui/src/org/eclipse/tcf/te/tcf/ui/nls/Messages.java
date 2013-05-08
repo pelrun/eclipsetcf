@@ -173,8 +173,6 @@ public class Messages extends NLS {
 	public static String TargetSelectorSection_button_enableSimulator;
 	public static String TargetSelectorSection_button_enableReal;
 
-	public static String SimulatorPayloadBoottimeControl_label;
-
 	public static String SimulatorTypeSelectionControl_label;
 	public static String SimulatorTypeSelectionControl_button_configure;
 	public static String SimulatorTypeSelectionControl_error_invalidConfiguration;
