@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -96,7 +96,7 @@ public final class Host {
 		String entry = list[0];
 
 		if (Boolean.getBoolean("shell.debug")) { //$NON-NLS-1$
-			System.out.println("UtilityEnvironment#getLinuxRelease: reading file: " + etcdir + "/" + entry); //$NON-NLS-1$ //$NON-NLS-2$
+			System.out.println("Host#getLinuxRelease: reading file: " + etcdir + "/" + entry); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		BufferedReader reader = null;
@@ -108,7 +108,7 @@ public final class Host {
 				while (firstLine != null && !firstLine.toUpperCase()
 				                .startsWith("DISTRIB_DESCRIPTION")) { //$NON-NLS-1$
 					if (Boolean.getBoolean("shell.debug")) { //$NON-NLS-1$
-						System.out.println("UtilityEnvironment#getLinuxRelease: firstLine='" + firstLine + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+						System.out.println("Host#getLinuxRelease: firstLine='" + firstLine + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 					firstLine = reader.readLine();
 				}
@@ -135,7 +135,7 @@ public final class Host {
 		firstLine = firstLine != null ? firstLine : "Unknown"; //$NON-NLS-1$
 
 		if (Boolean.getBoolean("shell.debug")) { //$NON-NLS-1$
-			System.out.println("UtilityEnvironment#getLinuxRelease: return value='" + firstLine + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+			System.out.println("Host#getLinuxRelease: return value='" + firstLine + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		return firstLine;
