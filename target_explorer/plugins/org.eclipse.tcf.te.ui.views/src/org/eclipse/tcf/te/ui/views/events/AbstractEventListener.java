@@ -56,13 +56,22 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 			IWorkbenchWindow window = workbench != null ? workbench.getActiveWorkbenchWindow() : null;
 			IWorkbenchPage page = window != null ? window.getActivePage() : null;
 			if (page != null) {
-				IViewPart part = page.findView(IUIConstants.ID_EXPLORER);
+				IViewPart part = page.findView(getCommonNavigatorPartId());
 				if (part instanceof CommonNavigator) {
 					viewer = ((CommonNavigator)part).getCommonViewer();
 				}
 			}
 		}
 		return viewer;
+	}
+
+	/**
+	 * Returns the part id of the common navigator view to refresh.
+	 *
+	 * @return The part id of the common navigator view to refresh-
+	 */
+	protected String getCommonNavigatorPartId() {
+		return IUIConstants.ID_EXPLORER;
 	}
 
 	/**
