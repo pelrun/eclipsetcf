@@ -150,7 +150,8 @@ public class PeerModel extends ContainerModelNode implements IPeerModel {
 		} else {
 			// For TCP or SSL transport, ATTR_IP_HOST must not be null.
 			String ip = getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
-			if (("TCP".equals(transport) || "SSL".equals(transport)) && ip == null) { //$NON-NLS-1$ //$NON-NLS-2$
+			String port = getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
+			if (("TCP".equals(transport) || "SSL".equals(transport)) && (ip == null || port == null)) { //$NON-NLS-1$ //$NON-NLS-2$
 				complete = false;
 			}
 
