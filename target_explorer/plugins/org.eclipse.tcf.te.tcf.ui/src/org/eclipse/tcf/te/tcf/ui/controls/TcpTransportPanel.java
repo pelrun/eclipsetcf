@@ -137,7 +137,8 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		NetworkPortControl portControl = getPortControl();
 		if (portControl != null) {
 			String port = portControl.getEditFieldControlText();
-			if (port != null) isDirty |= !port.equals(data.getStringProperty(IPeer.ATTR_IP_PORT));
+			String oldPort = data.getStringProperty(IPeer.ATTR_IP_PORT);
+			isDirty |= !port.equals(oldPort != null ? oldPort : ""); //$NON-NLS-1$
 		}
 
 		boolean autoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
@@ -153,6 +154,8 @@ public class TcpTransportPanel extends NetworkCablePanel {
     public void setupData(IPropertiesContainer data) {
 		if (data == null) return;
 
+		boolean isAutoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+
 		NetworkAddressControl addressControl = getAddressControl();
 		if (addressControl != null) {
 			addressControl.setEditFieldControlText(data.getStringProperty(IPeer.ATTR_IP_HOST));
@@ -160,10 +163,11 @@ public class TcpTransportPanel extends NetworkCablePanel {
 
 		NetworkPortControl portControl = getPortControl();
 		if (portControl != null) {
-			portControl.setEditFieldControlText(data.getStringProperty(IPeer.ATTR_IP_PORT));
+			String port = data.getStringProperty(IPeer.ATTR_IP_PORT);
+			portControl.setEditFieldControlText(port != null ? port : ""); //$NON-NLS-1$
 		}
 
-		setIsAutoPort(data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO));
+		setIsAutoPort(isAutoPort);
 	}
 
 	/* (non-Javadoc)
@@ -172,6 +176,8 @@ public class TcpTransportPanel extends NetworkCablePanel {
 	@Override
     public void extractData(IPropertiesContainer data) {
 		if (data == null) return;
+
+		boolean isAutoPort = isAutoPort();
 
 		NetworkAddressControl addressControl = getAddressControl();
 		if (addressControl != null) {
@@ -182,10 +188,15 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		NetworkPortControl portControl = getPortControl();
 		if (portControl != null) {
 			String port = portControl.getEditFieldControlText();
-			data.setProperty(IPeer.ATTR_IP_PORT, !"".equals(port) ? port : null); //$NON-NLS-1$
+			if (isAutoPort) {
+				data.setProperty(IPeer.ATTR_IP_PORT, null);
+			}
+			else {
+				data.setProperty(IPeer.ATTR_IP_PORT, !"".equals(port) ? port : null); //$NON-NLS-1$
+			}
 		}
 
-		if (isAutoPort()) {
+		if (isAutoPort) {
 			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, Boolean.TRUE.toString());
 		} else {
 			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
