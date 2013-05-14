@@ -945,9 +945,6 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				if (!forceNew) channels.put(id, channel);
 				if (!forceNew) refCounters.put(id, new AtomicInteger(1));
 
-				// Redirect the channel to the next value-add in chain
-				// Note: If the redirect succeeds, channel.getRemotePeer().getID() will be identical to id.
-				channel.redirect(nextValueAddPeer.get() != null ? nextValueAddPeer.get().getAttributes() : attrs);
 				// Attach the channel listener to catch open/closed events
 				final IChannel finChannel = channel;
 				channel.addChannelListener(new IChannel.IChannelListener() {
@@ -1023,6 +1020,10 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 					public void congestionLevel(int level) {
 					}
 				});
+
+				// Redirect the channel to the next value-add in chain
+				// Note: If the redirect succeeds, channel.getRemotePeer().getID() will be identical to id.
+				channel.redirect(nextValueAddPeer.get() != null ? nextValueAddPeer.get().getAttributes() : attrs);
 			} else {
 				// Channel is null? Something went terrible wrong.
 				done.doneChainValueAdd(new Exception("Unexpected null return value from IPeer#openChannel()!"), null); //$NON-NLS-1$
