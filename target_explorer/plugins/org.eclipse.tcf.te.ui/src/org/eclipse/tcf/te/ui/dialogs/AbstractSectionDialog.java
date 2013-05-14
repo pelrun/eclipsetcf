@@ -154,7 +154,7 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		Class<?> enclosing = getClass().getEnclosingClass();
 		while ((name == null || name.trim().length() == 0) && enclosing != null) {
 			name = enclosing.getSimpleName();
-			enclosing = getClass().getEnclosingClass();
+			enclosing = enclosing.getEnclosingClass();
 		}
 
 		return (name != null && name.trim().length() > 0) ? name : "SectionDialog"; //$NON-NLS-1$
