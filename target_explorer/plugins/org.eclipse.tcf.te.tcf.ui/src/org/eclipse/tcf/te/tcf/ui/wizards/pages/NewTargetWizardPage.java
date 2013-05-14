@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.wizards.pages;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,15 +17,19 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.controls.CustomTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerAttributesTablePart;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerNameControl;
@@ -58,6 +63,10 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 	// The UUID of the new peer to create
 	private final UUID uuid = UUID.randomUUID();
+
+	// The list of existing configuration names. Used to generate a unique name
+	// and validate the wizard
+	/* default */ final java.util.List<String> usedNames = new ArrayList<String>();
 
 	/**
 	 * Local transport type control implementation.
@@ -211,7 +220,33 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		client.setBackground(parent.getBackground());
 
 		// Add the controls
-		peerNameControl = new PeerNameControl(this);
+		peerNameControl = new PeerNameControl(this) {
+			@Override
+			public boolean isValid() {
+				boolean valid = true;
+
+				String name = getEditFieldControlTextForValidation();
+				if (!"".equals(name)) { //$NON-NLS-1$
+					// Name is not empty -> check against the list of used names
+					if (getParentPage() instanceof NewTargetWizardPage) {
+						valid = !((NewTargetWizardPage)getParentPage()).usedNames.contains(name.trim().toUpperCase());
+						if (!valid) {
+							setMessage(Messages.NewTargetWizardPage_error_nameInUse, IMessageProvider.ERROR);
+						}
+					}
+				}
+
+				if (!valid && getControlDecoration() != null) {
+					// Setup and show the control decoration if necessary
+					if (isEnabled()) {
+						// Update the control decorator
+						updateControlDecoration(getMessage(), getMessageType());
+					}
+				}
+
+				return valid ? super.isValid() : false;
+			}
+		};
 		peerNameControl.setFormToolkit(toolkit);
 		peerNameControl.setParentControlIsInnerPanel(true);
 		peerNameControl.setupPanel(client);
@@ -262,6 +297,9 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 		// restore the widget values from the history
 		restoreWidgetValues();
+
+		// Initialize the used configuration name list
+		initializeUsedNameList();
 	}
 
 	/**
@@ -404,5 +442,33 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 			if (transportTypeControl != null) transportTypeControl.restoreWidgetValues(settings, null);
 			if (transportTypePanelControl != null) transportTypePanelControl.restoreWidgetValues(settings, null);
 		}
+	}
+
+	/**
+	 * Initialize the used name list.
+	 */
+	protected void initializeUsedNameList() {
+		usedNames.clear();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				// Get all peer model objects
+				IPeerModel[] peers = Model.getModel().getPeers();
+				// Loop them and find the ones which are of our handled types
+				for (IPeerModel peerModel : peers) {
+					if (peerModel.isStatic()) {
+						String name = peerModel.getPeer().getName();
+						Assert.isNotNull(name);
+						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
+							usedNames.add(name.trim().toUpperCase());
+						}
+					}
+				}
+			}
+		};
+
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
 	}
 }

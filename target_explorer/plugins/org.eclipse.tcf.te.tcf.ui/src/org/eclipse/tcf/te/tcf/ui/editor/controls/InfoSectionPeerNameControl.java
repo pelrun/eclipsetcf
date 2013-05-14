@@ -20,7 +20,7 @@ import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
  */
 public class InfoSectionPeerNameControl extends PeerNameControl {
 	// Reference to the parent general information section
-	private final GeneralInformationSection infoSection;
+	protected final GeneralInformationSection infoSection;
 
 	/**
 	 * Constructor.

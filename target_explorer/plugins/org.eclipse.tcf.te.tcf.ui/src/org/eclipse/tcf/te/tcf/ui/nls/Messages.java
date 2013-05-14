@@ -56,6 +56,7 @@ public class Messages extends NLS {
 
 	public static String GeneralInformationSection_title;
 	public static String GeneralInformationSection_description;
+	public static String GeneralInformationSection_error_nameInUse;
 
 	public static String GeneralInformationSection_state;
 	public static String GeneralInformationSection_state__1;
@@ -92,6 +93,7 @@ public class Messages extends NLS {
 	public static String NewTargetWizardPage_description;
 	public static String NewTargetWizardPage_section_transportType;
 	public static String NewTargetWizardPage_section_attributes;
+	public static String NewTargetWizardPage_error_nameInUse;
 
 	public static String RemotePeerDiscoveryRootNode_label;
 

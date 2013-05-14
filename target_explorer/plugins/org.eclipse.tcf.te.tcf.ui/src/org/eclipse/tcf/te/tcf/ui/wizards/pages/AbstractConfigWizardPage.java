@@ -108,6 +108,14 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 				}
 			}
 
+			if (!valid && getControlDecoration() != null) {
+				// Setup and show the control decoration if necessary
+				if (isEnabled()) {
+					// Update the control decorator
+					updateControlDecoration(getMessage(), getMessageType());
+				}
+			}
+
 			return valid ? super.isValid() : false;
 		}
 	}

@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.ui.editor.sections;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -38,6 +40,7 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerNameControl;
@@ -67,6 +70,10 @@ public class GeneralInformationSection extends AbstractSection {
 	/* default */ final IPropertiesContainer odc = new PropertiesContainer();
 	// Reference to the properties container representing the working copy for the section
 	/* default */ final IPropertiesContainer wc = new PropertiesContainer();
+
+	// The list of existing configuration names. Used to generate a unique name
+	// and validate the wizard
+	/* default */ final java.util.List<String> usedNames = new ArrayList<String>();
 
 	/**
 	 * Constructor.
@@ -121,7 +128,31 @@ public class GeneralInformationSection extends AbstractSection {
 		section.setClient(client);
 
 		// Create the peer name control
-		nameControl = new InfoSectionPeerNameControl(this);
+		nameControl = new InfoSectionPeerNameControl(this) {
+			@Override
+			public boolean isValid() {
+				boolean valid = true;
+
+				String name = getEditFieldControlTextForValidation();
+				if (!"".equals(name)) { //$NON-NLS-1$
+					// Name is not empty -> check against the list of used names
+						valid = !infoSection.usedNames.contains(name.trim().toUpperCase());
+						if (!valid) {
+							setMessage(Messages.GeneralInformationSection_error_nameInUse, IMessageProvider.ERROR);
+						}
+				}
+
+				if (!valid && getControlDecoration() != null) {
+					// Setup and show the control decoration if necessary
+					if (isEnabled()) {
+						// Update the control decorator
+						updateControlDecoration(getMessage(), getMessageType());
+					}
+				}
+
+				return valid ? super.isValid() : false;
+			}
+		};
 		nameControl.setFormToolkit(toolkit);
 		nameControl.setParentControlIsInnerPanel(true);
 		nameControl.setupPanel(client);
@@ -276,8 +307,11 @@ public class GeneralInformationSection extends AbstractSection {
 			setIsUpdating(false);
 		}
 
+		initializeUsedNameList();
+
 		// Re-evaluate the dirty state
 		dataChanged(null);
+
 		// Adjust the control enablement
 		updateEnablement();
 	}
@@ -299,13 +333,14 @@ public class GeneralInformationSection extends AbstractSection {
 		// Extract the widget data into the working copy
 		if (nameControl != null) {
 			String name = nameControl.getEditFieldControlText();
-			if (name != null && !"".equals(name.trim())) { //$NON-NLS-1$
+			boolean used = name != null && usedNames.contains(name.trim().toUpperCase());
+			if (!used && name != null && !"".equals(name.trim()) ) { //$NON-NLS-1$
 				wc.setProperty(IPeer.ATTR_NAME, name);
 			} else {
 				// Build up the message template
 				String template = NLS.bind(Messages.OverviewEditorPage_error_save, wc.getStringProperty(IPeer.ATTR_NAME), Messages.PossibleCause);
 				// Handle the status
-				Status status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), NLS.bind(Messages.GeneralInformationSection_error_emptyName, nameControl.getMessage()));
+				Status status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), used ? Messages.GeneralInformationSection_error_nameInUse : Messages.GeneralInformationSection_error_emptyName);
 				StatusHandlerUtil.handleStatus(status, od, template, null, IContextHelpIds.MESSAGE_SAVE_FAILED, GeneralInformationSection.this, null);
 			}
 		}
@@ -452,5 +487,33 @@ public class GeneralInformationSection extends AbstractSection {
 
 			SWTControlUtil.setEnabled(nameControl.getEditFieldControl(), isStatic.get() && !isRemote.get());
 		}
+	}
+
+	/**
+	 * Initialize the used name list.
+	 */
+	protected void initializeUsedNameList() {
+		usedNames.clear();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				// Get all peer model objects
+				IPeerModel[] peers = Model.getModel().getPeers();
+				// Loop them and find the ones which are of our handled types
+				for (IPeerModel peerModel : peers) {
+					if (peerModel.isStatic() && !peerModel.equals(od)) {
+						String name = peerModel.getPeer().getName();
+						Assert.isNotNull(name);
+						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
+							usedNames.add(name.trim().toUpperCase());
+						}
+					}
+				}
+			}
+		};
+
+		Assert.isTrue(!Protocol.isDispatchThread());
+		Protocol.invokeAndWait(runnable);
 	}
 }
