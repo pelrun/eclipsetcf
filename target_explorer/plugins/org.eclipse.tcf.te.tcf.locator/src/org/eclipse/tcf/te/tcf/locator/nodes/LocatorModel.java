@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
@@ -55,9 +56,9 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	private boolean disposed;
 
 	// The list of known peers
-	private final Map<String, IPeerModel> peers = new HashMap<String, IPeerModel>();
+	/* default */ final Map<String, IPeerModel> peers = new HashMap<String, IPeerModel>();
 	// The list of "proxied" peers per proxy peer id
-	private final Map<String, List<IPeerModel>> peerChildren = new HashMap<String, List<IPeerModel>>();
+	/* default */ final Map<String, List<IPeerModel>> peerChildren = new HashMap<String, List<IPeerModel>>();
 
 	// Reference to the scanner
 	private IScanner scanner = null;
@@ -125,6 +126,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	 */
 	@Override
 	public IModelListener[] getListener() {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		return modelListener.toArray(new IModelListener[modelListener.size()]);
 	}
 
@@ -188,19 +190,43 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	 */
 	@Override
 	public IPeerModel[] getPeers() {
-		return peers.values().toArray(new IPeerModel[peers.values().size()]);
+		final AtomicReference<IPeerModel[]> result = new AtomicReference<IPeerModel[]>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				result.set(peers.values().toArray(new IPeerModel[peers.values().size()]));
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		return result.get();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel#getChildren(java.lang.String)
 	 */
 	@Override
-    public List<IPeerModel> getChildren(String parentPeerID) {
+    public List<IPeerModel> getChildren(final String parentPeerID) {
 		Assert.isNotNull(parentPeerID);
 
-		List<IPeerModel> children = peerChildren.get(parentPeerID);
-		if (children == null) children = Collections.emptyList();
-		return Collections.unmodifiableList(children);
+		final AtomicReference<List<IPeerModel>> result = new AtomicReference<List<IPeerModel>>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				List<IPeerModel> children = peerChildren.get(parentPeerID);
+				if (children == null) children = Collections.emptyList();
+				result.set(children);
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		return Collections.unmodifiableList(result.get());
 	}
 
 	/* (non-Javadoc)
@@ -301,6 +327,8 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	 */
 	protected ILocator.LocatorListener doCreateLocatorListener(ILocatorModel model) {
 		Assert.isNotNull(model);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		return new LocatorListener(model);
 	}
 
@@ -731,6 +759,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	 * @return <code>True</code> if the given id belongs to a root node, <code>false</code> otherwise.
 	 */
 	private boolean isRootNode(String id) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(id);
 
 		boolean isRoot = false;
@@ -745,27 +774,5 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		}
 
 		return isRoot;
-	}
-
-	/**
-	 * Fire the model listener for the given peer model.
-	 *
-	 * @param peer The peer model. Must not be <code>null</code>.
-	 * @param added <code>True</code> if the peer model got added, <code>false</code> if it got removed.
-	 */
-	protected void fireListener(final IPeerModel peer, final boolean added) {
-		Assert.isNotNull(peer);
-
-		final IModelListener[] listeners = getListener();
-		if (listeners.length > 0) {
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					for (IModelListener listener : listeners) {
-						listener.locatorModelChanged(LocatorModel.this, peer, added);
-					}
-				}
-			});
-		}
 	}
 }

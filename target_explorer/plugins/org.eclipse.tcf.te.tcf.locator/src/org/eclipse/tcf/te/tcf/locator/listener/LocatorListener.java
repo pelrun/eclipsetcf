@@ -63,6 +63,8 @@ public class LocatorListener implements ILocator.LocatorListener {
 	 */
 	@Override
 	public void peerAdded(IPeer peer) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("LocatorListener.peerAdded( " + (peer != null ? peer.getID() : null) + " )", ITracing.ID_TRACE_LOCATOR_LISTENER, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
@@ -184,6 +186,8 @@ public class LocatorListener implements ILocator.LocatorListener {
 	 */
 	@Override
 	public void peerChanged(IPeer peer) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		// Protect ourself from reentrant calls while processing a changed peer.
 		if (peer != null) {
 			AtomicBoolean guard = PEER_CHANGED_GUARDIANS.get(peer);
@@ -243,6 +247,8 @@ public class LocatorListener implements ILocator.LocatorListener {
 	 */
 	@Override
 	public void peerRemoved(String id) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("LocatorListener.peerRemoved( " + id + " )", ITracing.ID_TRACE_LOCATOR_LISTENER, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
@@ -357,6 +363,8 @@ public class LocatorListener implements ILocator.LocatorListener {
 	 */
 	@Override
 	public void peerHeartBeat(String id) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("LocatorListener.peerHeartBeat( " + id + " )", ITracing.ID_TRACE_LOCATOR_LISTENER, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
