@@ -167,7 +167,7 @@ public class BaseControl extends PlatformObject implements IValidatable {
 	 * @param message The message from this control.
 	 * @param messageType The type o the message (NONE, INFORMATION, WARNING, ERROR).
 	 */
-	protected final void setMessage(String message, int messageType) {
+	public final void setMessage(String message, int messageType) {
 		// Check if we should apply the default message instead.
 		if (message == null && getDefaultMessage() != null) {
 			message = getDefaultMessage();

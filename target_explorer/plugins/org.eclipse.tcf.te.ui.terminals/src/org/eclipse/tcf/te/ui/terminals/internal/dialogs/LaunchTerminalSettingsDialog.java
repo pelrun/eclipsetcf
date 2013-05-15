@@ -440,6 +440,16 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     }
 
     /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#setMessage(java.lang.String, int)
+     */
+    @Override
+    public void setMessage(String message, int messageType) {
+    	if (settings != null) {
+    		settings.setMessage(message, messageType);
+    	}
+    }
+
+    /* (non-Javadoc)
      * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#saveWidgetValues()
      */
     @Override

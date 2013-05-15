@@ -86,6 +86,8 @@ public class TcpTransportPanel extends NetworkCablePanel {
 				((ModifyListener)TcpTransportPanel.this.getParentControl()).modifyText(e);
 			}
 		}
+
+
 	}
 
 	/**

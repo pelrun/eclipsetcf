@@ -129,4 +129,6 @@ public interface IValidatingContainer {
 	 * elements of the container needs user attention.
 	 */
 	public void validate();
+
+	public void setMessage(String message, int messageType);
 }

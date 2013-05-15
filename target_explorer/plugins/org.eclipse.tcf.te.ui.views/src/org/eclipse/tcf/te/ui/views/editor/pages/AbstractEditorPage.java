@@ -194,23 +194,18 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	 */
 	@Override
 	public final void validate() {
-		if (getManagedForm() != null && messageComp != null && message != null && messageType != null) {
-			ScrolledForm form = getManagedForm().getForm();
-			ValidationResult result = doValidate();
-
-			if (result != null && result.getMessage() != null) {
-				messageType.setImage(getMessageImage(result.getMessageType()));
-				message.setText(result.getMessage());
-				messageComp.pack();
-				form.setHeadClient(messageComp);
-			}
-			else {
-				form.setHeadClient(null);
-			}
-			form.reflow(true);
-		}
+		ValidationResult result = doValidate();
+		if (result != null)
+			setMessage(result.getMessage(), result.getMessageType());
+		else
+			setMessage(null, IMessageProvider.NONE);
 	}
 
+	/**
+	 * Get the image for the given message type.
+	 * @param messageType The message type.
+	 * @return The image.
+	 */
 	protected Image getMessageImage(int messageType) {
 		switch (messageType) {
 		case IMessageProvider.INFORMATION:
@@ -221,6 +216,29 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 			return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_ERROR);
 		default:
 			return null;
+		}
+	}
+
+	/**
+	 * Set a message to this editor page.
+	 * @param message The message.
+	 * @param messageType The message type.
+	 */
+	@Override
+    public void setMessage(String text, int type) {
+		if (getManagedForm() != null && messageComp != null && message != null && messageType != null) {
+			ScrolledForm form = getManagedForm().getForm();
+
+			if (text != null) {
+				messageType.setImage(getMessageImage(type));
+				message.setText(text);
+				messageComp.pack();
+				form.setHeadClient(messageComp);
+			}
+			else {
+				form.setHeadClient(null);
+			}
+			form.reflow(true);
 		}
 	}
 
