@@ -198,7 +198,8 @@ function get_make_options()
     OPTS="'CFLAGS=$OPTS'"
     ;;
   esac
-  echo "OPSYS=$OPSYS CONF=$CONF $OPTS"
+  echo "OPSYS=$OPSYS CONF=$CONF $OPTS" \
+    sed -e "s/  *$//" | sed -e "s/  */ /g"
 }
 
 function build_and_start_server()
