@@ -1096,14 +1096,19 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                         if (!state.validate(done)) return false;
                         TCFContextState state_data = state.getData();
                         image_name = ImageCache.IMG_THREAD_UNKNOWN_STATE;
-                        if (state_data != null && !state_data.is_suspended) {
-                            if (state_data.isReversing()) {
-                                image_name = ImageCache.IMG_THREAD_REVERSING;
-                                label.append(" (Reversing)");
+                        if (state_data != null) {
+                            if (!state_data.is_suspended) {
+                                if (state_data.isReversing()) {
+                                    image_name = ImageCache.IMG_THREAD_REVERSING;
+                                    label.append(" (Reversing)");
+                                }
+                                else {
+                                    image_name = ImageCache.IMG_THREAD_RUNNNIG;
+                                    label.append(" (Running)");
+                                }
                             }
                             else {
-                                image_name = ImageCache.IMG_THREAD_RUNNNIG;
-                                label.append(" (Running)");
+                                suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(state_data.suspend_reason);
                             }
                         }
                         if (resume_pending && last_label != null) {
