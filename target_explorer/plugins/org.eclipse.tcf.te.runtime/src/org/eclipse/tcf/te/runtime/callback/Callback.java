@@ -200,7 +200,7 @@ public class Callback extends PropertiesContainer implements ICallback {
 		setProperty(PROPERTY_IS_DONE, null);
 		setProperty(PROPERTY_STATUS, checkStatusIntegrity(status));
 
-		internalDone(caller, status);
+		internalDone(caller, (IStatus) getProperty(PROPERTY_STATUS));
 
 		if (getProperty(PROPERTY_IS_DONE) == null) {
 			setProperty(PROPERTY_IS_DONE, true);
