@@ -34,7 +34,7 @@ public class Callback extends PropertiesContainer implements ICallback {
 	protected static final String PROPERTY_PROGRESS_MONITOR = "progressMonitor"; //$NON-NLS-1$
 	protected static final String PROPERTY_PROGRESS_TICKS = "progressTicks"; //$NON-NLS-1$
 	protected static final String PROPERTY_IS_DONE = "isDone"; //$NON-NLS-1$
-	protected static final String PROPERTY_STATUS = "status"; //$NON-NLS-1$
+	public static final String PROPERTY_STATUS = "status"; //$NON-NLS-1$
 
 	/**
 	 * Property: Asynchronous operations can store a result to the callback
