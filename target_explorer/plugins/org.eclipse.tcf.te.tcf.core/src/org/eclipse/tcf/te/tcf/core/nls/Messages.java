@@ -106,4 +106,6 @@ public class Messages extends NLS {
 
 	public static String Extension_error_invalidProtocolStateChangeListener;
 	public static String Extension_error_invalidChannelStateChangeListener;
+
+	public static String AbstractJob_error_dialogTitle;
 }
