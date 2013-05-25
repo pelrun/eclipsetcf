@@ -119,7 +119,7 @@ public class Scanner extends Job implements IScanner {
 						// Terminate the job as soon all scanner runnable's are process
 						// and reschedule the job (if not terminated)
 						final IStatus result = finMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
-						Scanner.this.done(result);
+						if (getState() != Job.NONE) Scanner.this.done(result);
 
 						if (!isTerminated()) {
 							Long delay = (Long)getConfiguration().get(IScanner.PROP_SCHEDULE);
@@ -218,7 +218,16 @@ public class Scanner extends Job implements IScanner {
 	 */
 	@Override
 	public void terminate() {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Return immediately if the scanner has been terminated already
+		if (terminated.get()) return;
+
+		// Mark the scanner job as terminated. This flag is checked by
+		// the asynchronous callbacks and will stop the processing
 		terminated.set(true);
+		// Mark the job done from the job manager POV
+		if (getState() != Job.NONE) done(Status.CANCEL_STATUS);
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
 			CoreBundleActivator.getTraceHandler().trace("Scanner terminated.", ITracing.ID_TRACE_SCANNER, Scanner.this); //$NON-NLS-1$
