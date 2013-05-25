@@ -556,7 +556,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		// Try to open a channel to the node
 		Map<String, Boolean> flags = new HashMap<String, Boolean>();
 		flags.put(IChannelManager.FLAG_FORCE_NEW, Boolean.TRUE);
-		flags.put(IChannelManager.FLAG_NO_VALUE_ADD, Boolean.FALSE);
+		flags.put(IChannelManager.FLAG_NO_VALUE_ADD, Boolean.TRUE);
 
 		Tcf.getChannelManager().openChannel(node.getPeer(), flags, new IChannelManager.DoneOpenChannel() {
 
