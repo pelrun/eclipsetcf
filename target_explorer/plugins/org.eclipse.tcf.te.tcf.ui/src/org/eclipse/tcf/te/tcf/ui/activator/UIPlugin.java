@@ -102,7 +102,17 @@ public class UIPlugin extends AbstractUIPlugin {
 				if (proceedShutdown || forced) {
 					// Terminate the scanner
 					final ILocatorModel model = Model.getModel(true);
-					if (model != null) model.getScanner().terminate();
+					if (model != null) {
+						Runnable runnable = new Runnable() {
+							@Override
+							public void run() {
+								model.getScanner().terminate();
+							}
+						};
+
+						Assert.isTrue(!Protocol.isDispatchThread());
+						Protocol.invokeAndWait(runnable);
+					}
 
 					// Disconnect all connected connections via the stepper service
 					if (model != null) {
