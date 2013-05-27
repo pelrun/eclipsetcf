@@ -488,6 +488,8 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		return rootLocations.toArray(new File[rootLocations.size()]);
 	}
 
+	/* default */ final List<ICallback> refreshAgentIDCallbacks = new ArrayList<ICallback>();
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService#refreshAgentIDs(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel[], org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
@@ -495,12 +497,13 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 	public void refreshAgentIDs(IPeerModel[] nodes, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		// This method might be called reentrant while processing. Return immediately
-		// in this case.
-		if (REFRESH_STATIC_PEERS_GUARD.get()) {
+		// This method might be called reentrant while processing. Add
+		// the callback to the "wait" list and return immediately.
+		if (refreshAgentIDCallbacks.size() > 0) {
+			refreshAgentIDCallbacks.add(callback);
 			return;
 		}
-		REFRESH_STATIC_PEERS_GUARD.set(true);
+		refreshAgentIDCallbacks.add(callback);
 
 		// Get the parent locator model
 		ILocatorModel model = getLocatorModel();
@@ -512,18 +515,22 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 
 		// The callback collector will fire once all static peers have been refreshed
 		final AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
-			@SuppressWarnings("synthetic-access")
             @Override
 			protected void internalDone(Object caller, IStatus status) {
-				// Release the guard
-				REFRESH_STATIC_PEERS_GUARD.set(false);
-				// And invoke the final callback;
-				invokeCallback(callback);
+            	// Make a copy of the callbacks to invoke
+            	List<ICallback> callbacks = new ArrayList<ICallback>(refreshAgentIDCallbacks);
+            	refreshAgentIDCallbacks.clear();
+				// And invoke the final callbacks
+            	for (ICallback callback : callbacks) {
+            		invokeCallback(callback);
+            	}
 			}
 		}, new CallbackInvocationDelegate());
 
-		// Loop all static peers and try to get the agent ID
-		for (IPeerModel node : (nodes != null ? nodes : model.getPeers())) {
+		// Make a copy of the current list of static peers before processing
+		List<IPeerModel> nodesToProcess = new ArrayList<IPeerModel>(Arrays.asList(nodes != null ? nodes : model.getPeers()));
+		// Loop the list of static peers and try to get the agent ID
+		for (IPeerModel node : nodesToProcess) {
 			// If not static --> ignore
 			if (!node.isStatic()) continue;
 			// Refresh the agent ID
