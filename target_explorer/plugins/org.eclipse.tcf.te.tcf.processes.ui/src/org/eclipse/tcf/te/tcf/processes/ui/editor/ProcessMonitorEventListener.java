@@ -45,23 +45,24 @@ public class ProcessMonitorEventListener extends AbstractEventListener {
 			final ChangeEvent changeEvent = (ChangeEvent)event;
 			final Object source = changeEvent.getSource();
 
-			// Property changes for the runtime model refreshes the whole tree.
-			if (source instanceof IRuntimeModel) {
-				treeControl.getViewer().refresh();
-			}
+			if (treeControl.getViewer() != null) {
+				// Property changes for the runtime model refreshes the whole tree.
+				if (source instanceof IRuntimeModel) {
+					treeControl.getViewer().refresh();
+				}
 
-			// Property changes for individual context nodes refreshes the node only
-			else if (source instanceof IProcessContextNode) {
-				if ("expanded".equals(changeEvent.getEventId())) { //$NON-NLS-1$
-					// Expansion state of the node changed.
-					boolean expanded = ((Boolean)changeEvent.getNewValue()).booleanValue();
-					// Update the nodes expansion state
-					((TreeViewer)treeControl.getViewer()).setExpandedState(source, expanded);
-				} else {
-					((TreeViewer)treeControl.getViewer()).refresh(source, true);
+				// Property changes for individual context nodes refreshes the node only
+				else if (source instanceof IProcessContextNode) {
+					if ("expanded".equals(changeEvent.getEventId())) { //$NON-NLS-1$
+						// Expansion state of the node changed.
+						boolean expanded = ((Boolean)changeEvent.getNewValue()).booleanValue();
+						// Update the nodes expansion state
+						((TreeViewer)treeControl.getViewer()).setExpandedState(source, expanded);
+					} else {
+						((TreeViewer)treeControl.getViewer()).refresh(source, true);
+					}
 				}
 			}
 		}
 	}
-
 }
