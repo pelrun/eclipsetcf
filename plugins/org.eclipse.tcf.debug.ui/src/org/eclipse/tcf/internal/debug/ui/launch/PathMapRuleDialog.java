@@ -37,6 +37,7 @@ class PathMapRuleDialog extends Dialog {
 
     private final IPathMap.PathMapRule pathMapRule;
     private final boolean enable_editing;
+    private final boolean showContextQuery;
     private final Image image;
 
     private Text source_text;
@@ -44,11 +45,12 @@ class PathMapRuleDialog extends Dialog {
     private Text context_query_text;
     private Button destination_button;
 
-    PathMapRuleDialog(Shell parent, Image image, IPathMap.PathMapRule pathMapRule, boolean enable_editing) {
+    PathMapRuleDialog(Shell parent, Image image, IPathMap.PathMapRule pathMapRule, boolean enable_editing, boolean showContextQuery) {
         super(parent);
         this.image = image != null ? image : ImageCache.getImage(ImageCache.IMG_PATH);
         this.pathMapRule = pathMapRule;
         this.enable_editing = enable_editing;
+        this.showContextQuery = showContextQuery;
     }
 
     @Override
@@ -131,30 +133,33 @@ class PathMapRuleDialog extends Dialog {
             }
         });
 
-        Label context_query_label = new Label(composite, SWT.NONE);
-        context_query_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-        context_query_label.setFont(font);
-        context_query_label.setText("Context Query:"); //$NON-NLS-1$
+        if (showContextQuery) {
+            Label context_query_label = new Label(composite, SWT.NONE);
+            context_query_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+            context_query_label.setFont(font);
+            context_query_label.setText("Context Query:"); //$NON-NLS-1$
 
-        context_query_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        gd = new GridData(GridData.FILL_HORIZONTAL);
-        gd.widthHint = 200;
-        gd.horizontalSpan = 2;
-        context_query_text.setLayoutData(gd);
-        context_query_text.setFont(font);
-        context_query_text.setEditable(enable_editing);
+            context_query_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
+            gd = new GridData(GridData.FILL_HORIZONTAL);
+            gd.widthHint = 200;
+            gd.horizontalSpan = 2;
+            context_query_text.setLayoutData(gd);
+            context_query_text.setFont(font);
+            context_query_text.setEditable(enable_editing);
 
-        context_query_text.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-                updateButtons();
-            }
-        });
+            context_query_text.addModifyListener(new ModifyListener() {
+                public void modifyText(ModifyEvent e) {
+                    updateButtons();
+                }
+            });
+        }
     }
 
     private void setData() {
         source_text.setText(pathMapRule.getSource() != null ? pathMapRule.getSource() : ""); //$NON-NLS-1$
         destination_text.setText(pathMapRule.getDestination() != null ? pathMapRule.getDestination() : ""); //$NON-NLS-1$
-        context_query_text.setText(pathMapRule.getContextQuery() != null ? pathMapRule.getContextQuery() : ""); //$NON-NLS-1$
+        if (context_query_text != null)
+            context_query_text.setText(pathMapRule.getContextQuery() != null ? pathMapRule.getContextQuery() : ""); //$NON-NLS-1$
         updateButtons();
     }
 
@@ -169,7 +174,7 @@ class PathMapRuleDialog extends Dialog {
         else
             pathMapRule.getProperties().remove(IPathMap.PROP_DESTINATION);
 
-        if (context_query_text.getText().trim().length() > 0)
+        if (context_query_text != null && context_query_text.getText().trim().length() > 0)
             pathMapRule.getProperties().put(IPathMap.PROP_CONTEXT_QUERY, context_query_text.getText());
         else
             pathMapRule.getProperties().remove(IPathMap.PROP_CONTEXT_QUERY);

@@ -20,11 +20,15 @@ import java.util.Map;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableColorProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
@@ -41,7 +45,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
@@ -264,10 +270,10 @@ public class MemoryMapWidget {
         map_table = new Table(composite,
                 SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION |
                 SWT.H_SCROLL | SWT.V_SCROLL);
+        
         map_table.setFont(font);
-        configureTableLayout(map_table, SIZING_TABLE_WIDTH, SIZING_TABLE_HEIGHT, column_names);
-        map_table.setHeaderVisible(true);
-        map_table.setLinesVisible(true);
+        configureTable(map_table);
+        
         map_table.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
@@ -285,39 +291,100 @@ public class MemoryMapWidget {
         table_viewer = new TableViewer(map_table);
         table_viewer.setUseHashlookup(true);
         table_viewer.setColumnProperties(column_names);
-
         table_viewer.setContentProvider(content_provider);
-
         table_viewer.setLabelProvider(new MapLabelProvider());
 
+        map_table.pack();
+        
         createMapButtons(composite);
     }
 
-    protected void configureTableLayout(Table table, int widthHint, int heighHint, String[] columnNames) {
+    protected String getColumnText(int column) {
+        if (column < column_names.length && column >= 0)
+            return column_names[column];
+        return ""; //$NON-NLS-1$
+    }
+    
+    protected void configureTable(final Table table) {
         GridData data = new GridData(GridData.FILL_BOTH);
-        data.widthHint = widthHint;
-        data.heightHint = heighHint;
+        data.widthHint = SIZING_TABLE_WIDTH;
+        data.heightHint = SIZING_TABLE_HEIGHT;
         table.setLayoutData(data);
 
-        int w = widthHint / (columnNames.length + 12);
-        for (int i = 0; i < columnNames.length; i++) {
-            final TableColumn column = new TableColumn(table, SWT.LEAD, i);
-            column.setMoveable(false);
-            column.setText(columnNames[i]);
-            switch (i) {
-            case 0:
-                column.setWidth(w * 10);
-                break;
-            case 1:
-            case 2:
-            case 4:
-                column.setWidth(w * 2);
-                break;
-            default:
-                column.setWidth(w);
-                break;
+        final TableColumn colFile = new TableColumn(table, 0);
+        colFile.setResizable(true);
+        colFile.setAlignment(SWT.LEFT);
+        colFile.setText(getColumnText(0));
+            
+        final TableColumn colAddr = new TableColumn(table, 1);
+        colAddr.setResizable(true);
+        colAddr.setAlignment(SWT.LEFT);
+        colAddr.setText(getColumnText(1));
+
+        final TableColumn colSize = new TableColumn(table, 2);
+        colSize.setResizable(true);
+        colSize.setAlignment(SWT.LEFT);
+        colSize.setText(getColumnText(2));
+
+        final TableColumn colFlags = new TableColumn(table, 3);
+        colFlags.setResizable(true);
+        colFlags.setAlignment(SWT.LEFT);
+        colFlags.setText(getColumnText(3));
+
+        final TableColumn colOffset = new TableColumn(table, 4);
+        colOffset.setResizable(true);
+        colOffset.setAlignment(SWT.LEFT);
+        colOffset.setText(getColumnText(4));
+
+            
+        TableLayout layout = new TableLayout();
+        layout.addColumnData(new ColumnPixelData(250));
+        layout.addColumnData(new ColumnPixelData(60));
+        layout.addColumnData(new ColumnPixelData(60));
+        layout.addColumnData(new ColumnPixelData(60));
+        layout.addColumnData(new ColumnPixelData(60));
+        layout.addColumnData(new ColumnPixelData(60));
+
+        table.addListener(SWT.Resize, new Listener() {
+                @Override
+                public void handleEvent(Event event) {
+                    int width = table.getSize().x - 4 - colAddr.getWidth() - colSize.getWidth() - colFlags.getWidth() - colOffset.getWidth();
+                    colFile.setWidth(Math.max(width, 200));
+                }
+        });
+        
+        colFile.addListener(SWT.Resize, new Listener() {
+                @Override
+                public void handleEvent(Event event) {
+                    int colWidth = colFile.getWidth();
+                    if (colWidth < 200) {
+                        event.doit = false;
+                        colFile.setWidth(200);
+                    }
+                }
+        });
+        
+        Listener listener = new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                if (event.widget instanceof TableColumn) {
+                    TableColumn col = (TableColumn)event.widget;
+                    int colWidth = col.getWidth();
+                    if (colWidth < 40) {
+                        event.doit = false;
+                        col.setWidth(40);
+                    }
+                }
             }
-        }
+        };
+        colAddr.addListener(SWT.Resize, listener);
+        colSize.addListener(SWT.Resize, listener);
+        colFlags.addListener(SWT.Resize, listener);
+        colOffset.addListener(SWT.Resize, listener);
+        
+        table.setLayout(layout);
+        table.setHeaderVisible(true);
+        table.setLinesVisible(true);
     }
 
     protected final TableViewer getViewer() {
@@ -338,7 +405,10 @@ public class MemoryMapWidget {
 
         final Button button_add = new Button(composite, SWT.PUSH);
         button_add.setText(" &Add... ");
-        button_add.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+        GridData gd = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+        PixelConverter converter= new PixelConverter(button_add);
+        gd.widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+        button_add.setLayoutData(gd);
         button_add.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {

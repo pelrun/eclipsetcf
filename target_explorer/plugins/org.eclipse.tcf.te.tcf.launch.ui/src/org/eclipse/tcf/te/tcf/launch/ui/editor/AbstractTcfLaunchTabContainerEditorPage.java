@@ -181,17 +181,16 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 	@Override
 	public void setDirty(boolean dirty) {
 		if (isAutoSave()) {
-			ILaunchConfigurationWorkingCopy wc = getLaunchConfig(getPeerModel(getEditorInput()));
+			final ILaunchConfigurationWorkingCopy wc = getLaunchConfig(getPeerModel(getEditorInput()));
 			if (wc != null && dirty) {
-				try {
-					wc.doSave();
 					IPeerModel peerModel = getPeerModel(getEditorInput());
-					IPropertiesAccessService service = ServiceManager.getInstance()
-					                .getService(peerModel, IPropertiesAccessService.class);
+					IPropertiesAccessService service = ServiceManager.getInstance().getService(peerModel, IPropertiesAccessService.class);
 					service.setProperty(peerModel, PROP_LAUNCH_CONFIG_WC, null);
-				}
-				catch (Exception e) {
-				}
+					try {
+						wc.doSave();
+					}
+					catch (Exception e) {
+					}
 			}
 		}
 		else {

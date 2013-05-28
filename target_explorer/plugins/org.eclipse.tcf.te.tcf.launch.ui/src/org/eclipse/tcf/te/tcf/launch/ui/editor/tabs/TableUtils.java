@@ -67,9 +67,11 @@ public final class TableUtils {
 					int weight = (width * 100) / sumColumnWidth;
 					int newWidth = (weight * tableWidth) / 100;
 					sumColumnWidth2 += newWidth;
-					column.setWidth(newWidth);
-					if (maxColumn == null || maxColumn.getWidth() < column.getWidth()) {
-						maxColumn = column;
+					if (column.getResizable()) {
+						column.setWidth(newWidth);
+						if (maxColumn == null || maxColumn.getWidth() < column.getWidth()) {
+							maxColumn = column;
+						}
 					}
 				}
 

@@ -17,10 +17,10 @@ import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
-import org.eclipse.tcf.internal.debug.ui.launch.TCFMemoryMapTab;
-import org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab;
 import org.eclipse.tcf.te.launch.ui.tabs.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.tcf.te.launch.ui.tabs.refprojects.RefProjetcsTab;
+import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.MemoryMapTab;
+import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.PathMapTab;
 import org.eclipse.tcf.te.tcf.launch.ui.filetransfer.FileTransferTab;
 
 /**
@@ -48,8 +48,8 @@ public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabG
 		tabs.add(new FileTransferTab());
 		tabs.add(new RefProjetcsTab());
 		if (ILaunchManager.DEBUG_MODE.equalsIgnoreCase(mode)) {
-			tabs.add(new TCFMemoryMapTab());
-			tabs.add(new TCFPathMapTab());
+			tabs.add(new MemoryMapTab(null));
+			tabs.add(new PathMapTab(null));
 			tabs.add(new SourceLookupTab());
 		}
 		tabs.add(new CommonTab());

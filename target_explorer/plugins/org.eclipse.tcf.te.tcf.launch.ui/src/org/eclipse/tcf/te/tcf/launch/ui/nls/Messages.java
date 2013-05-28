@@ -96,9 +96,6 @@ public class Messages extends NLS {
 	public static String LaunchConfigurationAdvancedTabSection_lineseparator_cr;
 
 	public static String PathMapEditorPage_name;
-//	public static String PathMapEditorPage_column_source;
-//	public static String PathMapEditorPage_column_destination;
-	public static String PathMapEditorPage_column_contextquery;
 
 	public static String SourceLookupEditorPage_name;
 

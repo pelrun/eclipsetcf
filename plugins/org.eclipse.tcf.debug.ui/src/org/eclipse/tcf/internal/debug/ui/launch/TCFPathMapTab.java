@@ -19,7 +19,14 @@ import java.util.List;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.ICheckStateProvider;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -28,6 +35,7 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
@@ -40,7 +48,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
@@ -56,29 +66,34 @@ import org.eclipse.ui.PlatformUI;
 // TODO: add source lookup container that represents ATTR_PATH_MAP
 public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
-    private TableViewer viewer;
+    private CheckboxTableViewer viewer;
     private Button button_add;
     private Button button_edit;
     private Button button_remove;
+    private Button button_up;
+    private Button button_down;
     private MenuItem item_add;
     private MenuItem item_edit;
     private MenuItem item_remove;
+    private MenuItem item_up;
+    private MenuItem item_down;
+
+    protected static final int SIZING_TABLE_WIDTH = 500;
+    protected static final int SIZING_TABLE_HEIGHT = 300;
 
     private static final String[] column_ids = {
+        "", //$NON-NLS-1$
         IPathMap.PROP_SOURCE,
         IPathMap.PROP_DESTINATION,
         IPathMap.PROP_CONTEXT_QUERY,
     };
-
-    private static final int[] column_size = {
-        300,
-        300,
-        100,
-    };
+    
+    private final static String PROP_ENABLED = "Enabled"; //$NON-NLS-1$
+    private final static String ATTR_PATH_MAP_V1 = TCFLaunchDelegate.ATTR_PATH_MAP + "V1"; //$NON-NLS-1$
 
     private static final String TAB_ID = "org.eclipse.tcf.launch.pathMapTab"; //$NON-NLS-1$
 
-    private ArrayList<PathMapRule> map;
+    private List<PathMapRule> map;
 
     private class FileMapContentProvider implements IStructuredContentProvider  {
 
@@ -92,11 +107,52 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         public void dispose() {
         }
     }
+    
+    private class FileCheckStateProvider implements ICheckStateProvider {
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ICheckStateProvider#isChecked(java.lang.Object)
+         */
+        @Override
+        public boolean isChecked(Object element) {
+            PathMapRule e = (PathMapRule)element;
+            if (e.getProperties().containsKey(PROP_ENABLED)) {
+                return Boolean.parseBoolean(e.getProperties().get(PROP_ENABLED).toString());
+            }
+            return true;
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ICheckStateProvider#isGrayed(java.lang.Object)
+         */
+        @Override
+        public boolean isGrayed(Object element) {
+            return false;
+        }
+        
+    }
+
+    private class FileCheckStateListener implements ICheckStateListener {
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ICheckStateListener#checkStateChanged(org.eclipse.jface.viewers.CheckStateChangedEvent)
+         */
+        @Override
+        public void checkStateChanged(CheckStateChangedEvent event) {
+            PathMapRule e = (PathMapRule)event.getElement();
+            if (event.getChecked())
+                e.getProperties().remove(PROP_ENABLED);
+            else
+                e.getProperties().put(PROP_ENABLED, Boolean.FALSE);
+            viewer.refresh();
+            updateLaunchConfigurationDialog();
+        }
+        
+    }
 
     private class FileMapLabelProvider extends LabelProvider implements ITableLabelProvider {
 
         public Image getColumnImage(Object element, int column) {
-            if (column == 0) return ImageCache.getImage(ImageCache.IMG_ATTRIBUTE);
             return null;
         }
 
@@ -147,31 +203,24 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         layout.marginWidth = 0;
         composite.setFont(font);
         composite.setLayout(layout);
-        composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 1, 1));
+        composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        viewer = new TableViewer(composite, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
-        Table table = viewer.getTable();
-
-        table.setLayoutData(new GridData(GridData.FILL_BOTH));
-        table.setHeaderVisible(true);
-        table.setLinesVisible(true);
+        Table table = new Table(composite, SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
         table.setFont(font);
+        
+        configureTable(table);
+
+        viewer = new CheckboxTableViewer(table);
         viewer.setContentProvider(new FileMapContentProvider());
         viewer.setLabelProvider(new FileMapLabelProvider());
+        viewer.setCheckStateProvider(new FileCheckStateProvider());
+        viewer.addCheckStateListener(new FileCheckStateListener());
         viewer.setColumnProperties(column_ids);
-
-        for (int i = 0; i < column_ids.length; i++) {
-            TableColumn c = new TableColumn(table, SWT.NONE, i);
-            c.setText(getColumnText(i));
-            c.setWidth(getColumnWidth(i));
-        }
-        createTableButtons(composite);
         viewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
-                updateLaunchConfigurationDialog();
+                updateButtons();
             }
         });
-
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             @Override
             public void doubleClick(DoubleClickEvent event) {
@@ -180,14 +229,101 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
                 }
             }
         });
+
+        table.pack(true);
+        
+        createTableButtons(composite);
+    }
+    
+    protected void configureTable(final Table table) {
+        GridData data = new GridData(GridData.FILL_BOTH | GridData.VERTICAL_ALIGN_BEGINNING);
+        data.widthHint = SIZING_TABLE_WIDTH;
+        data.heightHint = SIZING_TABLE_HEIGHT;
+        table.setLayoutData(data);
+
+        final TableColumn colEnable = new TableColumn(table, 0);
+        colEnable.setResizable(false);
+        colEnable.setAlignment(SWT.CENTER);
+        colEnable.setText(getColumnText(0));
+            
+        final TableColumn colSource = new TableColumn(table, 1);
+        colSource.setResizable(true);
+        colSource.setAlignment(SWT.LEFT);
+        colSource.setText(getColumnText(1));
+
+        final TableColumn colDest = new TableColumn(table, 2);
+        colDest.setResizable(true);
+        colDest.setAlignment(SWT.LEFT);
+        colDest.setText(getColumnText(2));
+
+        TableColumn colQuery = null;
+        if (showContextQuery()) {
+            colQuery = new TableColumn(table, 3);
+            colSource.setResizable(true);
+            colSource.setAlignment(SWT.LEFT);
+            colSource.setText(getColumnText(3));
+        }
+        final TableColumn finColQuery = colQuery;
+            
+        TableLayout layout = new TableLayout();
+        layout.addColumnData(new ColumnPixelData(30));
+        layout.addColumnData(new ColumnPixelData(300));
+        layout.addColumnData(new ColumnPixelData(300));
+        if (showContextQuery())
+            layout.addColumnData(new ColumnPixelData(100));
+
+        table.addListener(SWT.Resize, new Listener() {
+                @Override
+                public void handleEvent(Event event) {
+                    int width = table.getSize().x - 4 - colEnable.getWidth();
+                    colSource.setWidth(Math.max(width/2, 200));
+                    colDest.setWidth(Math.max(width/2, 200));
+                }
+        });
+
+        Listener listener = new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                if (event.widget instanceof TableColumn) {
+                    TableColumn col = (TableColumn)event.widget;
+                    int colWidth = col.getWidth();
+                    if (colWidth < 200) {
+                        event.doit = false;
+                        col.setWidth(200);
+                    }
+                }
+            }
+        };
+        
+        colSource.addListener(SWT.Resize, listener);
+        colDest.addListener(SWT.Resize, listener);
+        
+        if (showContextQuery()) {
+            finColQuery.addListener(SWT.Resize, new Listener() {
+                @Override
+                public void handleEvent(Event event) {
+                    int colWidth = finColQuery.getWidth();
+                    if (colWidth < 80) {
+                        event.doit = false;
+                        finColQuery.setWidth(80);
+                    }
+                }
+            });
+        }
+
+        table.setLayout(layout);
+        table.setHeaderVisible(true);
+        table.setLinesVisible(true);
+    }
+    
+    protected boolean showContextQuery() {
+        return true;
     }
 
     protected String getColumnText(int column) {
-        return column_ids[column];
-    }
-
-    protected int getColumnWidth(int column) {
-        return column_size[column];
+        if (column < column_ids.length && column >= 0)
+            return column_ids[column];
+        return ""; //$NON-NLS-1$
     }
 
     private void createTableButtons(Composite parent) {
@@ -207,21 +343,13 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         button_add = new Button(composite, SWT.PUSH);
         button_add.setText(" &Add... "); //$NON-NLS-1$
         gd = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+        PixelConverter converter= new PixelConverter(button_add);
+        gd.widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
         button_add.setLayoutData(gd);
         button_add.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                // To guarantee a predictable path map properties iteration order,
-                // we have to use a LinkedHashMap.
-                PathMapRule pathMapRule = new PathMapRule(new LinkedHashMap<String,Object>());
-                PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, pathMapRule, true);
-                if (dialog.open() == Window.OK) {
-                    map.add(pathMapRule);
-                    viewer.add(pathMapRule);
-                    viewer.setSelection(new StructuredSelection(pathMapRule), true);
-                    viewer.getTable().setFocus();
-                    updateLaunchConfigurationDialog();
-                }
+                onAdd();
             }
         });
         item_add = new MenuItem(menu, SWT.PUSH);
@@ -248,12 +376,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         button_remove.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                for (Iterator<?> i = ((IStructuredSelection)viewer.getSelection()).iterator(); i.hasNext();) {
-                    PathMapRule pathMapRule = (PathMapRule)i.next();
-                    map.remove(pathMapRule);
-                    viewer.remove(pathMapRule);
-                }
-                updateLaunchConfigurationDialog();
+                onRemove((IStructuredSelection)viewer.getSelection());
             }
         });
         item_remove = new MenuItem(menu, SWT.PUSH);
@@ -261,17 +384,87 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         item_remove.addSelectionListener(sel_adapter);
         item_remove.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_DELETE));
 
+        new MenuItem(menu, SWT.SEPARATOR);
+        
+        button_up = new Button(composite, SWT.PUSH);
+        button_up.setText(" &Up "); //$NON-NLS-1$
+        button_up.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+        button_up.addSelectionListener(sel_adapter = new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onUp();
+            }
+        });
+        item_up = new MenuItem(menu, SWT.PUSH);
+        item_up.setText("&Up"); //$NON-NLS-1$
+        item_up.addSelectionListener(sel_adapter);
+
+        button_down = new Button(composite, SWT.PUSH);
+        button_down.setText(" &Down "); //$NON-NLS-1$
+        button_down.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+        button_down.addSelectionListener(sel_adapter = new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onDown();
+            }
+        });
+        item_down = new MenuItem(menu, SWT.PUSH);
+        item_down.setText("&Down"); //$NON-NLS-1$
+        item_down.addSelectionListener(sel_adapter);
+
         viewer.getTable().setMenu(menu);
     }
 
+    private void onAdd() {
+        // To guarantee a predictable path map properties iteration order,
+        // we have to use a LinkedHashMap.
+        int index = viewer.getTable().getSelectionIndex();
+        final PathMapRule rule = new PathMapRule(new LinkedHashMap<String,Object>());
+        PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, rule, true, showContextQuery());
+        if (dialog.open() == Window.OK) {
+            if (index >= 0)
+                map.add(index+1, rule);
+            else
+                map.add(rule);
+            viewer.refresh(true);
+            updateLaunchConfigurationDialog();
+            viewer.setSelection(new StructuredSelection(rule), true);
+        }
+    }
+    
     private void onEdit(IStructuredSelection selection) {
-        PathMapRule pathMapRule = (PathMapRule)selection.getFirstElement();
-        PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, pathMapRule, true);
+        PathMapRule rule = (PathMapRule)selection.getFirstElement();
+        PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, rule, true, showContextQuery());
         dialog.open();
-        viewer.refresh(pathMapRule);
-        viewer.setSelection(new StructuredSelection(pathMapRule), true);
-        viewer.getTable().setFocus();
+        viewer.refresh(true);
         updateLaunchConfigurationDialog();
+    }
+
+    private void onRemove(IStructuredSelection selection) {
+        for (Iterator<?> i = ((IStructuredSelection)viewer.getSelection()).iterator(); i.hasNext();) {
+            PathMapRule rule = (PathMapRule)i.next();
+            map.remove(rule);
+        }
+        viewer.refresh(true);
+        updateLaunchConfigurationDialog();
+    }
+    
+    private void onUp() {
+        int index = viewer.getTable().getSelectionIndex();
+        PathMapRule rule = map.remove(index);
+        map.add(index-1, rule);
+        viewer.refresh(true);
+        updateLaunchConfigurationDialog();
+        viewer.setSelection(new StructuredSelection(rule), true);
+    }
+
+    private void onDown() {
+        int index = viewer.getTable().getSelectionIndex();
+        PathMapRule rule = map.remove(index);
+        map.add(index+1, rule);
+        viewer.refresh(true);
+        updateLaunchConfigurationDialog();
+        viewer.setSelection(new StructuredSelection(rule), true);
     }
 
     protected final TableViewer getViewer() {
@@ -288,13 +481,23 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         setErrorMessage(null);
         setMessage(null);
         try {
+            map = new ArrayList<PathMapRule>();
             String s = config.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
-            map = TCFLaunchDelegate.parsePathMapAttribute(s);
+            String s1 = config.getAttribute(ATTR_PATH_MAP_V1, ""); //$NON-NLS-1$
+            List<PathMapRule> m = TCFLaunchDelegate.parsePathMapAttribute(s);
+            List<PathMapRule> m1 = TCFLaunchDelegate.parsePathMapAttribute(s1);
+            for (PathMapRule rule : m1) {
+                map.add(rule);
+            }
+            int i = -1;
+            for (PathMapRule rule : m) {
+                if (map.contains(rule))
+                    i = map.indexOf(rule);
+                else
+                    map.add(++i, rule);
+            }
             viewer.setInput(config);
-            button_remove.setEnabled(!viewer.getSelection().isEmpty());
-            button_edit.setEnabled(((IStructuredSelection)viewer.getSelection()).size()==1);
-            item_remove.setEnabled(!viewer.getSelection().isEmpty());
-            item_edit.setEnabled(((IStructuredSelection)viewer.getSelection()).size()==1);
+            updateLaunchConfigurationDialog();
         }
         catch (Exception e) {
             init_error = e;
@@ -304,24 +507,60 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     }
 
     public void performApply(ILaunchConfigurationWorkingCopy config) {
-        for (PathMapRule m : map) m.getProperties().remove(IPathMap.PROP_ID);
+        for (PathMapRule m : map) 
+            m.getProperties().remove(IPathMap.PROP_ID);
         StringBuffer bf = new StringBuffer();
-        for (PathMapRule m : map) bf.append(m.toString());
-        if (bf.length() == 0) config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
-        else config.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
+        StringBuffer bf1 = new StringBuffer();
+        for (PathMapRule m : map) {
+            boolean enabled = true;
+            if (m.getProperties().containsKey(PROP_ENABLED)) {
+                enabled = Boolean.parseBoolean(m.getProperties().get(PROP_ENABLED).toString());
+            }
+            if (enabled) { 
+                m.getProperties().remove(PROP_ENABLED);
+                bf.append(m.toString());
+            }
+            bf1.append(m.toString());
+        }
+        if (bf.length() == 0) 
+            config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
+        else 
+            config.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
+        
+        if (bf1.length() == 0) 
+            config.removeAttribute(ATTR_PATH_MAP_V1);
+        else
+            config.setAttribute(ATTR_PATH_MAP_V1, bf1.toString());
     }
 
     public void setDefaults(ILaunchConfigurationWorkingCopy config) {
         config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
+        config.removeAttribute(ATTR_PATH_MAP_V1);
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.debug.ui.AbstractLaunchConfigurationTab#updateLaunchConfigurationDialog()
+     */
     @Override
     protected void updateLaunchConfigurationDialog() {
         super.updateLaunchConfigurationDialog();
+        updateButtons();
+    }
+        
+    protected void updateButtons() {
+        boolean singleSelection = ((IStructuredSelection)viewer.getSelection()).size() == 1;
+        int index = viewer.getTable().getSelectionIndex();
+        int count = viewer.getTable().getItemCount();
+        
         button_remove.setEnabled(!viewer.getSelection().isEmpty());
-        button_edit.setEnabled(((IStructuredSelection)viewer.getSelection()).size() == 1);
+        button_edit.setEnabled(singleSelection);
+        button_up.setEnabled(singleSelection && index > 0);
+        button_down.setEnabled(singleSelection && index < count-1);
+
         item_remove.setEnabled(!viewer.getSelection().isEmpty());
-        item_edit.setEnabled(((IStructuredSelection)viewer.getSelection()).size() == 1);
+        item_edit.setEnabled(singleSelection);
+        item_up.setEnabled(singleSelection && index > 0);
+        item_down.setEnabled(singleSelection && index < count-1);
     }
 
     @Override

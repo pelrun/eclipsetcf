@@ -9,9 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor.tabs;
 
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEditorPage;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
@@ -31,7 +28,6 @@ public class PathMapTab extends TCFPathMapTab {
      */
     public PathMapTab(AbstractTcfLaunchTabContainerEditorPage parentEditorPage) {
     	super();
-    	Assert.isNotNull(parentEditorPage);
     	this.parentEditorPage = parentEditorPage;
     }
 
@@ -50,8 +46,10 @@ public class PathMapTab extends TCFPathMapTab {
 	@Override
 	protected void updateLaunchConfigurationDialog() {
 		super.updateLaunchConfigurationDialog();
-		performApply(AbstractTcfLaunchTabContainerEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
-		parentEditorPage.checkLaunchConfigDirty();
+		if (parentEditorPage != null) {
+			performApply(AbstractTcfLaunchTabContainerEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
+			parentEditorPage.checkLaunchConfigDirty();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -63,44 +61,29 @@ public class PathMapTab extends TCFPathMapTab {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#createControl(org.eclipse.swt.widgets.Composite)
-	 */
-	@Override
-	public void createControl(Composite parent) {
-	    super.createControl(parent);
-
-	    TableViewer viewer = getViewer();
-	    if (viewer != null) TableUtils.adjustTableColumnWidth(viewer);
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#getColumnText(int)
 	 */
 	@Override
 	protected String getColumnText(int column) {
 		String text = super.getColumnText(column);
-		String key = "PathMapEditorPage_column_" + text; //$NON-NLS-1$
-		if (Messages.hasString(key)) text = Messages.getString(key);
-	    return text;
+		if (text != null && text.trim().length() > 0) {
+			String key = "PathMapEditorPage_column_" + text; //$NON-NLS-1$
+			if (Messages.hasString(key))
+				text = Messages.getString(key);
+			else {
+    			key = "PathMapEditorPage_column_" + column; //$NON-NLS-1$
+    			if (Messages.hasString(key))
+    				text = Messages.getString(key);
+			}
+		}
+	    return text != null ? text : ""; //$NON-NLS-1$
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#getColumnWidth(int)
+	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#showContextQuery()
 	 */
 	@Override
-	protected int getColumnWidth(int column) {
-		int width = -1;
-		switch (column) {
-		case 0:
-		case 1:
-			width = 27;
-			break;
-		case 2:
-			width = 15;
-			break;
-		default:
-			width = -1;
-		}
-	    return width != -1 ? width : super.getColumnWidth(column);
+	protected boolean showContextQuery() {
+	    return false;
 	}
 }

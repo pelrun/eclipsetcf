@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.tcf.launch.ui.editor;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.IDebugView;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.tcf.internal.debug.ui.launch.TCFMemoryMapTab;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.MemoryMapTab;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -50,8 +49,8 @@ public class MemoryMapEditorPage extends AbstractTcfLaunchTabContainerEditorPage
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (isActive() && part instanceof IDebugView) {
-			if (((TCFMemoryMapTab)getLaunchConfigurationTab()).updateContext()) {
-				((TCFMemoryMapTab)getLaunchConfigurationTab()).initializeFrom(getLaunchConfig(getPeerModel(getEditorInput())));
+			if (((MemoryMapTab)getLaunchConfigurationTab()).updateContext()) {
+				((MemoryMapTab)getLaunchConfigurationTab()).initializeFrom(getLaunchConfig(getPeerModel(getEditorInput())));
 			}
 		}
 	}

@@ -9,16 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor.tabs;
 
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tcf.internal.debug.ui.commands.MemoryMapWidget;
 import org.eclipse.tcf.internal.debug.ui.launch.TCFMemoryMapTab;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEditorPage;
+import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
 
 /**
  * Customized TCF memory map launch configuration tab implementation to work better
@@ -43,45 +39,21 @@ public class MemoryMapTab extends TCFMemoryMapTab {
 	        super(composite, node);
         }
 
-        /* (non-Javadoc)
-         * @see org.eclipse.tcf.internal.debug.ui.commands.MemoryMapWidget#configureTableLayout(org.eclipse.swt.widgets.Table, int, int, java.lang.String[])
-         */
-        @Override
-        protected void configureTableLayout(Table table, int widthHint, int heighHint, String[] columnNames) {
-        	Assert.isNotNull(table);
-
-            GridData data = new GridData(GridData.FILL_BOTH);
-            data.widthHint = SWT.DEFAULT;
-            data.heightHint = heighHint;
-            table.setLayoutData(data);
-
-            for (int i = 0; i < columnNames.length; i++) {
-                final TableColumn column = new TableColumn(table, SWT.LEAD, i);
-                column.setMoveable(false);
-                column.setText(columnNames[i]);
-                switch (i) {
-        		case 0:
-        			column.setWidth(37);
-        			column.setData("widthHint", Integer.valueOf(37)); //$NON-NLS-1$
-					break;
-				case 1:
-                case 2:
-        			column.setWidth(10);
-        			column.setData("widthHint", Integer.valueOf(10)); //$NON-NLS-1$
-                    break;
-                case 4:
-        			column.setWidth(18);
-        			column.setData("widthHint", Integer.valueOf(18)); //$NON-NLS-1$
-                    break;
-                default:
-        			column.setWidth(7);
-        			column.setData("widthHint", Integer.valueOf(7)); //$NON-NLS-1$
-                    break;
-                }
-            }
-
-        	TableUtils.adjustTableColumnWidth(table);
-        }
+    	@Override
+    	protected String getColumnText(int column) {
+    		String text = super.getColumnText(column);
+    		if (text != null && text.trim().length() > 0) {
+    			String key = "MemoryMapEditorPage_column_" + text; //$NON-NLS-1$
+    			if (Messages.hasString(key))
+    				text = Messages.getString(key);
+    			else {
+        			key = "MemoryMapEditorPage_column_" + column; //$NON-NLS-1$
+        			if (Messages.hasString(key))
+        				text = Messages.getString(key);
+    			}
+    		}
+    	    return text != null ? text : ""; //$NON-NLS-1$
+    	}
 	}
 
 	/**
@@ -91,7 +63,6 @@ public class MemoryMapTab extends TCFMemoryMapTab {
      */
     public MemoryMapTab(AbstractTcfLaunchTabContainerEditorPage parentEditorPage) {
     	super();
-    	Assert.isNotNull(parentEditorPage);
     	this.parentEditorPage = parentEditorPage;
     }
 
@@ -110,8 +81,10 @@ public class MemoryMapTab extends TCFMemoryMapTab {
 	@Override
 	protected void updateLaunchConfigurationDialog() {
 		super.updateLaunchConfigurationDialog();
-		performApply(AbstractTcfLaunchTabContainerEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
-		parentEditorPage.checkLaunchConfigDirty();
+		if (parentEditorPage != null) {
+			performApply(AbstractTcfLaunchTabContainerEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
+			parentEditorPage.checkLaunchConfigDirty();
+		}
 	}
 
 	/* (non-Javadoc)

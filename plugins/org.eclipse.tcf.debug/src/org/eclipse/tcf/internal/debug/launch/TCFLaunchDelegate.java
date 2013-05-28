@@ -12,9 +12,12 @@ package org.eclipse.tcf.internal.debug.launch;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -86,11 +89,25 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
             super(props);
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        public boolean equals(Object obj) {
+            boolean equal = super.equals(obj);
+            if (!equal && obj instanceof PathMapRule) {
+                return this.toString().equals(((PathMapRule)obj).toString());
+            }
+            return equal;
+        }
+        
         @Override
         public String toString() {
             StringBuffer bf = new StringBuffer();
             Map<String,Object> props = getProperties();
-            for (String nm : props.keySet()) {
+            String[] keySet = props.keySet().toArray(new String[props.size()]);
+            Arrays.sort(keySet);
+            for (String nm : keySet) {
                 Object o = props.get(nm);
                 if (o != null) {
                     bf.append(nm);
