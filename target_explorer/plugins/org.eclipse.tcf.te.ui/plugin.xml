@@ -286,6 +286,9 @@
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
                      <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
+                     <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                            value="connect"/>
                   </adapt>
@@ -297,6 +300,9 @@
                <count value="1"/>
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                            value="connect"/>
@@ -312,6 +318,9 @@
          <activeWhen>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
                   <test forcePluginActivation="true"
                         property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                         value="connect"/>
@@ -321,6 +330,9 @@
          <enabledWhen>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
                   <test forcePluginActivation="true"
                         property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                         value="connect"/>
