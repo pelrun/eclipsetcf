@@ -59,7 +59,7 @@
 		<tm-site>http://download.eclipse.org/tm/builds/juno/nightly/</tm-site>
 		-->
 		<rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20130118183705/repository/</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20130517111416/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/snapshots</swtbot-site>
   	</properties>
 
