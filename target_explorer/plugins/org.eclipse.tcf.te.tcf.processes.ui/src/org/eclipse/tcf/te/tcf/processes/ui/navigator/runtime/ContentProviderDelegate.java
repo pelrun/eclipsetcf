@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -242,7 +242,7 @@ public class ContentProviderDelegate implements ITreeContentProvider {
 				final Object[] children = getChildren(context);
 				if (children.length == 1 && children[0] instanceof IProcessContextNode) {
 					// Apply the single thread filter
-					final AtomicBoolean selected = new AtomicBoolean();
+					final AtomicBoolean selected = new AtomicBoolean(true);
 					Runnable runnable = new Runnable() {
 						@Override
 						public void run() {

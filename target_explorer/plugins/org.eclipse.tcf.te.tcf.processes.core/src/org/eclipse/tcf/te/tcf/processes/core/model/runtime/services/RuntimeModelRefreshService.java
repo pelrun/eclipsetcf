@@ -226,7 +226,18 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 				if (parent == null) {
 					model.getService(IModelUpdateService.class).add(candidate);
 				} else {
-					parent.add(candidate);
+					// Validate the the children are added to the real parent node
+					nodes = model.getService(IModelLookupService.class).lkupModelNodesById(parent.getStringProperty(IModelNode.PROPERTY_ID));
+					if (nodes.length > 0) {
+						// In fact we should have found just one parent
+						Assert.isTrue(nodes.length == 1);
+						Assert.isTrue(nodes[0] instanceof IProcessContextNode);
+						// Add to the real parent node
+						((IProcessContextNode)nodes[0]).add(candidate);
+					} else {
+						// Add to the passed in parent node
+						parent.add(candidate);
+					}
 				}
 			}
 		}
