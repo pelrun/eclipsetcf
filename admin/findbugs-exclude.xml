@@ -68,6 +68,12 @@
 		</Or>
 	</Match>
 	
+	<!-- Ignore NP_NULL_ON_SOME_PATH_MIGHT_BE_INFEASIBLE -->
+	<Match>
+		<Bug pattern="NP_NULL_ON_SOME_PATH_MIGHT_BE_INFEASIBLE"/>
+		<Class name="org.eclipse.tcf.te.ui.trees.TreeViewerSorter"/>
+	</Match>
+	
 	<!-- Ignore RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE -->
 	<Match>
 		<Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
