@@ -232,13 +232,11 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 			if (text != null) {
 				messageType.setImage(getMessageImage(type));
 				message.setText(text);
-				messageComp.pack();
 				form.setHeadClient(messageComp);
 			}
 			else {
 				form.setHeadClient(null);
 			}
-			form.reflow(true);
 		}
 	}
 
