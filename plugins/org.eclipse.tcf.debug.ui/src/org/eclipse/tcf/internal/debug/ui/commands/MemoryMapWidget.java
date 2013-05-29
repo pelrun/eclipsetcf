@@ -270,10 +270,10 @@ public class MemoryMapWidget {
         map_table = new Table(composite,
                 SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION |
                 SWT.H_SCROLL | SWT.V_SCROLL);
-        
+
         map_table.setFont(font);
         configureTable(map_table);
-        
+
         map_table.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
@@ -295,7 +295,7 @@ public class MemoryMapWidget {
         table_viewer.setLabelProvider(new MapLabelProvider());
 
         map_table.pack();
-        
+
         createMapButtons(composite);
     }
 
@@ -304,7 +304,7 @@ public class MemoryMapWidget {
             return column_names[column];
         return ""; //$NON-NLS-1$
     }
-    
+
     protected void configureTable(final Table table) {
         GridData data = new GridData(GridData.FILL_BOTH);
         data.widthHint = SIZING_TABLE_WIDTH;
@@ -315,7 +315,7 @@ public class MemoryMapWidget {
         colFile.setResizable(true);
         colFile.setAlignment(SWT.LEFT);
         colFile.setText(getColumnText(0));
-            
+
         final TableColumn colAddr = new TableColumn(table, 1);
         colAddr.setResizable(true);
         colAddr.setAlignment(SWT.LEFT);
@@ -336,7 +336,7 @@ public class MemoryMapWidget {
         colOffset.setAlignment(SWT.LEFT);
         colOffset.setText(getColumnText(4));
 
-            
+
         TableLayout layout = new TableLayout();
         layout.addColumnData(new ColumnPixelData(250));
         layout.addColumnData(new ColumnPixelData(60));
@@ -352,7 +352,7 @@ public class MemoryMapWidget {
                     colFile.setWidth(Math.max(width, 200));
                 }
         });
-        
+
         colFile.addListener(SWT.Resize, new Listener() {
                 @Override
                 public void handleEvent(Event event) {
@@ -363,7 +363,7 @@ public class MemoryMapWidget {
                     }
                 }
         });
-        
+
         Listener listener = new Listener() {
             @Override
             public void handleEvent(Event event) {
@@ -381,7 +381,7 @@ public class MemoryMapWidget {
         colSize.addListener(SWT.Resize, listener);
         colFlags.addListener(SWT.Resize, listener);
         colOffset.addListener(SWT.Resize, listener);
-        
+
         table.setLayout(layout);
         table.setHeaderVisible(true);
         table.setLinesVisible(true);

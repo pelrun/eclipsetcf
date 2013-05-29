@@ -87,7 +87,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         IPathMap.PROP_DESTINATION,
         IPathMap.PROP_CONTEXT_QUERY,
     };
-    
+
     private final static String PROP_ENABLED = "Enabled"; //$NON-NLS-1$
     private final static String ATTR_PATH_MAP_V1 = TCFLaunchDelegate.ATTR_PATH_MAP + "V1"; //$NON-NLS-1$
 
@@ -107,7 +107,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         public void dispose() {
         }
     }
-    
+
     private class FileCheckStateProvider implements ICheckStateProvider {
 
         /* (non-Javadoc)
@@ -129,7 +129,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         public boolean isGrayed(Object element) {
             return false;
         }
-        
+
     }
 
     private class FileCheckStateListener implements ICheckStateListener {
@@ -147,7 +147,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             viewer.refresh();
             updateLaunchConfigurationDialog();
         }
-        
+
     }
 
     private class FileMapLabelProvider extends LabelProvider implements ITableLabelProvider {
@@ -207,7 +207,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
         Table table = new Table(composite, SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
         table.setFont(font);
-        
+
         configureTable(table);
 
         viewer = new CheckboxTableViewer(table);
@@ -231,10 +231,10 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         });
 
         table.pack(true);
-        
+
         createTableButtons(composite);
     }
-    
+
     protected void configureTable(final Table table) {
         GridData data = new GridData(GridData.FILL_BOTH | GridData.VERTICAL_ALIGN_BEGINNING);
         data.widthHint = SIZING_TABLE_WIDTH;
@@ -245,7 +245,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         colEnable.setResizable(false);
         colEnable.setAlignment(SWT.CENTER);
         colEnable.setText(getColumnText(0));
-            
+
         final TableColumn colSource = new TableColumn(table, 1);
         colSource.setResizable(true);
         colSource.setAlignment(SWT.LEFT);
@@ -264,7 +264,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             colSource.setText(getColumnText(3));
         }
         final TableColumn finColQuery = colQuery;
-            
+
         TableLayout layout = new TableLayout();
         layout.addColumnData(new ColumnPixelData(30));
         layout.addColumnData(new ColumnPixelData(300));
@@ -294,10 +294,10 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
                 }
             }
         };
-        
+
         colSource.addListener(SWT.Resize, listener);
         colDest.addListener(SWT.Resize, listener);
-        
+
         if (showContextQuery()) {
             finColQuery.addListener(SWT.Resize, new Listener() {
                 @Override
@@ -315,7 +315,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
     }
-    
+
     protected boolean showContextQuery() {
         return true;
     }
@@ -385,7 +385,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         item_remove.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_DELETE));
 
         new MenuItem(menu, SWT.SEPARATOR);
-        
+
         button_up = new Button(composite, SWT.PUSH);
         button_up.setText(" &Up "); //$NON-NLS-1$
         button_up.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
@@ -431,7 +431,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             viewer.setSelection(new StructuredSelection(rule), true);
         }
     }
-    
+
     private void onEdit(IStructuredSelection selection) {
         PathMapRule rule = (PathMapRule)selection.getFirstElement();
         PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, rule, true, showContextQuery());
@@ -448,7 +448,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         viewer.refresh(true);
         updateLaunchConfigurationDialog();
     }
-    
+
     private void onUp() {
         int index = viewer.getTable().getSelectionIndex();
         PathMapRule rule = map.remove(index);
@@ -507,7 +507,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     }
 
     public void performApply(ILaunchConfigurationWorkingCopy config) {
-        for (PathMapRule m : map) 
+        for (PathMapRule m : map)
             m.getProperties().remove(IPathMap.PROP_ID);
         StringBuffer bf = new StringBuffer();
         StringBuffer bf1 = new StringBuffer();
@@ -516,18 +516,18 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             if (m.getProperties().containsKey(PROP_ENABLED)) {
                 enabled = Boolean.parseBoolean(m.getProperties().get(PROP_ENABLED).toString());
             }
-            if (enabled) { 
+            if (enabled) {
                 m.getProperties().remove(PROP_ENABLED);
                 bf.append(m.toString());
             }
             bf1.append(m.toString());
         }
-        if (bf.length() == 0) 
+        if (bf.length() == 0)
             config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
-        else 
+        else
             config.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
-        
-        if (bf1.length() == 0) 
+
+        if (bf1.length() == 0)
             config.removeAttribute(ATTR_PATH_MAP_V1);
         else
             config.setAttribute(ATTR_PATH_MAP_V1, bf1.toString());
@@ -546,12 +546,12 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         super.updateLaunchConfigurationDialog();
         updateButtons();
     }
-        
+
     protected void updateButtons() {
         boolean singleSelection = ((IStructuredSelection)viewer.getSelection()).size() == 1;
         int index = viewer.getTable().getSelectionIndex();
         int count = viewer.getTable().getItemCount();
-        
+
         button_remove.setEnabled(!viewer.getSelection().isEmpty());
         button_edit.setEnabled(singleSelection);
         button_up.setEnabled(singleSelection && index > 0);

@@ -100,7 +100,7 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
             }
             return equal;
         }
-        
+
         @Override
         public String toString() {
             StringBuffer bf = new StringBuffer();
