@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
@@ -106,6 +107,15 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 		return true;
 	}
 
+	/**
+	 * Returns the table viewer instance.
+	 *
+	 * @return The table viewer instance or <code>null</code>.
+	 */
+	protected final TableViewer getViewer() {
+		return viewer;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
 	 */
@@ -167,6 +177,28 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 				}
 			}
 		});
+
+	    // Determine the initial state of the "show only reachable" button. If there are no
+	    // reachable target while opening the dialog, this button should be not selected.
+	    boolean showOnlyReachableSelected = true;
+	    ViewerFilter[] filters = viewer.getFilters();
+	    if (filters != null && filters.length > 0) {
+	    	TreePath parentPath = new TreePath(new Object[0]);
+	    	Object[] result = nodes.toArray();
+	    	for (ViewerFilter filter : filters) {
+				Object[] filteredResult = filter.filter(viewer, parentPath, result);
+				result = filteredResult;
+	    	}
+	    	showOnlyReachableSelected = result.length > 0;
+	    } else {
+	    	showOnlyReachableSelected = nodes.size() > 0;
+	    }
+
+	    if (showOnlyReachableSelected != SWTControlUtil.getSelection(showOnlyReachable)) {
+	    	SWTControlUtil.setSelection(showOnlyReachable, showOnlyReachableSelected);
+			viewer.refresh();
+			updateEnablement(viewer);
+	    }
 	}
 
 	/**
