@@ -306,6 +306,11 @@
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                            value="connect"/>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                              value="disconnect"/>
+                     </not>
                   </adapt>
                </iterate>
             </with>
