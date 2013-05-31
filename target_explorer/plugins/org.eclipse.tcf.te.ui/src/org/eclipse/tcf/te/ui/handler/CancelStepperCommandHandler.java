@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -37,6 +38,7 @@ import org.eclipse.ui.part.EditorPart;
 public class CancelStepperCommandHandler extends AbstractHandler implements IExecutableExtension {
 
 	private String operation = null;
+	private String adaptTo = null;
 
 	/* (non-Javadoc)
 	 * @see com.windriver.te.tcf.ui.handler.AbstractAgentCommandHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -65,11 +67,16 @@ public class CancelStepperCommandHandler extends AbstractHandler implements IExe
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
 			while (iterator.hasNext()) {
-				final Object element = iterator.next();
-				IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
-				StepperJob job = service != null ? (StepperJob)service.getProperty(element, StepperJob.class.getName() + "." + operation) : null; //$NON-NLS-1$
-				if (service == null && element instanceof IPropertiesContainer)
-					job = (StepperJob)((IPropertiesContainer)element).getProperty(StepperJob.class.getName() + "." + operation); //$NON-NLS-1$
+				Object element = iterator.next();
+				Object adapted = element;
+				if (adaptTo != null) {
+					Object adapter = Platform.getAdapterManager().getAdapter(element, adaptTo);
+					if (adapter != null) adapted = adapter;
+				}
+				IPropertiesAccessService service = ServiceManager.getInstance().getService(adapted, IPropertiesAccessService.class);
+				StepperJob job = service != null ? (StepperJob)service.getProperty(adapted, StepperJob.class.getName() + "." + operation) : null; //$NON-NLS-1$
+				if (service == null && adapted instanceof IPropertiesContainer)
+					job = (StepperJob)((IPropertiesContainer)adapted).getProperty(StepperJob.class.getName() + "." + operation); //$NON-NLS-1$
 				if (job != null)
 					job.cancel();
 			}
@@ -83,8 +90,14 @@ public class CancelStepperCommandHandler extends AbstractHandler implements IExe
 	 */
 	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
-		if (data instanceof Map && ((Map<?,?>)data).get("operation") instanceof String) { //$NON-NLS-1$
-			this.operation = ((Map<?,?>)data).get("operation").toString(); //$NON-NLS-1$
+		if (data instanceof Map) {
+			Map<?,?> dataMap = (Map<?,?>)data;
+			if (dataMap.get("operation") instanceof String) { //$NON-NLS-1$
+				this.operation = dataMap.get("operation").toString(); //$NON-NLS-1$
+			}
+			if (dataMap.get("adaptTo") instanceof String) { //$NON-NLS-1$
+				this.adaptTo = dataMap.get("adaptTo").toString(); //$NON-NLS-1$
+			}
 		}
 	}
 }

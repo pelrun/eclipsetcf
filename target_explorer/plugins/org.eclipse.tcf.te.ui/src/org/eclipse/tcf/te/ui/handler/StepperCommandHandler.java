@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -39,6 +40,7 @@ import org.eclipse.ui.part.EditorPart;
 public class StepperCommandHandler extends AbstractHandler implements IExecutableExtension {
 
 	private String operation = null;
+	private String adaptTo = null;
 
 	/* (non-Javadoc)
 	 * @see com.windriver.te.tcf.ui.handler.AbstractAgentCommandHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -67,12 +69,17 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
 			while (iterator.hasNext()) {
-				final Object element = iterator.next();
-				IStepperService service = ServiceManager.getInstance().getService(element, IStepperService.class);
+				Object element = iterator.next();
+				Object adapted = element;
+				if (adaptTo != null) {
+					Object adapter = Platform.getAdapterManager().getAdapter(element, adaptTo);
+					if (adapter != null) adapted = adapter;
+				}
+				IStepperService service = ServiceManager.getInstance().getService(adapted, IStepperService.class);
 				if (service != null) {
-					String stepGroupId = service.getStepGroupId(element, operation);
-					IStepContext stepContext = service.getStepContext(element, operation);
-					String name = service.getStepGroupName(element, operation);
+					String stepGroupId = service.getStepGroupId(adapted, operation);
+					IStepContext stepContext = service.getStepContext(adapted, operation);
+					String name = service.getStepGroupName(adapted, operation);
 
 					if (stepGroupId != null && stepContext != null) {
 						IPropertiesContainer data = new PropertiesContainer();
@@ -81,7 +88,7 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 										data,
 										stepGroupId,
 										operation,
-										service.isCancelable(element, operation));
+										service.isCancelable(adapted, operation));
 						job.schedule();
 					}
 				}
@@ -96,8 +103,14 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 	 */
 	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
-		if (data instanceof Map && ((Map<?,?>)data).get("operation") instanceof String) { //$NON-NLS-1$
-			this.operation = ((Map<?,?>)data).get("operation").toString(); //$NON-NLS-1$
+		if (data instanceof Map) {
+			Map<?,?> dataMap = (Map<?,?>)data;
+			if (dataMap.get("operation") instanceof String) { //$NON-NLS-1$
+				this.operation = dataMap.get("operation").toString(); //$NON-NLS-1$
+			}
+			if (dataMap.get("adaptTo") instanceof String) { //$NON-NLS-1$
+				this.adaptTo = dataMap.get("adaptTo").toString(); //$NON-NLS-1$
+			}
 		}
 	}
 }
