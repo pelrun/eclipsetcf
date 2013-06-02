@@ -25,6 +25,17 @@
       </service>
    </extension>
 
+<!-- Eclipse core expressions property tester -->
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.processes.core.model.properties.PropertyTester"
+            id="org.eclipse.tcf.te.tcf.processes.core.model.properties"
+            namespace="org.eclipse.tcf.te.tcf.processes.core"
+            properties="isAttached,canAttach"
+            type="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode">
+      </propertyTester>
+   </extension>
+
 <!-- Launch Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step

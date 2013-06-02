@@ -48,17 +48,6 @@
          </enablement>
       </service>
    </extension>
-   
-<!-- Eclipse core expressions property tester -->
-   <extension point="org.eclipse.core.expressions.propertyTesters">
-      <propertyTester
-            class="org.eclipse.tcf.te.tcf.processes.ui.internal.PropertyTester"
-            id="org.eclipse.tcf.te.tcf.processes.ui.propertytester.process"
-            namespace="org.eclipse.tcf.te.tcf.processes.ui.model"
-            properties="isAttached"
-            type="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode">
-      </propertyTester>
-   </extension>
 
 <!-- Common navigator contributions -->
    <extension point="org.eclipse.ui.navigator.viewer">
@@ -443,7 +432,10 @@
                <count value="+"/>
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode">
-                     <test property="org.eclipse.tcf.te.tcf.processes.ui.model.isAttached" value="false"/>
+                     <and>
+                        <test property="org.eclipse.tcf.te.tcf.processes.core.canAttach" value="true"/>
+                        <test property="org.eclipse.tcf.te.tcf.processes.core.isAttached" value="false"/>
+                     </and>
                   </adapt>
                </iterate>
             </with>
@@ -480,7 +472,10 @@
                <count value="+"/>
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode">
-                     <test property="org.eclipse.tcf.te.tcf.processes.ui.model.isAttached" value="true"/>
+                     <and>
+                        <test property="org.eclipse.tcf.te.tcf.processes.core.canAttach" value="true"/>
+                        <test property="org.eclipse.tcf.te.tcf.processes.ui.model.isAttached" value="true"/>
+                     </and>
                   </adapt>
                </iterate>
             </with>

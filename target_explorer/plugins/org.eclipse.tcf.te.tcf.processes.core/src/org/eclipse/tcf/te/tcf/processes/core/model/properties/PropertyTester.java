@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal;
+package org.eclipse.tcf.te.tcf.processes.core.model.properties;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -40,6 +40,20 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 				else Protocol.invokeAndWait(runnable);
 
 				return ((Boolean) expectedValue).booleanValue() == isAttached.get();
+			}
+
+			if ("canAttach".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
+				final AtomicBoolean canAttach = new AtomicBoolean();
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						canAttach.set(node.getProcessContext() != null);
+					}
+				};
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+
+				return ((Boolean) expectedValue).booleanValue() == canAttach.get();
 			}
 		}
 		return false;
