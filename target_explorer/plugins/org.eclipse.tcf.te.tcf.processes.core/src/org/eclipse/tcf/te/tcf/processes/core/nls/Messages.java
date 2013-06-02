@@ -52,8 +52,6 @@ public class Messages extends NLS {
 
 	public static String PendingOperation_label;
 
-	public static String ProcessLabelProvider_RootNodeLabel;
-
 	public static String AttachStep_error_connect;
 	public static String AttachStep_error_attach;
 	public static String AttachStep_error_getContext;
