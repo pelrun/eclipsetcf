@@ -63,7 +63,20 @@ public class TreeViewerHeaderMenu extends Menu implements SelectionListener, Lis
 			menuItem.addSelectionListener(this);
 			menuItem.setData(column);
 			menuItem.setEnabled(i != 0);
+			// Custom menu item configuration
+			configureMenuItem(menuItem);
 		}
+	}
+
+	/**
+	 * Customize the given menu item.
+	 * <p>
+	 * Called from {@link #create()}.
+	 *
+	 * @param item The menu item. Must not be <code>null</code>.
+	 */
+	protected void configureMenuItem(MenuItem item) {
+		Assert.isNotNull(item);
 	}
 
 	/*

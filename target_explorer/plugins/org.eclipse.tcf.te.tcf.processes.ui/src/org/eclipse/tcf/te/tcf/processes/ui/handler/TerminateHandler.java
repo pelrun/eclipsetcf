@@ -31,7 +31,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.steps.TerminateStep;
 import org.eclipse.tcf.te.tcf.processes.ui.help.IContextHelpIds;
-import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorMessageProviderDelegate;
+import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -100,7 +100,7 @@ public class TerminateHandler extends AbstractHandler implements IElementUpdater
 				IPeerModel node = editorInput != null ? (IPeerModel) editorInput.getAdapter(IPeerModel.class) : null;
 
 				IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-				IProcessMonitorMessageProviderDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorMessageProviderDelegate.class) : null;
+				IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
 
 				if (delegate != null) {
 					String text = delegate.getMessage("TerminateHandler_updateElement_text"); //$NON-NLS-1$

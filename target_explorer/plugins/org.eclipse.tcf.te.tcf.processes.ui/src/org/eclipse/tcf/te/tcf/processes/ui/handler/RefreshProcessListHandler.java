@@ -22,7 +22,7 @@ import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
-import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorMessageProviderDelegate;
+import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
@@ -70,7 +70,7 @@ public class RefreshProcessListHandler extends AbstractHandler implements IEleme
 				IPeerModel node = editorInput != null ? (IPeerModel) editorInput.getAdapter(IPeerModel.class) : null;
 
 				IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-				IProcessMonitorMessageProviderDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorMessageProviderDelegate.class) : null;
+				IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
 
 				if (delegate != null) {
 					String text = delegate.getMessage("RefreshProcessListHandler_updateElement_text"); //$NON-NLS-1$

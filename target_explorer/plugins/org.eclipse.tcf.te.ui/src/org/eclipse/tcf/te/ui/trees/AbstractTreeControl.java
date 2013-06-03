@@ -201,8 +201,8 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @param oldInput the old input.
 	 * @param newInput The new input.
 	 */
-	void onInputChanged(Object oldInput, Object newInput) {
-		if(newInput != null) {
+	protected void onInputChanged(Object oldInput, Object newInput) {
+		if (newInput != null) {
 			columns = doCreateViewerColumns(newInput);
 			filterDescriptors = doCreateFilterDescriptors(newInput);
 			if (isStatePersistent()) {
@@ -211,9 +211,20 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 			doCreateTreeColumns(viewer);
 			viewer.getTree().setHeaderVisible(true);
 			updateFilters();
-			new TreeViewerHeaderMenu(this).create();
+			createHeaderMenu(this).create();
 			if (configFilterAction != null) configFilterAction.updateEnablement();
 		}
+	}
+
+	/**
+	 * Create the tree viewer header menu.
+	 *
+	 * @param control The parent tree control. Must not be <code>null</code>.
+	 * @return The tree viewer header menu.
+	 */
+	protected TreeViewerHeaderMenu createHeaderMenu(AbstractTreeControl control) {
+		Assert.isNotNull(control);
+		return new TreeViewerHeaderMenu(control);
 	}
 
 	/**
@@ -379,10 +390,9 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @param append If the new column should be appended.
 	 * @return The tree column created.
 	 */
-	TreeColumn doCreateTreeColumn(final ColumnDescriptor column, boolean append) {
+	protected TreeColumn doCreateTreeColumn(final ColumnDescriptor column, boolean append) {
 		Tree tree = viewer.getTree();
-		final TreeColumn treeColumn = append ? new TreeColumn(tree, column.getStyle()) :
-			new TreeColumn(tree, column.getStyle(), getColumnIndex(column));
+		final TreeColumn treeColumn = append ? new TreeColumn(tree, column.getStyle()) : new TreeColumn(tree, column.getStyle(), getColumnIndex(column));
 	    treeColumn.setData(column);
 	    treeColumn.setText(column.getName());
 	    treeColumn.setToolTipText(column.getDescription());
@@ -405,13 +415,28 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 				column.setWidth(treeColumn.getWidth());
             }});
 	    column.setTreeColumn(treeColumn);
+
+	    // Custom tree column configuration
+	    configureTreeColumn(treeColumn);
+
 	    return treeColumn;
     }
 
 	/**
+	 * Customize the given tree column.
+	 * <p>
+	 * Called from {@link #doCreateTreeColumn(ColumnDescriptor, boolean)}.
+	 *
+	 * @param treeColumn The tree column. Must not be <code>null</code>.
+	 */
+	protected void configureTreeColumn(TreeColumn treeColumn) {
+		Assert.isNotNull(treeColumn);
+	}
+
+	/**
 	 * Called when a column is moved. Store the column's order.
 	 */
-	void columnMoved() {
+	protected void columnMoved() {
 		Tree tree = viewer.getTree();
 		TreeColumn[] treeColumns = tree.getColumns();
 		if(treeColumns != null && treeColumns.length > 0) {

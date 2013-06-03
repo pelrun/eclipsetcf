@@ -14,9 +14,9 @@ import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 
 
 /**
- * Process monitor message provider delegate.
+ * Process monitor UI delegate.
  */
-public interface IProcessMonitorMessageProviderDelegate {
+public interface IProcessMonitorUIDelegate {
 
 	/**
 	 * Returns the message for the given key.
@@ -25,6 +25,18 @@ public interface IProcessMonitorMessageProviderDelegate {
 	 * @return The message or <code>null</code>.
 	 */
 	public String getMessage(String key);
+
+	/**
+	 * Returns the process monitor table column text for the given column
+	 * based on the given original text.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param columnId The column id. Must not be <code>null</code>.
+	 * @param text The original text to show in the column fetched from the label provider, or <code>null</code>.
+	 *
+	 * @return The new text to show in the column or <code>null</code>.
+	 */
+	public String getText(Object context, String columnId, String text);
 
 	/**
 	 * Returns the list of searchables to use to find processes in the

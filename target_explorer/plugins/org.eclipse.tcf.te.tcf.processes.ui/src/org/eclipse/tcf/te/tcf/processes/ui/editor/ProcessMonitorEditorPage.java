@@ -16,13 +16,17 @@ import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.trees.AbstractTreeControl;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
+import org.eclipse.tcf.te.ui.trees.TreeViewerHeaderMenu;
 import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
 import org.eclipse.ui.IEditorInput;
 
@@ -104,7 +108,42 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	 */
 	@Override
 	protected TreeControl doCreateTreeControl() {
-	    TreeControl treeControl = super.doCreateTreeControl();
+	    TreeControl treeControl = new TreeControl(getViewerId(), this) {
+	    	/* (non-Javadoc)
+	    	 * @see org.eclipse.tcf.te.ui.trees.AbstractTreeControl#configureTreeColumn(org.eclipse.swt.widgets.TreeColumn)
+	    	 */
+	    	@Override
+	    	protected void configureTreeColumn(TreeColumn treeColumn) {
+	    	    super.configureTreeColumn(treeColumn);
+
+	    	    if (treeColumn.getText() != null) {
+	    	    	String text = Messages.getStringDelegated(ProcessMonitorEditorPage.this.getEditorInputNode(), "ProcessMonitor_treeColum_" + treeColumn.getText().replace(' ', '_')); //$NON-NLS-1$
+	    	    	if (text != null) treeColumn.setText(text);
+	    	    }
+	    	}
+
+	    	/* (non-Javadoc)
+	    	 * @see org.eclipse.tcf.te.ui.trees.AbstractTreeControl#createHeaderMenu(org.eclipse.tcf.te.ui.trees.AbstractTreeControl)
+	    	 */
+	    	@Override
+	    	protected TreeViewerHeaderMenu createHeaderMenu(AbstractTreeControl control) {
+	    		Assert.isNotNull(control);
+	    	    return new TreeViewerHeaderMenu(control) {
+	    	    	/* (non-Javadoc)
+	    	    	 * @see org.eclipse.tcf.te.ui.trees.TreeViewerHeaderMenu#configureMenuItem(org.eclipse.swt.widgets.MenuItem)
+	    	    	 */
+	    	    	@Override
+	    	    	protected void configureMenuItem(MenuItem item) {
+	    	    	    super.configureMenuItem(item);
+
+	    	    	    if (item.getText() != null) {
+	    	    	    	String text = Messages.getStringDelegated(ProcessMonitorEditorPage.this.getEditorInputNode(), "ProcessMonitor_menuItem_" + item.getText().replace(' ', '_')); //$NON-NLS-1$
+	    	    	    	if (text != null) item.setText(text);
+	    	    	    }
+	    	    	}
+	    	    };
+	    	}
+	    };
 	    Assert.isNotNull(treeControl);
 
 	    if (listener == null) {

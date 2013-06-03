@@ -20,7 +20,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
-import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorMessageProviderDelegate;
+import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
@@ -43,7 +43,7 @@ public class ProcessSearchable extends CompositeSearchable {
 		super();
 
 		IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-		IProcessMonitorMessageProviderDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorMessageProviderDelegate.class) : null;
+		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
 		ISearchable[] searchables = delegate != null ? delegate.getSearchables(node) : null;
 		if (searchables == null) {
 			searchables = new ISearchable[] { new GeneralSearchable(), new ProcessUserSearchable(), new ProcessStateSearchable() };

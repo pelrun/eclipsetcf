@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.tcf.processes.ui.nls;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorMessageProviderDelegate;
+import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 
 /**
  * Target Explorer TCF processes extensions UI plug-in externalized strings management.
@@ -34,7 +34,7 @@ public class Messages extends NLS {
 
 	/**
 	 * Returns the corresponding string for the given externalized strings key via
-	 * the {@link IProcessMonitorMessageProviderDelegate}.
+	 * the {@link IProcessMonitorUIDelegate}.
 	 *
 	 * @param context The context or <code>null</code>.
 	 * @param key The externalized strings key or <code>null</code>.
@@ -44,7 +44,7 @@ public class Messages extends NLS {
 	public static String getStringDelegated(Object context, String key) {
 		if (key != null) {
 			IUIService service = ServiceManager.getInstance().getService(context, IUIService.class);
-			IProcessMonitorMessageProviderDelegate delegate = service != null ? service.getDelegate(context, IProcessMonitorMessageProviderDelegate.class) : null;
+			IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(context, IProcessMonitorUIDelegate.class) : null;
 			return delegate != null ? delegate.getMessage(key) : null;
 		}
 
