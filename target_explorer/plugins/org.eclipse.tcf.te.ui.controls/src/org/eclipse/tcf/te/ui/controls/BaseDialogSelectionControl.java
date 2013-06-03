@@ -96,9 +96,7 @@ public class BaseDialogSelectionControl extends BaseEditBrowseTextControl {
 	 */
 	protected void configureDialogControl(Dialog dialog) {
 		Assert.isNotNull(dialog);
-		if (dialog != null) {
-			dialog.setText(getDialogTitle());
-		}
+		dialog.setText(getDialogTitle());
 	}
 
 	/**

@@ -9,13 +9,16 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.adapters;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
-import org.eclipse.tcf.te.tcf.processes.ui.internal.search.ProcessSearchable;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
+import org.eclipse.tcf.te.tcf.processes.ui.search.ProcessSearchable;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 
 /**
@@ -35,7 +38,7 @@ public class AdapterFactory implements IAdapterFactory {
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapter(java.lang.Object, java.lang.Class)
 	 */
 	@Override
-	public Object getAdapter(Object adaptableObject, Class adapterType) {
+	public Object getAdapter(final Object adaptableObject, final Class adapterType) {
 		if (adaptableObject instanceof IProcessContextNode) {
 			if (ILabelProvider.class.equals(adapterType)) {
 				return labelProvider;
@@ -44,13 +47,25 @@ public class AdapterFactory implements IAdapterFactory {
 				return ((IProcessContextNode) adaptableObject).getAdapter(adapterType);
 			}
 			if (ISearchable.class.equals(adapterType)) {
-				return new ProcessSearchable();
+				return new ProcessSearchable((IPeerModel)((IProcessContextNode)adaptableObject).getAdapter(IPeerModel.class));
 			}
 		}
 
 		if (adaptableObject instanceof IRuntimeModel) {
 			if (ISearchable.class.equals(adapterType)) {
-				return new ProcessSearchable();
+				final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						node.set(((IRuntimeModel)adaptableObject).getPeerModel());
+					}
+				};
+
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+
+				return new ProcessSearchable(node.get());
 			}
 		}
 		return null;

@@ -303,6 +303,17 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.forms.editor.FormEditor#configurePage(int, org.eclipse.ui.forms.editor.IFormPage)
+	 */
+	@Override
+	protected void configurePage(int index, IFormPage page) throws PartInitException {
+	    super.configurePage(index, page);
+	    // Update the page text as it may have changed after initializing
+	    // the editor input
+		setPageText(index, page.getTitle());
+	}
+
 	/**
 	 * Returns the index of the page with the given id.
 	 *

@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.preferences.IPreferenceConsts;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
@@ -42,12 +43,19 @@ public class IntervalConfigDialog extends StatusDialog implements ModifyListener
 	private Text text;
 	// The entered result
 	private int result;
+	// The parent element
+	private final IPeerModel node;
 
 	/**
 	 * Constructor
+	 *
+	 * @param node The parent peer model node. Must not be <code>null</code>.
+	 * @param parent The parent shell or <code>null</code>.
 	 */
-	public IntervalConfigDialog(Shell parent) {
+	public IntervalConfigDialog(IPeerModel node, Shell parent) {
 	    super(parent);
+	    Assert.isNotNull(node);
+	    this.node = node;
     }
 
 	/*
@@ -71,12 +79,12 @@ public class IntervalConfigDialog extends StatusDialog implements ModifyListener
 	    Composite comp1 = new Composite(composite, SWT.NONE);
 	    GridData data = new GridData(SWT.FILL, SWT.CENTER, true, false);
 	    comp1.setLayoutData(data);
-	    GridLayout layout = new GridLayout(3, false);
-	    layout.horizontalSpacing = 0;
-	    comp1.setLayout(layout);
+	    comp1.setLayout(new GridLayout(3, false));
+
+	    String labelTxt = Messages.getStringDelegated(node, "IntervalConfigDialog_ChoiceOneLabel"); //$NON-NLS-1$
 
 	    Label label = new Label(comp1, SWT.RADIO);
-	    label.setText(Messages.IntervalConfigDialog_ChoiceOneLabel);
+	    label.setText(labelTxt != null ? labelTxt : Messages.IntervalConfigDialog_ChoiceOneLabel);
 
 	    text = new Text(comp1, SWT.SINGLE | SWT.BORDER);
 	    text.setTextLimit(Text.LIMIT);

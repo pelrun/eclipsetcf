@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.search;
+package org.eclipse.tcf.te.tcf.processes.ui.search;
 
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;

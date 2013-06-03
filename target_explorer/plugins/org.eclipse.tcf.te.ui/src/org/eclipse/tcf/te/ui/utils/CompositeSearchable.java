@@ -32,32 +32,40 @@ import org.eclipse.ui.forms.widgets.Section;
  * divide a complex searchable into several simple ones.
  */
 public abstract class CompositeSearchable implements ISearchable {
-	// The delegating searchables 
+	// The delegating searchables
 	private ISearchable[] searchables;
-	
+
 	/**
-	 * Constructor with several delegating searchables.
-	 * 
+	 * Constructor.
+	 */
+	public CompositeSearchable() {
+		super();
+	}
+
+	/**
+	 * Set the delegating searchable objects.
+	 * <p>
+	 * This method needs to be called before {@link #createCommonPart(Composite)} is called!
+	 *
 	 * @param searchables Delegating searchable objects.
 	 */
-	public CompositeSearchable(ISearchable... searchables) {
+	public void setSearchables(ISearchable... searchables) {
 		Assert.isNotNull(searchables);
 		this.searchables = searchables;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createCommonPart(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
 	public void createCommonPart(Composite parent) {
-		for(ISearchable searchable : searchables) {
+		Assert.isNotNull(searchables, "setSearchables must be called before!"); //$NON-NLS-1$
+		for (ISearchable searchable : searchables) {
 			searchable.createCommonPart(parent);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
@@ -73,7 +81,7 @@ public abstract class CompositeSearchable implements ISearchable {
 		advancedPart.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		advancedPart.setBackground(section.getBackground());
 		section.setClient(advancedPart);
-		
+
 		section.addExpansionListener(new IExpansionListener(){
 			@Override
             public void expansionStateChanging(ExpansionEvent e) {
@@ -107,7 +115,7 @@ public abstract class CompositeSearchable implements ISearchable {
 			Assert.isNotNull(matchers);
 			this.matchers = matchers;
 		}
-		
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.eclipse.tcf.te.ui.interfaces.ISearchMatcher#match(java.lang.Object)
@@ -202,7 +210,7 @@ public abstract class CompositeSearchable implements ISearchable {
 		for(ISearchable searchable : searchables) {
 			Point prefSize = searchable.getPreferredSize();
 			if(prefSize != null) {
-				if(size == null) 
+				if(size == null)
 					size = new Point(0, 0);
 				size.x = Math.max(size.x, prefSize.x);
 				size.y = size.y + prefSize.y;

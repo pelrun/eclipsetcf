@@ -36,7 +36,7 @@ public class ConfigRefreshIntervalHandler extends AbstractHandler {
 		IPeerModel peer = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
 		if (peer != null) {
 			Shell parent = HandlerUtil.getActiveShellChecked(event);
-			IntervalConfigDialog dialog = new IntervalConfigDialog(parent);
+			IntervalConfigDialog dialog = new IntervalConfigDialog(peer, parent);
 			IRuntimeModel model = ModelManager.getRuntimeModel(peer);
 			int interval = model.getAutoRefreshInterval();
 			dialog.setResult(interval);

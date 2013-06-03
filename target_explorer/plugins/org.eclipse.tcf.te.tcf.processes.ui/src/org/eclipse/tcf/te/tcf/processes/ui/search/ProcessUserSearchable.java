@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.search;
+package org.eclipse.tcf.te.tcf.processes.ui.search;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -61,7 +61,7 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 				optionChecked(e);
 			}
 		};
-		Composite modifiedComp = createSection(parent, Messages.ProcessUserSearchable_WhoStarted);
+		Composite modifiedComp = createSection(parent);
 		modifiedComp.setLayout(new GridLayout(2, false));
 
 		fBtnUserNotRem = new Button(modifiedComp, SWT.RADIO);
@@ -110,6 +110,14 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 			}
 		});
     }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.ui.search.ProcessBaseSearchable#getSectionTitle()
+	 */
+	@Override
+	protected String getSectionTitle() {
+	    return Messages.ProcessUserSearchable_WhoStarted;
+	}
 
 	/**
 	 * The modified event of the user fields.

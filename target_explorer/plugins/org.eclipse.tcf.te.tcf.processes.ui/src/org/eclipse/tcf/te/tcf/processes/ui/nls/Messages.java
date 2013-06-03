@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -10,6 +10,9 @@
 package org.eclipse.tcf.te.tcf.processes.ui.nls;
 
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorMessageProviderDelegate;
 
 /**
  * Target Explorer TCF processes extensions UI plug-in externalized strings management.
@@ -26,6 +29,26 @@ public class Messages extends NLS {
 	static {
 		// Load message values from bundle file
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
+	}
+
+
+	/**
+	 * Returns the corresponding string for the given externalized strings key via
+	 * the {@link IProcessMonitorMessageProviderDelegate}.
+	 *
+	 * @param context The context or <code>null</code>.
+	 * @param key The externalized strings key or <code>null</code>.
+	 *
+	 * @return The corresponding string or <code>null</code>.
+	 */
+	public static String getStringDelegated(Object context, String key) {
+		if (key != null) {
+			IUIService service = ServiceManager.getInstance().getService(context, IUIService.class);
+			IProcessMonitorMessageProviderDelegate delegate = service != null ? service.getDelegate(context, IProcessMonitorMessageProviderDelegate.class) : null;
+			return delegate != null ? delegate.getMessage(key) : null;
+		}
+
+		return null;
 	}
 
 	// **** Declare externalized string id's down here *****
@@ -118,14 +141,11 @@ public class Messages extends NLS {
 
 	public static String IntervalConfigDialog_BiggerThanZero;
 	public static String IntervalConfigDialog_ChoiceOneLabel;
-	public static String IntervalConfigDialog_ChoiceTwoLabel;
 	public static String IntervalConfigDialog_DialogTitle;
 	public static String IntervalConfigDialog_InvalidNumber;
 	public static String IntervalConfigDialog_NonEmpty;
 	public static String IntervalConfigDialog_SECOND_ABBR;
 	public static String IntervalConfigDialog_SECONDS;
-	public static String IntervalConfigDialog_SelectSpeed;
-	public static String IntervalConfigDialog_SPEED;
 	public static String IntervalConfigDialog_ZeroWarning;
 
 	public static String MemorySection_PSize;

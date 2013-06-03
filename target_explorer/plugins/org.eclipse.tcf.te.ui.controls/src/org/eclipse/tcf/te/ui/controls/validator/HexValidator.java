@@ -160,16 +160,15 @@ public class HexValidator extends RegexValidator {
 	public final static BigInteger decode(String value) {
 		Assert.isNotNull(value);
 		BigInteger result = null;
-		if (value != null) {
-			try {
-				if (value.trim().toUpperCase().startsWith("0X")) { //$NON-NLS-1$
-					// we have to cut away the leading 0x.
-					result = new BigInteger(value.substring(2), 16);
-				} else {
-					result = new BigInteger(value, 10);
-				}
-			} catch (NumberFormatException e) { /* ignored on purpose */
+
+		try {
+			if (value.trim().toUpperCase().startsWith("0X")) { //$NON-NLS-1$
+				// we have to cut away the leading 0x.
+				result = new BigInteger(value.substring(2), 16);
+			} else {
+				result = new BigInteger(value, 10);
 			}
+		} catch (NumberFormatException e) { /* ignored on purpose */
 		}
 
 		return result;

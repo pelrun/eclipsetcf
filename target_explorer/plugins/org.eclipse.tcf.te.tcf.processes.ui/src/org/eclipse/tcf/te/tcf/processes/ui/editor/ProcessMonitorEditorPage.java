@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -24,6 +24,7 @@ import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
 import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
+import org.eclipse.ui.IEditorInput;
 
 /**
  * The editor page for Process Monitor.
@@ -61,7 +62,16 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	 */
 	@Override
     protected String getFormTitle() {
-	    return Messages.ProcessMonitorEditorPage_PageTitle;
+		String formTitle = Messages.getStringDelegated(getEditorInputNode(), "ProcessMonitorEditorPage_PageTitle"); //$NON-NLS-1$
+	    return formTitle != null ? formTitle : Messages.ProcessMonitorEditorPage_PageTitle;
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInput(org.eclipse.ui.IEditorInput)
+     */
+    @Override
+    protected void setInput(IEditorInput input) {
+        super.setInput(input);
     }
 
 	/* (non-Javadoc)
@@ -71,6 +81,15 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
     protected String getContextHelpId() {
 	    return "org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage"; //$NON-NLS-1$
     }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.WorkbenchPart#getPartName()
+	 */
+	@Override
+	public String getPartName() {
+		String partName = Messages.getStringDelegated(getEditorInputNode(), "ProcessMonitorEditorPage_PartName"); //$NON-NLS-1$
+	    return partName != null ? partName : super.getPartName();
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#getTitleBarDecorator()

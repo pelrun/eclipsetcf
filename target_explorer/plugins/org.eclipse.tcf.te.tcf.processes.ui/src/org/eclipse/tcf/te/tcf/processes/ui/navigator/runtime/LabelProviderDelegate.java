@@ -18,6 +18,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
@@ -34,9 +35,22 @@ public class LabelProviderDelegate extends LabelProvider implements ILabelDecora
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)
 	 */
 	@Override
-	public String getText(Object element) {
+	public String getText(final Object element) {
 		if (element instanceof IRuntimeModel) {
-			return Messages.ProcessLabelProvider_RootNodeLabel;
+			final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					node.set(((IRuntimeModel)element).getPeerModel());
+				}
+			};
+
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+
+			String label = Messages.getStringDelegated(node.get(), "ProcessLabelProvider_RootNodeLabel"); //$NON-NLS-1$
+			return label != null ? label : Messages.ProcessLabelProvider_RootNodeLabel;
 		} else if (element instanceof IProcessContextNode) {
 			final IProcessContextNode node = (IProcessContextNode)element;
 			final AtomicReference<String> name = new AtomicReference<String>();

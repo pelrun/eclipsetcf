@@ -72,8 +72,8 @@ public class NameValuePairDialog extends CustomTitleAreaDialog {
 		this.dialogTitle = dialogTitle;
 		this.title = title;
 		this.message = message;
-		this.fieldLabels = fieldLabels != null ? Arrays.copyOf(fieldLabels, fieldLabels.length) : null;
-		this.initialValues = initialValues != null ? Arrays.copyOf(initialValues, initialValues.length) : null;
+		this.fieldLabels = Arrays.copyOf(fieldLabels, fieldLabels.length);
+		this.initialValues = Arrays.copyOf(initialValues, initialValues.length);
 		this.usedNames = usedNames;
 	}
 

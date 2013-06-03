@@ -15,26 +15,26 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.utils.CompositeSearchable;
 
 /**
- * The ISearchable adapter for a FSTreeNode which creates a UI for the user to 
+ * The ISearchable adapter for a FSTreeNode which creates a UI for the user to
  * input the matching condition and returns a matcher to do the matching.
  */
 public class FSTreeNodeSearchable extends CompositeSearchable {
 
 	/**
 	 * Create an instance with the specified node.
-	 * 
+	 *
 	 * @param node The directory node.
 	 */
 	public FSTreeNodeSearchable(FSTreeNode node) {
-		super(new FSGeneralSearchable(node), new FSModifiedSearchable(), new FSSizeSearchable());
+		super();
+		setSearchables(new FSGeneralSearchable(node), new FSModifiedSearchable(), new FSSizeSearchable());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getSearchTitle()
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getSearchTitle(java.lang.Object)
 	 */
 	@Override
-    public String getSearchTitle() {
+	public String getSearchTitle(Object rootElement) {
 	    return Messages.FSTreeNodeSearchable_FindFilesAndFolders;
     }
 
@@ -54,7 +54,7 @@ public class FSTreeNodeSearchable extends CompositeSearchable {
 
 	/**
 	 * Get a name representation for each file node.
-	 * 
+	 *
 	 * @param rootElement The root element whose name is being retrieved.
 	 * @return The node's name or an expression for the file system.
 	 */

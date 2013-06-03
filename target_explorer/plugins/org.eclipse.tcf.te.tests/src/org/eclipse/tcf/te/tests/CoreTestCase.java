@@ -655,22 +655,20 @@ public class CoreTestCase extends TestCase {
 		Assert.isNotNull(path);
 		IPath root = null;
 
-		if (path != null) {
-			Bundle bundle = getTestBundle();
-			if (bundle != null) {
-				IPath relative = new Path ("data").append(path); //$NON-NLS-1$
-				if (hostSpecific) relative = relative.append(Platform.getOS());
-				if (archSpecific) relative = relative.append(Platform.getOSArch());
+		Bundle bundle = getTestBundle();
+		if (bundle != null) {
+			IPath relative = new Path ("data").append(path); //$NON-NLS-1$
+			if (hostSpecific) relative = relative.append(Platform.getOS());
+			if (archSpecific) relative = relative.append(Platform.getOSArch());
 
-				URL url = FileLocator.find(bundle, relative, null);
-				if (url != null) {
-					try {
-						root = new Path(FileLocator.resolve(url).getFile());
-						if (!root.toFile().isDirectory() || !root.toFile().canRead()) {
-							root = null;
-						}
-					} catch (IOException e) { /* ignored on purpose */ }
-				}
+			URL url = FileLocator.find(bundle, relative, null);
+			if (url != null) {
+				try {
+					root = new Path(FileLocator.resolve(url).getFile());
+					if (!root.toFile().isDirectory() || !root.toFile().canRead()) {
+						root = null;
+					}
+				} catch (IOException e) { /* ignored on purpose */ }
 			}
 		}
 

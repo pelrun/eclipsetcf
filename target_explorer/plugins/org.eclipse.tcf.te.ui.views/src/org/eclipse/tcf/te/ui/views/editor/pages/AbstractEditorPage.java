@@ -68,8 +68,8 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 			// Throws an exception if the id is empty or null.
 			id = config.getAttribute("id"); //$NON-NLS-1$
 			if (id == null || id.trim().length() == 0) {
-				IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), NLS
-				                .bind(Messages.Extension_error_missingRequiredAttribute, "id", config.getContributor().getName())); //$NON-NLS-1$
+				IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
+								            NLS.bind(Messages.Extension_error_missingRequiredAttribute, "id", config.getContributor().getName())); //$NON-NLS-1$
 				UIPlugin.getDefault().getLog().log(status);
 			}
 		}
@@ -120,8 +120,9 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		if (getManagedForm() != null) {
 			getManagedForm().setInput(getEditorInputNode());
 		}
-		getSite().getSelectionProvider()
-		                .setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
+		getSite().getSelectionProvider().setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
+		// The part name may change if the input changes
+		setPartName(getPartName());
 	}
 
 	/*
@@ -135,8 +136,9 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 		if (getManagedForm() != null) {
 			getManagedForm().setInput(getEditorInputNode());
 		}
-		getSite().getSelectionProvider()
-		                .setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
+		getSite().getSelectionProvider().setSelection(input != null ? new StructuredSelection(getEditorInputNode()) : null);
+		// The part name may change if the input changes
+		setPartName(getPartName());
 	}
 
 	/*
@@ -150,10 +152,8 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 			ISelection selection = getEditorInput() != null ? new StructuredSelection(getEditorInputNode()) : null;
 			getSite().getSelectionProvider().setSelection(selection);
 			if (getSite().getSelectionProvider() instanceof MultiPageSelectionProvider) {
-				SelectionChangedEvent changedEvent = new SelectionChangedEvent(getSite()
-				                .getSelectionProvider(), selection);
-				((MultiPageSelectionProvider) getSite().getSelectionProvider())
-				                .firePostSelectionChanged(changedEvent);
+				SelectionChangedEvent changedEvent = new SelectionChangedEvent(getSite().getSelectionProvider(), selection);
+				((MultiPageSelectionProvider) getSite().getSelectionProvider()).firePostSelectionChanged(changedEvent);
 			}
 		}
 	}

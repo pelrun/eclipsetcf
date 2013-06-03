@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.ui.internal.search;
+package org.eclipse.tcf.te.tcf.processes.ui.search;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -76,7 +76,7 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 				optionChecked(e);
 			}
 		};
-		Composite stateComposite = createSection(parent, Messages.ProcessStateSearchable_SectionChooseState);
+		Composite stateComposite = createSection(parent);
 		stateComposite.setLayout(new GridLayout());
 
 		fBtnNotRem = new Button(stateComposite, SWT.RADIO);
@@ -142,8 +142,15 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 		fBtnW.addSelectionListener(l);
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.ui.search.ProcessBaseSearchable#getSectionTitle()
+	 */
+	@Override
+	protected String getSectionTitle() {
+	    return Messages.ProcessStateSearchable_SectionChooseState;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#isInputValid()
 	 */
 	@Override

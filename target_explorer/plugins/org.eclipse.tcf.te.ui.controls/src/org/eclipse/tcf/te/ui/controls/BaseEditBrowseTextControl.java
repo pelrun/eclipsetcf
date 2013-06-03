@@ -1380,7 +1380,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 	 */
 	protected String[] getHistory(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-		if (settings != null && getDialogSettingsSlotId(idPrefix) != null) {
+		if (getDialogSettingsSlotId(idPrefix) != null) {
 			return DialogSettingsUtil.getSettingsArraySafe(settings, getDialogSettingsSlotId(idPrefix));
 		}
 
@@ -1393,7 +1393,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 	@Override
 	public void doSaveWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-		if (settings != null && getDialogSettingsSlotId(idPrefix) != null) {
+		if (getDialogSettingsSlotId(idPrefix) != null) {
 			String[] historyEntries = DialogSettingsUtil.getSettingsArraySafe(settings, getDialogSettingsSlotId(idPrefix));
 			historyEntries = DialogSettingsUtil.addToHistory(historyEntries, getEditFieldControlText());
 			settings.put(getDialogSettingsSlotId(idPrefix), historyEntries);

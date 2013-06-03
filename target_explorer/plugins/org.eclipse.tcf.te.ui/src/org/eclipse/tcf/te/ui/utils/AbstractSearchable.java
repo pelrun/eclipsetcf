@@ -38,9 +38,9 @@ public abstract class AbstractSearchable extends EventManager implements ISearch
     public void removeOptionListener(IOptionListener listener) {
 		super.removeListenerObject(listener);
     }
-	
+
 	/**
-	 * Fire an option changed event to the listeners to notify 
+	 * Fire an option changed event to the listeners to notify
 	 * the current option input has changed.
 	 */
 	protected void fireOptionChanged() {
@@ -75,13 +75,12 @@ public abstract class AbstractSearchable extends EventManager implements ISearch
 	    return true;
     }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getSearchTitle()
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getSearchTitle(java.lang.Object)
 	 */
 	@Override
-	public String getSearchTitle() {
-		return null;
+	public String getSearchTitle(Object rootElement) {
+	    return null;
 	}
 
 	/*

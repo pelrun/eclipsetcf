@@ -65,6 +65,8 @@ public class TreeViewerSearchDialog extends CustomTitleAreaDialog implements ISe
 	TreeViewer fViewer;
 	// The searchable of the currently selected element.
 	ISearchable fSearchable;
+	// The root element
+	private Object rootElement;
 
 	/**
 	 * Create a searching dialog using the default algorithm and
@@ -82,8 +84,8 @@ public class TreeViewerSearchDialog extends CustomTitleAreaDialog implements ISe
 		Assert.isNotNull(fSearchable);
 		fSearcher = new SearchEngine(fViewer, isDepthFirst(), fSearchable, rootPath);
 		fSearchable.addOptionListener(this);
-		Object element = rootPath.getLastSegment();
-		String text = fSearchable.getSearchMessage(element);
+		rootElement = rootPath.getLastSegment();
+		String text = fSearchable.getSearchMessage(rootElement);
 		if (text != null) {
 			setDefaultMessage(text, NONE);
 		}
@@ -199,7 +201,7 @@ public class TreeViewerSearchDialog extends CustomTitleAreaDialog implements ISe
 		fPmPart.setLayoutData(data);
 		fPmPart.setVisible(false);
 
-		String title = fSearchable.getSearchTitle();
+		String title = fSearchable.getSearchTitle(rootElement);
 		getShell().setText(title);
 		this.setTitle(title);
 	}
