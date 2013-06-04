@@ -122,7 +122,7 @@
       <editorPageBinding
             id="org.eclipse.tcf.te.tcf.processes.ui.binding.ProcessExplorerEditorPage"
             pageId="org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage"
-            insertBefore="org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage">
+            insertBefore="org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage,org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage">
          <enablement>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
