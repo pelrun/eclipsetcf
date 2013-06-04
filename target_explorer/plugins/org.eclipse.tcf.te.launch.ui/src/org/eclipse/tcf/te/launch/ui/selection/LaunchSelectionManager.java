@@ -177,7 +177,7 @@ public class LaunchSelectionManager {
 						IModelNode parent = (IModelNode)service.getParent(node);
 						while (parent != null) {
 							remoteCtx = parent;
-							parent = (IModelNode)service.getParent(node);
+							parent = (IModelNode)service.getParent(parent);
 						}
 					}
 				}
