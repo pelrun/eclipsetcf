@@ -85,6 +85,8 @@ public class Messages extends NLS {
 	public static String AttributesSection_title;
 	public static String AttributesSection_description;
 
+	public static String ContentProviderDelegate_newNode;
+
 	public static String NewTargetWizard_windowTitle;
 	public static String NewTargetWizard_newPeer_name;
 	public static String NewTargetWizard_error_savePeer;
@@ -188,6 +190,11 @@ public class Messages extends NLS {
 	public static String AbstractConfigWizardPage_launchDbg_label;
 	public static String AbstractConfigWizardPage_advancedButton_label;
 	public static String AbstractConfigWizardPage_connectJob_label;
+
+	public static String ToolbarAction_selectPeer;
+	public static String ToolbarAction_selectionDialog_title;
+	public static String ToolbarAction_selectionDialog_description;
+	public static String ToolbarAction_selectionDialog_button_showOnlyReachable;
 
 	public static String LoggingPreferencePage_label;
 	public static String LoggingPreferencePage_enabled_label;

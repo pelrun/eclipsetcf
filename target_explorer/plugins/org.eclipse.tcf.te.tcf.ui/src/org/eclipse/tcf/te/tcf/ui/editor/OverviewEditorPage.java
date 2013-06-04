@@ -19,10 +19,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerType;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
@@ -169,8 +171,16 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	 */
 	@Override
 	protected void setInput(IEditorInput input) {
+		IEditorInput oldInput = getEditorInput();
+		// do nothing when input did not change
+		if (oldInput != null && oldInput.equals(input)) {
+			return;
+		}
 	    super.setInput(input);
 		if (getEditorInputNode() instanceof IPeerModel) {
+			// save history to reopen the editor on eclipse startup
+			HistoryManager.getInstance().add(IPeerType.TYPE_GENERIC, ((IPeerModel)getEditorInputNode()).getPeerId());
+			// Invoke the scanner runnable
 			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerModel)getEditorInputNode()));
 			Protocol.invokeLater(runnable);
 		}

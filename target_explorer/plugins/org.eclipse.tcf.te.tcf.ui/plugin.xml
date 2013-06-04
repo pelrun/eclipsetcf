@@ -231,6 +231,24 @@
       </wizard>
    </extension>
 
+<!-- actionSet contributions -->
+   <extension point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="org.eclipse.tcf.te.tcf.ui.launch.gettingStartedActionSet"
+            label="Getting Started Action Set (Target Explorer)"
+            visible="true">
+         <action
+               class="org.eclipse.tcf.te.tcf.ui.actions.ToolbarAction"
+               helpContextId="org.eclipse.tcf.te.tcf.ui.command_ToolbarAction"
+               icon="icons/obj16/peer.gif"
+               id="org.eclipse.tcf.te.tcf.ui.ToolbarAction"
+               label="%ToolbarAction.label"
+               style="pulldown"
+               toolbarPath="org.eclipse.debug.ui.launchActionSet/emptyLaunchGroup">
+         </action>
+      </actionSet>
+   </extension>
+
 <!-- Editor page contributions -->
    <extension point="org.eclipse.tcf.te.ui.views.editorPages">
       <editorPage

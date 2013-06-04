@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.ui.dialogs;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.Assert;
@@ -167,6 +168,15 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	    final List<IPeerModel> nodes = new ArrayList<IPeerModel>();
 	    if (service != null) {
 	    	nodes.addAll(Arrays.asList(service.lkupPeerModelBySupportedServices(null, services)));
+	    	ListIterator<IPeerModel> iterator = nodes.listIterator();
+	    	while (iterator.hasNext()) {
+	    		IPeerModel node = iterator.next();
+
+	    		String value = node.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
+	    		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+
+	    		if (isValueAdd) iterator.remove();
+	    	}
 	    }
 	    viewer.setInput(nodes.size() > 0 ? nodes.toArray(new IPeerModel[nodes.size()]) : null);
 	    viewer.addDoubleClickListener(new IDoubleClickListener() {

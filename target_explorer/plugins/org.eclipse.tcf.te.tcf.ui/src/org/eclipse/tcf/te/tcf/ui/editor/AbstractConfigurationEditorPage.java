@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
@@ -51,6 +52,11 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 			return;
 		}
 		super.setInput(input);
+		final IPeerModel peerModel = (IPeerModel)input.getAdapter(IPeerModel.class);
+		if (peerModel != null) {
+			// save history to reopen the editor on eclipse startup
+			HistoryManager.getInstance().add(getHistoryId(), peerModel.getPeerId());
+		}
 	}
 
 	/**
