@@ -51,9 +51,10 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 	/**
 	 * Constructor.
 	 *
-	 * @param form The managed form.
+	 * @param shell The active shell.
 	 * @param dialogTitle The dialog window title.
 	 * @param title The title area title.
+	 * @param message The title aerea message.
 	 * @param readOnly <code>True</code> to open the dialog in read-only mode, <code>false</code> otherwise.
 	 * @param contextHelpId The context help id or <code>null</code>.
 	 */
