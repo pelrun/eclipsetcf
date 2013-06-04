@@ -10,12 +10,17 @@
 package org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ISysMonitor;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.tabbed.BaseTitledSection;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -25,15 +30,21 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  * The property section to display the IDs of a process.
  */
 public class IDSection extends BaseTitledSection {
+	// The selected process node
+	/* default */ IProcessContextNode node;
 	// The system monitor context for the selected process node.
 	/* default */ ISysMonitor.SysMonitorContext context;
 	// The text field to display the process id.
+	private CLabel pidLabel;
 	private Text pidText;
 	// The text field to display the parent process id.
+	private CLabel ppidLabel;
 	private Text ppidText;
 	// The  text field to display the internal process id.
+	private CLabel ipidLabel;
 	private Text ipidText;
 	// The text field to display the internal parent process id.
+	private CLabel ippidLabel;
 	private Text ippidText;
 
 	/* (non-Javadoc)
@@ -42,10 +53,18 @@ public class IDSection extends BaseTitledSection {
 	@Override
     public void createControls(Composite parent, TabbedPropertySheetPage aTabbedPropertySheetPage) {
 	    super.createControls(parent, aTabbedPropertySheetPage);
-	    pidText = createTextField(null, Messages.IDSection_ProcessID);
-		ppidText = createTextField(pidText, Messages.IDSection_ParentID);
-		ipidText = createTextField(ppidText, Messages.IDSection_InternalID);
-		ippidText = createTextField(ipidText, Messages.IDSection_InternalPPID);
+
+	    pidText = createText(null);
+	    pidLabel = createLabel(pidText, Messages.IDSection_ProcessID);
+
+	    ppidText = createText(pidText);
+	    ppidLabel = createLabel(ppidText, Messages.IDSection_ParentID);
+
+	    ipidText = createText(ppidText);
+	    ipidLabel = createLabel(ipidText, Messages.IDSection_InternalID);
+
+	    ippidText = createText(ipidText);
+	    ippidLabel = createLabel(ippidText, Messages.IDSection_InternalPPID);
     }
 
 	/*
@@ -56,6 +75,7 @@ public class IDSection extends BaseTitledSection {
     protected void updateInput(IPeerModelProvider input) {
         Assert.isTrue(input instanceof IProcessContextNode);
         final IProcessContextNode node = (IProcessContextNode) input;
+        this.node = node;
 
         Runnable runnable = new Runnable() {
 			@Override
@@ -73,10 +93,33 @@ public class IDSection extends BaseTitledSection {
 	 */
 	@Override
     public void refresh() {
-		SWTControlUtil.setText(pidText, context != null && context.getPID() >= 0 ? Long.toString(context.getPID()) : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(ppidText, context != null && context.getPPID() >= 0 ? Long.toString(context.getPPID()) : ""); //$NON-NLS-1$
+		IPeerModel peerModel = (IPeerModel)node.getAdapter(IPeerModel.class);
+		IUIService service = peerModel != null ? ServiceManager.getInstance().getService(peerModel, IUIService.class) : null;
+		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerModel, IProcessMonitorUIDelegate.class) : null;
+
+		String label = delegate != null ? delegate.getMessage("IDSection_Title") : null; //$NON-NLS-1$
+		if (label != null && section != null && !section.isDisposed()) section.setText(label);
+
+		label = delegate != null ? delegate.getMessage("IDSection_ProcessID") : null; //$NON-NLS-1$
+		if (label != null) SWTControlUtil.setText(pidLabel, label);
+		label = delegate != null ? delegate.getMessage("IDSection_ParentID") : null; //$NON-NLS-1$
+		if (label != null) SWTControlUtil.setText(ppidLabel, label);
+		label = delegate != null ? delegate.getMessage("IDSection_InternalID") : null; //$NON-NLS-1$
+		if (label != null) SWTControlUtil.setText(ipidLabel, label);
+		label = delegate != null ? delegate.getMessage("IDSection_InternalPPID") : null; //$NON-NLS-1$
+		if (label != null) SWTControlUtil.setText(ippidLabel, label);
+
+		String value = context != null && context.getPID() >= 0 ? Long.toString(context.getPID()) : ""; //$NON-NLS-1$
+		String value2 = delegate != null ? delegate.getText(node, "PID", value) : null; //$NON-NLS-1$
+		SWTControlUtil.setText(pidText, value2 != null ? value2 : value);
+
+		value = context != null && context.getPPID() >= 0 ? Long.toString(context.getPPID()) : ""; //$NON-NLS-1$
+		value2 = delegate != null ? delegate.getText(node, "PPID", value) : null; //$NON-NLS-1$
+		SWTControlUtil.setText(ppidText, value2 != null ? value2 : value);
+
 		SWTControlUtil.setText(ipidText, context != null && context.getID() != null ? context.getID() : ""); //$NON-NLS-1$
 		SWTControlUtil.setText(ippidText, context != null && context.getParentID() != null ? context.getParentID() : ""); //$NON-NLS-1$
+
 		super.refresh();
     }
 

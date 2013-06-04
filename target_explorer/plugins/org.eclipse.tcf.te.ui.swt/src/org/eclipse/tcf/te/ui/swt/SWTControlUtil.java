@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.swt;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -58,6 +59,9 @@ public final class SWTControlUtil {
 			if (control instanceof Label) {
 				return ((Label)control).getText().trim();
 			}
+			if (control instanceof CLabel) {
+				return ((CLabel)control).getText().trim();
+			}
 			if (control instanceof Link) {
 				return ((Link)control).getText().trim();
 			}
@@ -97,6 +101,9 @@ public final class SWTControlUtil {
 				}
 				if (control instanceof Label) {
 					((Label)control).setText(trimmedValue);
+				}
+				if (control instanceof CLabel) {
+					((CLabel)control).setText(trimmedValue);
 				}
 				if (control instanceof Link) {
 					((Link)control).setText(trimmedValue);

@@ -38,6 +38,8 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  * The base section that displays a title in a title bar.
  */
 public abstract class BaseTitledSection extends AbstractPropertySection implements PropertyChangeListener {
+	// The section
+	protected Section section;
 
 	// The main composite used to create the section content.
 	protected Composite composite;
@@ -101,7 +103,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 		super.createControls(parent, aTabbedPropertySheetPage);
 		parent.setLayout(new FormLayout());
 
-		Section section = getWidgetFactory().createSection(parent, ExpandableComposite.TITLE_BAR);
+		section = getWidgetFactory().createSection(parent, ExpandableComposite.TITLE_BAR);
 		section.setText(getText());
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, ITabbedPropertyConstants.HMARGIN);
@@ -128,13 +130,14 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 * @param control The control for which the label is created.
 	 * @param text The label text.
 	 */
-	protected void createLabel(Control control, String text) {
+	protected CLabel createLabel(Control control, String text) {
 		CLabel nameLabel = getWidgetFactory().createCLabel(composite, text);
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, 0);
 		data.right = new FormAttachment(control, -ITabbedPropertyConstants.HSPACE);
 		data.top = new FormAttachment(control, 0, SWT.CENTER);
 		nameLabel.setLayoutData(data);
+		return nameLabel;
 	}
 
 	/**
@@ -171,7 +174,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 * @param control The control to layout the new text field.
 	 * @return The new text field created.
 	 */
-	private Text createText(Control control) {
+	protected Text createText(Control control) {
 		Text text = getWidgetFactory().createText(composite, ""); //$NON-NLS-1$
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, STANDARD_LABEL_WIDTH);
@@ -193,7 +196,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 * @param control The control to layout the new wrap text field.
 	 * @return The new wrap text field created.
 	 */
-	private Text createWrapText(Control control) {
+	protected Text createWrapText(Control control) {
 		Text text = getWidgetFactory().createText(composite, "", SWT.WRAP); //$NON-NLS-1$
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, STANDARD_LABEL_WIDTH);
