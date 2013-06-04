@@ -32,8 +32,6 @@ public class MapPersistableURIProvider implements IPersistableURIProvider {
 	public URI getURI(final Object context) {
 		Assert.isNotNull(context);
 
-		Assert.isNotNull(null);
-
 		URI uri = null;
 
 		// Only map objects are supported

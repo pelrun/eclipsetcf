@@ -49,7 +49,6 @@ import org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEdit
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -165,7 +164,7 @@ public abstract class AbstractDiagnosticsCommandHandler extends AbstractHandler 
 		Assert.isNotNull(label);
 		Assert.isNotNull(bar);
 
-		final Display display = shell != null ? shell.getDisplay() : PlatformUI.getWorkbench().getDisplay();
+		final Display display = shell.getDisplay();
 
 		final TCFTestSuite.TestListener done = new TCFTestSuite.TestListener() {
 			/* default */ String last_text = ""; //$NON-NLS-1$

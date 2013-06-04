@@ -344,82 +344,80 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 		//       The same applies to agent being discovered. If you don't ask for discovered peers
 		//       here too, we may miss some routes.
 		if (ip != null && !"".equals(ip)) { //$NON-NLS-1$
-			if (model != null) {
-				// Use the open channel to ask the remote peer what other peers it knows
-				ILocator locator = channel.getRemoteService(ILocator.class);
-				if (locator != null) {
-					// Channel must be kept open as long as the command runs
-					keepOpen = true;
-					// Issue the command
-					new Command(channel, locator, "getPeers", null) { //$NON-NLS-1$
-						@Override
-						public void done(Exception error, Object[] args) {
-							if (error == null) {
-								Assert.isTrue(args.length == 2);
-								error = toError(args[0]);
-							}
-							// If the error is still null here, process the returned peers
-							if (error == null && args[1] != null) {
-								// Get the parent peer
-								IPeer parentPeer = channel.getRemotePeer();
-								// Get the old child list
-								List<IPeerModel> oldChildren = new ArrayList<IPeerModel>(model.getChildren(parentPeer.getID()));
-
-								// "getPeers" returns a collection of peer attribute maps
-								@SuppressWarnings("unchecked")
-								Collection<Map<String,String>> peerAttributesList = (Collection<Map<String,String>>)args[1];
-								for (Map<String,String> attributes : peerAttributesList) {
-									// Don't process value-add's
-									String value = attributes.get("ValueAdd"); //$NON-NLS-1$
-									boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
-
-									if (isValueAdd) continue;
-
-									// Get the peer id
-									String peerId = attributes.get(IPeer.ATTR_ID);
-									// Create a peer instance
-									IPeer peer = new PeerRedirector(parentPeer, attributes);
-									// Try to find an existing peer node first
-									IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(parentPeer.getID(), peerId);
-									if (peerNode == null) {
-										// Not yet known -> add it
-										peerNode = new PeerModel(model, peer);
-										peerNode.setParent(ScannerRunnable.this.peerNode);
-										peerNode.setProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE, true);
-										// Validate the peer node before adding
-										peerNode = model.validateChildPeerNodeForAdd(peerNode);
-										if (peerNode != null) {
-											// Add the child peer node to model
-											model.getService(ILocatorModelUpdateService.class).addChild(peerNode);
-										}
-									} else {
-										// The parent node should be set and match
-										Assert.isTrue(peerNode.getParent(IPeerModel.class) != null && peerNode.getParent(IPeerModel.class).equals(ScannerRunnable.this.peerNode));
-										// Peer node found, update the peer instance
-										peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
-										// And remove it from the old child list
-										oldChildren.remove(peerNode);
-									}
-								}
-
-								// Everything left in the old child list is not longer known to the remote peer
-								// However, the child list may include manual redirected static peers. Do not
-								// remove them here.
-								for (IPeerModel child : oldChildren) {
-									if (!child.isStatic()) {
-										// Remove the child peer node from the model
-										model.getService(ILocatorModelUpdateService.class).removeChild(child);
-									}
-								}
-							}
-
-							// Once everything is processed, close the channel
-							if (!sharedChannel) channel.close();
-							// Invoke the callback
-							callback.done(ScannerRunnable.this, Status.OK_STATUS);
+			// Use the open channel to ask the remote peer what other peers it knows
+			ILocator locator = channel.getRemoteService(ILocator.class);
+			if (locator != null) {
+				// Channel must be kept open as long as the command runs
+				keepOpen = true;
+				// Issue the command
+				new Command(channel, locator, "getPeers", null) { //$NON-NLS-1$
+					@Override
+					public void done(Exception error, Object[] args) {
+						if (error == null) {
+							Assert.isTrue(args.length == 2);
+							error = toError(args[0]);
 						}
-					};
-				}
+						// If the error is still null here, process the returned peers
+						if (error == null && args[1] != null) {
+							// Get the parent peer
+							IPeer parentPeer = channel.getRemotePeer();
+							// Get the old child list
+							List<IPeerModel> oldChildren = new ArrayList<IPeerModel>(model.getChildren(parentPeer.getID()));
+
+							// "getPeers" returns a collection of peer attribute maps
+							@SuppressWarnings("unchecked")
+							Collection<Map<String,String>> peerAttributesList = (Collection<Map<String,String>>)args[1];
+							for (Map<String,String> attributes : peerAttributesList) {
+								// Don't process value-add's
+								String value = attributes.get("ValueAdd"); //$NON-NLS-1$
+								boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+
+								if (isValueAdd) continue;
+
+								// Get the peer id
+								String peerId = attributes.get(IPeer.ATTR_ID);
+								// Create a peer instance
+								IPeer peer = new PeerRedirector(parentPeer, attributes);
+								// Try to find an existing peer node first
+								IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(parentPeer.getID(), peerId);
+								if (peerNode == null) {
+									// Not yet known -> add it
+									peerNode = new PeerModel(model, peer);
+									peerNode.setParent(ScannerRunnable.this.peerNode);
+									peerNode.setProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE, true);
+									// Validate the peer node before adding
+									peerNode = model.validateChildPeerNodeForAdd(peerNode);
+									if (peerNode != null) {
+										// Add the child peer node to model
+										model.getService(ILocatorModelUpdateService.class).addChild(peerNode);
+									}
+								} else {
+									// The parent node should be set and match
+									Assert.isTrue(peerNode.getParent(IPeerModel.class) != null && peerNode.getParent(IPeerModel.class).equals(ScannerRunnable.this.peerNode));
+									// Peer node found, update the peer instance
+									peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+									// And remove it from the old child list
+									oldChildren.remove(peerNode);
+								}
+							}
+
+							// Everything left in the old child list is not longer known to the remote peer
+							// However, the child list may include manual redirected static peers. Do not
+							// remove them here.
+							for (IPeerModel child : oldChildren) {
+								if (!child.isStatic()) {
+									// Remove the child peer node from the model
+									model.getService(ILocatorModelUpdateService.class).removeChild(child);
+								}
+							}
+						}
+
+						// Once everything is processed, close the channel
+						if (!sharedChannel) channel.close();
+						// Invoke the callback
+						callback.done(ScannerRunnable.this, Status.OK_STATUS);
+					}
+				};
 			}
 		}
 

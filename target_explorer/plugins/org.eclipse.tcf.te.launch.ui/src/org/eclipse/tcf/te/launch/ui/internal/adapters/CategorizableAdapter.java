@@ -53,7 +53,7 @@ public class CategorizableAdapter implements ICategorizable {
 		if (OPERATION.REMOVE.equals(operation) && parentCategory != null && IUIConstants.ID_CAT_FAVORITES.equals(parentCategory.getId())) {
 			return true;
 		}
-		if (OPERATION.ADD.equals(operation) && category != null && IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
+		if (OPERATION.ADD.equals(operation) && IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
 			return true;
 		}
 
