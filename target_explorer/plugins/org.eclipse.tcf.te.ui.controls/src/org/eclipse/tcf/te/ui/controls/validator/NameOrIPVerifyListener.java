@@ -18,13 +18,11 @@ public class NameOrIPVerifyListener extends RegexVerifyListener {
 	// characters that can be set at the beginning
 	private static final String NAME_START_REGEX = "[a-zA-Z]"; //$NON-NLS-1$
 	// characters that can be set after the starting character
-	private static final String NAME_FOLLOW_REGEX = "[a-zA-Z0-9]"; //$NON-NLS-1$
+	private static final String NAME_FOLLOW_REGEX = "[a-zA-Z0-9-_]"; //$NON-NLS-1$
 	// allowed separators in fragments
 	private static final String NAME_SEPERATOR_REGEX = "(\\-|_)"; //$NON-NLS-1$
 	// complete name fragment
-	public static final String NAME_FRAGMENT_REGEX =
-		"(" + NAME_START_REGEX + NAME_FOLLOW_REGEX + "*" +  //$NON-NLS-1$ //$NON-NLS-2$
-		"(" + NAME_SEPERATOR_REGEX + NAME_FOLLOW_REGEX + "+)*)"; //$NON-NLS-1$ //$NON-NLS-2$
+	public static final String NAME_FRAGMENT_REGEX = "(" + NAME_START_REGEX + NAME_FOLLOW_REGEX + "*)"; //$NON-NLS-1$ //$NON-NLS-2$
 	// open name fragment during typing
 	private static final String OPEN_NAME_FRAGMENT_REGEX =
 		"(" + NAME_FRAGMENT_REGEX + NAME_SEPERATOR_REGEX + "?)"; //$NON-NLS-1$ //$NON-NLS-2$
