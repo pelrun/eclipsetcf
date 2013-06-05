@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -15,7 +15,11 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
@@ -27,6 +31,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.menus.UIElement;
@@ -44,15 +49,28 @@ public class RefreshProcessListHandler extends AbstractHandler implements IEleme
 		IEditorInput editorInput = HandlerUtil.getActiveEditorInputChecked(event);
 		final IPeerModel peer = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
 		if (peer != null) {
-			Runnable runnable = new Runnable() {
+			BusyIndicator.showWhile(PlatformUI.getWorkbench().getDisplay(), new Runnable() {
 				@Override
 				public void run() {
-					IModel model = ModelManager.getRuntimeModel(peer);
-					Assert.isNotNull(model);
-					model.getService(IModelRefreshService.class).refresh(null);
+					final AsyncCallbackCollector collector = new AsyncCallbackCollector();
+					final ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+
+					Runnable runnable = new Runnable() {
+						@Override
+						public void run() {
+							IModel model = ModelManager.getRuntimeModel(peer);
+							Assert.isNotNull(model);
+							model.getService(IModelRefreshService.class).refresh(callback);
+						}
+					};
+					Protocol.invokeLater(runnable);
+
+					collector.initDone();
+
+					ExecutorsUtil.waitAndExecute(0, collector.getConditionTester());
 				}
-			};
-			Protocol.invokeLater(runnable);
+			});
+
 		}
 		return null;
 	}

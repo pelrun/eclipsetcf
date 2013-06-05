@@ -89,6 +89,21 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 			return;
 		}
 
+		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)model.getAdapter(IAsyncRefreshableCtx.class);
+		final AtomicBoolean resetPendingNode = new AtomicBoolean(false);
+		if (refreshable != null && refreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.IN_PROGRESS) {
+			resetPendingNode.set(true);
+			// Mark the refresh as in progress
+			refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
+			// Create a new pending operation node and associate it with the refreshable
+			PendingOperationModelNode pendingNode = new PendingOperationNode();
+			pendingNode.setParent(model);
+			refreshable.setPendingOperationNode(pendingNode);
+			// Trigger a refresh of the view content.
+			ChangeEvent event = new ChangeEvent(model, IContainerModelNode.NOTIFY_CHANGED, null, null);
+			EventManager.getInstance().fireEvent(event);
+		}
+
 		// Get the list of old children (update node instances where possible)
 		final List<IProcessContextNode> oldChildren = model.getChildren(IProcessContextNode.class);
 
@@ -109,6 +124,17 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 				if (!isDisposed.get()) {
 					// If there are remaining old children, remove them from the model (non-recursive)
 					for (IProcessContextNode oldChild : oldChildren) model.getService(IModelUpdateService.class).remove(oldChild);
+				}
+
+				if (refreshable != null && resetPendingNode.get()) {
+					resetPendingNode.set(false);
+					// Mark the refresh as done
+					refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
+					// Reset the pending operation node
+					refreshable.setPendingOperationNode(null);
+					// Trigger a refresh of the view content.
+					ChangeEvent event = new ChangeEvent(model, IContainerModelNode.NOTIFY_CHANGED, null, null);
+					EventManager.getInstance().fireEvent(event);
 				}
 
 				// Invoke the callback
