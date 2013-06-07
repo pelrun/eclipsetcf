@@ -55,6 +55,7 @@ import org.eclipse.tcf.internal.debug.ui.model.TCFModelManager;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.IProfiler;
@@ -611,7 +612,7 @@ public class ProfilerView extends ViewPart {
             if (n != null) size = n.intValue();
             Boolean b = (Boolean)props.get(IProfiler.PROP_BIG_ENDIAN);
             if (b != null) big_endian = b.booleanValue();
-            data = (byte[])props.get(IProfiler.PROP_DATA);
+            data = JSON.toByteArray(props.get(IProfiler.PROP_DATA));
         }
         if (data == null) return;
         int pos = 0;
