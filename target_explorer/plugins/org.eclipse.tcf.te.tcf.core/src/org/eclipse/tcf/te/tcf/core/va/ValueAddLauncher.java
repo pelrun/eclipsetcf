@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.processes.ProcessLauncher;
 import org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread;
 import org.eclipse.tcf.te.runtime.utils.Host;
@@ -32,7 +31,7 @@ import org.osgi.framework.Bundle;
 /**
  * Value-add launcher implementation.
  */
-public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
+public class ValueAddLauncher extends ProcessLauncher {
 	// The target peer id
 	private final String id;
 	// The path of the value-add to launch
@@ -43,6 +42,8 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 	private Process process;
 	// The process output reader
 	private ProcessOutputReaderThread outputReader;
+	// The process error reader
+	private ProcessOutputReaderThread errorReader;
 
 	/**
 	 * Constructor.
@@ -62,17 +63,6 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 		this.valueAddId = valueAddId;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.interfaces.IDisposable#dispose()
-	 */
-	@Override
-	public void dispose() {
-		if (process != null) {
-			process.destroy();
-			process = null;
-		}
-	}
-
 	/**
 	 * Returns the process handle.
 	 *
@@ -89,6 +79,15 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 	 */
 	public ProcessOutputReaderThread getOutputReader() {
 		return outputReader;
+	}
+
+	/**
+	 * Returns the process error reader.
+	 *
+	 * @return The process error reader or <code>null</code>.
+	 */
+	public ProcessOutputReaderThread getErrorReader() {
+		return errorReader;
 	}
 
 	/* (non-Javadoc)
@@ -143,6 +142,11 @@ public class ValueAddLauncher extends ProcessLauncher implements IDisposable {
 		// Launch the process output reader
 		outputReader = new ProcessOutputReaderThread(path.lastSegment(), new InputStream[] { process.getInputStream() });
 		outputReader.start();
+
+		// Launch the process error reader (not buffering)
+		errorReader = new ProcessOutputReaderThread(path.lastSegment(), new InputStream[] { process.getErrorStream() });
+		errorReader.setBuffering(false);
+		errorReader.start();
 	}
 
 	/**

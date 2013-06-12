@@ -35,6 +35,7 @@ public class ProcessOutputReaderThread extends Thread {
 	// String builder to collect the read lines
 	private StringBuilder lines;
 	private String lastLine;
+	private boolean buffering;
 
 	// finished reading all the output
 	private boolean finished;
@@ -54,6 +55,7 @@ public class ProcessOutputReaderThread extends Thread {
 		assert streams != null;
 
 		lastLine = ""; //$NON-NLS-1$
+		buffering = true;
 		finished = false;
 		waiting = false;
 		waiterSemaphore = new Object();
@@ -75,6 +77,28 @@ public class ProcessOutputReaderThread extends Thread {
 		}
 
 		lines = new StringBuilder();
+	}
+
+	/**
+	 * Returns if or if not the process output reader is buffering the output read.
+	 *
+	 * @return <code>True</code> if the output reader is buffering the output read, <code>false</code> otherwise.
+	 */
+	public final boolean isBuffering() {
+		return buffering;
+	}
+
+	/**
+	 * Toggle if or if not the process output reader is buffering the output read.
+	 * <p>
+	 * <b>Note:</b> Switching off the buffering will reset the buffer too. Read the
+	 * output buffer before switching off the buffering if needed.
+	 *
+	 * @param buffering <code>True</code> if the output reader shall buffer the output read, <code>false</code> otherwise.
+	 */
+	public final void setBuffering(boolean buffering) {
+		this.buffering = buffering;
+		if (!buffering) lines = new StringBuilder();
 	}
 
 	/**
@@ -142,8 +166,10 @@ public class ProcessOutputReaderThread extends Thread {
 			}
 			line = buffer.toString();
 			lastLine = line;
-			lines.append(line);
-			lines.append('\n');
+			if (buffering) {
+				lines.append(line);
+				lines.append('\n');
+			}
 			CoreBundleActivator.getTraceHandler().trace(getPrefix() + " processLine: " + line, 3, this); //$NON-NLS-1$
 		}
 	}

@@ -25,7 +25,9 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
@@ -42,9 +44,21 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 	/**
 	 * Class representing a value add entry
 	 */
-	protected static class ValueAddEntry {
+	protected static class ValueAddEntry implements IDisposable {
 		public Process process;
 		public IPeer peer;
+		public ProcessOutputReaderThread outputReader;
+		public ProcessOutputReaderThread errorReader;
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.tcf.te.runtime.interfaces.IDisposable#dispose()
+		 */
+		@Override
+		public void dispose() {
+			if (process != null) process.destroy();
+			if (outputReader != null) outputReader.interrupt();
+			if (errorReader != null) errorReader.interrupt();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -140,9 +154,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 						channel.removeChannelListener(this);
 						// External value-add is not longer alive, clean up
 						entries.remove(id);
-						if (finEntry.process != null) {
-							finEntry.process.destroy();
-						}
+						finEntry.dispose();
 						// Invoke the callback
 						done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
 					}
@@ -199,6 +211,9 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				} catch (IllegalThreadStateException e) {
 					// Still running -> Associate the process with the entry
 					entry.process = process;
+					// Associate the reader threads with the entry
+					entry.outputReader = launcher.getOutputReader();
+					entry.errorReader = launcher.getErrorReader();
 				}
 			}
 
@@ -286,9 +301,9 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				entries.put(id, entry);
 			}
 
-			// Stop the output reader thread
+			// Stop the buffering of the output reader
 			if (launcher.getOutputReader() != null) {
-				launcher.getOutputReader().interrupt();
+				launcher.getOutputReader().setBuffering(false);
 			}
 		} else {
 			error = new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, this.getId()));
@@ -343,9 +358,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					boolean alive = ((Boolean)getResult()).booleanValue();
 					if (alive) {
 						entries.remove(id);
-						if (entry.process != null) {
-							entry.process.destroy();
-						}
+						entry.dispose();
 					}
 					done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
 				}
@@ -367,9 +380,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		// We force the value-add to shutdown if not yet gone by destroying the process.
 		for (Entry<String, ValueAddEntry> entry : entries.entrySet()) {
 			ValueAddEntry value = entry.getValue();
-			if (value.process != null) {
-				value.process.destroy();
-			}
+			value.dispose();
 		}
 		// Clear all entries from the list
 		entries.clear();
