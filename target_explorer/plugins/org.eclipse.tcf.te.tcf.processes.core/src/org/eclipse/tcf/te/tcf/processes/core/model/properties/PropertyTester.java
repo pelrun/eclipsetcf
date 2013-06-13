@@ -47,6 +47,27 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
+						if (node.getProcessContext() != null) {
+							if (node.getProcessContext().getProperties().containsKey("CanAttach")) { //$NON-NLS-1$
+								Boolean value = (Boolean)node.getProcessContext().getProperties().get("CanAttach"); //$NON-NLS-1$
+								canAttach.set(value != null && value.booleanValue());
+							} else {
+								canAttach.set(true);
+							}
+						}
+					}
+				};
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+
+				return ((Boolean) expectedValue).booleanValue() == canAttach.get();
+			}
+
+			if ("hasProcessContext".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
+				final AtomicBoolean canAttach = new AtomicBoolean();
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
 						canAttach.set(node.getProcessContext() != null);
 					}
 				};
