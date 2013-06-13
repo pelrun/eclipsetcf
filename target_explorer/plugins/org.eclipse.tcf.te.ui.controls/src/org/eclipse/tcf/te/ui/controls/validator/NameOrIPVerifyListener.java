@@ -19,14 +19,13 @@ public class NameOrIPVerifyListener extends RegexVerifyListener {
 	private static final String NAME_START_REGEX = "[a-zA-Z]"; //$NON-NLS-1$
 	// characters that can be set after the starting character
 	private static final String NAME_FOLLOW_REGEX = "[a-zA-Z0-9-_]"; //$NON-NLS-1$
-	// allowed separators in fragments
-	private static final String NAME_SEPERATOR_REGEX = "(\\-|_)"; //$NON-NLS-1$
-	// complete name fragment
-	public static final String NAME_FRAGMENT_REGEX = "(" + NAME_START_REGEX + NAME_FOLLOW_REGEX + "*)"; //$NON-NLS-1$ //$NON-NLS-2$
+	// characters that can be set at the end
+	private static final String NAME_END_REGEX = "[a-zA-Z0-9]"; //$NON-NLS-1$
+	// single name fragment
+	public static final String NAME_FRAGMENT_REGEX = "(" + NAME_START_REGEX + "(" + NAME_FOLLOW_REGEX + "*" + NAME_END_REGEX + ")?)"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	// open name fragment during typing
-	private static final String OPEN_NAME_FRAGMENT_REGEX =
-		"(" + NAME_FRAGMENT_REGEX + NAME_SEPERATOR_REGEX + "?)"; //$NON-NLS-1$ //$NON-NLS-2$
-	// multiple
+	public static final String OPEN_NAME_FRAGMENT_REGEX = "(" + NAME_START_REGEX + NAME_FOLLOW_REGEX + "*)"; //$NON-NLS-1$ //$NON-NLS-2$
+	// open name during typing
 	public static final String OPEN_NAME_REGEX =
 		"((" + NAME_FRAGMENT_REGEX + "\\.)*" + OPEN_NAME_FRAGMENT_REGEX + "?)?[ ]*"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
