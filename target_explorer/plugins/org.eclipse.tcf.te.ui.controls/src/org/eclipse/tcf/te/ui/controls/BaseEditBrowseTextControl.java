@@ -274,7 +274,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 
 		SWTControlUtil.setEnabled(getLabelControl(), enabled);
 		SWTControlUtil.setEnabled(getEditFieldControl(), enabled && (isLabelIsButton() ? isLabelControlSelected() : true));
-		SWTControlUtil.setEnabled(getButtonControl(), enabled && (isLabelIsButton() ? isLabelControlSelected() : true));
+		setButtonControlEnabled(enabled);
 
 		// Hide or show the control decoration if one is available
 		if (getControlDecoration() != null) {
@@ -284,6 +284,20 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 				getControlDecoration().hide();
 			}
 		}
+	}
+
+	/**
+	 * Enables or disables the button control.
+	 * <p>
+	 * <b>Note:</b> The button control might need special considerations to calculate the
+	 * enablement different from the global enabled state of the controls UI element.
+	 * <p>
+	 * Method is called from {@link #setEnabled(boolean)}.
+	 *
+	 * @param enabled <code>True</code> to enable the button control, <code>false</code> otherwise.
+	 */
+	protected void setButtonControlEnabled(boolean enabled) {
+		SWTControlUtil.setEnabled(getButtonControl(), enabled && (isLabelIsButton() ? isLabelControlSelected() : true));
 	}
 
 	/**
