@@ -77,7 +77,7 @@ public class RemoteHostAddressControl extends BaseEditBrowseTextControl {
 	public void modifyText(ModifyEvent e) {
 	    super.modifyText(e);
 	    boolean enabled = isValid() &&
-						(!(getEditFieldValidator() instanceof NameOrIPValidator) || !((NameOrIPValidator)getEditFieldValidator()).isIP());
+						(!(getEditFieldValidator() instanceof NameOrIPValidator) || ((NameOrIPValidator)getEditFieldValidator()).isName());
 		getButtonControl().setEnabled(enabled);
 		if (enabled && getControlDecoration() != null) {
 			getControlDecoration().hide();
@@ -94,7 +94,7 @@ public class RemoteHostAddressControl extends BaseEditBrowseTextControl {
 	    if (enabled) {
 	    	// The "Check" button needs specific enablement
 	    	getButtonControl().setEnabled(isValid() &&
-	    					(!(getEditFieldValidator() instanceof NameOrIPValidator) || !((NameOrIPValidator)getEditFieldValidator()).isIP()));
+	    					(!(getEditFieldValidator() instanceof NameOrIPValidator) || ((NameOrIPValidator)getEditFieldValidator()).isName()));
 	    }
 	}
 
