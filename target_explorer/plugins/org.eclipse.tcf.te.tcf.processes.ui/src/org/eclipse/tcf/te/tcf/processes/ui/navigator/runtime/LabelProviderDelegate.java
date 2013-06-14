@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,11 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
@@ -24,6 +26,7 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeMo
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
+import org.eclipse.ui.PlatformUI;
 
 
 /**
@@ -130,6 +133,32 @@ public class LabelProviderDelegate extends LabelProvider implements ILabelDecora
 	 */
 	@Override
 	public Color getForeground(final Object element) {
+		if (element instanceof IProcessContextNode) {
+			final IProcessContextNode node = (IProcessContextNode) element;
+			final AtomicBoolean canAttach = new AtomicBoolean();
+
+			Runnable runnable = new Runnable() {
+
+				@Override
+				public void run() {
+					if (node.getProcessContext() != null) {
+						if (node.getProcessContext().getProperties().containsKey("CanAttach")) { //$NON-NLS-1$
+							Boolean value = (Boolean)node.getProcessContext().getProperties().get("CanAttach"); //$NON-NLS-1$
+							canAttach.set(value != null && value.booleanValue());
+						} else {
+							canAttach.set(true);
+						}
+					}
+				}
+			};
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+
+			if (!canAttach.get()) {
+				return PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY);
+			}
+		}
+
 	    return null;
 	}
 
