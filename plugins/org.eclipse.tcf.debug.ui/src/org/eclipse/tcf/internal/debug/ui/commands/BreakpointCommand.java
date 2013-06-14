@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,20 +34,27 @@ public class BreakpointCommand implements IToggleBreakpointsTargetExtension {
         if (selection.isEmpty()) return false;
         final Object obj = ((IStructuredSelection)selection).getFirstElement();
         if (!(obj instanceof TCFNode)) return false;
-        return new TCFTask<Boolean>(((TCFNode)obj).getChannel()) {
-            public void run() {
-                TCFDataCache<BigInteger> addr_cache = null;
-                if (obj instanceof TCFNodeExecContext) addr_cache = ((TCFNodeExecContext)obj).getAddress();
-                if (obj instanceof TCFNodeStackFrame) addr_cache = ((TCFNodeStackFrame)obj).getAddress();
-                if (addr_cache != null) {
-                    if (!addr_cache.validate(this)) return;
-                    done(addr_cache.getData() != null);
+        TCFNode node = (TCFNode)obj;
+        try {
+            return new TCFTask<Boolean>(node.getChannel()) {
+                public void run() {
+                    TCFDataCache<BigInteger> addr_cache = null;
+                    if (obj instanceof TCFNodeExecContext) addr_cache = ((TCFNodeExecContext)obj).getAddress();
+                    if (obj instanceof TCFNodeStackFrame) addr_cache = ((TCFNodeStackFrame)obj).getAddress();
+                    if (addr_cache != null) {
+                        if (!addr_cache.validate(this)) return;
+                        done(addr_cache.getData() != null);
+                    }
+                    else {
+                        done(false);
+                    }
                 }
-                else {
-                    done(false);
-                }
-            }
-        }.getE();
+            }.getE();
+        }
+        catch (Error e) {
+            if (node.isDisposed()) return false;
+            throw e;
+        }
     }
 
     public void toggleBreakpoints(IWorkbenchPart part, ISelection selection) {
