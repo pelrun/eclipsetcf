@@ -16,11 +16,15 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.ITableColorProvider;
+import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelDecorator;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.ui.utils.TreeViewerUtil;
@@ -32,7 +36,7 @@ import org.eclipse.tcf.te.ui.utils.TreeViewerUtil;
  * provided by the nested label provider.
  *
  */
-public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider implements ITableLabelProvider {
+public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider implements ITableLabelProvider, ITableColorProvider, ITableFontProvider {
 
 	//The label provider for the execution context viewer.
 	private TreeViewerLabelProvider fProvider;
@@ -44,7 +48,7 @@ public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider i
 	private ITreeContentProvider contentProvider;
 
 	/**
-	 * Create a FSTreeDecoratingLabelProvider with an FSTreeLabelProvider and a decorator.
+	 * Create a decorating label provider instance with an label provider and a label decorator.
 	 *
 	 * @param provider The label provider to be decorated.
 	 * @param decorator The label decorator.
@@ -89,7 +93,7 @@ public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider i
 
 	/**
 	 * Get the tree path whose leaf is the element.
-	 * 
+	 *
 	 * @param element The leaf element.
 	 * @return The tree path.
 	 */
@@ -105,7 +109,7 @@ public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider i
 
 	/**
 	 * get the parent path.
-	 * 
+	 *
 	 * @param element The element whose parent is being retrieved.
 	 * @return The parent element.
 	 */
@@ -146,9 +150,8 @@ public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider i
 		}
 		return text;
 	}
-	
-	/*
-	 * (non-Javadoc)
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.DecoratingLabelProvider#getImage(java.lang.Object)
 	 */
 	@Override
@@ -162,8 +165,7 @@ public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider i
 		return image;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.DecoratingLabelProvider#getText(java.lang.Object)
 	 */
 	@Override
@@ -179,7 +181,7 @@ public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider i
 
 	/**
 	 * Get an adapter of IFilteringLabelProvider from the specified element.
-	 * 
+	 *
 	 * @param element The element to get the adapter from.
 	 * @return The element's adapter or null if does not adapt to IFilteringLabelProvider.
 	 */
@@ -195,5 +197,29 @@ public class TreeViewerDecoratingLabelProvider extends DecoratingLabelProvider i
 			decorator = (IFilterable) Platform.getAdapterManager().getAdapter(element, IFilterable.class);
 		}
 		return decorator;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITableFontProvider#getFont(java.lang.Object, int)
+	 */
+	@Override
+	public Font getFont(Object element, int columnIndex) {
+	    return fProvider.getFont(element, columnIndex);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITableColorProvider#getForeground(java.lang.Object, int)
+	 */
+	@Override
+	public Color getForeground(Object element, int columnIndex) {
+	    return fProvider.getForeground(element, columnIndex);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITableColorProvider#getBackground(java.lang.Object, int)
+	 */
+	@Override
+	public Color getBackground(Object element, int columnIndex) {
+	    return fProvider.getBackground(element, columnIndex);
 	}
 }

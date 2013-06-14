@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
@@ -21,11 +20,12 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationN
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.AbstractLabelProviderDelegate;
 
 /**
  * The label provider for the tree column "PID".
  */
-public class PIDLabelProvider extends LabelProvider {
+public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)

@@ -12,16 +12,16 @@ package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.AbstractLabelProviderDelegate;
 
 /**
  * The label provider for the tree column "user".
  */
-public class UserLabelProvider extends LabelProvider {
+public class UserLabelProvider extends AbstractLabelProviderDelegate {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,9 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.trees;
 
+import org.eclipse.jface.viewers.IColorProvider;
+import org.eclipse.jface.viewers.IFontProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ITableColorProvider;
+import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
@@ -19,7 +25,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 /**
  * File system tree control label provider implementation.
  */
-public class TreeViewerLabelProvider extends PendingAwareLabelProvider implements ITableLabelProvider {
+public class TreeViewerLabelProvider extends PendingAwareLabelProvider implements ITableLabelProvider, ITableColorProvider, ITableFontProvider {
 	// Reference to the parent tree viewer
 	private TreeViewer viewer;
 
@@ -32,12 +38,12 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 		super();
 		this.viewer = viewer;
 	}
-	
+
 	/**
-	 * Get the specific column's ColumnDescriptor object.
-	 * <b>NOTE:</b> <em>The returned descriptor might be null, if the column is the
+	 * Get the specific column's ColumnDescriptor object. <b>NOTE:</b>
+	 * <em>The returned descriptor might be null, if the column is the
 	 * padding column on linux host.</em>
-	 * 
+	 *
 	 * @param columnIndex the column index.
 	 * @return The ColumnDescriptor object describing the column.
 	 */
@@ -69,7 +75,7 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 	 */
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-		if(element instanceof Pending) {
+		if (element instanceof Pending) {
 			return columnIndex == 0 ? super.getImage(element) : null;
 		}
 		ColumnDescriptor column = getColumn(columnIndex);
@@ -87,8 +93,8 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 	 */
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
-		if(element instanceof Pending){
-			return columnIndex == 0 ? super.getText(element) : "";  //$NON-NLS-1$
+		if (element instanceof Pending) {
+			return columnIndex == 0 ? super.getText(element) : ""; //$NON-NLS-1$
 		}
 		ColumnDescriptor column = getColumn(columnIndex);
 		if (column != null) {
@@ -98,5 +104,56 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 			}
 		}
 		return ""; //$NON-NLS-1$
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITableFontProvider#getFont(java.lang.Object, int)
+	 */
+	@Override
+	public Font getFont(Object element, int columnIndex) {
+		if (!(element instanceof Pending)) {
+			ColumnDescriptor column = getColumn(columnIndex);
+			if (column != null) {
+				ILabelProvider labelProvider = column.getLabelProvider();
+				if (labelProvider instanceof IFontProvider) {
+					return ((IFontProvider)labelProvider).getFont(element);
+				}
+			}
+		}
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITableColorProvider#getForeground(java.lang.Object, int)
+	 */
+	@Override
+	public Color getForeground(Object element, int columnIndex) {
+		if (!(element instanceof Pending)) {
+			ColumnDescriptor column = getColumn(columnIndex);
+			if (column != null) {
+				ILabelProvider labelProvider = column.getLabelProvider();
+				if (labelProvider instanceof IColorProvider) {
+					return ((IColorProvider)labelProvider).getForeground(element);
+				}
+			}
+		}
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITableColorProvider#getBackground(java.lang.Object, int)
+	 */
+	@Override
+	public Color getBackground(Object element, int columnIndex) {
+		if (!(element instanceof Pending)) {
+			ColumnDescriptor column = getColumn(columnIndex);
+			if (column != null) {
+				ILabelProvider labelProvider = column.getLabelProvider();
+				if (labelProvider instanceof IColorProvider) {
+					return ((IColorProvider)labelProvider).getBackground(element);
+				}
+			}
+		}
+		return null;
 	}
 }
