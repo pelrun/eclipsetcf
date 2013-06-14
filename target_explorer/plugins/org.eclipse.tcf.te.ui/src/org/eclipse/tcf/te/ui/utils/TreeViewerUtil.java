@@ -32,10 +32,10 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.ui.internal.utils.FilteringImageDescriptor;
-import org.eclipse.tcf.te.ui.internal.utils.QuickFilter;
-import org.eclipse.tcf.te.ui.internal.utils.TreeViewerSearchDialog;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
+import org.eclipse.tcf.te.ui.search.FilteringImageDescriptor;
+import org.eclipse.tcf.te.ui.search.QuickFilter;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 import org.eclipse.ui.PlatformUI;
 /**
  * The utilities to search and filter a tree viewer.

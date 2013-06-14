@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.internal.utils;
+package org.eclipse.tcf.te.ui.search;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
@@ -38,38 +38,38 @@ public class DepthFirstSearcher extends AbstractSearcher {
 		}
 	}
 	// The searching stack in which searching contexts are stored.
-	private LinkedList<StackElement> fSearchStack;
+	private final LinkedList<StackElement> fSearchStack = new LinkedList<StackElement>();
 	// The searching direction.
 	private boolean fForeward;
 
 	/**
 	 * Create a depth-first searcher with the specified viewer and a
 	 * matcher.
-	 * 
+	 *
 	 * @param viewer The tree viewer.
 	 * @param matcher The search matcher used match a single tree node.
 	 */
 	public DepthFirstSearcher(TreeViewer viewer, ISearchable searchable) {
 		super(viewer, searchable);
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ITreeSearcher#setStartPath(org.eclipse.jface.viewers.TreePath)
 	 */
 	@Override
     public void setStartPath(TreePath path) {
-		fSearchStack = new LinkedList<StackElement>();
+		fSearchStack.clear();
 		if (path == null) {
 			Object obj = fViewer.getInput();
 			path = new TreePath(new Object[] { obj });
 		}
 		initSearchContext(path);
 	}
-	
+
 	/**
 	 * Set the searching direction.
-	 * 
+	 *
 	 * @param foreward searching direction.
 	 */
 	public void setForeward(boolean foreward) {
@@ -78,7 +78,7 @@ public class DepthFirstSearcher extends AbstractSearcher {
 
 	/**
 	 * Populate the stacks with initial path.
-	 * 
+	 *
 	 * @param start The initial path.
 	 */
 	private void initSearchContext(TreePath start) {
@@ -105,7 +105,7 @@ public class DepthFirstSearcher extends AbstractSearcher {
 
 	/**
 	 * Search the tree using a matcher using DFS algorithm.
-	 * 
+	 *
 	 * @param monitor The monitor reporting the progress.
 	 * @return The tree path whose leaf node satisfies the searching rule.
 	 */
@@ -147,10 +147,10 @@ public class DepthFirstSearcher extends AbstractSearcher {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Create a path using the current elements of the stack.
-	 * 
+	 *
 	 * @return The tree path representing the path of the stack.
 	 */
 	private TreePath createContextPath() {

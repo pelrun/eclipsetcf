@@ -15,14 +15,15 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.ui.interfaces.IOptionListener;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 
 /**
  * The base class that implements ISearchable and provide basic implementation method
  * for adding and removing listeners.
  */
 public abstract class AbstractSearchable extends EventManager implements ISearchable {
-	/*
-	 * (non-Javadoc)
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#addOptionListener(org.eclipse.tcf.te.ui.interfaces.IOptionListener)
 	 */
 	@Override
@@ -30,8 +31,7 @@ public abstract class AbstractSearchable extends EventManager implements ISearch
 		super.addListenerObject(listener);
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#removeOptionListener(org.eclipse.tcf.te.ui.interfaces.IOptionListener)
 	 */
 	@Override
@@ -50,24 +50,21 @@ public abstract class AbstractSearchable extends EventManager implements ISearch
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createCommonPart(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createCommonPart(org.eclipse.tcf.te.ui.internal.utils.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-    public void createCommonPart(Composite parent) {
-    }
+	public void createCommonPart(TreeViewerSearchDialog dialog, Composite parent) {
+	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createAdvancedPart(org.eclipse.tcf.te.ui.internal.utils.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-    public void createAdvancedPart(Composite parent) {
-    }
+	public void createAdvancedPart(TreeViewerSearchDialog dialog, Composite parent) {
+	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#isInputValid()
 	 */
 	@Override
@@ -83,8 +80,7 @@ public abstract class AbstractSearchable extends EventManager implements ISearch
 	    return null;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getSearchMessage(java.lang.Object)
 	 */
 	@Override
@@ -92,24 +88,29 @@ public abstract class AbstractSearchable extends EventManager implements ISearch
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getCustomMessage(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public String getCustomMessage(Object rootElement, String key) {
+	    return null;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#restoreValues(org.eclipse.jface.dialogs.IDialogSettings)
 	 */
 	@Override
     public void restoreValues(IDialogSettings settings) {
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#persistValues(org.eclipse.jface.dialogs.IDialogSettings)
 	 */
 	@Override
     public void persistValues(IDialogSettings settings) {
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getElementText(java.lang.Object)
 	 */
 	@Override

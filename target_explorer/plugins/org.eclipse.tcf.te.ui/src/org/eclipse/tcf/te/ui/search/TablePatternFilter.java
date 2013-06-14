@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.internal.utils;
+package org.eclipse.tcf.te.ui.search;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

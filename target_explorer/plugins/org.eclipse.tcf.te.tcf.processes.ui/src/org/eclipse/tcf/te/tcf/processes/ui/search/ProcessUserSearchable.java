@@ -27,6 +27,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 
 /**
  * The searchable that provides a UI to collect and test
@@ -49,19 +50,18 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 	private Button fBtnUserSpecified;
 	private BaseEditBrowseTextControl txtUser;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-    public void createAdvancedPart(Composite parent) {
+	public void createAdvancedPart(TreeViewerSearchDialog dialog, Composite parent) {
 		SelectionListener l = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				optionChecked(e);
 			}
 		};
-		Composite modifiedComp = createSection(parent);
+		Composite modifiedComp = createGroup(parent);
 		modifiedComp.setLayout(new GridLayout(2, false));
 
 		fBtnUserNotRem = new Button(modifiedComp, SWT.RADIO);
@@ -115,7 +115,7 @@ public class ProcessUserSearchable extends ProcessBaseSearchable {
 	 * @see org.eclipse.tcf.te.tcf.processes.ui.search.ProcessBaseSearchable#getSectionTitle()
 	 */
 	@Override
-	protected String getSectionTitle() {
+	protected String getGroupTitle() {
 	    return Messages.ProcessUserSearchable_WhoStarted;
 	}
 

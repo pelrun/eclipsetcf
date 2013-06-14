@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 
 /**
  * The searchable that provides a UI to collect and test
@@ -36,14 +37,14 @@ public class FSSizeSearchable extends FSBaseSearchable {
 	private static final int OPTION_SIZE_MEDIUM = 2;
 	private static final int OPTION_SIZE_LARGE = 3;
 	private static final int OPTION_SIZE_SPECIFIED = 4;
-	
+
 	// Constant values of different size unit, used for matching purpose.
 	private static final long KB = 1024;
 	private static final long MB = 1024 * KB;
-	
+
 	private static final long SIZE_SMALL = 100 * KB;
 	private static final long SIZE_MEDIUM = 1*MB;
-	
+
 	// The choice selected
 	private int choice;
 	// The lower bound of size
@@ -59,20 +60,19 @@ public class FSSizeSearchable extends FSBaseSearchable {
 	private Button fBtnSizeSpecified;
 	private BaseEditBrowseTextControl txtSizeFrom;
 	private BaseEditBrowseTextControl txtSizeTo;
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-    public void createAdvancedPart(Composite parent) {
+	public void createAdvancedPart(TreeViewerSearchDialog dialog, Composite parent) {
 		SelectionListener l = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				optionChecked(e);
 			}
 		};
-		
+
 		Composite sizeComp = createSection(parent, Messages.FSSizeSearchable_WhatSize);
 		sizeComp.setLayout(new GridLayout(5, false));
 
@@ -90,21 +90,21 @@ public class FSSizeSearchable extends FSBaseSearchable {
 		data.horizontalSpan = 5;
 		fBtnSizeSmall.setLayoutData(data);
 		fBtnSizeSmall.addSelectionListener(l);
-		
+
 		fBtnSizeMedium = new Button(sizeComp, SWT.RADIO);
 		fBtnSizeMedium.setText(Messages.FSSizeSearchable_Medium);
 		data = new GridData();
 		data.horizontalSpan = 5;
 		fBtnSizeMedium.setLayoutData(data);
 		fBtnSizeMedium.addSelectionListener(l);
-		
+
 		fBtnSizeLarge = new Button(sizeComp, SWT.RADIO);
 		fBtnSizeLarge.setText(Messages.FSSizeSearchable_Large);
 		data = new GridData();
 		data.horizontalSpan = 5;
 		fBtnSizeLarge.setLayoutData(data);
 		fBtnSizeLarge.addSelectionListener(l);
-		
+
 		fBtnSizeSpecified = new Button(sizeComp, SWT.RADIO);
 		fBtnSizeSpecified.setText(Messages.FSSizeSearchable_SpecifySize);
 		data = new GridData();
@@ -136,11 +136,11 @@ public class FSSizeSearchable extends FSBaseSearchable {
 				sizeModified();
 			}
 		});
-		
-		
+
+
 		Label label = new Label(sizeComp, SWT.NONE);
 		label.setText(Messages.FSSizeSearchable_ToText);
-		
+
 		Composite cmpTo = new Composite(sizeComp, SWT.NONE);
 		layout = new GridLayout(2, false);
 		layout.marginWidth = 0;
@@ -166,7 +166,7 @@ public class FSSizeSearchable extends FSBaseSearchable {
 				sizeModified();
 			}
 		});
-		
+
 		label = new Label(sizeComp, SWT.NONE);
 		label.setText(Messages.FSSizeSearchable_KBS);
     }
@@ -202,7 +202,7 @@ public class FSSizeSearchable extends FSBaseSearchable {
 
 	/**
 	 * The method handling the selection event.
-	 * 
+	 *
 	 * @param e The selection event.
 	 */
 	protected void optionChecked(SelectionEvent e) {
@@ -228,7 +228,7 @@ public class FSSizeSearchable extends FSBaseSearchable {
 		if (txtSizeTo != null) txtSizeTo.setEnabled(specified);
 		fireOptionChanged();
     }
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchMatcher#match(java.lang.Object)

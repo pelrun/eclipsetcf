@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.interfaces.ISearchMatcher;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 import org.eclipse.tcf.te.ui.utils.AbstractSearchable;
 
 /**
@@ -36,32 +37,25 @@ import org.eclipse.tcf.te.ui.utils.AbstractSearchable;
 public class GeneralSearchable extends AbstractSearchable {
 	// The keys to access the options stored in the dialog settings.
 	private static final String TARGET_NAME = "PM.TargetName"; //$NON-NLS-1$
-	private static final String MATCH_PRECISE = "PM.MatchPrecise"; //$NON-NLS-1$
 	private static final String CASE_SENSITIVE = "PM.CaseSensitive"; //$NON-NLS-1$
 	// The case sensitive check box.
 	private Button fBtnCase;
-	// The matching rule check box.
-	private Button fBtnMatch;
 	// The input field for searching conditions.
 	private BaseEditBrowseTextControl fSearchField;
 	// The current target names.
 	private String fTargetName;
 	// Whether it is case sensitive
 	private boolean fCaseSensitive;
-	// Whether it is precise matching.
-	private boolean fMatchPrecise;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createCommonPart(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createCommonPart(org.eclipse.tcf.te.ui.internal.utils.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-    public void createCommonPart(Composite parent) {
+	public void createCommonPart(TreeViewerSearchDialog dialog, Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
-		GridLayout glayout = new GridLayout(3, false);
-		glayout.marginHeight = 0;
-		glayout.marginWidth = 0;
-		composite.setLayout(glayout);
+		GridLayout layout = new GridLayout(3, false);
+		layout.marginHeight = 0; layout.marginWidth = 0;
+		composite.setLayout(layout);
 		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		// Searching field.
@@ -84,19 +78,19 @@ public class GeneralSearchable extends AbstractSearchable {
 				searchTextModified();
 			}
 		});
-		
+
 		SelectionListener l = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				optionChecked(e);
 			}
 		};
-		
+
 		Group group = new Group(parent, SWT.NONE);
 		group.setText(Messages.GeneralSearchable_GeneralOptions);
 		group.setLayout(new GridLayout(2, true));
 		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		// Case sensitive
 		fBtnCase = new Button(group, SWT.CHECK);
 		fBtnCase.setText(Messages.GeneralSearchable_CaseSensitive);
@@ -104,14 +98,9 @@ public class GeneralSearchable extends AbstractSearchable {
 		fBtnCase.setLayoutData(data);
 		fBtnCase.addSelectionListener(l);
 
-		// Matching precisely
-		fBtnMatch = new Button(group, SWT.CHECK);
-		fBtnMatch.setText(Messages.GeneralSearchable_PreciseMatching);
-		data = new GridData(GridData.FILL_HORIZONTAL);
-		fBtnMatch.setLayoutData(data);
-		fBtnMatch.addSelectionListener(l);
+		dialog.createSearchDirectionOptions(group);
     }
-	
+
 	/**
 	 * The text for searching is modified.
 	 */
@@ -119,10 +108,10 @@ public class GeneralSearchable extends AbstractSearchable {
 		fireOptionChanged();
 		fTargetName = fSearchField.getEditFieldControlText().trim();
     }
-	
+
 	/**
 	 * Handling the event that a button is selected and checked.
-	 * 
+	 *
 	 * @param e The selection event.
 	 */
 	protected void optionChecked(SelectionEvent e) {
@@ -130,13 +119,9 @@ public class GeneralSearchable extends AbstractSearchable {
 		if (src == fBtnCase) {
 			fCaseSensitive = fBtnCase.getSelection();
 		}
-		else if (src == fBtnMatch) {
-			fMatchPrecise = fBtnMatch.getSelection();
-		}
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#isInputValid()
 	 */
 	@Override
@@ -144,8 +129,7 @@ public class GeneralSearchable extends AbstractSearchable {
 		return fSearchField.isValid();
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#restoreValues(org.eclipse.jface.dialogs.IDialogSettings)
 	 */
 	@Override
@@ -153,8 +137,6 @@ public class GeneralSearchable extends AbstractSearchable {
 		if(settings != null) {
 			fCaseSensitive = settings.getBoolean(CASE_SENSITIVE);
 			fBtnCase.setSelection(fCaseSensitive);
-			fMatchPrecise = settings.getBoolean(MATCH_PRECISE);
-			fBtnMatch.setSelection(fMatchPrecise);
 			fTargetName = settings.get(TARGET_NAME);
 			if (fTargetName != null) {
 				fSearchField.setEditFieldControlText(fTargetName);
@@ -162,11 +144,9 @@ public class GeneralSearchable extends AbstractSearchable {
 		}
 		else {
 			fCaseSensitive = false;
-			fMatchPrecise = false;
 			fTargetName = null;
 		}
 		fBtnCase.setSelection(fCaseSensitive);
-		fBtnMatch.setSelection(fMatchPrecise);
 		if (fTargetName != null) {
 			fSearchField.setEditFieldControlText(fTargetName);
 		}
@@ -180,7 +160,6 @@ public class GeneralSearchable extends AbstractSearchable {
     public void persistValues(IDialogSettings settings) {
 		if(settings != null) {
 			settings.put(CASE_SENSITIVE, fCaseSensitive);
-			settings.put(MATCH_PRECISE, fMatchPrecise);
 			settings.put(TARGET_NAME, fTargetName);
 		}
     }
@@ -191,9 +170,9 @@ public class GeneralSearchable extends AbstractSearchable {
 	 */
 	@Override
 	public ISearchMatcher getMatcher() {
-		return new ProcessNodeGeneralMatcher(fCaseSensitive, fMatchPrecise, fTargetName);
+		return new ProcessNodeGeneralMatcher(fCaseSensitive, fTargetName);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#getPreferredSize()
 	 */

@@ -111,6 +111,34 @@ public class ProcessSearchable extends CompositeSearchable {
 		return message;
     }
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getCustomMessage(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public String getCustomMessage(final Object rootElement, final String key) {
+		final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+
+		if (rootElement instanceof IRuntimeModel) {
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					if (rootElement instanceof IRuntimeModel) {
+						node.set(((IRuntimeModel)rootElement).getPeerModel());
+					}
+				}
+			};
+
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+		}
+		else if (rootElement != null) {
+			node.set(rootElement instanceof IAdaptable ? (IPeerModel)((IAdaptable)rootElement).getAdapter(IPeerModel.class) : (IPeerModel)Platform.getAdapterManager().getAdapter(rootElement, IPeerModel.class));
+		}
+
+		String message = Messages.getStringDelegated(node.get(), key);
+	    return message;
+ 	}
+
 	/**
 	 * Get a name representation for each process node.
 	 *

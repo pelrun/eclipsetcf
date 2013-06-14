@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.internal.utils;
+package org.eclipse.tcf.te.ui.search;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Queue;
@@ -26,7 +26,7 @@ import org.eclipse.tcf.te.ui.interfaces.ISearchable;
  */
 public class BreadthFirstSearcher extends AbstractSearcher{
 	// The queue to pre-populate the nodes to be matched
-	private Queue<TreePath> queue;
+	private final Queue<TreePath> queue = new ConcurrentLinkedQueue<TreePath>();
 
 	/**
 	 * Create a breadth-first searcher with the specified viewer and a
@@ -45,7 +45,7 @@ public class BreadthFirstSearcher extends AbstractSearcher{
 	 */
 	@Override
     public void setStartPath(TreePath path) {
-		this.queue = new ConcurrentLinkedQueue<TreePath>();
+		this.queue.clear();
 		Assert.isTrue(this.queue.offer(path));
 	}
 

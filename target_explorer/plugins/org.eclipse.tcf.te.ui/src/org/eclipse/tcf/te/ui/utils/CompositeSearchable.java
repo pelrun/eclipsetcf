@@ -22,6 +22,7 @@ import org.eclipse.tcf.te.ui.interfaces.IOptionListener;
 import org.eclipse.tcf.te.ui.interfaces.ISearchMatcher;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 import org.eclipse.tcf.te.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.events.IExpansionListener;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -55,21 +56,21 @@ public abstract class CompositeSearchable implements ISearchable {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createCommonPart(org.eclipse.swt.widgets.Composite)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createCommonPart(org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	public void createCommonPart(Composite parent) {
+	public void createCommonPart(TreeViewerSearchDialog dialog, Composite parent) {
 		Assert.isNotNull(searchables, "setSearchables must be called before!"); //$NON-NLS-1$
 		for (ISearchable searchable : searchables) {
-			searchable.createCommonPart(parent);
+			searchable.createCommonPart(dialog, parent);
 		}
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#createAdvancedPart(org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	public void createAdvancedPart(Composite parent) {
+	public void createAdvancedPart(TreeViewerSearchDialog dialog, Composite parent) {
 		Section section = new Section(parent, ExpandableComposite.TWISTIE | ExpandableComposite.CLIENT_INDENT);
 		section.setText(Messages.TreeViewerSearchDialog_AdvancedOptions);
 		section.setLayout(FormLayoutFactory.createSectionClientGridLayout(false, 2));
@@ -97,7 +98,7 @@ public abstract class CompositeSearchable implements ISearchable {
 				shell.setSize(p.x, p.y);
             }});
 		for(ISearchable searchable : searchables) {
-			searchable.createAdvancedPart(advancedPart);
+			searchable.createAdvancedPart(dialog, advancedPart);
 		}
 	}
 

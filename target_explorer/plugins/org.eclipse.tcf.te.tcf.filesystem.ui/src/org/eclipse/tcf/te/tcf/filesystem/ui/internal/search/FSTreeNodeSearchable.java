@@ -69,12 +69,19 @@ public class FSTreeNodeSearchable extends CompositeSearchable {
 		return rootNode.name;
     }
 
-	/*
-	 * (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getElementText(java.lang.Object)
 	 */
 	@Override
     public String getElementText(Object element) {
 	    return getElementName(element);
     }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchable#getCustomMessage(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public String getCustomMessage(Object rootElement, String key) {
+	    return null;
+	}
 }

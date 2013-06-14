@@ -29,6 +29,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.interfaces.ISearchMatcher;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 import org.eclipse.tcf.te.ui.utils.AbstractSearchable;
 
 /**
@@ -69,22 +70,21 @@ public class FSGeneralSearchable extends AbstractSearchable {
 	private int fTargetType;
 	// The root directory node.
 	private FSTreeNode rootNode;
-	
+
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param node the node whose sub tree will be searched.
 	 */
 	public FSGeneralSearchable(FSTreeNode node) {
 		rootNode = node;
 	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createCommonPart(org.eclipse.swt.widgets.Composite)
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createCommonPart(org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	public void createCommonPart(Composite parent) {
+	public void createCommonPart(TreeViewerSearchDialog dialog, Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
 		GridLayout glayout = new GridLayout(3, false);
 		glayout.marginHeight = 0;
@@ -112,27 +112,27 @@ public class FSGeneralSearchable extends AbstractSearchable {
 				searchTextModified();
 			}
 		});
-		
+
 		SelectionListener l = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				optionChecked(e);
 			}
 		};
-		
+
 		Group group = new Group(parent, SWT.NONE);
 		group.setText(Messages.FSGeneralSearchable_GeneralOptionText);
 		group.setLayout(new GridLayout());
 		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		Composite cmpType = new Composite(group, SWT.NONE);
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
 		cmpType.setLayoutData(data);
 		cmpType.setLayout(new GridLayout(2, false));
-		
+
 		label = new Label(cmpType, SWT.NONE);
 		label.setText(Messages.FSGeneralSearchable_FileType);
-		
+
 		// Search files only
 		fCmbTypes = new Combo(cmpType, SWT.BORDER | SWT.READ_ONLY);
 		fCmbTypes.setItems(new String[]{Messages.FSTreeNodeSearchable_FilesAndFolders, Messages.FSTreeNodeSearchable_FilesOnly, Messages.FSTreeNodeSearchable_FoldersOnly});
@@ -142,8 +142,8 @@ public class FSGeneralSearchable extends AbstractSearchable {
 		Composite compOptions = new Composite(group, SWT.NONE);
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		compOptions.setLayoutData(data);
-		compOptions.setLayout(new GridLayout(2, true));
-		
+		compOptions.setLayout(new GridLayout(3, true));
+
 		// Case sensitive
 		fBtnCase = new Button(compOptions, SWT.CHECK);
 		fBtnCase.setText(Messages.TreeViewerSearchDialog_BtnCaseText);
@@ -157,7 +157,9 @@ public class FSGeneralSearchable extends AbstractSearchable {
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		fBtnMatch.setLayoutData(data);
 		fBtnMatch.addSelectionListener(l);
-		
+
+		dialog.createSearchDirectionOptions(compOptions);
+
 		// If the target is Windows platform, then add system/hidden options.
 		if(rootNode.isWindowsNode()) {
 			fBtnSystem = new Button(compOptions, SWT.CHECK);
@@ -165,7 +167,7 @@ public class FSGeneralSearchable extends AbstractSearchable {
 			data = new GridData(GridData.FILL_HORIZONTAL);
 			fBtnSystem.setLayoutData(data);
 			fBtnSystem.addSelectionListener(l);
-			
+
 			fBtnHidden = new Button(compOptions, SWT.CHECK);
 			fBtnHidden.setText(Messages.FSGeneralSearchable_SearchHiddenFiles);
 			data = new GridData(GridData.FILL_HORIZONTAL);
@@ -173,7 +175,7 @@ public class FSGeneralSearchable extends AbstractSearchable {
 			fBtnHidden.addSelectionListener(l);
 		}
 	}
-	
+
 	/**
 	 * The text for searching is modified.
 	 */
@@ -181,10 +183,10 @@ public class FSGeneralSearchable extends AbstractSearchable {
 		fireOptionChanged();
 		fTargetName = fSearchField.getEditFieldControlText().trim();
     }
-	
+
 	/**
 	 * Handling the event that a button is selected and checked.
-	 * 
+	 *
 	 * @param e The selection event.
 	 */
 	protected void optionChecked(SelectionEvent e) {

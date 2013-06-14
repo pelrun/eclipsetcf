@@ -80,24 +80,17 @@ public class Messages extends NLS {
 
 	public static String TreeViewerSearchDialog_AdvancedOptions;
 	public static String TreeViewerSearchDialog_All;
-	public static String TreeViewerSearchDialog_BFS;
 	public static String TreeViewerSearchDialog_BtnBackText;
 	public static String TreeViewerSearchDialog_BtnCloseText;
 	public static String TreeViewerSearchDialog_BtnSearchText;
-	public static String TreeViewerSearchDialog_DepthFirst;
-	public static String TreeViewerSearchDialog_DFS;
 	public static String TreeViewerSearchDialog_JobName;
 	public static String TreeViewerSearchDialog_MainTaskName;
 	public static String TreeViewerSearchDialog_NoMoreNodeFound;
 	public static String TreeViewerSearchDialog_NoSuchNode;
 	public static String TreeViewerSearchDialog_Scope;
 	public static String TreeViewerSearchDialog_SearchAlgorithm;
-	public static String TreeViewerSearchDialog_SearchNodesUsing;
 	public static String TreeViewerSearchDialog_Selected;
-	public static String TreeViewerSearchDialog_BreadthFirst;
 	public static String TreeViewerSearchDialog_BtnWrapText;
-	public static String TreeViewerSearchDialog_GeneralOptions;
-	public static String TreeViewerSearchDialog_UseOptions;
 
 	public static String ViewerStateManager_MkdirFailed;
 

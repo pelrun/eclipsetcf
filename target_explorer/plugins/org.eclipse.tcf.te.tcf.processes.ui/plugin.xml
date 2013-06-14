@@ -309,21 +309,6 @@
                </with>
             </visibleWhen>
          </command>
-         <command
-               commandId="org.eclipse.tcf.te.tcf.processes.ui.command.refreshViewer"
-               icon="icons/obj16/refresh.gif"
-               label="%command.refreshviewer.label"
-               style="push"
-               tooltip="%command.refreshviewer.tooltip">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <count value="+"/>
-                  <iterate ifEmpty="false" operator="and">
-                     <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
          <separator
                name="group.search"
                visible="true">

@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.interfaces;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 import org.eclipse.tcf.te.ui.utils.AbstractSearchable;
 import org.eclipse.tcf.te.ui.utils.CompositeSearchable;
 
@@ -45,6 +46,16 @@ public interface ISearchable {
 	public String getSearchMessage(Object rootElement);
 
 	/**
+	 * Returns a customized message for the given key and root element.
+	 *
+	 * @param rootElement The root element where the search is started.
+	 * @param key The message key
+	 *
+	 * @return The customized message or <code>null</code>.
+	 */
+	public String getCustomMessage(Object rootElement, String key);
+
+	/**
 	 * Get a text to be used during searching process.
 	 *
 	 * @param element The element to searched.
@@ -56,17 +67,19 @@ public interface ISearchable {
 	 * Create the part in the searching dialog where the user
 	 * enters the common matching rule used in searching.
 	 *
+	 * @param dialog The parent tree viewer search dialog.
 	 * @param parent The parent composite of this option part.
 	 */
-	public void createCommonPart(Composite parent);
+	public void createCommonPart(TreeViewerSearchDialog dialog, Composite parent);
 
 	/**
 	 * Create the part in the searching dialog where the user
 	 * enters the advanced matching rule used in searching.
 	 *
+	 * @param dialog The parent tree viewer search dialog.
 	 * @param parent The parent composite of this option part.
 	 */
-	public void createAdvancedPart(Composite parent);
+	public void createAdvancedPart(TreeViewerSearchDialog dialog, Composite parent);
 
 	/**
 	 * Get a searching matcher object to test if a tree node matches

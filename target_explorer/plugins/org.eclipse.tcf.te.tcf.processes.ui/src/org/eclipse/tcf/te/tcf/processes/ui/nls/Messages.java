@@ -176,7 +176,6 @@ public class Messages extends NLS {
 	public static String GeneralSearchable_CaseSensitive;
 	public static String GeneralSearchable_FindLabel;
 	public static String GeneralSearchable_GeneralOptions;
-	public static String GeneralSearchable_PreciseMatching;
 
 	public static String TerminateHandler_terminateFailed;
 

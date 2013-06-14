@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 
 /**
  * The searchable that provides a UI to collect and test
@@ -36,7 +37,7 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 	private static final int OPTION_LAST_MONTH = 2;
 	private static final int OPTION_LAST_YEAR = 3;
 	private static final int OPTION_SPECIFIED = 4;
-	
+
 	// Constant values of different time unit, used for matching purpose.
 	private static final long SECOND = 1000L;
 	private static final long MINUTE = 60 * SECOND;
@@ -45,7 +46,7 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 	private static final long WEEK = 7 * DAY;
 	private static final long MONTH = 30 * DAY;
 	private static final long YEAR = 365 * DAY;
-	
+
 	// The choice selected
 	private int choice;
 	// The specified "from" date
@@ -62,12 +63,11 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 	private BaseEditBrowseTextControl txtLmFrom;
 	private BaseEditBrowseTextControl txtLmTo;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-    public void createAdvancedPart(Composite parent) {
+	public void createAdvancedPart(TreeViewerSearchDialog dialog, Composite parent) {
 		SelectionListener l = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -76,7 +76,7 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 		};
 		Composite modifiedComp = createSection(parent, Messages.FSModifiedSearchable_WhenModified);
 		modifiedComp.setLayout(new GridLayout(4, false));
-		
+
 		fBtnLmNotRem = new Button(modifiedComp, SWT.RADIO);
 		fBtnLmNotRem.setText(Messages.FSModifiedSearchable_DontRemember);
 		fBtnLmNotRem.setSelection(true);
@@ -91,27 +91,27 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 		data.horizontalSpan = 4;
 		fBtnLmLastWeek.setLayoutData(data);
 		fBtnLmLastWeek.addSelectionListener(l);
-		
+
 		fBtnLmPastMonth = new Button(modifiedComp, SWT.RADIO);
 		fBtnLmPastMonth.setText(Messages.FSModifiedSearchable_PastMonth);
 		data = new GridData();
 		data.horizontalSpan = 4;
 		fBtnLmPastMonth.setLayoutData(data);
 		fBtnLmPastMonth.addSelectionListener(l);
-		
+
 		fBtnLmPastYear = new Button(modifiedComp, SWT.RADIO);
 		fBtnLmPastYear.setText(Messages.FSModifiedSearchable_PastYear);
 		data = new GridData();
 		data.horizontalSpan = 4;
 		fBtnLmPastYear.setLayoutData(data);
 		fBtnLmPastYear.addSelectionListener(l);
-		
+
 		fBtnLmSpecified = new Button(modifiedComp, SWT.RADIO);
 		fBtnLmSpecified.setText(Messages.FSModifiedSearchable_SpecifyDates);
 		data = new GridData();
 		fBtnLmSpecified.setLayoutData(data);
 		fBtnLmSpecified.addSelectionListener(l);
-		
+
 		Composite cmpFrom = new Composite(modifiedComp, SWT.NONE);
 		GridLayout layout = new GridLayout(2, false);
 		layout.marginWidth = 0;
@@ -121,7 +121,7 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 		cmpFrom.setLayout(layout);
 		data = new GridData();
 		cmpFrom.setLayoutData(data);
-		
+
 		txtLmFrom = new BaseEditBrowseTextControl(null);
 		txtLmFrom.setIsGroup(false);
 		txtLmFrom.setHasHistory(false);
@@ -137,10 +137,10 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 				datesModified();
 			}
 		});
-		
+
 		Label label = new Label(modifiedComp, SWT.NONE);
 		label.setText(Messages.FSModifiedSearchable_ToDate);
-		
+
 		Composite cmpTo = new Composite(modifiedComp, SWT.NONE);
 		layout = new GridLayout(2, false);
 		layout.marginWidth = 0;
@@ -199,7 +199,7 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 
 	/**
 	 * The method handling the selection event.
-	 * 
+	 *
 	 * @param e The selection event.
 	 */
 	protected void optionChecked(SelectionEvent e) {
@@ -225,7 +225,7 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 		if (txtLmTo != null) txtLmTo.setEnabled(specified);
 		fireOptionChanged();
     }
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.ISearchMatcher#match(java.lang.Object)

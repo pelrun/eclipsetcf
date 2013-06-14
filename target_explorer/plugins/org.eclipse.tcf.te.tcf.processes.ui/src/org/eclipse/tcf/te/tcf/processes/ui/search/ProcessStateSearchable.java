@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
 
 /**
  * The searchable that provides a UI to collect and test
@@ -64,19 +65,18 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 	// The current selected states expressed in the above characters.
 	private String fStates;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.swt.widgets.Composite)
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.utils.AbstractSearchable#createAdvancedPart(org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-    public void createAdvancedPart(Composite parent) {
+	public void createAdvancedPart(TreeViewerSearchDialog dialog, Composite parent) {
 		SelectionListener l = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				optionChecked(e);
 			}
 		};
-		Composite stateComposite = createSection(parent);
+		Composite stateComposite = createGroup(parent);
 		stateComposite.setLayout(new GridLayout());
 
 		fBtnNotRem = new Button(stateComposite, SWT.RADIO);
@@ -146,7 +146,7 @@ public class ProcessStateSearchable extends ProcessBaseSearchable {
 	 * @see org.eclipse.tcf.te.tcf.processes.ui.search.ProcessBaseSearchable#getSectionTitle()
 	 */
 	@Override
-	protected String getSectionTitle() {
+	protected String getGroupTitle() {
 	    return Messages.ProcessStateSearchable_SectionChooseState;
 	}
 

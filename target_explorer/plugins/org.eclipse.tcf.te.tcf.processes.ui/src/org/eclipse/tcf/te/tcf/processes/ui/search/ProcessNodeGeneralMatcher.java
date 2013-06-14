@@ -20,8 +20,6 @@ import org.eclipse.tcf.te.ui.utils.StringMatcher;
 public class ProcessNodeGeneralMatcher implements ISearchMatcher {
 	// Whether it is case sensitive
 	private boolean fCaseSensitive;
-	// Whether it is precise matching.
-	private boolean fMatchPrecise;
 	// The string matcher for matching.
 	private StringMatcher fStringMatcher;
 	// The label provider used to get a text for a process.
@@ -33,16 +31,12 @@ public class ProcessNodeGeneralMatcher implements ISearchMatcher {
 	 * Constructor with options.
 	 *
 	 * @param caseSensitive
-	 * @param matchPrecise
 	 * @param targetName
 	 */
-	public ProcessNodeGeneralMatcher(boolean caseSensitive, boolean matchPrecise, String targetName) {
+	public ProcessNodeGeneralMatcher(boolean caseSensitive, String targetName) {
 		fCaseSensitive = caseSensitive;
 		fTargetName = targetName;
-		fMatchPrecise = matchPrecise;
-		if (!fMatchPrecise) {
-			fStringMatcher = new StringMatcher(fTargetName, !fCaseSensitive, false);
-		}
+		fStringMatcher = new StringMatcher(fTargetName, !fCaseSensitive, false);
 	}
 
 	/*
@@ -56,9 +50,6 @@ public class ProcessNodeGeneralMatcher implements ISearchMatcher {
 			IProcessContextNode node = (IProcessContextNode) context;
 			String text = labelProvider.getText(node);
 			if (text != null) {
-				if (fMatchPrecise) {
-					return fCaseSensitive ? text.equals(fTargetName) : text.equalsIgnoreCase(fTargetName);
-				}
 				return fStringMatcher.match(text);
 			}
 		}
