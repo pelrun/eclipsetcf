@@ -29,18 +29,28 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -70,37 +80,59 @@ import org.eclipse.ui.part.ViewPart;
 public class ProfilerView extends ViewPart {
 
     private static final long UPDATE_DELAY = 4000;
+    private static final int FRAME_COUNT = 5;
 
     private static class ProfileSample {
         int cnt;
         final BigInteger[] trace;
 
-        ProfileSample(int cnt, BigInteger[] trace) {
-            this.cnt = cnt;
+        ProfileSample(BigInteger[] trace) {
             this.trace = trace;
         }
     }
 
-    @SuppressWarnings("serial")
-    private static class ProfileData extends HashMap<BigInteger,List<ProfileSample>> {
+    private static class ProfileData {
         final String ctx;
 
         boolean stopped;
         boolean unsupported;
         int sample_count;
 
-        ProfileData(String ctx) {
+        // Samples by frame
+        final Map<BigInteger,List<ProfileSample>>[] map;
+
+        int generation_inp;
+        int generation_out;
+
+        ProfileEntry[] entries;
+
+        @SuppressWarnings("unchecked")
+        ProfileData(String ctx, int frame_cnt) {
             this.ctx = ctx;
+            map = new Map[frame_cnt];
+            for (int i = 0; i < frame_cnt; i++) {
+                map[i] = new HashMap<BigInteger,List<ProfileSample>>();
+            }
         }
     }
 
     private static class ProfileEntry {
-        BigInteger addr;
+        final BigInteger addr;
+
         String name;
         String file_full;
         String file_base;
         int line;
         int count;
+        float total;
+        ProfileEntry[] up;
+        ProfileEntry[] dw;
+
+        boolean mark;
+
+        ProfileEntry(BigInteger addr) {
+            this.addr = addr;
+        }
     }
 
     private final Map<TCFModel,Map<String,ProfileData>> data =
@@ -158,10 +190,6 @@ public class ProfilerView extends ViewPart {
                         @Override
                         public void doneRead(IToken token, Exception error, Map<String,Object>[] data) {
                             cmds.remove(token);
-                            if (cmds.size() == 0) {
-                                Protocol.invokeLater(UPDATE_DELAY, read_data);
-                                updateView();
-                            }
                             if (error != null) {
                                 Activator.log(error);
                             }
@@ -170,6 +198,10 @@ public class ProfilerView extends ViewPart {
                                 if (data.length > 0) {
                                     for (Map<String,Object> m : data) addSamples(p, m);
                                 }
+                            }
+                            if (cmds.size() == 0) {
+                                Protocol.invokeLater(UPDATE_DELAY, read_data);
+                                updateView();
                             }
                         }
                     }));
@@ -197,12 +229,16 @@ public class ProfilerView extends ViewPart {
             case 1:
                 break;
             case 2:
+                if (x.total > y.total) return -1;
+                if (x.total < y.total) return +1;
+                break;
+            case 3:
                 if (x.name == y.name) break;
                 if (x.name == null) return -1;
                 if (y.name == null) return +1;
                 r = x.name.compareTo(y.name);
                 break;
-            case 3:
+            case 4:
                 if (x.file_base == y.file_base) break;
                 if (x.file_base == null) return -1;
                 if (y.file_base == null) return +1;
@@ -212,23 +248,22 @@ public class ProfilerView extends ViewPart {
             if (r != 0) return r;
             if (x.count > y.count) return -1;
             if (x.count < y.count) return +1;
-            return 0;
+            return x.addr.compareTo(y.addr);
         }
     };
 
     private class Update implements Runnable {
-        final TCFNode selection;
         final int sorting;
-        final List<ProfileEntry> lst = new ArrayList<ProfileEntry>();
+        final TCFNode selection;
+        final Map<BigInteger,ProfileEntry> entries = new HashMap<BigInteger,ProfileEntry>();
         final Map<BigInteger,String> funcs = new HashMap<BigInteger,String>();
         final TCFNodeExecContext node;
         final ProfileData prof_data;
-        final List<ProfileSample>[] samples;
         final ISymbols symbols;
         final ILineNumbers line_numbers;
+        final int generation;
         boolean done;
-        int pos;
-        @SuppressWarnings("unchecked")
+
         Update() {
             assert Protocol.isDispatchThread();
             selection = ProfilerView.this.selection;
@@ -241,97 +276,163 @@ public class ProfilerView extends ViewPart {
             prof_data = p;
             if (p == null) {
                 node = null;
-                samples = null;
                 symbols = null;
                 line_numbers = null;
+                generation = 0;
             }
             else {
                 node = (TCFNodeExecContext)selection;
                 symbols = node.getChannel().getRemoteService(ISymbols.class);
                 line_numbers = node.getChannel().getRemoteService(ILineNumbers.class);
-                samples = p.values().toArray(new List[p.values().size()]);
+                generation = p.generation_inp;
             }
+            last_update = this;
+        }
+
+        private boolean getFuncName(ProfileEntry pe) {
+            if (symbols == null) return true;
+            String func_id = funcs.get(pe.addr);
+            if (func_id == null) {
+                func_id = "";
+                TCFDataCache<TCFFunctionRef> func_cache = node.getFuncInfo(pe.addr);
+                if (func_cache != null) {
+                    if (!func_cache.validate(this)) return false;
+                    TCFFunctionRef func_data = func_cache.getData();
+                    if (func_data != null && func_data.symbol_id != null) {
+                        func_id = func_data.symbol_id;
+                    }
+                }
+                funcs.put(pe.addr, func_id);
+            }
+            if (func_id.length() > 0) {
+                TCFDataCache<ISymbols.Symbol> sym_cache = node.getModel().getSymbolInfoCache(func_id);
+                if (!sym_cache.validate(this)) return false;
+                ISymbols.Symbol sym_data = sym_cache.getData();
+                if (sym_data != null && sym_data.getName() != null) {
+                    pe.name = sym_data.getName();
+                }
+            }
+            return true;
+        }
+
+        private boolean getLineInfo(ProfileEntry pe) {
+            if (line_numbers == null) return true;
+            TCFDataCache<TCFSourceRef> line_cache = node.getLineInfo(pe.addr);
+            if (line_cache == null) return true;
+            if (!line_cache.validate(this)) return false;
+            TCFSourceRef line_data = line_cache.getData();
+            if (line_data != null && line_data.area != null) {
+                pe.file_full = TCFSourceLookupParticipant.toFileName(line_data.area);
+                if (pe.file_full != null) {
+                    pe.file_base = pe.file_full;
+                    int i = pe.file_base.lastIndexOf('/');
+                    int j = pe.file_base.lastIndexOf('\\');
+                    if (i > j) pe.file_base = pe.file_base.substring(i + 1);
+                    if (i < j) pe.file_base = pe.file_base.substring(j + 1);
+                    pe.line = line_data.area.start_line;
+                }
+            }
+            return true;
+        }
+
+        void linkEntry(ProfileEntry pe) {
+            Set<ProfileEntry> set_up = new HashSet<ProfileEntry>();
+            Set<ProfileEntry> set_dw = new HashSet<ProfileEntry>();
+            for (int n = 0; n < prof_data.map.length; n++) {
+                List<ProfileSample> s0 = prof_data.map[n].get(pe.addr);
+                if (s0 != null) {
+                    for (ProfileSample x : s0) {
+                        assert x.trace[n].equals(pe.addr);
+                        if (x.trace.length <= n + 1) continue;
+                        BigInteger addr_up = x.trace[n + 1];
+                        ProfileEntry pe_up = entries.get(addr_up);
+                        set_up.add(pe_up);
+                    }
+                }
+                if (n == prof_data.map.length - 1) continue;
+                List<ProfileSample> s1 = prof_data.map[n + 1].get(pe.addr);
+                if (s1 != null) {
+                    for (ProfileSample x : s1) {
+                        assert x.trace.length > n + 1;
+                        assert x.trace[n + 1].equals(pe.addr);
+                        BigInteger addr_dw = x.trace[n];
+                        ProfileEntry pe_dw = entries.get(addr_dw);
+                        set_dw.add(pe_dw);
+                    }
+                }
+            }
+            if (set_up.size() > 0) pe.up = set_up.toArray(new ProfileEntry[set_up.size()]);
+            if (set_dw.size() > 0) pe.dw = set_dw.toArray(new ProfileEntry[set_dw.size()]);
+        }
+
+        void addUpTotal(ProfileEntry pe, float cnt) {
+            if (cnt <= 0.1 || pe.up == null) return;
+            pe.mark = true;
+            int n = 0;
+            for (ProfileEntry up : pe.up) {
+                if (!up.mark) n++;
+            }
+            if (n != 0) {
+                float m = cnt / n;
+                for (ProfileEntry up : pe.up) {
+                    if (up.mark) continue;
+                    addUpTotal(up, m);
+                    up.total += m;
+                }
+            }
+            pe.mark = false;
         }
 
         @Override
         public void run() {
             if (done) return;
             if (last_update != this) return;
-            if (samples != null && pos < samples.length) {
+            if (prof_data != null && generation != prof_data.generation_out) {
                 if (node.isDisposed()) {
-                    lst.clear();
+                    entries.clear();
                 }
                 else {
-                    while (pos < samples.length) {
-                        List<ProfileSample> s = samples[pos];
-                        int count = 0;
-                        BigInteger addr = null;
-                        for (ProfileSample x : s) {
-                            if (addr == null) addr = x.trace[0];
-                            count += x.cnt;
-                        }
-                        if (addr != null) {
-                            String func_name = null;
-                            String file_full = null;
-                            String file_base = null;
-                            int line = 0;
-                            if (symbols != null) {
-                                String func_id = funcs.get(addr);
-                                if (func_id == null) {
-                                    func_id = "";
-                                    TCFDataCache<TCFFunctionRef> func_cache = node.getFuncInfo(addr);
-                                    if (func_cache != null) {
-                                        if (!func_cache.validate(this)) return;
-                                        TCFFunctionRef func_data = func_cache.getData();
-                                        if (func_data != null && func_data.symbol_id != null) {
-                                            func_id = func_data.symbol_id;
-                                        }
-                                    }
-                                    funcs.put(addr, func_id);
-                                }
-                                if (func_id.length() > 0) {
-                                    TCFDataCache<ISymbols.Symbol> sym_cache = node.getModel().getSymbolInfoCache(func_id);
-                                    if (!sym_cache.validate(this)) return;
-                                    ISymbols.Symbol sym_data = sym_cache.getData();
-                                    if (sym_data != null && sym_data.getName() != null) {
-                                        func_name = sym_data.getName();
-                                    }
-                                }
+                    for (int n = 0; n < prof_data.map.length; n++) {
+                        for (BigInteger addr : prof_data.map[n].keySet()) {
+                            ProfileEntry pe = entries.get(addr);
+                            if (pe != null) continue;
+                            pe = new ProfileEntry(addr);
+                            if (!getFuncName(pe)) return;
+                            if (!getLineInfo(pe)) return;
+                            if (n == 0) {
+                                List<ProfileSample> s = prof_data.map[0].get(addr);
+                                for (ProfileSample x : s) pe.count += x.cnt;
                             }
-                            if (line_numbers != null) {
-                                TCFDataCache<TCFSourceRef> line_cache = node.getLineInfo(addr);
-                                if (line_cache != null) {
-                                    if (!line_cache.validate(this)) return;
-                                    TCFSourceRef line_data = line_cache.getData();
-                                    if (line_data != null && line_data.area != null) {
-                                        file_full = TCFSourceLookupParticipant.toFileName(line_data.area);
-                                        if (file_full != null) {
-                                            file_base = file_full;
-                                            int i = file_base.lastIndexOf('/');
-                                            int j = file_base.lastIndexOf('\\');
-                                            if (i > j) file_base = file_base.substring(i + 1);
-                                            if (i < j) file_base = file_base.substring(j + 1);
-                                            line = line_data.area.start_line;
-                                        }
-                                    }
-                                }
-                            }
-                            ProfileEntry e = new ProfileEntry();
-                            e.addr = addr;
-                            e.count = count;
-                            e.name = func_name;
-                            e.file_full = file_full;
-                            e.file_base = file_base;
-                            e.line = line;
-                            lst.add(e);
+                            entries.put(pe.addr, pe);
                         }
-                        pos++;
+                    }
+                    for (ProfileEntry pe : entries.values()) {
+                        linkEntry(pe);
+                    }
+                    for (List<ProfileSample> lps : prof_data.map[0].values()) {
+                        for (ProfileSample ps : lps) {
+                            int n = 0;
+                            while (n < ps.trace.length) {
+                                ProfileEntry pe = entries.get(ps.trace[n]);
+                                if (n == ps.trace.length - 1) {
+                                    addUpTotal(pe, ps.cnt);
+                                }
+                                pe.total += ps.cnt;
+                                n++;
+                            }
+                        }
+                    }
+                    for (ProfileEntry pe : entries.values()) {
+                        if (pe.up != null) Arrays.sort(pe.up, new SampleComparator(2));
+                        if (pe.dw != null) Arrays.sort(pe.dw, new SampleComparator(2));
                     }
                 }
+                ProfileEntry[] arr = entries.values().toArray(new ProfileEntry[entries.size()]);
+                Arrays.sort(arr, new SampleComparator(sorting));
+                prof_data.generation_out = generation;
+                prof_data.entries = arr;
             }
             done = true;
-            final ProfileEntry[] entries = lst.toArray(new ProfileEntry[lst.size()]);
-            Arrays.sort(entries, new SampleComparator(sorting));
             final boolean enable_start =
                     (selection instanceof TCFNodeExecContext) &&
                     selection.getChannel().getRemoteService(IProfiler.class) != null;
@@ -346,8 +447,24 @@ public class ProfilerView extends ViewPart {
                     action_start.setEnabled(enable_start);
                     action_stop.setEnabled(enable_stop);
                     profile_node = node;
-                    profile = entries;
-                    viewer.setInput(entries);
+                    Object viewer_input = prof_data != null ? prof_data.entries : null;
+                    if (viewer_main.getInput() != viewer_input) {
+                        ISelection s = viewer_main.getSelection();
+                        ProfilerView.this.sample_count = sample_count;
+                        viewer_main.setInput(viewer_input);
+                        if (s instanceof IStructuredSelection) {
+                            IStructuredSelection ss = (IStructuredSelection)s;
+                            List<ProfileEntry> l = new ArrayList<ProfileEntry>();
+                            for (Object obj : ss.toArray()) {
+                                if (obj instanceof ProfileEntry) {
+                                    ProfileEntry pe = (ProfileEntry)obj;
+                                    pe = entries.get(pe.addr);
+                                    if (pe != null) l.add(pe);
+                                }
+                            }
+                            setSelection(l, false);
+                        }
+                    }
                     if (!enable_start) {
                         status.setText("Selected context does not support profiling");
                     }
@@ -371,7 +488,7 @@ public class ProfilerView extends ViewPart {
     private class ProfileContentProvider implements IStructuredContentProvider  {
 
         public Object[] getElements(Object input) {
-            return profile;
+            return (Object[])input;
         }
 
         public void inputChanged(Viewer viewer, Object old_input, Object new_input) {
@@ -391,10 +508,11 @@ public class ProfilerView extends ViewPart {
             ProfileEntry e = (ProfileEntry)element;
             switch (column) {
             case 0: return toHex(e.addr);
-            case 1: return Integer.toString(e.count);
-            case 2: return e.name;
-            case 3: return e.file_base;
-            case 4: return e.line == 0 ? null : Integer.toString(e.line);
+            case 1: return toPercent(e.count);
+            case 2: return toPercent(e.total);
+            case 3: return e.name;
+            case 4: return e.file_base;
+            case 5: return e.line == 0 ? null : Integer.toString(e.line);
             }
             return null;
         }
@@ -403,6 +521,12 @@ public class ProfilerView extends ViewPart {
             String s = n.toString(16);
             if (s.length() >= 8) return s;
             return "00000000".substring(s.length()) + s;
+        }
+
+        private String toPercent(float x) {
+            float f = x * 100 / sample_count;
+            if (f >= 10) return String.format("%.1f", f);
+            return String.format("%.2f", f);
         }
     }
 
@@ -439,13 +563,16 @@ public class ProfilerView extends ViewPart {
     private Update last_update;
     private Composite parent;
     private Label status;
-    private TableViewer viewer;
-    private ProfileEntry[] profile;
+    private TableViewer viewer_main;
+    private TableViewer viewer_up;
+    private TableViewer viewer_dw;
     private TCFNode profile_node;
+    private int sample_count;
 
     private static final String[] column_ids = {
         "Address",
-        "Count",
+        "%",
+        "% Inclusive",
         "Function",
         "File",
         "Line"
@@ -453,6 +580,7 @@ public class ProfilerView extends ViewPart {
 
     private static final int[] column_size = {
         80,
+        60,
         60,
         250,
         250,
@@ -464,68 +592,48 @@ public class ProfilerView extends ViewPart {
         this.parent = parent;
 
         Font font = parent.getFont();
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(1, false);
+        final Composite composite = new Composite(parent, SWT.NONE | SWT.NO_FOCUS);
+        final FormLayout form = new FormLayout();
         composite.setFont(font);
-        composite.setLayout(layout);
+        composite.setLayout(form);
         composite.setLayoutData(new GridData(GridData.FILL_BOTH));
-        status = new Label(composite, SWT.NONE);
-        status.setFont(font);
-        status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        viewer = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
-        final Table table = viewer.getTable();
-        table.setLayoutData(new GridData(GridData.FILL_BOTH));
-        table.setHeaderVisible(true);
-        table.setLinesVisible(true);
-        table.setFont(font);
-        viewer.setContentProvider(new ProfileContentProvider());
-        viewer.setLabelProvider(new ProfileLabelProvider());
-        viewer.setColumnProperties(column_ids);
 
-        for (int i = 0; i < column_ids.length; i++) {
-            final int n = i;
-            final TableColumn c = new TableColumn(table, SWT.NONE, i);
-            c.setText(column_ids[i]);
-            c.setWidth(column_size[i]);
-            if (i != 4) {
-                c.addSelectionListener(new SelectionListener() {
-                    @Override
-                    public void widgetSelected(SelectionEvent e) {
-                        table.setSortDirection(SWT.DOWN);
-                        table.setSortColumn(c);
-                        sorting = n;
-                        Protocol.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                updateView();
-                            }
-                        });
-                    }
-                    @Override
-                    public void widgetDefaultSelected(SelectionEvent e) {
-                    }
-                });
-            }
-            if (i == 1) {
-                table.setSortDirection(SWT.DOWN);
-                table.setSortColumn(c);
-                sorting = n;
-            }
-        }
+        Composite main = createMainTable(composite);
+        final Sash sash = new Sash(composite, SWT.HORIZONTAL);
+        Composite details = createDetailsPane(composite);
 
-        table.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                if (profile_node == null) return;
-                if (e.item == null) return;
-                ProfileEntry pe = (ProfileEntry)viewer.getElementAt(table.indexOf((TableItem)e.item));
-                if (pe.file_full == null) return;
-                profile_node.getModel().displaySource(profile_node.getID(), pe.file_full, pe.line);
-            }
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
+        FormData form_data_main = new FormData();
+        form_data_main.left = new FormAttachment(0, 0);
+        form_data_main.right = new FormAttachment(100, 0);
+        form_data_main.top = new FormAttachment(0, 0);
+        form_data_main.bottom = new FormAttachment(sash, 0);
+        main.setLayoutData(form_data_main);
+
+        final int limit = 20, percent = 60;
+        final FormData form_data_sash = new FormData();
+        form_data_sash.left = new FormAttachment(0, 0);
+        form_data_sash.right = new FormAttachment(100, 0);
+        form_data_sash.top = new FormAttachment(percent, 0);
+        sash.setLayoutData(form_data_sash);
+        sash.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+                Rectangle rect_sash = sash.getBounds();
+                Rectangle rect_view = composite.getClientArea();
+                int top = rect_view.height - rect_sash.height - limit;
+                e.y = Math.max(Math.min(e.y, top), limit);
+                if (e.y != rect_sash.y) {
+                    form_data_sash.top = new FormAttachment(0, e.y);
+                    composite.layout();
+                }
             }
         });
+
+        FormData form_data_details = new FormData();
+        form_data_details.left = new FormAttachment(0, 0);
+        form_data_details.right = new FormAttachment(100, 0);
+        form_data_details.top = new FormAttachment(sash, 0);
+        form_data_details.bottom = new FormAttachment(100, 0);
+        details.setLayoutData(form_data_details);
 
         action_start.setEnabled(false);
         action_stop.setEnabled(false);
@@ -544,9 +652,195 @@ public class ProfilerView extends ViewPart {
         Protocol.invokeLater(read_data);
     }
 
+    private Composite createMainTable(Composite parent) {
+        Font font = parent.getFont();
+        Composite composite = new Composite(parent, SWT.NO_FOCUS | SWT.BORDER);
+        GridLayout layout = new GridLayout(1, false);
+        composite.setFont(font);
+        composite.setLayout(layout);
+        status = new Label(composite, SWT.NONE);
+        status.setFont(font);
+        status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        viewer_main = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
+        final Table table = viewer_main.getTable();
+        table.setLayoutData(new GridData(GridData.FILL_BOTH));
+        table.setHeaderVisible(true);
+        table.setLinesVisible(true);
+        table.setFont(font);
+        viewer_main.setContentProvider(new ProfileContentProvider());
+        viewer_main.setLabelProvider(new ProfileLabelProvider());
+        viewer_main.setColumnProperties(column_ids);
+
+        for (int i = 0; i < column_ids.length; i++) {
+            createColumn(table, i);
+        }
+
+        table.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (e.item == null) return;
+                ProfileEntry pe = (ProfileEntry)viewer_main.getElementAt(table.indexOf((TableItem)e.item));
+                viewer_up.setInput(pe.up);
+                viewer_dw.setInput(pe.dw);
+                displaySource(pe);
+            }
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+            }
+        });
+        return composite;
+    }
+
+    private Composite createDetailsPane(Composite parent) {
+        Font font = parent.getFont();
+        Composite composite = new Composite(parent, SWT.NO_FOCUS | SWT.BORDER);
+        GridLayout layout = new GridLayout(1, false);
+        composite.setFont(font);
+        composite.setLayout(layout);
+
+        Label label_up = new Label(composite, SWT.NONE);
+        label_up.setFont(font);
+        label_up.setText("Called From");
+        label_up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        viewer_up = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+        final Table table_up = viewer_up.getTable();
+        table_up.setLayoutData(new GridData(GridData.FILL_BOTH));
+        table_up.setHeaderVisible(false);
+        table_up.setLinesVisible(true);
+        table_up.setFont(font);
+        viewer_up.setContentProvider(new ProfileContentProvider());
+        viewer_up.setLabelProvider(new ProfileLabelProvider());
+        viewer_up.setColumnProperties(column_ids);
+
+        table_up.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (e.item == null) return;
+                displaySource((ProfileEntry)viewer_up.getElementAt(table_up.indexOf((TableItem)e.item)));
+            }
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                if (e.item == null) return;
+                displayEntry((ProfileEntry)viewer_up.getElementAt(table_up.indexOf((TableItem)e.item)));
+            }
+        });
+
+        Label separator = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
+        separator.setFont(font);
+        separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        Label label_dw = new Label(composite, SWT.NONE);
+        label_dw.setFont(font);
+        label_dw.setText("Child Calls");
+        label_dw.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        viewer_dw = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+        final Table table_dw = viewer_dw.getTable();
+        table_dw.setLayoutData(new GridData(GridData.FILL_BOTH));
+        table_dw.setHeaderVisible(false);
+        table_dw.setLinesVisible(true);
+        table_dw.setFont(font);
+        viewer_dw.setContentProvider(new ProfileContentProvider());
+        viewer_dw.setLabelProvider(new ProfileLabelProvider());
+        viewer_dw.setColumnProperties(column_ids);
+
+        table_dw.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (e.item == null) return;
+                displaySource((ProfileEntry)viewer_dw.getElementAt(table_dw.indexOf((TableItem)e.item)));
+            }
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+                if (e.item == null) return;
+                displayEntry((ProfileEntry)viewer_dw.getElementAt(table_dw.indexOf((TableItem)e.item)));
+            }
+        });
+
+        for (int i = 0; i < column_ids.length; i++) {
+            createColumn(table_up, i);
+            createColumn(table_dw, i);
+        }
+        return composite;
+    }
+
+    private void createColumn(final Table table, int i) {
+        final int n = i;
+        final TableColumn c = new TableColumn(table, SWT.NONE, i);
+        c.setText(column_ids[i]);
+        c.setWidth(column_size[i]);
+        if (i != 5) {
+            c.addSelectionListener(new SelectionListener() {
+                @Override
+                public void widgetSelected(SelectionEvent e) {
+                    table.setSortDirection(SWT.DOWN);
+                    table.setSortColumn(c);
+                    sorting = n;
+                    Protocol.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateView();
+                        }
+                    });
+                }
+                @Override
+                public void widgetDefaultSelected(SelectionEvent e) {
+                }
+            });
+        }
+        if (table == viewer_main.getTable()) {
+            c.addControlListener(new ControlListener() {
+                @Override
+                public void controlResized(ControlEvent e) {
+                    int w = c.getWidth();
+                    viewer_up.getTable().getColumn(n).setWidth(w);
+                    viewer_dw.getTable().getColumn(n).setWidth(w);
+                }
+                @Override
+                public void controlMoved(ControlEvent e) {
+                }
+            });
+            if (i == 2) {
+                table.setSortDirection(SWT.DOWN);
+                table.setSortColumn(c);
+                sorting = i;
+            }
+        }
+    }
+
+    private void setSelection(List<ProfileEntry> l, boolean reveal) {
+        viewer_main.setSelection(new StructuredSelection(l), reveal);
+        if (l.size() == 0) {
+            viewer_up.setInput(null);
+            viewer_dw.setInput(null);
+        }
+        else {
+            ProfileEntry pe = l.get(0);
+            viewer_up.setInput(pe.up);
+            viewer_dw.setInput(pe.dw);
+        }
+    }
+
+    private void setSelection(ProfileEntry pe, boolean reveal) {
+        List<ProfileEntry> l = new ArrayList<ProfileEntry>();
+        if (pe != null) l.add(pe);
+        setSelection(l, reveal);
+    }
+
+    private void displaySource(ProfileEntry pe) {
+        if (profile_node == null) return;
+        if (pe.file_full == null) return;
+        profile_node.getModel().displaySource(profile_node.getID(), pe.file_full, pe.line);
+    }
+
+    private void displayEntry(ProfileEntry pe) {
+        setSelection(pe, true);
+    }
+
     @Override
     public void setFocus() {
-        viewer.getControl().setFocus();
+        viewer_main.getControl().setFocus();
     }
 
     public void start(TCFNode node) {
@@ -556,7 +850,7 @@ public class ProfilerView extends ViewPart {
             launch_listener_ok = true;
         }
         Map<String,Object> params = new HashMap<String,Object>();
-        params.put(IProfiler.PARAM_FRAME_CNT, 4);
+        params.put(IProfiler.PARAM_FRAME_CNT, FRAME_COUNT);
         configure(node, params);
     }
 
@@ -580,7 +874,8 @@ public class ProfilerView extends ViewPart {
                             if (d != null) d.stopped = true;
                         }
                         else {
-                            ProfileData d = new ProfileData(node.getID());
+                            Number n = (Number)params.get(IProfiler.PARAM_FRAME_CNT);
+                            ProfileData d = new ProfileData(node.getID(), n.intValue());
                             if (m == null) data.put(node.getModel(), m = new HashMap<String,ProfileData>());
                             m.put(d.ctx, d);
                         }
@@ -649,29 +944,41 @@ public class ProfilerView extends ViewPart {
 
     private void addSample(ProfileData p, BigInteger[] trace, int len, int cnt) {
         p.sample_count += cnt;
-        List<ProfileSample> lp = p.get(trace[0]);
-        if (lp != null) {
-            for (ProfileSample s : lp) {
-                int i = 0;
-                while (i < len && trace[i].equals(s.trace[i])) i++;
-                if (i == len) {
-                    s.cnt += cnt;
-                    return;
+        p.generation_inp++;
+        ProfileSample ps = null;
+        for (int f = 0; f < p.map.length && f < len; f++) {
+            List<ProfileSample> lp = p.map[f].get(trace[f]);
+            if (lp != null) {
+                boolean ok = false;
+                for (ProfileSample s : lp) {
+                    if (len == s.trace.length) {
+                        int i = 0;
+                        while (i < len && trace[i].equals(s.trace[i])) i++;
+                        if (i == len) {
+                            assert ps == null || ps == s;
+                            ps = s;
+                            ok = true;
+                        }
+                    }
                 }
+                if (ok) continue;
             }
+            else {
+                p.map[f].put(trace[f], lp = new ArrayList<ProfileSample>());
+            }
+            if (ps == null) {
+                BigInteger[] t = new BigInteger[len];
+                for (int i = 0; i < len; i++) t[i] = trace[i];
+                ps = new ProfileSample(t);
+            }
+            lp.add(ps);
         }
-        else {
-            p.put(trace[0], lp = new ArrayList<ProfileSample>());
-        }
-        BigInteger[] t = new BigInteger[len];
-        for (int i = 0; i < len; i++) t[i] = trace[i];
-        lp.add(new ProfileSample(cnt, t));
+        ps.cnt += cnt;
     }
 
     private void updateView() {
         assert Protocol.isDispatchThread();
-        last_update = new Update();
-        Protocol.invokeLater(last_update);
+        Protocol.invokeLater(new Update());
     }
 
     @Override
