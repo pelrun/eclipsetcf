@@ -76,6 +76,22 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 				return ((Boolean) expectedValue).booleanValue() == canAttach.get();
 			}
+
+			if ("canTerminate".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
+				final AtomicBoolean canTerminate = new AtomicBoolean();
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						if (node.getProcessContext() != null) {
+							canTerminate.set(node.getProcessContext().canTerminate());
+						}
+					}
+				};
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+
+				return ((Boolean) expectedValue).booleanValue() == canTerminate.get();
+			}
 		}
 		return false;
 	}
