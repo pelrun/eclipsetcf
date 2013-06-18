@@ -15,10 +15,13 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.core.ChannelTCP;
 import org.eclipse.tcf.internal.nls.TcfPluginMessages;
@@ -89,7 +92,7 @@ public class Activator extends Plugin {
         ChannelTCP.setSSLContext(TCFSecurityManager.createSSLContext());
         Protocol.setLogger(new ILogger() {
 
-            public void log(String msg, Throwable x) {
+            public void log(final String msg, final Throwable x) {
                 // Normally, we hook the TCF logging service (ILogger) to the
                 // Plug-in logger. Trace hooks in the code use the TCF logger.
                 // The Plug-in logger isn't really designed for large amounts of
@@ -104,9 +107,25 @@ public class Activator extends Plugin {
                         System.err.println(msg);
                         if (x != null) x.printStackTrace();
                     }
-                    if (plugin != null && getLog() != null) {
-                        getLog().log(new Status(IStatus.ERROR,
-                                getBundle().getSymbolicName(), IStatus.OK, msg, x));
+                    if (plugin != null) {
+                        final ILog logger = getLog();
+                        if (logger != null) {
+                            // Do not call logger on TCF thread - it can cause deadlock,
+                            // because Eclipse log listeners (e.g. IDEWorkbenchErrorHandler)
+                            // can call Display.syncExec(), which is not allowed
+                            // on the TCF dispatch thread.
+                            Job job = new Job("TCF Log") {
+                                @Override
+                                protected IStatus run(IProgressMonitor monitor) {
+                                    logger.log(new Status(IStatus.ERROR,
+                                            getBundle().getSymbolicName(), IStatus.OK, msg, x));
+                                    return Status.OK_STATUS;
+                                }
+                            };
+                            job.setPriority(Job.SHORT);
+                            job.setSystem(true);
+                            job.schedule();
+                        }
                     }
                 }
             }
