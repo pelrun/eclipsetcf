@@ -14,11 +14,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 
 /**
@@ -42,11 +42,11 @@ public class StartDebuggerIterator extends AbstractPeerModelStepGroupIterator {
 
 	    final AtomicBoolean autoStartDbg = new AtomicBoolean(false);
 
-		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
+	    final IPeerModel node = getActivePeerModelContext(context, data, fullQualifiedId);
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = peer.getAttributes().get(IPeerModelProperties.PROP_AUTO_START_DEBUGGER);
+				String value = node.getPeer().getAttributes().get(IPeerModelProperties.PROP_AUTO_START_DEBUGGER);
 				autoStartDbg.set(value != null ? Boolean.parseBoolean(value) : false);
 			}
 		};
