@@ -21,7 +21,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.debug.ui.contexts.DebugContextEvent;
+import org.eclipse.debug.ui.contexts.IDebugContextListener;
+import org.eclipse.debug.ui.contexts.IDebugContextService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ISelection;
@@ -39,6 +41,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -48,9 +51,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Sash;
+import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -58,7 +63,6 @@ import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupParticipant;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
-import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModelManager;
@@ -72,8 +76,6 @@ import org.eclipse.tcf.services.IProfiler;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.ViewPart;
 
@@ -96,6 +98,7 @@ public class ProfilerView extends ViewPart {
 
         boolean stopped;
         boolean unsupported;
+        Exception error;
         int sample_count;
 
         // Samples by frame
@@ -138,9 +141,12 @@ public class ProfilerView extends ViewPart {
     private final Map<TCFModel,Map<String,ProfileData>> data =
             new HashMap<TCFModel,Map<String,ProfileData>>();
 
-    private final ISelectionListener selection_listener = new ISelectionListener() {
+    private class DebugContextListener implements IDebugContextListener {
         @Override
-        public void selectionChanged(IWorkbenchPart part, ISelection s) {
+        public void debugContextChanged(DebugContextEvent event) {
+            selectionChanged(event.getContext());
+        }
+        void selectionChanged(ISelection s) {
             if (s instanceof IStructuredSelection) {
                 final Object obj = ((IStructuredSelection)s).getFirstElement();
                 Protocol.invokeLater(new Runnable() {
@@ -158,6 +164,8 @@ public class ProfilerView extends ViewPart {
             }
         }
     };
+
+    private final DebugContextListener selection_listener = new DebugContextListener();
 
     private final TCFModelManager.ModelManagerListener launch_listener = new TCFModelManager.ModelManagerListener() {
         @Override
@@ -191,7 +199,7 @@ public class ProfilerView extends ViewPart {
                         public void doneRead(IToken token, Exception error, Map<String,Object>[] data) {
                             cmds.remove(token);
                             if (error != null) {
-                                Activator.log(error);
+                                p.error = error;
                             }
                             else if (!disposed && data != null) {
                                 p.unsupported = data.length == 0;
@@ -441,6 +449,8 @@ public class ProfilerView extends ViewPart {
             final boolean running = node != null && !stopped;
             final boolean unsupported = node != null && prof_data.unsupported;
             final int sample_count = prof_data == null ? 0 : prof_data.sample_count;
+            final String error_msg = prof_data == null || prof_data.error == null ? null :
+                TCFModel.getErrorMessage(prof_data.error, false);
             parent.getDisplay().asyncExec(new Runnable() {
                 @Override
                 public void run() {
@@ -474,11 +484,14 @@ public class ProfilerView extends ViewPart {
                     else if (stopped) {
                         status.setText("Profiler stopped. Press 'Start' button to restart profiling");
                     }
-                    else if (running) {
-                        status.setText("Profiler runnning. " + sample_count + " samples");
+                    else if (!running) {
+                        status.setText("Idle. Press 'Start' button to start profiling");
+                    }
+                    else if (error_msg != null) {
+                        status.setText("Cannot upload profiling data: " + error_msg);
                     }
                     else {
-                        status.setText("Idle. Press 'Start' button to start profiling");
+                        status.setText("Profiler runnning. " + sample_count + " samples");
                     }
                 }
             });
@@ -525,8 +538,12 @@ public class ProfilerView extends ViewPart {
 
         private String toPercent(float x) {
             float f = x * 100 / sample_count;
+            if (f >= 100) return "100";
             if (f >= 10) return String.format("%.1f", f);
-            return String.format("%.2f", f);
+            if (f >= 1) return String.format("%.2f", f);
+            String s = String.format("%.3f", f);
+            if (s.charAt(0) == '0') s = s.substring(1);
+            return s;
         }
     }
 
@@ -566,6 +583,7 @@ public class ProfilerView extends ViewPart {
     private TableViewer viewer_main;
     private TableViewer viewer_up;
     private TableViewer viewer_dw;
+    private Composite main_composite;
     private TCFNode profile_node;
     private int sample_count;
 
@@ -592,11 +610,72 @@ public class ProfilerView extends ViewPart {
         this.parent = parent;
 
         Font font = parent.getFont();
-        final Composite composite = new Composite(parent, SWT.NONE | SWT.NO_FOCUS);
-        final FormLayout form = new FormLayout();
+        final Composite composite = new Composite(parent, SWT.NO_FOCUS | SWT.H_SCROLL);
         composite.setFont(font);
-        composite.setLayout(form);
         composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        main_composite = composite;
+
+        final Composite table = createTable(composite);
+
+        composite.setLayout(new Layout() {
+            @Override
+            protected Point computeSize(Composite composite, int wHint, int hHint, boolean flushCache) {
+                Point p = table.computeSize(SWT.DEFAULT, hHint, flushCache);
+                if (p.x < wHint) p.x = wHint;
+                p.y = hHint;
+                return p;
+            }
+            @Override
+            protected void layout(Composite composite, boolean flushCache) {
+                for (;;) {
+                    Rectangle rc = composite.getClientArea();
+                    Point p = table.computeSize(SWT.DEFAULT, rc.height, flushCache);
+                    if (p.x < rc.width) p.x = rc.width;
+                    ScrollBar sb = composite.getHorizontalBar();
+                    int pos = 0;
+                    boolean vis = sb.getVisible();
+                    if (p.x > rc.width) {
+                        pos = sb.getSelection();
+                        if (pos > p.x - rc.width) pos = p.x - rc.width;
+                        sb.setValues(pos, 0, p.x, rc.width, 1, 1);
+                    }
+                    table.setBounds(-pos, rc.y, p.x, rc.height);
+                    if (vis == (p.x > rc.width)) break;
+                    sb.setVisible(!vis);
+                }
+            }
+        });
+
+        composite.getHorizontalBar().addListener(SWT.Selection, new Listener () {
+            public void handleEvent(Event e) {
+                Point location = table.getLocation();
+                ScrollBar sb = composite.getHorizontalBar();
+                int pos = sb.getSelection();
+                table.setLocation(-pos, location.y);
+            }
+        });
+
+        action_start.setEnabled(false);
+        action_stop.setEnabled(false);
+        IActionBars action_bars = getViewSite().getActionBars();
+        IToolBarManager tool_bar = action_bars.getToolBarManager();
+        tool_bar.add(action_start);
+        tool_bar.add(action_stop);
+
+        IWorkbenchWindow window = getSite().getWorkbenchWindow();
+        IDebugContextService dcs = DebugUITools.getDebugContextManager().getContextService(window);
+        dcs.addDebugContextListener(selection_listener);
+        ISelection active_context = dcs.getActiveContext();
+        selection_listener.selectionChanged(active_context);
+        Protocol.invokeLater(read_data);
+    }
+
+    public Composite createTable(Composite parent) {
+        Font font = parent.getFont();
+        final Composite composite = new Composite(parent, SWT.NONE | SWT.NO_FOCUS);
+        final FormLayout layout = new FormLayout();
+        composite.setFont(font);
+        composite.setLayout(layout);
 
         Composite main = createMainTable(composite);
         final Sash sash = new Sash(composite, SWT.HORIZONTAL);
@@ -635,33 +714,21 @@ public class ProfilerView extends ViewPart {
         form_data_details.bottom = new FormAttachment(100, 0);
         details.setLayoutData(form_data_details);
 
-        action_start.setEnabled(false);
-        action_stop.setEnabled(false);
-        IActionBars action_bars = getViewSite().getActionBars();
-        IToolBarManager tool_bar = action_bars.getToolBarManager();
-        tool_bar.add(action_start);
-        tool_bar.add(action_stop);
-
-        IWorkbenchWindow window = getSite().getWorkbenchWindow();
-        window.getSelectionService().addSelectionListener(
-                IDebugUIConstants.ID_DEBUG_VIEW, selection_listener);
-        ISelection active_context = DebugUITools.getDebugContextManager()
-                .getContextService(window).getActiveContext();
-        selection_listener.selectionChanged(null, active_context);
-
-        Protocol.invokeLater(read_data);
+        return composite;
     }
 
     private Composite createMainTable(Composite parent) {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NO_FOCUS | SWT.BORDER);
         GridLayout layout = new GridLayout(1, false);
+        layout.marginWidth = 0;
+        layout.marginHeight = 0;
         composite.setFont(font);
         composite.setLayout(layout);
         status = new Label(composite, SWT.NONE);
         status.setFont(font);
         status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        viewer_main = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
+        viewer_main = new TableViewer(composite, SWT.V_SCROLL | SWT.MULTI | SWT.FULL_SELECTION);
         final Table table = viewer_main.getTable();
         table.setLayoutData(new GridData(GridData.FILL_BOTH));
         table.setHeaderVisible(true);
@@ -694,18 +761,14 @@ public class ProfilerView extends ViewPart {
     private Composite createDetailsPane(Composite parent) {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NO_FOCUS | SWT.BORDER);
-        GridLayout layout = new GridLayout(1, false);
         composite.setFont(font);
-        composite.setLayout(layout);
 
-        Label label_up = new Label(composite, SWT.NONE);
+        final Label label_up = new Label(composite, SWT.NONE);
         label_up.setFont(font);
         label_up.setText("Called From");
-        label_up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        viewer_up = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+        viewer_up = new TableViewer(composite, SWT.V_SCROLL | SWT.FULL_SELECTION);
         final Table table_up = viewer_up.getTable();
-        table_up.setLayoutData(new GridData(GridData.FILL_BOTH));
         table_up.setHeaderVisible(false);
         table_up.setLinesVisible(true);
         table_up.setFont(font);
@@ -726,18 +789,15 @@ public class ProfilerView extends ViewPart {
             }
         });
 
-        Label separator = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
+        final Label separator = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
         separator.setFont(font);
-        separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        Label label_dw = new Label(composite, SWT.NONE);
+        final Label label_dw = new Label(composite, SWT.NONE);
         label_dw.setFont(font);
         label_dw.setText("Child Calls");
-        label_dw.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        viewer_dw = new TableViewer(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+        viewer_dw = new TableViewer(composite, SWT.V_SCROLL | SWT.FULL_SELECTION);
         final Table table_dw = viewer_dw.getTable();
-        table_dw.setLayoutData(new GridData(GridData.FILL_BOTH));
         table_dw.setHeaderVisible(false);
         table_dw.setLinesVisible(true);
         table_dw.setFont(font);
@@ -762,6 +822,46 @@ public class ProfilerView extends ViewPart {
             createColumn(table_up, i);
             createColumn(table_dw, i);
         }
+
+        composite.setLayout(new Layout() {
+            @Override
+            protected Point computeSize(Composite composite, int wHint, int hHint, boolean flushCache) {
+                Point l_up = label_up.computeSize(wHint, SWT.DEFAULT);
+                Point t_up = table_up.computeSize(wHint, SWT.DEFAULT);
+                Point sep = separator.computeSize(wHint, SWT.DEFAULT);
+                Point l_dw = label_dw.computeSize(wHint, SWT.DEFAULT);
+                Point t_dw = table_dw.computeSize(wHint, SWT.DEFAULT);
+                int w = 0;
+                if (l_up.x > w) w = l_up.x;
+                if (t_up.x > w) w = t_up.x;
+                if (sep.x > w) w = sep.x;
+                if (l_dw.x > w) w = l_dw.x;
+                if (t_dw.x > w) w = t_dw.x;
+                int h = l_up.y + t_up.y + sep.y + l_dw.y + t_dw.y;
+                return new Point(w, h);
+            }
+
+            @Override
+            protected void layout(Composite composite, boolean flushCache) {
+                Rectangle rc = composite.getClientArea();
+                Point l_up = label_up.computeSize(rc.width, SWT.DEFAULT);
+                Point sep = separator.computeSize(rc.width, SWT.DEFAULT);
+                Point l_dw = label_dw.computeSize(rc.width, SWT.DEFAULT);
+                int h = (rc.height - l_up.y - sep.y - l_dw.y) / 2;
+                if (h < 0) h = 0;
+                int y = rc.y;
+                label_up.setBounds(rc.x, y, rc.width, l_up.y);
+                y += l_up.y;
+                table_up.setBounds(rc.x, y, rc.width, h);
+                y += h;
+                separator.setBounds(rc.x, y, rc.width, sep.y);
+                y += sep.y;
+                label_dw.setBounds(rc.x, y, rc.width, l_dw.y);
+                y += l_dw.y;
+                table_dw.setBounds(rc.x, y, rc.width, h);
+            }
+        });
+
         return composite;
     }
 
@@ -796,6 +896,7 @@ public class ProfilerView extends ViewPart {
                     int w = c.getWidth();
                     viewer_up.getTable().getColumn(n).setWidth(w);
                     viewer_dw.getTable().getColumn(n).setWidth(w);
+                    main_composite.layout();
                 }
                 @Override
                 public void controlMoved(ControlEvent e) {
@@ -990,8 +1091,9 @@ public class ProfilerView extends ViewPart {
                 TCFModelManager.getModelManager().addListener(launch_listener);
             }
         });
-        getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(
-                IDebugUIConstants.ID_DEBUG_VIEW, selection_listener);
+        IWorkbenchWindow window = getSite().getWorkbenchWindow();
+        IDebugContextService dcs = DebugUITools.getDebugContextManager().getContextService(window);
+        dcs.removeDebugContextListener(selection_listener);
         super.dispose();
     }
 }
