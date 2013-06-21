@@ -57,7 +57,7 @@ public class ElfLoader implements Runnable {
 
     private List<Throwable> errors = new ArrayList<Throwable>();
 
-    private final IRunControl.RunControlListener rc_listener= new IRunControl.RunControlListener() {
+    private final IRunControl.RunControlListener rc_listener = new IRunControl.RunControlListener() {
         @Override
         public void contextSuspended(String id, String pc, String reason, Map<String, Object> params) {
             running.remove(id);

@@ -128,7 +128,8 @@ class TCFBreakpointStatusListener {
                 else if (!ok && installed.get(id) == cbp) {
                     installed.remove(id);
                     decrementInstallCount(cbp);
-                } else {
+                }
+                else {
                     updateTCFStamp(cbp);
                 }
             }
@@ -172,7 +173,9 @@ class TCFBreakpointStatusListener {
                         cbp.incrementInstallCount();
                         doUpdateTCFStamp(cbp);
                     }
-                    catch (CoreException e) {} // ignore expected race condition with marker deletion
+                    catch (CoreException e) {
+                        // ignore expected race condition with marker deletion
+                    }
                     return Status.OK_STATUS;
                 }
             };
@@ -191,7 +194,9 @@ class TCFBreakpointStatusListener {
                         cbp.decrementInstallCount();
                         doUpdateTCFStamp(cbp);
                     }
-                    catch (CoreException e) {} // ignore expected race condition with marker deletion
+                    catch (CoreException e) {
+                        // ignore expected race condition with marker deletion
+                    }
                     return Status.OK_STATUS;
                 }
             };
@@ -209,7 +214,9 @@ class TCFBreakpointStatusListener {
                     try {
                         doUpdateTCFStamp(cbp);
                     }
-                    catch (CoreException e) {} // ignore expected race condition with marker deletion
+                    catch (CoreException e) {
+                        // ignore expected race condition with marker deletion
+                    }
                     return Status.OK_STATUS;
                 }
             };
