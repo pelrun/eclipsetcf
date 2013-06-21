@@ -34,6 +34,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -75,6 +76,7 @@ import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.IProfiler;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
+import org.eclipse.tcf.util.TCFTask;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.ViewPart;
@@ -83,6 +85,8 @@ public class ProfilerView extends ViewPart {
 
     private static final long UPDATE_DELAY = 4000;
     private static final int FRAME_COUNT = 5;
+    private static final String PARAM_VIEW_UPDATE_PERIOD = ProfilerSettingsDlg.PARAM_VIEW_UPDATE_PERIOD;
+    private static final String PARAM_AGGREGATE = ProfilerSettingsDlg.PARAM_AGGREGATE;
 
     private static class ProfileSample {
         int cnt;
@@ -95,6 +99,7 @@ public class ProfilerView extends ViewPart {
 
     private static class ProfileData {
         final String ctx;
+        final Map<String,Object> params;
 
         boolean stopped;
         boolean unsupported;
@@ -110,8 +115,11 @@ public class ProfilerView extends ViewPart {
         ProfileEntry[] entries;
 
         @SuppressWarnings("unchecked")
-        ProfileData(String ctx, int frame_cnt) {
+        ProfileData(String ctx, Map<String,Object> params) {
             this.ctx = ctx;
+            this.params = new HashMap<String,Object>(params);
+            Number n = (Number)params.get(IProfiler.PARAM_FRAME_CNT);
+            int frame_cnt = n.intValue();
             map = new Map[frame_cnt];
             for (int i = 0; i < frame_cnt; i++) {
                 map[i] = new HashMap<BigInteger,List<ProfileSample>>();
@@ -121,6 +129,7 @@ public class ProfilerView extends ViewPart {
 
     private static class ProfileEntry {
         final BigInteger addr;
+        final Set<BigInteger> addr_list = new HashSet<BigInteger>();
 
         String name;
         String file_full;
@@ -131,6 +140,7 @@ public class ProfilerView extends ViewPart {
         ProfileEntry[] up;
         ProfileEntry[] dw;
 
+        boolean src_info_valid;
         boolean mark;
 
         ProfileEntry(BigInteger addr) {
@@ -264,12 +274,15 @@ public class ProfilerView extends ViewPart {
         final int sorting;
         final TCFNode selection;
         final Map<BigInteger,ProfileEntry> entries = new HashMap<BigInteger,ProfileEntry>();
-        final Map<BigInteger,String> funcs = new HashMap<BigInteger,String>();
+        final Map<BigInteger,BigInteger> addr_to_func_addr = new HashMap<BigInteger,BigInteger>();
+        final Map<BigInteger,String> addr_to_func_id = new HashMap<BigInteger,String>();
         final TCFNodeExecContext node;
         final ProfileData prof_data;
         final ISymbols symbols;
         final ILineNumbers line_numbers;
+        final boolean aggrerate;
         final int generation;
+        TCFDataCache<?> pending;
         boolean done;
 
         Update() {
@@ -287,34 +300,71 @@ public class ProfilerView extends ViewPart {
                 symbols = null;
                 line_numbers = null;
                 generation = 0;
+                aggrerate = false;
             }
             else {
                 node = (TCFNodeExecContext)selection;
                 symbols = node.getChannel().getRemoteService(ISymbols.class);
                 line_numbers = node.getChannel().getRemoteService(ILineNumbers.class);
                 generation = p.generation_inp;
+                Boolean b = (Boolean)p.params.get(PARAM_AGGREGATE);
+                aggrerate = b != null && b.booleanValue();
             }
             last_update = this;
         }
 
-        private boolean getFuncName(ProfileEntry pe) {
-            if (symbols == null) return true;
-            String func_id = funcs.get(pe.addr);
+        private String getFuncID(BigInteger addr) {
+            if (symbols == null) return "";
+            String func_id = addr_to_func_id.get(addr);
             if (func_id == null) {
                 func_id = "";
-                TCFDataCache<TCFFunctionRef> func_cache = node.getFuncInfo(pe.addr);
+                TCFDataCache<TCFFunctionRef> func_cache = node.getFuncInfo(addr);
                 if (func_cache != null) {
-                    if (!func_cache.validate(this)) return false;
+                    if (!func_cache.validate()) {
+                        pending = func_cache;
+                        return null;
+                    }
                     TCFFunctionRef func_data = func_cache.getData();
                     if (func_data != null && func_data.symbol_id != null) {
                         func_id = func_data.symbol_id;
                     }
                 }
-                funcs.put(pe.addr, func_id);
+                addr_to_func_id.put(addr, func_id);
             }
+            return func_id;
+        }
+
+        private BigInteger getFuncAddress(BigInteger addr) {
+            if (!aggrerate) return addr;
+            BigInteger func_addr = addr_to_func_addr.get(addr);
+            if (func_addr != null) return func_addr;
+            String func_id = getFuncID(addr);
+            if (func_id == null) return null;
+            func_addr = addr;
             if (func_id.length() > 0) {
                 TCFDataCache<ISymbols.Symbol> sym_cache = node.getModel().getSymbolInfoCache(func_id);
-                if (!sym_cache.validate(this)) return false;
+                if (!sym_cache.validate()) {
+                    pending = sym_cache;
+                    return null;
+                }
+                ISymbols.Symbol sym_data = sym_cache.getData();
+                if (sym_data != null && sym_data.getAddress() != null) {
+                    func_addr = JSON.toBigInteger(sym_data.getAddress());
+                }
+            }
+            addr_to_func_addr.put(addr, func_addr);
+            return func_addr;
+        }
+
+        private boolean getFuncName(ProfileEntry pe) {
+            String func_id = getFuncID(pe.addr);
+            if (func_id == null) return false;
+            if (func_id.length() > 0) {
+                TCFDataCache<ISymbols.Symbol> sym_cache = node.getModel().getSymbolInfoCache(func_id);
+                if (!sym_cache.validate()) {
+                    pending = sym_cache;
+                    return false;
+                }
                 ISymbols.Symbol sym_data = sym_cache.getData();
                 if (sym_data != null && sym_data.getName() != null) {
                     pe.name = sym_data.getName();
@@ -327,7 +377,10 @@ public class ProfilerView extends ViewPart {
             if (line_numbers == null) return true;
             TCFDataCache<TCFSourceRef> line_cache = node.getLineInfo(pe.addr);
             if (line_cache == null) return true;
-            if (!line_cache.validate(this)) return false;
+            if (!line_cache.validate()) {
+                pending = line_cache;
+                return false;
+            }
             TCFSourceRef line_data = line_cache.getData();
             if (line_data != null && line_data.area != null) {
                 pe.file_full = TCFSourceLookupParticipant.toFileName(line_data.area);
@@ -343,29 +396,31 @@ public class ProfilerView extends ViewPart {
             return true;
         }
 
-        void linkEntry(ProfileEntry pe) {
+        private void linkEntry(ProfileEntry pe) {
             Set<ProfileEntry> set_up = new HashSet<ProfileEntry>();
             Set<ProfileEntry> set_dw = new HashSet<ProfileEntry>();
             for (int n = 0; n < prof_data.map.length; n++) {
-                List<ProfileSample> s0 = prof_data.map[n].get(pe.addr);
-                if (s0 != null) {
-                    for (ProfileSample x : s0) {
-                        assert x.trace[n].equals(pe.addr);
-                        if (x.trace.length <= n + 1) continue;
-                        BigInteger addr_up = x.trace[n + 1];
-                        ProfileEntry pe_up = entries.get(addr_up);
-                        set_up.add(pe_up);
+                for (BigInteger addr : pe.addr_list) {
+                    List<ProfileSample> s0 = prof_data.map[n].get(addr);
+                    if (s0 != null) {
+                        for (ProfileSample x : s0) {
+                            assert addr.equals(x.trace[n]);
+                            if (x.trace.length <= n + 1) continue;
+                            BigInteger addr_up = getFuncAddress(x.trace[n + 1]);
+                            ProfileEntry pe_up = entries.get(addr_up);
+                            set_up.add(pe_up);
+                        }
                     }
-                }
-                if (n == prof_data.map.length - 1) continue;
-                List<ProfileSample> s1 = prof_data.map[n + 1].get(pe.addr);
-                if (s1 != null) {
-                    for (ProfileSample x : s1) {
-                        assert x.trace.length > n + 1;
-                        assert x.trace[n + 1].equals(pe.addr);
-                        BigInteger addr_dw = x.trace[n];
-                        ProfileEntry pe_dw = entries.get(addr_dw);
-                        set_dw.add(pe_dw);
+                    if (n == prof_data.map.length - 1) continue;
+                    List<ProfileSample> s1 = prof_data.map[n + 1].get(addr);
+                    if (s1 != null) {
+                        for (ProfileSample x : s1) {
+                            assert x.trace.length > n + 1;
+                            assert addr.equals(x.trace[n + 1]);
+                            BigInteger addr_dw = getFuncAddress(x.trace[n]);
+                            ProfileEntry pe_dw = entries.get(addr_dw);
+                            set_dw.add(pe_dw);
+                        }
                     }
                 }
             }
@@ -373,7 +428,7 @@ public class ProfilerView extends ViewPart {
             if (set_dw.size() > 0) pe.dw = set_dw.toArray(new ProfileEntry[set_dw.size()]);
         }
 
-        void addUpTotal(ProfileEntry pe, float cnt) {
+        private void addUpTotal(ProfileEntry pe, float cnt) {
             if (cnt <= 0.1 || pe.up == null) return;
             pe.mark = true;
             int n = 0;
@@ -393,6 +448,7 @@ public class ProfilerView extends ViewPart {
 
         @Override
         public void run() {
+            pending = null;
             if (done) return;
             if (last_update != this) return;
             if (prof_data != null && generation != prof_data.generation_out) {
@@ -402,29 +458,39 @@ public class ProfilerView extends ViewPart {
                 else {
                     for (int n = 0; n < prof_data.map.length; n++) {
                         for (BigInteger addr : prof_data.map[n].keySet()) {
-                            ProfileEntry pe = entries.get(addr);
-                            if (pe != null) continue;
-                            pe = new ProfileEntry(addr);
-                            if (!getFuncName(pe)) return;
-                            if (!getLineInfo(pe)) return;
-                            if (n == 0) {
-                                List<ProfileSample> s = prof_data.map[0].get(addr);
-                                for (ProfileSample x : s) pe.count += x.cnt;
+                            BigInteger func_addr = getFuncAddress(addr);
+                            if (func_addr == null) continue;
+                            ProfileEntry pe = entries.get(func_addr);
+                            if (pe == null) {
+                                pe = new ProfileEntry(func_addr);
+                                entries.put(pe.addr, pe);
                             }
-                            entries.put(pe.addr, pe);
+                            if (!pe.addr_list.contains(addr)) {
+                                if (n == 0) {
+                                    List<ProfileSample> s = prof_data.map[0].get(addr);
+                                    for (ProfileSample x : s) pe.count += x.cnt;
+                                }
+                                pe.addr_list.add(addr);
+                            }
+                            if (!pe.src_info_valid) {
+                                pe.src_info_valid = true;
+                                if (!getFuncName(pe)) pe.src_info_valid = false;
+                                if (!getLineInfo(pe)) pe.src_info_valid = false;
+                            }
                         }
                     }
-                    for (ProfileEntry pe : entries.values()) {
-                        linkEntry(pe);
+                    if (pending != null) {
+                        pending.wait(this);
+                        return;
                     }
+                    for (ProfileEntry pe : entries.values()) linkEntry(pe);
                     for (List<ProfileSample> lps : prof_data.map[0].values()) {
                         for (ProfileSample ps : lps) {
                             int n = 0;
                             while (n < ps.trace.length) {
-                                ProfileEntry pe = entries.get(ps.trace[n]);
-                                if (n == ps.trace.length - 1) {
-                                    addUpTotal(pe, ps.cnt);
-                                }
+                                BigInteger func_addr = getFuncAddress(ps.trace[n]);
+                                ProfileEntry pe = entries.get(func_addr);
+                                if (n == ps.trace.length - 1) addUpTotal(pe, ps.cnt);
                                 pe.total += ps.cnt;
                                 n++;
                             }
@@ -435,10 +501,12 @@ public class ProfilerView extends ViewPart {
                         if (pe.dw != null) Arrays.sort(pe.dw, new SampleComparator(2));
                     }
                 }
-                ProfileEntry[] arr = entries.values().toArray(new ProfileEntry[entries.size()]);
-                Arrays.sort(arr, new SampleComparator(sorting));
                 prof_data.generation_out = generation;
-                prof_data.entries = arr;
+                prof_data.entries = entries.values().toArray(new ProfileEntry[entries.size()]);
+                assert pending == null;
+            }
+            if (prof_data != null && prof_data.entries != null) {
+                Arrays.sort(prof_data.entries, new SampleComparator(sorting));
             }
             done = true;
             final boolean enable_start =
@@ -454,26 +522,25 @@ public class ProfilerView extends ViewPart {
             parent.getDisplay().asyncExec(new Runnable() {
                 @Override
                 public void run() {
+                    if (parent.isDisposed()) return;
                     action_start.setEnabled(enable_start);
                     action_stop.setEnabled(enable_stop);
                     profile_node = node;
                     Object viewer_input = prof_data != null ? prof_data.entries : null;
-                    if (viewer_main.getInput() != viewer_input) {
-                        ISelection s = viewer_main.getSelection();
-                        ProfilerView.this.sample_count = sample_count;
-                        viewer_main.setInput(viewer_input);
-                        if (s instanceof IStructuredSelection) {
-                            IStructuredSelection ss = (IStructuredSelection)s;
-                            List<ProfileEntry> l = new ArrayList<ProfileEntry>();
-                            for (Object obj : ss.toArray()) {
-                                if (obj instanceof ProfileEntry) {
-                                    ProfileEntry pe = (ProfileEntry)obj;
-                                    pe = entries.get(pe.addr);
-                                    if (pe != null) l.add(pe);
-                                }
+                    ISelection s = viewer_main.getSelection();
+                    ProfilerView.this.sample_count = sample_count;
+                    viewer_main.setInput(viewer_input);
+                    if (s instanceof IStructuredSelection) {
+                        IStructuredSelection ss = (IStructuredSelection)s;
+                        List<ProfileEntry> l = new ArrayList<ProfileEntry>();
+                        for (Object obj : ss.toArray()) {
+                            if (obj instanceof ProfileEntry) {
+                                ProfileEntry pe = (ProfileEntry)obj;
+                                pe = entries.get(pe.addr);
+                                if (pe != null) l.add(pe);
                             }
-                            setSelection(l, false);
                         }
+                        setSelection(l, false);
                     }
                     if (!enable_start) {
                         status.setText("Selected context does not support profiling");
@@ -550,13 +617,26 @@ public class ProfilerView extends ViewPart {
     private final Action action_start = new Action("Start", ImageCache.getImageDescriptor(ImageCache.IMG_THREAD_RUNNNIG)) {
         @Override
         public void run() {
-            Protocol.invokeLater(new Runnable() {
+            final TCFNode node = selection;
+            if (node == null) return;
+            Map<String,Object> conf = new TCFTask<Map<String,Object>>() {
                 @Override
                 public void run() {
-                    if (selection == null) return;
-                    start(selection);
+                    done(getConfiguration(node.getID()));
                 }
-            });
+            }.getE();
+            ProfilerSettingsDlg dlg = new ProfilerSettingsDlg(getSite().getShell(), conf);
+            if (dlg.open() == Window.OK) {
+                final Map<String,Object> params = dlg.data;
+                Protocol.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        configuration.put(node.getID(), params);
+                        if (selection != node) return;
+                        start(selection);
+                    }
+                });
+            }
         }
     };
 
@@ -604,6 +684,9 @@ public class ProfilerView extends ViewPart {
         250,
         60
     };
+
+    private final Map<String,Map<String,Object>> configuration =
+            new HashMap<String,Map<String,Object>>();
 
     @Override
     public void createPartControl(Composite parent) {
@@ -944,18 +1027,27 @@ public class ProfilerView extends ViewPart {
         viewer_main.getControl().setFocus();
     }
 
-    public void start(TCFNode node) {
+    private Map<String,Object> getConfiguration(String ctx) {
+        Map<String,Object> params = configuration.get(ctx);
+        if (params == null) {
+            params = new HashMap<String,Object>();
+            params.put(IProfiler.PARAM_FRAME_CNT, FRAME_COUNT);
+            params.put(PARAM_VIEW_UPDATE_PERIOD, 4);
+            configuration.put(ctx,  params);
+        }
+        return params;
+    }
+
+    private void start(TCFNode node) {
         assert Protocol.isDispatchThread();
         if (!launch_listener_ok) {
             TCFModelManager.getModelManager().addListener(launch_listener);
             launch_listener_ok = true;
         }
-        Map<String,Object> params = new HashMap<String,Object>();
-        params.put(IProfiler.PARAM_FRAME_CNT, FRAME_COUNT);
-        configure(node, params);
+        configure(node, getConfiguration(node.getID()));
     }
 
-    public void stop(TCFNode node) {
+    private void stop(TCFNode node) {
         assert Protocol.isDispatchThread();
         Map<String,Object> params = new HashMap<String,Object>();
         configure(node, params);
@@ -975,8 +1067,7 @@ public class ProfilerView extends ViewPart {
                             if (d != null) d.stopped = true;
                         }
                         else {
-                            Number n = (Number)params.get(IProfiler.PARAM_FRAME_CNT);
-                            ProfileData d = new ProfileData(node.getID(), n.intValue());
+                            ProfileData d = new ProfileData(node.getID(), params);
                             if (m == null) data.put(node.getModel(), m = new HashMap<String,ProfileData>());
                             m.put(d.ctx, d);
                         }
@@ -1044,6 +1135,7 @@ public class ProfilerView extends ViewPart {
     }
 
     private void addSample(ProfileData p, BigInteger[] trace, int len, int cnt) {
+        assert len > 0;
         p.sample_count += cnt;
         p.generation_inp++;
         ProfileSample ps = null;

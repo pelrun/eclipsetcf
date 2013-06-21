@@ -58,6 +58,7 @@ public class ImageCache {
 
         IMG_SIGNALS = "icons/signals.gif",
         IMG_MEMORY_MAP = "icons/memory-map.gif",
+        IMG_PROFILER = "icons/profiler.png",
 
         IMG_ARRAY_PARTITION = "icons/full/obj16/arraypartition_obj.gif",
 
