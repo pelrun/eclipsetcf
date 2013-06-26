@@ -53,7 +53,7 @@ class PathMapRuleDialog extends TitleAreaDialog {
         this.showContextQuery = showContextQuery;
         setHelpAvailable(false);
     }
-    
+
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
@@ -72,7 +72,7 @@ class PathMapRuleDialog extends TitleAreaDialog {
     protected Control createDialogArea(Composite parent) {
         setTitle("Add or edit source and destination path mapping rule"); //$NON-NLS-1$
         setMessage("Source and destination are absolute path fragments.\nThe rule is applied if the source path fragment matches or is a prefix of a path to map."); //$NON-NLS-1$
-        
+
         Composite composite = (Composite)super.createDialogArea(parent);
         createFileNameFields(composite);
         setData();

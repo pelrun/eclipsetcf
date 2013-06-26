@@ -282,6 +282,7 @@ public interface IChannel {
      * using either Protocol.addChannelOpenListener() or IChannel.addChannelListener().
      * It is not allowed to install more then one proxy for a given service interface on
      * a particular channel.
+     * See also Protocol.addServiceProvider().
      * @param service_interface - service interface class
      * @param service_proxy - service proxy object
      */
