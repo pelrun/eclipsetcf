@@ -8,14 +8,14 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.runtime.stepper.services;
-
-import org.eclipse.tcf.te.runtime.services.AbstractService;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
+package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
 /**
- * AbstractStepperService
+ * IStepperServiceOperations
  */
-public abstract class AbstractStepperService extends AbstractService implements IStepperService {
+public interface IStepperServiceOperations {
+
+	public static final String CONNECT = "connect";  //$NON-NLS-1$
+	public static final String DISCONNECT = "disconnect";  //$NON-NLS-1$
 
 }

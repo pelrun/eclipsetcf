@@ -29,6 +29,7 @@ import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
@@ -127,10 +128,10 @@ public class UIPlugin extends AbstractUIPlugin {
 								for (IPeerModel peerModel : peers) {
 									IStepperService service = ServiceManager.getInstance().getService(peerModel, IStepperService.class);
 									if (service != null) {
-										String stepGroupId = service.getStepGroupId(peerModel, IStepperService.OPERATION_DISCONNECT);
-										IStepContext stepContext = service.getStepContext(peerModel, IStepperService.OPERATION_DISCONNECT);
-										String name = service.getStepGroupName(peerModel, IStepperService.OPERATION_DISCONNECT);
-										boolean isEnabled = service.isEnabled(peerModel, IStepperService.OPERATION_DISCONNECT);
+										String stepGroupId = service.getStepGroupId(peerModel, IStepperServiceOperations.DISCONNECT);
+										IStepContext stepContext = service.getStepContext(peerModel, IStepperServiceOperations.DISCONNECT);
+										String name = service.getStepGroupName(peerModel, IStepperServiceOperations.DISCONNECT);
+										boolean isEnabled = service.isEnabled(peerModel, IStepperServiceOperations.DISCONNECT);
 
 										if (isEnabled && stepGroupId != null && stepContext != null) {
 											IPropertiesContainer data = new PropertiesContainer();
@@ -138,7 +139,7 @@ public class UIPlugin extends AbstractUIPlugin {
 															stepContext,
 															data,
 															stepGroupId,
-															IStepperService.OPERATION_DISCONNECT,
+															IStepperServiceOperations.DISCONNECT,
 															false);
 
 											ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);

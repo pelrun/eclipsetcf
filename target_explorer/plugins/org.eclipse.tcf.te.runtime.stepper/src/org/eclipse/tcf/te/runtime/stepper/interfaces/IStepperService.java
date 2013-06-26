@@ -16,9 +16,6 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
  */
 public interface IStepperService extends IService {
 
-	public static final String OPERATION_CONNECT = "connect";  //$NON-NLS-1$
-	public static final String OPERATION_DISCONNECT = "disconnect";  //$NON-NLS-1$
-
 	/**
 	 * Get the step group id for the given context and operation
 	 * or <code>null</code> if this operation is not available.

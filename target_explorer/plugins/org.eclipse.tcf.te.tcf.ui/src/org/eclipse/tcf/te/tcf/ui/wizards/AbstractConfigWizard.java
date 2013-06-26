@@ -18,6 +18,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.wizards.pages.AbstractConfigWizardPage;
 import org.eclipse.ui.IWorkbench;
@@ -75,9 +76,9 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 		// Connect the connection
 		IStepperService service = ServiceManager.getInstance().getService(peerModel, IStepperService.class);
 		if (service != null) {
-			String stepGroupId = service.getStepGroupId(peerModel, IStepperService.OPERATION_CONNECT);
-			IStepContext stepContext = service.getStepContext(peerModel, IStepperService.OPERATION_CONNECT);
-			String name = service.getStepGroupName(peerModel, IStepperService.OPERATION_CONNECT);
+			String stepGroupId = service.getStepGroupId(peerModel, IStepperServiceOperations.CONNECT);
+			IStepContext stepContext = service.getStepContext(peerModel, IStepperServiceOperations.CONNECT);
+			String name = service.getStepGroupName(peerModel, IStepperServiceOperations.CONNECT);
 
 			if (stepGroupId != null && stepContext != null) {
 				IPropertiesContainer data = new PropertiesContainer();
@@ -85,7 +86,7 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 								stepContext,
 								data,
 								stepGroupId,
-								IStepperService.OPERATION_CONNECT,
+								IStepperServiceOperations.CONNECT,
 								true);
 
 				job.schedule();
