@@ -10,8 +10,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.launch;
 
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -33,7 +33,7 @@ import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.services.IPathMap;
 
-class PathMapRuleDialog extends Dialog {
+class PathMapRuleDialog extends TitleAreaDialog {
 
     private final IPathMap.PathMapRule pathMapRule;
     private final boolean enable_editing;
@@ -51,8 +51,9 @@ class PathMapRuleDialog extends Dialog {
         this.pathMapRule = pathMapRule;
         this.enable_editing = enable_editing;
         this.showContextQuery = showContextQuery;
+        setHelpAvailable(false);
     }
-
+    
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
@@ -69,10 +70,14 @@ class PathMapRuleDialog extends Dialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
+        setTitle("Add or edit source and destination path mapping rule"); //$NON-NLS-1$
+        setMessage("Source and destination are absolute path fragments.\nThe rule is applied if the source path fragment matches or is a prefix of a path to map."); //$NON-NLS-1$
+        
         Composite composite = (Composite)super.createDialogArea(parent);
         createFileNameFields(composite);
         setData();
         composite.setSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        //PlatformUI.getWorkbench().getHelpSystem().setHelp(getShell(), "org.eclipse.tcf.debug.ui.add_path_map_rule"); //$NON-NLS-1$
         return composite;
     }
 
