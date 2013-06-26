@@ -74,7 +74,7 @@ public class MemoryMapWidget {
 
 
     private static final int
-        SIZING_TABLE_WIDTH = 700,
+        SIZING_TABLE_WIDTH = 500,
         SIZING_TABLE_HEIGHT = 300;
 
     private static final String[] column_names = {
@@ -338,7 +338,7 @@ public class MemoryMapWidget {
 
 
         TableLayout layout = new TableLayout();
-        layout.addColumnData(new ColumnPixelData(250));
+        layout.addColumnData(new ColumnPixelData(200));
         layout.addColumnData(new ColumnPixelData(60));
         layout.addColumnData(new ColumnPixelData(60));
         layout.addColumnData(new ColumnPixelData(60));
@@ -357,9 +357,9 @@ public class MemoryMapWidget {
                 @Override
                 public void handleEvent(Event event) {
                     int colWidth = colFile.getWidth();
-                    if (colWidth < 200) {
+                    if (colWidth < 150) {
                         event.doit = false;
-                        colFile.setWidth(200);
+                        colFile.setWidth(150);
                     }
                 }
         });
