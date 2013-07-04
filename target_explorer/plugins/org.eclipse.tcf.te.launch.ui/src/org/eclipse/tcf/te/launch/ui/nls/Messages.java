@@ -69,8 +69,6 @@ public class Messages extends NLS {
 
 	public static String LaunchSelectionManager_error_failedToDetermineElfType;
 
-	public static String ContextSelectorControl_toolbar_refresh_tooltip;
-
 	public static String LaunchConfigType_title;
 	public static String LaunchConfigType_label;
 
@@ -78,9 +76,6 @@ public class Messages extends NLS {
 
 	public static String ContextSelectorSection_title;
 	public static String ContextSelectorSection_label;
-
-	public static String RemoteContextSelectorControl_error_noContextSelected_single;
-	public static String RemoteContextSelectorControl_error_noContextSelected_multi;
 
 	public static String ReferencedProjectsTab_name;
 

@@ -245,7 +245,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			Reader reader = new InputStreamReader(new FileInputStream(file), "UTF-8"); //$NON-NLS-1$
 			if (!isList) {
 				try {
-					data.add(gson.fromJson(reader, Map.class));
+					Map<String,Object> read = gson.fromJson(reader, Map.class);
+					data.add(read);
 				}
 				finally {
 					reader.close();
@@ -255,7 +256,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 				try {
 					List<String> strings = gson.fromJson(reader, List.class);
 					for (String string : strings) {
-						data.add(gson.fromJson(string, Map.class));
+						Map<String,Object> read = gson.fromJson(string, Map.class);
+						data.add(read);
 					}
 				}
 				finally {
@@ -276,19 +278,20 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		}
 
 		for (Map<String, Object> entry : data) {
-			Map<String, String> variables = new HashMap<String, String>();
-			if (entry.containsKey(VARIABLES)) {
-				variables = (Map<String, String>) entry.remove(VARIABLES);
-			}
-			IVariableDelegate[] delegates = PersistenceManager.getInstance()
-			                .getVariableDelegates(this);
-			for (IVariableDelegate delegate : delegates) {
-				entry = delegate.putVariables(entry, variables);
+			if (entry != null) {
+				Map<String, String> variables = new HashMap<String, String>();
+				if (entry.containsKey(VARIABLES)) {
+					variables = (Map<String, String>) entry.remove(VARIABLES);
+				}
+				IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
+				for (IVariableDelegate delegate : delegates) {
+					entry = delegate.putVariables(entry, variables);
+				}
 			}
 		}
 
 		if (!isList) {
-			return !data.isEmpty() ? fromMap(data.get(0), context) : context;
+			return !data.isEmpty() && data.get(0) != null ? fromMap(data.get(0), context) : context;
 		}
 
 		List<Object> list = new ArrayList<Object>();
@@ -391,7 +394,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			newMap.putAll(map);
 			return newMap;
 		}
-		else if (IPropertiesContainer.class.equals(context.getClass())) {
+		else if (IPropertiesContainer.class.equals(context)) {
 			IPropertiesContainer container = new PropertiesContainer();
 			container.setProperties(map);
 

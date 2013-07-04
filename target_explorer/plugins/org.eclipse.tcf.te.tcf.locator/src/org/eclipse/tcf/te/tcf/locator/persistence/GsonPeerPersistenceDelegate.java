@@ -66,7 +66,8 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 	protected Object fromMap(Map<String, Object> map, Object context) throws IOException {
 		Map<String,String> attrs = new HashMap<String,String>();
 		for (Entry<String, Object> entry : map.entrySet()) {
-			attrs.put(entry.getKey(), entry.getValue().toString());
+			if (entry != null)
+				attrs.put(entry.getKey(), entry.getValue().toString());
 		}
 
 		final IPeer peer = new Peer(attrs);

@@ -24,8 +24,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
@@ -39,8 +39,8 @@ import org.eclipse.ui.part.EditorPart;
  */
 public class StepperCommandHandler extends AbstractHandler implements IExecutableExtension {
 
-	private String operation = null;
-	private String adaptTo = null;
+	protected String operation = null;
+	protected String adaptTo = null;
 
 	/* (non-Javadoc)
 	 * @see com.windriver.te.tcf.ui.handler.AbstractAgentCommandHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -49,6 +49,56 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Assert.isNotNull(operation);
 
+		IStructuredSelection selection = getSelection(event);
+
+		Iterator<?> iterator = selection.iterator();
+		while (iterator.hasNext()) {
+			Object element = iterator.next();
+			Object adapted = element;
+			if (adaptTo != null) {
+				Object adapter = Platform.getAdapterManager().getAdapter(element, adaptTo);
+				if (adapter != null) adapted = adapter;
+			}
+			IStepperService stepperService = getStepperService(adapted, operation);
+			if (stepperService != null) {
+				IStepContext stepContext = stepperService.getStepContext(adapted, operation);
+				String stepGroupId = stepperService.getStepGroupId(adapted, operation);
+				String name = stepperService.getStepGroupName(adapted, operation);
+				boolean isCancelable = stepperService.isCancelable(adapted, operation);
+				IPropertiesContainer data = stepperService.getStepData(adapted, operation);
+
+				if (stepGroupId != null && stepContext != null) {
+					scheduleStepperJob(stepContext, data, stepGroupId, name, isCancelable);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get the stepper service for the goven context and operation.
+	 * @param context The context.
+	 * @param operation The operation.
+	 * @return The stepper service or <code>null</code>.
+	 */
+	protected IStepperService getStepperService(Object context, String operation) {
+		IService[] services = ServiceManager.getInstance().getServices(context, IStepperService.class, false);
+		IStepperService stepperService = null;
+		for (IService service : services) {
+			if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(context, operation)) {
+				stepperService = (IStepperService)service;
+			}
+        }
+		return stepperService;
+	}
+
+	/**
+	 * Get the selection for the handler execution.
+	 * @param event The event.
+	 * @return The selection.
+	 */
+	protected IStructuredSelection getSelection(ExecutionEvent event) {
 		// Get the active part
 		IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		// Get the current selection
@@ -64,38 +114,25 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 			}
 		}
 
-		// If the selection is not empty, iterate over the selection and execute
-		// the operation for each peer model node in the selection.
-		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
-			while (iterator.hasNext()) {
-				Object element = iterator.next();
-				Object adapted = element;
-				if (adaptTo != null) {
-					Object adapter = Platform.getAdapterManager().getAdapter(element, adaptTo);
-					if (adapter != null) adapted = adapter;
-				}
-				IStepperService service = ServiceManager.getInstance().getService(adapted, IStepperService.class);
-				if (service != null) {
-					String stepGroupId = service.getStepGroupId(adapted, operation);
-					IStepContext stepContext = service.getStepContext(adapted, operation);
-					String name = service.getStepGroupName(adapted, operation);
+		return (selection instanceof IStructuredSelection && !selection.isEmpty()) ? (IStructuredSelection)selection : new StructuredSelection();
+	}
 
-					if (stepGroupId != null && stepContext != null) {
-						IPropertiesContainer data = new PropertiesContainer();
-						StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-										stepContext,
-										data,
-										stepGroupId,
-										operation,
-										service.isCancelable(adapted, operation));
-						job.schedule();
-					}
-				}
-			}
-		}
-
-		return null;
+	/**
+	 * Schedule the stepper job.
+	 * @param stepContext The step context.
+	 * @param data The execution data.
+	 * @param stepGroupId The step group id to execute.
+	 * @param name The job name.
+	 * @param isCancelable <code>true</code> if the job should be cancelable.
+	 */
+	protected void scheduleStepperJob(IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String name, boolean isCancelable) {
+		StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
+				stepContext,
+				data,
+				stepGroupId,
+				operation,
+				isCancelable);
+		job.schedule();
 	}
 
 	/* (non-Javadoc)

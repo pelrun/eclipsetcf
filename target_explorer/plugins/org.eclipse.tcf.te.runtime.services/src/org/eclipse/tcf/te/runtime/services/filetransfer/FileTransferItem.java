@@ -28,10 +28,19 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 		setProperty(PROPERTY_DIRECTION, HOST_TO_TARGET);
 	}
 
+	public FileTransferItem(IPath fromHost, boolean enabled) {
+		this();
+		if (fromHost != null)
+			setProperty(PROPERTY_HOST, fromHost.toPortableString());
+		setProperty(PROPERTY_ENABLED, enabled);
+	}
+
 	public FileTransferItem(IPath fromHost, IPath toTarget) {
 		this();
-		setProperty(PROPERTY_HOST, fromHost.toPortableString());
-		setProperty(PROPERTY_TARGET, toTarget.toPortableString());
+		if (fromHost != null)
+			setProperty(PROPERTY_HOST, fromHost.toPortableString());
+		if (toTarget != null)
+			setProperty(PROPERTY_TARGET, toTarget.toPortableString());
 	}
 
 	/* (non-Javadoc)

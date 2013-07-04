@@ -281,10 +281,12 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 	public void validate() {
 		boolean valid = true;
 		if (sections != null) {
+			ValidationResult result = new ValidationResult();
 			for (AbstractSection section : sections) {
 				valid &= section.isValid();
-				setMessage(section.getMessage(), section.getMessageType());
+				result.setResult(section);
 			}
+			setMessage(result.getMessage(), result.getMessageType());
 			if (!isMessageSet()) {
 				setMessage(message);
 			}

@@ -12,8 +12,8 @@ package org.eclipse.tcf.te.tcf.ui.wizards;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
@@ -74,14 +74,20 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 		if (!autoConnect) return;
 
 		// Connect the connection
-		IStepperService service = ServiceManager.getInstance().getService(peerModel, IStepperService.class);
-		if (service != null) {
-			String stepGroupId = service.getStepGroupId(peerModel, IStepperServiceOperations.CONNECT);
-			IStepContext stepContext = service.getStepContext(peerModel, IStepperServiceOperations.CONNECT);
-			String name = service.getStepGroupName(peerModel, IStepperServiceOperations.CONNECT);
+		IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperService.class, false);
+		IStepperService stepperService = null;
+		for (IService service : services) {
+			if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.CONNECT)) {
+				stepperService = (IStepperService)service;
+			}
+        }
+		if (stepperService != null) {
+			String stepGroupId = stepperService.getStepGroupId(peerModel, IStepperServiceOperations.CONNECT);
+			IStepContext stepContext = stepperService.getStepContext(peerModel, IStepperServiceOperations.CONNECT);
+			String name = stepperService.getStepGroupName(peerModel, IStepperServiceOperations.CONNECT);
+			IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.CONNECT);
 
 			if (stepGroupId != null && stepContext != null) {
-				IPropertiesContainer data = new PropertiesContainer();
 				StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
 								stepContext,
 								data,

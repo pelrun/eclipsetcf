@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.launch.ui.tabs.launchcontext;
+package org.eclipse.tcf.te.ui.views.controls;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +38,6 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
-import org.eclipse.tcf.te.launch.ui.nls.Messages;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -48,6 +47,7 @@ import org.eclipse.tcf.te.ui.controls.AbstractDecoratedDialogPageControl;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
+import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.dialogs.ContainerCheckedTreeViewer;
 import org.eclipse.ui.navigator.CommonViewerSorter;
 
@@ -835,7 +835,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 			// if we are not valid here, it can only mean, that there is
 			// no connectable checked.
 			if (!valid) {
-				String messageId = "RemoteContextSelectorControl_error_noContextSelected"; //$NON-NLS-1$
+				String messageId = "AbstractContextSelectorControl_error_noContextSelected"; //$NON-NLS-1$
 				if (getPropertiesContainer().isProperty(PROPERTY_MULTI_CONTEXT_SELECTOR, true)) {
 					messageId += "_multi"; //$NON-NLS-1$
 				}

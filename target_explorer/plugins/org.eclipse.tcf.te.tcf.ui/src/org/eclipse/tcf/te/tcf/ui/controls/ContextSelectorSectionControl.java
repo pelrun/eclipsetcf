@@ -8,28 +8,45 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.tcf.launch.ui.launchcontext;
+package org.eclipse.tcf.te.tcf.ui.controls;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorControl;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.navigator.ContentProviderDelegate;
 import org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider;
+import org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl;
+import org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection;
 
 /**
  * Locator model launch context selector control.
  */
-public class ContextSelectorControl extends AbstractContextSelectorControl {
+public class ContextSelectorSectionControl extends AbstractContextSelectorControl {
 
+	private final AbstractContextSelectorSection section;
 
 	/**
 	 * Constructor.
-	 * @param parentPage
+	 *
+	 * @param section The parent context selector section. Must not be <code>null</code>.
+	 * @param parentPage The parent target connection page this control is embedded in. Might be
+	 *            <code>null</code> if the control is not associated with a page.
 	 */
-	public ContextSelectorControl(IDialogPage parentPage) {
-		super(parentPage);
+    public ContextSelectorSectionControl(AbstractContextSelectorSection section, IDialogPage parentPage) {
+        super(parentPage);
+        Assert.isNotNull(section);
+        this.section = section;
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorControl#onCheckStateChanged(java.lang.Object, boolean)
+	 */
+	@Override
+	protected void onCheckStateChanged(Object element, boolean checked) {
+		super.onCheckStateChanged(element, checked);
+		section.getManagedForm().dirtyStateChanged();
 	}
 
 	/* (non-Javadoc)

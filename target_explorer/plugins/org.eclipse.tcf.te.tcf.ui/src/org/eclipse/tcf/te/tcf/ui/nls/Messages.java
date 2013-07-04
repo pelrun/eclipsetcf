@@ -239,5 +239,4 @@ public class Messages extends NLS {
 	public static String PeerImportWizardPage_overwrite_button;
 	public static String PeerImportWizardPage_overwriteDialog_message;
 	public static String PeerImportWizardPage_overwriteDialogToggle_message;
-
 }

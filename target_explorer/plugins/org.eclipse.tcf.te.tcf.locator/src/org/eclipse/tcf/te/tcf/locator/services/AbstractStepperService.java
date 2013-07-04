@@ -11,9 +11,6 @@
 package org.eclipse.tcf.te.tcf.locator.services;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 
@@ -26,6 +23,15 @@ public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.
 	 * Constructor.
 	 */
 	public AbstractStepperService() {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService#isHandledOperation(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public boolean isHandledOperation(Object context, String operation) {
+		return IStepperServiceOperations.CONNECT.equals(operation) ||
+						IStepperServiceOperations.DISCONNECT.equals(operation);
 	}
 
 	/* (non-Javadoc)
@@ -60,25 +66,6 @@ public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.
 		}
 
 		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IStepperService#getStepContext(java.lang.Object, java.lang.String)
-	 */
-	@Override
-	public IStepContext getStepContext(Object context, String operation) {
-		IStepContext stepContext = null;
-
-		if (IStepperServiceOperations.CONNECT.equals(operation) || IStepperServiceOperations.DISCONNECT.equals(operation)) {
-			if (context instanceof IAdaptable) {
-				stepContext = (IStepContext)((IAdaptable)context).getAdapter(IStepContext.class);
-			}
-			if (stepContext == null) {
-				stepContext = (IStepContext)Platform.getAdapterManager().getAdapter(context, IStepContext.class);
-			}
-		}
-
-		return stepContext;
 	}
 
 	/* (non-Javadoc)

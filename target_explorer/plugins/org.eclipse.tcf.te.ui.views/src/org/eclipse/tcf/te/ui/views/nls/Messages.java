@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.nls;
 
+import java.lang.reflect.Field;
+
 import org.eclipse.osgi.util.NLS;
 
 /**
@@ -25,6 +27,42 @@ public class Messages extends NLS {
 	static {
 		// Load message values from bundle file
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
+	}
+
+	/**
+	 * Returns the corresponding string for the given externalized strings
+	 * key or <code>null</code> if the key does not exist.
+	 *
+	 * @param key The externalized strings key or <code>null</code>.
+	 * @return The corresponding string or <code>null</code>.
+	 */
+	public static String getString(String key) {
+		if (key != null) {
+			try {
+				Field field = Messages.class.getDeclaredField(key);
+				return (String)field.get(null);
+			} catch (Exception e) { /* ignored on purpose */ }
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns if or if not this NLS manager contains a constant for
+	 * the given externalized strings key.
+	 *
+	 * @param key The externalized strings key or <code>null</code>.
+	 * @return <code>True</code> if a constant for the given key exists, <code>false</code> otherwise.
+	 */
+	public static boolean hasString(String key) {
+		if (key != null) {
+			try {
+				Field field = Messages.class.getDeclaredField(key);
+				return field != null;
+			} catch (NoSuchFieldException e) { /* ignored on purpose */ }
+		}
+
+		return false;
 	}
 
 	// **** Declare externalized string id's down here *****
@@ -66,4 +104,11 @@ public class Messages extends NLS {
 	public static String UpdateActiveFiltersOperation_OperationName;
 
 	public static String ViewsUtil_reopen_error;
+
+	public static String AbstractContextSelectorControl_error_noContextSelected_single;
+	public static String AbstractContextSelectorControl_error_noContextSelected_multi;
+
+	public static String AbstractContextSelectorSection_toolbar_refresh_tooltip;
+	public static String AbstractContextSelectorSection_title;
+
 }

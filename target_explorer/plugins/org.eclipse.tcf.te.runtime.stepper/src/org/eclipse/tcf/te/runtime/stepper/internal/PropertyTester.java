@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.runtime.stepper.internal;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 
@@ -52,9 +53,15 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 		if ("isEnabled".equals(property)) { //$NON-NLS-1$
 			if (operation != null) {
-				IStepperService service = ServiceManager.getInstance().getService(receiver, IStepperService.class);
-				if (service != null) {
-					return service.isEnabled(receiver, operation);
+				IService[] services = ServiceManager.getInstance().getServices(receiver, IStepperService.class, false);
+				IStepperService stepperService = null;
+				for (IService service : services) {
+					if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(receiver, operation)) {
+						stepperService = (IStepperService)service;
+					}
+	            }
+				if (stepperService != null) {
+					return stepperService.isEnabled(receiver, operation);
 				}
 			}
 		}

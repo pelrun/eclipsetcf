@@ -55,16 +55,6 @@ public interface ImageConsts {
 	// ***** The image constants *****
 
 	/**
-	 * The key to access the refresh action image (enabled).
-	 */
-	public static final String  ACTION_Refresh_Enabled = "RefreshAction_enabled"; //$NON-NLS-1$
-
-	/**
-	 * The key to access the refresh action image (disabled).
-	 */
-	public static final String  ACTION_Refresh_Disabled = "RefreshAction_disabled"; //$NON-NLS-1$
-
-	/**
 	 * The key to access the launches tree root image.
 	 */
 	public static final String OBJ_Launches_Root = "OBJ_Launches_Root"; //$NON-NLS-1$

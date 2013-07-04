@@ -21,8 +21,8 @@ import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
@@ -126,15 +126,21 @@ public class UIPlugin extends AbstractUIPlugin {
 								IPeerModel[] peers = model.getPeers();
 								// Loop them and check if disconnect is available
 								for (IPeerModel peerModel : peers) {
-									IStepperService service = ServiceManager.getInstance().getService(peerModel, IStepperService.class);
-									if (service != null) {
-										String stepGroupId = service.getStepGroupId(peerModel, IStepperServiceOperations.DISCONNECT);
-										IStepContext stepContext = service.getStepContext(peerModel, IStepperServiceOperations.DISCONNECT);
-										String name = service.getStepGroupName(peerModel, IStepperServiceOperations.DISCONNECT);
-										boolean isEnabled = service.isEnabled(peerModel, IStepperServiceOperations.DISCONNECT);
+									IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperService.class, false);
+									IStepperService stepperService = null;
+									for (IService service : services) {
+										if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.DISCONNECT)) {
+											stepperService = (IStepperService)service;
+										}
+							        }
+									if (stepperService != null) {
+										String stepGroupId = stepperService.getStepGroupId(peerModel, IStepperServiceOperations.DISCONNECT);
+										IStepContext stepContext = stepperService.getStepContext(peerModel, IStepperServiceOperations.DISCONNECT);
+										String name = stepperService.getStepGroupName(peerModel, IStepperServiceOperations.DISCONNECT);
+										boolean isEnabled = stepperService.isEnabled(peerModel, IStepperServiceOperations.DISCONNECT);
+										IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.DISCONNECT);
 
 										if (isEnabled && stepGroupId != null && stepContext != null) {
-											IPropertiesContainer data = new PropertiesContainer();
 											StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
 															stepContext,
 															data,

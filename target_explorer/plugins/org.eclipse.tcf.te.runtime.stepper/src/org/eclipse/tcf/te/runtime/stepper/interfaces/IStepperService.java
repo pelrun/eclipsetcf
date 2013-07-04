@@ -9,12 +9,21 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.stepper.interfaces;
 
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 
 /**
  * Stepper service.
  */
 public interface IStepperService extends IService {
+
+	/**
+	 * Checks if this service can handle the given operation.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param operation The operation. Must not be <code>null</code>.
+	 * @return <code>true</code> if this service handles the given operation.
+	 */
+	public boolean isHandledOperation(Object context, String operation);
 
 	/**
 	 * Get the step group id for the given context and operation
@@ -46,6 +55,15 @@ public interface IStepperService extends IService {
 	 * @return The step context or <code>null</code>.
 	 */
 	public IStepContext getStepContext(Object context, String operation);
+
+	/**
+	 * Get the step data for the given context and operation.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param operation The operation. Must not be <code>null</code>.
+	 * @return The step data or an empty properties container.
+	 */
+	public IPropertiesContainer getStepData(Object context, String operation);
 
 	/**
 	 * Get the enabled state for the given operation.

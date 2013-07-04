@@ -21,10 +21,10 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.launch.core.bindings.LaunchConfigTypeBindingsManager;
 import org.eclipse.tcf.te.launch.core.selection.RemoteSelectionContext;
-import org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorControl;
 import org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorTab;
-import org.eclipse.tcf.te.tcf.launch.ui.launchcontext.ContextSelectorSection.ContextSelectorSectionSelectorControl;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.ui.controls.ContextSelectorSectionControl;
+import org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl;
 import org.eclipse.ui.forms.IManagedForm;
 
 /**
@@ -66,7 +66,7 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 	/**
 	 * Launch configuration main tab context selector control implementation.
 	 */
-	protected class MainTabContextSelectorControl extends ContextSelectorSectionSelectorControl {
+	protected class MainTabContextSelectorControl extends ContextSelectorSectionControl {
 
 		/**
 		 * Constructor.
@@ -75,7 +75,7 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 		 * @param parentPage The parent target connection page this control is embedded in. Might be
 		 *            <code>null</code> if the control is not associated with a page.
 		 */
-		public MainTabContextSelectorControl(ContextSelectorSection section, IDialogPage parentPage) {
+		public MainTabContextSelectorControl(MainTabContextSelectorSection section, IDialogPage parentPage) {
 			super(section, parentPage);
 		}
 
@@ -110,11 +110,11 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 	 * @see org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorTab#doCreateContextSelectorSection(org.eclipse.ui.forms.IManagedForm, org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected ContextSelectorSection doCreateContextSelectorSection(IManagedForm form, Composite panel) {
-		return new ContextSelectorSection(form, panel) {
+	protected MainTabContextSelectorSection doCreateContextSelectorSection(IManagedForm form, Composite panel) {
+		return new MainTabContextSelectorSection(form, panel) {
 
 			/* (non-Javadoc)
-			 * @see org.eclipse.tcf.te.tcf.launch.ui.launchcontext.ContextSelectorSection#doCreateContextSelector()
+			 * @see org.eclipse.tcf.te.tcf.launch.ui.launchcontext.MainTabContextSelectorSection#doCreateContextSelector()
 			 */
 			@Override
 			protected AbstractContextSelectorControl doCreateContextSelector() {

@@ -23,6 +23,12 @@ public interface ImageConsts {
     public final static String  IMAGE_DIR_ROOT = "icons/"; //$NON-NLS-1$
 
     /**
+     * The directory where to load enabled local toolbar images from,
+     * relative to the image root directory.
+     */
+    public final static String  IMAGE_DIR_ELCL = "elcl16/"; //$NON-NLS-1$
+
+    /**
      * The directory where to load view related images from, relative to
      * the image root directory.
      */
@@ -48,7 +54,12 @@ public interface ImageConsts {
 
     // ***** The image constants *****
 
-    /**
+	/**
+	 * The key to access the refresh action image (enabled).
+	 */
+	public static final String  ACTION_Refresh_Enabled = "RefreshAction_enabled"; //$NON-NLS-1$
+
+	/**
      * The key to access the editor image.
      */
     public static final String  EDITOR = "Editor"; //$NON-NLS-1$

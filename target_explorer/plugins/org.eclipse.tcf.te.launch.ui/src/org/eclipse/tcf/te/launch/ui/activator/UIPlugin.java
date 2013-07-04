@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.launch.ui.activator;
 
 import java.net.URL;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
@@ -19,7 +18,6 @@ import org.eclipse.tcf.te.launch.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -92,13 +90,6 @@ public class UIPlugin extends AbstractUIPlugin {
 	 */
 	@Override
 	protected void initializeImageRegistry(ImageRegistry registry) {
-		Bundle bundle = Platform.getBundle("org.eclipse.ui"); //$NON-NLS-1$
-		if (bundle != null) {
-			URL url = bundle.getEntry(ImageConsts.IMAGE_DIR_ROOT + "full/" + ImageConsts.IMAGE_DIR_ELCL + "refresh_nav.gif"); //$NON-NLS-1$ //$NON-NLS-2$
-			registry.put(ImageConsts.ACTION_Refresh_Enabled, ImageDescriptor.createFromURL(url));
-			url = bundle.getEntry(ImageConsts.IMAGE_DIR_ROOT + "full/" + ImageConsts.IMAGE_DIR_DLCL + "refresh_nav.gif"); //$NON-NLS-1$ //$NON-NLS-2$
-			registry.put(ImageConsts.ACTION_Refresh_Disabled, ImageDescriptor.createFromURL(url));
-		}
 		URL url = getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "launches_root.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.OBJ_Launches_Root, ImageDescriptor.createFromURL(url));
 		url = getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "redX_ovr.gif"); //$NON-NLS-1$

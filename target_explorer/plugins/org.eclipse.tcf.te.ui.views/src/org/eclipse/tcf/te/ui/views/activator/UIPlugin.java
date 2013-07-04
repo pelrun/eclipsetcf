@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.views.activator;
 
 import java.net.URL;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
@@ -24,6 +25,7 @@ import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 
@@ -140,6 +142,11 @@ public class UIPlugin extends AbstractUIPlugin {
 	 */
 	@Override
 	protected void initializeImageRegistry(ImageRegistry registry) {
+		Bundle bundle = Platform.getBundle("org.eclipse.ui"); //$NON-NLS-1$
+		if (bundle != null) {
+			URL url = bundle.getEntry(ImageConsts.IMAGE_DIR_ROOT + "full/" + ImageConsts.IMAGE_DIR_ELCL + "refresh_nav.gif"); //$NON-NLS-1$ //$NON-NLS-2$
+			registry.put(ImageConsts.ACTION_Refresh_Enabled, ImageDescriptor.createFromURL(url));
+		}
 		URL url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_EVIEW + "prop_ps.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.EDITOR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_EVIEW + "targets_view.gif"); //$NON-NLS-1$
