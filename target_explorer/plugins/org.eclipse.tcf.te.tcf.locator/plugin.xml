@@ -172,6 +172,7 @@
          <references>
             <reference id="org.eclipse.tcf.te.tcf.locator.setWaitForReadyStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startSimulatorStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"/>
          </references>
       </stepGroup>
@@ -195,10 +196,16 @@
       </stepGroup>
 
       <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup">
+         <references>
+            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"/>
+         </references>
+      </stepGroup>
+
+      <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"
             iterator="org.eclipse.tcf.te.tcf.locator.iterators.StartDebuggerIterator">
          <references>
-            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep"/>
          </references>
       </stepGroup>
