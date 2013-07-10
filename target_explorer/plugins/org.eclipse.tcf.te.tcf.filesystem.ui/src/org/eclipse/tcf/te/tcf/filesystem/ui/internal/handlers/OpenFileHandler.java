@@ -22,14 +22,18 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCacheUpdate;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.ContentTypeHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManager;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.CacheState;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -48,15 +52,37 @@ public class OpenFileHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelectionChecked(event);
 		final FSTreeNode node = (FSTreeNode) selection.getFirstElement();
-		IWorkbenchPage page = HandlerUtil.getActiveSite(event).getPage();
+		final IWorkbenchPage page = HandlerUtil.getActiveSite(event).getPage();
 		if (ContentTypeHelper.isBinaryFile(node)) {
 			// If the file is a binary file.
 			Shell parent = HandlerUtil.getActiveShell(event);
 			MessageDialog.openWarning(parent, Messages.OpenFileHandler_Warning,
 					Messages.OpenFileHandler_OpeningBinaryNotSupported);
 		} else {
-			// Open the file node.
-			openFile(node, page);
+			if (UIPlugin.isAutoSaving()) {
+				// Refresh the node to determine the cache state correctly
+				node.refresh(new Callback() {
+					@Override
+					protected void internalDone(Object caller, IStatus status) {
+						File file = CacheManager.getCacheFile(node);
+						if (node.getCacheState() == CacheState.outdated) {
+							file.delete();
+						}
+
+						DisplayUtil.safeAsyncExec(new Runnable() {
+							@Override
+							public void run() {
+								// Open the file node.
+								openFile(node, page);
+							}
+						});
+					}
+				});
+			} else {
+				// Open the file node.
+				openFile(node, page);
+			}
+
 		}
 		return null;
 	}
@@ -71,7 +97,7 @@ public class OpenFileHandler extends AbstractHandler {
 	 * @param page
 	 *            The workbench page in which the editor is opened.
 	 */
-	private void openFile(FSTreeNode node, IWorkbenchPage page) {
+	/* default */ void openFile(FSTreeNode node, IWorkbenchPage page) {
 		File file = CacheManager.getCacheFile(node);
 		if (!file.exists()) {
 			// If the file node's local cache does not exist yet, download it.

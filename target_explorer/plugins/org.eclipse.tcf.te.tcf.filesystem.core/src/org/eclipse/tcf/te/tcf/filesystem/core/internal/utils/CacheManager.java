@@ -23,8 +23,8 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
- * The local file system cache used to manage the temporary files downloaded
- * from a remote file system.
+ * The local file system cache used to manage the temporary files downloaded from a remote file
+ * system.
  */
 public class CacheManager {
 	public static final char PATH_ESCAPE_CHAR = '$';
@@ -32,18 +32,17 @@ public class CacheManager {
 	/**
 	 * Get the local path of a node's cached file.
 	 * <p>
-	 * The preferred location is within the plugin's state location, in
-	 * example <code>&lt;state location&gt;agent_<hashcode_of_peerId>/remote/path/to/the/file...</code>.
+	 * The preferred location is within the plugin's state location, in example
+	 * <code>&lt;state location&gt;agent_<hashcode_of_peerId>/remote/path/to/the/file...</code>.
 	 * <p>
-	 * If the plug-in is loaded in a RCP workspace-less environment, the
-	 * fall back strategy is to use the users home directory.
+	 * If the plug-in is loaded in a RCP workspace-less environment, the fall back strategy is to
+	 * use the users home directory.
 	 *
-	 * @param node
-	 *            The file/folder node.
+	 * @param node The file/folder node.
 	 * @return The local path of the node's cached file.
 	 */
 	public static IPath getCachePath(FSTreeNode node) {
-        File location = getCacheRoot();
+		File location = getCacheRoot();
 		String agentId = node.peerNode.getPeerId();
 		// Use Math.abs to avoid negative hash value.
 		String agent = agentId.replace(':', PATH_ESCAPE_CHAR);
@@ -54,109 +53,112 @@ public class CacheManager {
 	}
 
 	/**
-	 * Check and make a directory if it does not exist. Record
-	 * the failure message if making fails.
-	 *  
+	 * Check and make a directory if it does not exist. Record the failure message if making fails.
+	 *
 	 * @param file The file to be deleted.
 	 */
 	static void mkdirChecked(final File dir) {
-		if(!dir.exists()) {
-			SafeRunner.run(new ISafeRunnable(){
+		if (!dir.exists()) {
+			SafeRunner.run(new ISafeRunnable() {
 				@Override
-                public void run() throws Exception {
+				public void run() throws Exception {
 					if (!dir.mkdir()) {
-						throw new Exception(NLS.bind(Messages.CacheManager_MkdirFailed, dir.getAbsolutePath()));
+						throw new Exception(NLS.bind(Messages.CacheManager_MkdirFailed, dir
+						                .getAbsolutePath()));
 					}
-                }
+				}
 
 				@Override
-                public void handleException(Throwable exception) {
-	                // Ignore on purpose
-                }});
+				public void handleException(Throwable exception) {
+					// Ignore on purpose
+				}
+			});
 		}
 	}
-	
+
 	/**
-	 * Check if the file exists and delete if it does. Record
-	 * the failure message if deleting fails.
-	 * 
+	 * Check if the file exists and delete if it does. Record the failure message if deleting fails.
+	 *
 	 * @param file The file to be deleted.
 	 */
 	static void deleteFileChecked(final File file) {
 		if (file.exists()) {
-			SafeRunner.run(new ISafeRunnable(){
+			SafeRunner.run(new ISafeRunnable() {
 				@Override
-                public void run() throws Exception {
+				public void run() throws Exception {
 					if (!file.delete()) {
-						throw new Exception(NLS.bind(Messages.Operation_DeletingFileFailed, file.getAbsolutePath()));
+						throw new Exception(NLS.bind(Messages.Operation_DeletingFileFailed, file
+						                .getAbsolutePath()));
 					}
-                }
+				}
 
 				@Override
-                public void handleException(Throwable exception) {
+				public void handleException(Throwable exception) {
 					// Ignore on purpose
-                }});
+				}
+			});
 		}
 	}
-	
+
 	/**
-	 * Check if the file exists and set its read-only attribute if it does. Record
-	 * the failure message if it fails.
-	 * 
+	 * Check if the file exists and set its read-only attribute if it does. Record the failure
+	 * message if it fails.
+	 *
 	 * @param file The file to be set.
 	 */
 	static void setReadOnlyChecked(final File file) {
 		if (file.exists()) {
-			SafeRunner.run(new ISafeRunnable(){
+			SafeRunner.run(new ISafeRunnable() {
 				@Override
-                public void run() throws Exception {
+				public void run() throws Exception {
 					if (!file.setReadOnly()) {
-						throw new Exception(NLS.bind(Messages.OpStreamOp_SetReadOnlyFailed, file.getAbsolutePath()));
+						throw new Exception(NLS.bind(Messages.OpStreamOp_SetReadOnlyFailed, file
+						                .getAbsolutePath()));
 					}
-                }
+				}
 
 				@Override
-                public void handleException(Throwable exception) {
-	                // Ignore on purpose
-                }});
+				public void handleException(Throwable exception) {
+					// Ignore on purpose
+				}
+			});
 		}
 	}
-	
+
 	/**
 	 * Get the local file of the specified node.
 	 *
 	 * <p>
-	 * The preferred location is within the plugin's state location, in
-	 * example <code>&lt;state location&gt;agent_<hashcode_of_peerId>/remote/path/to/the/file...</code>.
+	 * The preferred location is within the plugin's state location, in example
+	 * <code>&lt;state location&gt;agent_<hashcode_of_peerId>/remote/path/to/the/file...</code>.
 	 * <p>
-	 * If the plug-in is loaded in a RCP workspace-less environment, the
-	 * fall back strategy is to use the users home directory.
+	 * If the plug-in is loaded in a RCP workspace-less environment, the fall back strategy is to
+	 * use the users home directory.
 	 *
-	 * @param node
-	 *            The file/folder node.
+	 * @param node The file/folder node.
 	 * @return The file object of the node's local cache.
 	 */
-	public static File getCacheFile(FSTreeNode node){
+	public static File getCacheFile(FSTreeNode node) {
 		return getCachePath(node).toFile();
 	}
 
 	/**
-	 * Get the cache file system's root directory on the local host's
-	 * file system.
+	 * Get the cache file system's root directory on the local host's file system.
 	 *
 	 * @return The root folder's location of the cache file system.
 	 */
 	public static File getCacheRoot() {
 		File location;
-        try {
-        	location = CorePlugin.getDefault().getStateLocation().toFile();
-        }catch (IllegalStateException e) {
-            // An RCP workspace-less environment (-data @none)
-        	location = new File(System.getProperty("user.home"), ".tcf"); //$NON-NLS-1$ //$NON-NLS-2$
-        	location = new File(location, "fs"); //$NON-NLS-1$
-        }
+		try {
+			location = CorePlugin.getDefault().getStateLocation().toFile();
+		}
+		catch (IllegalStateException e) {
+			// An RCP workspace-less environment (-data @none)
+			location = new File(System.getProperty("user.home"), ".tcf"); //$NON-NLS-1$ //$NON-NLS-2$
+			location = new File(location, "fs"); //$NON-NLS-1$
+		}
 
-        // Create the location if it not exist
+		// Create the location if it not exist
 		mkdirChecked(location);
 		return location;
 	}
@@ -164,20 +166,18 @@ public class CacheManager {
 	/**
 	 * Append the path with the specified node's context path.
 	 *
-	 * @param path
-	 *            The path to be appended.
-	 * @param node
-	 *            The file/folder node.
+	 * @param path The path to be appended.
+	 * @param node The file/folder node.
 	 * @return The path to the node.
 	 */
 	private static IPath appendNodePath(IPath path, FSTreeNode node) {
-		if (!node.isRoot() && node.getParent()!=null) {
+		if (!node.isRoot() && node.getParent() != null) {
 			path = appendNodePath(path, node.getParent());
 			return appendPathSegment(node, path, node.name);
 		}
 		if (node.isWindowsNode()) {
 			String name = node.name;
-			name = name.substring(0, name.length()-1);
+			name = name.substring(0, name.length() - 1);
 			name = name.replace(':', PATH_ESCAPE_CHAR);
 			return appendPathSegment(node, path, name);
 		}
@@ -185,8 +185,8 @@ public class CacheManager {
 	}
 
 	/**
-	 * Append the path with the segment "name". Create a directory
-	 * if the node is a directory which does not yet exist.
+	 * Append the path with the segment "name". Create a directory if the node is a directory which
+	 * does not yet exist.
 	 *
 	 * @param node The file/folder node.
 	 * @param path The path to appended.
