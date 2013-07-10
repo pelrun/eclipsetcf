@@ -33,6 +33,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.navigator.CommonNavigator;
 
@@ -51,7 +52,9 @@ public class OpenEditorHandler extends AbstractHandler {
 		// The active part is the Target Explorer view instance
 		IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		// Get the currently active workbench window
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+        // In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
+        IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+        if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		// ALT - Key pressed?
 		Object ctrlPressed = HandlerUtil.getVariable(event, "ctrlPressed"); //$NON-NLS-1$
 

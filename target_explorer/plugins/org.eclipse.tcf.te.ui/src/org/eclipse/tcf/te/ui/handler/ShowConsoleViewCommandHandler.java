@@ -28,8 +28,9 @@ public class ShowConsoleViewCommandHandler extends AbstractHandler {
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-		if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        // In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
+        IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+        if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (window != null && window.getActivePage() != null) {
 			IWorkbenchPage page = window.getActivePage();
 			try {

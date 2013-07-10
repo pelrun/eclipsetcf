@@ -19,6 +19,7 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWizard;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -33,17 +34,19 @@ public abstract class NewNodeHandler extends AbstractHandler {
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+        // In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
+        IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+        if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		IWorkbenchWizard wizard;
 		wizard = createWizard();
 		ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
 		if (selection instanceof IStructuredSelection) {
-			wizard.init(window.getWorkbench(), (IStructuredSelection) selection);
+			wizard.init(PlatformUI.getWorkbench(), (IStructuredSelection) selection);
 		}
 		else {
-			wizard.init(window.getWorkbench(), StructuredSelection.EMPTY);
+			wizard.init(PlatformUI.getWorkbench(), StructuredSelection.EMPTY);
 		}
-		Shell parent = window.getShell();
+		Shell parent = window != null ? window.getShell() : null;
 		WizardDialog dialog = new WizardDialog(parent, wizard);
 		dialog.create();
 		dialog.open();
@@ -52,7 +55,7 @@ public abstract class NewNodeHandler extends AbstractHandler {
 
 	/**
 	 * Create a "New" wizard to for creating a file/folder.
-	 * 
+	 *
 	 * @return the wizard to be used for creating a file/folder.
 	 */
 	protected abstract IWorkbenchWizard createWizard();

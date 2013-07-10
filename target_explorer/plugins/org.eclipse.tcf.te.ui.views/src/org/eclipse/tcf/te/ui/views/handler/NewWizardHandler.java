@@ -20,6 +20,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.internal.actions.NewWizardShortcutAction;
 import org.eclipse.ui.wizards.IWizardDescriptor;
@@ -44,7 +45,9 @@ public class NewWizardHandler extends AbstractHandler {
 				Object element = iterator.next();
 				if (element instanceof NewWizardNode) {
 					IWizardDescriptor wizardDesc = NewWizardRegistry.getInstance().findWizard(((NewWizardNode)element).getWizardId());
-					IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+			        // In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
+			        IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+			        if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 					new NewWizardShortcutAction(window, wizardDesc).run();
 				}
 			}

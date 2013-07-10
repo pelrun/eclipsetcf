@@ -85,6 +85,7 @@ public class SaveAllListener implements IExecutionListener {
 	@Override
 	public void preExecute(String commandId, ExecutionEvent event) {
 		fDirtyNodes.clear();
+        // In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
 		if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		IWorkbenchPage page = window.getActivePage();

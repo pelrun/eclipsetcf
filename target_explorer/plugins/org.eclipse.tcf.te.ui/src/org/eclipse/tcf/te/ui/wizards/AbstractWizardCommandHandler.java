@@ -21,6 +21,7 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWizard;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -98,7 +99,9 @@ public abstract class AbstractWizardCommandHandler extends AbstractHandler {
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		// In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+		if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (window != null) {
 			// Create the wizard
 			IWizard wizard = createWizard();

@@ -147,9 +147,11 @@ public abstract class AbstractActionDelegate extends EventManager implements
     }
 
     public IWorkbenchWindow getWindow() {
-        if (event != null) return HandlerUtil.getActiveWorkbenchWindow(event);
+        // In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
+        if (event != null && HandlerUtil.getActiveWorkbenchWindow(event) != null) return HandlerUtil.getActiveWorkbenchWindow(event);
         if (part != null) return part.getSite().getWorkbenchWindow();
         if (window != null) return window;
+        if (PlatformUI.getWorkbench() != null) return PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         return null;
     }
 
