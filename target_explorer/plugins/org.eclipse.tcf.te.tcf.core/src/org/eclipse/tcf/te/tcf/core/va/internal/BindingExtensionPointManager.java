@@ -113,23 +113,17 @@ public class BindingExtensionPointManager extends AbstractExtensionPointManager<
 			boolean isApplicable = false;
 
 			if (enablement != null) {
-				if (peer != null) {
-					// Set the default variable to the peer.
-					EvaluationContext evalContext = new EvaluationContext(null, peer);
-					evalContext.addVariable("peer", peer); //$NON-NLS-1$
-					// Allow plugin activation
-					evalContext.setAllowPluginActivation(true);
-					// Evaluate the expression
-					try {
-						isApplicable = enablement.evaluate(evalContext).equals(EvaluationResult.TRUE);
-					} catch (CoreException e) {
-						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-										e.getLocalizedMessage(), e);
-						Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-					}
-				} else {
-					// The enablement is false by definition if no peer is given.
-					isApplicable = false;
+				// Set the default variable to the peer.
+				EvaluationContext evalContext = new EvaluationContext(null, peer);
+				evalContext.addVariable("peer", peer); //$NON-NLS-1$
+				// Allow plugin activation
+				evalContext.setAllowPluginActivation(true);
+				// Evaluate the expression
+				try {
+					isApplicable = enablement.evaluate(evalContext).equals(EvaluationResult.TRUE);
+				} catch (CoreException e) {
+					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), e.getLocalizedMessage(), e);
+					Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
 				}
 			}
 

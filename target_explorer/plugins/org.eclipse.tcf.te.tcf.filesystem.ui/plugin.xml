@@ -95,21 +95,6 @@
       </commonFilter>
    </extension>
 
-<!-- Service contributions -->
-   <extension point="org.eclipse.tcf.te.runtime.services.services">
-      <service
-            class="org.eclipse.tcf.te.tcf.filesystem.ui.services.UIService"
-            id="org.eclipse.tcf.te.tcf.filesytsem.uiservice">
-         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.IUIService"/>
-         <enablement>
-            <or>
-               <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
-               <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel"/>
-            </or>
-         </enablement>
-      </service>
-   </extension>
-   
 <!-- Editor page contributions -->
    <extension point="org.eclipse.tcf.te.ui.views.editorPages">
       <editorPage
@@ -127,14 +112,13 @@
             pageId="org.eclipse.tcf.te.tcf.filesystem.FSExplorerEditorPage">
          <enablement>
             <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
-                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="FileSystem"/>
-                  <test
-                        property="org.eclipse.tcf.te.runtime.preference"
-                        args="bundleId=org.eclipse.tcf.te.tcf.filesystem.ui,key=te.tcf.filesystem.core.feature.editor.content.enable"
-                        value="true">
-                  </test>
-               </adapt>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+               <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="FileSystem"/>
+               <test
+                     property="org.eclipse.tcf.te.runtime.preference"
+                     args="bundleId=org.eclipse.tcf.te.tcf.filesystem.ui,key=te.tcf.filesystem.core.feature.editor.content.enable"
+                     value="true">
+               </test>
             </with>
          </enablement>
       </editorPageBinding>
@@ -1691,24 +1675,12 @@
       <factory
             adaptableType="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"
             class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory">
-         <adapter
-               type="org.eclipse.ui.IActionFilter">
-         </adapter>
-         <adapter
-               type="org.eclipse.jface.viewers.ILabelProvider">
-         </adapter>
-         <adapter
-               type="org.eclipse.ui.IPersistableElement">
-         </adapter>
-         <adapter
-               type="org.eclipse.tcf.te.ui.interfaces.ILazyLoader">
-         </adapter>
-         <adapter
-               type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
-         </adapter>
-         <adapter
-               type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
-         </adapter>
+         <adapter type="org.eclipse.ui.IActionFilter"/>
+         <adapter type="org.eclipse.jface.viewers.ILabelProvider"/>
+         <adapter type="org.eclipse.ui.IPersistableElement"/>
+         <adapter type="org.eclipse.tcf.te.ui.interfaces.ILazyLoader"/>
+         <adapter type="org.eclipse.tcf.te.ui.interfaces.ISearchable"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider"/>
       </factory>
       <factory
             adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"

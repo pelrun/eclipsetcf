@@ -69,20 +69,20 @@ public class ExecutableExtension extends PlatformObject implements IExecutableEx
 
 		// Initialize the id field by reading the <id> extension attribute.
 		// Throws an exception if the id is empty or null.
-		id = config != null ? config.getAttribute("id") : null; //$NON-NLS-1$
+		id = config.getAttribute("id"); //$NON-NLS-1$
 		if (id == null || "".equals(id.trim())) { //$NON-NLS-1$
 			throw createMissingMandatoryAttributeException("id", config.getContributor().getName()); //$NON-NLS-1$
 		}
 
 		// Try the "label" attribute first
-		label = config != null ? config.getAttribute("label") : null; //$NON-NLS-1$
+		label = config.getAttribute("label"); //$NON-NLS-1$
 		// If "label" is not found or empty, try the "name" attribute as fallback
 		if (label == null || "".equals(label.trim())) { //$NON-NLS-1$
-			label = config != null ? config.getAttribute("name") : null; //$NON-NLS-1$
+			label = config.getAttribute("name"); //$NON-NLS-1$
 		}
 
 		// Read the description text from the "<description>" child element
-		IConfigurationElement[] children = config != null ? config.getChildren("description") : null; //$NON-NLS-1$
+		IConfigurationElement[] children = config.getChildren("description"); //$NON-NLS-1$
 		// Only one description element is allow. All other will be ignored
 		if (children != null && children.length > 0) {
 			IConfigurationElement element = children[0];

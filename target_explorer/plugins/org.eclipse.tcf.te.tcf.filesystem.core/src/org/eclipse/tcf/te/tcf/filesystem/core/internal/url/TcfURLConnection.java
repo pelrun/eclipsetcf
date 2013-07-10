@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
@@ -105,13 +106,28 @@ public class TcfURLConnection extends URLConnection {
 	 * @param peerId The target peer's ID.
 	 * @return The peer with this ID or null if not found.
 	 */
-    private IPeer findPeer(String peerId) {
-		IPeer peer = Protocol.getLocator().getPeers().get(peerId);
-		if(peer == null) {
-			IPeerModel peerNode = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
-			if(peerNode != null) peer = peerNode.getPeer();
-		}
-		return peer;
+    private IPeer findPeer(final String peerId) {
+    	Assert.isNotNull(peerId);
+
+    	final AtomicReference<IPeer> peer = new AtomicReference<IPeer>();
+
+    	Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				IPeer p = Protocol.getLocator().getPeers().get(peerId);
+				if (p == null) {
+					IPeerModel peerNode = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
+					if (peerNode != null) p = peerNode.getPeer();
+				}
+				peer.set(p);
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		return peer.get();
 	}
 
 	/**

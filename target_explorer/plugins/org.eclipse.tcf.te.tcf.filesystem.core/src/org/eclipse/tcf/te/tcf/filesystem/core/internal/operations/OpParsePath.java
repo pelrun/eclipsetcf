@@ -12,12 +12,14 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFException;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.TargetPropertyTester;
@@ -63,7 +65,22 @@ public class OpParsePath extends Operation {
 			if (slash != -1) {
 				String peerId = filePath.substring(0, slash);
 				peerId = peerId.replace(CacheManager.PATH_ESCAPE_CHAR, ':');
-				peer = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
+
+				final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+				final String finPeerId = peerId;
+
+				Runnable runnable = new Runnable() {
+
+					@Override
+					public void run() {
+						peerModel.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(finPeerId));
+					}
+				};
+
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+
+				this.peer = peerModel.get();
 				if (peer != null) {
 					boolean hostWindows = Host.isWindowsHost();
 					boolean windows = TargetPropertyTester.isWindows(peer);

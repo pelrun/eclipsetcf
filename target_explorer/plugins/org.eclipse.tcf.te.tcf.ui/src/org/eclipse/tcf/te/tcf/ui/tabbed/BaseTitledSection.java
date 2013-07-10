@@ -13,6 +13,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -61,8 +63,13 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 		}
         Assert.isTrue(selection instanceof IStructuredSelection);
         Object input = ((IStructuredSelection) selection).getFirstElement();
-		if (input instanceof IPeerModelProvider) {
-			this.provider = (IPeerModelProvider) input;
+
+        IPeerModelProvider provider = input instanceof IPeerModelProvider ? (IPeerModelProvider) input : null;
+        if (provider == null) provider = input instanceof IAdaptable ? (IPeerModelProvider)((IAdaptable)input).getAdapter(IPeerModelProvider.class) : null;
+        if (provider == null) provider = (IPeerModelProvider)Platform.getAdapterManager().getAdapter(input, IPeerModelProvider.class);
+
+		if (provider != null) {
+			this.provider = provider;
 			IPeerModel peerNode = this.provider.getPeerModel();
 			this.viewerInput = (IPropertyChangeProvider) peerNode.getAdapter(IPropertyChangeProvider.class);
 			if (this.viewerInput != null) {

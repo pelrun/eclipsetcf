@@ -13,13 +13,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdapterFactory;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementLabelProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.search.FSTreeNodeSearchable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
 import org.eclipse.tcf.te.ui.interfaces.ILazyLoader;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 import org.eclipse.ui.IActionFilter;
@@ -33,52 +36,83 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 	// The fFilters map caching fFilters for FS nodes.
 	private Map<FSTreeNode, NodeStateFilter> filters;
 
+	public static class FSTreeNodePeerModelProvider extends PlatformObject implements IPeerModelProvider {
+		private final FSTreeNode node;
+
+		/**
+		 * Constructor
+		 */
+		public FSTreeNodePeerModelProvider(FSTreeNode node) {
+			Assert.isNotNull(node);
+			this.node = node;
+		}
+
+		/**
+		 * Returns the associated file system tree node.
+		 *
+		 * @return The associated file system tree node.
+		 */
+		public final FSTreeNode getFSTreeNode() {
+			return node;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider#getPeerModel()
+		 */
+		@Override
+		public final IPeerModel getPeerModel() {
+			return node.peerNode;
+		}
+	}
+
 	/**
 	 * Constructor.
 	 */
-	public FSTreeNodeAdapterFactory(){
+	public FSTreeNodeAdapterFactory() {
 		this.filters = Collections.synchronizedMap(new HashMap<FSTreeNode, NodeStateFilter>());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapter(java.lang.Object, java.lang.Class)
 	 */
 	@Override
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
-		if(adaptableObject instanceof FSTreeNode) {
+		if (adaptableObject instanceof FSTreeNode) {
 			FSTreeNode node = (FSTreeNode) adaptableObject;
-			if(adapterType == IActionFilter.class) {
+			if (adapterType == IActionFilter.class) {
 				NodeStateFilter filter = filters.get(node);
-				if(filter == null){
+				if (filter == null) {
 					filter = new NodeStateFilter(node);
 					filters.put(node, filter);
 				}
 				return filter;
 			}
-			else if(adapterType == ILabelProvider.class) {
+			else if (adapterType == ILabelProvider.class) {
 				return nodeLabelProvider;
 			}
-			else if(adapterType == IPersistableElement.class && UIPlugin.isExpandedPersisted()) {
+			else if (adapterType == IPersistableElement.class && UIPlugin.isExpandedPersisted()) {
 				return new PersistableNode(node);
 			}
-			else if(adapterType == ILazyLoader.class) {
+			else if (adapterType == ILazyLoader.class) {
 				return new FSTreeNodeLoader(node);
 			}
-			else if(adapterType == IPeerModel.class) {
-				return node.getPeerModel();
+			else if (adapterType == IPeerModelProvider.class) {
+				return new FSTreeNodePeerModelProvider(node);
 			}
-			else if(adapterType == ISearchable.class) {
+			else if (adapterType == ISearchable.class) {
 				return new FSTreeNodeSearchable(node);
 			}
 		}
 		return null;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapterList()
 	 */
 	@Override
 	public Class[] getAdapterList() {
-		return new Class[] { IActionFilter.class, ILabelProvider.class, IPersistableElement.class, ILazyLoader.class, ISearchable.class };
+		return new Class[] { IActionFilter.class, ILabelProvider.class, IPersistableElement.class, ILazyLoader.class, ISearchable.class, IPeerModelProvider.class };
 	}
 }
