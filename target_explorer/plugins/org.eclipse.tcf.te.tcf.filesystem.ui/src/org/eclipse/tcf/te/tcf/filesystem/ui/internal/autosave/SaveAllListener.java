@@ -34,6 +34,8 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -83,7 +85,9 @@ public class SaveAllListener implements IExecutionListener {
 	@Override
 	public void preExecute(String commandId, ExecutionEvent event) {
 		fDirtyNodes.clear();
-		IWorkbenchPage page = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage();
+		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+		if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		IWorkbenchPage page = window.getActivePage();
 		IEditorPart[] editors = page.getDirtyEditors();
 		for (IEditorPart editor : editors) {
 			IEditorInput input = editor.getEditorInput();
