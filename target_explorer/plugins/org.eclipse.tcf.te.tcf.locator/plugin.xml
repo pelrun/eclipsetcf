@@ -211,4 +211,73 @@
       </stepGroup>
    </extension>
 
+<!-- Reusable core expression fragments -->   
+   <extension point="org.eclipse.core.expressions.definitions">
+   
+      <!-- Expression to test if current variable 
+           is adaptable to IPeerModel and has a simulator service
+      -->
+      <definition id="te.expressions.peerModel.hasSimulatorService">
+         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+            <test property="org.eclipse.tcf.te.runtime.services.hasService" 
+                  value="org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService"/>
+         </adapt>
+      </definition>
+
+      <!-- Expression to test if the active editor input 
+           is adaptable to IPeerModel and has a simulator service
+      -->
+      <definition id="te.expressions.editor.hasSimulatorService">
+         <with variable="activeEditorInput">
+            <reference definitionId="te.expressions.peerModel.hasSimulatorService"/>
+         </with>
+      </definition>
+
+      <!-- Expression to test if the selection 
+           is adaptable to IPeerModel and has a simulator service
+      -->
+      <definition id="te.expressions.selection.hasSimulatorService">
+         <with variable="selection">
+            <count value="1"/>
+            <iterate operator="and" ifEmpty="false">
+               <reference definitionId="te.expressions.peerModel.hasSimulatorService"/>
+            </iterate>
+         </with>
+      </definition>
+
+      <!-- Expression to test if current variable 
+           is adaptable to IPeerModel and has remote or offline run control
+      -->
+      <definition id="te.expressions.peerModel.hasRunControl">
+         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+            <or>
+               <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+               <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+            </or>
+         </adapt>
+      </definition>
+
+      <!-- Expression to test if the active editor input 
+           is adaptable to IPeerModel and has remote or offline run control
+      -->
+      <definition id="te.expressions.editor.hasRunControl">
+         <with variable="activeEditorInput">
+            <reference definitionId="te.expressions.peerModel.hasSimulatorService"/>
+         </with>
+      </definition>
+
+      <!-- Expression to test if the selection 
+           is adaptable to IPeerModel and has remote or offline run control
+      -->
+      <definition id="te.expressions.selection.hasRunControl">
+         <with variable="selection">
+            <count value="1"/>
+            <iterate operator="and" ifEmpty="false">
+               <reference definitionId="te.expressions.peerModel.hasSimulatorService"/>
+            </iterate>
+         </with>
+      </definition>
+
+   </extension>
+
 </plugin>
