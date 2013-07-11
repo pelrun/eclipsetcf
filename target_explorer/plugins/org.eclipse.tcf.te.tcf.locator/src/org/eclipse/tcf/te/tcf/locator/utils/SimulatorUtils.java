@@ -41,6 +41,33 @@ public final class SimulatorUtils {
 	}
 
 	/**
+	 * Returns if or if the given peer model has the simulator enabled or not.
+	 *
+	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @return <code>True</code> if the simulator is enabled, <code>false</code> otherwise.
+	 */
+	public static boolean isSimulatorEnabled(final IPeerModel peerModel) {
+		Assert.isNotNull(peerModel);
+
+		final AtomicBoolean isEnabled = new AtomicBoolean(false);
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				String value = peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_ENABLED);
+				if (value != null) {
+					isEnabled.set(Boolean.parseBoolean(value));
+				}
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
+
+		return isEnabled.get();
+	}
+
+	/**
 	 * Returns the simulator service and the settings for the simulator launch.
 	 * If no simulator service is configured in the peer
 	 * or the configured service is not available, <code>null</code> will be returned.
@@ -68,12 +95,8 @@ public final class SimulatorUtils {
 			}
 		};
 
-		if (Protocol.isDispatchThread()) {
-			runnable.run();
-		}
-		else {
-			Protocol.invokeAndWait(runnable);
-		}
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
 
 		Result result = null;
 
