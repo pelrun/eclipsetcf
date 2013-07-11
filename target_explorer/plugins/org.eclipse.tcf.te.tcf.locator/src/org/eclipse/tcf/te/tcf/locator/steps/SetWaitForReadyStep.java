@@ -47,7 +47,10 @@ public class SetWaitForReadyStep extends AbstractPeerModelStep {
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-                getActivePeerModelContext(context, data, fullQualifiedId).setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY);
+				int state = getActivePeerModelContext(context, data, fullQualifiedId).getIntProperty(IPeerModelProperties.PROP_STATE);
+				if (state == IPeerModelProperties.STATE_NOT_REACHABLE) {
+					getActivePeerModelContext(context, data, fullQualifiedId).setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY);
+				}
 			}
 		});
 		callback.done(this, Status.OK_STATUS);
