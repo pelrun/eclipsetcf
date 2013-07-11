@@ -124,6 +124,9 @@ public class UIPlugin extends AbstractUIPlugin {
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_ELCL + "collapseall.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.VIEWER_COLLAPSE_ALL, ImageDescriptor.createFromURL(url));
 
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_ELCL + "connect.gif"); //$NON-NLS-1$
+		registry.put(ImageConsts.ACTION_CONNECT, ImageDescriptor.createFromURL(url));
+
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "gold_ovr.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.GOLD_OVR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "green_ovr.gif"); //$NON-NLS-1$

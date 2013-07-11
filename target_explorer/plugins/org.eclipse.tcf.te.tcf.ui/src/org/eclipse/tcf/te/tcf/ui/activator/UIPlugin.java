@@ -131,6 +131,7 @@ public class UIPlugin extends AbstractUIPlugin {
 									for (IService service : services) {
 										if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.DISCONNECT)) {
 											stepperService = (IStepperService)service;
+											break;
 										}
 							        }
 									if (stepperService != null) {

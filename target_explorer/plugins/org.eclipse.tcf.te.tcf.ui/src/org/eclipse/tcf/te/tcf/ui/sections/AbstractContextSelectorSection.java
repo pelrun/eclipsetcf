@@ -12,29 +12,31 @@ package org.eclipse.tcf.te.tcf.ui.sections;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.ui.controls.ContextSelectorSectionControl;
-import org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl;
-import org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection;
 import org.eclipse.ui.forms.IManagedForm;
 
 /**
  * Locator model context selector section implementation.
  */
-public abstract class ContextSelectorSection extends AbstractContextSelectorSection {
+public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection {
+
+	// Reference to a copy of the original data
+	private IPropertiesContainer odc = null;
 
 	/**
 	 * Constructor.
 	 * @param form The managed form.
 	 * @param parent The parent composite.
 	 */
-	public ContextSelectorSection(IManagedForm form, Composite parent) {
+	public AbstractContextSelectorSection(IManagedForm form, Composite parent) {
 		super(form, parent);
 	}
 
@@ -44,17 +46,8 @@ public abstract class ContextSelectorSection extends AbstractContextSelectorSect
 	 * @param parent The parent composite.
 	 * @param style
 	 */
-	public ContextSelectorSection(IManagedForm form, Composite parent, int style) {
+	public AbstractContextSelectorSection(IManagedForm form, Composite parent, int style) {
 		super(form, parent, style);
-	}
-
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorSection#doCreateContextSelector()
-	 */
-	@Override
-	protected AbstractContextSelectorControl doCreateContextSelector() {
-		return new ContextSelectorSectionControl(this, null);
 	}
 
 	public static final String encode(IModelNode[] contexts) {
@@ -95,12 +88,26 @@ public abstract class ContextSelectorSection extends AbstractContextSelectorSect
 	 */
 	@Override
 	public void setupData(IPropertiesContainer data) {
+		Assert.isNotNull(data);
+
+		// store original data
+		odc = new PropertiesContainer();
+		odc.setProperties(data.getProperties());
+
+		setIsUpdating(true);
+
 		String encoded = data.getStringProperty(getContextListDataKey());
 		IModelNode[] list = decode(encoded);
 		selector.setCheckedModelContexts(list);
 		if (selector != null && selector.getViewer() != null) {
 			selector.getViewer().refresh();
 		}
+
+		// Mark the control update as completed now
+		setIsUpdating(false);
+
+		// Re-evaluate the dirty state
+		dataChanged();
 	}
 
 	/* (non-Javadoc)
@@ -109,5 +116,33 @@ public abstract class ContextSelectorSection extends AbstractContextSelectorSect
 	@Override
 	public void extractData(IPropertiesContainer data) {
 		data.setProperty(getContextListDataKey(), encode(selector.getCheckedModelContexts()));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection#dataChanged()
+	 */
+	@Override
+    public void dataChanged() {
+		// dataChanged is not evaluated while the controls are updated or no data was set
+		if (odc == null || isUpdating()) {
+			return;
+		}
+
+		boolean isDirty = false;
+
+		if (selector != null) {
+			String newValue = encode(selector.getCheckedModelContexts());
+			if ("".equals(newValue)) { //$NON-NLS-1$
+				String oldValue = odc.getStringProperty(getContextListDataKey());
+				isDirty |= oldValue != null && !"".equals(oldValue.trim()); //$NON-NLS-1$
+			}
+			else {
+				isDirty |= !odc.isProperty(getContextListDataKey(), newValue);
+			}
+		}
+
+		// If dirty, mark the form part dirty.
+		// Otherwise call refresh() to reset the dirty (and stale) flag
+		markDirty(isDirty);
 	}
 }

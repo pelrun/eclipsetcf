@@ -79,6 +79,7 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 		for (IService service : services) {
 			if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.CONNECT)) {
 				stepperService = (IStepperService)service;
+				break;
 			}
         }
 		if (stepperService != null) {

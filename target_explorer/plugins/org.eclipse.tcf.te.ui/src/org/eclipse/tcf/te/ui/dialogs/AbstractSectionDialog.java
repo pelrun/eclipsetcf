@@ -28,6 +28,7 @@ import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
+import org.eclipse.tcf.te.ui.interfaces.data.IUpdatable;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.ui.forms.IManagedForm;
@@ -118,6 +119,7 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		IManagedForm form = new ManagedForm(toolkit, scrolledForm) {
 			@Override
 			public void dirtyStateChanged() {
+				updateSections();
 				validate();
 			}
 			@Override
@@ -214,6 +216,26 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		}
 	}
 
+	public void updateSections() {
+		IPropertiesContainer workingData = new PropertiesContainer();
+		if (sections != null) {
+			// get working data
+			for (AbstractSection section : sections) {
+				if (section instanceof IDataExchangeNode) {
+					((IDataExchangeNode)section).extractData(workingData);
+				}
+			}
+
+			// update sections
+			for (AbstractSection section : sections) {
+				if (section instanceof IUpdatable) {
+					((IUpdatable)section).updateData(workingData);
+				}
+			}
+		}
+
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
 	 */
@@ -228,10 +250,11 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 	 */
 	@Override
 	protected void okPressed() {
-		// Extract the properties from the logging section
+		// Extract the properties
 		if (data == null) {
 			data = new PropertiesContainer();
 		}
+		data.clearProperties();
 		if (sections != null) {
 			for (AbstractSection section : sections) {
 				if (section instanceof IDataExchangeNode) {

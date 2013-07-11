@@ -167,4 +167,9 @@ public abstract class AbstractContextSelectorSection extends AbstractSection imp
 
 		return valid;
 	}
+
+	/**
+	 * Called to signal that the data associated has been changed.
+	 */
+	public abstract void dataChanged();
 }

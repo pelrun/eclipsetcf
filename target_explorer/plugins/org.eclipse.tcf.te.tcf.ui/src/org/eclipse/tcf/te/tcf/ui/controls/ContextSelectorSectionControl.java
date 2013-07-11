@@ -25,7 +25,7 @@ import org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection;
  */
 public class ContextSelectorSectionControl extends AbstractContextSelectorControl {
 
-	private final AbstractContextSelectorSection section;
+	protected final AbstractContextSelectorSection section;
 
 	/**
 	 * Constructor.
@@ -41,15 +41,6 @@ public class ContextSelectorSectionControl extends AbstractContextSelectorContro
     }
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorControl#onCheckStateChanged(java.lang.Object, boolean)
-	 */
-	@Override
-	protected void onCheckStateChanged(Object element, boolean checked) {
-		super.onCheckStateChanged(element, checked);
-		section.getManagedForm().dirtyStateChanged();
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorControl#getInitialViewerInput()
 	 */
 	@Override
@@ -57,6 +48,14 @@ public class ContextSelectorSectionControl extends AbstractContextSelectorContro
 		return Model.getModel();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl#onCheckStateChanged(java.lang.Object, boolean)
+	 */
+	@Override
+	protected void onCheckStateChanged(Object element, boolean checked) {
+	    super.onCheckStateChanged(element, checked);
+	    section.dataChanged();
+	}
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorControl#doConfigureTreeContentAndLabelProvider(org.eclipse.jface.viewers.TreeViewer)
 	 */

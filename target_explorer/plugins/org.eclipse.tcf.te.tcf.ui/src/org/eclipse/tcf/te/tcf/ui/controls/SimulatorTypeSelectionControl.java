@@ -24,7 +24,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.ui.sections.TargetSelectorSection;
+import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.interfaces.services.ISimulatorServiceUIDelegate;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
@@ -39,14 +39,14 @@ public class SimulatorTypeSelectionControl extends BaseEditBrowseTextControl {
 	private final Map<String, String> id2name = new HashMap<String, String>();
 	private final Map<String, String> id2config = new HashMap<String, String>();
 
-	private final TargetSelectorSection parentSection;
+	private final SimulatorTypeSelectionSection parentSection;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param parentSection The parent section.
 	 */
-	public SimulatorTypeSelectionControl(TargetSelectorSection parentSection) {
+	public SimulatorTypeSelectionControl(SimulatorTypeSelectionSection parentSection) {
 		super(null);
 
 		Assert.isNotNull(parentSection);

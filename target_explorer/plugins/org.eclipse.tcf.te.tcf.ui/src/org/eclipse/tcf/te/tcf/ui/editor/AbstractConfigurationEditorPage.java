@@ -26,7 +26,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.ui.sections.TargetSelectorSection;
+import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage;
 import org.eclipse.ui.IEditorInput;
@@ -39,7 +39,7 @@ import org.eclipse.ui.forms.widgets.TableWrapData;
 public abstract class AbstractConfigurationEditorPage extends AbstractCustomFormToolkitEditorPage {
 
 	// Section to select real or simulator
-	/* default */ TargetSelectorSection targetSelectorSection = null;
+	/* default */ SimulatorTypeSelectionSection simulatorTypeSelectionSection = null;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInput(org.eclipse.ui.IEditorInput)
@@ -83,14 +83,14 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	protected void addTargetSelectorSection(IManagedForm form, Composite parent) {
 		ISimulatorService service = ServiceManager.getInstance().getService(getEditorInputNode(), ISimulatorService.class);
 		if (service != null) {
-			targetSelectorSection = doCreateTargetSelectorSection(form, parent);
-			targetSelectorSection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP));
-			getManagedForm().addPart(targetSelectorSection);
+			simulatorTypeSelectionSection = doCreateTargetSelectorSection(form, parent);
+			simulatorTypeSelectionSection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP));
+			getManagedForm().addPart(simulatorTypeSelectionSection);
 		}
 	}
 
-	protected TargetSelectorSection getTargetSelectorSection() {
-		return targetSelectorSection;
+	protected SimulatorTypeSelectionSection getTargetSelectorSection() {
+		return simulatorTypeSelectionSection;
 	}
 
 	/**
@@ -99,8 +99,8 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	 * @param parent The parent composite.
 	 * @return The target selector section.
 	 */
-	protected TargetSelectorSection doCreateTargetSelectorSection (IManagedForm form, Composite parent) {
-		return new TargetSelectorSection(getManagedForm(), parent);
+	protected SimulatorTypeSelectionSection doCreateTargetSelectorSection (IManagedForm form, Composite parent) {
+		return new SimulatorTypeSelectionSection(getManagedForm(), parent);
 	}
 
 	/* (non-Javadoc)
@@ -108,7 +108,7 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	 */
 	@Override
 	public void dispose() {
-		if (targetSelectorSection != null) { targetSelectorSection.dispose(); targetSelectorSection = null; }
+		if (simulatorTypeSelectionSection != null) { simulatorTypeSelectionSection.dispose(); simulatorTypeSelectionSection = null; }
 		super.dispose();
 	}
 
@@ -119,8 +119,8 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	public void setActive(boolean active) {
 		super.setActive(active);
 
-		if (targetSelectorSection != null) {
-			targetSelectorSection.setActive(active);
+		if (simulatorTypeSelectionSection != null) {
+			simulatorTypeSelectionSection.setActive(active);
 		}
 	}
 
@@ -131,9 +131,9 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	protected ValidationResult doValidate() {
 		ValidationResult result = super.doValidate();
 
-		if (targetSelectorSection != null) {
-			targetSelectorSection.isValid();
-			result.setResult(targetSelectorSection);
+		if (simulatorTypeSelectionSection != null) {
+			simulatorTypeSelectionSection.isValid();
+			result.setResult(simulatorTypeSelectionSection);
 		}
 
 		return result;

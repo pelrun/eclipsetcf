@@ -46,7 +46,7 @@ import org.eclipse.ui.forms.widgets.Section;
 /**
  * Simulator section implementation.
  */
-public class TargetSelectorSection extends AbstractSection implements IDataExchangeNode {
+public class SimulatorTypeSelectionSection extends AbstractSection implements IDataExchangeNode {
 	// The section sub controls
 	/* default */ Button real;
 	/* default */ SimulatorTypeSelectionControl type;
@@ -67,7 +67,7 @@ public class TargetSelectorSection extends AbstractSection implements IDataExcha
 	 * @param form The parent managed form. Must not be <code>null</code>.
 	 * @param parent The parent composite. Must not be <code>null</code>.
 	 */
-	public TargetSelectorSection(IManagedForm form, Composite parent) {
+	public SimulatorTypeSelectionSection(IManagedForm form, Composite parent) {
 		super(form, parent, SWT.NONE);
 		createClient(getSection(), form.getToolkit());
 	}
@@ -79,7 +79,7 @@ public class TargetSelectorSection extends AbstractSection implements IDataExcha
 	 * @param parent The parent composite. Must not be <code>null</code>.
 	 * @param style The section style.
 	 */
-	public TargetSelectorSection(IManagedForm form, Composite parent, int style) {
+	public SimulatorTypeSelectionSection(IManagedForm form, Composite parent, int style) {
 		super(form, parent, style);
 		createClient(getSection(), form.getToolkit());
 	}
@@ -101,6 +101,9 @@ public class TargetSelectorSection extends AbstractSection implements IDataExcha
 		super.dispose();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#getValidatingContainer()
+	 */
 	@Override
 	public IValidatingContainer getValidatingContainer() {
 		Object container = getManagedForm().getContainer();

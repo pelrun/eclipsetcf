@@ -88,6 +88,7 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 		for (IService service : services) {
 			if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(context, operation)) {
 				stepperService = (IStepperService)service;
+				break;
 			}
         }
 		return stepperService;

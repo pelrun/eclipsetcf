@@ -117,4 +117,9 @@ public interface ImageConsts {
      * The key to access the target object busy state overlay image.
      */
     public static final String BUSY_OVR = "BusyOverlay"; //$NON-NLS-1$
+
+	/**
+	 * The key to access the connect action image.
+	 */
+	public static final String ACTION_CONNECT = "ActionConnect"; //$NON-NLS-1$
 }

@@ -58,6 +58,7 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 				for (IService service : services) {
 					if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(receiver, operation)) {
 						stepperService = (IStepperService)service;
+						break;
 					}
 	            }
 				if (stepperService != null) {
