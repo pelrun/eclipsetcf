@@ -48,7 +48,7 @@ public class SetWaitForReadyStep extends AbstractPeerModelStep {
 			@Override
 			public void run() {
 				int state = getActivePeerModelContext(context, data, fullQualifiedId).getIntProperty(IPeerModelProperties.PROP_STATE);
-				if (state == IPeerModelProperties.STATE_NOT_REACHABLE) {
+				if (state != IPeerModelProperties.STATE_CONNECTED) {
 					getActivePeerModelContext(context, data, fullQualifiedId).setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY);
 				}
 			}
