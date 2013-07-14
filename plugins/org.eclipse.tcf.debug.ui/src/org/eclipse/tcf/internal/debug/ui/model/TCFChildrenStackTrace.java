@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
+import org.eclipse.tcf.protocol.IErrorReport;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.util.TCFDataCache;
@@ -22,13 +23,16 @@ import org.eclipse.tcf.util.TCFDataCache;
 public class TCFChildrenStackTrace extends TCFChildren {
 
     private final TCFNodeExecContext node;
+    private final IStackTrace service;
 
     private String top_frame_id;
     private int limit_factor = 1;
+    private boolean incremental_trace_not_supported;
 
     TCFChildrenStackTrace(TCFNodeExecContext node) {
         super(node, 16);
         this.node = node;
+        service = node.model.getLaunch().getService(IStackTrace.class);
     }
 
     void onSourceMappingChange() {
@@ -110,24 +114,8 @@ public class TCFChildrenStackTrace extends TCFChildren {
         data.put(n.id, n);
     }
 
-    @Override
-    protected boolean startDataRetrieval() {
-        Boolean has_children = checkHasChildren(this);
-        if (has_children == null) return false;
-        final HashMap<String,TCFNode> data = new HashMap<String,TCFNode>();
-        if (!has_children) {
-            top_frame_id = null;
-            set(null, node.getState().getError(), data);
-            return true;
-        }
-        IStackTrace st = node.model.getLaunch().getService(IStackTrace.class);
-        if (st == null) {
-            addEmulatedTopFrame(data);
-            set(null, null, data);
-            return true;
-        }
-        assert command == null;
-        command = st.getChildren(node.id, new IStackTrace.DoneGetChildren() {
+    private void runCompleteStackTrace(final HashMap<String,TCFNode> data) {
+        command = service.getChildren(node.id, new IStackTrace.DoneGetChildren() {
             public void doneGetChildren(IToken token, Exception error, String[] contexts) {
                 if (command == token) {
                     if (error == null && contexts != null) {
@@ -156,6 +144,62 @@ public class TCFChildrenStackTrace extends TCFChildren {
                 }
             }
         });
+    }
+
+    private void runIncrementalStackTrace(final HashMap<String,TCFNode> data) {
+        int n = node.model.getStackFramesLimitValue() * limit_factor;
+        if (n <= 0) n = limit_factor;
+        final int limit_value = n;
+        command = service.getChildrenRange(node.id, 0, limit_value, new IStackTrace.DoneGetChildren() {
+            public void doneGetChildren(IToken token, Exception error, String[] contexts) {
+                if (command == token) {
+                    if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
+                        incremental_trace_not_supported = true;
+                        runCompleteStackTrace(data);
+                        return;
+                    }
+                    if (error == null && contexts != null) {
+                        int cnt = 0;
+                        for (String id : contexts) {
+                            TCFNodeStackFrame n = (TCFNodeStackFrame)node.model.getNode(id);
+                            if (n == null) n = new TCFNodeStackFrame(node, id, false);
+                            assert n.parent == node;
+                            n.setFrameNo(cnt);
+                            n.setTraceLimit(cnt == limit_value);
+                            data.put(id, n);
+                            if (cnt == 0) top_frame_id = id;
+                            cnt++;
+                        }
+                    }
+                    if (data.size() == 0) addEmulatedTopFrame(data);
+                    set(token, error, data);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected boolean startDataRetrieval() {
+        Boolean has_children = checkHasChildren(this);
+        if (has_children == null) return false;
+        final HashMap<String,TCFNode> data = new HashMap<String,TCFNode>();
+        if (!has_children) {
+            top_frame_id = null;
+            set(null, node.getState().getError(), data);
+            return true;
+        }
+        if (service == null) {
+            addEmulatedTopFrame(data);
+            set(null, null, data);
+            return true;
+        }
+        assert command == null;
+        if (incremental_trace_not_supported || !node.model.getStackFramesLimitEnabled()) {
+            runCompleteStackTrace(data);
+        }
+        else {
+            runIncrementalStackTrace(data);
+        }
         return false;
     }
 }
