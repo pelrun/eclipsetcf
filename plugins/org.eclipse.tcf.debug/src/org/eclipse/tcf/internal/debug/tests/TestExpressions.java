@@ -67,6 +67,7 @@ class TestExpressions implements ITCFTest,
     private String suspended_pc;
     private boolean waiting_suspend;
     private String[] stack_trace;
+    private String[] stack_range;
     private IStackTrace.StackTraceContext[] stack_frames;
     private String[] local_var_expr_ids;
     private final Set<IToken> cmds = new HashSet<IToken>();
@@ -416,6 +417,47 @@ class TestExpressions implements ITCFTest,
                     }
                     else {
                         stack_trace = context_ids;
+                        runTest();
+                    }
+                }
+            });
+            return;
+        }
+        if (stack_range == null) {
+            srv_stk.getChildrenRange(thread_id, 1, 2, new IStackTrace.DoneGetChildren() {
+                public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
+                    if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
+                        /* Older agent, the command not available */
+                        stack_range = new String[0];
+                        runTest();
+                    }
+                    else if (error != null) {
+                        exit(error);
+                    }
+                    else if (context_ids == null) {
+                        exit(new Exception("Invalid stack trace"));
+                    }
+                    else {
+                        for (int i = 0; i < 2; i++) {
+                            int j = stack_trace.length - i - 2;
+                            if (i >= context_ids.length) {
+                                if (j >= 0) {
+                                    exit(new Exception("Invalid result of doneGetChildren command: too short"));
+                                }
+                            }
+                            else {
+                                if (j < 0) {
+                                    exit(new Exception("Invalid result of doneGetChildren command: too long"));
+                                }
+                                if (context_ids[i]== null) {
+                                    exit(new Exception("Invalid result of doneGetChildren command: ID is null"));
+                                }
+                                if (!context_ids[i].equals(stack_trace[j])) {
+                                    exit(new Exception("Invalid result of doneGetChildren command: wrong ID"));
+                                }
+                            }
+                        }
+                        stack_range = context_ids;
                         runTest();
                     }
                 }

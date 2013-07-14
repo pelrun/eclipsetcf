@@ -15,7 +15,7 @@
     <ul>
         <li><a href='#CmdGetContext'>Get Context</a>
         <li><a href='#CmdGetChildren'>Get Children</a>
-    </ul>
+        <li><a href='#CmdGetChildrenRange'>Get Children Range</a></ul>
     <li><a href='#Events'>Events</a>
     <li><a href='#API'>API</a>
 </ul>
@@ -33,6 +33,11 @@
         <td>0.1
         <td>2008-01-10
         <td>Initial contribution
+    <tr>
+        <td>1.2
+        <td>2013-07-12
+        <td>New command: getChildrenRange.
+        Stack frame property "Level" is replaced with "Index".
 </table>
 
 <h2><a name='Overview'>Overview</a></h2>
@@ -107,8 +112,12 @@ Cached context data should by flushed when parent thread is resumed.</p>
     <li><code><b><font face="Courier New" size=2 color=#333399>"TopFrame" : <i>&lt;boolean&gt;</i></font></b></code>
     - true if the frame is top frame on a stack.
 
-    <li><code><b><font face="Courier New" size=2 color=#333399>"Level" : <i>&lt;number&gt;</i></font></b></code>
-    - frame level. Bottom most (oldest) frame is level 0.
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Index" : <i>&lt;number&gt;</i></font></b></code>
+    - frame index. Topmost (current) frame has index 0.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Walk" : <i>&lt;boolean&gt;</i></font></b></code>
+    - true if the frame data was computed using symbols info,
+    false or not set if the data was collected using stack crawl logic.
 
     <li><code><b><font face="Courier New" size=2 color=#333399>"FP" : <i>&lt;number&gt;</i></font></b></code>
     - frame pointer - memory address of stack frame.
@@ -134,7 +143,7 @@ Cached context data should by flushed when parent thread is resumed.</p>
 C &bull; <i>&lt;token&gt;</i> &bull; StackTrace &bull; getChildren &bull; <i>&lt;string: parent context ID&gt;</i> &bull;
 </font></b></pre>
 
-<p>The command retrieves stack trace context list.
+<p>The command retrieves stack trace context ID list.
 Parent context usually corresponds to an execution thread.
 Some targets have more then one stack. In such case children of a thread
 are stacks, and stack frames are deeper in the hierarchy - they can be
@@ -159,6 +168,22 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
 
 </font></b></pre>
 
+<h3><a name='CmdGetChildrenRange'>Get Children Range</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; StackTrace &bull; getChildrenRange &bull; <i>&lt;int: range start&gt;</i> &bull; <i>&lt;int: range end&gt;</i> &bull; <i>&lt;string: parent context ID&gt;</i> &bull;
+</font></b></pre>
+
+<p>The command retrieves a range of stack trace context IDs.
+Parent context usually corresponds to an execution thread.</p>
+<p>Note: to allow partial and incremental stack tracing, IDs ordering in
+the range is reversed relative to getChildren command order.
+For example, range 0..1 represents last two stack frames:
+current frame (top of the stack) and previous one.</p>
+<p>The command will fail if parent thread is not suspended.
+Client can use Run Control service to suspend a thread.</p>
+
+<p>Reply: same as Get Children reply.</p>
 
 <h2><a name='Events'>Events</a></h2>
 
@@ -180,7 +205,8 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
         PROP_PROCESS_ID = "ProcessID",          <font color=#3F5FBF>/** String, stack frame process ID */</font>
         PROP_NAME = "Name",                     <font color=#3F5FBF>/** String, human readable name */</font>
         PROP_TOP_FRAME = "TopFrame",            <font color=#3F5FBF>/** Boolean, true if the frame is top frame on a stack */</font>
-        PROP_LEVEL = "Level",                   <font color=#3F5FBF>/** Integer, stack frame level, starting from stack bottom */</font>
+        PROP_INDEX = "Index",                   <font color=#3F5FBF>/** Integer, stack frame index, starting from stack top (current frame) */</font>
+        PROP_WALK = "Walk",                     <font color=#3F5FBF>/** Boolean, true if the frame data was computed using symbols info */</font>
         PROP_FRAME_ADDRESS = "FP",              <font color=#3F5FBF>/** Number, stack frame memory address */</font>
         PROP_RETURN_ADDRESS = "RP",             <font color=#3F5FBF>/** Number, return address */</font>
         PROP_INSTRUCTION_ADDRESS = "IP",        <font color=#3F5FBF>/** Number, instruction pointer */</font>
@@ -211,11 +237,13 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
     }
 
     <font color=#3F5FBF>/**
-     * Retrieve stack trace context list.
+     * Retrieve stack trace context ID list.
      * Parent context usually corresponds to an execution thread.
      * Some targets have more then one stack. In such case children of a thread
      * are stacks, and stack frames are deeper in the hierarchy - they can be
      * retrieved with additional getChildren commands.
+     *
+     * Stack frames are ordered from stack bottom to top.
      *
      * The command will fail if parent thread is not suspended.
      * Client can use Run Control service to suspend a thread.
@@ -226,14 +254,32 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
     IToken getChildren(String parent_context_id, DoneGetChildren done);
 
     <font color=#3F5FBF>/**
-     * Client call back interface for getChildren().
+     * Retrieve a range of stack trace context IDs.
+     * Parent context usually corresponds to an execution thread.
+     *
+     * Note: to allow partial and incremental stack tracing, IDs ordering in
+     * the range is reversed relative to getChildren command order.
+     * For example, range 0..1 represents last two stack frames:
+     * current frame (top of the stack) and previous one.
+     *
+     * The command will fail if parent thread is not suspended.
+     * Client can use Run Control service to suspend a thread.
+     *
+     * <font color=#7F9FBF>@param</font> parent_context_id – parent context ID.
+     * <font color=#7F9FBF>@param</font> range_start - start of the range (inclusive).
+     * <font color=#7F9FBF>@param</font> range_end - end of the range (inclusive).
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     */</font>
+    IToken getChildrenRange(String parent_context_id, int range_start, int range_end, DoneGetChildren done);
+
+    <font color=#3F5FBF>/**
+     * Client call back interface for getChildren() and getChildrenRange().
      */</font>
     <font color=#7F0055>interface</font> DoneGetChildren {
         <font color=#3F5FBF>/**
-         * Called when context list retrieval is done.
+         * Called when context ID list retrieval is done.
          * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
          * <font color=#7F9FBF>@param</font> context_ids &ndash; array of available context IDs.
-         * Stack frames are ordered from stack bottom to top.
          */</font>
         <font color=#7F0055>void</font> doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
