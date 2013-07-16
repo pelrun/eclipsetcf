@@ -57,7 +57,7 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		// Trigger a refresh of the model to read in the newly created static peer
 		final ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
-		if (service != null) {
+		if (service != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
 			Protocol.invokeLater(new Runnable() {
 				final Runnable thisRunnable = this;
 				int refreshCount = 0;
