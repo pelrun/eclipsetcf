@@ -23,7 +23,7 @@
 
    <requires>
       <import feature="org.eclipse.tcf.te.feature" version="1.1.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tm.terminal.core.sdk" version="3.3.2" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tm.terminal.core.sdk" version="3.3.100" match="greaterOrEqual"/>
    </requires>
 
    <plugin
