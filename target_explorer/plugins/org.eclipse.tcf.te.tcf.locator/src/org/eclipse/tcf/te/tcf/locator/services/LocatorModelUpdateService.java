@@ -115,6 +115,8 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 	protected String makeString(Collection<String> collection) {
 		Assert.isNotNull(collection);
 
+		if (collection.isEmpty()) return null;
+
 		String buffer = collection.toString();
 		buffer = buffer.replaceAll("\\[", "").replaceAll("\\]", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
