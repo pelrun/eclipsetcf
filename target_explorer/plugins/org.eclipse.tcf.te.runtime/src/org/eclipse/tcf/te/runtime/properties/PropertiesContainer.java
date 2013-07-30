@@ -79,10 +79,11 @@ public class PropertiesContainer extends PlatformObject implements IPropertiesCo
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof PropertiesContainer) {
+		boolean equals = super.equals(obj);
+		if (!equals && obj instanceof PropertiesContainer) {
 			return uniqueId.equals(((PropertiesContainer)obj).uniqueId);
 		}
-		return super.equals(obj);
+		return equals;
 	}
 
 	/* (non-Javadoc)

@@ -12,21 +12,16 @@ package org.eclipse.tcf.te.tcf.locator.internal.services;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.services.AbstractService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
  * Peer model properties access service implementation.
  */
-public class PropertiesAccessService extends AbstractService implements IPropertiesAccessService {
+public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.services.PropertiesAccessService {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService#getTargetAddress(java.lang.Object)
@@ -47,7 +42,6 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 					if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 						result.put(IPropertiesAccessServiceConstants.PROP_NAME, value);
 					}
-
 					value = attributes.get(IPeer.ATTR_IP_HOST);
 					if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 						result.put(IPropertiesAccessServiceConstants.PROP_ADDRESS, value);
@@ -65,109 +59,5 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 		}
 
 		return !result.isEmpty() ? Collections.unmodifiableMap(result) : null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService#getProperty(java.lang.Object, java.lang.String)
-	 */
-	@Override
-	public Object getProperty(final Object context, final String key) {
-		Assert.isNotNull(context);
-		Assert.isNotNull(key);
-
-		final AtomicReference<Object> value = new AtomicReference<Object>();
-		if (context instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel) context;
-
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					Object val = peerModel.getProperty(key);
-					value.set(val);
-				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
-		}
-
-		return value.get();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService#setProperty(java.lang.Object, java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public boolean setProperty(final Object context, final String key, final Object value) {
-		Assert.isNotNull(context);
-		Assert.isNotNull(key);
-
-		final AtomicBoolean result = new AtomicBoolean();
-		if (context instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel) context;
-
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					result.set(peerModel.setProperty(key, value));
-				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
-		}
-
-		return result.get();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService#isProperty(java.lang.Object, java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public boolean isProperty(final Object context, final String key, final Object value) {
-		Assert.isNotNull(context);
-		Assert.isNotNull(key);
-
-		final AtomicBoolean result = new AtomicBoolean();
-		if (context instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel) context;
-
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					result.set(peerModel.isProperty(key, value));
-				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
-		}
-
-		return result.get();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService#getParent(java.lang.Object)
-	 */
-	@Override
-	public Object getParent(final Object context) {
-		Assert.isNotNull(context);
-
-		final AtomicReference<Object> value = new AtomicReference<Object>();
-		if (context instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel) context;
-
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					value.set(peerModel.getParent());
-				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
-		}
-
-		return value.get();
 	}
 }

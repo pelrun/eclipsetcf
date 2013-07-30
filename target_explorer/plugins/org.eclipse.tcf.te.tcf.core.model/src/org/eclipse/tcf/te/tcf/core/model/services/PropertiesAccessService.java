@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.processes.core.model.internal.services;
+package org.eclipse.tcf.te.tcf.core.model.services;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,10 +15,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
  * Process context node properties access service implementation.
@@ -42,8 +42,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 		Assert.isNotNull(key);
 
 		final AtomicReference<Object> value = new AtomicReference<Object>();
-		if (context instanceof IProcessContextNode) {
-			final IProcessContextNode node = (IProcessContextNode) context;
+		if (context instanceof IPropertiesContainer) {
+			final IPropertiesContainer node = (IPropertiesContainer) context;
 
 			Runnable runnable = new Runnable() {
 				@Override
@@ -69,8 +69,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 		Assert.isNotNull(key);
 
 		final AtomicBoolean result = new AtomicBoolean();
-		if (context instanceof IPeerModel) {
-			final IProcessContextNode node = (IProcessContextNode) context;
+		if (context instanceof IPropertiesContainer) {
+			final IPropertiesContainer node = (IPropertiesContainer) context;
 
 			Runnable runnable = new Runnable() {
 				@Override
@@ -95,8 +95,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 		Assert.isNotNull(key);
 
 		final AtomicBoolean result = new AtomicBoolean();
-		if (context instanceof IPeerModel) {
-			final IProcessContextNode node = (IProcessContextNode) context;
+		if (context instanceof IPropertiesContainer) {
+			final IPropertiesContainer node = (IPropertiesContainer) context;
 
 			Runnable runnable = new Runnable() {
 				@Override
@@ -120,8 +120,8 @@ public class PropertiesAccessService extends AbstractService implements IPropert
 		Assert.isNotNull(context);
 
 		final AtomicReference<Object> value = new AtomicReference<Object>();
-		if (context instanceof IProcessContextNode) {
-			final IProcessContextNode node = (IProcessContextNode) context;
+		if (context instanceof IContainerModelNode) {
+			final IContainerModelNode node = (IContainerModelNode) context;
 
 			Runnable runnable = new Runnable() {
 				@Override
