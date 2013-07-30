@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.terminals.process;
+package org.eclipse.tcf.te.ui.terminals.local;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -36,10 +36,9 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.service.environment.Constants;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
-import org.eclipse.tcf.te.ui.terminals.process.activator.UIPlugin;
-import org.eclipse.tcf.te.ui.terminals.process.nls.Messages;
+import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.streams.AbstractStreamsConnector;
-import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
@@ -48,16 +47,14 @@ import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
  * Process connector implementation.
  */
 @SuppressWarnings("restriction")
-public class ProcessConnector extends AbstractStreamsConnector {
+public class LocalConnector extends AbstractStreamsConnector {
 	// Reference to the process settings
-	private final ProcessSettings settings;
+	private final LocalSettings settings;
 
 	// Reference to the PTY instance.
 	private PTY pty;
 	// Reference to the launched process instance.
 	private Process process;
-	// Reference to the process monitor
-	private ProcessMonitor monitor;
 
 	// The terminal width and height. Initially unknown.
 	private int width = -1;
@@ -66,8 +63,8 @@ public class ProcessConnector extends AbstractStreamsConnector {
 	/**
 	 * Constructor.
 	 */
-	public ProcessConnector() {
-		this(new ProcessSettings());
+	public LocalConnector() {
+		this(new LocalSettings());
 	}
 
 	/**
@@ -75,7 +72,7 @@ public class ProcessConnector extends AbstractStreamsConnector {
 	 *
 	 * @param settings The process settings. Must not be <code>null</code>
 	 */
-	public ProcessConnector(ProcessSettings settings) {
+	public LocalConnector(LocalSettings settings) {
 		super();
 
 		Assert.isNotNull(settings);
@@ -134,6 +131,7 @@ public class ProcessConnector extends AbstractStreamsConnector {
 					workingDir = new File(settings.getWorkingDir());
 				}
 
+
                 if (pty != null) {
                 	// A PTY is available -> can use the ProcessFactory.
 
@@ -185,9 +183,6 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			// Set the terminal control state to CONNECTED
 			control.setState(TerminalState.CONNECTED);
 
-			// Create the process monitor
-			monitor = new ProcessMonitor(this);
-			monitor.startMonitoring();
 		} catch (IOException e) {
 			IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
 			                            NLS.bind(Messages.ProcessConnector_error_creatingProcess, e.getLocalizedMessage()), e);
@@ -220,13 +215,6 @@ public class ProcessConnector extends AbstractStreamsConnector {
 
 	// ***** Process Connector settings handling *****
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.internal.terminal.provisional.api.provider.TerminalConnectorImpl#makeSettingsPage()
-	 */
-	@Override
-	public ISettingsPage makeSettingsPage() {
-		return new ProcessSettingsPage(settings);
-	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.provider.TerminalConnectorImpl#getSettingsSummary()

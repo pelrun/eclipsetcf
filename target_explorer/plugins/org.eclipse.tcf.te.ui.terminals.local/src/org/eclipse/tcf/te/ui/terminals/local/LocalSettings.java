@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.terminals.process;
+package org.eclipse.tcf.te.ui.terminals.local;
 
 import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.core.runtime.Assert;
@@ -19,7 +19,7 @@ import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
  * Process connector settings implementation.
  */
 @SuppressWarnings("restriction")
-public class ProcessSettings {
+public class LocalSettings {
 	// Reference to the process image
 	private String image;
 	// Reference to the process arguments (space separated string)

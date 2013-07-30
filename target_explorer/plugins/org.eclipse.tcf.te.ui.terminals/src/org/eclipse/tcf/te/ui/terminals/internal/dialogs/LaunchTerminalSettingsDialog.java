@@ -313,6 +313,9 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         		IWizardConfigurationPanel newPanel = settings.getActiveConfigurationPanel();
         		// Re-setup the relevant data
         		if (newPanel instanceof IDataExchangeNode) ((IDataExchangeNode)newPanel).setupData(data);
+
+        		// resize the dialog if needed to show the complete panel
+        		getShell().pack();
         	}
 		});
 

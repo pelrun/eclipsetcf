@@ -40,6 +40,7 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 	private Button processImageSelectorControlButton;
 	private Text processArgumentsControl;
 	private Button localEchoSelectorControl;
+	private Text processWorkingDirControl;
 
 	private final ProcessSettings settings;
 
@@ -100,6 +101,13 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 
 		processArgumentsControl = new Text(panel, SWT.SINGLE | SWT.BORDER);
 		processArgumentsControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		// Create the process arguments control
+		label = new Label(panel, SWT.HORIZONTAL);
+		label.setText(Messages.ProcessSettingsPage_processWorkingDirControl_label);
+
+		processWorkingDirControl = new Text(panel, SWT.SINGLE | SWT.BORDER);
+		processWorkingDirControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		// Create the local echo check box
 		localEchoSelectorControl = new Button(composite, SWT.CHECK);
@@ -162,6 +170,7 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 		settings.setImage(SWTControlUtil.getText(processImageSelectorControl));
 		settings.setArguments(SWTControlUtil.getText(processArgumentsControl));
 		settings.setLocalEcho(SWTControlUtil.getSelection(localEchoSelectorControl));
+		settings.setWorkingDir(SWTControlUtil.getText(processWorkingDirControl));
 		settings.setProcess(null);
 	}
 
@@ -173,6 +182,7 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 		SWTControlUtil.setText(processImageSelectorControl, settings.getImage());
 		SWTControlUtil.setText(processArgumentsControl, settings.getArguments());
 		SWTControlUtil.setSelection(localEchoSelectorControl, settings.isLocalEcho());
+		SWTControlUtil.setText(processWorkingDirControl, settings.getWorkingDir());
 	}
 
 	/* (non-Javadoc)

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+<!-- Terminal connector contributions -->
+   <extension point="org.eclipse.tm.terminal.terminalConnectors">
+      <connector
+            class="org.eclipse.tcf.te.ui.terminals.local.LocalConnector"
+            id="org.eclipse.tcf.te.ui.terminals.local.LocalConnector"
+            name="%TerminalConnector.local"/>
+   </extension>
+   
+<!-- Terminal connector type contributions -->
+   <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
+      <connectorType
+            class="org.eclipse.tcf.te.ui.terminals.local.types.LocalConnectorType"
+            id="org.eclipse.tcf.te.ui.terminals.type.local"
+            label="%LocalConnectorType.label">
+      </connectorType>
+   </extension>
+
+<!-- Terminals launcher delegate contributions -->
+   <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
+      <delegate
+            class="org.eclipse.tcf.te.ui.terminals.local.launcher.LocalLauncherDelegate"
+            id="org.eclipse.tcf.te.ui.terminals.local.launcher.local"
+            label="%LocalLauncherDelegate.label">
+      </delegate>
+   </extension>   
+</plugin>

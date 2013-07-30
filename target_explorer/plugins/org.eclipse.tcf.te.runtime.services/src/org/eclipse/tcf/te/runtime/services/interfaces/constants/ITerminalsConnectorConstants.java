@@ -135,6 +135,12 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_PROCESS_ARGS = "process.args"; //$NON-NLS-1$
 
 	/**
+	 * Property: Process arguments.
+	 *           <p>Typical for process terminals.
+	 */
+	public static final String PROP_PROCESS_WORKING_DIR = "process.working_dir"; //$NON-NLS-1$
+
+	/**
 	 * Property: Runtime process instance.
      *           <p>Typical for process terminals.
 	 */

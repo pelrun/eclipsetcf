@@ -77,6 +77,7 @@ public class Messages extends NLS {
 	public static String ProcessSettingsPage_processImagePathSelectorControl_label;
 	public static String ProcessSettingsPage_processImagePathSelectorControl_button;
 	public static String ProcessSettingsPage_processArgumentsControl_label;
+	public static String ProcessSettingsPage_processWorkingDirControl_label;
 	public static String ProcessSettingsPage_localEchoSelectorControl_label;
 
 	public static String OutputStreamMonitor_error_readingFromStream;
