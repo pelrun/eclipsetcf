@@ -246,6 +246,20 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#dispose()
+	 */
+	@Override
+	protected void dispose() {
+	    super.dispose();
+		if (sections != null) {
+			// get working data
+			for (AbstractSection section : sections) {
+				section.dispose();
+			}
+		}
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#okPressed()
 	 */
 	@Override

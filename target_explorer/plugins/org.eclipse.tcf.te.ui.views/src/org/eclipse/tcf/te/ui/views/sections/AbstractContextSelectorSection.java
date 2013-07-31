@@ -61,6 +61,10 @@ public abstract class AbstractContextSelectorSection extends AbstractSection imp
 		}
 	}
 
+	protected boolean doShowRefreshAction() {
+		return false;
+	}
+
 	/**
 	 * Constructor.
 	 *
@@ -122,6 +126,10 @@ public abstract class AbstractContextSelectorSection extends AbstractSection imp
 	 */
 	protected abstract AbstractContextSelectorControl doCreateContextSelector();
 
+	public AbstractContextSelectorControl getSelectorControl() {
+		return selector;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#getAdapter(java.lang.Class)
 	 */
@@ -148,7 +156,9 @@ public abstract class AbstractContextSelectorSection extends AbstractSection imp
 	@Override
 	protected void createSectionToolbarItems(Section section, FormToolkit toolkit, ToolBarManager tlbMgr) {
 		super.createSectionToolbarItems(section, toolkit, tlbMgr);
-		tlbMgr.add(new RefreshAction());
+		if (doShowRefreshAction()) {
+			tlbMgr.add(new RefreshAction());
+		}
 	}
 
 	/* (non-Javadoc)

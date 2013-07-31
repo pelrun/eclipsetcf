@@ -10,18 +10,29 @@
 package org.eclipse.tcf.te.tcf.ui.sections;
 
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.Section;
 
 /**
  * Locator model context selector section implementation.
@@ -31,6 +42,27 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 	// Reference to a copy of the original data
 	private IPropertiesContainer odc = null;
 
+	private boolean disposed = false;
+
+	final IModelListener modelListener = new IModelListener() {
+		@Override
+		public void locatorModelDisposed(ILocatorModel model) {
+			refreshSelectorControl();
+		}
+		@Override
+		public void locatorModelChanged(ILocatorModel model, IPeerModel peerModel, boolean added) {
+			refreshSelectorControl();
+		}
+	};
+	final IEventListener eventListener = new IEventListener() {
+		@Override
+		public void eventFired(EventObject event) {
+			if (event.getSource() instanceof IPeer || event.getSource() instanceof IPeerModel) {
+				refreshSelectorControl();
+			}
+		}
+	};
+
 	/**
 	 * Constructor.
 	 * @param form The managed form.
@@ -38,6 +70,7 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 	 */
 	public AbstractContextSelectorSection(IManagedForm form, Composite parent) {
 		super(form, parent);
+		addListener();
 	}
 
 	/**
@@ -48,6 +81,64 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 	 */
 	public AbstractContextSelectorSection(IManagedForm form, Composite parent, int style) {
 		super(form, parent, style);
+		addListener();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection#createClient(org.eclipse.ui.forms.widgets.Section, org.eclipse.ui.forms.widgets.FormToolkit)
+	 */
+	@Override
+	protected void createClient(Section section, FormToolkit toolkit) {
+	    super.createClient(section, toolkit);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection#dispose()
+	 */
+	@Override
+	public void dispose() {
+		disposed = true;
+	    super.dispose();
+	    if (modelListener != null) {
+		    Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+			    	Model.getModel().removeListener(modelListener);
+				}
+			});
+	    }
+	    if (eventListener != null) {
+	    	EventManager.getInstance().removeEventListener(eventListener);
+	    }
+	}
+
+	protected void addListener() {
+		if (disposed) return;
+	    Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				Model.getModel().addListener(modelListener);
+			}
+		});
+    	EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);
+	}
+
+	protected void refreshSelectorControl() {
+		if (disposed) return;
+		if (getSelectorControl() != null) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					ExecutorsUtil.executeInUI(new Runnable() {
+						@Override
+						public void run() {
+							getSelectorControl().refresh();
+							getManagedForm().dirtyStateChanged();
+						}
+					});
+				}
+			});
+		}
 	}
 
 	public static final String encode(IModelNode[] contexts) {

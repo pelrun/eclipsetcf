@@ -406,7 +406,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 	public IModelNode[] getCheckedModelContexts() {
 		// This method does return something useful only if it is a checkable
 		// tree viewer and the check style is set for the tree.
-		if (getViewer() instanceof ContainerCheckedTreeViewer && (getTreeViewerStyle() & SWT.CHECK) != 0) {
+		if (!getViewer().getControl().isDisposed() && getViewer() instanceof ContainerCheckedTreeViewer && (getTreeViewerStyle() & SWT.CHECK) != 0) {
 			ContainerCheckedTreeViewer viewer = (ContainerCheckedTreeViewer) getViewer();
 			// Get the list of checked elements. Checked elements includes the grayed elements
 			List<?> checked = viewer.getCheckedElements() != null ? Arrays.asList(viewer.getCheckedElements()) : Collections.emptyList();
