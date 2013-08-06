@@ -33,12 +33,14 @@ public class ProcessSettings {
 	private boolean localEcho = !PTY.isSupported();
 	// The line separator setting
 	private String lineSeparator = null;
-    // The list of stdout output listeners
-    private OutputStreamMonitor.Listener[] stdoutListeners = null;
-    // The list of stderr output listeners
-    private OutputStreamMonitor.Listener[] stderrListeners = null;
-    // working directory for process
-    private String workingDir;
+	// The list of stdout output listeners
+	private OutputStreamMonitor.Listener[] stdoutListeners = null;
+	// The list of stderr output listeners
+	private OutputStreamMonitor.Listener[] stderrListeners = null;
+	// working directory for process
+	private String workingDir;
+	// environment
+	private String[] environment;
 
 	/**
 	 * Sets the process image.
@@ -192,6 +194,7 @@ public class ProcessSettings {
 	}
 
 	/**
+	 * Returns the working dir
 	 *
 	 * @return
 	 */
@@ -200,11 +203,30 @@ public class ProcessSettings {
 	}
 
 	/**
+	 * Sets the working dir of the process
 	 *
-	 * @param workingDir
+	 * @param workingDir the absolute path of the working dir
 	 */
 	public void setWorkingDir(String workingDir) {
 		this.workingDir = workingDir;
+	}
+
+	/**
+	 * Get theprocess environment
+	 *
+	 * @return
+	 */
+	public String[] getEnvironment() {
+		return environment;
+	}
+
+	/**
+	 * Sets the process environment
+	 *
+	 * @param environment - will be added to the "parent" environment of the process
+	 */
+	public void setEnvironment(String[] environment) {
+		this.environment = environment;
 	}
 
 	/**
@@ -224,6 +246,7 @@ public class ProcessSettings {
 			pty = (PTY)((IPropertiesContainer)store).getProperty("PTY"); //$NON-NLS-1$
 			stdoutListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdOutListeners"); //$NON-NLS-1$
 			stderrListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdErrListeners"); //$NON-NLS-1$
+			environment = (String[])((IPropertiesContainer)store).getProperty("Environment"); //$NON-NLS-1$
 		}
 	}
 
@@ -244,6 +267,7 @@ public class ProcessSettings {
 			((IPropertiesContainer)store).setProperty("PTY", pty); //$NON-NLS-1$
 			((IPropertiesContainer)store).setProperty("StdOutListeners", stdoutListeners); //$NON-NLS-1$
 			((IPropertiesContainer)store).setProperty("StdErrListeners", stderrListeners); //$NON-NLS-1$
+			((IPropertiesContainer)store).setProperty("Environment", environment); //$NON-NLS-1$
 		}
 	}
 }

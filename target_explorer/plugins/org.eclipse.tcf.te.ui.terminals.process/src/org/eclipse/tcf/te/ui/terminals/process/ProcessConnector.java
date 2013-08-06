@@ -130,35 +130,40 @@ public class ProcessConnector extends AbstractStreamsConnector {
 				}
 
 				File workingDir =null;
-				if(settings.getWorkingDir()!=null){
+				if (settings.getWorkingDir()!=null){
 					workingDir = new File(settings.getWorkingDir());
 				}
 
-                if (pty != null) {
-                	// A PTY is available -> can use the ProcessFactory.
+				String[] envp = null;
+				if (settings.getEnvironment()!=null){
+					envp = settings.getEnvironment();
+				}
 
-                	// Tokenize the command (ProcessFactory takes an array)
-            		StreamTokenizer st = new StreamTokenizer(new StringReader(command.toString()));
-            		st.resetSyntax();
-            		st.whitespaceChars(0, 32);
-            		st.whitespaceChars(0xa0, 0xa0);
-            		st.wordChars(33, 255);
-            		st.quoteChar('"');
-            		st.quoteChar('\'');
+				if (pty != null) {
+					// A PTY is available -> can use the ProcessFactory.
 
-            		List<String> argv = new ArrayList<String>();
-            		int ttype = st.nextToken();
-            		while (ttype != StreamTokenizer.TT_EOF) {
-            			argv.add(st.sval);
-            			ttype = st.nextToken();
-            		}
+					// Tokenize the command (ProcessFactory takes an array)
+					StreamTokenizer st = new StreamTokenizer(new StringReader(command.toString()));
+					st.resetSyntax();
+					st.whitespaceChars(0, 32);
+					st.whitespaceChars(0xa0, 0xa0);
+					st.wordChars(33, 255);
+					st.quoteChar('"');
+					st.quoteChar('\'');
 
-            		// Execute the process
-                    process = ProcessFactory.getFactory().exec(argv.toArray(new String[argv.size()]), getProcessEnvironment(), workingDir, pty);
-                } else {
-                	// No PTY -> just execute via the standard Java Runtime implementation.
-                    process = Runtime.getRuntime().exec(command.toString(), null, workingDir);
-                }
+					List<String> argv = new ArrayList<String>();
+					int ttype = st.nextToken();
+					while (ttype != StreamTokenizer.TT_EOF) {
+						argv.add(st.sval);
+						ttype = st.nextToken();
+					}
+
+					// Execute the process
+					process = ProcessFactory.getFactory().exec(argv.toArray(new String[argv.size()]), getProcessEnvironment(envp), workingDir, pty);
+				} else {
+					// No PTY -> just execute via the standard Java Runtime implementation.
+					process = Runtime.getRuntime().exec(command.toString(), envp, workingDir);
+				}
 			}
 
 			String lineSeparator = settings.getLineSeparator();
@@ -190,7 +195,7 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			monitor.startMonitoring();
 		} catch (IOException e) {
 			IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-			                            NLS.bind(Messages.ProcessConnector_error_creatingProcess, e.getLocalizedMessage()), e);
+							NLS.bind(Messages.ProcessConnector_error_creatingProcess, e.getLocalizedMessage()), e);
 			UIPlugin.getDefault().getLog().log(status);
 		}
 	}
@@ -281,23 +286,36 @@ public class ProcessConnector extends AbstractStreamsConnector {
 	 *
 	 * @return The process environment.
 	 */
-	private static String[] getProcessEnvironment() {
-        Map<String, String> env = getNativeEnvironment();
+	private static String[] getProcessEnvironment(String[] envp) {
+		Map<String, String> env = getNativeEnvironment();
 
-        env.put("TERM", "ansi"); //$NON-NLS-1$ //$NON-NLS-2$
+		env.put("TERM", "ansi"); //$NON-NLS-1$ //$NON-NLS-2$
 
-        Iterator<Map.Entry<String, String>> iter = env.entrySet().iterator();
-        List<String> strings = new ArrayList<String>(env.size());
-        StringBuffer buffer = null;
-        while (iter.hasNext()) {
-        	Map.Entry<String, String>entry = iter.next();
-            buffer = new StringBuffer(entry.getKey());
-            buffer.append('=').append(entry.getValue());
-            strings.add(buffer.toString());
-        }
+		Iterator<Map.Entry<String, String>> iter = env.entrySet().iterator();
+		List<String> strings = new ArrayList<String>(env.size());
+		StringBuffer buffer = null;
+		while (iter.hasNext()) {
+			Map.Entry<String, String>entry = iter.next();
+			buffer = new StringBuffer(entry.getKey());
+			buffer.append('=').append(entry.getValue());
+			strings.add(buffer.toString());
+		}
 
-        return strings.toArray(new String[strings.size()]);
-    }
+		// if "local" environment is provided - append
+		if (envp!=null){
+			// add provided
+			for (int i=0; i<envp.length; i++){
+				String envpPart = envp[i];
+				// dont override TERM
+				String[] parts=envpPart.split("=");//$NON-NLS-1$
+				if (!parts[0].trim().equals("TERM")){//$NON-NLS-1$
+					strings.add(envpPart);
+				}
+			}
+		}
+
+		return strings.toArray(new String[strings.size()]);
+	}
 
 	/**
 	 * Determine the native environment, but returns all environment variable
@@ -329,21 +347,21 @@ public class ProcessConnector extends AbstractStreamsConnector {
 	 *
 	 * @return The native environment, or an empty map.
 	 */
-    private static Map<String, String> getNativeEnvironmentCasePreserved() {
-        synchronized (ENV_GET_MONITOR) {
-            if (nativeEnvironmentCasePreserved == null) {
-            	nativeEnvironmentCasePreserved= new HashMap<String, String>();
-                cacheNativeEnvironment(nativeEnvironmentCasePreserved);
-            }
-            return new HashMap<String, String>(nativeEnvironmentCasePreserved);
-        }
-    }
+	private static Map<String, String> getNativeEnvironmentCasePreserved() {
+		synchronized (ENV_GET_MONITOR) {
+			if (nativeEnvironmentCasePreserved == null) {
+				nativeEnvironmentCasePreserved= new HashMap<String, String>();
+				cacheNativeEnvironment(nativeEnvironmentCasePreserved);
+			}
+			return new HashMap<String, String>(nativeEnvironmentCasePreserved);
+		}
+	}
 
-    /**
-     * Query the native environment and store it to the specified cache.
-     *
-     * @param cache The environment cache. Must not be <code>null</code>.
-     */
+	/**
+	 * Query the native environment and store it to the specified cache.
+	 *
+	 * @param cache The environment cache. Must not be <code>null</code>.
+	 */
 	private static void cacheNativeEnvironment(Map<String, String> cache) {
 		Assert.isNotNull(cache);
 

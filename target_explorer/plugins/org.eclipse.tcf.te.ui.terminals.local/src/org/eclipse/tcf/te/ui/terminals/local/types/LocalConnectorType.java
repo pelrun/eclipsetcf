@@ -48,12 +48,12 @@ public class LocalConnectorType extends AbstractConnectorType {
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
 	 */
-    @Override
+	@Override
 	public ITerminalConnector createTerminalConnector(IPropertiesContainer properties) {
 		Assert.isNotNull(properties);
 
-    	// Check for the terminal connector id
-    	String connectorId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+		// Check for the terminal connector id
+		String connectorId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
 		if (connectorId == null) connectorId = "org.eclipse.tcf.te.ui.terminals.local.LocalConnector"; //$NON-NLS-1$
 
 		// Extract the process properties using defaults
@@ -89,6 +89,13 @@ public class LocalConnectorType extends AbstractConnectorType {
 		OutputStreamMonitor.Listener[] stderrListeners = (OutputStreamMonitor.Listener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDERR_LISTENERS);
 		String workingDir = properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR);
 
+		String[] envp = null;
+		if (properties.containsKey(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) &&
+						properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) != null &&
+						properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) instanceof String[]){
+			envp = (String[])properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT);
+		}
+
 		Assert.isTrue(image != null || process != null);
 
 		// Construct the terminal settings store
@@ -99,12 +106,13 @@ public class LocalConnectorType extends AbstractConnectorType {
 		processSettings.setImage(image);
 		processSettings.setArguments(arguments);
 		processSettings.setProcess(process);
-        processSettings.setPTY(pty);
-        processSettings.setLocalEcho(localEcho);
-        processSettings.setLineSeparator(lineSeparator);
-        processSettings.setStdOutListeners(stdoutListeners);
-        processSettings.setStdErrListeners(stderrListeners);
-        processSettings.setWorkingDir(workingDir);
+		processSettings.setPTY(pty);
+		processSettings.setLocalEcho(localEcho);
+		processSettings.setLineSeparator(lineSeparator);
+		processSettings.setStdOutListeners(stdoutListeners);
+		processSettings.setStdErrListeners(stderrListeners);
+		processSettings.setWorkingDir(workingDir);
+		processSettings.setEnvironment(envp);
 
 		// And save the settings to the store
 		processSettings.save(store);
