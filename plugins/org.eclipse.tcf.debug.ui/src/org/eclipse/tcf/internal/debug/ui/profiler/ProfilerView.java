@@ -487,6 +487,7 @@ public class ProfilerView extends ViewPart {
                     for (List<ProfileSample> lps : prof_data.map[0].values()) {
                         for (ProfileSample ps : lps) {
                             int n = 0;
+                            assert(ps.trace.length <= prof_data.map.length);
                             while (n < ps.trace.length) {
                                 BigInteger func_addr = getFuncAddress(ps.trace[n]);
                                 ProfileEntry pe = entries.get(func_addr);
@@ -1095,6 +1096,8 @@ public class ProfilerView extends ViewPart {
         boolean big_endian = false;
         byte[] data = null;
         if (props != null) {
+            String format = (String)props.get(IProfiler.PROP_FORMAT);
+            if (format == null || !format.equals("StackTraces")) return;
             Number n = (Number)props.get(IProfiler.PROP_ADDR_SIZE);
             if (n != null) size = n.intValue();
             Boolean b = (Boolean)props.get(IProfiler.PROP_BIG_ENDIAN);
@@ -1139,6 +1142,7 @@ public class ProfilerView extends ViewPart {
         p.sample_count += cnt;
         p.generation_inp++;
         ProfileSample ps = null;
+        if (len > p.map.length) len = p.map.length;
         for (int f = 0; f < p.map.length && f < len; f++) {
             List<ProfileSample> lp = p.map[f].get(trace[f]);
             if (lp != null) {

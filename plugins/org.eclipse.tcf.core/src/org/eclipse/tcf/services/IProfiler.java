@@ -52,6 +52,11 @@ public interface IProfiler extends IService {
     /** Profile data properties */
     static final String
         /**
+         * String: data format.
+         */
+        PROP_FORMAT = "Format",
+
+        /**
          * Number: address size in bytes.
          * Default is 4 bytes.
          */
