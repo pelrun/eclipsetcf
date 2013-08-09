@@ -621,6 +621,8 @@ public class TCFBreakpointsModel {
         for (Map.Entry<String,Object> e : p.entrySet()) {
             String key = e.getKey();
             Object val = e.getValue();
+            if (key.equals(ATTR_STATUS)) continue;
+            if (key.equals(ATTR_TCF_STAMP)) continue;
             if (key.startsWith(ITCFConstants.ID_TCF_DEBUG_MODEL)) {
                 String tcf_key = key.substring(ITCFConstants.ID_TCF_DEBUG_MODEL.length() + 1);
                 if (IBreakpoints.PROP_CONTEXT_IDS.equals(tcf_key)) {
