@@ -139,6 +139,12 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			return;
 		}
 
+		// Don't scan "Eclipse CLI" peers
+		if (peer.getName() != null && peer.getName().startsWith("Eclipse CLI")) { //$NON-NLS-1$
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
+
 		// Do not open a channel to incomplete peer nodes
 		if (peerNode.isComplete()) {
 			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_SCANNER)) {
