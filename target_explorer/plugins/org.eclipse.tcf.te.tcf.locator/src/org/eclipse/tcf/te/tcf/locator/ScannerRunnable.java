@@ -292,14 +292,18 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
 							}
 
-							// Get the peers from the remote locator
-							getPeers(channel, model, ip, new Callback() {
-								@Override
-								protected void internalDone(Object caller, IStatus status) {
-									// Complete
-									onDone(peerNode, changed);
-								}
-							});
+							if (channel.getRemotePeer().getName() != null && channel.getRemotePeer().getName().startsWith("Eclipse CLI")) { //$NON-NLS-1$
+								onDone(peerNode, changed);
+							} else {
+								// Get the peers from the remote locator
+								getPeers(channel, model, ip, new Callback() {
+									@Override
+									protected void internalDone(Object caller, IStatus status) {
+										// Complete
+										onDone(peerNode, changed);
+									}
+								});
+							}
 						}
 					});
 				} else {
