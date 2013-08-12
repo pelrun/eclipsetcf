@@ -514,6 +514,14 @@ public class Stepper implements IStepper {
 			// If the passed in groupable is associated with a step group
 			// -> get the groupable from that group and execute them
 			executeStepGroup((IStepGroup) groupable.getExtension(), statusContainer, executedSteps, id);
+
+			if (groupable.isSavePoint()) {
+				ExecutedContextStep last = executedSteps.isEmpty() ? null : executedSteps.get(executedSteps.size()-1);
+				while (last != null && last.id.toString().startsWith(id.toString())) {
+					executedSteps.remove(executedSteps.size()-1);
+					last = executedSteps.isEmpty() ? null : executedSteps.get(executedSteps.size()-1);
+				}
+			}
 		}
 		else if (groupable.getExtension() instanceof IStep) {
 			// If the passed in groupable is associated with a step
@@ -531,6 +539,10 @@ public class Stepper implements IStepper {
 				executedSteps.add(new ExecutedContextStep(id, step));
 				// Invoke the executor now
 				executor.execute(step, id, getContext(), getData(), getMonitor());
+
+				if (groupable.isSavePoint()) {
+					executedSteps.remove(executedSteps.size()-1);
+				}
 			}
 			catch (Exception e) {
 				// Catch the CoreException first hand as we need to continue the

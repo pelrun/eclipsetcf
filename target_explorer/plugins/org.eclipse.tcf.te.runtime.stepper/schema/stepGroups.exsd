@@ -51,30 +51,6 @@ A step group bundles a set of single steps and/or other step groups into a more 
       </complexType>
    </element>
 
-   <element name="parameter1">
-      <annotation>
-         <documentation>
-            A parameter for an &lt;code&gt;IExecutableExtension&lt;/code&gt;.
-         </documentation>
-      </annotation>
-      <complexType>
-         <attribute name="name" type="string" use="required">
-            <annotation>
-               <documentation>
-                  &lt;p&gt;The parameter name.&lt;/p&gt;
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="value" type="string" use="required">
-            <annotation>
-               <documentation>
-                  &lt;p&gt;The parameter value.&lt;/p&gt;
-               </documentation>
-            </annotation>
-         </attribute>
-      </complexType>
-   </element>
-
    <element name="stepGroup">
       <annotation>
          <documentation>
@@ -294,6 +270,13 @@ Use the form &lt;i&gt;&amp;quot;id##secondaryId&amp;quot;&lt;/i&gt; to identify 
             <annotation>
                <documentation>
                   Marks the referenced step or step group as singleton. Singleton references can appear only once within a resolved set of steps.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="savePoint" type="boolean" use="default" value="false">
+            <annotation>
+               <documentation>
+                  Savepoints will not be rolled back after successful execution.
                </documentation>
             </annotation>
          </attribute>

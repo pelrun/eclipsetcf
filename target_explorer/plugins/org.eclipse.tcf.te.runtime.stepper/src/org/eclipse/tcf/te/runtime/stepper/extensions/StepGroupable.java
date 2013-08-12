@@ -26,6 +26,7 @@ public class StepGroupable implements IStepGroupable {
 	private boolean hidden = false;
 	private boolean removable = true;
 	private boolean singleton = false;
+	private boolean savePoint = false;
 	private final List<String> dependencies = new ArrayList<String>();
 
 	private IExecutableExtension extension;
@@ -190,6 +191,22 @@ public class StepGroupable implements IStepGroupable {
 		Assert.isNotNull(dependencies);
 		this.dependencies.clear();
 		this.dependencies.addAll(Arrays.asList(dependencies));
+	}
+
+	/**
+	 * Sets if or if not this reference is a savepoint.
+	 * @param isSavePoint <code>true</code> if this reference should be a savepoint.
+	 */
+	public void setIsSavePoint(boolean isSavePoint) {
+		savePoint = isSavePoint;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupable#isSavePoint()
+	 */
+	@Override
+	public boolean isSavePoint() {
+	    return savePoint;
 	}
 
 	/* (non-Javadoc)

@@ -70,6 +70,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		private boolean hidden;
 		private boolean disable;
 		private boolean singleton;
+		private boolean savePoint;
 		private final List<String> dependencies = new ArrayList<String>();
 		private Expression expression;
 		private Map<String,String> parameters = new HashMap<String, String>();
@@ -170,6 +171,15 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		}
 
 		/**
+		 * If a reference is marked as savepoint, the step or step group will not
+		 * be rolled back if it was executed successfully.
+		 * @return <code>true</code> if rollback should be done after successful execution.
+		 */
+		public boolean isSavePoint() {
+			return savePoint;
+		}
+
+		/**
 		 * Returns the list of dependencies.
 		 * <p>
 		 * The step or step group id might be fully qualified using the form
@@ -251,6 +261,11 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 				this.singleton = Boolean.parseBoolean(value.trim());
 			}
 
+			value = config.getAttribute("savePoint"); //$NON-NLS-1$
+			if (value != null && value.trim().length() > 0) {
+				this.savePoint = Boolean.parseBoolean(value.trim());
+			}
+
 			// Read in the list of dependencies if specified.
 			dependencies.clear();
 			IConfigurationElement[] requires = config.getChildren("requires"); //$NON-NLS-1$
@@ -330,6 +345,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 			buffer.append(", hidden = " + isHidden()); //$NON-NLS-1$
 			buffer.append(", disable = " + isDisable()); //$NON-NLS-1$
 			buffer.append(", singleton = " + isSingleton()); //$NON-NLS-1$
+			buffer.append(", savePoint = " + isSavePoint()); //$NON-NLS-1$
 			buffer.append(", parameters = " + getParameters()); //$NON-NLS-1$
 			return buffer.toString();
 		}
@@ -704,6 +720,9 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 				}
 				if (reference.isSingleton() && !groupable.isSingleton()) {
 					groupable.setSingleton(reference.isSingleton());
+				}
+				if (reference.isSavePoint() && !groupable.isSavePoint()) {
+					groupable.setIsSavePoint(reference.isSavePoint());
 				}
 			}
 		}

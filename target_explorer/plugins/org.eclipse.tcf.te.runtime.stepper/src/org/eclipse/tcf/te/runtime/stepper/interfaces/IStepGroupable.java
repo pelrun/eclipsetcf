@@ -69,6 +69,13 @@ public interface IStepGroupable {
 	public boolean isDisabled();
 
 	/**
+	 * If a reference is marked as savepoint, the step or step group will not
+	 * be rolled back if it was executed successfully.
+	 * @return <code>true</code> if rollback should be done after successful execution.
+	 */
+	public boolean isSavePoint();
+
+	/**
 	 * Returns the list of dependencies. The dependencies of a groupable are checked on execution.
 	 * If one of the listed dependencies have not been executed before, the execution of the
 	 * groupable will fail.
