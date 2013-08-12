@@ -22,6 +22,7 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -70,7 +71,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 
 		if (provider != null) {
 			this.provider = provider;
-			IPeerModel peerNode = this.provider.getPeerModel();
+			IPeerModel peerNode = getPeerModel(provider);
 			this.viewerInput = (IPropertyChangeProvider) peerNode.getAdapter(IPropertyChangeProvider.class);
 			if (this.viewerInput != null) {
 				this.viewerInput.addPropertyChangeListener(this);
@@ -81,6 +82,17 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 		}
 		updateInput(provider);
     }
+
+	/**
+	 * Get the peer model from the provider.
+	 * Needs to be overwritten in case of save thread access.
+	 * @param provider
+	 * @return
+	 */
+	protected IPeerModel getPeerModel(IPeerModelProvider provider) {
+		Assert.isNotNull(provider);
+		return provider.getPeerModel();
+	}
 
 	/**
 	 * Update the input node.
@@ -159,6 +171,30 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 		Text text = createText(control);
 		createLabel(text, label);
 		return text;
+	}
+
+	/**
+	 * Create a checkbox with the specified label
+	 * relative to the specified control.
+	 *
+	 * @param control The control relative to.
+	 * @param label The text of the label.
+	 * @return The new checkbox created.
+	 */
+	protected Button createCheckbox(Control control, String label) {
+		Button check = getWidgetFactory().createButton(composite, label, SWT.CHECK);
+		FormData data = new FormData();
+		data.left = new FormAttachment(0, STANDARD_LABEL_WIDTH);
+		data.right = new FormAttachment(100, 0);
+		if (control == null) {
+			data.top = new FormAttachment(0, ITabbedPropertyConstants.VSPACE);
+		}
+		else {
+			data.top = new FormAttachment(control, ITabbedPropertyConstants.VSPACE);
+		}
+		check.setLayoutData(data);
+		check.setEnabled(false);
+		return check;
 	}
 
 	/**
