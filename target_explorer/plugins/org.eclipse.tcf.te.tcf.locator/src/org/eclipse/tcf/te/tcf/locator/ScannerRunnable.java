@@ -139,8 +139,12 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			return;
 		}
 
-		// Don't scan "Eclipse CLI" peers
-		if (peer.getName() != null && peer.getName().startsWith("Eclipse CLI")) { //$NON-NLS-1$
+		// Don't scan "CLI" peers
+		boolean isCLI = peer.getName() != null
+						&& (peer.getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+								|| peer.getName().endsWith("CLI Server") //$NON-NLS-1$
+								|| peer.getName().endsWith("CLI Client")); //$NON-NLS-1$
+		if (isCLI) {
 			if (callback != null) callback.done(this, Status.OK_STATUS);
 			return;
 		}
@@ -292,7 +296,11 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
 							}
 
-							if (channel.getRemotePeer().getName() != null && channel.getRemotePeer().getName().startsWith("Eclipse CLI")) { //$NON-NLS-1$
+							boolean isCLI = channel.getRemotePeer().getName() != null
+											&& (channel.getRemotePeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+													|| channel.getRemotePeer().getName().endsWith("CLI Server") //$NON-NLS-1$
+													|| channel.getRemotePeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
+							if (isCLI) {
 								onDone(peerNode, changed);
 							} else {
 								// Get the peers from the remote locator
