@@ -258,20 +258,22 @@ public final class LogManager implements IProtocolStateChangeListener {
 			// Get the peer name
 			logName = peer.getName();
 
-			// Get the peer host IP address
-			String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
-			// Fallback: The peer id
-			if (ip == null || "".equals(ip.trim())) { //$NON-NLS-1$
-				ip = peer.getID();
-			}
+			if (logName != null) {
+				// Get the peer host IP address
+				String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+				// Fallback: The peer id
+				if (ip == null || "".equals(ip.trim())) { //$NON-NLS-1$
+					ip = peer.getID();
+				}
 
-			// Append the peer host IP address
-			if (ip != null && !"".equals(ip.trim())) { //$NON-NLS-1$
-				logName += " " + ip.trim(); //$NON-NLS-1$
-			}
+				// Append the peer host IP address
+				if (ip != null && !"".equals(ip.trim())) { //$NON-NLS-1$
+					logName += " " + ip.trim(); //$NON-NLS-1$
+				}
 
-			// Unify name and replace all undesired characters with '_'
-			logName = makeValid(logName);
+				// Unify name and replace all undesired characters with '_'
+				logName = makeValid(logName);
+			}
 		}
 
 		return logName;
