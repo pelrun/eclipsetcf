@@ -129,6 +129,8 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 			filtered |= !peerModel.isVisible();
 		}
 
+		filtered |= peerModel.getPeer().getName() != null && peerModel.getPeer().getName().startsWith("Eclipse CLI"); //$NON-NLS-1$
+
 		return filtered;
 	}
 

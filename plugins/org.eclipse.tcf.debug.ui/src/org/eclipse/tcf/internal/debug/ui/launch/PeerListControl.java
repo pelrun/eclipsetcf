@@ -455,12 +455,16 @@ public class PeerListControl implements ISelectionProvider {
             if (id == null) continue;
             if (!"TCP".equals(p.attrs.get(IPeer.ATTR_TRANSPORT_NAME))) continue;
             if (!"127.0.0.1".equals(p.attrs.get(IPeer.ATTR_IP_HOST))) continue;
+            if (p.attrs.get("ValueAdd") != null && ("1".equals(p.attrs.get("ValueAdd").trim()) || Boolean.parseBoolean(p.attrs.get("ValueAdd").trim()))) continue; //$NON-NLS-1$
+            if (p.attrs.get(IPeer.ATTR_NAME) != null && p.attrs.get(IPeer.ATTR_NAME).startsWith("Eclipse CLI")) continue; //$NON-NLS-1$
             local_agents.put(id, p);
             ids.add(p.id);
         }
         for (PeerInfo p : parent.children) {
             PeerInfo i = local_agents.get(p.attrs.get(IPeer.ATTR_AGENT_ID));
             if (i != null && i != p) continue;
+            if (p.attrs.get("ValueAdd") != null && ("1".equals(p.attrs.get("ValueAdd").trim()) || Boolean.parseBoolean(p.attrs.get("ValueAdd").trim()))) continue; //$NON-NLS-1$
+            if (p.attrs.get(IPeer.ATTR_NAME) != null && p.attrs.get(IPeer.ATTR_NAME).startsWith("Eclipse CLI")) continue; //$NON-NLS-1$
             lst.add(p);
         }
         if (parent != peer_info && expanded) {
