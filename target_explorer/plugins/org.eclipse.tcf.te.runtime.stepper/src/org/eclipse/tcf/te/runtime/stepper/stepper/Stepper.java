@@ -142,7 +142,7 @@ public class Stepper implements IStepper {
 	protected IStepExecutor doCreateStepExecutor(IStep step, String secondaryId, IFullQualifiedId fullQualifiedStepId) {
 		Assert.isNotNull(step);
 		Assert.isNotNull(fullQualifiedStepId);
-		return new StepExecutor();
+		return new StepExecutor(this);
 	}
 
 	/* (non-Javadoc)

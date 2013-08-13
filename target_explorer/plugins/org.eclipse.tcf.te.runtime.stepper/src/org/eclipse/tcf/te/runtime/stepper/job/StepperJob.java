@@ -14,12 +14,17 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
+import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
 import org.eclipse.tcf.te.runtime.stepper.stepper.Stepper;
@@ -38,6 +43,7 @@ public class StepperJob extends Job {
 	private boolean isFinished = false;
 	private boolean isCanceled = false;
 	private final boolean isCancelable;
+	private boolean statusHandled = false;
 
 	private class NotCancelableProgressMonitor implements IProgressMonitor {
 
@@ -86,6 +92,25 @@ public class StepperJob extends Job {
         public void worked(int work) {
         	monitor.worked(work);
         }
+	}
+
+	private class JobChangeListener extends JobChangeAdapter {
+
+		/**
+		 * Constructor.
+		 */
+        public JobChangeListener() {
+        }
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.core.runtime.jobs.JobChangeAdapter#done(org.eclipse.core.runtime.jobs.IJobChangeEvent)
+		 */
+		@Override
+		public void done(IJobChangeEvent event) {
+			handleStatus(event.getResult());
+
+		    removeJobChangeListener(this);
+		}
 	}
 
 	/**
@@ -160,6 +185,9 @@ public class StepperJob extends Job {
 			monitor = new NotCancelableProgressMonitor(monitor);
 		}
 
+		IJobChangeListener listener = new JobChangeListener();
+		addJobChangeListener(listener);
+
 		// The stepper instance to be used
 		IStepper stepper = new Stepper(getName());
 		IStatus status = Status.OK_STATUS;
@@ -188,7 +216,19 @@ public class StepperJob extends Job {
 
 		isFinished = true;
 
-		return status;
+		handleStatus(status);
+
+		return statusHandled ? Status.OK_STATUS : status;
+	}
+
+	protected void handleStatus(IStatus status) {
+		if (!statusHandled && status != null && status.matches(IStatus.ERROR|IStatus.WARNING|IStatus.INFO)) {
+			IStatusHandler[] handler = StatusHandlerManager.getInstance().getHandler(StepperJob.this);
+			if (handler != null && handler.length > 0) {
+				handler[0].handleStatus(status, null, null);
+			}
+		}
+		statusHandled = true;
 	}
 
 	public boolean isFinished() {

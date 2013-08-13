@@ -29,6 +29,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepExecutor;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.runtime.stepper.nls.Messages;
 import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
@@ -59,6 +60,15 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
  */
 public class StepExecutor implements IStepExecutor {
 
+	private final IStepper stepper;
+
+	/**
+     * Constructor.
+     */
+    public StepExecutor(IStepper stepper) {
+    	this.stepper = stepper;
+    }
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepExecutor#execute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStep, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IProgressMonitor)
 	 */
@@ -87,6 +97,8 @@ public class StepExecutor implements IStepExecutor {
 
 		// Catch any exception that might occur during execution.
 		// Errors are passed through by definition.
+		CoreException result = null;
+		boolean canceled = false;
 		try {
 			step.initializeFrom(context, data, id, progress);
 			step.validateExecute(context, data, id, progress);
@@ -96,28 +108,26 @@ public class StepExecutor implements IStepExecutor {
 			// user hit cancel on the progress monitor.
 			ExecutorsUtil.waitAndExecute(0, callback.getDoneConditionTester(progress, step.getCancelTimeout()));
 
-			// Check the status of the step
-			normalizeStatus(step, id, context, data, callback.getStatus());
+			if (callback.getStatus() == null || callback.getStatus().isOK()) {
+				return;
+			}
+
+			if (callback.getStatus().matches(IStatus.CANCEL) || (progress != null && progress.isCanceled())) {
+				throw new OperationCanceledException(callback.getStatus().getMessage());
+			}
+
+			// Check the info/warning/error status of the step
+			result = normalizeStatus(step, id, context, data, callback.getStatus(), progress);
+		}
+		catch (OperationCanceledException e) {
+			CoreBundleActivator.getTraceHandler().trace("StepExecutor#execute: *** CANCEL (" + step.getLabel() + ")" //$NON-NLS-1$ //$NON-NLS-2$
+							+ ", message = '" + e.getMessage() + "'",  //$NON-NLS-1$ //$NON-NLS-2$
+							0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
+			canceled = true;
+			throw e;
 		}
 		catch (Exception e) {
-			CoreBundleActivator.getTraceHandler().trace("StepExecutor#execute: Exception catched: class ='" + e.getClass().getName() + "'" //$NON-NLS-1$ //$NON-NLS-2$
-							+ ", message = '" + e.getLocalizedMessage() + "'"  //$NON-NLS-1$ //$NON-NLS-2$
-							+ ", cause = "  //$NON-NLS-1$
-							+ (e instanceof CoreException ? ((CoreException)e).getStatus().getException() : e.getCause()),
-							0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
-
-			// If the exception is a CoreException by itself, just re-throw
-			if (e instanceof CoreException) {
-				// Check if the message does need normalization
-				if (isExceptionMessageFormatted(e.getLocalizedMessage())) {
-					throw (CoreException)e;
-				}
-				// We have to normalize the status message first
-				normalizeStatus(step, id, context, data, ((CoreException)e).getStatus());
-			} else {
-				// all other exceptions are repackaged within a CoreException
-				normalizeStatus(step, id, context, data, StatusHelper.getStatus(e));
-			}
+			result = normalizeStatus(step, id, context, data, StatusHelper.getStatus(e), progress);
 		}
 		finally {
 			if (!progress.isCanceled()) {
@@ -128,12 +138,24 @@ public class StepExecutor implements IStepExecutor {
 			step.cleanup(context, data, id, progress);
 
 			long endTime = System.currentTimeMillis();
-			CoreBundleActivator.getTraceHandler().trace("StepExecutor#execute: *** DONE (" + step.getLabel() + ")", //$NON-NLS-1$ //$NON-NLS-2$
-							0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
 			CoreBundleActivator.getTraceHandler().trace(" [" + ISharedConstants.TIME_FORMAT.format(new Date(endTime)) //$NON-NLS-1$
 							+ " , delay = " + (endTime - startTime) + " ms]" //$NON-NLS-1$ //$NON-NLS-2$
 							+ " ***", //$NON-NLS-1$
 							0, ITraceIds.PROFILE_STEPPING, IStatus.WARNING, this);
+
+			if (!canceled) {
+				if (result == null) {
+					CoreBundleActivator.getTraceHandler().trace("StepExecutor#execute: *** DONE (" + step.getLabel() + ")", //$NON-NLS-1$ //$NON-NLS-2$
+									0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
+				}
+				else {
+					CoreBundleActivator.getTraceHandler().trace("StepExecutor#execute: *** ERROR (" + step.getLabel() + ")" //$NON-NLS-1$ //$NON-NLS-2$
+									+ ", message = '" + result.getLocalizedMessage() + "'"  //$NON-NLS-1$ //$NON-NLS-2$
+									+ ", cause = " + result.getStatus().getException(),  //$NON-NLS-1$
+									0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
+					throw result;
+				}
+			}
 		}
 	}
 
@@ -146,37 +168,17 @@ public class StepExecutor implements IStepExecutor {
 	 * @param data The step data.
 	 * @param status The status.
 	 *
-	 * @throws CoreException - if the operation fails
+	 * @return CoreException if the operation failed
 	 */
-	private void normalizeStatus(IStep step, IFullQualifiedId id, IStepContext context , IPropertiesContainer data, IStatus status) throws CoreException {
+	private CoreException normalizeStatus(IStep step, IFullQualifiedId id, IStepContext context , IPropertiesContainer data, IStatus status, IProgressMonitor progress) {
 		Assert.isNotNull(context);
 		Assert.isNotNull(data);
 		Assert.isNotNull(id);
 		Assert.isNotNull(step);
 
-		if (status == null || status.isOK()) {
-			return;
-		}
-
-		switch (status.getSeverity()) {
-		case IStatus.CANCEL:
-			throw new OperationCanceledException(status.getMessage());
-		default:
-			String message = formatMessage(status.getMessage(), status.getSeverity(), step, id, context, data);
-			status = new Status(status.getSeverity(), status.getPlugin(), status.getCode(), message != null ? message : status.getMessage(), status.getException());
-			throw new CoreException(status);
-		}
-	}
-
-	/**
-	 * Checks if the given message is already formatted to get displayed to the user.
-	 *
-	 * @param message The message. Must not be <code>null</code>.
-	 * @return <code>True</code> if the message is already formatted to get displayed to the user, <code>false</code> otherwise.
-	 */
-	protected boolean isExceptionMessageFormatted(String message) {
-		Assert.isNotNull(message);
-		return message.startsWith(Messages.StepExecutor_checkPoint_normalizationNeeded);
+		String message = formatMessage(status, step, id, context, data);
+		status = new Status(status.getSeverity(), status.getPlugin(), status.getCode(), message != null ? message : status.getMessage(), status.getException());
+		return new CoreException(status);
 	}
 
 	/**
@@ -191,10 +193,10 @@ public class StepExecutor implements IStepExecutor {
 	 *
 	 * @return Formatted message.
 	 */
-	protected String formatMessage(String message, int severity, IStep step, IFullQualifiedId id, IStepContext context, IPropertiesContainer data) {
+	protected String formatMessage(IStatus status, IStep step, IFullQualifiedId id, IStepContext context, IPropertiesContainer data) {
 		String template = null;
 
-		switch (severity) {
+		switch (status.getSeverity()) {
 		case IStatus.INFO:
 			template = Messages.StepExecutor_info_stepFailed;
 			break;
@@ -208,46 +210,23 @@ public class StepExecutor implements IStepExecutor {
 
 		// If we cannot determine the formatted message template, just return the message as is
 		if (template == null) {
-			return message;
+			return status.getMessage();
 		}
-
-		// Check the message for additions
-		message = checkMessage(message);
-
-		// Split the message. The first sentence is shown more prominent on the top,
-		// the rest as additional information below the step information.
-		String[] splittedMsg = message != null ? message.split("[\t\n\r\f]+", 2) : new String[] { null, null }; //$NON-NLS-1$
 
 		// Format the core message
 		String formattedMessage = NLS.bind(template,
-						new String[] { splittedMsg[0],
-						context.getName(),
-						context.getInfo(data),
-						(step.getLabel() != null && step.getLabel().trim().length() > 0 ? step.getLabel() : step.getId())
-		});
-
-		// If we have more information available, append them
-		if (splittedMsg.length > 1 && splittedMsg[1] != null && !"".equals(splittedMsg[1])) { //$NON-NLS-1$
-			formattedMessage += "\n\n" + splittedMsg[1]; //$NON-NLS-1$
-		}
+						new String[] {
+							stepper.getLabel(),
+							status.getMessage(),
+							(step.getLabel() != null && step.getLabel().trim().length() > 0 ? step.getLabel() : step.getId()),
+							context.getName()
+						});
 
 		// In debug mode, there is even more information to add
 		if (Platform.inDebugMode()) {
-			formattedMessage += "\n\n" + NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, id.toString()); //$NON-NLS-1$
+			formattedMessage += NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, id.toString());
 		}
 
 		return formattedMessage;
-	}
-
-	/**
-	 * Check for additions to add to the message.
-	 * <p>
-	 * <i>Reserved for future use. Currently returns the message unmodified.</i>
-	 *
-	 * @param message The message or <code>null</code>.
-	 * @return The checked message.
-	 */
-	protected String checkMessage(String message) {
-		return message;
 	}
 }

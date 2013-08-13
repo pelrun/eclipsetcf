@@ -59,7 +59,6 @@ public class Messages extends NLS {
 	public static String StepGroup_error_referencedStepOrGroup;
 	public static String StepGroup_error_requiredStepOrGroup;
 
-	public static String StepExecutor_checkPoint_normalizationNeeded;
 	public static String StepExecutor_info_stepFailed;
 	public static String StepExecutor_warning_stepFailed;
 	public static String StepExecutor_error_stepFailed;
