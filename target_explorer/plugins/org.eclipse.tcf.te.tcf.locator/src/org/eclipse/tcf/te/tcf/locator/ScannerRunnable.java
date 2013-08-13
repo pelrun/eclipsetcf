@@ -296,16 +296,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
 							}
 
-							String remoteIP = channel.getRemotePeer().getAttributes().get(IPeer.ATTR_IP_HOST);
-							boolean isLocal = remoteIP != null && IPAddressUtil.getInstance().isLocalHost(remoteIP);
-
-							boolean isCLI = channel.getRemotePeer().getName() != null
-											&& (channel.getRemotePeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
-													|| channel.getRemotePeer().getName().endsWith("CLI Server") //$NON-NLS-1$
-													|| channel.getRemotePeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
-							if (isLocal || isCLI) {
-								onDone(peerNode, changed);
-							} else {
+							if (isGetPeersAllowed(channel)) {
 								// Get the peers from the remote locator
 								getPeers(channel, model, ip, new Callback() {
 									@Override
@@ -314,6 +305,8 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 										onDone(peerNode, changed);
 									}
 								});
+							} else {
+								onDone(peerNode, changed);
 							}
 						}
 					});
@@ -322,20 +315,47 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 					onDone(peerNode, changed);
 				}
 			} else {
-				// Get the peers from the remote locator
-				getPeers(channel, model, ip, new Callback() {
-					@Override
-					protected void internalDone(Object caller, IStatus status) {
-						// Complete
-						onDone(peerNode, changed);
-					}
-				});
+				if (isGetPeersAllowed(channel)) {
+					// Get the peers from the remote locator
+					getPeers(channel, model, ip, new Callback() {
+						@Override
+						protected void internalDone(Object caller, IStatus status) {
+							// Complete
+							onDone(peerNode, changed);
+						}
+					});
+				} else {
+					onDone(peerNode, changed);
+				}
 			}
 		} else {
 			// Complete
 			onDone(peerNode, changed);
 		}
 	}
+
+    /**
+     * Returns if or if not "getPeers" is allowed for the given channel.
+     *
+     * @param channel The channel. Must not be <code>null</code>.
+     * @return <code>True</code> if "getPeers" is allowed, <code>false</code> otherwise.
+     */
+    /* default */ boolean isGetPeersAllowed(IChannel channel) {
+		String remoteIP = channel.getRemotePeer().getAttributes().get(IPeer.ATTR_IP_HOST);
+		boolean isLocal = remoteIP != null && IPAddressUtil.getInstance().isLocalHost(remoteIP);
+
+		boolean isCLI = channel.getRemotePeer().getName() != null
+						&& (channel.getRemotePeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+								|| channel.getRemotePeer().getName().endsWith("CLI Server") //$NON-NLS-1$
+								|| channel.getRemotePeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
+
+		isCLI |= channel.getLocalPeer().getName() != null
+					&& (channel.getLocalPeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+							|| channel.getLocalPeer().getName().endsWith("CLI Server") //$NON-NLS-1$
+							|| channel.getLocalPeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
+
+		return !isLocal && !isCLI;
+    }
 
     /**
      * Query the peers from the remote locator.
