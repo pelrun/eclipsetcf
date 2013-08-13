@@ -296,11 +296,14 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
 							}
 
+							String remoteIP = channel.getRemotePeer().getAttributes().get(IPeer.ATTR_IP_HOST);
+							boolean isLocal = remoteIP != null && IPAddressUtil.getInstance().isLocalHost(remoteIP);
+
 							boolean isCLI = channel.getRemotePeer().getName() != null
 											&& (channel.getRemotePeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
 													|| channel.getRemotePeer().getName().endsWith("CLI Server") //$NON-NLS-1$
 													|| channel.getRemotePeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
-							if (isCLI) {
+							if (isLocal || isCLI) {
 								onDone(peerNode, changed);
 							} else {
 								// Get the peers from the remote locator
