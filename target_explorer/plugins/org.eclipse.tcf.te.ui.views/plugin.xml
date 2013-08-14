@@ -336,14 +336,28 @@
                label="%command.open.label"
                mnemonic="%command.open.mnemonic"
                tooltip="%command.openroperties.tooltip">
-               <visibleWhen>
-                  <with variable="selection">
-                     <count value="1"/>
-                     <iterate operator="and" ifEmpty="false">
+            <visibleWhen>
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <and>
                         <test property="org.eclipse.tcf.te.ui.views.hasApplicableEditorBindings" value="true"/>
-                     </iterate>
-                  </with>
-               </visibleWhen>
+                        <or>
+                           <not>
+                              <test
+                                    forcePluginActivation="true"
+                                    property="org.eclipse.tcf.te.runtime.services.hasService"
+                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                           </not>
+                           <test
+                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                 args="org.eclipse.tcf.te.ui.views.View.menu.open"
+                                 value="true"/>
+                        </or>
+                     </and> 
+                  </iterate>
+               </with>
+            </visibleWhen>
          </command>
       </menuContribution>
       
@@ -612,6 +626,10 @@
    </extension>
 
    <extension point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
+            icon="icons/eview16/prop_ps.gif">
+      </image>
       <image
             commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"
             icon="icons/eview16/targets_view.gif">
