@@ -480,17 +480,17 @@ public class PeerListControl implements ISelectionProvider {
         }
         return lst;
     }
-    
+
     private boolean isFiltered(PeerInfo p) {
-    	boolean filtered = false;
-    	if (p != null && p.attrs != null) {
+        boolean filtered = false;
+        if (p != null && p.attrs != null) {
             filtered |= p.attrs.get("ValueAdd") != null && ("1".equals(p.attrs.get("ValueAdd").trim()) || Boolean.parseBoolean(p.attrs.get("ValueAdd").trim())); //$NON-NLS-1$
-            filtered |= p.attrs.get(IPeer.ATTR_NAME) != null 
-            				&& (p.attrs.get(IPeer.ATTR_NAME).startsWith("Eclipse CLI") //$NON-NLS-1$
-            				        || p.attrs.get(IPeer.ATTR_NAME).endsWith("CLI Server") //$NON-NLS-1$
+            filtered |= p.attrs.get(IPeer.ATTR_NAME) != null
+                            && (p.attrs.get(IPeer.ATTR_NAME).startsWith("Eclipse CLI") //$NON-NLS-1$
+                                    || p.attrs.get(IPeer.ATTR_NAME).endsWith("CLI Server") //$NON-NLS-1$
                                     || p.attrs.get(IPeer.ATTR_NAME).endsWith("CLI Client")); //$NON-NLS-1$
-    	}
-    	return filtered;
+        }
+        return filtered;
     }
 
     private void updateItems(TreeItem parent_item, boolean reload) {

@@ -531,7 +531,7 @@ public class ProfilerView extends ViewPart {
                     ISelection s = viewer_main.getSelection();
                     ProfilerView.this.sample_count = sample_count;
                     viewer_main.setInput(viewer_input);
-                    if (s instanceof IStructuredSelection) {
+                    if (s instanceof IStructuredSelection && entries.size() > 0) {
                         IStructuredSelection ss = (IStructuredSelection)s;
                         List<ProfileEntry> l = new ArrayList<ProfileEntry>();
                         for (Object obj : ss.toArray()) {
