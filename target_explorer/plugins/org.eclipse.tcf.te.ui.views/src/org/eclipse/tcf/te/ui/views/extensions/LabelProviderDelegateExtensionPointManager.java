@@ -11,6 +11,8 @@ package org.eclipse.tcf.te.ui.views.extensions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.core.expressions.EvaluationContext;
@@ -82,6 +84,7 @@ public class LabelProviderDelegateExtensionPointManager extends AbstractExtensio
 	public ILabelProvider[] getDelegates(Object context, boolean unique) {
 		List<ILabelProvider> contributions = new ArrayList<ILabelProvider>();
 		Collection<ExecutableExtensionProxy<ILabelProvider>> delegates = getExtensions().values();
+		List<ExecutableExtensionProxy<ILabelProvider>> applicableDelegates = new ArrayList<ExecutableExtensionProxy<ILabelProvider>>();
 		for (ExecutableExtensionProxy<ILabelProvider> delegate : delegates) {
 			Expression enablement = null;
 			// Read the sub elements of the extension
@@ -119,12 +122,35 @@ public class LabelProviderDelegateExtensionPointManager extends AbstractExtensio
 			}
 
 			if (isApplicable) {
-				ILabelProvider instance = unique ? delegate.newInstance() : delegate.getInstance();
-				if (instance != null && !contributions.contains(instance)) {
-					contributions.add(instance);
-				}
+				applicableDelegates.add(delegate);
 			}
 		}
+		Collections.sort(applicableDelegates, new Comparator<ExecutableExtensionProxy<ILabelProvider>>() {
+			@Override
+            public int compare(ExecutableExtensionProxy<ILabelProvider> o1, ExecutableExtensionProxy<ILabelProvider> o2) {
+				String rank1Str = o1.getConfigurationElement().getAttribute("rank"); //$NON-NLS-1$
+				int rank1 = 0;
+				try{
+					rank1 = rank1Str != null ? Integer.parseInt(rank1Str) : 0;
+				}
+				catch (Exception e) {
+				}
+				String rank2Str = o2.getConfigurationElement().getAttribute("rank"); //$NON-NLS-1$
+				int rank2 = 0;
+				try{
+					rank2 = rank2Str != null ? Integer.parseInt(rank2Str) : 0;
+				}
+				catch (Exception e) {
+				}
+	            return rank2-rank1;
+            }
+		});
+		for (ExecutableExtensionProxy<ILabelProvider> delegate : applicableDelegates) {
+			ILabelProvider instance = unique ? delegate.newInstance() : delegate.getInstance();
+			if (instance != null && !contributions.contains(instance)) {
+				contributions.add(instance);
+			}
+        }
 
 		return contributions.toArray(new ILabelProvider[contributions.size()]);
 	}

@@ -64,7 +64,7 @@
    <extension point="org.eclipse.ui.navigator.navigatorContent">
       <navigatorContent
             activeByDefault="false"
-            contentProvider="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProviderDelegate"
+            contentProvider="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider"
             icon="icons/obj16/process_root.gif"
             id="org.eclipse.tcf.te.tcf.processes.ui.navigator.content"
             labelProvider="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate"

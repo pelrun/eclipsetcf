@@ -15,9 +15,9 @@ import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
-import org.eclipse.tcf.te.tcf.ui.navigator.ContentProviderDelegate;
-import org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider;
+import org.eclipse.tcf.te.tcf.ui.navigator.ContentProvider;
 import org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl;
+import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection;
 
 /**
@@ -61,7 +61,7 @@ public class ContextSelectorSectionControl extends AbstractContextSelectorContro
 	 */
 	@Override
 	protected void doConfigureTreeContentAndLabelProvider(TreeViewer viewer) {
-		viewer.setContentProvider(new ContentProviderDelegate(true));
+		viewer.setContentProvider(new ContentProvider(true));
 		DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
 		viewer.setLabelProvider(new DecoratingLabelProvider(labelProvider, labelProvider));
 	}

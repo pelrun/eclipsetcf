@@ -61,7 +61,7 @@ public class EditorHandlerDelegate implements IEditorHandlerDelegate {
 							viewer.setSelection(new StructuredSelection(element), true);
 						}
 					}
-					else if (formEditor instanceof Editor) {
+					else if (page == null && formEditor instanceof Editor) {
 						((Editor)formEditor).setActivePage(0);
 					}
 				}

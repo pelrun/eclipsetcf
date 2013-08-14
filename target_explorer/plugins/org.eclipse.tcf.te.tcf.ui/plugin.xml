@@ -86,10 +86,10 @@
    <extension point="org.eclipse.ui.navigator.navigatorContent">
       <navigatorContent
             activeByDefault="true"
-            contentProvider="org.eclipse.tcf.te.tcf.ui.navigator.ContentProviderDelegate"
+            contentProvider="org.eclipse.tcf.te.tcf.ui.navigator.ContentProvider"
             icon="icons/obj16/rootNode_obj.gif"
             id="org.eclipse.tcf.te.tcf.ui.navigator.content"
-            labelProvider="org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider"
+            labelProvider="org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider"
             name="%navigatorContent.name"
             priority="normal">
             <triggerPoints>
@@ -159,17 +159,30 @@
       </commonFilter>
    </extension>
 
+<!-- Label provider delegates -->
+   <extension point="org.eclipse.tcf.te.ui.views.labelProviderDelegates">
+      <labelProviderDelegate
+            class="org.eclipse.tcf.te.tcf.ui.navigator.PeerLabelProviderDelegate"
+            id="org.eclipse.tcf.te.tcf.ui.peerLabelProviderDelegate">
+         <enablement>
+            <or>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+               <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode"/>
+            </or>
+         </enablement>
+      </labelProviderDelegate>
+   </extension>
+
 <!-- Decorator contributions -->   
    <extension point="org.eclipse.ui.decorators">
       <decorator
-            class="org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider"
+            class="org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider"
             id="org.eclipse.tcf.te.tcf.ui.decorators.peerHost"
             label="%peerhost.decorator.label"
             state="true">
          <enablement>
-            <objectClass
-                  name="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
-            </objectClass>
+            <objectClass name="org.eclipse.tcf.te.core.interfaces.IDecoratable"/>
          </enablement>
       </decorator>
    </extension>

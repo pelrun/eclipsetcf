@@ -42,7 +42,7 @@ import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 /**
  * Runtime model content provider delegate implementation.
  */
-public class ContentProviderDelegate implements ITreeContentProvider {
+public class ContentProvider implements ITreeContentProvider {
 	private final static Object[] NO_ELEMENTS = new Object[0];
 
 	// Reference to the tree listener

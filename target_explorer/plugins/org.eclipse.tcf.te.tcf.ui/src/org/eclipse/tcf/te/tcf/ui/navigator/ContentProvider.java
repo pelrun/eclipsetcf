@@ -55,10 +55,10 @@ import org.eclipse.ui.navigator.INavigatorFilterService;
 
 
 /**
- * Content provider delegate implementation.
+ * Content provider implementation.
  */
 @SuppressWarnings("restriction")
-public class ContentProviderDelegate implements ICommonContentProvider, ITreePathContentProvider {
+public class ContentProvider implements ICommonContentProvider, ITreePathContentProvider {
 	private final static Object[] NO_ELEMENTS = new Object[0];
 
 	// The "Redirected Peers" filter id
@@ -84,7 +84,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	/**
 	 * Constructor.
 	 */
-	public ContentProviderDelegate() {
+	public ContentProvider() {
 		this(false);
 	}
 
@@ -93,7 +93,7 @@ public class ContentProviderDelegate implements ICommonContentProvider, ITreePat
 	 *
 	 * @param showInvisible If <code>true</code>, {@link #getChildren(Object)} will include invisible nodes too.
 	 */
-	public ContentProviderDelegate(boolean showInvisible) {
+	public ContentProvider(boolean showInvisible) {
 		super();
 		this.showInvisible = showInvisible;
 	}

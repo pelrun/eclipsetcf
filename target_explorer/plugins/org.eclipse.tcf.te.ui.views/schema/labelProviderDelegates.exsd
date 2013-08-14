@@ -77,6 +77,13 @@ Label provider delegates are used to customize entries in the System Management 
                </appinfo>
             </annotation>
          </attribute>
+         <attribute name="rank" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 

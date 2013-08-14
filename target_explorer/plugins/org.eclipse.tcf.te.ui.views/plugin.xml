@@ -91,13 +91,13 @@
 <!-- Common navigator contributions -->
    <extension point="org.eclipse.ui.navigator.navigatorContent">
 
-<!-- Default navigator content contibutions -->
+   <!-- Default navigator content contibutions -->
       <navigatorContent
             activeByDefault="true"
             contentProvider="org.eclipse.tcf.te.ui.views.navigator.ViewerContentProvider"
             icon="icons/eview16/targets_view.gif"
             id="org.eclipse.tcf.te.ui.views.navigator.content"
-            labelProvider="org.eclipse.tcf.te.ui.views.navigator.LabelProviderDelegate"
+            labelProvider="org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider"
             name="%navigatorContent.name"
             priority="highest">
             <triggerPoints>
@@ -117,7 +117,7 @@
                   id="org.eclipse.tcf.te.ui.views.navigator.sorter"/>
       </navigatorContent>
 
-<!-- Default navigator action contributions -->
+   <!-- Default navigator action contributions -->
       <actionProvider
             class="org.eclipse.tcf.te.ui.views.actions.NewActionProvider"
             id="org.eclipse.tcf.te.ui.views.navigator.actions.NewActionProvider">
@@ -156,6 +156,21 @@
          </enablement>
       </actionProvider>
       
+   </extension>
+
+
+<!-- Label provider delegates -->
+   <extension point="org.eclipse.tcf.te.ui.views.labelProviderDelegates">
+      <labelProviderDelegate
+            class="org.eclipse.tcf.te.ui.views.navigator.LabelProviderDelegate"
+            id="org.eclipse.tcf.te.ui.views.labelProviderDelegate">
+         <enablement>
+            <or>
+               <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.ICategory"/>
+               <instanceof value="org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode"/>
+            </or>
+         </enablement>
+      </labelProviderDelegate>
    </extension>
 
 <!-- View contributions -->

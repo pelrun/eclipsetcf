@@ -12,10 +12,10 @@ package org.eclipse.tcf.te.tcf.ui.internal.adapters;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IEditorSaveAsAdapter;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
+import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.IPersistableElement;
 
 /**

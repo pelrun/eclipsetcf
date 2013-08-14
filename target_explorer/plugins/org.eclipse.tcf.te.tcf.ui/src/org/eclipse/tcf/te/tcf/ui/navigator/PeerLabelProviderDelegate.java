@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ILabelDecorator;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.IPeer;
@@ -32,28 +31,17 @@ import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerImageDescriptor;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
-import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
-
 
 /**
  * Label provider implementation.
  */
-public class DelegatingLabelProvider extends LabelProvider implements ILabelDecorator {
+public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDecorator {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)
 	 */
 	@Override
 	public String getText(final Object element) {
-		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
-
-		if (delegates != null && delegates.length > 0) {
-			String text = delegates[0].getText(element);
-			if (text != null) {
-				return text;
-			}
-		}
-
 		if (element instanceof IPeerModel || element instanceof IPeer) {
 			StringBuilder builder = new StringBuilder();
 
@@ -111,7 +99,7 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			return Messages.RemotePeerDiscoveryRootNode_label;
 		}
 
-		return ""; //$NON-NLS-1$
+		return super.getText(element);
 	}
 
 	/**
@@ -153,15 +141,6 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 	 */
 	@Override
 	public Image getImage(final Object element) {
-		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
-
-		if (delegates != null && delegates.length > 0) {
-			Image image = delegates[0].getImage(element);
-			if (image != null) {
-				return image;
-			}
-		}
-
 		if (element instanceof IPeerModel || element instanceof IPeer) {
 			final AtomicBoolean isStatic = new AtomicBoolean();
 
@@ -199,24 +178,14 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 	 */
 	@Override
 	public Image decorateImage(Image image, Object element) {
-		Image decoratedImage = null;
+		Image decoratedImage = image;
 
-		if (image != null && element instanceof IPeerModel) {
-			ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
-			if (delegates != null && delegates.length > 0) {
-				if (delegates[0] instanceof ILabelDecorator) {
-					Image candidate = ((ILabelDecorator)delegates[0]).decorateImage(image, element);
-					if (candidate != null) image = candidate;
-				}
-			}
-
-			boolean isStatic = ((IPeerModel)element).isStatic();
-			if (!isStatic) {
-				AbstractImageDescriptor descriptor = new PeerImageDescriptor(UIPlugin.getDefault().getImageRegistry(),
-								image,
-								(IPeerModel)element);
-				decoratedImage = UIPlugin.getSharedImage(descriptor);
-			}
+		if (image != null && element instanceof IPeerModel && !((IPeerModel)element).isStatic()) {
+			AbstractImageDescriptor descriptor = new PeerImageDescriptor(
+							UIPlugin.getDefault().getImageRegistry(),
+							image,
+							(IPeerModel)element);
+			decoratedImage = UIPlugin.getSharedImage(descriptor);
 		}
 
 		return decoratedImage;
@@ -229,21 +198,24 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 	public String decorateText(final String text, final Object element) {
 		String label = text;
 
-		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
-		if (delegates != null && delegates.length > 0) {
-			if (delegates[0] instanceof ILabelDecorator) {
-				String candidate = ((ILabelDecorator)delegates[0]).decorateText(label, element);
-				if (candidate != null) label = candidate;
-			}
-		}
-
 		if (element instanceof IPeerModel) {
 			final StringBuilder builder = new StringBuilder(label != null && !"".equals(label.trim()) ? label.trim() : "<noname>"); //$NON-NLS-1$ //$NON-NLS-2$
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					doDecorateText(builder, (IPeerModel)element);
+					boolean isStatic = ((IPeerModel)element).isStatic();
+
+					int state = ((IPeerModel)element).getIntProperty(IPeerModelProperties.PROP_STATE);
+					if (state > IPeerModelProperties.STATE_UNKNOWN
+									&& (!isStatic
+									|| state == IPeerModelProperties.STATE_REACHABLE
+									|| state == IPeerModelProperties.STATE_CONNECTED
+									|| state == IPeerModelProperties.STATE_WAITING_FOR_READY)) {
+						builder.append(" ["); //$NON-NLS-1$
+						builder.append(Messages.getString("LabelProviderDelegate_state_" + state)); //$NON-NLS-1$
+						builder.append("]"); //$NON-NLS-1$
+					}
 				}
 			};
 
@@ -257,32 +229,5 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Decorate the text with some peer attributes.
-	 * <p>
-	 * <b>Note:</b> Must be called with the TCF event dispatch thread.
-	 *
-	 * @param builder The string builder to decorate. Must not be <code>null</code>.
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
-	 */
-	/* default */ void doDecorateText(StringBuilder builder, IPeerModel peerModel) {
-		Assert.isNotNull(builder);
-		Assert.isNotNull(peerModel);
-		Assert.isTrue(Protocol.isDispatchThread());
-
-		boolean isStatic = peerModel.isStatic();
-
-		int state = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);
-		if (state > IPeerModelProperties.STATE_UNKNOWN
-						&& (!isStatic
-						|| state == IPeerModelProperties.STATE_REACHABLE
-						|| state == IPeerModelProperties.STATE_CONNECTED
-						|| state == IPeerModelProperties.STATE_WAITING_FOR_READY)) {
-			builder.append(" ["); //$NON-NLS-1$
-			builder.append(Messages.getString("LabelProviderDelegate_state_" + state)); //$NON-NLS-1$
-			builder.append("]"); //$NON-NLS-1$
-		}
 	}
 }

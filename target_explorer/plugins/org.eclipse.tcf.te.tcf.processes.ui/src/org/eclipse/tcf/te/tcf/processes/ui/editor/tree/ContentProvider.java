@@ -13,17 +13,16 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
-import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProviderDelegate;
 
 /**
  * Process tree control content provider implementation.
  */
-public class ContentProvider extends ContentProviderDelegate {
+public class ContentProvider extends org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider {
 	// The target's peer model.
 	private IPeerModel peerModel;
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProviderDelegate#dispose()
+	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#dispose()
 	 */
 	@Override
 	public void dispose() {
@@ -38,7 +37,7 @@ public class ContentProvider extends ContentProviderDelegate {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProviderDelegate#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
@@ -49,7 +48,7 @@ public class ContentProvider extends ContentProviderDelegate {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProviderDelegate#isRuntimeModelNodeVisible()
+	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#isRuntimeModelNodeVisible()
 	 */
 	@Override
 	protected boolean isRuntimeModelNodeVisible() {

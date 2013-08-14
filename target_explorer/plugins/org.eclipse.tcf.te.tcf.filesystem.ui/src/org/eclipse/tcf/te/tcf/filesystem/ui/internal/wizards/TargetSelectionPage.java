@@ -40,10 +40,10 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
-import org.eclipse.tcf.te.tcf.ui.navigator.ContentProviderDelegate;
-import org.eclipse.tcf.te.tcf.ui.navigator.DelegatingLabelProvider;
+import org.eclipse.tcf.te.tcf.ui.navigator.ContentProvider;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.interfaces.IUIConstants;
+import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.FilteredTree;
@@ -171,7 +171,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 		filteredTree.setLayoutData(layoutData);
 
 		treeViewer = filteredTree.getViewer();
-		treeViewer.setContentProvider(new ContentProviderDelegate());
+		treeViewer.setContentProvider(new ContentProvider());
 		IBaseLabelProvider labelProvider = new DecoratingStyledCellLabelProvider(new TargetStyledLabelProvider(), new DelegatingLabelProvider(), null);
 		treeViewer.setLabelProvider(labelProvider);
 		treeViewer.setComparator(new TargetViewerComparator());
