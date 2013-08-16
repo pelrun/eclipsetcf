@@ -15,12 +15,13 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
+import org.eclipse.ui.navigator.IDescriptionProvider;
 
 
 /**
  * Label provider implementation.
  */
-public class DelegatingLabelProvider extends LabelProvider implements ILabelDecorator, ILabelProviderDelegate {
+public class DelegatingLabelProvider extends LabelProvider implements ILabelDecorator, ILabelProviderDelegate, IDescriptionProvider {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)
@@ -101,4 +102,28 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 
 		return text;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.navigator.IDescriptionProvider#getDescription(java.lang.Object)
+	 */
+    @Override
+    public String getDescription(Object element) {
+		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
+
+		String description = null;
+
+		if (delegates != null && delegates.length > 0) {
+			for (ILabelProvider delegate : delegates) {
+				if (delegate instanceof IDescriptionProvider) {
+					String candidate = ((IDescriptionProvider)delegate).getDescription(element);
+					if (candidate != null) {
+						description = candidate;
+						break;
+					}
+				}
+			}
+		}
+
+		return decorateText(getText(element), element) + (description != null ? " - " + description : ""); //$NON-NLS-1$ //$NON-NLS-2$
+    }
 }

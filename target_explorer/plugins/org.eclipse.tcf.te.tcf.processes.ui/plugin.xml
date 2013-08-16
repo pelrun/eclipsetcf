@@ -67,7 +67,7 @@
             contentProvider="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider"
             icon="icons/obj16/process_root.gif"
             id="org.eclipse.tcf.te.tcf.processes.ui.navigator.content"
-            labelProvider="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate"
+            labelProvider="org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider"
             name="%navigatorContent.name"
             priority="normal">
             
@@ -105,6 +105,22 @@
             visibleInUI="false">
       </commonFilter>
 
+   </extension>
+
+<!-- Label provider delegates -->
+   <extension point="org.eclipse.tcf.te.ui.views.labelProviderDelegates">
+      <labelProviderDelegate
+            class="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate"
+            id="org.eclipse.tcf.te.tcf.processes.ui.labelProviderDelegate" 
+            rank="10">
+         <enablement>
+            <or>
+               <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationNode"/>
+            </or>
+         </enablement>
+      </labelProviderDelegate>
    </extension>
 
 <!-- Editor page contributions -->

@@ -99,7 +99,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			return Messages.RemotePeerDiscoveryRootNode_label;
 		}
 
-		return super.getText(element);
+		return null;
 	}
 
 	/**
