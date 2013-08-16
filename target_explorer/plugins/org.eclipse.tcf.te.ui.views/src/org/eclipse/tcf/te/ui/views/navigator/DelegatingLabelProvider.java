@@ -9,9 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.navigator;
 
+import org.eclipse.jface.viewers.IColorProvider;
+import org.eclipse.jface.viewers.IFontProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
@@ -21,7 +25,7 @@ import org.eclipse.ui.navigator.IDescriptionProvider;
 /**
  * Label provider implementation.
  */
-public class DelegatingLabelProvider extends LabelProvider implements ILabelDecorator, ILabelProviderDelegate, IDescriptionProvider {
+public class DelegatingLabelProvider extends LabelProvider implements ILabelDecorator, ILabelProviderDelegate, IDescriptionProvider, IColorProvider, IFontProvider {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)
@@ -125,5 +129,68 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 		}
 
 		return decorateText(getText(element), element) + (description != null ? " - " + description : ""); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IFontProvider#getFont(java.lang.Object)
+	 */
+    @Override
+    public Font getFont(Object element) {
+		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
+
+		if (delegates != null && delegates.length > 0) {
+			for (ILabelProvider delegate : delegates) {
+				if (delegate instanceof IFontProvider) {
+					Font candidate = ((IFontProvider)delegate).getFont(element);
+					if (candidate != null) {
+						return candidate;
+					}
+				}
+			}
+		}
+
+	    return null;
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IColorProvider#getForeground(java.lang.Object)
+	 */
+    @Override
+    public Color getForeground(Object element) {
+		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
+
+		if (delegates != null && delegates.length > 0) {
+			for (ILabelProvider delegate : delegates) {
+				if (delegate instanceof IColorProvider) {
+					Color candidate = ((IColorProvider)delegate).getForeground(element);
+					if (candidate != null) {
+						return candidate;
+					}
+				}
+			}
+		}
+
+	    return null;
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IColorProvider#getBackground(java.lang.Object)
+	 */
+    @Override
+    public Color getBackground(Object element) {
+		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(element, false);
+
+		if (delegates != null && delegates.length > 0) {
+			for (ILabelProvider delegate : delegates) {
+				if (delegate instanceof IColorProvider) {
+					Color candidate = ((IColorProvider)delegate).getBackground(element);
+					if (candidate != null) {
+						return candidate;
+					}
+				}
+			}
+		}
+
+	    return null;
     }
 }

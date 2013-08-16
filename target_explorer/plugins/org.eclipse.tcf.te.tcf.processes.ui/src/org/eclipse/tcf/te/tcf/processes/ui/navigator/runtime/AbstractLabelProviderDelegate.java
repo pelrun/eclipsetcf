@@ -12,11 +12,9 @@ package org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jface.viewers.IColorProvider;
-import org.eclipse.jface.viewers.IFontProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.ui.PlatformUI;
@@ -24,7 +22,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Abstract label provider delegate implementation.
  */
-public abstract class AbstractLabelProviderDelegate extends LabelProvider implements IColorProvider, IFontProvider {
+public abstract class AbstractLabelProviderDelegate extends LabelProvider implements IColorProvider {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IColorProvider#getForeground(java.lang.Object)
@@ -66,13 +64,5 @@ public abstract class AbstractLabelProviderDelegate extends LabelProvider implem
 	@Override
 	public Color getBackground(Object element) {
 	    return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IFontProvider#getFont(java.lang.Object)
-	 */
-	@Override
-	public Font getFont(Object element) {
-		return null;
 	}
 }
