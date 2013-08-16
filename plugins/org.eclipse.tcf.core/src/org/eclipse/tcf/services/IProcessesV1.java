@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,7 +33,11 @@ public interface IProcessesV1 extends IProcesses {
         /** Boolean, stop at main() */
         START_STOP_AT_MAIN = "StopAtMain",
         /** Boolean, Use pseudo-terminal for the process standard I/O */
-        START_USE_TERMINAL = "UseTerminal";
+        START_USE_TERMINAL = "UseTerminal",
+        /** Bit set of signals that should not be intercepted by the debugger */
+        START_SIG_DONT_STOP = "SigDontStop",
+        /** Bit set of signals that should not be delivered to the process */
+        START_SIG_DONT_PASS = "SigDontPass";
 
     /**
      * Start a new process on remote machine.
