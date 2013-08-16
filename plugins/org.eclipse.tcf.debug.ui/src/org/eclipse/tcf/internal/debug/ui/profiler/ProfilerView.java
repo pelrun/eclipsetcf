@@ -278,10 +278,12 @@ public class ProfilerView extends ViewPart {
         final Map<BigInteger,String> addr_to_func_id = new HashMap<BigInteger,String>();
         final TCFNodeExecContext node;
         final ProfileData prof_data;
+        final TCFModel model;
         final ISymbols symbols;
         final ILineNumbers line_numbers;
         final boolean aggrerate;
         final int generation;
+        TCFNodeExecContext mem_node;
         TCFDataCache<?> pending;
         boolean done;
 
@@ -297,6 +299,7 @@ public class ProfilerView extends ViewPart {
             prof_data = p;
             if (p == null) {
                 node = null;
+                model = null;
                 symbols = null;
                 line_numbers = null;
                 generation = 0;
@@ -304,6 +307,7 @@ public class ProfilerView extends ViewPart {
             }
             else {
                 node = (TCFNodeExecContext)selection;
+                model = selection.getModel();
                 symbols = node.getChannel().getRemoteService(ISymbols.class);
                 line_numbers = node.getChannel().getRemoteService(ILineNumbers.class);
                 generation = p.generation_inp;
@@ -318,7 +322,7 @@ public class ProfilerView extends ViewPart {
             String func_id = addr_to_func_id.get(addr);
             if (func_id == null) {
                 func_id = "";
-                TCFDataCache<TCFFunctionRef> func_cache = node.getFuncInfo(addr);
+                TCFDataCache<TCFFunctionRef> func_cache = mem_node.getFuncInfo(addr);
                 if (func_cache != null) {
                     if (!func_cache.validate()) {
                         pending = func_cache;
@@ -342,7 +346,7 @@ public class ProfilerView extends ViewPart {
             if (func_id == null) return null;
             func_addr = addr;
             if (func_id.length() > 0) {
-                TCFDataCache<ISymbols.Symbol> sym_cache = node.getModel().getSymbolInfoCache(func_id);
+                TCFDataCache<ISymbols.Symbol> sym_cache = model.getSymbolInfoCache(func_id);
                 if (!sym_cache.validate()) {
                     pending = sym_cache;
                     return null;
@@ -360,7 +364,7 @@ public class ProfilerView extends ViewPart {
             String func_id = getFuncID(pe.addr);
             if (func_id == null) return false;
             if (func_id.length() > 0) {
-                TCFDataCache<ISymbols.Symbol> sym_cache = node.getModel().getSymbolInfoCache(func_id);
+                TCFDataCache<ISymbols.Symbol> sym_cache = model.getSymbolInfoCache(func_id);
                 if (!sym_cache.validate()) {
                     pending = sym_cache;
                     return false;
@@ -375,7 +379,7 @@ public class ProfilerView extends ViewPart {
 
         private boolean getLineInfo(ProfileEntry pe) {
             if (line_numbers == null) return true;
-            TCFDataCache<TCFSourceRef> line_cache = node.getLineInfo(pe.addr);
+            TCFDataCache<TCFSourceRef> line_cache = mem_node.getLineInfo(pe.addr);
             if (line_cache == null) return true;
             if (!line_cache.validate()) {
                 pending = line_cache;
@@ -449,6 +453,7 @@ public class ProfilerView extends ViewPart {
         @Override
         public void run() {
             pending = null;
+            mem_node = null;
             if (done) return;
             if (last_update != this) return;
             if (prof_data != null && generation != prof_data.generation_out) {
@@ -456,26 +461,35 @@ public class ProfilerView extends ViewPart {
                     entries.clear();
                 }
                 else {
-                    for (int n = 0; n < prof_data.map.length; n++) {
-                        for (BigInteger addr : prof_data.map[n].keySet()) {
-                            BigInteger func_addr = getFuncAddress(addr);
-                            if (func_addr == null) continue;
-                            ProfileEntry pe = entries.get(func_addr);
-                            if (pe == null) {
-                                pe = new ProfileEntry(func_addr);
-                                entries.put(pe.addr, pe);
-                            }
-                            if (!pe.addr_list.contains(addr)) {
-                                if (n == 0) {
-                                    List<ProfileSample> s = prof_data.map[0].get(addr);
-                                    for (ProfileSample x : s) pe.count += x.cnt;
+                    TCFDataCache<TCFNodeExecContext> mem_cache = node.getMemoryNode();
+                    if (!mem_cache.validate()) {
+                        pending = mem_cache;
+                    }
+                    else {
+                        mem_node = mem_cache.getData();
+                    }
+                    if (mem_node != null) {
+                        for (int n = 0; n < prof_data.map.length; n++) {
+                            for (BigInteger addr : prof_data.map[n].keySet()) {
+                                BigInteger func_addr = getFuncAddress(addr);
+                                if (func_addr == null) continue;
+                                ProfileEntry pe = entries.get(func_addr);
+                                if (pe == null) {
+                                    pe = new ProfileEntry(func_addr);
+                                    entries.put(pe.addr, pe);
                                 }
-                                pe.addr_list.add(addr);
-                            }
-                            if (!pe.src_info_valid) {
-                                pe.src_info_valid = true;
-                                if (!getFuncName(pe)) pe.src_info_valid = false;
-                                if (!getLineInfo(pe)) pe.src_info_valid = false;
+                                if (!pe.addr_list.contains(addr)) {
+                                    if (n == 0) {
+                                        List<ProfileSample> s = prof_data.map[0].get(addr);
+                                        for (ProfileSample x : s) pe.count += x.cnt;
+                                    }
+                                    pe.addr_list.add(addr);
+                                }
+                                if (!pe.src_info_valid) {
+                                    pe.src_info_valid = true;
+                                    if (!getFuncName(pe)) pe.src_info_valid = false;
+                                    if (!getLineInfo(pe)) pe.src_info_valid = false;
+                                }
                             }
                         }
                     }
