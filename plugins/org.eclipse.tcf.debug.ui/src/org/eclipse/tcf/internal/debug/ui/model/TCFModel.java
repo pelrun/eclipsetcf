@@ -1731,7 +1731,12 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                             if (!state_cache.validate(this)) return;
                             if (!exec_ctx.isNotActive()) {
                                 TCFContextState state_data = state_cache.getData();
-                                if (state_data != null && state_data.is_suspended) stack_frame = f;
+                                if (state_data != null && state_data.is_suspended) {
+                                    // Validate stack trace to make sure stack_frame.getFrameNo() is valid
+                                    TCFChildrenStackTrace stack_trace = exec_ctx.getStackTrace();
+                                    if (!stack_trace.validate(this)) return;
+                                    stack_frame = f;
+                                }
                             }
                         }
                     }

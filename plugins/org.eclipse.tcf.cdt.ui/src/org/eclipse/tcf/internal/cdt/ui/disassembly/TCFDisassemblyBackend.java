@@ -430,7 +430,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                     Map<String,TCFNode> frameData = stack.getData();
                     for (TCFNode node : frameData.values()) {
                         if (node instanceof TCFNodeStackFrame) {
-                            TCFNodeStackFrame frame = (TCFNodeStackFrame) node;
+                            TCFNodeStackFrame frame = (TCFNodeStackFrame)node;
                             if (frame.getFrameNo() == targetFrame) {
                                 TCFDataCache<BigInteger> addr = frame.getAddress();
                                 if (!addr.validate(this)) return;
@@ -463,6 +463,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         if (fActiveFrame == null) return -1;
         return new TCFTask<Integer>() {
             public void run() {
+                if (!fExecContext.getStackTrace().validate(this)) return;
                 done(fActiveFrame.getFrameNo());
             }
         }.getE();

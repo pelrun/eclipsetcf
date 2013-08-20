@@ -108,12 +108,13 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     return;
                 }
                 TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
+                TCFNodeExecContext exeNode = (TCFNodeExecContext) frameNode.getParent();
+                if (!exeNode.getStackTrace().validate(this)) return;
                 if (frameNode.getFrameNo() < 1) {
                     request.setEnabled(false);
                     done();
                     return;
                 }
-                TCFNodeExecContext exeNode = (TCFNodeExecContext) frameNode.getParent();
                 TCFDataCache<IRunControl.RunControlContext> ctx_cache = exeNode.getRunContext();
                 if (!ctx_cache.validate(this)) {
                     return;
@@ -159,13 +160,14 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     return;
                 }
                 final TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
+                TCFNodeExecContext exeNode = (TCFNodeExecContext) frameNode.getParent();
+                if (!exeNode.getStackTrace().validate(this)) return;
                 int frameNo = frameNode.getFrameNo();
                 if (frameNo < 1) {
                     request.setStatus(Status.CANCEL_STATUS);
                     done();
                     return;
                 }
-                TCFNodeExecContext exeNode = (TCFNodeExecContext) frameNode.getParent();
                 TCFDataCache<IRunControl.RunControlContext> ctx_cache = exeNode.getRunContext();
                 if (!ctx_cache.validate(this)) return;
                 TCFDataCache<TCFContextState> state_cache = exeNode.getState();
@@ -176,7 +178,6 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     done();
                     return;
                 }
-                if (!exeNode.getStackTrace().validate(this)) return;
                 Map<String, TCFNode> stack = exeNode.getStackTrace().getData();
                 for (TCFNode node : stack.values()) {
                     TCFNodeStackFrame frame_to_step_out = (TCFNodeStackFrame) node;

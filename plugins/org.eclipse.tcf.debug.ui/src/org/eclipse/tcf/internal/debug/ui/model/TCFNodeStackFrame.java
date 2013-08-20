@@ -59,6 +59,9 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
             @Override
             protected boolean startDataRetrieval() {
                 assert command == null;
+                // At first, validate stack trace to make sure frame_no is valid
+                TCFChildrenStackTrace stack_trace_cache = parent.getStackTrace();
+                if (!stack_trace_cache.validate(this)) return false;
                 if (emulated) {
                     set(null, null, null);
                     return true;
@@ -70,8 +73,6 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     set(null, null, null);
                     return true;
                 }
-                TCFChildrenStackTrace stack_trace_cache = parent.getStackTrace();
-                if (!stack_trace_cache.validate(this)) return false;
                 if (frame_no < 0) {
                     set(null, null, null);
                     return true;
@@ -101,6 +102,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     set(null, address.getError(), null);
                     return true;
                 }
+                assert parent.getStackTrace().isValid();
                 if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                 TCFDataCache<TCFNodeExecContext> mem_cache = ((TCFNodeExecContext)parent).getMemoryNode();
                 if (!mem_cache.validate(this)) return false;
@@ -127,6 +129,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     set(null, address.getError(), null);
                     return true;
                 }
+                assert parent.getStackTrace().isValid();
                 if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                 TCFDataCache<TCFNodeExecContext> mem_cache = ((TCFNodeExecContext)parent).getMemoryNode();
                 if (!mem_cache.validate(this)) return false;
@@ -160,6 +163,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                         return true;
                     }
                 }
+                assert parent.getStackTrace().isValid();
                 if (frame_no == 0) {
                     TCFDataCache<BigInteger> addr_cache = parent.getAddress();
                     if (!addr_cache.validate(this)) return false;
@@ -179,6 +183,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
      */
     public int getFrameNo() {
         assert Protocol.isDispatchThread();
+        assert ((TCFNodeExecContext)parent).getStackTrace().isValid();
         return frame_no;
     }
 
@@ -328,6 +333,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     TCFNodeExecContext.MemoryRegion[] map = map_dc.getData();
                     if (map != null) {
                         BigInteger n = addr;
+                        assert ((TCFNodeExecContext)parent).getStackTrace().isValid();
                         if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                         for (TCFNodeExecContext.MemoryRegion r : map) {
                             String fnm = r.region.getFileName();
@@ -511,6 +517,9 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
         children_vars.onMemoryMapChanged();
         children_exps.onMemoryMapChanged();
         children_hover_exps.onMemoryMapChanged();
+        if (!((TCFNodeExecContext)parent).getStackTrace().isValid() || frame_no > 0) {
+            children_regs.onRegistersChanged();
+        }
         postAllChangedDelta();
     }
 

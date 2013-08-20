@@ -652,9 +652,13 @@ public class TCFAnnotationManager {
                 if (node instanceof TCFNodeStackFrame) {
                     thread = (TCFNodeExecContext)node.parent;
                     frame = (TCFNodeStackFrame)node;
+                    // Make sure frame.getFrameNo() is valid
+                    TCFChildrenStackTrace trace = thread.getStackTrace();
+                    if (!trace.validate(this)) return;
                 }
                 else if (node instanceof TCFNodeExecContext) {
                     thread = (TCFNodeExecContext)node;
+                    // Make sure frame.getTopFrame() is valid
                     TCFChildrenStackTrace trace = thread.getStackTrace();
                     if (!trace.validate(this)) return;
                     frame = trace.getTopFrame();
