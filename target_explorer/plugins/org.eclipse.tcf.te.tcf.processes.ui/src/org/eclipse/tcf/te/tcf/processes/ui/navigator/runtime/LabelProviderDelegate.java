@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
@@ -26,7 +27,7 @@ import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 /**
  * Runtime model label provider delegate implementation.
  */
-public class LabelProviderDelegate extends AbstractLabelProviderDelegate implements ILabelDecorator {
+public class LabelProviderDelegate extends AbstractLabelProviderDelegate implements ILabelProviderDelegate, ILabelDecorator {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)

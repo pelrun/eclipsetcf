@@ -20,6 +20,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
@@ -35,7 +36,7 @@ import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 /**
  * Label provider implementation.
  */
-public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDecorator {
+public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDecorator, ILabelProviderDelegate {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)
