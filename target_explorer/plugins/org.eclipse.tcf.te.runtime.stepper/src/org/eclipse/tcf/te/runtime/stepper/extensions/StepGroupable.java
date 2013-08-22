@@ -27,6 +27,7 @@ public class StepGroupable implements IStepGroupable {
 	private boolean removable = true;
 	private boolean singleton = false;
 	private boolean savePoint = false;
+	private boolean optional = false;
 	private final List<String> dependencies = new ArrayList<String>();
 
 	private IExecutableExtension extension;
@@ -207,6 +208,14 @@ public class StepGroupable implements IStepGroupable {
 	@Override
 	public boolean isSavePoint() {
 	    return savePoint;
+	}
+
+	public void setOptional(boolean optional) {
+		this.optional = optional;
+	}
+
+	public boolean isOptional() {
+	    return optional;
 	}
 
 	/* (non-Javadoc)

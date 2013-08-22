@@ -71,6 +71,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		private boolean disable;
 		private boolean singleton;
 		private boolean savePoint;
+		private boolean optional;
 		private final List<String> dependencies = new ArrayList<String>();
 		private Expression expression;
 		private Map<String,String> parameters = new HashMap<String, String>();
@@ -180,6 +181,15 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 		}
 
 		/**
+		 * If a reference is marked as optional, the step or step group will be
+		 * ignored if not known.
+		 * @return <code>true</code> if reference should be ignored when not known.
+		 */
+		public boolean isOptional() {
+			return optional;
+		}
+
+		/**
 		 * Returns the list of dependencies.
 		 * <p>
 		 * The step or step group id might be fully qualified using the form
@@ -266,6 +276,11 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 				this.savePoint = Boolean.parseBoolean(value.trim());
 			}
 
+			value = config.getAttribute("optional"); //$NON-NLS-1$
+			if (value != null && value.trim().length() > 0) {
+				this.optional = Boolean.parseBoolean(value.trim());
+			}
+
 			// Read in the list of dependencies if specified.
 			dependencies.clear();
 			IConfigurationElement[] requires = config.getChildren("requires"); //$NON-NLS-1$
@@ -346,6 +361,7 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 			buffer.append(", disable = " + isDisable()); //$NON-NLS-1$
 			buffer.append(", singleton = " + isSingleton()); //$NON-NLS-1$
 			buffer.append(", savePoint = " + isSavePoint()); //$NON-NLS-1$
+			buffer.append(", optional = " + isOptional()); //$NON-NLS-1$
 			buffer.append(", parameters = " + getParameters()); //$NON-NLS-1$
 			return buffer.toString();
 		}
@@ -645,6 +661,12 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 
 			// If the candidate is null here, that's an error as a referenced step is missing.
 			if (candidate == null) {
+				if (reference.isOptional()) {
+					CoreBundleActivator.getTraceHandler().trace(
+									"StepGroup#getSteps: SKIPPED optional not existing reference = '" + reference.getId(), //$NON-NLS-1$
+									0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
+					continue;
+				}
 				throw new CoreException(new Status(IStatus.ERROR,
 								CoreBundleActivator.getUniqueIdentifier(),
 								MessageFormat.format(Messages.StepGroup_error_missingReferencedStep,
@@ -723,6 +745,9 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 				}
 				if (reference.isSavePoint() && !groupable.isSavePoint()) {
 					groupable.setIsSavePoint(reference.isSavePoint());
+				}
+				if (reference.isOptional() && !groupable.isOptional()) {
+					groupable.setOptional(reference.isOptional());
 				}
 			}
 		}
