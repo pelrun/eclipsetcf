@@ -101,6 +101,14 @@ public interface IProcessLauncher extends IAdaptable {
 	public static String PROP_CONNECTION_NAME = "connection.name"; //$NON-NLS-1$
 
 	/**
+	 * Property denoting additional parameters for ProcessesV1.
+	 * When set, parameters are only used from this map.
+	 * <p>
+	 * The property type is {@link Map<String,Object>}.
+	 */
+	public static String PROP_PROCESSESV1_PARAMS = "processesV1.params"; //$NON-NLS-1$
+
+	/**
 	 * Launch a remote process defined by the given launch properties at the target specified by the
 	 * given peer.
 	 * <p>

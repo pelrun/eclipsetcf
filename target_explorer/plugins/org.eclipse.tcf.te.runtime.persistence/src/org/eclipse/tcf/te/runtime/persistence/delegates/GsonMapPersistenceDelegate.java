@@ -47,6 +47,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 
 	protected static final String VARIABLES = "__VariablesMap__"; //$NON-NLS-1$
 
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().enableComplexMapKeySerialization().create();
+
 	/**
 	 * Constructor.
 	 */
@@ -126,7 +128,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 				file = path.addFileExtension(getDefaultFileExtension()).toFile();
 			}
 
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8"); //$NON-NLS-1$
 			if (!isList) {
 				try {
@@ -150,7 +152,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 			}
 		}
 		else if (String.class.equals(container)) {
-			Gson gson = new GsonBuilder().create();
+//			Gson gson = new GsonBuilder().create();
 
 			if (!isList) {
 				container = gson.toJson(internalToMap(context));
@@ -216,7 +218,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 	private Object read(Object context, Object container, boolean isList) throws IOException {
 		Assert.isNotNull(container);
 
-		Gson gson = new GsonBuilder().create();
+//		Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
 		List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
 
 		if (container instanceof URI) {

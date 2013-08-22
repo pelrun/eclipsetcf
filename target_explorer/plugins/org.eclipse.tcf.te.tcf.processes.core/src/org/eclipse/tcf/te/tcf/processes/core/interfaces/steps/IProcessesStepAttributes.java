@@ -61,6 +61,11 @@ public interface IProcessesStepAttributes {
 	public static final String ATTR_OUTPUT_FILE = ATTR_PREFIX + ".process_output_file"; //$NON-NLS-1$
 
 	/**
+	 * Launch configuration attribute: The file name to redirect the output.
+	 */
+	public static final String ATTR_ADDITIONAL_PARAMETERS = ATTR_PREFIX + ".process_additional_parameters"; //$NON-NLS-1$
+
+	/**
 	 * Launch configuration attribute (internal use): The process context object.
 	 */
 	public static final String ATTR_PROCESS_CONTEXT = ATTR_PREFIX + ".process_context"; //$NON-NLS-1$

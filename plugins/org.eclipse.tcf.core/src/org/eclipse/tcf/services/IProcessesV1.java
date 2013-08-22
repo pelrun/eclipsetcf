@@ -40,6 +40,19 @@ public interface IProcessesV1 extends IProcesses {
         START_SIG_DONT_PASS = "SigDontPass";
 
     /**
+     * Client call back interface for getCapabilities().
+     */
+    interface DoneGetCapabilities {
+        /**
+         * Called when the capability retrieval is done.
+         *
+         * @param error The error description if the operation failed, <code>null</code> if succeeded.
+         * @param properties The global ModuleLoad service or context specific capabilities.
+         */
+        public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties);
+    }
+
+    /**
      * Start a new process on remote machine.
      * @param directory - initial value of working directory for the process.
      * @param file - process image file.
@@ -55,5 +68,16 @@ public interface IProcessesV1 extends IProcesses {
     IToken start(String directory, String file,
             String[] command_line, Map<String,String> environment,
             Map<String,Object> params, DoneStart done);
+
+    /**
+     * The command reports the ProcessesV1 service capabilities to clients so they can adjust
+     * to different implementations of the service. When called with a null ("") context
+     * ID the global capabilities are returned, otherwise context specific capabilities
+     * are returned.
+     *
+     * @param id The context ID or <code>null</code>.
+     * @param done The call back interface called when the operation is completed. Must not be <code>null</code>.
+     */
+    public IToken getCapabilities(String id, DoneGetCapabilities done);
 
 }

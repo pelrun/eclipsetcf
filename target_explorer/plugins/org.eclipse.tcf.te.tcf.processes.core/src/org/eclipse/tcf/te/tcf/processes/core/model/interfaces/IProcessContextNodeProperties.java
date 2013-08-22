@@ -30,4 +30,12 @@ public interface IProcessContextNodeProperties {
 	 * The command line of the context. The command line is a string array.
 	 */
 	public static final String PROPERTY_CMD_LINE = "cmdline"; //$NON-NLS-1$
+
+	/**
+	 * The capabilities the "ProcessesV1" service provides for the given process id.
+	 * <p>
+	 * The property data is a <code>Map&lt;String, Object&gt;</code>.
+	 */
+	public static final String PROPERTY_CAPABILITIES = "capabilities"; //$NON-NLS-1$
+
 }

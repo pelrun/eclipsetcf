@@ -16,8 +16,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 
@@ -60,5 +62,6 @@ public class StartDebuggerIterator extends AbstractPeerModelStepGroupIterator {
 	 */
 	@Override
 	public void internalNext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+		StepperAttributeUtil.setProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data, true);
 	}
 }

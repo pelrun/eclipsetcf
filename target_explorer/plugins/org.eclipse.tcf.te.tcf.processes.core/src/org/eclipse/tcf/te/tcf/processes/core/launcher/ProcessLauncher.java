@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
@@ -831,8 +832,13 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		if (processEnvDiff != null && !processEnvDiff.isEmpty()) {
 			processEnv.putAll(processEnvDiff);
 		}
-		// Assure that the TERM variable is set to "ansi"
-		processEnv.put("TERM", "ansi"); //$NON-NLS-1$ //$NON-NLS-2$
+
+		boolean processConsole = properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE);
+
+		if (processConsole) {
+			// Assure that the TERM variable is set to "ansi"
+			processEnv.put("TERM", "ansi"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
 
 		boolean attach = properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ATTACH);
 
@@ -841,11 +847,19 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			// Fill in the process launch parameter
             Map<String, Object> params = new HashMap<String, Object>();
 
-            params.put(IProcessesV1.START_ATTACH, Boolean.valueOf(attach));
-            params.put(IProcessesV1.START_ATTACH_CHILDREN, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_ATTACH_CHILDREN)));
-            params.put(IProcessesV1.START_STOP_AT_ENTRY, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_STOP_AT_ENTRY)));
-            params.put(IProcessesV1.START_STOP_AT_MAIN, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_STOP_AT_MAIN)));
-            params.put(IProcessesV1.START_USE_TERMINAL, Boolean.TRUE);
+            if (properties.getProperty(IProcessLauncher.PROP_PROCESSESV1_PARAMS) != null) {
+                Map<String, Object> addParams = (Map<String, Object>)properties.getProperty(IProcessLauncher.PROP_PROCESSESV1_PARAMS);
+                for (Entry<String,Object> entry : addParams.entrySet()) {
+	                params.put(entry.getKey(), entry.getValue());
+                }
+            }
+            else {
+                params.put(IProcessesV1.START_ATTACH, Boolean.valueOf(attach));
+                params.put(IProcessesV1.START_ATTACH_CHILDREN, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_ATTACH_CHILDREN)));
+                params.put(IProcessesV1.START_STOP_AT_ENTRY, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_STOP_AT_ENTRY)));
+                params.put(IProcessesV1.START_STOP_AT_MAIN, Boolean.valueOf(properties.getBooleanProperty(IProcessesV1.START_STOP_AT_MAIN)));
+                params.put(IProcessesV1.START_USE_TERMINAL, Boolean.valueOf(processConsole));
+            }
 
             ((IProcessesV1)getSvcProcesses()).start(processCWD, processPath, processArgs, processEnv, params, new IProcesses.DoneStart() {
 				@Override

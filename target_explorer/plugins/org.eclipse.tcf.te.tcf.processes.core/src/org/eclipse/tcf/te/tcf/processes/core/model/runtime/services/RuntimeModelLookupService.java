@@ -11,20 +11,30 @@ package org.eclipse.tcf.te.tcf.processes.core.model.runtime.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryState;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelLookupService;
 
 /**
  * Runtime model lookup service implementation.
  */
-public class RuntimeModelLookupService extends AbstractModelService<IRuntimeModel> implements IModelLookupService {
+public class RuntimeModelLookupService extends AbstractModelService<IRuntimeModel> implements IRuntimeModelLookupService {
 
 	/**
 	 * Constructor.
@@ -115,5 +125,74 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 		}
 
 		return nodes;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService#lkupModelNodeByCapability(java.lang.String[], org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 */
+	@Override
+	public void lkupModelNodeByCapability(final String[] capabilities, final ICallback callback) {
+		Assert.isNotNull(capabilities);
+		Assert.isTrue(capabilities.length > 0);
+		Assert.isNotNull(callback);
+
+		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)getModel().getAdapter(IAsyncRefreshableCtx.class);
+		if (refreshable != null && refreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.DONE) {
+			// The model needs a refresh
+			getModel().getService(IModelRefreshService.class).refresh(new Callback() {
+				@Override
+				protected void internalDone(Object caller, IStatus status) {
+					callback.setResult(findInContainerByCapabilitiesRecursively(getModel(), capabilities));
+					callback.done(RuntimeModelLookupService.this, Status.OK_STATUS);
+				}
+			});
+		} else {
+			callback.setResult(findInContainerByCapabilitiesRecursively(getModel(), capabilities));
+			callback.done(RuntimeModelLookupService.this, Status.OK_STATUS);
+		}
+	}
+
+	/**
+	 * Search the given container recursively and returns all nodes matching the given capabilities.
+	 *
+	 * @param container The container. Must not be <code>null</code<.
+	 * @param capabilities The capabilities to match. Must not be <code>null</code>.
+	 *
+	 * @return The list of matching nodes, or an empty list.
+	 */
+	protected IProcessContextNode findInContainerByCapabilitiesRecursively(IContainerModelNode container, String[] capabilities) {
+		Assert.isNotNull(container);
+		Assert.isNotNull(capabilities);
+
+		IProcessContextNode node = null;
+		List<IProcessContextNode> candidates = container.getChildren(IProcessContextNode.class);
+		for (IProcessContextNode candidate : candidates) {
+			Map<String, Object> caps = (Map<String, Object>)candidate.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
+			if (caps != null) {
+				boolean allFound = true;
+				for (String capability : capabilities) {
+					if (!caps.containsKey(capability) || !Boolean.parseBoolean(caps.get(capability).toString())) {
+						allFound = false;
+						break;
+					}
+				}
+
+				if (allFound) {
+					node = candidate;
+					break;
+				}
+			}
+		}
+
+		if (node == null) {
+			for (IProcessContextNode candidate : candidates) {
+				node = findInContainerByCapabilitiesRecursively(candidate, capabilities);
+				if (node != null) {
+					break;
+				}
+			}
+		}
+
+		return node;
 	}
 }

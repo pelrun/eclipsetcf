@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
@@ -63,11 +64,11 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 				int refreshCount = 0;
 				@Override
 				public void run() {
-					if (monitor.isCanceled()) {
-						callback.done(WaitForReadyStep.this, Status.CANCEL_STATUS);
+					if (ProgressHelper.isCancel(WaitForReadyStep.this, monitor, callback)) {
+						return;
 					}
 					else if (refreshCount >= getTotalWork(context, data)) {
-						callback.done(WaitForReadyStep.this, StatusHelper.getStatus(new TimeoutException(Messages.WaitForReadyStep_error_timeout)));
+						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new TimeoutException(Messages.WaitForReadyStep_error_timeout)), null);
 					}
 					else if (getActivePeerModelContext(context, data, fullQualifiedId).isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY)) {
 						// Refresh the model now (must be executed within the TCF dispatch thread)
@@ -82,16 +83,26 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 					}
 					else {
 						int state = getActivePeerModelContext(context, data, fullQualifiedId).getIntProperty(IPeerModelProperties.PROP_STATE);
-						if (state == IPeerModelProperties.STATE_CONNECTED || state == IPeerModelProperties.STATE_REACHABLE)
-							callback.done(WaitForReadyStep.this, Status.OK_STATUS);
+						if (state == IPeerModelProperties.STATE_CONNECTED || state == IPeerModelProperties.STATE_REACHABLE) {
+							Object wait = getParameters().get("wait"); //$NON-NLS-1$
+							if (wait != null) {
+								try {
+									int waitValue = Integer.parseInt(wait.toString());
+									ExecutorsUtil.waitAndExecute(waitValue, null);
+								}
+								catch (Exception e) {
+								}
+							}
+							callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+						}
 						else
-							callback.done(WaitForReadyStep.this, StatusHelper.getStatus(new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), Messages.WaitForReadyStep_error_state))));
+							callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), Messages.WaitForReadyStep_error_state))), null);
 					}
 				}
 			});
 		}
 		else {
-			callback.done(this, Status.OK_STATUS);
+			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 		}
 	}
 

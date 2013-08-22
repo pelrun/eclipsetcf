@@ -23,9 +23,11 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
+import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
@@ -56,6 +58,7 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 		final IPeerModel node = getActivePeerModelContext(context, data, fullQualifiedId);
 		Assert.isNotNull(node);
 
+		if (StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data)) {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
@@ -90,16 +93,16 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 											dbgService.attach(node, props, monitor, callback);
 										}
 										else {
-											callback.done(StartDebuggerStep.this, Status.OK_STATUS);
+											callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 										}
 									}
 								};
 								Protocol.invokeLater(runnable);
 							} else {
-								callback.done(StartDebuggerStep.this, Status.OK_STATUS);
+								callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 							}
 						} else {
-							callback.done(StartDebuggerStep.this, StatusHelper.getStatus(error));
+							callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
 						}
 					}
 				});
@@ -107,6 +110,10 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 		};
 
 		Protocol.invokeLater(runnable);
+		}
+		else {
+			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -121,7 +128,7 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 			dbgService.detach(node, props, null, callback);
 		}
 		else {
-			callback.done(this, Status.OK_STATUS);
+			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 		}
 	}
 }

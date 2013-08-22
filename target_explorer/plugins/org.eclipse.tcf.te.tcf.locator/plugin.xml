@@ -170,10 +170,17 @@
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.connectStepGroup">
          <references>
+            <reference id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"/>
+         </references>
+      </stepGroup>
+
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup">
+         <references>
             <reference id="org.eclipse.tcf.te.tcf.locator.setWaitForReadyStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startSimulatorStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup"/>
-            <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"/>
          </references>
       </stepGroup>
 

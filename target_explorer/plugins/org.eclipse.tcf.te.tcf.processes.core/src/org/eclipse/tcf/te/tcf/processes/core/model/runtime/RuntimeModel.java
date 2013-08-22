@@ -31,6 +31,7 @@ import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelLookupService;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModelChannelService;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModelLookupService;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModelRefreshService;
@@ -53,7 +54,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	// Reference to the refresh service
 	private final IModelRefreshService refreshService = new RuntimeModelRefreshService(this);
 	// Reference to the lookup service
-	private final IModelLookupService lookupService = new RuntimeModelLookupService(this);
+	private final IRuntimeModelLookupService lookupService = new RuntimeModelLookupService(this);
 	// Reference to the update service
 	private final IModelUpdateService updateService = new RuntimeModelUpdateService(this);
 	// Reference to the channel service
@@ -132,6 +133,9 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	public Object getAdapter(Class adapter) {
 		if (IModelRefreshService.class.equals(adapter)) {
 			return refreshService;
+		}
+		if (IRuntimeModelLookupService.class.equals(adapter)) {
+			return lookupService;
 		}
 		if (IModelLookupService.class.equals(adapter)) {
 			return lookupService;

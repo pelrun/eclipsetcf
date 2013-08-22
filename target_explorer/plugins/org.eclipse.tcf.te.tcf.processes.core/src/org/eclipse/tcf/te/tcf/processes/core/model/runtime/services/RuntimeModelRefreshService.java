@@ -23,6 +23,7 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
@@ -289,6 +290,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 				if (error == null) {
 					final IProcesses service = channel.getRemoteService(IProcesses.class);
 					Assert.isNotNull(service);
+					final IProcessesV1 serviceV1 = channel.getRemoteService(IProcessesV1.class);
 					final ISysMonitor sysMonService = channel.getRemoteService(ISysMonitor.class);
 					Assert.isNotNull(sysMonService);
 					final String contextId = ((IProcessContextNode)node).getStringProperty(IModelNode.PROPERTY_ID);
@@ -308,7 +310,18 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 										@Override
 										public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
 											((IProcessContextNode)node).setProcessContext(context);
-											callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+											if (serviceV1 != null) {
+												serviceV1.getCapabilities(context.getID(), new IProcessesV1.DoneGetCapabilities() {
+													@Override
+                                                    public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties) {
+														((IProcessContextNode)node).setProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES, properties);
+
+														callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+                                                    }
+												});
+											}
+											else
+												callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
 										}
 									});
 								}
@@ -354,6 +367,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 						// Get the Systems service and query the configuration id's
 						final IProcesses service = channel.getRemoteService(IProcesses.class);
 						Assert.isNotNull(service);
+						final IProcessesV1 serviceV1 = channel.getRemoteService(IProcessesV1.class);
 						final ISysMonitor sysMonService = channel.getRemoteService(ISysMonitor.class);
 						Assert.isNotNull(sysMonService);
 						sysMonService.getChildren(parentContextId, new ISysMonitor.DoneGetChildren() {
@@ -402,44 +416,93 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 																	public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
 																		// Errors are ignored
 																		node.setProcessContext(context);
+
 																		if (context != null) node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
 
-																		// Get the asynchronous refresh context adapter
-																		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
+																		if (serviceV1 != null) {
+																			serviceV1.getCapabilities(context.getID(), new IProcessesV1.DoneGetCapabilities() {
+																				@Override
+							                                                    public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties) {
+																					node.setProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES, properties);
+																					// Get the asynchronous refresh context adapter
+																					final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
 
-																		// Refresh the children of the node if the depth is still larger than 0
-																		if (depth - 1 > 0 && (refreshable == null || !refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS))) {
-																			if (refreshable != null) {
-																				// Mark the refresh as in progress
-																				refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
-																				// Create a new pending operation node and associate it with the refreshable
-																				PendingOperationModelNode pendingNode = new PendingOperationNode();
-																				pendingNode.setParent(node);
-																				refreshable.setPendingOperationNode(pendingNode);
+																					// Refresh the children of the node if the depth is still larger than 0
+																					if (depth - 1 > 0 && (refreshable == null || !refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS))) {
+																						if (refreshable != null) {
+																							// Mark the refresh as in progress
+																							refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
+																							// Create a new pending operation node and associate it with the refreshable
+																							PendingOperationModelNode pendingNode = new PendingOperationNode();
+																							pendingNode.setParent(node);
+																							refreshable.setPendingOperationNode(pendingNode);
+																						}
+
+																						// Don't send change events while refreshing
+																						final boolean changed = node.setChangeEventsEnabled(false);
+																						// Initiate the refresh
+																						List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
+																						refreshContextChildren(oldChildren, model, node, depth - 1, new Callback() {
+																							@Override
+					                                                                        protected void internalDone(Object caller, IStatus status) {
+																								// Mark the refresh as done
+																								refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
+																								// Reset the pending operation node
+																								refreshable.setPendingOperationNode(null);
+																								// Re-enable the change events if they had been enabled before
+																								if (changed) node.setChangeEventsEnabled(true);
+																								// Trigger a refresh of the view content
+																								ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
+																								EventManager.getInstance().fireEvent(event);
+																								// Finally invoke the callback
+																								innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+																							}
+																						});
+																					} else {
+																						innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+																					}
+							                                                    }
+																			});
+																		}
+																		else {
+																			// Get the asynchronous refresh context adapter
+																			final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
+
+																			// Refresh the children of the node if the depth is still larger than 0
+																			if (depth - 1 > 0 && (refreshable == null || !refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS))) {
+																				if (refreshable != null) {
+																					// Mark the refresh as in progress
+																					refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
+																					// Create a new pending operation node and associate it with the refreshable
+																					PendingOperationModelNode pendingNode = new PendingOperationNode();
+																					pendingNode.setParent(node);
+																					refreshable.setPendingOperationNode(pendingNode);
+																				}
+
+																				// Don't send change events while refreshing
+																				final boolean changed = node.setChangeEventsEnabled(false);
+																				// Initiate the refresh
+																				List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
+																				refreshContextChildren(oldChildren, model, node, depth - 1, new Callback() {
+																					@Override
+			                                                                        protected void internalDone(Object caller, IStatus status) {
+																						// Mark the refresh as done
+																						refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
+																						// Reset the pending operation node
+																						refreshable.setPendingOperationNode(null);
+																						// Re-enable the change events if they had been enabled before
+																						if (changed) node.setChangeEventsEnabled(true);
+																						// Trigger a refresh of the view content
+																						ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
+																						EventManager.getInstance().fireEvent(event);
+																						// Finally invoke the callback
+																						innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+																					}
+																				});
+																			} else {
+																				innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
 																			}
 
-																			// Don't send change events while refreshing
-																			final boolean changed = node.setChangeEventsEnabled(false);
-																			// Initiate the refresh
-																			List<IProcessContextNode> oldChildren = node.getChildren(IProcessContextNode.class);
-																			refreshContextChildren(oldChildren, model, node, depth - 1, new Callback() {
-																				@Override
-		                                                                        protected void internalDone(Object caller, IStatus status) {
-																					// Mark the refresh as done
-																					refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
-																					// Reset the pending operation node
-																					refreshable.setPendingOperationNode(null);
-																					// Re-enable the change events if they had been enabled before
-																					if (changed) node.setChangeEventsEnabled(true);
-																					// Trigger a refresh of the view content
-																					ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
-																					EventManager.getInstance().fireEvent(event);
-																					// Finally invoke the callback
-																					innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
-																				}
-																			});
-																		} else {
-																			innerCallback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
 																		}
 																	}
 																});
