@@ -23,21 +23,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.launch.core.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.launch.core.bindings.interfaces.ILaunchBinding;
-import org.eclipse.tcf.te.launch.core.bindings.interfaces.IOverwritableLaunchBinding;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ILaunchSelection;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext;
 
 /**
- * Launch configuration type binding implementation.
+ * Launch configuration type unbinding implementation.
  */
-public class LaunchConfigTypeBinding {
+public class LaunchConfigTypeUnBinding {
 	// The launch configuration type id
 	private final String typeId;
-
-	// Lists of sub bindings
-	private final List<ILaunchBinding> lmDelegateBindings = new ArrayList<ILaunchBinding>();
-	private final List<ILaunchBinding> stepGroupBindings = new ArrayList<ILaunchBinding>();
 
 	// The list of enablement expressions
 	private final List<Expression> expressions = new ArrayList<Expression>();
@@ -45,70 +39,21 @@ public class LaunchConfigTypeBinding {
 	/**
 	 * Constructor.
 	 *
-	 * @param typeId The launch configuration type id the binding applies to. Must not be
+	 * @param typeId The launch configuration type id the unbinding applies to. Must not be
 	 *            <code>null</code>.
 	 */
-	public LaunchConfigTypeBinding(String typeId) {
+	public LaunchConfigTypeUnBinding(String typeId) {
 		Assert.isNotNull(typeId);
 		this.typeId = typeId;
 	}
 
 	/**
-	 * Returns the launch configuration type id the binding applies to.
+	 * Returns the launch configuration type id the unbinding applies to.
 	 *
 	 * @return The launch configuration type id.
 	 */
 	public String getTypeId() {
 		return typeId;
-	}
-
-	/**
-	 * Returns the launch manager delegate id for the given launch mode.
-	 *
-	 * @param mode The launch mode. Must not be <code>null</code>.
-	 * @return The launch manager delegate id or <code>null</code>.
-	 */
-	public String getLaunchManagerDelegate(String mode) {
-		Assert.isNotNull(mode);
-
-		ILaunchBinding binding = getBinding(lmDelegateBindings, mode);
-		return binding != null ? binding.getId() : null;
-	}
-
-	/**
-	 * Adds the given launch manager delegate binding.
-	 *
-	 * @param binding The binding. Must not be <code>null</code>.
-	 */
-	public void addLaunchManagerDelegate(IOverwritableLaunchBinding binding) {
-		Assert.isNotNull(binding);
-		if (!lmDelegateBindings.contains(binding)) {
-			lmDelegateBindings.add(binding);
-		}
-	}
-
-	/**
-	 * Returns the step group id for the given launch mode.
-	 *
-	 * @param mode The launch mode. Must not be <code>null</code>.
-	 *
-	 * @return The step group id or <code>null</code>.
-	 */
-	public String getStepGroupId(String mode) {
-		ILaunchBinding binding = getBinding(stepGroupBindings, mode);
-		return binding != null ? binding.getId() : null;
-	}
-
-	/**
-	 * Adds the given step group binding.
-	 *
-	 * @param binding The binding. Must not be <code>null</code>.
-	 */
-	public void addStepGroup(ILaunchBinding binding) {
-		Assert.isNotNull(binding);
-		if (!stepGroupBindings.contains(binding)) {
-			stepGroupBindings.add(binding);
-		}
 	}
 
 	/**
@@ -196,59 +141,6 @@ public class LaunchConfigTypeBinding {
 		return result;
 	}
 
-	/**
-	 * Returns the list of bindings valid for the given launch mode.
-	 *
-	 * @param bindings The list of available bindings. Must not be <code>null</code>.
-	 * @param mode The launch mode. Must not be <code>null</code>.
-	 *
-	 * @return The list of valid bindings for the given launch mode or an empty list.
-	 */
-	private List<ILaunchBinding> getBindings(List<ILaunchBinding> bindings, String mode) {
-		Assert.isNotNull(bindings);
-		Assert.isNotNull(mode);
-
-		List<ILaunchBinding> candidates = new ArrayList<ILaunchBinding>();
-		for (ILaunchBinding binding : bindings) {
-			if (binding.isValidLaunchMode(mode)) {
-				candidates.add(binding);
-			}
-		}
-
-		return candidates;
-	}
-
-	/**
-	 * Returns the resolved binding in case of overwritable bindings.
-	 *
-	 * @param bindings The list of available bindings. Must not be <code>null</code>.
-	 * @param mode The launch mode. Must not be <code>null</code>.
-	 *
-	 * @return The resolved binding or <code>null</code>.
-	 */
-	private ILaunchBinding getBinding(List<ILaunchBinding> bindings, String mode) {
-		Assert.isNotNull(bindings);
-		Assert.isNotNull(mode);
-
-		ILaunchBinding binding = null;
-
-		List<ILaunchBinding> candidates = getBindings(bindings, mode);
-		for (int i = 0; i < candidates.size(); i++) {
-			if (binding == null) {
-				binding = candidates.get(i);
-			}
-			for (int j = 0; j < candidates.size(); j++) {
-				ILaunchBinding cj = candidates.get(j);
-				if (cj instanceof IOverwritableLaunchBinding
-								&& ((IOverwritableLaunchBinding) cj).overwrites(binding.getId())) {
-					binding = cj;
-				}
-			}
-		}
-
-		return binding;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -257,7 +149,7 @@ public class LaunchConfigTypeBinding {
 	public String toString() {
 		StringBuffer toString = new StringBuffer();
 
-		toString.append("LaunchConfigTypeBinding("); //$NON-NLS-1$
+		toString.append("LaunchConfigTypeUnBinding("); //$NON-NLS-1$
 		toString.append(typeId);
 		toString.append(")"); //$NON-NLS-1$
 

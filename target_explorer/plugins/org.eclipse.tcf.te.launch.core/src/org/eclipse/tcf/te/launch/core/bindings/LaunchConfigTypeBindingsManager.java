@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.tcf.te.launch.core.bindings.internal.LaunchConfigTypeBinding;
+import org.eclipse.tcf.te.launch.core.bindings.internal.LaunchConfigTypeUnBinding;
 import org.eclipse.tcf.te.launch.core.bindings.internal.OverwritableLaunchBinding;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchManagerDelegate;
 import org.eclipse.tcf.te.launch.core.lm.internal.ExtensionPointManager;
@@ -42,6 +43,8 @@ import org.eclipse.tcf.te.runtime.extensions.ExtensionPointComparator;
 public class LaunchConfigTypeBindingsManager {
 	// Map of all launch configuration type bindings by id
 	private final Map<String, LaunchConfigTypeBinding> bindings = new Hashtable<String, LaunchConfigTypeBinding>();
+	// Map of all launch configuration type unbindings by id
+	private final Map<String, LaunchConfigTypeUnBinding> unBindings = new Hashtable<String, LaunchConfigTypeUnBinding>();
 
 	/*
 	 * Thread save singleton instance creation.
@@ -94,10 +97,12 @@ public class LaunchConfigTypeBindingsManager {
 		Assert.isNotNull(selection);
 
 		LaunchConfigTypeBinding binding = bindings.get(typeId);
+		LaunchConfigTypeUnBinding unBinding = unBindings.get(typeId);
 		ILaunchConfigurationType launchConfigType = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurationType(typeId);
 		return (launchConfigType != null &&
 						(selection.getLaunchMode() == null || launchConfigType.supportsMode(selection.getLaunchMode())) &&
-						binding != null && binding.validate(selection) == EvaluationResult.TRUE);
+						binding != null && binding.validate(selection) == EvaluationResult.TRUE &&
+						(unBinding == null || unBinding.validate(selection) == EvaluationResult.FALSE));
 	}
 
 	/**
@@ -112,10 +117,12 @@ public class LaunchConfigTypeBindingsManager {
 		Assert.isNotNull(context);
 
 		LaunchConfigTypeBinding binding = bindings.get(typeId);
+		LaunchConfigTypeUnBinding unBinding = unBindings.get(typeId);
 		ILaunchConfigurationType launchConfigType = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurationType(typeId);
 		return (launchConfigType != null &&
 						(mode == null || launchConfigType.supportsMode(mode)) &&
-						binding != null && binding.validate(mode, context) != EvaluationResult.FALSE);
+						binding != null && binding.validate(mode, context) != EvaluationResult.FALSE &&
+						(unBinding == null || unBinding.validate(mode, context) == EvaluationResult.FALSE));
 	}
 
 	/**
@@ -173,7 +180,8 @@ public class LaunchConfigTypeBindingsManager {
 			for (IExtension binding : bindings) {
 				IConfigurationElement[] elements = binding.getConfigurationElements();
 				for (IConfigurationElement element : elements) {
-					loadBinding(element);
+					if (!loadBinding(element))
+					loadUnBinding(element);
 				}
 			}
 		}
@@ -184,11 +192,11 @@ public class LaunchConfigTypeBindingsManager {
 	 *
 	 * @param element The configuration element. Must not be <code>null</code>.
 	 */
-	private void loadBinding(IConfigurationElement element) {
+	private boolean loadBinding(IConfigurationElement element) {
 		Assert.isNotNull(element);
 
 		if (!element.getName().equals("launchConfigTypeBinding")) { //$NON-NLS-1$
-			return;
+			return false;
 		}
 
 		String launchConfigTypeId = element.getAttribute("launchConfigTypeId"); //$NON-NLS-1$
@@ -204,15 +212,6 @@ public class LaunchConfigTypeBindingsManager {
 			String modes = lmDelegateBinding.getAttribute("modes"); //$NON-NLS-1$
 
 			binding.addLaunchManagerDelegate(new OverwritableLaunchBinding(id, overwrites, modes));
-		}
-
-		IConfigurationElement[] stepperBindings = element.getChildren("stepper"); //$NON-NLS-1$
-		for (IConfigurationElement stepperBinding : stepperBindings) {
-			String id = stepperBinding.getAttribute("id"); //$NON-NLS-1$
-			String overwrites = stepperBinding.getAttribute("overwrites"); //$NON-NLS-1$
-			String modes = stepperBinding.getAttribute("modes"); //$NON-NLS-1$
-
-			binding.addStepper(new OverwritableLaunchBinding(id, overwrites, modes));
 		}
 
 		IConfigurationElement[] stepGroupBindings = element.getChildren("stepGroup"); //$NON-NLS-1$
@@ -239,6 +238,45 @@ public class LaunchConfigTypeBindingsManager {
 				binding.addEnablement(expression);
 			}
 		}
+
+		return true;
 	}
 
+
+	/**
+	 * Load a single launch configuration type unbinding.
+	 *
+	 * @param element The configuration element. Must not be <code>null</code>.
+	 */
+	private boolean loadUnBinding(IConfigurationElement element) {
+		Assert.isNotNull(element);
+
+		if (!element.getName().equals("launchConfigTypeUnBinding")) { //$NON-NLS-1$
+			return false;
+		}
+
+		String launchConfigTypeId = element.getAttribute("launchConfigTypeId"); //$NON-NLS-1$
+		if (!unBindings.containsKey(launchConfigTypeId)) {
+			unBindings.put(launchConfigTypeId, new LaunchConfigTypeUnBinding(launchConfigTypeId));
+		}
+		LaunchConfigTypeUnBinding unBinding = unBindings.get(launchConfigTypeId);
+
+		IConfigurationElement[] enablements = element.getChildren("enablement"); //$NON-NLS-1$
+		for (IConfigurationElement enablement : enablements) {
+			Expression expression = null;
+			try {
+				expression = ExpressionConverter.getDefault().perform(enablement);
+			} catch (CoreException e) {
+				if (Platform.inDebugMode()) {
+					e.printStackTrace();
+				}
+			}
+
+			if (expression != null) {
+				unBinding.addEnablement(expression);
+			}
+		}
+
+		return true;
+	}
 }
