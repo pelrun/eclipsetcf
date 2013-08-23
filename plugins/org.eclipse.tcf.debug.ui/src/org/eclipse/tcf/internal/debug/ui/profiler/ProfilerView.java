@@ -542,20 +542,26 @@ public class ProfilerView extends ViewPart {
                     action_stop.setEnabled(enable_stop);
                     profile_node = node;
                     Object viewer_input = prof_data != null ? prof_data.entries : null;
-                    ISelection s = viewer_main.getSelection();
-                    ProfilerView.this.sample_count = sample_count;
-                    viewer_main.setInput(viewer_input);
-                    if (s instanceof IStructuredSelection && entries.size() > 0) {
-                        IStructuredSelection ss = (IStructuredSelection)s;
+                    if (viewer_main.getInput() != viewer_input) {
+                        ISelection s = viewer_main.getSelection();
+                        ProfilerView.this.sample_count = sample_count;
+                        viewer_main.setInput(viewer_input);
                         List<ProfileEntry> l = new ArrayList<ProfileEntry>();
-                        for (Object obj : ss.toArray()) {
-                            if (obj instanceof ProfileEntry) {
-                                ProfileEntry pe = (ProfileEntry)obj;
-                                pe = entries.get(pe.addr);
-                                if (pe != null) l.add(pe);
+                        if (s instanceof IStructuredSelection && entries.size() > 0) {
+                            IStructuredSelection ss = (IStructuredSelection)s;
+                            for (Object obj : ss.toArray()) {
+                                if (obj instanceof ProfileEntry) {
+                                    ProfileEntry pe = (ProfileEntry)obj;
+                                    pe = entries.get(pe.addr);
+                                    if (pe != null) l.add(pe);
+                                }
                             }
                         }
                         setSelection(l, false);
+                    }
+                    else {
+                        // Sorting might be changed, need to refresh
+                        viewer_main.refresh();
                     }
                     if (!enable_start) {
                         status.setText("Selected context does not support profiling");

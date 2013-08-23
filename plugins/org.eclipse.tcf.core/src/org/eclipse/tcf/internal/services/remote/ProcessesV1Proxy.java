@@ -49,7 +49,7 @@ public class ProcessesV1Proxy extends ProcessesProxy implements IProcessesV1 {
             }
         }.token;
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.tcf.services.IProcessesV1#getCapabilities(java.lang.String, org.eclipse.tcf.services.IProcessesV1.DoneGetCapabilities)
      */
