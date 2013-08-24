@@ -29,15 +29,15 @@
 	
 	<properties>
 		<!-- Define version id's to be used in the plugins section -->
-		<tycho-version>0.18.0</tycho-version>
-		<tycho-extras-version>0.18.0</tycho-extras-version>
+		<tycho-version>0.18.1</tycho-version>
+		<tycho-extras-version>0.18.1</tycho-extras-version>
 		<maven-resources-version>2.6</maven-resources-version>
 		<maven-antrun-version>1.7</maven-antrun-version>
 		<gmaven-version>1.4</gmaven-version>
 		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
 		<jacoco-version>0.6.2.201302030002</jacoco-version>
-		<eclipse-jarsigner-version>1.0.2</eclipse-jarsigner-version>
+		<eclipse-jarsigner-version>1.0.4</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
