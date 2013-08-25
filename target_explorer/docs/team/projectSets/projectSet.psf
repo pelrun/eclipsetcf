@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.eclipse.egit.core.GitProvider">
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,plugins/org.eclipse.tcf"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,features/org.eclipse.tcf.cdt.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,features/org.eclipse.tcf.cdt.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,plugins/org.eclipse.tcf.cdt.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,plugins/org.eclipse.tcf.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,features/org.eclipse.tcf.core.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,features/org.eclipse.tcf.core.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,plugins/org.eclipse.tcf.debug"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,tests/plugins/org.eclipse.tcf.debug.test"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,plugins/org.eclipse.tcf.debug.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,features/org.eclipse.tcf.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,features/org.eclipse.tcf.repo"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,features/org.eclipse.tcf.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.core.cdt"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.launch.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.launch.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.runtime"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.runtime.concurrent"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.runtime.model"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.runtime.persistence"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.runtime.services"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.runtime.statushandler"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.runtime.stepper"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.tcf.core.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.core.model"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.core.scripting"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.tcf.core.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.tcf.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.filesystem.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.filesystem.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.launch.cdt"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.launch.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.launch.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.locator"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.log.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.processes.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.processes.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.tcf.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.services.contexts"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.terminals.core"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.terminals.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.ui.console"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tcf.ui.views"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.terminals.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.tests"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.controls"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.forms"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.swt"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.terminals"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.local"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.process"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.serial"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.ssh"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.telnet"/>
+<project reference="1.0,git://@git.eclipse.org:29418/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.views"/>
+</provider>
+<workingSets editPageId="org.eclipse.jdt.ui.JavaWorkingSetPage" id="1346072716798_29" label="Target Communication Framework Core" name="Target Communication Framework Core">
+<item elementID="=org.eclipse.tcf.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.debug" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.cdt.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.debug.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.debug.test" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+</workingSets>
+<workingSets editPageId="org.eclipse.jdt.ui.JavaWorkingSetPage" id="1346072725224_30" label="Target Communication Framework Core (Features)" name="Target Communication Framework Core (Features)">
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.cdt.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.cdt.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.repo" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.core.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.core.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.feature" type="4"/>
+</workingSets>
+<workingSets editPageId="org.eclipse.jdt.ui.JavaWorkingSetPage" id="1346072688199_26" label="Target Explorer" name="Target Explorer">
+<item elementID="=org.eclipse.tcf.te.tcf.processes.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.terminals.ssh" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tests" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.services.contexts" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.ui.console" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.controls" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.core.cdt" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.runtime.persistence" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.runtime" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.runtime.model" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.terminals.telnet" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.core.model" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.views" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.terminals.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.launch.cdt" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.filesystem.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.terminals.serial" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.forms" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.core.scripting" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.swt" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.launch.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.launch.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.locator" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.log.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.runtime.services" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.ui.views" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.terminals.process" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.runtime.stepper" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.terminals.local" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.launch.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.runtime.statushandler" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.ui.terminals" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.terminals.core" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.processes.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.runtime.concurrent" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.launch.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=org.eclipse.tcf.te.tcf.filesystem.ui" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+</workingSets>
+<workingSets editPageId="org.eclipse.jdt.ui.JavaWorkingSetPage" id="1346072694579_27" label="Target Explorer (Features)" name="Target Explorer (Features)">
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.tcf.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.terminals.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.tcf.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.tcf.launch.cdt.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.terminals.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.tcf.core.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.tcf.core.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature" type="4"/>
+</workingSets>
+</psf>

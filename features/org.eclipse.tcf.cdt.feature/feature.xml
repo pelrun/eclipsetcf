@@ -12,7 +12,7 @@
 <feature
       id="org.eclipse.tcf.cdt.feature"
       label="%featureName"
-      version="1.1.1.qualifier"
+      version="1.2.0.qualifier"
       provider-name="%providerName">
 
    <description url="http://wiki.eclipse.org/TCF">
@@ -36,7 +36,6 @@
          version="0.0.0"/>
 
    <requires>
-      <import feature="org.eclipse.cdt" version="8.1.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.runtime" version="3.8.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.resources" version="3.8.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.text" version="3.5.200" match="greaterOrEqual"/>
@@ -45,6 +44,16 @@
       <import plugin="org.eclipse.debug.ui" version="3.8.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jface.text" version="3.8.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.expressions" version="3.4.400" match="greaterOrEqual"/>
+      <import feature="org.eclipse.cdt" version="8.1.1" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.core" version="5.4.1" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.ui" version="5.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.debug.core" version="7.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.debug.ui" version="7.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.core" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.debug" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.debug.ui" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.launch" version="7.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.dsf.ui" version="2.3.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

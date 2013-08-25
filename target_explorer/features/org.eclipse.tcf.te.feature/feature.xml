@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.tcf.te.feature"
       label="%featureName"
-      version="1.1.1.qualifier"
+      version="1.2.0.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.tcf.te">
 
@@ -22,26 +22,58 @@
       <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
+   <includes
+         id="org.eclipse.tm.terminal"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.tm.terminal.serial"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.tm.terminal.ssh"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.tm.terminal.telnet"
+         version="0.0.0"/>
+
    <requires>
       <import plugin="org.eclipse.core.runtime" version="3.8.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.expressions" version="3.4.400" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.stepper" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.services" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.persistence" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.model" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.core" version="5.4.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.debug.core" version="7.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.debug.core" version="3.7.100" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.core.cdt" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.concurrent" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.statushandler" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.debug.ui" version="3.8.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui" version="3.8.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.forms" version="3.5.200" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.ide" version="3.8.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.navigator" version="3.5.200" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.views.properties.tabbed" version="3.5.300" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.launch.core" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.controls" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.forms" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.swt" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.views" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.core" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.variables" version="3.2.600" match="greaterOrEqual"/>
       <import plugin="org.eclipse.help" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.tcf.locator" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tm.terminal" version="3.2.100" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.terminals" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.equinox.security" version="1.1.100" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tcf.feature" version="1.1.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tm.terminal" version="3.2.100" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tm.terminal.serial" version="2.1.300" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tm.terminal.ssh" version="2.1.300" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tm.terminal.telnet" version="2.1.300" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tm.terminal.ssh" version="2.1.300" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tm.terminal.telnet" version="2.1.300" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tm.terminal.serial" version="2.1.200" match="greaterOrEqual"/>
    </requires>
 
    <plugin

@@ -2,7 +2,7 @@ How to setup a Target Explorer development environment
 ======================================================
 
 1. Download and extract the Eclipse SDK environment
-	- Download the Eclipse Classic 4.2 SDK package from http://www.eclipse.org/downloads
+	- Download the Eclipse Classic 4.x SDK package from http://www.eclipse.org/downloads
 	- Extract the downloaded archive
 
 	Note: To build the Target Explorer plug-in's, you need to have a Java SE 6 JDK installed.
@@ -11,7 +11,7 @@ How to setup a Target Explorer development environment
 2. Add the EGit team provider and the C/C++ tooling
 	- Launch Eclipse
 	- Open the "Install" dialog via "Help > Install New Software ..."
-	- Select the Eclipse 4.2.x release site (http://download.eclipse.org/releases/juno).
+	- Select the Eclipse 4.x release site (http://download.eclipse.org/releases/juno).
 	  If not in the list, add it.
 	- Choose the EGit team provider
 			* Collaboration > Eclipse EGit and
@@ -24,7 +24,7 @@ How to setup a Target Explorer development environment
 	- Import from org.eclipse.tm.te.docs/team/CodeFormatterSettings.xml.
 	
 4. Import the team project set
-	- Import the project set from org.eclipse.tm.te.docs/team/projectSets/tm-te-all.psf
+	- Import the project set from org.eclipse.tm.te.docs/team/projectSets/projectSet.psf
 
 5. Git setup for correct userid as per
         - http://wiki.eclipse.org/Platform-releng/Git_Workflows#Configure_the_workspace

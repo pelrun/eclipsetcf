@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.tcf.debug.ui;singleton:=true
-Bundle-Version: 1.1.1.qualifier
+Bundle-Version: 1.2.0.qualifier
 Bundle-Activator: org.eclipse.tcf.internal.debug.ui.Activator
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
@@ -22,12 +22,12 @@ Require-Bundle: com.jcraft.jsch;bundle-version="0.1.46",
  org.eclipse.ui.ide;bundle-version="3.8.1",
  org.eclipse.ui.views;bundle-version="3.6.100",
  org.eclipse.ui.workbench.texteditor;bundle-version="3.8.0",
- org.eclipse.tcf.debug;bundle-version="1.1.0"
-Import-Package: org.eclipse.tcf.core;version="1.1.0",
- org.eclipse.tcf.protocol;version="1.1.0",
- org.eclipse.tcf.services;version="1.1.0",
- org.eclipse.tcf.ssl;version="1.1.0",
- org.eclipse.tcf.util;version="1.1.0"
+ org.eclipse.tcf.debug;bundle-version="1.2.0"
+Import-Package: org.eclipse.tcf.core;version="1.2.0",
+ org.eclipse.tcf.protocol;version="1.2.0",
+ org.eclipse.tcf.services;version="1.2.0",
+ org.eclipse.tcf.ssl;version="1.2.0",
+ org.eclipse.tcf.util;version="1.2.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Eclipse-LazyStart: true

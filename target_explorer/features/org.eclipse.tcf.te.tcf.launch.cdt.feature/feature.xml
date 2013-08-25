@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.tcf.te.tcf.launch.cdt.feature"
       label="%featureName"
-      version="1.1.1.qualifier"
+      version="1.2.0.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.tcf.te.tcf.launch.cdt">
 
@@ -41,6 +41,16 @@
       <import plugin="org.eclipse.cdt.dsf.gdb.ui" version="2.3.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.dsf" version="2.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.variables" version="3.2.600" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.core" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.tcf.locator" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.tcf.filesystem.ui" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.tcf.filesystem.core" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.concurrent" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.core" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.services" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.tcf.processes.core" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.tcf.core" version="1.2.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
