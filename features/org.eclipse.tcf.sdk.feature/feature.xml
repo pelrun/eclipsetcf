@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2010, 2012 Wind River Systems, Inc. and others.
+    Copyright (c) 2010, 2013 Wind River Systems, Inc. and others.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
@@ -12,7 +12,7 @@
 <feature
       id="org.eclipse.tcf.sdk.feature"
       label="%featureName"
-      version="1.1.0.qualifier"
+      version="1.1.1.qualifier"
       provider-name="%featureProvider">
 
    <description url="http://wiki.eclipse.org/TCF">
@@ -28,13 +28,16 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/releases/juno"/>
+      <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
-   <requires>
-      <import feature="org.eclipse.tcf.feature" version="1.1.0.qualifier"/>
-      <import feature="org.eclipse.tcf.core.sdk.feature" version="1.1.0.qualifier"/>
-   </requires>
+   <includes
+         id="org.eclipse.tcf.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.tcf.core.sdk.feature"
+         version="0.0.0"/>
 
    <plugin
          id="org.eclipse.tcf.debug.source"

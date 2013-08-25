@@ -12,7 +12,7 @@
 <feature
       id="org.eclipse.tcf.core.feature"
       label="%featureName"
-      version="1.1.0.qualifier"
+      version="1.1.1.qualifier"
       provider-name="%providerName">
 
    <description url="http://wiki.eclipse.org/TCF">
@@ -28,7 +28,7 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/releases/juno"/>
+      <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
    <requires>

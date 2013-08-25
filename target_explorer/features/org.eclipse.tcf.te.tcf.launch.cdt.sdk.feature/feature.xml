@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature"
       label="%featureName"
-      version="1.1.0.qualifier"
+      version="1.1.1.qualifier"
       provider-name="%providerName">
 
    <description>
@@ -18,13 +18,16 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/releases/juno"/>
+      <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
-   <requires>
-      <import feature="org.eclipse.tcf.te.tcf.launch.cdt.feature" version="1.1.0.qualifier"/>
-      <import feature="org.eclipse.tcf.te.tcf.core.sdk.feature" version="1.1.0" match="greaterOrEqual"/>
-   </requires>
+   <includes
+         id="org.eclipse.tcf.te.tcf.launch.cdt.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.tcf.te.tcf.core.sdk.feature"
+         version="0.0.0"/>
 
    <plugin
          id="org.eclipse.tcf.te.tcf.launch.cdt.source"
