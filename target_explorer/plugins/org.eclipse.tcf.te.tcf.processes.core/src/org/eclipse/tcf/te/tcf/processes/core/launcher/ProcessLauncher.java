@@ -114,6 +114,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		this.streamsProxy = streamsProxy;
 	}
 
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher#dispose()
 	 */
@@ -392,7 +393,6 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			}
 		});
 
-
 		// Check if the channel is in connected state
 		if (channel.getState() != IChannel.STATE_OPEN) {
 			IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
@@ -437,7 +437,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			return;
 		}
 
-		// Execute the launch now
+		// Execute the launch
 		executeLaunch();
 	}
 

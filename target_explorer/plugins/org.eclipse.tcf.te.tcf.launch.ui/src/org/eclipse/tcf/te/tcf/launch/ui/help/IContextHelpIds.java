@@ -27,4 +27,9 @@ public interface IContextHelpIds {
 	 * Remote Linux Application launch tab group context help id.
 	 */
 	public final static String REMOTE_LINUX_APPLICATION = ILaunchTypes.REMOTE_APPLICATION + ".tabGroup"; //$NON-NLS-1$
+
+	/**
+	 * Path map editor page: Apply path map failed.
+	 */
+	public final static String MESSAGE_APPLY_PATHMAP_FAILED = PREFIX + ".status.messageApplyPathMapFailed"; //$NON-NLS-1$
 }

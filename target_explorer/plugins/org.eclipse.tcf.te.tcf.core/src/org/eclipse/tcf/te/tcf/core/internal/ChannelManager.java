@@ -26,10 +26,15 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IPathMap;
+import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
@@ -68,6 +73,43 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			}
 		}
 
+		DoneOpenChannel innerDone = null;
+		boolean noPathMap = flags != null && flags.containsKey(IChannelManager.FLAG_NO_PATH_MAP) ? flags.get(IChannelManager.FLAG_NO_PATH_MAP).booleanValue() : false;
+		if (noPathMap) {
+			innerDone = done;
+		} else {
+			innerDone = new DoneOpenChannel() {
+				@Override
+				public void doneOpenChannel(final Throwable error, final IChannel channel) {
+					// If open channel failed, pass on to the original done
+					if (error != null || channel == null || channel.getState() != IChannel.STATE_OPEN) {
+						done.doneOpenChannel(error, channel);
+					} else {
+						// Take care of the path map
+						final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
+						final IPathMap svc = channel.getRemoteService(IPathMap.class);
+						if (service != null && svc != null) {
+							// Get the configured path maps
+							final PathMapRule[] map = service.getPathMap(peer);
+							if (map != null && map.length > 0) {
+								svc.set(map, new IPathMap.DoneSet() {
+									@Override
+									public void doneSet(IToken token, Exception e) {
+										done.doneOpenChannel(error, channel);
+									}
+								});
+							} else {
+								done.doneOpenChannel(error, channel);
+							}
+						} else {
+							done.doneOpenChannel(error, channel);
+						}
+					}
+				}
+			};
+		}
+		final DoneOpenChannel finInnerDone = innerDone;
+
 		Runnable runnable = new Runnable() {
 			@Override
             public void run() {
@@ -82,16 +124,16 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							// Do we have any value add in the chain?
 							if (valueAdds != null && valueAdds.length > 0) {
 								// There are value-add's -> chain them now
-								internalChainValueAdds(valueAdds, peer, flags, done);
+								internalChainValueAdds(valueAdds, peer, flags, finInnerDone);
 							} else {
 								// No value-add's -> open a channel to the target peer directly
-								internalOpenChannel(peer, flags, done);
+								internalOpenChannel(peer, flags, finInnerDone);
 							}
 						} else {
 							// Shutdown the value-add's launched
 							internalShutdownValueAdds(peer, valueAdds);
 							// Fail the channel opening
-							done.doneOpenChannel(error, null);
+							finInnerDone.doneOpenChannel(error, null);
 						}
 					}
 				});
@@ -846,8 +888,9 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		// Extract the flags of interest form the given flags map
 		boolean forceNew = flags != null && flags.containsKey(IChannelManager.FLAG_FORCE_NEW) ? flags.get(IChannelManager.FLAG_FORCE_NEW).booleanValue() : false;
 		boolean noValueAdd = flags != null && flags.containsKey(IChannelManager.FLAG_NO_VALUE_ADD) ? flags.get(IChannelManager.FLAG_NO_VALUE_ADD).booleanValue() : false;
-		// If noValueAdd == true -> forceNew has to be true as well
-		if (noValueAdd) forceNew = true;
+		boolean noPathMap = flags != null && flags.containsKey(IChannelManager.FLAG_NO_PATH_MAP) ? flags.get(IChannelManager.FLAG_NO_PATH_MAP).booleanValue() : false;
+		// If noValueAdd == true or noPathMap == true -> forceNew has to be true as well
+		if (noValueAdd || noPathMap) forceNew = true;
 
 		// Check if there is already a channel opened to this peer
 		IChannel channel = !forceNew ? channels.get(id) : null;

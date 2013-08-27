@@ -18,10 +18,13 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchListener;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
  * Adapter factory implementation.
@@ -106,6 +109,11 @@ public class AdapterFactory implements IAdapterFactory {
 					return launchConfig;
 				}
 			}
+		}
+		else if (adaptableObject instanceof IPeer) {
+			ILocatorModelLookupService service = Model.getModel().getService(ILocatorModelLookupService.class);
+			IPeerModel peerModel = service != null ? service.lkupPeerModelById(((IPeer)adaptableObject).getID()) : null;
+			if (peerModel != null) return getAdapter(peerModel, adapterType);
 		}
 		return null;
 	}

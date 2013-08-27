@@ -32,7 +32,7 @@ public interface IChannelManager extends IAdaptable {
 	public static final String FLAG_FORCE_NEW = "forceNew"; //$NON-NLS-1$
 
 	/**
-	 * If set to <code>true</code>, a new and not reference counted channel is is opened,
+	 * If set to <code>true</code>, a new and not reference counted channel is opened,
 	 * and no value add is launched and associated with the channel. This option should
 	 * be used with extreme caution.
 	 * <p>
@@ -43,6 +43,18 @@ public interface IChannelManager extends IAdaptable {
 	 * <code>false</code>.
 	 */
 	public static final String FLAG_NO_VALUE_ADD = "noValueAdd"; //$NON-NLS-1$
+
+	/**
+	 * If set to <code>true</code>, a new and not reference counted channel is opened,
+	 * and the configured path map is not auto applied to the opened channel.
+	 * <p>
+	 * The returned channel must be closed by the caller himself. The channel manager
+	 * is not keeping track of non reference counted channels.
+	 * <p>
+	 * If not present in the flags map passed in to open channel, the default value is
+	 * <code>false</code>.
+	 */
+	public static final String FLAG_NO_PATH_MAP = "noPathMap"; //$NON-NLS-1$
 
 	/**
 	 * Client call back interface for openChannel(...).

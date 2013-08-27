@@ -35,4 +35,7 @@ public class Messages extends NLS {
 	public static String FileTransferItemValidator_notExistingFileOrDirectory;
 	public static String FileTransferItemValidator_invalidFile;
 	public static String FileTransferItemValidator_invalidFileOrDirectory;
+
+	public static String SetPathMapStep_error_missingChannel;
+	public static String SetPathMapStep_error_missingLaunchConfig;
 }

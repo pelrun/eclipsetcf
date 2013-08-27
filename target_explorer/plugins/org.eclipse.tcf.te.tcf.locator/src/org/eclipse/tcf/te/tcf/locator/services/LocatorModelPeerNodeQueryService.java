@@ -211,7 +211,9 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		}
 
 		// Opens a channel with the full value-add chain
-		Tcf.getChannelManager().openChannel(node.getPeer(), null, new IChannelManager.DoneOpenChannel() {
+		Map<String, Boolean> flags = new HashMap<String, Boolean>();
+		flags.put(IChannelManager.FLAG_NO_PATH_MAP, Boolean.TRUE);
+		Tcf.getChannelManager().openChannel(node.getPeer(), flags, new IChannelManager.DoneOpenChannel() {
 
 			@Override
 			public void doneOpenChannel(Throwable error, IChannel channel) {

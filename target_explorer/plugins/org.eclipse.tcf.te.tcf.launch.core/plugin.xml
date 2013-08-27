@@ -15,6 +15,12 @@
          <adapter type="org.eclipse.debug.core.ILaunchConfiguration"/>
          <adapter type="org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"/>
       </factory>
+      <factory
+            adaptableType="org.eclipse.tcf.protocol.IPeer"
+            class="org.eclipse.tcf.te.tcf.launch.core.internal.adapters.AdapterFactory">
+         <adapter type="org.eclipse.debug.core.ILaunchConfiguration"/>
+         <adapter type="org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"/>
+      </factory>
    </extension>
 
 <!-- Service contributions -->
@@ -28,6 +34,11 @@
             id="org.eclipse.tcf.te.tcf.launch.services.persistence.export"
             class="org.eclipse.tcf.te.tcf.launch.core.internal.services.ExportPersistenceService">
          <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService"/>
+      </service>
+      <service
+            id="org.eclipse.tcf.te.tcf.launch.services.pathmap"
+            class="org.eclipse.tcf.te.tcf.launch.core.internal.services.PathMapService">
+         <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService"/>
       </service>
    </extension>
    
