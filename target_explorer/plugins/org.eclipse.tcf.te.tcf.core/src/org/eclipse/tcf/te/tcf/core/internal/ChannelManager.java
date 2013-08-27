@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.core.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,12 +91,32 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 						final IPathMap svc = channel.getRemoteService(IPathMap.class);
 						if (service != null && svc != null) {
 							// Get the configured path maps
-							final PathMapRule[] map = service.getPathMap(peer);
-							if (map != null && map.length > 0) {
-								svc.set(map, new IPathMap.DoneSet() {
-									@Override
-									public void doneSet(IToken token, Exception e) {
-										done.doneOpenChannel(error, channel);
+							final PathMapRule[] configuredMap = service.getPathMap(peer);
+							if (configuredMap != null && configuredMap.length > 0) {
+								// Get the old path maps first. Keep path map rules not coming from us
+								svc.get(new IPathMap.DoneGet() {
+                                    @Override
+									public void doneGet(IToken token, Exception e, PathMapRule[] map) {
+										// Merge the maps to a new list
+										List<PathMapRule> rules = new ArrayList<PathMapRule>();
+
+										if (map != null && map.length > 0) {
+											for (PathMapRule rule : map) {
+												if (rule.getID() == null || !rule.getID().startsWith(service.getClientID())) {
+													rules.add(rule);
+												}
+											}
+										}
+
+										rules.addAll(Arrays.asList(configuredMap));
+										if (!rules.isEmpty()) {
+											svc.set(rules.toArray(new PathMapRule[rules.size()]), new IPathMap.DoneSet() {
+												@Override
+												public void doneSet(IToken token, Exception e) {
+													done.doneOpenChannel(error, channel);
+												}
+											});
+										}
 									}
 								});
 							} else {

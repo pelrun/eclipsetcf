@@ -15,7 +15,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
+import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
@@ -28,7 +28,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#getPathMap(java.lang.Object)
 	 */
-	@Override
+    @Override
 	public PathMapRule[] getPathMap(Object context) {
 		Assert.isNotNull(context);
 
@@ -42,9 +42,14 @@ public class PathMapService extends AbstractService implements IPathMapService {
 
 		if (config != null) {
 			try {
-				String path_map_cfg = config.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
-				ArrayList<org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule> map = TCFLaunchDelegate.parsePathMapAttribute(path_map_cfg);
-				if (map != null && !map.isEmpty()) {
+				String path_map_cfg = config.getAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
+				ArrayList<org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule> map = org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parsePathMapAttribute(path_map_cfg);
+				path_map_cfg = config.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, ""); //$NON-NLS-1$
+		        map.addAll(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parseSourceLocatorMemento(path_map_cfg));
+				if (!map.isEmpty()) {
+			        int cnt = 0;
+			        String id = getClientID();
+			        for (PathMapRule r : map) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++); //$NON-NLS-1$
 					rules = map.toArray(new PathMapRule[map.size()]);
 				}
 			} catch (CoreException e) { /* ignored on purpose */ }
@@ -53,4 +58,12 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		return rules;
 	}
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#getClientID()
+     */
+    @SuppressWarnings("restriction")
+    @Override
+    public String getClientID() {
+        return org.eclipse.tcf.internal.debug.Activator.getClientID();
+    }
 }

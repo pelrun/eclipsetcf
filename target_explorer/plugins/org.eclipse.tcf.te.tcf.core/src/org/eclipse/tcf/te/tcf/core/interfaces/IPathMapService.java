@@ -26,4 +26,12 @@ public interface IPathMapService extends IService {
 	 * @return The configured path map or <code>null</code>.
 	 */
 	public IPathMap.PathMapRule[] getPathMap(Object context);
+
+	/**
+	 * Returns the current client ID used to identify path map rules handled
+	 * by the current Eclipse instance.
+	 *
+	 * @return The current client ID.
+	 */
+	public String getClientID();
 }
