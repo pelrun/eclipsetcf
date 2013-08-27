@@ -56,7 +56,7 @@
       <import plugin="org.eclipse.tcf.te.ui.terminals" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tm.terminal.ssh" version="2.1.300" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tm.terminal.telnet" version="2.1.300" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tm.terminal.serial" version="2.1.200" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tm.terminal.serial" version="2.1.300" match="greaterOrEqual"/>
    </requires>
 
    <plugin
