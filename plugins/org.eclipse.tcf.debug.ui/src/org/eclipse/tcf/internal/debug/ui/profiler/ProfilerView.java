@@ -537,6 +537,7 @@ public class ProfilerView extends ViewPart {
             parent.getDisplay().asyncExec(new Runnable() {
                 @Override
                 public void run() {
+                    if (last_update != Update.this) return;
                     if (parent.isDisposed()) return;
                     action_start.setEnabled(enable_start);
                     action_stop.setEnabled(enable_stop);
@@ -1127,7 +1128,7 @@ public class ProfilerView extends ViewPart {
         if (data == null) return;
         int pos = 0;
         byte[] buf = new byte[size + 1];
-        BigInteger[] trace = new BigInteger[16];
+        BigInteger[] trace = new BigInteger[p.map.length];
         for (;;) {
             int c = -1;
             int l = -1;
