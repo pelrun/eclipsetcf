@@ -226,7 +226,7 @@ public class TCFNumberFormat {
             nan = exponent == 0x1f;
             arr[0] &= 0x03;
             if (exponent == 0) exponent = 1;
-            else arr[0] |= 0x04;
+            else if (!nan) arr[0] |= 0x04;
             exponent -= 10; // Significand
             exponent -= 15; // Exponent bias
             break;
@@ -237,7 +237,7 @@ public class TCFNumberFormat {
             arr[0] = 0;
             arr[1] &= 0x7f;
             if (exponent == 0) exponent = 1;
-            else arr[1] |= 0x80;
+            else if (!nan) arr[1] |= 0x80;
             exponent -= 23; // Significand
             exponent -= 127; // Exponent bias
             break;
@@ -248,7 +248,7 @@ public class TCFNumberFormat {
             arr[0] = 0;
             arr[1] &= 0x0f;
             if (exponent == 0) exponent = 1;
-            else arr[1] |= 0x10;
+            else if (!nan) arr[1] |= 0x10;
             exponent -= 52; // Significand
             exponent -= 1023; // Exponent bias
             break;
@@ -260,10 +260,11 @@ public class TCFNumberFormat {
             arr[0] = arr[1] = 0;
             if (size == 10) {
                 exponent -= 63; // Significand
+                if (nan) arr[2] &= 0x7f;
             }
             else {
                 if (exponent == 0) exponent = 1;
-                else arr[1] = 1;
+                else if (!nan) arr[1] = 1;
                 exponent -= 112; // Significand
             }
             exponent -= 16383; // Exponent bias
@@ -273,9 +274,7 @@ public class TCFNumberFormat {
         }
         if (nan) {
             for (int i = 0; i < arr.length; i++) {
-                int n = arr[i] & 0xff;
-                if (size == 10 && i == 2) n &= 0x7f;
-                if (n != 0) return neg ? "-NaN" : "+NaN";
+                if (arr[i] != 0) return neg ? "-NaN" : "+NaN";
             }
             return neg ? "-Infinity" : "+Infinity";
         }
