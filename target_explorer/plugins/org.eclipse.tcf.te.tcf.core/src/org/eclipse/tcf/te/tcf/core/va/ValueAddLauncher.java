@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.processes.ProcessLauncher;
 import org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread;
+import org.eclipse.tcf.te.runtime.utils.Env;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
@@ -136,8 +137,18 @@ public class ValueAddLauncher extends ProcessLauncher {
 														0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
 		}
 
+		// Determine the environment
+		String[] envp = null;
+
+		// Get the set of environment variables the launcher requires to set
+		String[] additional = getEnvironmentVariables();
+		if (additional != null && additional.length > 0) {
+			// Get the native environment and merge the additional variables
+			envp = Env.getEnvironment(additional, false);
+		}
+
 		// Launch the value-add
-		process = Runtime.getRuntime().exec(command.toArray(new String[command.size()]), null, dir.toFile());
+		process = Runtime.getRuntime().exec(command.toArray(new String[command.size()]), envp, dir.toFile());
 
 		// Launch the process output reader
 		outputReader = new ProcessOutputReaderThread(path.lastSegment(), new InputStream[] { process.getInputStream() });
@@ -181,4 +192,14 @@ public class ValueAddLauncher extends ProcessLauncher {
 		return port;
 	}
 
+	/**
+	 * Returns the set of environment variable which needs to be added to
+	 * the native environment or overwritten in the native environment in
+	 * order to launch the value add successfully.
+	 *
+	 * @return The set of environment variables or <code>null</code>.
+	 */
+	protected String[] getEnvironmentVariables() {
+		return null;
+	}
 }
