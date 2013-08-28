@@ -36,6 +36,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -534,7 +535,7 @@ public class ProfilerView extends ViewPart {
             final int sample_count = prof_data == null ? 0 : prof_data.sample_count;
             final String error_msg = prof_data == null || prof_data.error == null ? null :
                 TCFModel.getErrorMessage(prof_data.error, false);
-            parent.getDisplay().asyncExec(new Runnable() {
+            asyncExec(new Runnable() {
                 @Override
                 public void run() {
                     if (last_update != Update.this) return;
@@ -1049,6 +1050,15 @@ public class ProfilerView extends ViewPart {
         viewer_main.getControl().setFocus();
     }
 
+    private void asyncExec(Runnable r) {
+        try {
+            parent.getDisplay().asyncExec(r);
+        }
+        catch (SWTException x) {
+            // Widget is disposed
+        }
+    }
+
     private Map<String,Object> getConfiguration(String ctx) {
         Map<String,Object> params = configuration.get(ctx);
         if (params == null) {
@@ -1096,7 +1106,7 @@ public class ProfilerView extends ViewPart {
                         if (selection == node) updateView();
                     }
                     else {
-                        parent.getDisplay().asyncExec(new Runnable() {
+                        asyncExec(new Runnable() {
                             @Override
                             public void run() {
                                 MessageBox mb = new MessageBox(parent.getShell(), SWT.ICON_ERROR | SWT.OK);
