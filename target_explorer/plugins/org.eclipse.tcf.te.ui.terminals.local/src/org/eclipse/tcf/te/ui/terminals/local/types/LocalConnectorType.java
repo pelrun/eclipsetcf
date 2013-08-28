@@ -18,7 +18,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorCo
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
-import org.eclipse.tcf.te.ui.terminals.local.LocalSettings;
+import org.eclipse.tcf.te.ui.terminals.process.ProcessSettings;
 import org.eclipse.tcf.te.ui.terminals.streams.OutputStreamMonitor;
 import org.eclipse.tcf.te.ui.terminals.types.AbstractConnectorType;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
@@ -102,7 +102,7 @@ public class LocalConnectorType extends AbstractConnectorType {
 		ISettingsStore store = new SettingsStore();
 
 		// Construct the process settings
-		LocalSettings processSettings = new LocalSettings();
+		ProcessSettings processSettings = new ProcessSettings();
 		processSettings.setImage(image);
 		processSettings.setArguments(arguments);
 		processSettings.setProcess(process);

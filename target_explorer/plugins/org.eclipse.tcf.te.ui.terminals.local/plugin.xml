@@ -3,9 +3,10 @@
 <plugin>
 
 <!-- Terminal connector contributions -->
+<!-- uses process connector -->
    <extension point="org.eclipse.tm.terminal.terminalConnectors">
       <connector
-            class="org.eclipse.tcf.te.ui.terminals.local.LocalConnector"
+            class="org.eclipse.tcf.te.ui.terminals.process.ProcessConnector"
             id="org.eclipse.tcf.te.ui.terminals.local.LocalConnector"
             name="%TerminalConnector.local"/>
    </extension>
