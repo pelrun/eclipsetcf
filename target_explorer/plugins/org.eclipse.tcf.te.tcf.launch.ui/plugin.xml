@@ -124,9 +124,21 @@
          </enablement>
       </editorPageBinding>
       <editorPageBinding
+            id="org.eclipse.tcf.te.tcf.launch.ui.binding.SourceLookupEditorPage"
+            pageId="org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage"
+            insertBefore="org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
+         <enablement>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <test property="org.eclipse.tcf.te.core.canAdaptTo" value="org.eclipse.debug.core.ILaunchConfiguration" args="forceAdapterLoad"/>
+               </adapt>
+            </with>
+         </enablement>
+      </editorPageBinding>
+      <editorPageBinding
             id="org.eclipse.tcf.te.tcf.launch.ui.binding.PathMapEditorPage"
             pageId="org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage"
-            insertBefore="org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
+            insertBefore="org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage,org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <enablement>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
