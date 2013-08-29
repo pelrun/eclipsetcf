@@ -48,7 +48,7 @@ import org.eclipse.tcf.services.IRegisters.RegistersContext;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
 import org.eclipse.tcf.services.ISymbols.Symbol;
 
-class TestRCBP1 implements ITCFTest, IRunControl.RunControlListener {
+class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.RunControlListener {
 
     private final TCFTestSuite test_suite;
     private final RunControl test_rc;
@@ -1065,25 +1065,7 @@ class TestRCBP1 implements ITCFTest, IRunControl.RunControlListener {
                 return;
             }
             running.remove(id);
-            if (threads.remove(id) != null && threads.isEmpty()) {
-                if (bp_cnt != 40) {
-                    exit(new Exception("Test main thread breakpoint count = " + bp_cnt + ", expected 40"));
-                }
-                if (data_bp_id != null && data_bp_cnt != 10) {
-                    exit(new Exception("Test main thread data breakpoint count = " + data_bp_cnt + ", expected 10"));
-                }
-                if (temp_bp_id != null && temp_bp_cnt != 1) {
-                    exit(new Exception("Temporary breakpoint count = " + temp_bp_cnt + ", expected 1"));
-                }
-                srv_run_ctrl.removeListener(this);
-                // Reset breakpoint list
-                bp_list.clear();
-                srv_breakpoints.set(null, new IBreakpoints.DoneCommand() {
-                    public void doneCommand(IToken token, Exception error) {
-                        exit(error);
-                    }
-                });
-            }
+            testDone(id);
         }
     }
 
@@ -1103,6 +1085,29 @@ class TestRCBP1 implements ITCFTest, IRunControl.RunControlListener {
         }
         if (isMyBreakpoint(sc)) suspended_prev.put(id, sc);
         running.add(id);
+    }
+
+    @Override
+    public void testDone(String id) {
+        if (threads.remove(id) != null && threads.isEmpty()) {
+            if (bp_cnt != 40) {
+                exit(new Exception("Test main thread breakpoint count = " + bp_cnt + ", expected 40"));
+            }
+            if (data_bp_id != null && data_bp_cnt != 10) {
+                exit(new Exception("Test main thread data breakpoint count = " + data_bp_cnt + ", expected 10"));
+            }
+            if (temp_bp_id != null && temp_bp_cnt != 1) {
+                exit(new Exception("Temporary breakpoint count = " + temp_bp_cnt + ", expected 1"));
+            }
+            srv_run_ctrl.removeListener(this);
+            // Reset breakpoint list
+            bp_list.clear();
+            srv_breakpoints.set(null, new IBreakpoints.DoneCommand() {
+                public void doneCommand(IToken token, Exception error) {
+                    exit(error);
+                }
+            });
+        }
     }
 
     private long getSymAddr(String sym) {

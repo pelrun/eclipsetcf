@@ -34,7 +34,7 @@ import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.services.IExpressions.Value;
 
-class TestExpressions implements ITCFTest,
+class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     IRunControl.RunControlListener, IExpressions.ExpressionsListener, IBreakpoints.BreakpointsListener {
 
     private final TCFTestSuite test_suite;
@@ -368,7 +368,7 @@ class TestExpressions implements ITCFTest,
                     else if (!suspended) {
                         waiting_suspend = true;
                     }
-                    else if (pc == null || pc.length() == 0 || pc.equals("0")) {
+                    else if (pc == null || pc.length() == 0) {
                         exit(new Exception("Invalid context PC"));
                     }
                     else {
@@ -934,5 +934,23 @@ class TestExpressions implements ITCFTest,
     }
 
     public void contextChanged(Map<String,Object>[] bps) {
+    }
+
+    //----------------------------- IDiagTestDone listener -------------------------//
+
+    @Override
+    public void testDone(String id) {
+        if (id.equals(test_ctx_id)) {
+            if (test_done) {
+                srv_bp.set(null, new IBreakpoints.DoneCommand() {
+                    public void doneCommand(IToken token, Exception error) {
+                        exit(error);
+                    }
+                });
+            }
+            else {
+                exit(new Exception("Test process exited too soon"));
+            }
+        }
     }
 }

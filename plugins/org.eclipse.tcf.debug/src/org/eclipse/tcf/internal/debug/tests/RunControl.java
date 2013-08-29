@@ -26,6 +26,12 @@ import org.eclipse.tcf.services.IRunControl.RunControlContext;
 
 class RunControl {
 
+    public interface DiagnosticTestDone {
+
+        void testDone(String id);
+
+    }
+
     private final TCFTestSuite test_suite;
     private final IChannel channel;
     private int channel_id;
@@ -51,7 +57,16 @@ class RunControl {
 
         public void contextChanged(RunControlContext[] contexts) {
             for (IRunControl.RunControlContext ctx : contexts) {
-                ctx_map.put(ctx.getID(), ctx);
+                RunControlContext prv = ctx_map.put(ctx.getID(), ctx);
+                if (prv != null &&
+                        prv.getProperties().get("DiagnosticTestProcess") != null &&
+                        ctx.getProperties().get("DiagnosticTestProcess") == null) {
+                    test_suite.getCanceledTests().remove(ctx.getID());
+                    ITCFTest test = test_suite.getActiveTest(channel);
+                    if (test instanceof DiagnosticTestDone) {
+                        ((DiagnosticTestDone)test).testDone(ctx.getID());
+                    }
+                }
             }
         }
 

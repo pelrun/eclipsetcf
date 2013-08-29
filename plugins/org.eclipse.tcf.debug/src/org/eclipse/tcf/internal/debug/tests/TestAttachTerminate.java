@@ -21,7 +21,7 @@ import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
 
-class TestAttachTerminate implements ITCFTest, IRunControl.RunControlListener {
+class TestAttachTerminate implements ITCFTest, IRunControl.RunControlListener, RunControl.DiagnosticTestDone {
 
     private final TCFTestSuite test_suite;
     private final RunControl test_rc;
@@ -41,6 +41,7 @@ class TestAttachTerminate implements ITCFTest, IRunControl.RunControlListener {
         rc = channel.getRemoteService(IRunControl.class);
     }
 
+    @Override
     public void start() {
         if (diag == null || rc == null) {
             test_suite.done(this, null);
@@ -81,6 +82,7 @@ class TestAttachTerminate implements ITCFTest, IRunControl.RunControlListener {
         }
     }
 
+    @Override
     public boolean canResume(String id) {
         return true;
     }
@@ -115,23 +117,29 @@ class TestAttachTerminate implements ITCFTest, IRunControl.RunControlListener {
         test_suite.done(this, x);
     }
 
+    @Override
     public void containerResumed(String[] context_ids) {
     }
 
+    @Override
     public void containerSuspended(String main_context, String pc,
             String reason, Map<String, Object> params,
             String[] suspended_ids) {
     }
 
+    @Override
     public void contextAdded(RunControlContext[] contexts) {
     }
 
+    @Override
     public void contextChanged(RunControlContext[] contexts) {
     }
 
+    @Override
     public void contextException(String context, String msg) {
     }
 
+    @Override
     public void contextRemoved(String[] context_ids) {
         for (String id : context_ids) {
             if (test_ctx_ids.remove(id)) timer = 0;
@@ -139,9 +147,17 @@ class TestAttachTerminate implements ITCFTest, IRunControl.RunControlListener {
         if (cnt == 0 && test_ctx_ids.isEmpty()) exit(null);
     }
 
+    @Override
     public void contextResumed(String context) {
     }
 
+    @Override
     public void contextSuspended(String context, String pc, String reason, Map<String,Object> params) {
+    }
+
+    @Override
+    public void testDone(String id) {
+        if (test_ctx_ids.remove(id)) timer = 0;
+        if (cnt == 0 && test_ctx_ids.isEmpty()) exit(null);
     }
 }

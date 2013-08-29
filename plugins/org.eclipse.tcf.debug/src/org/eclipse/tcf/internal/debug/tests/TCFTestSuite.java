@@ -271,6 +271,13 @@ public class TCFTestSuite {
         return active_tests.keySet();
     }
 
+    ITCFTest getActiveTest(IChannel channel) {
+        for (Map.Entry<ITCFTest,IChannel> e : active_tests.entrySet()) {
+            if (e.getValue() == channel) return e.getKey();
+        }
+        return null;
+    }
+
     Map<String,String> getCanceledTests() {
         return cancel_test_ids;
     }
