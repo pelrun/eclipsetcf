@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
@@ -30,6 +31,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 	 */
     @Override
 	public PathMapRule[] getPathMap(Object context) {
+    	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
 
 		PathMapRule[] rules = null;

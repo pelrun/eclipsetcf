@@ -253,7 +253,9 @@ public class LaunchNavigatorContentProvider implements ITreeContentProvider, IEv
 				PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 					@Override
 					public void run() {
-						((TreeViewer)viewer).refresh((isRootNodeVisible() ? model.getRootNode() : model.getModelRoot()), true);
+						if (viewer.getControl() != null && !viewer.getControl().isDisposed()) {
+							((TreeViewer)viewer).refresh((isRootNodeVisible() ? model.getRootNode() : model.getModelRoot()), true);
+						}
 					}
 				});
 			}

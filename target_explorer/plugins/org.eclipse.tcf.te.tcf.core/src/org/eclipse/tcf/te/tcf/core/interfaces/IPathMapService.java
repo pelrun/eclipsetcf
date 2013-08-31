@@ -21,6 +21,8 @@ public interface IPathMapService extends IService {
 
 	/**
 	 * Return the configured (object) path mappings for the given context.
+	 * <p>
+	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
 	 * @return The configured path map or <code>null</code>.

@@ -91,37 +91,58 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 						final IPathMap svc = channel.getRemoteService(IPathMap.class);
 						if (service != null && svc != null) {
 							// Get the configured path maps
-							final PathMapRule[] configuredMap = service.getPathMap(peer);
-							if (configuredMap != null && configuredMap.length > 0) {
-								// Get the old path maps first. Keep path map rules not coming from us
-								svc.get(new IPathMap.DoneGet() {
-                                    @Override
-									public void doneGet(IToken token, Exception e, PathMapRule[] map) {
-										// Merge the maps to a new list
-										List<PathMapRule> rules = new ArrayList<PathMapRule>();
+							final AtomicReference<PathMapRule[]> configuredMap = new AtomicReference<PathMapRule[]>();
+							// The runnable to execute within the TCF event dispatch thread once
+							// the configured path map has been retrieved from the launch configuration.
+							final Runnable runnable = new Runnable() {
+								@Override
+								public void run() {
+									if (configuredMap.get() != null && configuredMap.get().length > 0) {
+										// Get the old path maps first. Keep path map rules not coming from us
+										svc.get(new IPathMap.DoneGet() {
+		                                    @Override
+											public void doneGet(IToken token, Exception e, PathMapRule[] map) {
+												// Merge the maps to a new list
+												List<PathMapRule> rules = new ArrayList<PathMapRule>();
 
-										if (map != null && map.length > 0) {
-											for (PathMapRule rule : map) {
-												if (rule.getID() == null || !rule.getID().startsWith(service.getClientID())) {
-													rules.add(rule);
+												if (map != null && map.length > 0) {
+													for (PathMapRule rule : map) {
+														if (rule.getID() == null || !rule.getID().startsWith(service.getClientID())) {
+															rules.add(rule);
+														}
+													}
 												}
-											}
-										}
 
-										rules.addAll(Arrays.asList(configuredMap));
-										if (!rules.isEmpty()) {
-											svc.set(rules.toArray(new PathMapRule[rules.size()]), new IPathMap.DoneSet() {
-												@Override
-												public void doneSet(IToken token, Exception e) {
+												rules.addAll(Arrays.asList(configuredMap.get()));
+												if (!rules.isEmpty()) {
+													svc.set(rules.toArray(new PathMapRule[rules.size()]), new IPathMap.DoneSet() {
+														@Override
+														public void doneSet(IToken token, Exception e) {
+															done.doneOpenChannel(error, channel);
+														}
+													});
+												} else {
 													done.doneOpenChannel(error, channel);
 												}
-											});
-										}
+											}
+										});
+									} else {
+										done.doneOpenChannel(error, channel);
 									}
-								});
-							} else {
-								done.doneOpenChannel(error, channel);
-							}
+								}
+							};
+
+							// Getting the path map from the launch configuration must happen
+							// outside the TCF dispatch thread as it may trigger the launch
+							// configuration change listeners.
+							Thread thread = new Thread(new Runnable() {
+								@Override
+								public void run() {
+									configuredMap.set(service.getPathMap(peer));
+									Protocol.invokeLater(runnable);
+								}
+							});
+							thread.start();
 						} else {
 							done.doneOpenChannel(error, channel);
 						}

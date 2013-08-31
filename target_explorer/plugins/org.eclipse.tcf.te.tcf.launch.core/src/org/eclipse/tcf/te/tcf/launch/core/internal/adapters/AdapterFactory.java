@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.launch.core.internal.adapters;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.debug.core.DebugPlugin;
@@ -83,7 +84,7 @@ public class AdapterFactory implements IAdapterFactory {
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapter(java.lang.Object, java.lang.Class)
 	 */
 	@Override
-	public Object getAdapter(Object adaptableObject, Class adapterType) {
+	public Object getAdapter(final Object adaptableObject, final Class adapterType) {
 		if (adaptableObject instanceof ILaunch) {
 			if (IStepContext.class.equals(adapterType)) {
 				// Lookup the adapter
@@ -111,9 +112,21 @@ public class AdapterFactory implements IAdapterFactory {
 			}
 		}
 		else if (adaptableObject instanceof IPeer) {
-			ILocatorModelLookupService service = Model.getModel().getService(ILocatorModelLookupService.class);
-			IPeerModel peerModel = service != null ? service.lkupPeerModelById(((IPeer)adaptableObject).getID()) : null;
-			if (peerModel != null) return getAdapter(peerModel, adapterType);
+			final ILocatorModelLookupService service = Model.getModel().getService(ILocatorModelLookupService.class);
+			final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+
+			if (service != null) {
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						peerModel.set(service.lkupPeerModelById(((IPeer)adaptableObject).getID()));
+					}
+				};
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+			}
+
+			if (peerModel.get() != null) return getAdapter(peerModel.get(), adapterType);
 		}
 		return null;
 	}
