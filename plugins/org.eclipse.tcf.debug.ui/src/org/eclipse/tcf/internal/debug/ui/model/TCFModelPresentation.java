@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.core.model.IValue;
+import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -255,7 +256,14 @@ public class TCFModelPresentation implements IDebugModelPresentation {
             return new FileEditorInput((IFile)element);
         }
         if (element instanceof IStorage) {
-            IPath fullPath = ((IStorage)element).getFullPath();
+            IPath fullPath;
+            if (element instanceof LocalFileStorage) {
+                // Bug 390572: Don't use LocalFileStorage.getFullPath() as it resolves symlinks
+                fullPath = new Path(((LocalFileStorage)element).getFile().getAbsolutePath());
+            }
+            else {
+                fullPath = ((IStorage)element).getFullPath();
+            }
             URI uri = URIUtil.toURI(fullPath);
             if (uri != null) {
                 try {
