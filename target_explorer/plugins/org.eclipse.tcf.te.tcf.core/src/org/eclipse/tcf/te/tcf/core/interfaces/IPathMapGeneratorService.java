@@ -13,27 +13,19 @@ import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 
 /**
- * Path map service.
+ * Provides a set of generated path map rules.
  * <p>
- * Allow the access to the configured path maps for a given context.
+ * Auto generated path map rules typically differs between target types and
+ * are typically not to be editable for the user. The path map rules provided
+ * by this service are not necessarily persisted.
  */
-public interface IPathMapService extends IService {
+public interface IPathMapGeneratorService extends IService {
 
 	/**
-	 * Return the configured (object) path mappings for the given context.
-	 * <p>
-	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
+	 * Return the generated (object) path mappings for the given context.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
-	 * @return The configured path map or <code>null</code>.
+	 * @return The generated path map or <code>null</code>.
 	 */
 	public IPathMap.PathMapRule[] getPathMap(Object context);
-
-	/**
-	 * Returns the current client ID used to identify path map rules handled
-	 * by the current Eclipse instance.
-	 *
-	 * @return The current client ID.
-	 */
-	public String getClientID();
 }
