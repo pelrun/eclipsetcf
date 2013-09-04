@@ -25,9 +25,9 @@
          id="org.eclipse.tcf.te.terminals.feature"
          version="0.0.0"/>
 
-   <includes
-         id="org.eclipse.tm.terminal.core.sdk"
-         version="0.0.0"/>
+   <requires>
+      <import feature="org.eclipse.tm.terminal.core.sdk" version="3.3.100" match="greaterOrEqual"/>
+   </requires>
 
    <plugin
          id="org.eclipse.tcf.te.ui.terminals.source"
