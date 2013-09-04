@@ -9,29 +9,19 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.protocol.IChannel;
-import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.protocol.IToken;
-import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.services.IPathMap;
-import org.eclipse.tcf.services.IPathMap.PathMapRule;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
-import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.launch.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.PathMapTab;
@@ -61,67 +51,29 @@ public class PathMapEditorPage extends AbstractTcfLaunchTabContainerEditorPage {
 
 		final IPeerModel peerModel = getPeerModel(getEditorInput());
 		if (peerModel != null && peerModel.getPeer() != null) {
-			final IChannel channel = Tcf.getChannelManager().getChannel(peerModel.getPeer());
-			if (channel != null && IChannel.STATE_OPEN == channel.getState()) {
-				// Channel is open -> Have to update the path maps
-				Runnable runnable = new Runnable() {
+			IPathMapService service = ServiceManager.getInstance().getService(peerModel.getPeer(), IPathMapService.class);
+			if (service != null) {
+				service.applyPathMap(peerModel.getPeer(), new Callback() {
 					@Override
-					public void run() {
-						final IPeer peer = peerModel.getPeer();
-						final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
-						final IPathMap svc = channel.getRemoteService(IPathMap.class);
-						if (service != null && svc != null) {
-							final PathMapRule[] configuredMap = service.getPathMap(peer);
-							if (configuredMap != null && configuredMap.length > 0) {
-								// Get the old path maps first. Keep path map rules not coming from us
-								svc.get(new IPathMap.DoneGet() {
-                                    @Override
-									public void doneGet(IToken token, Exception error, PathMapRule[] map) {
-										// Merge the maps to a new list
-										List<PathMapRule> rules = new ArrayList<PathMapRule>();
+					protected void internalDone(Object caller, IStatus status) {
+						if (status != null && status.getSeverity() == IStatus.ERROR) {
+							IStatus status2 = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
+														 NLS.bind(Messages.PathMapEditorPage_error_apply, peerModel.getName(), status.getMessage()),
+														 status.getException());
+							IStatusHandler[] handlers = StatusHandlerManager.getInstance().getHandler(peerModel);
+							if (handlers.length > 0) {
+								IPropertiesContainer data = new PropertiesContainer();
+								data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.PathMapEditorPage_error_title);
+								data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.MESSAGE_APPLY_PATHMAP_FAILED);
+								data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
 
-										if (map != null && map.length > 0) {
-											for (PathMapRule rule : map) {
-												if (rule.getID() == null || !rule.getID().startsWith(service.getClientID())) {
-													rules.add(rule);
-												}
-											}
-										}
-
-										rules.addAll(Arrays.asList(configuredMap));
-										if (!rules.isEmpty()) {
-											svc.set(rules.toArray(new PathMapRule[rules.size()]), new IPathMap.DoneSet() {
-												@Override
-												public void doneSet(IToken token, Exception error) {
-													if (error != null) {
-														IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-																					NLS.bind(Messages.PathMapEditorPage_error_apply, peerModel.getName(), error.getLocalizedMessage()),
-																					error);
-														IStatusHandler[] handlers = StatusHandlerManager.getInstance().getHandler(peerModel);
-														if (handlers.length > 0) {
-															IPropertiesContainer data = new PropertiesContainer();
-															data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.PathMapEditorPage_error_title);
-															data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, IContextHelpIds.MESSAGE_APPLY_PATHMAP_FAILED);
-															data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, this);
-
-															handlers[0].handleStatus(status, data, null);
-														} else {
-															UIPlugin.getDefault().getLog().log(status);
-														}
-													}
-												}
-											});
-										}
-									}
-								});
-
+								handlers[0].handleStatus(status2, data, null);
+							} else {
+								UIPlugin.getDefault().getLog().log(status2);
 							}
 						}
-
 					}
-				};
-
-				Protocol.invokeLater(runnable);
+				});
 			}
 		}
 	}
