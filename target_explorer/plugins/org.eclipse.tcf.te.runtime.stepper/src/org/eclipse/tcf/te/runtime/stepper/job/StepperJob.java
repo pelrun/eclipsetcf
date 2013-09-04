@@ -145,7 +145,8 @@ public class StepperJob extends Job {
 		StepperJob job = service != null ? (StepperJob)service.getProperty(stepContext.getContextObject(), StepperJob.class.getName() + "." + operation) : null; //$NON-NLS-1$
 		if (service == null && stepContext.getContextObject() instanceof IPropertiesContainer)
 			job = (StepperJob)((IPropertiesContainer)stepContext.getContextObject()).getProperty(StepperJob.class.getName() + "." + operation); //$NON-NLS-1$
-		Assert.isTrue(job == null);
+
+		if (job != null) throw new IllegalStateException("There is already a stepper job for operation '" + operation + "'."); //$NON-NLS-1$ //$NON-NLS-2$
 
 		if (service != null)
 			service.setProperty(stepContext.getContextObject(), StepperJob.class.getName() + "." + operation, this); //$NON-NLS-1$

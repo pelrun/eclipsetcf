@@ -29,6 +29,8 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -127,13 +129,19 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 	 * @param isCancelable <code>true</code> if the job should be cancelable.
 	 */
 	protected void scheduleStepperJob(IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String name, boolean isCancelable) {
-		StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-				stepContext,
-				data,
-				stepGroupId,
-				operation,
-				isCancelable);
-		job.schedule();
+		try {
+			StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
+											stepContext,
+											data,
+											stepGroupId,
+											operation,
+											isCancelable);
+			job.schedule();
+		} catch (IllegalStateException e) {
+			if (Platform.inDebugMode()) {
+				UIPlugin.getDefault().getLog().log(StatusHelper.getStatus(e));
+			}
+		}
 	}
 
 	/* (non-Javadoc)

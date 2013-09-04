@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.ui.wizards;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -17,6 +18,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
@@ -89,14 +91,20 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 			IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.CONNECT);
 
 			if (stepGroupId != null && stepContext != null) {
-				StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-								stepContext,
-								data,
-								stepGroupId,
-								IStepperServiceOperations.CONNECT,
-								true);
+				try {
+					StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
+													stepContext,
+													data,
+													stepGroupId,
+													IStepperServiceOperations.CONNECT,
+													true);
 
-				job.schedule();
+					job.schedule();
+				} catch (IllegalStateException e) {
+					if (Platform.inDebugMode()) {
+						UIPlugin.getDefault().getLog().log(StatusHelper.getStatus(e));
+					}
+				}
 			}
 		}
 	}

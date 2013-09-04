@@ -13,6 +13,7 @@ import java.net.URL;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
@@ -26,6 +27,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -142,17 +144,23 @@ public class UIPlugin extends AbstractUIPlugin {
 										IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.DISCONNECT);
 
 										if (isEnabled && stepGroupId != null && stepContext != null) {
-											StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-															stepContext,
-															data,
-															stepGroupId,
-															IStepperServiceOperations.DISCONNECT,
-															false);
+											try {
+												StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
+																				stepContext,
+																				data,
+																				stepGroupId,
+																				IStepperServiceOperations.DISCONNECT,
+																				false);
 
-											ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
-											job.setJobCallback(callback);
+												ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+												job.setJobCallback(callback);
 
-											job.schedule();
+												job.schedule();
+											} catch (IllegalStateException e) {
+												if (Platform.inDebugMode()) {
+													getLog().log(StatusHelper.getStatus(e));
+												}
+											}
 										}
 									}
 								}
