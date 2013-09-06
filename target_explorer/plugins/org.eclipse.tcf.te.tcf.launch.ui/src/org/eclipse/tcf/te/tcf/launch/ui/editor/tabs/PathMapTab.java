@@ -9,9 +9,18 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor.tabs;
 
+import java.util.List;
+
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab;
+import org.eclipse.tcf.services.IPathMap;
+import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
+import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapGeneratorService;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEditorPage;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
  * Customized TCF path map launch configuration tab implementation to work better
@@ -39,18 +48,6 @@ public class PathMapTab extends TCFPathMapTab {
     public final AbstractTcfLaunchTabContainerEditorPage getParentEditorPage() {
     	return parentEditorPage;
     }
-
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#updateLaunchConfigurationDialog()
-     */
-	@Override
-	protected void updateLaunchConfigurationDialog() {
-		super.updateLaunchConfigurationDialog();
-		if (parentEditorPage != null) {
-			performApply(AbstractTcfLaunchTabContainerEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
-			parentEditorPage.checkLaunchConfigDirty();
-		}
-	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#getName()
@@ -85,5 +82,40 @@ public class PathMapTab extends TCFPathMapTab {
 	@Override
 	protected boolean showContextQuery() {
 	    return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#initializePathMap(java.util.List, org.eclipse.debug.core.ILaunchConfiguration)
+	 */
+	@Override
+	protected void initializePathMap(List<IPathMap.PathMapRule> map, ILaunchConfiguration config) {
+	    super.initializePathMap(map, config);
+
+	    IModelNode context = LaunchContextsPersistenceDelegate.getFirstLaunchContext(config);
+	    if (context instanceof IPeerModel) {
+	    	IPeerModel peerModel = (IPeerModel)context;
+	    	IPathMapGeneratorService service = ServiceManager.getInstance().getService(peerModel, IPathMapGeneratorService.class);
+	    	if (service != null) {
+	    		IPathMap.PathMapRule[] rules = service.getPathMap(peerModel);
+	    		if (rules != null && rules.length > 0) {
+	    			for (IPathMap.PathMapRule rule : rules) {
+	    				rule.getProperties().put(PROP_GENERATED, Boolean.TRUE);
+	    				map.add(rule);
+	    			}
+	    		}
+	    	}
+	    }
+	}
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab#updateLaunchConfigurationDialog()
+     */
+	@Override
+	protected void updateLaunchConfigurationDialog() {
+		super.updateLaunchConfigurationDialog();
+		if (parentEditorPage != null) {
+			performApply(AbstractTcfLaunchTabContainerEditorPage.getLaunchConfig(parentEditorPage.getPeerModel(parentEditorPage.getEditorInput())));
+			parentEditorPage.checkLaunchConfigDirty();
+		}
 	}
 }

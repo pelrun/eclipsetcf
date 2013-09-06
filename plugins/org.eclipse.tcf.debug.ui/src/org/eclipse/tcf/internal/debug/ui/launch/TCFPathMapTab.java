@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
@@ -27,6 +28,7 @@ import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ICheckStateProvider;
+import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -42,6 +44,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -88,17 +91,19 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         IPathMap.PROP_CONTEXT_QUERY,
     };
 
-    private final static String PROP_ENABLED = "Enabled"; //$NON-NLS-1$
+    protected final static String PROP_ENABLED = "Enabled"; //$NON-NLS-1$
+    protected final static String PROP_GENERATED = "Generated"; //$NON-NLS-1$
+    
     private final static String ATTR_PATH_MAP_V1 = TCFLaunchDelegate.ATTR_PATH_MAP + "V1"; //$NON-NLS-1$
 
     private static final String TAB_ID = "org.eclipse.tcf.launch.pathMapTab"; //$NON-NLS-1$
 
-    private List<PathMapRule> map;
+    private List<IPathMap.PathMapRule> map;
 
     private class FileMapContentProvider implements IStructuredContentProvider  {
 
         public Object[] getElements(Object input) {
-            return map.toArray(new PathMapRule[map.size()]);
+            return map.toArray(new IPathMap.PathMapRule[map.size()]);
         }
 
         public void inputChanged(Viewer viewer, Object old_input, Object new_input) {
@@ -115,7 +120,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
          */
         @Override
         public boolean isChecked(Object element) {
-            PathMapRule e = (PathMapRule)element;
+            IPathMap.PathMapRule e = (IPathMap.PathMapRule)element;
             if (e.getProperties().containsKey(PROP_ENABLED)) {
                 return Boolean.parseBoolean(e.getProperties().get(PROP_ENABLED).toString());
             }
@@ -139,28 +144,48 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
          */
         @Override
         public void checkStateChanged(CheckStateChangedEvent event) {
-            PathMapRule e = (PathMapRule)event.getElement();
+            IPathMap.PathMapRule rule = (IPathMap.PathMapRule)event.getElement();
+            if (rule.getProperties().containsKey(PROP_GENERATED) && Boolean.parseBoolean(rule.getProperties().get(PROP_GENERATED).toString())) {
+                viewer.refresh();
+                return;
+            }
             if (event.getChecked())
-                e.getProperties().remove(PROP_ENABLED);
+                rule.getProperties().remove(PROP_ENABLED);
             else
-                e.getProperties().put(PROP_ENABLED, Boolean.FALSE);
+                rule.getProperties().put(PROP_ENABLED, Boolean.FALSE);
             viewer.refresh();
             updateLaunchConfigurationDialog();
         }
 
     }
 
-    private class FileMapLabelProvider extends LabelProvider implements ITableLabelProvider {
+    private class FileMapLabelProvider extends LabelProvider implements ITableLabelProvider, IColorProvider {
 
         public Image getColumnImage(Object element, int column) {
             return null;
         }
 
         public String getColumnText(Object element, int column) {
-            PathMapRule e = (PathMapRule)element;
+            IPathMap.PathMapRule e = (IPathMap.PathMapRule)element;
             Object o = e.getProperties().get(column_ids[column]);
             if (o == null) return ""; //$NON-NLS-1$
             return o.toString();
+        }
+        
+        @Override
+        public Color getForeground(Object element) {
+            if (element instanceof IPathMap.PathMapRule) {
+                IPathMap.PathMapRule rule = (IPathMap.PathMapRule)element;
+                if (rule.getProperties().containsKey(PROP_GENERATED) && Boolean.parseBoolean(rule.getProperties().get(PROP_GENERATED).toString())) {
+                    return PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_GRAY);
+                }
+            }
+            return null;
+        }
+        
+        @Override
+        public Color getBackground(Object element) {
+            return null;
         }
     }
 
@@ -423,9 +448,9 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, rule, true, showContextQuery());
         if (dialog.open() == Window.OK) {
             if (index >= 0)
-                map.add(index+1, rule);
+                map.add(index, rule);
             else
-                map.add(rule);
+                map.add(0, rule);
             viewer.refresh(true);
             updateLaunchConfigurationDialog();
             viewer.setSelection(new StructuredSelection(rule), true);
@@ -433,7 +458,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     }
 
     private void onEdit(IStructuredSelection selection) {
-        PathMapRule rule = (PathMapRule)selection.getFirstElement();
+        IPathMap.PathMapRule rule = (IPathMap.PathMapRule)selection.getFirstElement();
         PathMapRuleDialog dialog = new PathMapRuleDialog(getShell(), null, rule, true, showContextQuery());
         dialog.open();
         viewer.refresh(true);
@@ -442,7 +467,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     private void onRemove(IStructuredSelection selection) {
         for (Iterator<?> i = ((IStructuredSelection)viewer.getSelection()).iterator(); i.hasNext();) {
-            PathMapRule rule = (PathMapRule)i.next();
+            IPathMap.PathMapRule rule = (IPathMap.PathMapRule)i.next();
             map.remove(rule);
         }
         viewer.refresh(true);
@@ -451,7 +476,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     private void onUp() {
         int index = viewer.getTable().getSelectionIndex();
-        PathMapRule rule = map.remove(index);
+        IPathMap.PathMapRule rule = map.remove(index);
         map.add(index-1, rule);
         viewer.refresh(true);
         updateLaunchConfigurationDialog();
@@ -460,7 +485,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     private void onDown() {
         int index = viewer.getTable().getSelectionIndex();
-        PathMapRule rule = map.remove(index);
+        IPathMap.PathMapRule rule = map.remove(index);
         map.add(index+1, rule);
         viewer.refresh(true);
         updateLaunchConfigurationDialog();
@@ -472,32 +497,45 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     }
 
     List<IPathMap.PathMapRule> getPathMap() {
-        List<IPathMap.PathMapRule> l = new ArrayList<IPathMap.PathMapRule>();
-        for (PathMapRule r : map) l.add(r);
-        return Collections.unmodifiableList(l);
+        return Collections.unmodifiableList(map);
     }
 
     public void initializeFrom(ILaunchConfiguration config) {
         setErrorMessage(null);
         setMessage(null);
+
+        map = new ArrayList<IPathMap.PathMapRule>();
+        initializePathMap(map, config);
+        
+        viewer.setInput(config);
+        updateLaunchConfigurationDialog();
+    }
+    
+    /**
+     * Initialize the given path map.
+     * 
+     * @param map The path map to initialize. Must not be <code>null</code>.
+     * @param config The launch configuration. Must not be <code>null</code>.
+     */
+    protected void initializePathMap(List<IPathMap.PathMapRule> map, ILaunchConfiguration config) {
+        Assert.isNotNull(map);
+        Assert.isNotNull(config);
+        
         try {
-            map = new ArrayList<PathMapRule>();
             String s = config.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
             String s1 = config.getAttribute(ATTR_PATH_MAP_V1, ""); //$NON-NLS-1$
             List<PathMapRule> m = TCFLaunchDelegate.parsePathMapAttribute(s);
             List<PathMapRule> m1 = TCFLaunchDelegate.parsePathMapAttribute(s1);
-            for (PathMapRule rule : m1) {
+            for (IPathMap.PathMapRule rule : m1) {
                 map.add(rule);
             }
             int i = -1;
-            for (PathMapRule rule : m) {
+            for (IPathMap.PathMapRule rule : m) {
                 if (map.contains(rule))
                     i = map.indexOf(rule);
                 else
                     map.add(++i, rule);
             }
-            viewer.setInput(config);
-            updateLaunchConfigurationDialog();
         }
         catch (Exception e) {
             init_error = e;
@@ -507,11 +545,17 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
     }
 
     public void performApply(ILaunchConfigurationWorkingCopy config) {
-        for (PathMapRule m : map)
+        for (IPathMap.PathMapRule m : map)
             m.getProperties().remove(IPathMap.PROP_ID);
         StringBuffer bf = new StringBuffer();
         StringBuffer bf1 = new StringBuffer();
-        for (PathMapRule m : map) {
+        for (IPathMap.PathMapRule m : map) {
+            if (m.getProperties().containsKey(PROP_GENERATED)) {
+                if (Boolean.parseBoolean(m.getProperties().get(PROP_GENERATED).toString())) {
+                    continue;
+                }
+            }
+            
             boolean enabled = true;
             if (m.getProperties().containsKey(PROP_ENABLED)) {
                 enabled = Boolean.parseBoolean(m.getProperties().get(PROP_ENABLED).toString());
@@ -551,16 +595,19 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         boolean singleSelection = ((IStructuredSelection)viewer.getSelection()).size() == 1;
         int index = viewer.getTable().getSelectionIndex();
         int count = viewer.getTable().getItemCount();
+        
+        IPathMap.PathMapRule selected = (IPathMap.PathMapRule)((IStructuredSelection)viewer.getSelection()).getFirstElement();
+        boolean isGenerated = selected != null && selected.getProperties().containsKey(PROP_GENERATED) ? Boolean.parseBoolean(selected.getProperties().get(PROP_GENERATED).toString()) : false;
 
-        button_remove.setEnabled(!viewer.getSelection().isEmpty());
-        button_edit.setEnabled(singleSelection);
-        button_up.setEnabled(singleSelection && index > 0);
-        button_down.setEnabled(singleSelection && index < count-1);
+        button_remove.setEnabled(!viewer.getSelection().isEmpty() && !isGenerated);
+        button_edit.setEnabled(singleSelection && !isGenerated);
+        button_up.setEnabled(singleSelection && index > 0 && !isGenerated);
+        button_down.setEnabled(singleSelection && index < count-1 && !isGenerated);
 
-        item_remove.setEnabled(!viewer.getSelection().isEmpty());
-        item_edit.setEnabled(singleSelection);
-        item_up.setEnabled(singleSelection && index > 0);
-        item_down.setEnabled(singleSelection && index < count-1);
+        item_remove.setEnabled(!viewer.getSelection().isEmpty() && !isGenerated);
+        item_edit.setEnabled(singleSelection && !isGenerated);
+        item_up.setEnabled(singleSelection && index > 0 && !isGenerated);
+        item_down.setEnabled(singleSelection && index < count-1 && !isGenerated);
     }
 
     @Override
