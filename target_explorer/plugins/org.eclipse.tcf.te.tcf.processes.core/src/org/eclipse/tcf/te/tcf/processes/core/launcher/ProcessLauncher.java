@@ -847,6 +847,14 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			// Fill in the process launch parameter
             Map<String, Object> params = new HashMap<String, Object>();
 
+            // Explicitly set the assumed defaults to achieve predictable behavior
+            // independent of the actual agent side implementation.
+            params.put(IProcessesV1.START_ATTACH, Boolean.FALSE);
+            params.put(IProcessesV1.START_ATTACH_CHILDREN, Boolean.FALSE);
+            params.put(IProcessesV1.START_STOP_AT_ENTRY, Boolean.FALSE);
+            params.put(IProcessesV1.START_STOP_AT_MAIN, Boolean.FALSE);
+            params.put(IProcessesV1.START_USE_TERMINAL, Boolean.FALSE);
+
             if (properties.getProperty(IProcessLauncher.PROP_PROCESSESV1_PARAMS) != null) {
                 Map<String, Object> addParams = (Map<String, Object>)properties.getProperty(IProcessLauncher.PROP_PROCESSESV1_PARAMS);
                 for (Entry<String,Object> entry : addParams.entrySet()) {
