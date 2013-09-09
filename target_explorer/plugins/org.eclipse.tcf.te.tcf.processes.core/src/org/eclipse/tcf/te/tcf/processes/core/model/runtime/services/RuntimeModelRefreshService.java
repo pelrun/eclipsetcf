@@ -364,12 +364,17 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 						String parentContextId = null;
 						if (parent != null) parentContextId = parent.getStringProperty(IModelNode.PROPERTY_ID);
 
-						// Get the Systems service and query the configuration id's
+						// Get the required services
 						final IProcesses service = channel.getRemoteService(IProcesses.class);
-						Assert.isNotNull(service);
 						final IProcessesV1 serviceV1 = channel.getRemoteService(IProcessesV1.class);
 						final ISysMonitor sysMonService = channel.getRemoteService(ISysMonitor.class);
-						Assert.isNotNull(sysMonService);
+
+						// At least the processes and the system monitor service must be available
+						if (service == null || sysMonService == null) {
+							callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+							return;
+						}
+
 						sysMonService.getChildren(parentContextId, new ISysMonitor.DoneGetChildren() {
 							@Override
 							public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
