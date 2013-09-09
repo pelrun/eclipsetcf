@@ -16,7 +16,8 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 /**
  * Path map service.
  * <p>
- * Allow the access to the configured path maps for a given context.
+ * Allow the access and manipulation of the configured (object) path maps
+ * for a given context.
  */
 public interface IPathMapService extends IService {
 
@@ -49,6 +50,19 @@ public interface IPathMapService extends IService {
 	 * @return The path map rule object representing the added path map rule.
 	 */
 	public IPathMap.PathMapRule addPathMap(Object context, String source, String destination);
+
+	/**
+	 * Removes the given path mapping rule from the configured (object) path mappings
+	 * for the given context.
+	 * <p>
+	 * The method auto applies the new path map to an possibly open shared channel.
+	 * <p>
+	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param rule The path map rule. Must not be <code>null</code>.
+	 */
+	public void removePathMap(Object context, IPathMap.PathMapRule rule);
 
 	/**
 	 * Apply the configured (object) path mappings to the given context.

@@ -53,6 +53,17 @@ public class TCFPathMapRule implements IPathMap.PathMapRule {
         return (String)props.get(IPathMap.PROP_CONTEXT_QUERY);
     }
 
+    public int hashCode() {
+        return props.hashCode();
+    }
+    
+    public boolean equals(Object obj) {
+        if (obj instanceof TCFPathMapRule) {
+            props.equals(((TCFPathMapRule)obj).props);
+        }
+        return super.equals(obj);
+    }
+
     public String toString() {
         return props.toString();
     }

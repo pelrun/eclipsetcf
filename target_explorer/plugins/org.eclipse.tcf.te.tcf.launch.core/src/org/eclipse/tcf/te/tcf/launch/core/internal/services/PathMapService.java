@@ -111,21 +111,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		}
 
 		if (config != null) {
-			try {
-				String path_map_cfg = config.getAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
-				String path_map_cfgV1 = config.getAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP + "V1", ""); //$NON-NLS-1$ //$NON-NLS-2$
-
-				rulesList.addAll(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parsePathMapAttribute(path_map_cfgV1));
-
-		        int i = -1;
-		        for (PathMapRule candidate : org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parsePathMapAttribute(path_map_cfg)) {
-		            if (rulesList.contains(candidate)) {
-		                i = rulesList.indexOf(candidate);
-		            } else {
-		            	rulesList.add(++i, candidate);
-		            }
-		        }
-			} catch (CoreException e) { /* ignored on purpose */ }
+			populatePathMapRulesList(config, rulesList);
 
 			// Find an existing path map rule for the given source and destination
 			for (PathMapRule candidate : rulesList) {
@@ -142,38 +128,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 				rulesList.add(rule);
 
 				// Update the launch configuration
-		        for (PathMapRule candidate : rulesList) {
-		            candidate.getProperties().remove(IPathMap.PROP_ID);
-		        }
-
-		        StringBuilder bf = new StringBuilder();
-		        StringBuilder bf1 = new StringBuilder();
-
-		        for (PathMapRule candidate : rulesList) {
-		        	if (!(candidate instanceof org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule)) continue;
-
-		            boolean enabled = true;
-		            if (candidate.getProperties().containsKey("Enabled")) { //$NON-NLS-1$
-		                enabled = Boolean.parseBoolean(candidate.getProperties().get("Enabled").toString()); //$NON-NLS-1$
-		            }
-		            if (enabled) {
-		                candidate.getProperties().remove("Enabled"); //$NON-NLS-1$
-		                bf.append(candidate.toString());
-		            }
-		            bf1.append(candidate.toString());
-		        }
-
-		        if (bf.length() == 0) {
-		            config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
-		        } else {
-		            config.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
-		        }
-
-		        if (bf1.length() == 0) {
-		            config.removeAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP + "V1"); //$NON-NLS-1$
-		        } else {
-		            config.setAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP + "V1", bf1.toString()); //$NON-NLS-1$
-		        }
+				updateLaunchConfiguration(config, rulesList);
 
 		        // Apply the path map
 		        applyPathMap(context, new Callback() {
@@ -188,6 +143,116 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		}
 
         return rule;
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#removePathMap(java.lang.Object, org.eclipse.tcf.services.IPathMap.PathMapRule)
+     */
+    @Override
+    public void removePathMap(final Object context, final PathMapRule rule) {
+    	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(context);
+		Assert.isNotNull(rule);
+
+		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
+
+		// Get the launch configuration for that peer model
+		ILaunchConfigurationWorkingCopy config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().getAdapter(context, ILaunchConfigurationWorkingCopy.class);
+		if (config == null) {
+			config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
+		}
+
+		if (config != null) {
+			populatePathMapRulesList(config, rulesList);
+
+			// Remove the given rule from the list of present
+			if (rulesList.remove(rule)) {
+				// Update the launch configuration
+				updateLaunchConfiguration(config, rulesList);
+
+		        // Apply the path map
+		        applyPathMap(context, new Callback() {
+		        	@Override
+		        	protected void internalDone(Object caller, IStatus status) {
+		        		if (status != null && Platform.inDebugMode()) {
+		        			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
+		        		}
+		        	}
+		        });
+			}
+		}
+    }
+
+    /**
+     * Populate the given path map rules list from the given launch configuration.
+     *
+     * @param config The launch configuration. Must not be <code>null</code>.
+     * @param rulesList The path map rules list. Must not be <code>null</code>.
+     */
+    private void populatePathMapRulesList(ILaunchConfiguration config, List<PathMapRule> rulesList) {
+    	Assert.isNotNull(config);
+    	Assert.isNotNull(rulesList);
+
+		try {
+			String path_map_cfg = config.getAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
+			String path_map_cfgV1 = config.getAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP + "V1", ""); //$NON-NLS-1$ //$NON-NLS-2$
+
+			rulesList.addAll(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parsePathMapAttribute(path_map_cfgV1));
+
+	        int i = -1;
+	        for (PathMapRule candidate : org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parsePathMapAttribute(path_map_cfg)) {
+	            if (rulesList.contains(candidate)) {
+	                i = rulesList.indexOf(candidate);
+	            } else {
+	            	rulesList.add(++i, candidate);
+	            }
+	        }
+		} catch (CoreException e) { /* ignored on purpose */ }
+    }
+
+    /**
+     * Write back the given path map rules list to the given launch configuration.
+     *
+     * @param config The launch configuration. Must not be <code>null</code>.
+     * @param rulesList The path map rules list. Must not be <code>null</code>.
+     */
+    private void updateLaunchConfiguration(ILaunchConfigurationWorkingCopy config, List<PathMapRule> rulesList) {
+    	Assert.isNotNull(config);
+    	Assert.isNotNull(rulesList);
+
+		// Update the launch configuration
+        for (PathMapRule candidate : rulesList) {
+            candidate.getProperties().remove(IPathMap.PROP_ID);
+        }
+
+        StringBuilder bf = new StringBuilder();
+        StringBuilder bf1 = new StringBuilder();
+
+        for (PathMapRule candidate : rulesList) {
+        	if (!(candidate instanceof org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule)) continue;
+
+            boolean enabled = true;
+            if (candidate.getProperties().containsKey("Enabled")) { //$NON-NLS-1$
+                enabled = Boolean.parseBoolean(candidate.getProperties().get("Enabled").toString()); //$NON-NLS-1$
+            }
+            if (enabled) {
+                candidate.getProperties().remove("Enabled"); //$NON-NLS-1$
+                bf.append(candidate.toString());
+            }
+            bf1.append(candidate.toString());
+        }
+
+        if (bf.length() == 0) {
+            config.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
+        } else {
+            config.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
+        }
+
+        if (bf1.length() == 0) {
+            config.removeAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP + "V1"); //$NON-NLS-1$
+        } else {
+            config.setAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP + "V1", bf1.toString()); //$NON-NLS-1$
+        }
     }
 
     /* (non-Javadoc)
