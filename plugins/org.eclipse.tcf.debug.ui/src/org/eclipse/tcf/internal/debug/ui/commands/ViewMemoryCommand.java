@@ -13,11 +13,19 @@ package org.eclipse.tcf.internal.debug.ui.commands;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.IMemoryBlockManager;
 import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IMemoryBlockRetrievalExtension;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
+import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.debug.ui.memory.IMemoryRendering;
+import org.eclipse.debug.ui.memory.IMemoryRenderingContainer;
+import org.eclipse.debug.ui.memory.IMemoryRenderingManager;
+import org.eclipse.debug.ui.memory.IMemoryRenderingSite;
+import org.eclipse.debug.ui.memory.IMemoryRenderingType;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
@@ -32,6 +40,7 @@ import org.eclipse.tcf.services.IExpressions;
 import org.eclipse.tcf.services.IRegisters;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 
 public class ViewMemoryCommand extends AbstractActionDelegate {
@@ -150,11 +159,46 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
         }
     }
 
+    private void createRenderingInContainer(IViewPart view, IMemoryBlock mb, IMemoryRenderingType type, String pane) {
+        try {
+            if (view instanceof IMemoryRenderingSite) {
+                IMemoryRendering rendering = type.createRendering();
+                IMemoryRenderingContainer container = ((IMemoryRenderingSite)view).getContainer(pane);
+                rendering.init(container, mb);
+                container.addMemoryRendering(rendering);
+            }
+        }
+        catch (CoreException x) {
+            Activator.log(x);
+        }
+    }
+
+    private void addDefaultRenderings(IViewPart view, IMemoryBlock memoryBlock) {
+        IMemoryRenderingManager manager = DebugUITools.getMemoryRenderingManager();
+        IMemoryRenderingType primary_type = manager.getPrimaryRenderingType(memoryBlock);
+        IMemoryRenderingType default_types[] = manager.getDefaultRenderingTypes(memoryBlock);
+
+        // create primary rendering
+        if (primary_type != null) {
+            createRenderingInContainer(view, memoryBlock, primary_type, IDebugUIConstants.ID_RENDERING_VIEW_PANE_1);
+        }
+        else if (default_types.length > 0) {
+            primary_type = default_types[0];
+            createRenderingInContainer(view, memoryBlock, default_types[0], IDebugUIConstants.ID_RENDERING_VIEW_PANE_1);
+        }
+
+        for (IMemoryRenderingType type : default_types) {
+            if (!primary_type.getId().equals(type.getId())) {
+                createRenderingInContainer(view, memoryBlock, type, IDebugUIConstants.ID_RENDERING_VIEW_PANE_2);
+            }
+        }
+    }
+
     @Override
     protected void run() {
         try {
             IWorkbenchPage page = getWindow().getActivePage();
-            page.showView(IDebugUIConstants.ID_MEMORY_VIEW, null, IWorkbenchPage.VIEW_ACTIVATE);
+            IViewPart view = page.showView(IDebugUIConstants.ID_MEMORY_VIEW, null, IWorkbenchPage.VIEW_ACTIVATE);
             ArrayList<IMemoryBlock> list = new ArrayList<IMemoryBlock>();
             for (TCFNode node : getSelectedNodes()) {
                 final Block b = getBlockInfo(node);
@@ -177,8 +221,12 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
                     }
                 }
             }
-            if (list.size() == 0) return;
-            DebugPlugin.getDefault().getMemoryBlockManager().addMemoryBlocks(list.toArray(new IMemoryBlock[list.size()]));
+            IMemoryBlockManager manager = DebugPlugin.getDefault().getMemoryBlockManager();
+            for (IMemoryBlock mb : list) {
+                IMemoryBlock[] mb_array = new IMemoryBlock[] { mb };
+                manager.addMemoryBlocks(mb_array);
+                addDefaultRenderings(view, mb);
+            }
         }
         catch (Exception x) {
             Activator.log("Cannot open memory view", x);
