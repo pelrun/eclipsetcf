@@ -61,6 +61,7 @@ If a enablement expression is specified, the service context is passed in as def
          <sequence>
             <element ref="enablement" minOccurs="0" maxOccurs="1"/>
             <element ref="serviceType" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="class" minOccurs="0" maxOccurs="1"/>
          </sequence>
          <attribute name="class" type="string">
             <annotation>
