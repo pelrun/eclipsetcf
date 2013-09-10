@@ -272,16 +272,22 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			final IChannel channel = Tcf.getChannelManager().getChannel(peer);
 			if (channel != null && IChannel.STATE_OPEN == channel.getState()) {
 				// Channel is open -> Have to update the path maps
-				Runnable runnable = new Runnable() {
-					@Override
-					public void run() {
-						final IPathMap svc = channel.getRemoteService(IPathMap.class);
-						if (svc != null) {
-							final PathMapRule[] configuredMap = getPathMap(context);
-							if (configuredMap != null && configuredMap.length > 0) {
+
+				// Get the configured path mappings. This must be called from
+				// outside the runnable as getPathMap(...) must be called from
+				// outside of the TCF dispatch thread.
+				final PathMapRule[] configuredMap = getPathMap(context);
+
+				if (configuredMap != null && configuredMap.length > 0) {
+					// Create the runnable which set the path map
+					Runnable runnable = new Runnable() {
+						@Override
+						public void run() {
+							final IPathMap svc = channel.getRemoteService(IPathMap.class);
+							if (svc != null) {
 								// Get the old path maps first. Keep path map rules not coming from us
 								svc.get(new IPathMap.DoneGet() {
-                                    @Override
+									@Override
 									public void doneGet(IToken token, Exception error, PathMapRule[] map) {
 										// Merge the maps to a new list
 										List<PathMapRule> rules = new ArrayList<PathMapRule>();
@@ -303,20 +309,20 @@ public class PathMapService extends AbstractService implements IPathMapService {
 												}
 											});
 										} else {
-								    		callback.done(PathMapService.this, Status.OK_STATUS);
+											callback.done(PathMapService.this, Status.OK_STATUS);
 										}
 									}
 								});
 							} else {
-					    		callback.done(PathMapService.this, Status.OK_STATUS);
+								callback.done(PathMapService.this, Status.OK_STATUS);
 							}
-						} else {
-				    		callback.done(PathMapService.this, Status.OK_STATUS);
 						}
-					}
-				};
+					};
 
-				Protocol.invokeLater(runnable);
+					Protocol.invokeLater(runnable);
+				} else {
+		    		callback.done(PathMapService.this, Status.OK_STATUS);
+				}
 			} else {
 	    		callback.done(PathMapService.this, Status.OK_STATUS);
 			}
