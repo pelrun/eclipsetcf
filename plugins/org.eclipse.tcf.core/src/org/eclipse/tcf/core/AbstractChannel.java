@@ -143,6 +143,8 @@ public abstract class AbstractChannel implements IChannel {
     private long local_congestion_time;
     private int local_congestion_cnt;
     private Collection<TraceListener> trace_listeners;
+    
+    private static final boolean TRACE = Boolean.getBoolean("org.eclipse.tcf.core.tracing.channel");
 
     public static final int
         EOS = -1, // End Of Stream
@@ -947,14 +949,18 @@ public abstract class AbstractChannel implements IChannel {
                             TransportManager.channelOpened(this);
                             registered_with_trasport = true;
                         }
-                        for (IChannelListener l : channel_listeners.toArray(
-                                new IChannelListener[channel_listeners.size()])) {
-                            try {
-                                l.onChannelOpened();
+                        if (channel_listeners.size() > 0) {
+                            for (IChannelListener l : channel_listeners.toArray(
+                                    new IChannelListener[channel_listeners.size()])) {
+                                try {
+                                    l.onChannelOpened();
+                                }
+                                catch (Throwable x) {
+                                    Protocol.log("Exception in channel listener", x);
+                                }
                             }
-                            catch (Throwable x) {
-                                Protocol.log("Exception in channel listener", x);
-                            }
+                        } else if (TRACE){
+                            Protocol.log("TCF channel opened but no one is listening.", null);
                         }
                         notifying_channel_opened = false;
                     }

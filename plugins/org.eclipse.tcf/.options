@@ -1,2 +1,3 @@
 org.eclipse.tcf/debug = false
 org.eclipse.tcf/debug/discovery = false
+org.eclipse.tcf/debug/channel = false

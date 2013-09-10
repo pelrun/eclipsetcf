@@ -88,6 +88,9 @@ public class Activator extends Plugin {
         if (TRACE && "true".equals(Platform.getDebugOption("org.eclipse.tcf/debug/discovery"))) {
             System.setProperty("org.eclipse.tcf.core.tracing.discovery", "true");
         }
+        if (TRACE && "true".equals(Platform.getDebugOption("org.eclipse.tcf/debug/channel"))) {
+            System.setProperty("org.eclipse.tcf.core.tracing.channel", "true");
+        }
 
         ChannelTCP.setSSLContext(TCFSecurityManager.createSSLContext());
         Protocol.setLogger(new ILogger() {
