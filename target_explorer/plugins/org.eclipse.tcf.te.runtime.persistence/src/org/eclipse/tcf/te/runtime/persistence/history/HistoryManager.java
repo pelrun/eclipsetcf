@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.runtime.persistence.history;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,6 +158,29 @@ public class HistoryManager {
 	}
 
 	/**
+	 * Set a new list of history entries to the history ids list.
+	 * If the list size exceeds the HISTORY_LENGTH, the last element of the list will be removed.
+	 * @param historyId The history id.
+	 * @param ids The ids to be set to the history ids list.
+	 * @return <code>true</code> if the id
+	 */
+	public void set(String historyId, String[] ids) {
+		Assert.isNotNull(historyId);
+		Assert.isNotNull(ids);
+
+		history.put(historyId, Arrays.asList(ids));
+		List<String> newIds = history.get(historyId);
+
+		while (newIds.size() > HISTORY_LENGTH) {
+			newIds.remove(HISTORY_LENGTH);
+		}
+
+		flush();
+
+		EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_CHANGED, historyId, historyId));
+	}
+
+	/**
 	 * Remove a id from the history ids list.
 	 * @param historyId The history id.
 	 * @param id The id to be removed from the history ids list.
@@ -182,6 +206,21 @@ public class HistoryManager {
 		}
 
 		return removed;
+	}
+
+	/**
+	 * Remove all ids from the history ids list.
+	 * @param historyId The history id.
+	 **/
+	public void clear(String historyId) {
+		Assert.isNotNull(historyId);
+
+		List<String> ids = history.remove(historyId);
+
+		if (ids != null) {
+			flush();
+			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_REMOVED, historyId, historyId));
+		}
 	}
 
 }
