@@ -413,7 +413,14 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								String value = attributes.get("ValueAdd"); //$NON-NLS-1$
 								boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
-								if (isValueAdd) continue;
+								// Don't process CLI service or clients
+								String name = attributes.get(IPeer.ATTR_NAME);
+								boolean isCLI = name != null
+												&& (name.startsWith("Eclipse CLI") //$NON-NLS-1$
+														|| name.endsWith("CLI Server") //$NON-NLS-1$
+														|| name.endsWith("CLI Client")); //$NON-NLS-1$
+
+								if (isValueAdd || isCLI) continue;
 
 								// Get the peer id
 								String peerId = attributes.get(IPeer.ATTR_ID);
