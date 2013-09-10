@@ -9,7 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.delegates;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
@@ -18,10 +20,13 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapGeneratorService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
@@ -77,6 +82,24 @@ public final class Launch extends TCFLaunch {
 				}
 			}
 		});
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#readCustomPathMapConfiguration(org.eclipse.tcf.protocol.IChannel, org.eclipse.debug.core.ILaunchConfiguration, java.util.List)
+	 */
+	@Override
+	protected void readCustomPathMapConfiguration(IChannel channel, ILaunchConfiguration cfg, List<PathMapRule> host_path_map) {
+		Assert.isNotNull(channel);
+		Assert.isNotNull(cfg);
+		Assert.isNotNull(host_path_map);
+
+        IPathMapGeneratorService generator = ServiceManager.getInstance().getService(channel.getRemotePeer(), IPathMapGeneratorService.class);
+        if (generator != null) {
+        	PathMapRule[] generatedRules = generator.getPathMap(channel.getRemotePeer());
+        	if (generatedRules != null && generatedRules.length > 0) {
+        		host_path_map.addAll(Arrays.asList(generatedRules));
+        	}
+        }
 	}
 
 	/* (non-Javadoc)

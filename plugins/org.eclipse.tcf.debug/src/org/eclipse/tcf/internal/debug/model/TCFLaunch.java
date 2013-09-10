@@ -165,7 +165,7 @@ public class TCFLaunch extends Launch {
     private final LinkedList<LaunchStep> launch_steps = new LinkedList<LaunchStep>();
     private final LinkedList<String> redirection_path = new LinkedList<String>();
 
-    private ArrayList<PathMapRule> host_path_map;
+    private List<IPathMap.PathMapRule> host_path_map;
     private TCFDataCache<IPathMap.PathMapRule[]> target_path_map;
 
     private HashMap<String,IStorage> target_path_mapping_cache = new HashMap<String,IStorage>();
@@ -719,12 +719,25 @@ public class TCFLaunch extends Launch {
 
     private void readPathMapConfiguration(ILaunchConfiguration cfg) throws CoreException {
         String s = cfg.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, "");
-        host_path_map = TCFLaunchDelegate.parsePathMapAttribute(s);
+        host_path_map = new ArrayList<IPathMap.PathMapRule>(); 
+        host_path_map.addAll(TCFLaunchDelegate.parsePathMapAttribute(s));
         s = cfg.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, "");
         host_path_map.addAll(TCFLaunchDelegate.parseSourceLocatorMemento(s));
+        readCustomPathMapConfiguration(channel, cfg, host_path_map);
         int cnt = 0;
         String id = Activator.getClientID();
-        for (PathMapRule r : host_path_map) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++);
+        for (IPathMap.PathMapRule r : host_path_map) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++);
+    }
+    
+    /**
+     * Add custom path map rules to the host path map before applying the path map.
+     * 
+     * @param channel The channel. Must not be <code>null</code>.
+     * @param cfg The launch configuration. Must not be <code>null</code>.
+     * @param host_path_map The host path map. Must not be <code>null</code>.
+     */
+    protected void readCustomPathMapConfiguration(IChannel channel, ILaunchConfiguration cfg, List<IPathMap.PathMapRule> host_path_map) {
+        // Default implementation do nothing
     }
 
     private void downloadPathMaps(ILaunchConfiguration cfg, final Runnable done) throws Exception {
@@ -1413,7 +1426,7 @@ public class TCFLaunch extends Launch {
         return process_signals;
     }
 
-    public ArrayList<PathMapRule> getHostPathMap() {
+    public List<IPathMap.PathMapRule> getHostPathMap() {
         assert Protocol.isDispatchThread();
         return host_path_map;
     }
