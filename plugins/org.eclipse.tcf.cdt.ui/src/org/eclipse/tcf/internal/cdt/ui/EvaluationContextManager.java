@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2012 QNX Software Systems and others.
+ * Copyright (c) 2004, 2013 QNX Software Systems and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,11 +13,16 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui;
 
+import org.eclipse.cdt.debug.core.model.IMoveToLine;
 import org.eclipse.cdt.debug.ui.CDebugUIPlugin;
+import org.eclipse.cdt.dsf.debug.ui.DsfDebugUITools;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.debug.core.model.ISuspendResume;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.contexts.DebugContextEvent;
 import org.eclipse.debug.ui.contexts.IDebugContextListener;
@@ -52,6 +57,9 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
     }
 
     public static void startup() {
+        // Bug 416849: trigger lazy activation of 'org.eclipse.cdt.dsf.ui' and 'org.eclipse.cdt.debug.ui'
+        DsfDebugUITools.getPreferenceStore();
+        CDebugUIPlugin.getDefault();
         WorkbenchJob job = new WorkbenchJob("") {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
@@ -69,7 +77,7 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
         };
         job.setPriority(Job.SHORT);
         job.setSystem(true);
-        job.schedule();
+        job.schedule(100);
     }
 
 
@@ -122,10 +130,32 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
                     System.setProperty(DEBUGGER_ACTIVE, Boolean.toString(true));
                     return;
                 }
+                // Test for other CDT-based debuggers
+                ISuspendResume sr = adapt(element, ISuspendResume.class);
+                IMoveToLine mtl = adapt(sr, IMoveToLine.class);
+                if (mtl != null) {
+                    // debugger supports move-to-line, don't interfere with it
+                    return;
+                }
             }
         }
 
         // no context in the given view
         System.setProperty(DEBUGGER_ACTIVE, Boolean.toString(false));
     }
+
+    @SuppressWarnings("unchecked")
+    private <T> T adapt(Object adaptable, Class<T> clazz) {
+        if (adaptable == null)
+            return null;
+        if (clazz.isInstance(adaptable))
+            return (T) adaptable;
+        T adapter = null;
+        if (adaptable instanceof IAdaptable)
+            adapter = (T) ((IAdaptable) adaptable).getAdapter(clazz);
+        if (adapter == null)
+            adapter = (T) Platform.getAdapterManager().loadAdapter(adaptable, clazz.getName());
+        return adapter;
+    }
+
 }
