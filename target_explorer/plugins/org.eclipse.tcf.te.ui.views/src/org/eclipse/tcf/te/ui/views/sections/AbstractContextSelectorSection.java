@@ -113,6 +113,7 @@ public abstract class AbstractContextSelectorSection extends AbstractSection imp
 
 		// Create the section sub controls
 		selector = doCreateContextSelector();
+		doConfigureContextSelector(selector);
 		selector.setFormToolkit(toolkit);
 		selector.setupPanel(client);
 
@@ -125,6 +126,8 @@ public abstract class AbstractContextSelectorSection extends AbstractSection imp
 	 * @return The context selector control.
 	 */
 	protected abstract AbstractContextSelectorControl doCreateContextSelector();
+
+	protected abstract void doConfigureContextSelector(AbstractContextSelectorControl contextSelector);
 
 	public AbstractContextSelectorControl getSelectorControl() {
 		return selector;

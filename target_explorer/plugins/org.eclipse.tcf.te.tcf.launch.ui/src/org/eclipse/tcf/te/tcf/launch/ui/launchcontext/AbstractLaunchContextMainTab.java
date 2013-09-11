@@ -114,7 +114,6 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 		@Override
 		protected AbstractContextSelectorControl doCreateContextSelector() {
 			AbstractContextSelectorControl control = new MainTabContextSelectorControl(this, null);
-			doConfigureContextSelectorControl(control);
 			return control;
 		}
 
@@ -186,6 +185,13 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 		public void dataChanged() {
 		    getManagedForm().dirtyStateChanged();
 		}
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.tcf.te.ui.views.sections.AbstractContextSelectorSection#doConfigureContextSelector(org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl)
+		 */
+		@Override
+		protected void doConfigureContextSelector(AbstractContextSelectorControl contextSelector) {
+		}
 	}
 
 	/* (non-Javadoc)
@@ -210,12 +216,5 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 	@Override
 	protected MainTabContextSelectorSection doCreateContextSelectorSection(IManagedForm form, Composite panel) {
 		return new MainTabContextSelectorSection(form, panel);
-	}
-
-	/**
-	 * Configure the context selector control.
-	 * @param control The context selector control.
-	 */
-	protected void doConfigureContextSelectorControl(AbstractContextSelectorControl control) {
 	}
 }
