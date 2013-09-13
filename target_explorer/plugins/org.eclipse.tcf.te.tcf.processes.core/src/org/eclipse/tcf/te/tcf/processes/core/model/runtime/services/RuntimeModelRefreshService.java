@@ -310,7 +310,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 										@Override
 										public void doneGetContext(IToken token, Exception error, IProcesses.ProcessContext context) {
 											((IProcessContextNode)node).setProcessContext(context);
-											if (serviceV1 != null) {
+											if (serviceV1 != null && context != null) {
 												serviceV1.getCapabilities(context.getID(), new IProcessesV1.DoneGetCapabilities() {
 													@Override
                                                     public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties) {

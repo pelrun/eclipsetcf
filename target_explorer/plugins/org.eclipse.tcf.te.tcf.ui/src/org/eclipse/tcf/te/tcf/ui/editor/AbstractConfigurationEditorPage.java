@@ -24,6 +24,7 @@ import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
@@ -52,10 +53,13 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 			return;
 		}
 		super.setInput(input);
-		final IPeerModel peerModel = (IPeerModel)input.getAdapter(IPeerModel.class);
-		if (peerModel != null) {
+		if (getEditorInputNode() instanceof IPeerModel) {
 			// save history to reopen the editor on eclipse startup
-			HistoryManager.getInstance().add(getHistoryId(), peerModel.getPeerId());
+			HistoryManager.getInstance().add(getHistoryId(), ((IPeerModel)getEditorInputNode()).getPeerId());
+			ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
+			if (selService != null) {
+				selService.setDefaultSelection((IPeerModel)getEditorInputNode());
+			}
 		}
 	}
 
