@@ -53,6 +53,17 @@
       </propertyTester>
    </extension>
 
+<!-- Service contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.services.services">
+      <service
+            class="org.eclipse.tcf.te.tcf.ui.internal.services.SelectionService"
+            id="org.eclipse.tcf.te.tcf.ui.services.SelectionService">
+         <serviceType
+               bundleId="org.eclipse.tcf.te.tcf.locator"
+               class="org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService"/>
+      </service>
+   </extension>
+   
 <!-- Preference contributions -->   
    <extension point="org.eclipse.core.runtime.preferences">
       <initializer class="org.eclipse.tcf.te.tcf.ui.internal.preferences.PreferencesInitializer"/>

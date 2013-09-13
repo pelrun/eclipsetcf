@@ -38,5 +38,6 @@ Export-Package: org.eclipse.tcf.te.tcf.locator,
  org.eclipse.tcf.te.tcf.locator.nodes,
  org.eclipse.tcf.te.tcf.locator.persistence,
  org.eclipse.tcf.te.tcf.locator.services,
+ org.eclipse.tcf.te.tcf.locator.services.selection,
  org.eclipse.tcf.te.tcf.locator.steps,
  org.eclipse.tcf.te.tcf.locator.utils
