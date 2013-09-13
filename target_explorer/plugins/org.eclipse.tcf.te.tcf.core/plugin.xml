@@ -10,6 +10,15 @@
       <class name="org.eclipse.tcf.te.tcf.core.internal.Startup"/>
    </extension>
 
+<!-- Service contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.services.services">
+      <service
+            id="org.eclipse.tcf.te.tcf.core.services.pathmapresolver"
+            class="org.eclipse.tcf.te.tcf.core.internal.services.PathMapResolverService">
+         <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IPathMapResolverService"/>
+      </service>
+   </extension>
+
 <!-- Launch Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step
