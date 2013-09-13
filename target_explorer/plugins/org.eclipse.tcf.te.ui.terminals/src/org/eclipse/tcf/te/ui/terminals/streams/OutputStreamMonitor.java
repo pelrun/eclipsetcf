@@ -65,7 +65,7 @@ public class OutputStreamMonitor implements IDisposable {
 	 * An interface to be implemented by listeners who want to listen
 	 * to the streams data without interfering with the original data receiver.
 	 * <p>
-	 * Listeners are asynchronously invoked in the TCF dispatch thread.
+	 * Listeners are invoked within the monitor processing thread.
 	 */
 	public static interface Listener {
 
@@ -302,7 +302,7 @@ public class OutputStreamMonitor implements IDisposable {
     	// If changed, get the new bytes array
     	if (changed) byteBuffer = text.getBytes();
 
-    	// If listeners are registered, signal them the content read event asynchronously
+    	// If listeners are registered, invoke the listeners now.
     	if (listeners.size() > 0) {
     		for (Object candidate : listeners.getListeners()) {
     			if (!(candidate instanceof Listener)) continue;
