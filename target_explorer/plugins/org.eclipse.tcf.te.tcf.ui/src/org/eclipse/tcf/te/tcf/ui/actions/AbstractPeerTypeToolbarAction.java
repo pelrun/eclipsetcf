@@ -328,6 +328,15 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 						}
 						catch (PartInitException e) {
 						}
+						if (((IStructuredSelection)selection).getFirstElement() instanceof IPeerModel) {
+							IPeerModel peerModel = (IPeerModel)((IStructuredSelection)selection).getFirstElement();
+							HistoryManager.getInstance().add(getPeerTypeId(), peerModel.getPeerId());
+							ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
+							if (selService != null) {
+								selService.setDefaultSelection(peerModel);
+							}
+
+						}
 					}
 				}
 			}
