@@ -1,5 +1,5 @@
 /**
- * IModuleLoadDataProperties.java
+ * IStepAttributes.java
  * Created on Jul 2, 2013
  *
  * Copyright (c) 2013 Wind River Systems, Inc.
@@ -11,7 +11,7 @@
 package org.eclipse.tcf.te.tcf.locator.interfaces;
 
 /**
- * Keys for module load data.
+ * Step attribute keys.
  */
 public interface IStepAttributes {
 
