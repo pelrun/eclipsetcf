@@ -255,6 +255,15 @@ public class PathMapService extends AbstractService implements IPathMapService {
         } else {
             config.setAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP + "V1", bf1.toString()); //$NON-NLS-1$
         }
+
+        try {
+	        config.doSave();
+        }
+        catch (CoreException e) {
+    		if (Platform.inDebugMode()) {
+    			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(e.getStatus());
+    		}
+        }
     }
 
     /* (non-Javadoc)
