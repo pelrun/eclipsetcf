@@ -124,6 +124,8 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			// If not matching path map rule exist, create a new one
 			if (rule == null) {
 				Map<String, Object> props = new LinkedHashMap<String, Object>();
+				props.put(IPathMap.PROP_SOURCE, source);
+				props.put(IPathMap.PROP_DESTINATION, destination);
 				rule = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
 				rulesList.add(rule);
 
