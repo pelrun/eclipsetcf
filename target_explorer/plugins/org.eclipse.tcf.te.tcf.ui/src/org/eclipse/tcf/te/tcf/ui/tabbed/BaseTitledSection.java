@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.Section;
@@ -113,6 +114,15 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 		}
     }
 
+	/**
+	 * Returns the standard label width of the properties section.
+	 *
+	 * @return The standard label width.
+	 */
+	protected int getStandardLabelWidth() {
+		return STANDARD_LABEL_WIDTH;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.views.properties.tabbed.AbstractPropertySection#createControls(org.eclipse.swt.widgets.Composite, org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage)
@@ -127,7 +137,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, ITabbedPropertyConstants.HMARGIN);
 		data.right = new FormAttachment(100, -ITabbedPropertyConstants.HMARGIN);
-		data.top = new FormAttachment(0, 2 * ITabbedPropertyConstants.VMARGIN);
+		data.top = new FormAttachment(0, 2 * ITabbedPropertyConstants.VSPACE);
 		section.setLayoutData(data);
 
 		composite = getWidgetFactory().createComposite(parent);
@@ -147,14 +157,18 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 * Create a label for the control using the specified text.
 	 *
 	 * @param control The control for which the label is created.
-	 * @param text The label text.
+	 * @param text The label text. Must not be <code>null</code>.
 	 */
 	protected CLabel createLabel(Control control, String text) {
+		Assert.isNotNull(control);
+		Assert.isNotNull(text);
+
 		CLabel nameLabel = getWidgetFactory().createCLabel(composite, text);
 		FormData data = new FormData();
 		data.left = new FormAttachment(0, 0);
 		data.right = new FormAttachment(control, -ITabbedPropertyConstants.HSPACE);
 		data.top = new FormAttachment(control, 0, SWT.CENTER);
+		data.width = SWTControlUtil.convertWidthInCharsToPixels(nameLabel, text.length() + 2);
 		nameLabel.setLayoutData(data);
 		return nameLabel;
 	}
@@ -184,7 +198,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	protected Button createCheckbox(Control control, String label) {
 		Button check = getWidgetFactory().createButton(composite, label, SWT.CHECK);
 		FormData data = new FormData();
-		data.left = new FormAttachment(0, STANDARD_LABEL_WIDTH);
+		data.left = new FormAttachment(0, getStandardLabelWidth());
 		data.right = new FormAttachment(100, 0);
 		if (control == null) {
 			data.top = new FormAttachment(0, ITabbedPropertyConstants.VSPACE);
@@ -218,9 +232,9 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 * @return The new text field created.
 	 */
 	protected Text createText(Control control) {
-		Text text = getWidgetFactory().createText(composite, ""); //$NON-NLS-1$
+		Text text = getWidgetFactory().createText(composite, "", SWT.SINGLE | SWT.NO_FOCUS); //$NON-NLS-1$
 		FormData data = new FormData();
-		data.left = new FormAttachment(0, STANDARD_LABEL_WIDTH);
+		data.left = new FormAttachment(0, getStandardLabelWidth());
 		data.right = new FormAttachment(100, 0);
 		if (control == null) {
 			data.top = new FormAttachment(0, ITabbedPropertyConstants.VSPACE);
@@ -240,9 +254,9 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 * @return The new wrap text field created.
 	 */
 	protected Text createWrapText(Control control) {
-		Text text = getWidgetFactory().createText(composite, "", SWT.WRAP); //$NON-NLS-1$
+		Text text = getWidgetFactory().createText(composite, "", SWT.WRAP | SWT.NO_FOCUS); //$NON-NLS-1$
 		FormData data = new FormData();
-		data.left = new FormAttachment(0, STANDARD_LABEL_WIDTH);
+		data.left = new FormAttachment(0, getStandardLabelWidth());
 		data.right = new FormAttachment(100, 0);
 		if (control == null) {
 			data.top = new FormAttachment(0, ITabbedPropertyConstants.VSPACE);
