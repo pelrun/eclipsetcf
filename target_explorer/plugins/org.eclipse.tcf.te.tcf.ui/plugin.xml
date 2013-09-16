@@ -260,7 +260,7 @@
       <actionSet
             id="org.eclipse.tcf.te.tcf.ui.launch.gettingStartedActionSet"
             label="Getting Started Action Set (Target Explorer)"
-            visible="true">
+            visible="false">
          <action
                class="org.eclipse.tcf.te.tcf.ui.actions.ToolbarAction"
                helpContextId="org.eclipse.tcf.te.tcf.ui.command_ToolbarAction"
@@ -271,6 +271,15 @@
                toolbarPath="org.eclipse.debug.ui.launchActionSet/emptyLaunchGroup">
          </action>
       </actionSet>
+   </extension>
+
+<!-- Perspective contributions -->
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.tcf.te.ui.perspective">
+         <actionSet
+               id="org.eclipse.tcf.te.tcf.ui.launch.gettingStartedActionSet">
+         </actionSet>
+      </perspectiveExtension>
    </extension>
 
 <!-- Editor page contributions -->
