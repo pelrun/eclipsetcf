@@ -99,6 +99,9 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	// The streams proxy instance
 	private IProcessStreamsProxy streamsProxy = null;
 
+	// The active token.
+	IToken activeToken = null;
+
 	/**
 	 * Constructor.
 	 */
@@ -198,6 +201,23 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 		if (Protocol.isDispatchThread()) runnable.run();
 		else Protocol.invokeAndWait(runnable);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher#cancel()
+	 */
+	@Override
+	public void cancel() {
+		if (activeToken != null && (callback == null || !callback.isDone())) {
+			final IToken token = activeToken;
+			activeToken = null;
+	    	Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+			    	token.cancel();
+				}
+			});
+		}
 	}
 
 	/**
@@ -811,19 +831,23 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		// Get the process attributes
 		String processPath = properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH);
 
+		Boolean processArgsAsIs = (Boolean)properties.getProperty(IProcessLauncher.PROP_USE_PROCESS_ARGS_AS_IS);
 		String[] processArgs = (String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS);
 		// Assure that the first argument is the process path itself
 		if (!(processArgs != null && processArgs.length > 0 && processPath.equals(processArgs[0]))) {
 			// Prepend the process path to the list of arguments
 			List<String> args = processArgs != null ? new ArrayList<String>(Arrays.asList(processArgs)) : new ArrayList<String>();
-			args.add(0, processPath);
+			if (processArgsAsIs == null || !processArgsAsIs.booleanValue()) {
+				args.add(0, processPath);
+			}
 			processArgs = args.toArray(new String[args.size()]);
 		}
 
+		Boolean processCWDAsIs = (Boolean)properties.getProperty(IProcessLauncher.PROP_USE_PROCESS_CWD_AS_IS);
 		String processCWD = properties.getStringProperty(IProcessLauncher.PROP_PROCESS_CWD);
 		// If the process working directory is not explicitly set, default to the process path directory
 		if (processCWD == null || "".equals(processCWD.trim())) { //$NON-NLS-1$
-			processCWD = new Path(processPath).removeLastSegments(1).toString();
+			processCWD = (processCWDAsIs == null || !processCWDAsIs.booleanValue()) ? new Path(processPath).removeLastSegments(1).toString() : ""; //$NON-NLS-1$
 		}
 
 		// Merge the initial process environment and the desired process environment
@@ -869,9 +893,10 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
                 params.put(IProcessesV1.START_USE_TERMINAL, Boolean.valueOf(processConsole));
             }
 
-            ((IProcessesV1)getSvcProcesses()).start(processCWD, processPath, processArgs, processEnv, params, new IProcesses.DoneStart() {
+            activeToken = ((IProcessesV1)getSvcProcesses()).start(processCWD, processPath, processArgs, processEnv, params, new IProcesses.DoneStart() {
 				@Override
 				public void doneStart(IToken token, Exception error, ProcessContext process) {
+					activeToken = null;
 					if (error != null) {
 						// Construct the error message to show to the user
 						String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
@@ -890,9 +915,10 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				}
 			});
 		} else {
-			getSvcProcesses().start(processCWD, processPath, processArgs, processEnv, attach, new IProcesses.DoneStart() {
+			activeToken = getSvcProcesses().start(processCWD, processPath, processArgs, processEnv, attach, new IProcesses.DoneStart() {
 				@Override
 				public void doneStart(IToken token, Exception error, ProcessContext process) {
+					activeToken = null;
 					if (error != null) {
 						// Construct the error message to show to the user
 						String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,

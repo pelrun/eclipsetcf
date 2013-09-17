@@ -24,4 +24,9 @@ public interface ITcfStepAttributes {
 	 * Launch configuration attribute: The TCF channel.
 	 */
 	public static final String ATTR_CHANNEL = ITcfStepAttributes.ATTR_PREFIX + ".channel"; //$NON-NLS-1$
+
+	/**
+	 * Launch configuration attribute: The token for a running TCF command.
+	 */
+	public static final String ATTR_RUNNING_TOKEN = ITcfStepAttributes.ATTR_PREFIX + ".running_token"; //$NON-NLS-1$
 }

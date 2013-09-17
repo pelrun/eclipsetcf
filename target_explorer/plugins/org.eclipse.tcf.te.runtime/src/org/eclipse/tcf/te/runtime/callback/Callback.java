@@ -53,11 +53,11 @@ public class Callback extends PropertiesContainer implements ICallback {
 	 * Condition tester for ExecutorsUtil to check whether the callback is done
 	 * or the {@link IProgressMonitor} is canceled.
 	 */
-	private class CallbackDoneConditionTester implements IConditionTester {
-		final ICallback callback;
-		final IProgressMonitor monitor;
-		int cancelTimeout = -1;
-		long cancelTime = -1;
+	public static class CallbackDoneConditionTester implements IConditionTester {
+		protected final ICallback callback;
+		protected final IProgressMonitor monitor;
+		protected int cancelTimeout = -1;
+		protected long cancelTime = -1;
 
 		/**
 		 * Constructor.

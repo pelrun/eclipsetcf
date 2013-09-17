@@ -186,4 +186,11 @@ public abstract class AbstractStep extends ExecutableExtension implements IStep 
 		// default timeout is 1 minute
 	    return 60000;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#cancel(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
+	 */
+	@Override
+	public void cancel(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) {
+	}
 }

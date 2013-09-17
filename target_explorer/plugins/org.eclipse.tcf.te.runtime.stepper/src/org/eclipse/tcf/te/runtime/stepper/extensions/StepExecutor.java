@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.interfaces.IConditionTester;
 import org.eclipse.tcf.te.runtime.interfaces.ISharedConstants;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.activator.CoreBundleActivator;
@@ -73,7 +74,7 @@ public class StepExecutor implements IStepExecutor {
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepExecutor#execute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStep, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	public final void execute(final IStep step, IFullQualifiedId id, final IStepContext context, final IPropertiesContainer data, IProgressMonitor progress) throws CoreException {
+	public final void execute(final IStep step, final IFullQualifiedId id, final IStepContext context, final IPropertiesContainer data, IProgressMonitor progress) throws CoreException {
 		Assert.isNotNull(step);
 		Assert.isNotNull(id);
 		Assert.isNotNull(context);
@@ -104,9 +105,23 @@ public class StepExecutor implements IStepExecutor {
 			step.validateExecute(context, data, id, progress);
 			step.execute(context, data, id, progress, callback);
 
+			IConditionTester conditionTester = new Callback.CallbackDoneConditionTester(callback, progress, step.getCancelTimeout()) {
+				boolean cancelCalled = false;
+				/* (non-Javadoc)
+				 * @see org.eclipse.tcf.te.runtime.callback.Callback.CallbackDoneConditionTester#isConditionFulfilled()
+				 */
+				@Override
+				public boolean isConditionFulfilled() {
+					if (!cancelCalled && monitor != null && monitor.isCanceled()) {
+						cancelCalled = true;
+						step.cancel(context, data, id, monitor);
+					}
+				    return super.isConditionFulfilled();
+				}
+			};
 			// Wait till the step finished, an execution occurred or the
 			// user hit cancel on the progress monitor.
-			ExecutorsUtil.waitAndExecute(0, callback.getDoneConditionTester(progress, step.getCancelTimeout()));
+			ExecutorsUtil.waitAndExecute(0, conditionTester);
 
 			if (callback.getStatus() == null || callback.getStatus().isOK()) {
 				return;

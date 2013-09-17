@@ -102,6 +102,18 @@ public interface IStep extends IExecutableExtension {
 	public void cleanup(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor);
 
 	/**
+	 * Cancel the current execute.
+	 * <p>
+	 * This method will be called when the stepper gets canceled.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param data The data. Must not be <code>null</code>.
+	 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
+	 * @param monitor The progress monitor. Must not be <code>null</code>.
+	 */
+	public void cancel(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor);
+
+	/**
 	 * Called from the stepper engine once an error occurred during the stepping. Gives each step,
 	 * completed previously to the error, the possibility to rollback whatever the step did.
 	 * <p>

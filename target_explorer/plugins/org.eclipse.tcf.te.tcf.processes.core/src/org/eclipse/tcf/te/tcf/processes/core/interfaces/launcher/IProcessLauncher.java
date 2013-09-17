@@ -52,11 +52,25 @@ public interface IProcessLauncher extends IAdaptable {
 	public static String PROP_PROCESS_ARGS = "process.args"; //$NON-NLS-1$
 
 	/**
+	 * Property specify the process arguments should be used as is.
+	 * if <code>False</code>, the process image name would be added as the first argument if not already set.
+	 * The property type is {@link Boolean}.
+	 */
+	public static String PROP_USE_PROCESS_ARGS_AS_IS = "use.process.args.as.is"; //$NON-NLS-1$
+
+	/**
 	 * Property denoting the process working directory.
 	 * <p>
 	 * The property type is {@link String}.
 	 */
 	public static String PROP_PROCESS_CWD = "process.cwd"; //$NON-NLS-1$
+
+	/**
+	 * Property specify the process working directory should be used as is.
+	 * if <code>False</code>, an empty cwd would be replaced by the path of the process image.
+	 * The property type is {@link Boolean}.
+	 */
+	public static String PROP_USE_PROCESS_CWD_AS_IS = "use.process.cwd.as.is"; //$NON-NLS-1$
 
 	/**
 	 * Property denoting the process environment.
@@ -131,4 +145,9 @@ public interface IProcessLauncher extends IAdaptable {
 	 * Terminates the launched remote process (if still running).
 	 */
 	public void terminate();
+
+	/**
+	 * Cancels a remote process launch (if callback was not already sent)
+	 */
+	public void cancel();
 }
