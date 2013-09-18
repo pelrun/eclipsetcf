@@ -32,11 +32,12 @@ public interface ISelectionService extends IService {
 
 	/**
 	 * Return a list of possible peer model node candidates.
-	 * The Se
+	 * <p>
 	 * If a selection is given and the filter applies, it will be used as the first element(s).
 	 * Otherwise if a default selection was set using setDefaultSelection(IPeerModel)
 	 * and the filter applies, it will be used as the first element.
 	 * UI implementations of the service should then check the current editor and the system management selection.
+	 *
 	 * @param currentSelection The current selection (i.e. from a command handler) or <code>null</code>.
 	 * @param filter The filter for the peer model node candidates or <code>null</code>
 	 * @return Array of peer model nodes or an empty array.
@@ -45,12 +46,14 @@ public interface ISelectionService extends IService {
 
 	/**
 	 * Set a new default selection.
+	 *
 	 * @param peerModel The default peer model node or <code>null</code> to reset the default.
 	 */
 	public void setDefaultSelection(IPeerModel peerModel);
 
 	/**
 	 * Get the default selection.
+	 *
 	 * @param filter The filter for the peer model node candidates or <code>null</code>
 	 * @return The set default selection if set and the filter applies, <code>null</code> otherwise.
 	 */
