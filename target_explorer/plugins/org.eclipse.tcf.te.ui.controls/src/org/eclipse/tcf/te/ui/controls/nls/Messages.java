@@ -121,6 +121,9 @@ public class Messages extends NLS {
 	public static String DirectoryNameValidator_Error_IsRelativ;
 	public static String DirectoryNameValidator_Error_IsAbsolut;
 
+	public static String TargetPathValidator_Information_MissingTargetPath;
+	public static String TargetPathValidator_Error_InvalidTargetPath;
+
 	public static String RegexValidator_Information_MissingValue;
 	public static String RegexValidator_Error_InvalidValue;
 
