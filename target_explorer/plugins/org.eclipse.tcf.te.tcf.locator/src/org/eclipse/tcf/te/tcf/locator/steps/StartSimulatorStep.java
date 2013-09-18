@@ -12,10 +12,14 @@ package org.eclipse.tcf.te.tcf.locator.steps;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
 /**
@@ -41,7 +45,21 @@ public class StartSimulatorStep extends AbstractPeerModelStep {
 	 */
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
-		SimulatorUtils.start(getActivePeerModelContext(context, data, fullQualifiedId), monitor, callback);
+		SimulatorUtils.start(getActivePeerModelContext(context, data, fullQualifiedId), monitor, new Callback(callback) {
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.te.runtime.callback.Callback#internalDone(java.lang.Object, org.eclipse.core.runtime.IStatus)
+			 */
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				if (!ProgressHelper.isCancelOrError(caller, status, monitor, null)) {
+					ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
+					if (selService != null) {
+						selService.setDefaultSelection(getActivePeerModelContext(context, data, fullQualifiedId));
+					}
+				}
+			    super.internalDone(caller, status);
+			}
+		});
 	}
 
 	/* (non-Javadoc)

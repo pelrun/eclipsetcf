@@ -9,9 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.wizards;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
@@ -20,6 +23,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.wizards.pages.AbstractConfigWizardPage;
@@ -75,34 +79,45 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 		// If auto-connect is switched off, we are done here.
 		if (!autoConnect) return;
 
-		// Connect the connection
-		IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperService.class, false);
-		IStepperService stepperService = null;
-		for (IService service : services) {
-			if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.CONNECT)) {
-				stepperService = (IStepperService)service;
-				break;
+		// Attach the debugger
+		final AtomicBoolean attachDebugger = new AtomicBoolean();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				attachDebugger.set(Boolean.parseBoolean(peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_AUTO_START_DEBUGGER)));
 			}
-        }
-		if (stepperService != null) {
-			String stepGroupId = stepperService.getStepGroupId(peerModel, IStepperServiceOperations.CONNECT);
-			IStepContext stepContext = stepperService.getStepContext(peerModel, IStepperServiceOperations.CONNECT);
-			String name = stepperService.getStepGroupName(peerModel, IStepperServiceOperations.CONNECT);
-			IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.CONNECT);
+		});
 
-			if (stepGroupId != null && stepContext != null) {
-				try {
-					StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-													stepContext,
-													data,
-													stepGroupId,
-													IStepperServiceOperations.CONNECT,
-													true);
+		if (attachDebugger.get()) {
+			IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperService.class, false);
+			IStepperService stepperService = null;
+			for (IService service : services) {
+				if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER)) {
+					stepperService = (IStepperService)service;
+					break;
+				}
+	        }
+			if (stepperService != null) {
+				String stepGroupId = stepperService.getStepGroupId(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				IStepContext stepContext = stepperService.getStepContext(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				String name = stepperService.getStepGroupName(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				boolean enabled = stepperService.isEnabled(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
 
-					job.schedule();
-				} catch (IllegalStateException e) {
-					if (Platform.inDebugMode()) {
-						UIPlugin.getDefault().getLog().log(StatusHelper.getStatus(e));
+				if (enabled && stepGroupId != null && stepContext != null) {
+					try {
+						StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
+														stepContext,
+														data,
+														stepGroupId,
+														IStepperServiceOperations.ATTACH_DEBUGGER,
+														true);
+
+						job.schedule();
+					} catch (IllegalStateException e) {
+						if (Platform.inDebugMode()) {
+							UIPlugin.getDefault().getLog().log(StatusHelper.getStatus(e));
+						}
 					}
 				}
 			}

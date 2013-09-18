@@ -31,7 +31,8 @@ public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.
 	@Override
 	public boolean isHandledOperation(Object context, String operation) {
 		return IStepperServiceOperations.CONNECT.equals(operation) ||
-						IStepperServiceOperations.DISCONNECT.equals(operation);
+						IStepperServiceOperations.DISCONNECT.equals(operation) ||
+						IStepperServiceOperations.ATTACH_DEBUGGER.equals(operation);
 	}
 
 	/* (non-Javadoc)
@@ -41,7 +42,7 @@ public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.
 	public String getStepGroupId(Object context, String operation) {
 		Assert.isTrue(context instanceof IPeerModel);
 
-		if (IStepperServiceOperations.CONNECT.equals(operation)) {
+		if (IStepperServiceOperations.CONNECT.equals(operation) || IStepperServiceOperations.ATTACH_DEBUGGER.equals(operation)) {
 			return "org.eclipse.tcf.te.tcf.locator.connectStepGroup"; //$NON-NLS-1$
 		}
 		if (IStepperServiceOperations.DISCONNECT.equals(operation)) {
@@ -64,6 +65,9 @@ public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.
 		if (IStepperServiceOperations.DISCONNECT.equals(operation)) {
 			return "Disconnect "+((IPeerModel)context).getName(); //$NON-NLS-1$
 		}
+		if (IStepperServiceOperations.ATTACH_DEBUGGER.equals(operation)) {
+			return "Attach Debugger to "+((IPeerModel)context).getName(); //$NON-NLS-1$
+		}
 
 		return null;
 	}
@@ -73,6 +77,6 @@ public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.
 	 */
 	@Override
 	public boolean isCancelable(Object context, String operation) {
-		return IStepperServiceOperations.CONNECT.equals(operation);
+		return IStepperServiceOperations.CONNECT.equals(operation) || IStepperServiceOperations.ATTACH_DEBUGGER.equals(operation);
 	}
 }
