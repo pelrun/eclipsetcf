@@ -16,7 +16,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
@@ -24,7 +23,6 @@ import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
@@ -53,23 +51,7 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 			return;
 		}
 		super.setInput(input);
-		if (getEditorInputNode() instanceof IPeerModel) {
-			// save history to reopen the editor on eclipse startup
-			HistoryManager.getInstance().add(getHistoryId(), ((IPeerModel)getEditorInputNode()).getPeerId());
-			ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
-			if (selService != null) {
-				selService.setDefaultSelection((IPeerModel)getEditorInputNode());
-			}
-		}
 	}
-
-	/**
-	 * Returns the history id to use to save the editor to the
-	 * history manager.
-	 *
-	 * @return The history id. Never <code>null</code>.
-	 */
-	protected abstract String getHistoryId();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#hasApplyAction()

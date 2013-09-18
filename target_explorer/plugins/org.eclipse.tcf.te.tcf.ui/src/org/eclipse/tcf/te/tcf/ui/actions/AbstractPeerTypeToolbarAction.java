@@ -40,11 +40,9 @@ import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.dialogs.AgentSelectionDialog;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
@@ -265,11 +263,6 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 					}
 					catch (PartInitException e) {
 					}
-					HistoryManager.getInstance().add(getPeerTypeId(), peerModel.getPeerId());
-					ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
-					if (selService != null) {
-						selService.setDefaultSelection(peerModel);
-					}
 				}
 			};
 			if (labelProvider != null) {
@@ -327,15 +320,6 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 							page.openEditor(input, IUIConstants.ID_EDITOR);
 						}
 						catch (PartInitException e) {
-						}
-						if (((IStructuredSelection)selection).getFirstElement() instanceof IPeerModel) {
-							IPeerModel peerModel = (IPeerModel)((IStructuredSelection)selection).getFirstElement();
-							HistoryManager.getInstance().add(getPeerTypeId(), peerModel.getPeerId());
-							ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
-							if (selService != null) {
-								selService.setDefaultSelection(peerModel);
-							}
-
 						}
 					}
 				}
