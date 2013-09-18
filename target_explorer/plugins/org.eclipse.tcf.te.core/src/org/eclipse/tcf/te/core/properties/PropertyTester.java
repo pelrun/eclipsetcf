@@ -77,6 +77,28 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 			return hasEnvVar == ((Boolean)expectedValue).booleanValue();
 		}
 
+		// "envVar" tests for the value of a system property or environment variable
+		// with the name passed in via the arguments.
+		if ("envVar".equals(property)) { //$NON-NLS-1$
+			String value = null;
+
+			String name = null;
+			for (Object arg : args) {
+				if (arg instanceof String) {
+					name = (String)arg;
+					break;
+				}
+			}
+
+			if (name != null) {
+				value = System.getProperty(name);
+				if (value == null) value = System.getenv(name);
+			}
+
+			// Always check against the string value
+			return value != null ? expectedValue.toString().equals(value) : false;
+		}
+
 	    return false;
 	}
 }

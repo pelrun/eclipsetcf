@@ -26,6 +26,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 
 /**
@@ -37,7 +38,7 @@ public class ActiveConnectionStatusTrimControl extends WorkbenchWindowControlCon
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.action.ControlContribution#createControl(org.eclipse.swt.widgets.Composite)
 	 */
-	@Override
+    @Override
 	protected Control createControl(Composite parent) {
 		Composite panel = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
@@ -46,6 +47,8 @@ public class ActiveConnectionStatusTrimControl extends WorkbenchWindowControlCon
 
 		text = new Text(panel, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		text.setForeground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+		text.setToolTipText(Messages.ActiveConnectionStatusTrimControl_tooltip);
 
 		String selected = ""; //$NON-NLS-1$
 
@@ -91,6 +94,15 @@ public class ActiveConnectionStatusTrimControl extends WorkbenchWindowControlCon
 			}
 
 			SWTControlUtil.setText(text, selected);
+			getParent().update(true);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.action.ContributionItem#isDynamic()
+	 */
+	@Override
+	public boolean isDynamic() {
+	    return true;
 	}
 }

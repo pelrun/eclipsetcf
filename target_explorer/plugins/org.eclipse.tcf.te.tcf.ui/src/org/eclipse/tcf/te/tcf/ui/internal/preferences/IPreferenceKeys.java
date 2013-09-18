@@ -32,4 +32,9 @@ public interface IPreferenceKeys {
 	 * Preference key to access the flag to activate the current user filter on first launch.
 	 */
 	public static final String PREF_ACTIVATE_CURRENT_USER_FILTER = PREFIX + "model.currentUserFilter.activate"; //$NON-NLS-1$
+
+	/**
+	 * Preference key to access the flag to enable the active connection status bar trim area.
+	 */
+	public static final String PREF_ACTIVE_CONNECTION_TRIM_AREA_ENABLE = PREFIX + "feature.statusbar.trim.activeconnection.enable"; //$NON-NLS-1$
 }

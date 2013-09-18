@@ -460,6 +460,20 @@
             <control
                   class="org.eclipse.tcf.te.tcf.ui.controls.ActiveConnectionStatusTrimControl"
                   id="org.eclipse.tcf.te.tcf.ui.trim.status.ActiveConnectionStatusTrimControl">
+               <visibleWhen checkEnabled="false">
+                  <or>
+                     <test
+                           property="org.eclipse.tcf.te.runtime.preference"
+                           args="bundleId=org.eclipse.tcf.te.tcf.ui,key=te.tcf.ui.feature.statusbar.trim.activeconnection.enable"
+                           value="true">
+                     </test>
+                     <test
+                           property="org.eclipse.tcf.te.core.hasEnvVar"
+                           args="trim.activeconnection.enable"
+                           value="true">
+                     </test>
+                  </or>
+               </visibleWhen>
             </control>
          </toolbar>
       </menuContribution>

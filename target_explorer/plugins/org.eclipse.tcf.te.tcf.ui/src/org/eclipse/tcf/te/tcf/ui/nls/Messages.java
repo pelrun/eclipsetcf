@@ -241,4 +241,5 @@ public class Messages extends NLS {
 	public static String PeerImportWizardPage_overwriteDialogToggle_message;
 
 	public static String ActiveConnectionStatusTrimControl_label;
+	public static String ActiveConnectionStatusTrimControl_tooltip;
 }

@@ -37,5 +37,7 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(IPreferenceKeys.PREF_HIDE_VALUEADDS, true);
 		// [Hidden] Activate current user filter: default off
 		store.setDefault(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER, false);
+		// [Hidden] Enable active connection status bar trim area: default off
+		store.setDefault(IPreferenceKeys.PREF_ACTIVE_CONNECTION_TRIM_AREA_ENABLE, false);
 	}
 }

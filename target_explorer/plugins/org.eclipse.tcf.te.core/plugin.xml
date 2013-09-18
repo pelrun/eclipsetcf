@@ -18,7 +18,7 @@
             class="org.eclipse.tcf.te.core.properties.PropertyTester"
             id="org.eclipse.tcf.te.core.properties.PropertyTester"
             namespace="org.eclipse.tcf.te.core"
-            properties="hasAdapter,canAdaptTo,hasEnvVar"
+            properties="hasAdapter,canAdaptTo,hasEnvVar,envVar"
             type="java.lang.Object">
       </propertyTester>
       
