@@ -118,6 +118,10 @@
 				<enabled>true</enabled>
 			</releases>
 		</pluginRepository>
+		<pluginRepository>                                                                                         
+			<id>cbi</id>                                                                                         
+			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>                                             
+		</pluginRepository>
 	</pluginRepositories>
 
 	<build>
