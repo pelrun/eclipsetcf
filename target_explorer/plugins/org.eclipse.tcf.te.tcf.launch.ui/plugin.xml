@@ -183,7 +183,7 @@
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
    <!-- Project explorer menu contributions -->
-      <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?before=additions">
+      <!--menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?before=additions">
          <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
          <command
                commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
@@ -243,10 +243,10 @@
                </with>
             </visibleWhen>
          </command>
-      </menuContribution>
+      </menuContribution -->
       
    <!-- Target explorer menu contributions -->
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?before=additions">
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.launch.rundebug">
          <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
          <command
                commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"

@@ -102,7 +102,7 @@ public class LaunchConfigTypeBindingsManager {
 		return (launchConfigType != null &&
 						(selection.getLaunchMode() == null || launchConfigType.supportsMode(selection.getLaunchMode())) &&
 						binding != null && binding.validate(selection) == EvaluationResult.TRUE &&
-						(unBinding == null || unBinding.validate(selection) == EvaluationResult.FALSE));
+						(unBinding == null || unBinding.validate(selection) != EvaluationResult.TRUE));
 	}
 
 	/**
@@ -121,8 +121,8 @@ public class LaunchConfigTypeBindingsManager {
 		ILaunchConfigurationType launchConfigType = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurationType(typeId);
 		return (launchConfigType != null &&
 						(mode == null || launchConfigType.supportsMode(mode)) &&
-						binding != null && binding.validate(mode, context) != EvaluationResult.FALSE &&
-						(unBinding == null || unBinding.validate(mode, context) == EvaluationResult.FALSE));
+						binding != null && binding.validate(mode, context) == EvaluationResult.TRUE &&
+						(unBinding == null || unBinding.validate(mode, context) != EvaluationResult.TRUE));
 	}
 
 	/**
