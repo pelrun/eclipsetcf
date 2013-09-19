@@ -99,8 +99,8 @@
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>maven.eclipse.org</id>
-     		<url>http://maven.eclipse.org/nexus/content/repositories/public</url>
+			<id>repo.eclipse.org</id>
+     		<url>http://repo.eclipse.org/content/repositories</url>
   			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
@@ -117,10 +117,6 @@
 			<releases>
 				<enabled>true</enabled>
 			</releases>
-		</pluginRepository>
-		<pluginRepository>                                                                                         
-			<id>cbi</id>                                                                                         
-			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>                                             
 		</pluginRepository>
 	</pluginRepositories>
 
