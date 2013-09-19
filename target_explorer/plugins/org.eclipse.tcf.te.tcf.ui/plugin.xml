@@ -56,11 +56,11 @@
 <!-- Service contributions -->
    <extension point="org.eclipse.tcf.te.runtime.services.services">
       <service
-            class="org.eclipse.tcf.te.tcf.ui.internal.services.SelectionService"
-            id="org.eclipse.tcf.te.tcf.ui.services.SelectionService">
+            class="org.eclipse.tcf.te.tcf.ui.internal.services.DefaultContextService"
+            id="org.eclipse.tcf.te.tcf.ui.services.DefaultContextService">
          <serviceType
                bundleId="org.eclipse.tcf.te.tcf.locator"
-               class="org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService"/>
+               class="org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService"/>
       </service>
    </extension>
    
@@ -458,18 +458,18 @@
       <menuContribution locationURI="toolbar:org.eclipse.ui.trim.status">
          <toolbar id="org.eclipse.tcf.te.tcf.ui.trim.status.activeconnection">
             <control
-                  class="org.eclipse.tcf.te.tcf.ui.controls.ActiveConnectionStatusTrimControl"
-                  id="org.eclipse.tcf.te.tcf.ui.trim.status.ActiveConnectionStatusTrimControl">
+                  class="org.eclipse.tcf.te.tcf.ui.controls.DefaultContextStatusTrimControl"
+                  id="org.eclipse.tcf.te.tcf.ui.trim.status.DefaultContextStatusTrimControl">
                <visibleWhen checkEnabled="false">
                   <or>
                      <test
                            property="org.eclipse.tcf.te.runtime.preference"
-                           args="bundleId=org.eclipse.tcf.te.tcf.ui,key=te.tcf.ui.feature.statusbar.trim.activeconnection.enable"
+                           args="bundleId=org.eclipse.tcf.te.tcf.ui,key=te.tcf.ui.feature.statusbar.trim.defaultcontext.enable"
                            value="true">
                      </test>
                      <test
                            property="org.eclipse.tcf.te.core.hasEnvVar"
-                           args="trim.activeconnection.enable"
+                           args="trim.defaultcontext.enable"
                            value="true">
                      </test>
                   </or>

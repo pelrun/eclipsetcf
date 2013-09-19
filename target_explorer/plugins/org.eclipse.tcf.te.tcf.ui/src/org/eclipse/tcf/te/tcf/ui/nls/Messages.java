@@ -240,6 +240,6 @@ public class Messages extends NLS {
 	public static String PeerImportWizardPage_overwriteDialog_message;
 	public static String PeerImportWizardPage_overwriteDialogToggle_message;
 
-	public static String ActiveConnectionStatusTrimControl_label;
-	public static String ActiveConnectionStatusTrimControl_tooltip;
+	public static String DefaultContextStatusTrimControl_label;
+	public static String DefaultContextStatusTrimControl_tooltip;
 }

@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.tcf.ui.listeners;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -71,11 +71,8 @@ public class WorkbenchPartListener implements IPartListener2 {
 				if (part != null) {
 					IPeerModel peerModel = (IPeerModel)Platform.getAdapterManager().getAdapter(part.getEditorInput(), IPeerModel.class);
 					if (peerModel != null) {
-						ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
-						if (selService != null) {
-							selService.setDefaultSelection(peerModel);
-						}
-
+						IDefaultContextService service = ServiceManager.getInstance().getService(IDefaultContextService.class);
+						if (service != null) service.setDefaultContext(peerModel);
 					}
 				}
 			}

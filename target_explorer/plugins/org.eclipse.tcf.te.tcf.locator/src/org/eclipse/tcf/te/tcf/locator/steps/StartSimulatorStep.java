@@ -19,7 +19,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
 /**
@@ -52,10 +52,8 @@ public class StartSimulatorStep extends AbstractPeerModelStep {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
 				if (!ProgressHelper.isCancelOrError(caller, status, monitor, null)) {
-					ISelectionService selService = ServiceManager.getInstance().getService(ISelectionService.class);
-					if (selService != null) {
-						selService.setDefaultSelection(getActivePeerModelContext(context, data, fullQualifiedId));
-					}
+					IDefaultContextService service = ServiceManager.getInstance().getService(IDefaultContextService.class);
+					if (service != null) service.setDefaultContext(getActivePeerModelContext(context, data, fullQualifiedId));
 				}
 			    super.internalDone(caller, status);
 			}

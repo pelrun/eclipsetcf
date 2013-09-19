@@ -28,8 +28,8 @@ import org.eclipse.tcf.te.tcf.core.interfaces.IPeerType;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -37,26 +37,26 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
- * Selection service implementation.
+ * Default context service implementation.
  */
-public class SelectionService extends AbstractService implements ISelectionService {
+public class DefaultContextService extends AbstractService implements IDefaultContextService {
 
 	/**
-	 * Part id: System Manager view
+	 * Part id: System Management view
 	 */
 	private static final String PART_ID_TE_VIEW = "org.eclipse.tcf.te.ui.views.View"; //$NON-NLS-1$
 
 	/**
 	 * Constructor.
 	 */
-	public SelectionService() {
+	public DefaultContextService() {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.interfaces.services.ISelectionService#getCandidates(java.lang.Object, com.windriver.te.tcf.core.interfaces.services.ISelectionService.ISelectionFilter)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService#getCandidates(java.lang.Object, org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService.IContextFilter)
 	 */
 	@Override
-	public IPeerModel[] getCandidates(Object currentSelection, ISelectionFilter filter) {
+	public IPeerModel[] getCandidates(Object currentSelection, IContextFilter filter) {
 		List<IPeerModel> candidates = new ArrayList<IPeerModel>();
 
 		// add given selection first
@@ -77,10 +77,10 @@ public class SelectionService extends AbstractService implements ISelectionServi
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.interfaces.services.ISelectionService#setDefaultSelection(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService#setDefaultContext(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
 	 */
 	@Override
-	public void setDefaultSelection(final IPeerModel peerModel) {
+	public void setDefaultContext(final IPeerModel peerModel) {
 		if (peerModel != null) {
 			HistoryManager.getInstance().add(getClass().getName(), peerModel.getPeerId());
 			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_ADDED, peerModel, peerModel));
@@ -109,10 +109,10 @@ public class SelectionService extends AbstractService implements ISelectionServi
 	}
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.core.interfaces.services.ISelectionService#getDefaultSelection(com.windriver.te.tcf.core.interfaces.services.ISelectionService.ISelectionFilter)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService#getDefaultContext(org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService.IContextFilter)
 	 */
 	@Override
-	public IPeerModel getDefaultSelection(ISelectionFilter filter) {
+	public IPeerModel getDefaultContext(IContextFilter filter) {
 		for (String peerId : HistoryManager.getInstance().getHistory(getClass().getName())) {
 			IPeerModel peerModel = addCandidate(getPeerModel(peerId), filter, null);
 			if (peerModel != null) {
@@ -124,7 +124,7 @@ public class SelectionService extends AbstractService implements ISelectionServi
 	}
 
 
-	private IPeerModel addCandidate(IPeerModel peerModel, ISelectionFilter filter, List<IPeerModel> candidates) {
+	private IPeerModel addCandidate(IPeerModel peerModel, IContextFilter filter, List<IPeerModel> candidates) {
 		if (peerModel != null && (filter == null || filter.select(peerModel))) {
 			if (candidates != null && !candidates.contains(peerModel)) {
 				candidates.add(peerModel);
@@ -135,7 +135,7 @@ public class SelectionService extends AbstractService implements ISelectionServi
 		return null;
 	}
 
-	private void addCandidates(IStructuredSelection selection, ISelectionFilter filter, List<IPeerModel> candidates) {
+	private void addCandidates(IStructuredSelection selection, IContextFilter filter, List<IPeerModel> candidates) {
 		if (selection != null) {
 			Iterator<Object> it = selection.iterator();
 			while (it.hasNext()) {
@@ -144,13 +144,13 @@ public class SelectionService extends AbstractService implements ISelectionServi
 		}
 	}
 
-	private void addCandidates(IPeerModel[] peerModels, ISelectionFilter filter, List<IPeerModel> candidates) {
+	private void addCandidates(IPeerModel[] peerModels, IContextFilter filter, List<IPeerModel> candidates) {
 		for (IPeerModel peerModel : peerModels) {
 			addCandidate(peerModel, filter, candidates);
 		}
 	}
 
-	private IPeerModel[] getDefaultSelections(ISelectionFilter filter) {
+	private IPeerModel[] getDefaultSelections(IContextFilter filter) {
 		List<IPeerModel> candidates = new ArrayList<IPeerModel>();
 
 		for (String peerId : HistoryManager.getInstance().getHistory(getClass().getName())) {

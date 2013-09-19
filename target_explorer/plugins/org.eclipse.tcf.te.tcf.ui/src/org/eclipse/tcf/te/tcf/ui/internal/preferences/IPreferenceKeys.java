@@ -34,7 +34,7 @@ public interface IPreferenceKeys {
 	public static final String PREF_ACTIVATE_CURRENT_USER_FILTER = PREFIX + "model.currentUserFilter.activate"; //$NON-NLS-1$
 
 	/**
-	 * Preference key to access the flag to enable the active connection status bar trim area.
+	 * Preference key to access the flag to enable the default context status bar trim area.
 	 */
-	public static final String PREF_ACTIVE_CONNECTION_TRIM_AREA_ENABLE = PREFIX + "feature.statusbar.trim.activeconnection.enable"; //$NON-NLS-1$
+	public static final String PREF_DEFAULT_CONTEXT_TRIM_AREA_ENABLE = PREFIX + "feature.statusbar.trim.defaultcontext.enable"; //$NON-NLS-1$
 }
