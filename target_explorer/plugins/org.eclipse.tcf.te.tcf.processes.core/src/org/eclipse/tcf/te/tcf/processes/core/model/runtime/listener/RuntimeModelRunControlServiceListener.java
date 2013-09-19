@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.core.model.runtime.listener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
@@ -68,8 +70,39 @@ public class RuntimeModelRunControlServiceListener implements RunControlListener
 		if (context_ids != null && context_ids.length > 0) {
 			IModelLookupService lkupService = model.getService(IModelLookupService.class);
 			IModelRefreshService refreshService = model.getService(IModelRefreshService.class);
+
+			// If we get a context ID like "P2.274154640", use the first part of the ID to
+			// refresh the parent context.
+			List<String> parentContextIDs = new ArrayList<String>();
+
 			for (String contextID : context_ids) {
+				if (contextID == null || "".equals(contextID.trim())) continue; //$NON-NLS-1$
+
 				IModelNode[] candidates = lkupService.lkupModelNodesById(contextID);
+				if (candidates != null && candidates.length > 0) {
+					for (IModelNode node : candidates) {
+						refreshService.refresh(node, null);
+					}
+				}
+
+				String[] parts = contextID.split("\\."); //$NON-NLS-1$
+				if (parts.length > 1) {
+					// Look for candidates for all parts. If found, than add the ID
+					// to the parent list
+					for (String partID : parts) {
+						candidates = lkupService.lkupModelNodesById(contextID);
+						if (candidates != null && candidates.length > 0) {
+							if (!parentContextIDs.contains(partID)) {
+								parentContextIDs.add(partID);
+							}
+						}
+					}
+				}
+			}
+
+			// Refresh all determined parent contexts
+			for (String parentContextID : parentContextIDs) {
+				IModelNode[] candidates = lkupService.lkupModelNodesById(parentContextID);
 				if (candidates != null && candidates.length > 0) {
 					for (IModelNode node : candidates) {
 						refreshService.refresh(node, null);
