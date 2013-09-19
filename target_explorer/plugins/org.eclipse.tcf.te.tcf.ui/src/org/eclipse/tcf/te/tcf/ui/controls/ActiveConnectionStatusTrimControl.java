@@ -10,18 +10,24 @@
 package org.eclipse.tcf.te.tcf.ui.controls;
 
 import java.util.EventObject;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ISelectionService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -33,7 +39,7 @@ import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
  * Default selection status bar trim control implementation.
  */
 public class ActiveConnectionStatusTrimControl extends WorkbenchWindowControlContribution implements IEventListener {
-	private Text text = null;
+	Text text = null;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.action.ControlContribution#createControl(org.eclipse.swt.widgets.Composite)
@@ -45,22 +51,33 @@ public class ActiveConnectionStatusTrimControl extends WorkbenchWindowControlCon
 		layout.marginHeight = 0; layout.marginWidth = 0;
 		panel.setLayout(layout);
 
-		text = new Text(panel, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		text = new Text(panel, SWT.SINGLE | SWT.READ_ONLY);
+		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, true);
+		gd.minimumWidth = 120;
+		text.setLayoutData(gd);
 		text.setForeground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
 		text.setToolTipText(Messages.ActiveConnectionStatusTrimControl_tooltip);
-
-		String selected = ""; //$NON-NLS-1$
 
 		ISelectionService service = ServiceManager.getInstance().getService(ISelectionService.class);
 		if (service != null) {
 			IPeerModel peerModel = service.getDefaultSelection(null);
-			if (peerModel != null) {
-				selected = NLS.bind(Messages.ActiveConnectionStatusTrimControl_label, peerModel.getName());
-			}
-		}
+			final AtomicReference<String> selected = new AtomicReference<String>();
 
-		text.setText(selected);
+			if (peerModel != null) {
+				IUIService uiService = ServiceManager.getInstance().getService(peerModel, IUIService.class);
+				ILabelProviderDelegate delegate = uiService != null ? uiService.getDelegate(peerModel, ILabelProviderDelegate.class) : null;
+				if (delegate == null) {
+					ILabelProvider provider = (ILabelProvider)Platform.getAdapterManager().getAdapter(peerModel, ILabelProvider.class);
+					if (provider instanceof ILabelProviderDelegate) {
+						delegate = (ILabelProviderDelegate)provider;
+					}
+				}
+				String label = delegate != null ? delegate.getText(peerModel) : peerModel.getName();
+				selected.set(NLS.bind(Messages.ActiveConnectionStatusTrimControl_label, label));
+			}
+
+			SWTControlUtil.setText(text, selected.get());
+		}
 
 		// Register as listener to the selection service
 		EventManager.getInstance().addEventListener(this, ChangeEvent.class, ISelectionService.class);
@@ -85,16 +102,12 @@ public class ActiveConnectionStatusTrimControl extends WorkbenchWindowControlCon
 	@Override
 	public void eventFired(EventObject event) {
 		if (event.getSource() instanceof ISelectionService) {
-			String selected = ""; //$NON-NLS-1$
-
-			ISelectionService service = (ISelectionService)event.getSource();
-			IPeerModel peerModel = service.getDefaultSelection(null);
-			if (peerModel != null) {
-				selected = NLS.bind(Messages.ActiveConnectionStatusTrimControl_label, peerModel.getName());
-			}
-
-			SWTControlUtil.setText(text, selected);
-			getParent().update(true);
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+	            public void run() {
+					getParent().update(true);
+				}
+			});
 		}
 	}
 
