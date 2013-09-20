@@ -10,8 +10,9 @@
 package org.eclipse.tcf.te.tcf.ui.controls;
 
 import java.util.EventObject;
-import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -23,6 +24,8 @@ import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -47,7 +50,9 @@ public class DefaultContextStatusTrimControl extends WorkbenchWindowControlContr
 		panel.setLayout(layout);
 
 		text = new Text(panel, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+		layoutData.minimumWidth = SWTControlUtil.convertWidthInCharsToPixels(text, 25);
+		text.setLayoutData(layoutData);
 		text.setForeground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
 		text.setToolTipText(Messages.DefaultContextStatusTrimControl_tooltip);
 
@@ -57,7 +62,15 @@ public class DefaultContextStatusTrimControl extends WorkbenchWindowControlContr
 		if (service != null) {
 			IPeerModel peerModel = service.getDefaultContext(null);
 			if (peerModel != null) {
-				selected = NLS.bind(Messages.DefaultContextStatusTrimControl_label, peerModel.getName());
+				IUIService uiService = ServiceManager.getInstance().getService(peerModel, IUIService.class);
+				ILabelProviderDelegate delegate = uiService != null ? uiService.getDelegate(peerModel, ILabelProviderDelegate.class) : null;
+				if (delegate == null) {
+					ILabelProvider provider = (ILabelProvider)Platform.getAdapterManager().getAdapter(peerModel, ILabelProvider.class);
+					if (provider instanceof ILabelProviderDelegate) {
+						delegate = (ILabelProviderDelegate)provider;
+					}
+				}
+				selected = NLS.bind(Messages.DefaultContextStatusTrimControl_label, delegate != null ? delegate.getText(peerModel) : peerModel.getName());
 			}
 		}
 
@@ -86,19 +99,9 @@ public class DefaultContextStatusTrimControl extends WorkbenchWindowControlContr
 	@Override
 	public void eventFired(EventObject event) {
 		if (event.getSource() instanceof IDefaultContextService) {
-			final AtomicReference<String> selected = new AtomicReference<String>(""); //$NON-NLS-1$
-
-			IDefaultContextService service = (IDefaultContextService)event.getSource();
-			IPeerModel peerModel = service.getDefaultContext(null);
-			if (peerModel != null) {
-				selected.set(NLS.bind(Messages.DefaultContextStatusTrimControl_label, peerModel.getName()));
-			}
-
 			Runnable runnable = new Runnable() {
-
 				@Override
 				public void run() {
-					SWTControlUtil.setText(text, selected.get());
 					getParent().update(true);
 				}
 			};
