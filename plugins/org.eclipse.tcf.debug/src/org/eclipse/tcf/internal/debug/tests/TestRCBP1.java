@@ -1329,7 +1329,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 else if (!susp) {
                     exit(new Exception("Invalid RunControl.getState result"));
                 }
-                else if (pc == null || pc.equals("0")) {
+                else if (pc == null || pc.length() == 0) {
                     exit(new Exception("Invalid PC returned by RunControl.getState"));
                 }
                 else if (test_suite.isActive(TestRCBP1.this)) {
