@@ -84,8 +84,8 @@ public final class SWTControlUtil {
 	 * @param value The text to apply to the given control.
 	 */
 	public static final void setText(Control control, String value) {
-		if (control != null && !control.isDisposed() && value != null) {
-			String trimmedValue = value.trim();
+		if (control != null && !control.isDisposed()) {
+			String trimmedValue =  value != null ? value.trim() : ""; //$NON-NLS-1$
 
 			// Avoid triggering attached listeners if the value has not changed.
 			String oldValue = getText(control);
