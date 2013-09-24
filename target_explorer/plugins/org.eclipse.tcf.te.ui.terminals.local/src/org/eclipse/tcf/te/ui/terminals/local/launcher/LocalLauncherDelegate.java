@@ -75,10 +75,10 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 	 */
 	private String getTerminalTitle(IPropertiesContainer properties) {
 		String[] hostNames= IPAddressUtil.getInstance().getCanonicalHostNames();
-		if (hostNames.length!=0){
-			return "<"+hostNames[0]+">"; //$NON-NLS-1$ //$NON-NLS-2$
+		if (hostNames.length != 0){
+			return hostNames[0];
 		}
-		return "<Local>"; //$NON-NLS-1$
+		return "Local"; //$NON-NLS-1$
 	}
 
 	/* (non-Javadoc)
