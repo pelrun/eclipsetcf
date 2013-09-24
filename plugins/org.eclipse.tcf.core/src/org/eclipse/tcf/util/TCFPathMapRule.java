@@ -56,7 +56,7 @@ public class TCFPathMapRule implements IPathMap.PathMapRule {
     public int hashCode() {
         return props.hashCode();
     }
-    
+
     public boolean equals(Object obj) {
         if (obj instanceof TCFPathMapRule) {
             props.equals(((TCFPathMapRule)obj).props);

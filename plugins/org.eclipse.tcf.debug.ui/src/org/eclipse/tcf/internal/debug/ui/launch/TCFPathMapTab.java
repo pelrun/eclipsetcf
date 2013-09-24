@@ -93,7 +93,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     protected final static String PROP_ENABLED = "Enabled"; //$NON-NLS-1$
     protected final static String PROP_GENERATED = "Generated"; //$NON-NLS-1$
-    
+
     private final static String ATTR_PATH_MAP_V1 = TCFLaunchDelegate.ATTR_PATH_MAP + "V1"; //$NON-NLS-1$
 
     private static final String TAB_ID = "org.eclipse.tcf.launch.pathMapTab"; //$NON-NLS-1$
@@ -171,7 +171,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             if (o == null) return ""; //$NON-NLS-1$
             return o.toString();
         }
-        
+
         @Override
         public Color getForeground(Object element) {
             if (element instanceof IPathMap.PathMapRule) {
@@ -182,7 +182,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             }
             return null;
         }
-        
+
         @Override
         public Color getBackground(Object element) {
             return null;
@@ -506,21 +506,21 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
         map = new ArrayList<IPathMap.PathMapRule>();
         initializePathMap(map, config);
-        
+
         viewer.setInput(config);
         updateLaunchConfigurationDialog();
     }
-    
+
     /**
      * Initialize the given path map.
-     * 
+     *
      * @param map The path map to initialize. Must not be <code>null</code>.
      * @param config The launch configuration. Must not be <code>null</code>.
      */
     protected void initializePathMap(List<IPathMap.PathMapRule> map, ILaunchConfiguration config) {
         Assert.isNotNull(map);
         Assert.isNotNull(config);
-        
+
         try {
             String s = config.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
             String s1 = config.getAttribute(ATTR_PATH_MAP_V1, ""); //$NON-NLS-1$
@@ -555,7 +555,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
                     continue;
                 }
             }
-            
+
             boolean enabled = true;
             if (m.getProperties().containsKey(PROP_ENABLED)) {
                 enabled = Boolean.parseBoolean(m.getProperties().get(PROP_ENABLED).toString());
@@ -595,7 +595,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         boolean singleSelection = ((IStructuredSelection)viewer.getSelection()).size() == 1;
         int index = viewer.getTable().getSelectionIndex();
         int count = viewer.getTable().getItemCount();
-        
+
         IPathMap.PathMapRule selected = (IPathMap.PathMapRule)((IStructuredSelection)viewer.getSelection()).getFirstElement();
         boolean isGenerated = selected != null && selected.getProperties().containsKey(PROP_GENERATED) ? Boolean.parseBoolean(selected.getProperties().get(PROP_GENERATED).toString()) : false;
 

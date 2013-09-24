@@ -143,7 +143,7 @@ public abstract class AbstractChannel implements IChannel {
     private long local_congestion_time;
     private int local_congestion_cnt;
     private Collection<TraceListener> trace_listeners;
-    
+
     protected static final boolean TRACE = Boolean.getBoolean("org.eclipse.tcf.core.tracing.channel");
 
     public static final int

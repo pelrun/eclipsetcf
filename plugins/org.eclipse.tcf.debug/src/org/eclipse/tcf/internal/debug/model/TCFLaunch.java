@@ -719,7 +719,7 @@ public class TCFLaunch extends Launch {
 
     private void readPathMapConfiguration(ILaunchConfiguration cfg) throws CoreException {
         String s = cfg.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, "");
-        host_path_map = new ArrayList<IPathMap.PathMapRule>(); 
+        host_path_map = new ArrayList<IPathMap.PathMapRule>();
         host_path_map.addAll(TCFLaunchDelegate.parsePathMapAttribute(s));
         s = cfg.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, "");
         host_path_map.addAll(TCFLaunchDelegate.parseSourceLocatorMemento(s));
@@ -728,10 +728,10 @@ public class TCFLaunch extends Launch {
         String id = Activator.getClientID();
         for (IPathMap.PathMapRule r : host_path_map) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++);
     }
-    
+
     /**
      * Add custom path map rules to the host path map before applying the path map.
-     * 
+     *
      * @param channel The channel. Must not be <code>null</code>.
      * @param cfg The launch configuration. Must not be <code>null</code>.
      * @param host_path_map The host path map. Must not be <code>null</code>.
