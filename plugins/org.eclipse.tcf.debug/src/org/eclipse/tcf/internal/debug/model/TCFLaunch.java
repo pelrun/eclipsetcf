@@ -35,7 +35,6 @@ import org.eclipse.debug.core.Launch;
 import org.eclipse.tcf.internal.debug.Activator;
 import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
-import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IService;

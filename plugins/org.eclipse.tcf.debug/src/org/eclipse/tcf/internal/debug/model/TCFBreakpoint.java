@@ -84,7 +84,7 @@ public class TCFBreakpoint extends Breakpoint {
 
     @Override
     public void setEnabled(boolean b) throws CoreException {
-        if (!Activator.getBreakpointsModel().isLocal(getMarker())) return;
+        if (!TCFBreakpointsModel.isLocal(getMarker())) return;
         super.setEnabled(b);
     }
 
