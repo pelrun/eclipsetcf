@@ -13,9 +13,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.cdt.utils.Platform;
 import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.Assert;
@@ -24,6 +26,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
 import org.eclipse.tcf.te.runtime.utils.Env;
+import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.ui.terminals.process.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.process.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.streams.AbstractStreamsConnector;
@@ -31,6 +34,7 @@ import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
+import org.osgi.framework.Bundle;
 
 /**
  * Process connector implementation.
@@ -102,9 +106,23 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			if (process == null) {
 				if (PTY.isSupported()) {
 					try {
-						pty = new PTY(false);
+						// On Windows host, try to load the "WinPTY" extension.
+						// Use reflection to make this work still with older CDT core packages
+						if (Host.isWindowsHost()) {
+							Bundle bundle = Platform.getBundle("org.eclipse.cdt.core"); //$NON-NLS-1$
+							if (bundle != null) {
+								try {
+	                                Class<?> clazz = bundle.loadClass("org.eclipse.cdt.utils.pty.WinPTY"); //$NON-NLS-1$
+	                                Constructor<?> constructor = clazz.getConstructor(boolean.class);
+	                                pty = (PTY)constructor.newInstance(Boolean.FALSE);
+                                }
+                                catch (Exception e) { /* ignored on purpose */ }
+							}
+						} else {
+							pty = new PTY(false);
+						}
 					} catch (IOException e) {
-						// PTY not supported on windows
+						// PTY not supported
 					}
 				}
 
