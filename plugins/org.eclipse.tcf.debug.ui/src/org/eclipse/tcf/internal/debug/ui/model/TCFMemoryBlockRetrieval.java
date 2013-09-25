@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,14 +10,30 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.model;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.IMemoryBlockManager;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IMemoryBlockExtension;
@@ -30,6 +46,13 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelProxyFactor
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.ModelDelta;
 import org.eclipse.debug.internal.ui.viewers.provisional.AbstractModelProxy;
+import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.debug.ui.memory.IMemoryRendering;
+import org.eclipse.debug.ui.memory.IMemoryRenderingContainer;
+import org.eclipse.debug.ui.memory.IMemoryRenderingManager;
+import org.eclipse.debug.ui.memory.IMemoryRenderingSite;
+import org.eclipse.debug.ui.memory.IMemoryRenderingType;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.widgets.Display;
@@ -44,6 +67,15 @@ import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemory.MemoryError;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * A memory block retrieval allows the user interface to request a memory block from a debugger when needed.
@@ -71,6 +103,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
 
     private class MemoryBlock extends PlatformObject implements IMemoryBlockExtension, IModelProxyFactory {
 
+        private final String ctx_id;
         private final String expression;
         private final long length;
         private final Set<Object> connections = new HashSet<Object>();
@@ -85,6 +118,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         private MemData mem_last; // last retrieved memory block data
 
         MemoryBlock(final String expression, long length) {
+            this.ctx_id = exec_ctx.id;
             this.expression = expression;
             this.length = length;
             mem_blocks.add(this);
@@ -98,7 +132,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                         set(null, new Exception("Expressions service not available"), null);
                         return true;
                     }
-                    command = exps.create(exec_ctx.id, null, expression, new IExpressions.DoneCreate() {
+                    command = exps.create(ctx_id, null, expression, new IExpressions.DoneCreate() {
                         public void doneCreate(IToken token, Exception error, IExpressions.Expression context) {
                             if (disposed) {
                                 IExpressions exps = channel.getRemoteService(IExpressions.class);
@@ -156,6 +190,29 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             };
         }
 
+        private void close() {
+            assert Protocol.isDispatchThread();
+            assert !disposed;
+            disposed = true;
+            expression_value.dispose();
+            expression_type.dispose();
+            if (remote_expression.isValid() && remote_expression.getData() != null) {
+                final IChannel channel = exec_ctx.channel;
+                if (channel.getState() == IChannel.STATE_OPEN) {
+                    IExpressions exps = channel.getRemoteService(IExpressions.class);
+                    exps.dispose(remote_expression.getData().getID(), new IExpressions.DoneDispose() {
+                        public void doneDispose(IToken token, Exception error) {
+                            if (error == null) return;
+                            if (channel.getState() != IChannel.STATE_OPEN) return;
+                            Activator.log("Error disposing remote expression evaluator", error);
+                        }
+                    });
+                }
+            }
+            remote_expression.dispose();
+            mem_blocks.remove(MemoryBlock.this);
+        }
+
         public synchronized void connect(Object client) {
             connections.add(client);
         }
@@ -169,26 +226,10 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         }
 
         public void dispose() throws DebugException {
+            if (disposed) return;
             new TCFDebugTask<Boolean>(exec_ctx.getChannel()) {
                 public void run() {
-                    disposed = true;
-                    expression_value.dispose();
-                    expression_type.dispose();
-                    if (remote_expression.isValid() && remote_expression.getData() != null) {
-                        final IChannel channel = exec_ctx.channel;
-                        if (channel.getState() == IChannel.STATE_OPEN) {
-                            IExpressions exps = channel.getRemoteService(IExpressions.class);
-                            exps.dispose(remote_expression.getData().getID(), new IExpressions.DoneDispose() {
-                                public void doneDispose(IToken token, Exception error) {
-                                    if (error == null) return;
-                                    if (channel.getState() != IChannel.STATE_OPEN) return;
-                                    Activator.log("Error disposing remote expression evaluator", error);
-                                }
-                            });
-                        }
-                    }
-                    remote_expression.dispose();
-                    mem_blocks.remove(MemoryBlock.this);
+                    if (!disposed) close();
                     done(Boolean.TRUE);
                 }
             }.getD();
@@ -596,5 +637,255 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                 p.onMemoryChanged(suspended);
             }
         }
+    }
+
+    void dispose() {
+        MemoryBlock[] list = mem_blocks.toArray(new MemoryBlock[mem_blocks.size()]);
+        for (MemoryBlock b : list) b.close();
+    }
+
+    /************************** Persistence ***************************************************/
+
+    private static final String
+        XML_NODE_MEMORY = "Memory",
+        XML_NODE_BLOCK = "Block",
+        XML_NODE_RENDERING = "Rendering",
+        XML_ATTR_ID = "ID",
+        XML_ATTR_VIEW = "View",
+        XML_ATTR_PANE = "Pane",
+        XML_ATTR_CTX = "Context",
+        XML_ATTR_ADDR = "Addr",
+        XML_ATTR_SIZE = "Size";
+
+    private static final String XML_FILE_NAME = "memview.xml";
+    private static final Display display = Display.getDefault();
+    private static final Map<String,List<Element>> blocks_memento = new HashMap<String,List<Element>>();
+    private static final Set<Runnable> pending_updates = new HashSet<Runnable>();
+
+    static boolean memento_loaded;
+
+    private static void asyncExec(TCFModel model, Runnable r) {
+        synchronized (pending_updates) {
+            synchronized (Device.class) {
+                if (display.isDisposed()) return;
+                display.asyncExec(r);
+            }
+            pending_updates.add(r);
+        }
+    }
+
+    static void onModelCreated(TCFModel model) {
+        assert Protocol.isDispatchThread();
+        if (memento_loaded) return;
+        memento_loaded = true;
+        try {
+            synchronized (blocks_memento) {
+                // Load memory monitors memento from workspace
+                blocks_memento.clear();
+                IPath path = Activator.getDefault().getStateLocation();
+                File f = path.append(XML_FILE_NAME).toFile();
+                if (!f.exists()) return;
+                InputStream inp = new FileInputStream(f);
+                DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                parser.setErrorHandler(new DefaultHandler());
+                Element xml_memory = parser.parse(inp).getDocumentElement();
+                if (xml_memory.getTagName().equals(XML_NODE_MEMORY)) {
+                    Node node = xml_memory.getFirstChild();
+                    while (node != null) {
+                        if (node instanceof Element && ((Element)node).getTagName().equals(XML_NODE_BLOCK)) {
+                            Element xml_block = (Element)node;
+                            String id = xml_block.getAttribute(XML_ATTR_CTX);
+                            if (id != null) {
+                                List<Element> list = blocks_memento.get(id);
+                                if (list == null) {
+                                    list = new ArrayList<Element>();
+                                    blocks_memento.put(id, list);
+                                }
+                                list.add(xml_block);
+                            }
+                        }
+                        node = node.getNextSibling();
+                    }
+                }
+                inp.close();
+            }
+        }
+        catch (Exception x) {
+            Activator.log("Cannot read memory monitors memento", x);
+        }
+    }
+
+    static void onMemoryNodeCreated(TCFNodeExecContext exe_ctx) {
+        assert Protocol.isDispatchThread();
+        synchronized (blocks_memento) {
+            // Restore memory monitors associated with the node
+            final List<Element> memento = blocks_memento.remove(exe_ctx.id);
+            if (memento == null || memento.size() == 0) return;
+            ArrayList<IMemoryBlock> list = new ArrayList<IMemoryBlock>();
+            TCFMemoryBlockRetrieval r = exe_ctx.model.getMemoryBlockRetrieval(exe_ctx);
+            for (Element xml_block : memento) {
+                String expr = xml_block.getAttribute(XML_ATTR_ADDR);
+                long length = Long.parseLong(xml_block.getAttribute(XML_ATTR_SIZE));
+                list.add(r.new MemoryBlock(expr, length));
+            }
+            final IMemoryBlock[] blks = list.toArray(new IMemoryBlock[list.size()]);
+            asyncExec(exe_ctx.model, new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (pending_updates) {
+                        pending_updates.remove(this);
+                    }
+                    try {
+                        int i = 0;
+                        DebugPlugin.getDefault().getMemoryBlockManager().addMemoryBlocks(blks);
+                        IMemoryRenderingManager rmngr = DebugUITools.getMemoryRenderingManager();
+                        for (Element xml_block : memento) {
+                            IMemoryBlock mb = blks[i++];
+                            Node node = xml_block.getFirstChild();
+                            while (node != null) {
+                                if (node instanceof Element && ((Element)node).getTagName().equals(XML_NODE_RENDERING)) {
+                                    Element xml_rendering = (Element)node;
+                                    String view_id = xml_rendering.getAttribute(XML_ATTR_VIEW);
+                                    if (view_id != null && view_id.length() == 0) view_id = null;
+                                    IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                                    IMemoryRenderingSite part = (IMemoryRenderingSite)page.showView(IDebugUIConstants.ID_MEMORY_VIEW,
+                                            view_id, IWorkbenchPage.VIEW_CREATE);
+                                    IMemoryRenderingType rendering_type = rmngr.getRenderingType(xml_rendering.getAttribute(XML_ATTR_ID));
+                                    IMemoryRendering rendering = rendering_type.createRendering();
+                                    IMemoryRenderingContainer container = part.getContainer(xml_rendering.getAttribute(XML_ATTR_PANE));
+                                    rendering.init(container, mb);
+                                    container.addMemoryRendering(rendering);
+                                }
+                                node = node.getNextSibling();
+                            }
+                        }
+                    }
+                    catch (Exception x) {
+                        Activator.log("Cannot restore memory monitors", x);
+                    }
+                }
+            });
+        }
+    }
+
+    static void onModelDisconnected(final TCFModel model) {
+        assert Protocol.isDispatchThread();
+        asyncExec(model, new Runnable() {
+            @Override
+            public void run() {
+                synchronized (pending_updates) {
+                    pending_updates.remove(this);
+                }
+                // Dispose memory monitors associated with the model, update memento
+                ArrayList<IMemoryBlock> block_list = new ArrayList<IMemoryBlock>();
+                IMemoryBlockManager manager = DebugPlugin.getDefault().getMemoryBlockManager();
+                try {
+                    Document document = DebugPlugin.newDocument();
+                    Map<String,List<Element>> memento = new HashMap<String,List<Element>>();
+                    Map<IMemoryBlock,Element> mb_to_xml = new HashMap<IMemoryBlock,Element>();
+                    Element xml_memory = document.createElement(XML_NODE_MEMORY);
+                    for (IMemoryBlock mb : manager.getMemoryBlocks()) {
+                        if (mb instanceof MemoryBlock) {
+                            MemoryBlock m = (MemoryBlock)mb;
+                            TCFMemoryBlockRetrieval r = (TCFMemoryBlockRetrieval)m.getMemoryBlockRetrieval();
+                            if (r.exec_ctx.model != model) continue;
+                            assert r.exec_ctx.isDisposed();
+                            assert m.disposed;
+                            Element xml_block = document.createElement(XML_NODE_BLOCK);
+                            xml_block.setAttribute(XML_ATTR_CTX, m.ctx_id);
+                            xml_block.setAttribute(XML_ATTR_ADDR, m.expression);
+                            xml_block.setAttribute(XML_ATTR_SIZE, Long.toString(m.length));
+                            xml_memory.appendChild(xml_block);
+                            mb_to_xml.put(m, xml_block);
+                            List<Element> l = memento.get(m.ctx_id);
+                            if (l == null) {
+                                l = new ArrayList<Element>();
+                                memento.put(m.ctx_id, l);
+                            }
+                            l.add(xml_block);
+                            block_list.add(m);
+                        }
+                    }
+                    for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+                        for (IWorkbenchPage page : window.getPages()) {
+                            String[] pane_ids = {
+                                    IDebugUIConstants.ID_RENDERING_VIEW_PANE_1,
+                                    IDebugUIConstants.ID_RENDERING_VIEW_PANE_2 };
+                            for (IViewReference ref : page.getViewReferences()) {
+                                IViewPart part = ref.getView(false);
+                                if (part instanceof IMemoryRenderingSite) {
+                                    IMemoryRenderingSite memory_view = (IMemoryRenderingSite)part;
+                                    for (String pane_id : pane_ids) {
+                                        IMemoryRenderingContainer container = memory_view.getContainer(pane_id);
+                                        IMemoryRendering[] renderings = container.getRenderings();
+                                        for (IMemoryRendering rendering : renderings) {
+                                            Element xml_block = mb_to_xml.get(rendering.getMemoryBlock());
+                                            if (xml_block == null) continue;
+                                            Element xml_rendering = document.createElement(XML_NODE_RENDERING);
+                                            xml_rendering.setAttribute(XML_ATTR_ID, rendering.getRenderingId());
+                                            if (ref.getSecondaryId() != null) {
+                                                xml_rendering.setAttribute(XML_ATTR_VIEW, ref.getSecondaryId());
+                                            }
+                                            xml_rendering.setAttribute(XML_ATTR_PANE, pane_id);
+                                            xml_block.appendChild(xml_rendering);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    synchronized (blocks_memento) {
+                        for (String id : blocks_memento.keySet()) {
+                            if (memento.containsKey(id)) continue;
+                            for (Element xml_block : blocks_memento.get(id)) {
+                                xml_memory.appendChild(xml_block.cloneNode(true));
+                            }
+                        }
+                        blocks_memento.clear();
+                        Node node = xml_memory.getFirstChild();
+                        while (node != null) {
+                            if (node instanceof Element && ((Element)node).getTagName().equals(XML_NODE_BLOCK)) {
+                                Element xml_block = (Element)node;
+                                String id = xml_block.getAttribute(XML_ATTR_CTX);
+                                if (id != null) {
+                                    List<Element> l = blocks_memento.get(id);
+                                    if (l == null) {
+                                        l = new ArrayList<Element>();
+                                        blocks_memento.put(id, l);
+                                    }
+                                    l.add(xml_block);
+                                }
+                            }
+                            node = node.getNextSibling();
+                        }
+                        document.appendChild(xml_memory);
+                        IPath path = Activator.getDefault().getStateLocation();
+                        File f = path.append(XML_FILE_NAME).toFile();
+                        BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF-8"));
+                        wr.write(DebugPlugin.serializeDocument(document));
+                        wr.close();
+                    }
+                }
+                catch (Exception x) {
+                    Activator.log("Cannot save memory monitors", x);
+                }
+                if (block_list.size() != 0) manager.removeMemoryBlocks(block_list.toArray(new IMemoryBlock[block_list.size()]));
+            }
+        });
+    }
+
+    static void onWorkbenchShutdown() {
+        // Wait until all pending updates are done
+        display.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    synchronized (pending_updates) {
+                        if (pending_updates.size() == 0) return;
+                    }
+                    if (!display.readAndDispatch()) display.sleep();
+                }
+            }
+        });
     }
 }

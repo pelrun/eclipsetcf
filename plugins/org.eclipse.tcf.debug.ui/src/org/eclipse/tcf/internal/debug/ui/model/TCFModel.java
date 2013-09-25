@@ -753,6 +753,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             }
         }
         view_request_listeners = l.size() > 0 ? l : null;
+        TCFMemoryBlockRetrieval.onModelCreated(this);
     }
 
     /**
@@ -785,12 +786,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                             TCFNodeExecContext ctx = cache.getData();
                             if (!ctx.getMemoryContext().validate(this)) return;
                             if (ctx.getMemoryContext().getError() == null) {
-                                o = mem_retrieval.get(ctx.id);
-                                if (o == null) {
-                                    TCFMemoryBlockRetrieval m = new TCFMemoryBlockRetrieval(ctx);
-                                    mem_retrieval.put(ctx.id, m);
-                                    o = m;
-                                }
+                                o = getMemoryBlockRetrieval(ctx);
                             }
                         }
                     }
@@ -800,6 +796,22 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             }.getE();
         }
         return null;
+    }
+
+    TCFMemoryBlockRetrieval getMemoryBlockRetrieval(TCFNodeExecContext node) {
+        TCFMemoryBlockRetrieval r = mem_retrieval.get(node.id);
+        if (r == null) {
+            r = new TCFMemoryBlockRetrieval(node);
+            mem_retrieval.put(node.id, r);
+        }
+        return r;
+    }
+
+    void asyncExec(Runnable r) {
+        synchronized (Device.class) {
+            if (display.isDisposed()) return;
+            display.asyncExec(r);
+        }
     }
 
     void onConnected() {
@@ -839,8 +851,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             launch_node.dispose();
             launch_node = null;
         }
+        // Dispose memory monitors
+        for (TCFMemoryBlockRetrieval r : mem_retrieval.values()) r.dispose();
+        mem_retrieval.clear();
+        // Refresh the Debug view - cannot be done through ModelProxy since it is disposed
         refreshLaunchView();
         assert id2node.size() == 0;
+        TCFMemoryBlockRetrieval.onModelDisconnected(this);
     }
 
     void onProcessOutput(String process_id, final int stream_id, byte[] data) {
@@ -1050,6 +1067,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     }
 
     void dispose() {
+        if (launch_node != null) onDisconnected();
         if (view_request_listeners != null) {
             for (ITCFPresentationProvider p : view_request_listeners) {
                 try {
@@ -1079,7 +1097,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         assert id != null;
         assert Protocol.isDispatchThread();
         id2node.remove(id);
-        mem_retrieval.remove(id);
+        TCFMemoryBlockRetrieval r = mem_retrieval.remove(id);
+        if (r != null) r.dispose();
     }
 
     void flushAllCaches() {
@@ -1473,7 +1492,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             Object element = request.getElement();
             if (element instanceof TCFNode) ((TCFNode)element).encodeElement(request);
         }
-        display.asyncExec(new Runnable() {
+        asyncExec(new Runnable() {
             public void run() {
                 for (IElementMementoRequest request : requests) request.done();
             }
@@ -1485,7 +1504,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             Object element = request.getElement();
             if (element instanceof TCFNode) ((TCFNode)element).compareElements(request);
         }
-        display.asyncExec(new Runnable() {
+        asyncExec(new Runnable() {
             public void run() {
                 for (IElementMementoRequest request : requests) request.done();
             }
@@ -1818,7 +1837,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private void displaySource(final Object generation, final IWorkbenchPage page,
             final Object element, final String exe_id, final String mem_id, final boolean top_frame, final ILineNumbers.CodeArea area) {
         final boolean disassembly_available = channel.getRemoteService(IDisassembly.class) != null;
-        display.asyncExec(new Runnable() {
+        asyncExec(new Runnable() {
             public void run() {
                 try {
                     if (!displaySourceCheck(page, generation)) return;
@@ -1901,20 +1920,17 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      * Refresh source view when memory or path mappings change.
      */
     private void refreshSourceView() {
-        synchronized (Device.class) {
-            if (display.isDisposed()) return;
-            display.asyncExec(new Runnable() {
-                public void run() {
-                    if (!PlatformUI.isWorkbenchRunning()) return;
-                    IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
-                    if (windows == null) return;
-                    for (IWorkbenchWindow window : windows) {
-                        IWorkbenchPage page = window.getActivePage();
-                        if (page != null) displaySource(null, page, true);
-                    }
+        asyncExec(new Runnable() {
+            public void run() {
+                if (!PlatformUI.isWorkbenchRunning()) return;
+                IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+                if (windows == null) return;
+                for (IWorkbenchWindow window : windows) {
+                    IWorkbenchPage page = window.getActivePage();
+                    if (page != null) displaySource(null, page, true);
                 }
-            });
-        }
+            }
+        });
     }
 
     /*
@@ -1924,23 +1940,20 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     private void refreshLaunchView() {
         // TODO: there should be a better way to refresh Launch View
-        synchronized (Device.class) {
-            if (display.isDisposed()) return;
-            display.asyncExec(new Runnable() {
-                public void run() {
-                    if (!PlatformUI.isWorkbenchRunning()) return;
-                    IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
-                    if (windows == null) return;
-                    for (IWorkbenchWindow window : windows) {
-                        IWorkbenchPage page = window.getActivePage();
-                        if (page != null) {
-                            IDebugView view = (IDebugView)page.findView(IDebugUIConstants.ID_DEBUG_VIEW);
-                            if (view != null) ((StructuredViewer)view.getViewer()).refresh(launch);
-                        }
+        asyncExec(new Runnable() {
+            public void run() {
+                if (!PlatformUI.isWorkbenchRunning()) return;
+                IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+                if (windows == null) return;
+                for (IWorkbenchWindow window : windows) {
+                    IWorkbenchPage page = window.getActivePage();
+                    if (page != null) {
+                        IDebugView view = (IDebugView)page.findView(IDebugUIConstants.ID_DEBUG_VIEW);
+                        if (view != null) ((StructuredViewer)view.getViewer()).refresh(launch);
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     /**
@@ -1956,7 +1969,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      * @param error - error to be shown.
      */
     public void showMessageBox(final String title, final Throwable error) {
-        display.asyncExec(new Runnable() {
+        asyncExec(new Runnable() {
             public void run() {
                 Shell shell = display.getActiveShell();
                 if (shell == null) {
@@ -2097,7 +2110,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         if (wait_for_views_update_after_step) {
             launch.addPendingClient(suspend_trigger_listeners);
         }
-        display.asyncExec(new Runnable() {
+        asyncExec(new Runnable() {
             public void run() {
                 synchronized (TCFModel.this) {
                     if (generation != suspend_trigger_generation) return;
