@@ -135,6 +135,9 @@ public class FileSelectionControl extends BaseDialogSelectionControl {
 				IPath filePath = new Path(selectedFile);
 				// If the selected file points to an directory, use the directory as is
 				IPath filterPath = filePath.toFile().isDirectory() ? filePath : filePath.removeLastSegments(1);
+				while (filterPath != null && filterPath.segmentCount() > 1 && !filterPath.toFile().exists()) {
+					filterPath = filterPath.removeLastSegments(1);
+				}
 				String filterFileName = filePath.toFile().isDirectory() || !filePath.toFile().exists() ? null : filePath.lastSegment();
 
 				if (!filterPath.isEmpty()) fileDialog.setFilterPath(filterPath.toString());
