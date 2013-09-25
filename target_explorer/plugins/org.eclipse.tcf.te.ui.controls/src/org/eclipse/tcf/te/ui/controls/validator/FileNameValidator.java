@@ -14,6 +14,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+
 
 /**
  * Input validator for files.
@@ -31,6 +35,7 @@ public class FileNameValidator extends Validator {
 	public static final String ERROR_NO_ACCESS = "FileNameValidator_Error_NoAccess"; //$NON-NLS-1$
 	public static final String ERROR_IS_RELATIV = "FileNameValidator_Error_IsRelativ"; //$NON-NLS-1$
 	public static final String ERROR_IS_ABSOLUT = "FileNameValidator_Error_IsAbsolut"; //$NON-NLS-1$
+	public static final String ERROR_NOT_RELATIV_TO_WS = "FileNameValidator_Error_NotRelativToWorkspace"; //$NON-NLS-1$
 	public static final String ERROR_HAS_SPACES = "FileNameValidator_Error_HasSpaces"; //$NON-NLS-1$
 
 	// arguments
@@ -43,7 +48,8 @@ public class FileNameValidator extends Validator {
 	public static final int ATTR_ABSOLUT = 16;
 	public static final int ATTR_RELATIV = 32;
 	public static final int ATTR_NO_SPACES = 64;
-	// next attribute should start with 2^7
+	public static final int ATTR_RELATIV_TO_WS = 128;
+	// next attribute should start with 2^8
 
 	// value attributes
 	private boolean isFile;
@@ -121,9 +127,19 @@ public class FileNameValidator extends Validator {
 
 		newFile	= newFile.trim();
 		File file = new File(newFile);
+
+		absolute = file.isAbsolute();
+		boolean relativToWs = false;
+		if (!absolute) {
+			IPath workSpacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+			File absFile = workSpacePath.append(new Path(file.toString())).toFile();
+			relativToWs = absFile.exists();
+			if (relativToWs) {
+				file = absFile;
+			}
+		}
 		exists = file.exists();
 		isFile = file.isFile() || !exists;
-		absolute = file.isAbsolute();
 
 		// To determine canRead and canWrite, we have to find the first existing parent directory
 		File parentFile = file.getParentFile();
@@ -147,11 +163,16 @@ public class FileNameValidator extends Validator {
 			setMessage(getMessageText(ERROR_HAS_SPACES), getMessageTextType(ERROR_HAS_SPACES, ERROR));
 		}
 		// Third: all the rest
-		else if (isAttribute(ATTR_ABSOLUT) && !isAttribute(ATTR_RELATIV) && !absolute) {
+
+
+		else if (isAttribute(ATTR_ABSOLUT) && !isAttribute(ATTR_RELATIV) && !isAttribute(ATTR_RELATIV_TO_WS) && !absolute) {
 			setMessage(getMessageText(ERROR_IS_RELATIV), getMessageTextType(ERROR_IS_RELATIV, ERROR));
 		}
 		else if (isAttribute(ATTR_RELATIV) && !isAttribute(ATTR_ABSOLUT) && absolute) {
 			setMessage(getMessageText(ERROR_IS_ABSOLUT), getMessageTextType(ERROR_IS_ABSOLUT, ERROR));
+		}
+		else if (isAttribute(ATTR_RELATIV_TO_WS) && !absolute && !relativToWs) {
+			setMessage(getMessageText(ERROR_NOT_RELATIV_TO_WS), getMessageTextType(ERROR_NOT_RELATIV_TO_WS, ERROR));
 		}
 		else if (exists && !isFile) {
 			setMessage(getMessageText(ERROR_IS_DIRECTORY), getMessageTextType(ERROR_IS_DIRECTORY, ERROR));

@@ -112,6 +112,7 @@ public class Messages extends NLS {
 	public static String FileNameValidator_Error_IsRelativ;
 	public static String FileNameValidator_Error_IsAbsolut;
 	public static String FileNameValidator_Error_HasSpaces;
+	public static String FileNameValidator_Error_NotRelativToWorkspace;
 
 	public static String DirectoryNameValidator_Information_MissingName;
 	public static String DirectoryNameValidator_Error_IsFile;
