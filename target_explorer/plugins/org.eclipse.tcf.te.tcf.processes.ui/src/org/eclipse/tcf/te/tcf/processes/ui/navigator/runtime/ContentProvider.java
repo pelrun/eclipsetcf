@@ -247,7 +247,8 @@ public class ContentProvider implements ITreeContentProvider {
 						@Override
 						public void run() {
 							IProcessContextNode child = (IProcessContextNode)children[0];
-							if (child != null && context.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
+							if (child != null && context.getSysMonitorContext() != null && child.getSysMonitorContext() != null &&
+											context.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
 								if (context.getName() != null) {
 									selected.set(!context.getName().equals(child.getName()));
 								}

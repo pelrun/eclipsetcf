@@ -43,7 +43,8 @@ public class SingleThreadFilter extends ViewerFilter {
 					IProcessContextNode parent = (IProcessContextNode)pe;
 					IProcessContextNode child = (IProcessContextNode)e;
 					if (parent.getChildren().length == 1) {
-						if (parent.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
+						if (parent.getSysMonitorContext() != null && child.getSysMonitorContext() != null &&
+										parent.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
 							if (parent.getName() != null) {
 								selected.set(!parent.getName().equals(child.getName()));
 							}
