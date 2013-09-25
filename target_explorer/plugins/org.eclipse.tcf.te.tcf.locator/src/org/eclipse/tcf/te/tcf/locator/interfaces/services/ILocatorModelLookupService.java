@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
@@ -78,4 +79,12 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @return The matching peer model instances or an empty list.
 	 */
 	public IPeerModel[] lkupMatchingStaticPeerModels(IPeerModel peerNode);
+
+	/**
+	 * Lookup the matching static peer model instances for the given peer.
+	 *
+	 * @param peer The peer or <code>null</code>.
+	 * @return The matching peer model instances or an empty list.
+	 */
+	public IPeerModel[] lkupMatchingStaticPeerModels(IPeer peer);
 }

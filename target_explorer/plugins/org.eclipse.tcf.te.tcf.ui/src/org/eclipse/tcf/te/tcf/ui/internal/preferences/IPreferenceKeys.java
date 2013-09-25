@@ -24,11 +24,6 @@ public interface IPreferenceKeys {
 	public static final String PREF_HIDE_DYNAMIC_TARGET_DISCOVERY_EXTENSION = "org.eclipse.tcf.te.tcf.ui.navigator.content.hide"; //$NON-NLS-1$
 
 	/**
-	 * Preference key to access the flag to hide value-add's in the "System Management" tree.
-	 */
-	public static final String PREF_HIDE_VALUEADDS = PREFIX + "model.valueadds.hide"; //$NON-NLS-1$
-
-	/**
 	 * Preference key to access the flag to activate the current user filter on first launch.
 	 */
 	public static final String PREF_ACTIVATE_CURRENT_USER_FILTER = PREFIX + "model.currentUserFilter.activate"; //$NON-NLS-1$

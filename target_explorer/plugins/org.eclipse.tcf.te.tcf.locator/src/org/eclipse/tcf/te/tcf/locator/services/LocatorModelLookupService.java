@@ -203,31 +203,43 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 	public IPeerModel[] lkupMatchingStaticPeerModels(IPeerModel peerNode) {
 		Assert.isNotNull(peerNode);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		return lkupMatchingStaticPeerModels(peerNode.getPeer());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupMatchingStaticPeerModels(org.eclipse.tcf.protocol.IPeer)
+	 */
+	@Override
+	public IPeerModel[] lkupMatchingStaticPeerModels(IPeer peer) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		List<IPeerModel> nodes = new ArrayList<IPeerModel>();
-		for (IPeerModel candidate : getLocatorModel().getPeers()) {
-			// Look only at the static peers here
-			if (!candidate.isStatic()) continue;
 
-			// If the agent id is available, match up the agent id first.
-			if (candidate.getPeer().getAgentID() != null && candidate.getPeer().getAgentID().equals(peerNode.getPeer().getAgentID())) {
-				nodes.add(candidate);
-				continue;
-			}
+		if (peer != null) {
+			for (IPeerModel candidate : getLocatorModel().getPeers()) {
+				// Look only at the static peers here
+				if (!candidate.isStatic()) continue;
 
-			// Get the transport types. Transport type must match and must be either "TCP" or "SSL".
-			String t1 = peerNode.getPeer().getTransportName();
-			String t2 = candidate.getPeer().getTransportName();
+				// If the agent id is available, match up the agent id first.
+				if (candidate.getPeer().getAgentID() != null && candidate.getPeer().getAgentID().equals(peer.getAgentID())) {
+					nodes.add(candidate);
+					continue;
+				}
 
-			if (t1 != null && t1.equals(t2) && ("TCP".equals(t1) || "SSL".equals(t1))) { //$NON-NLS-1$ //$NON-NLS-2$
-				// Compare IP and Port. If they match, add the candidate to the result list
-				String i1 = peerNode.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
-				String i2 = candidate.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
-				if (i1 != null && i1.equals(i2)) {
-					String p1 = peerNode.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
-					String p2 = candidate.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
-					if (p1 != null && p1.equals(p2)) {
-						nodes.add(candidate);
+				// Get the transport types. Transport type must match and must be either "TCP" or "SSL".
+				String t1 = peer.getTransportName();
+				String t2 = candidate.getPeer().getTransportName();
+
+				if (t1 != null && t1.equals(t2) && ("TCP".equals(t1) || "SSL".equals(t1))) { //$NON-NLS-1$ //$NON-NLS-2$
+					// Compare IP and Port. If they match, add the candidate to the result list
+					String i1 = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+					String i2 = candidate.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
+					if (i1 != null && i1.equals(i2)) {
+						String p1 = peer.getAttributes().get(IPeer.ATTR_IP_PORT);
+						String p2 = candidate.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
+						if (p1 != null && p1.equals(p2)) {
+							nodes.add(candidate);
+						}
 					}
 				}
 			}
@@ -235,5 +247,4 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 
 		return nodes.toArray(new IPeerModel[nodes.size()]);
 	}
-
 }

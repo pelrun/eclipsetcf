@@ -42,7 +42,7 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 /**
  * Locator listener implementation.
  */
-public class LocatorListener implements ILocator.LocatorListener {
+public final class LocatorListener implements ILocator.LocatorListener {
 	// Reference to the parent model
 	/* default */ final ILocatorModel model;
 
@@ -58,6 +58,31 @@ public class LocatorListener implements ILocator.LocatorListener {
 		this.model = model;
 	}
 
+	/**
+	 * Returns if or if not the given peer is filtered.
+	 *
+	 * @param peer The peer or <code>null</code>.
+	 * @return <code>True</code> if the given peer is filtered, <code>false</code> otherwise.
+	 */
+	private boolean isFiltered(IPeer peer) {
+		boolean filtered = peer == null;
+		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
+
+		if (!filtered) {
+			String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
+			boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+
+			filtered |= isValueAdd && hideValueAdds;
+
+			filtered |= peer.getName() != null
+							&& (peer.getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+											|| peer.getName().endsWith("CLI Server") //$NON-NLS-1$
+											|| peer.getName().endsWith("CLI Client")); //$NON-NLS-1$
+		}
+
+		return filtered;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.services.ILocator.LocatorListener#peerAdded(org.eclipse.tcf.protocol.IPeer)
 	 */
@@ -68,6 +93,8 @@ public class LocatorListener implements ILocator.LocatorListener {
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("LocatorListener.peerAdded( " + (peer != null ? peer.getID() : null) + " )", ITracing.ID_TRACE_LOCATOR_LISTENER, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+
+		if (isFiltered(peer)) return;
 
 		if (model != null && peer != null) {
 			// find the corresponding model node to remove (expected to be null)
@@ -188,16 +215,18 @@ public class LocatorListener implements ILocator.LocatorListener {
 	public void peerChanged(IPeer peer) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_LISTENER)) {
+			CoreBundleActivator.getTraceHandler().trace("LocatorListener.peerChanged( " + (peer != null ? peer.getID() : null) + " )", ITracing.ID_TRACE_LOCATOR_LISTENER, this); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		if (isFiltered(peer)) return;
+
 		// Protect ourself from reentrant calls while processing a changed peer.
 		if (peer != null) {
 			AtomicBoolean guard = PEER_CHANGED_GUARDIANS.get(peer);
 			if (guard != null && guard.get()) return;
 			if (guard != null) guard.set(true);
 			else PEER_CHANGED_GUARDIANS.put(peer, new AtomicBoolean(true));
-		}
-
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_LISTENER)) {
-			CoreBundleActivator.getTraceHandler().trace("LocatorListener.peerChanged( " + (peer != null ? peer.getID() : null) + " )", ITracing.ID_TRACE_LOCATOR_LISTENER, this); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		if (model != null && peer != null) {

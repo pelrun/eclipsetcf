@@ -25,7 +25,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
@@ -115,6 +114,9 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		// Get the list of old children (update node instances where possible)
 		final List<IPeerModel> oldChildren = new ArrayList<IPeerModel>(Arrays.asList(model.getPeers()));
 
+		// Refresh the static peer definitions
+		refreshStaticPeers(oldChildren, model);
+
 		// Get the locator service
 		ILocator locatorService = Protocol.getLocator();
 		if (locatorService != null) {
@@ -127,9 +129,6 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			// Process the peers
 			processPeers(peers, oldChildren, model);
 		}
-
-		// Refresh the static peer definitions
-		refreshStaticPeers(oldChildren, model);
 
 		// If there are remaining old children, remove them from the model (non-recursive)
 		for (IPeerModel oldChild : oldChildren) {
@@ -187,12 +186,10 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 				// There is still the chance that the node we add is a static node and
 				// there exist an dynamically discovered node with a different id but
 				// for the same peer. Do this check only if the peer to add is a static one.
-				boolean isStatic = peerNode.isStatic();
-				if (isStatic) {
-					for (IPeerModel candidate : oldChildren) {
-						if (candidate.isStatic()) {
-							continue;
-						}
+				if (peerNode.isStatic()) {
+					IPeerModel toRemove = null;
+					for (IPeerModel candidate : model.getPeers()) {
+						if (candidate.isStatic() || candidate.equals(peerNode))continue;
 						String peerID = peerNode.getPeerId();
 						String clientID = candidate.getPeer().getAttributes().get("ClientID"); //$NON-NLS-1$
 						if (clientID != null && clientID.equals(peerID)) {
@@ -211,14 +208,14 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 								// Same pipe -> same node
 								if (name1 != null && name1.equals(name2)) {
 									// Merge user configured properties between the peers
-									model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(candidate, peerNode.getPeer(), true);
-									peerNode = null;
+									model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
+									toRemove = candidate;
 									break;
 								}
 							} else if ("Loop".equals(candidate.getPeer().getTransportName())) { //$NON-NLS-1$
 								// Merge user configured properties between the peers
-								model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(candidate, peerNode.getPeer(), true);
-								peerNode = null;
+								model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
+								toRemove = candidate;
 								break;
 							} else {
 								// Compare IP_HOST and IP_Port;
@@ -237,15 +234,21 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 
 									if (port1.equals(port2)) {
 										// Merge user configured properties between the peers
-										model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(candidate, peerNode.getPeer(), true);
-										peerNode = null;
+										model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
+										toRemove = candidate;
 										break;
 									}
 								}
 							}
 						}
 					}
+
+					if (toRemove != null) {
+						model.getService(ILocatorModelUpdateService.class).remove(toRemove);
+						toRemove = null;
+					}
 				}
+
 				if (peerNode != null) {
 					// Add the peer node to model
 					model.getService(ILocatorModelUpdateService.class).add(peerNode);
@@ -461,9 +464,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		List<File> rootLocations = new ArrayList<File>();
 
 		// Check on the peers root locations preference setting
-		String roots = Platform.getPreferencesService().getString(CoreBundleActivator.getUniqueIdentifier(),
-						IPreferenceKeys.PREF_STATIC_PEERS_ROOT_LOCATIONS,
-						null, null);
+		String roots = CoreBundleActivator.getScopedPreferences().getString(IPreferenceKeys.PREF_STATIC_PEERS_ROOT_LOCATIONS);
 		// If set, split it in its single components
 		if (roots != null) {
 			String[] candidates = roots.split(File.pathSeparator);

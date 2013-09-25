@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.locator.activator;
 
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
@@ -22,6 +23,8 @@ import org.osgi.framework.BundleContext;
 public class CoreBundleActivator extends Plugin {
 	// The shared instance
 	private static CoreBundleActivator plugin;
+	// The scoped preferences instance
+	private static volatile ScopedEclipsePreferences scopedPreferences;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
 
@@ -45,6 +48,16 @@ public class CoreBundleActivator extends Plugin {
 	}
 
 	/**
+	 * Return the scoped preferences for this plugin.
+	 */
+	public static ScopedEclipsePreferences getScopedPreferences() {
+		if (scopedPreferences == null) {
+			scopedPreferences = new ScopedEclipsePreferences(getUniqueIdentifier());
+		}
+		return scopedPreferences;
+	}
+
+	/**
 	 * Returns the bundles trace handler.
 	 *
 	 * @return The bundles trace handler.
@@ -62,6 +75,7 @@ public class CoreBundleActivator extends Plugin {
 	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+		scopedPreferences = null;
 		plugin = this;
 	}
 

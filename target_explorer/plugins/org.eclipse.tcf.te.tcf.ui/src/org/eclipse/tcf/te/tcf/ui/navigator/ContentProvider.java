@@ -26,6 +26,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
+import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -123,8 +124,9 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		Assert.isNotNull(peerModel);
 
 		boolean filtered = false;
+		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
 
-		filtered |= isValueAdd(peerModel) && UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_HIDE_VALUEADDS);
+		filtered |= isValueAdd(peerModel) && hideValueAdds;
 		if (!showInvisible) {
 			filtered |= !peerModel.isVisible();
 		}

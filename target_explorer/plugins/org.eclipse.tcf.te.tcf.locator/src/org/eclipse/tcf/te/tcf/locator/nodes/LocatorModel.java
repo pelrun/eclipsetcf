@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.locator.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -511,14 +512,24 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 
 		// Continue filtering if the node is not yet dropped
 		if (result != null) {
-			// Peers are filtered by agent id. Don't add the peer node
-			// if we have another peer node already having the same agent id
+			List<IPeerModel> previousNodes = new ArrayList<IPeerModel>();
+
+			// Peers are filtered by agent id. Don't add the peer node if we have another peer
+			// node already having the same agent id
 			String agentId = peer.getAgentID();
-			IPeerModel[] previousNodes = agentId != null ? getService(ILocatorModelLookupService.class).lkupPeerModelByAgentId(agentId) : new IPeerModel[0];
+			if (agentId != null) {
+				previousNodes.addAll(Arrays.asList(getService(ILocatorModelLookupService.class).lkupPeerModelByAgentId(agentId)));
+			}
+
+			// Lookup for matching static peer nodes not found by the agent id lookup
+			IPeerModel[] candidates = getService(ILocatorModelLookupService.class).lkupMatchingStaticPeerModels(peer);
+			for (IPeerModel candidate : candidates) {
+				if (!previousNodes.contains(candidate)) previousNodes.add(candidate);
+			}
 
 			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
 				CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd: agentId=" + agentId + ", Matching peer nodes " //$NON-NLS-1$ //$NON-NLS-2$
-															+ (previousNodes.length > 0 ? "found (" + previousNodes.length +")" : "not found --> DONE") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+															+ (previousNodes.size() > 0 ? "found (" + previousNodes.size() +")" : "not found --> DONE") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 															, ITracing.ID_TRACE_LOCATOR_MODEL, this);
 			}
 

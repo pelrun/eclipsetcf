@@ -31,4 +31,9 @@ public interface IPreferenceKeys {
 	 * @see File#pathSeparatorChar
 	 */
 	public final String PREF_STATIC_PEERS_ROOT_LOCATIONS = PREFIX + "model.peers.rootLocations"; //$NON-NLS-1$
+
+	/**
+	 * Preference key to access the flag to hide value-add's in the "System Management" tree.
+	 */
+	public static final String PREF_HIDE_VALUEADDS = PREFIX + "model.valueadds.hide"; //$NON-NLS-1$
 }
