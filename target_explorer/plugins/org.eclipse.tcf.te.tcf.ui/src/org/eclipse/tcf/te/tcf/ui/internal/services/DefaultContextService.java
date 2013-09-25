@@ -31,10 +31,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
  * Default context service implementation.
@@ -84,14 +82,6 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 		if (peerModel != null) {
 			HistoryManager.getInstance().add(getClass().getName(), peerModel.getPeerId());
 			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_ADDED, peerModel, peerModel));
-
-			IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-			if (window != null && window.getActivePage() != null) {
-				IViewPart view = window.getActivePage().findView(PART_ID_TE_VIEW);
-				if (view instanceof CommonNavigator) {
-					((CommonNavigator)view).getCommonViewer().refresh();
-				}
-			}
 
 			final AtomicReference<String> type = new AtomicReference<String>();
 			Protocol.invokeAndWait(new Runnable() {
