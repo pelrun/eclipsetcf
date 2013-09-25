@@ -545,12 +545,6 @@
    <extension point="org.eclipse.ui.commands">
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
-            description="%command.showInDebugView.description"
-            id="org.eclipse.tcf.te.launch.command.showInDebugView"
-            helpContextId="org.eclipse.tcf.te.launch.command_ShowInDebugView"
-            name="%command.showInDebugView.name"/>
-      <command
-            categoryId="org.eclipse.tcf.te.ui.commands.category"
             description="%command.attach.description"
             id="org.eclipse.tcf.te.launch.command.attach"
             helpContextId="org.eclipse.tcf.te.launch.command_Attach"
@@ -585,9 +579,6 @@
             commandId="org.eclipse.tcf.te.ui.launch.command.debug"
             icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/debug_exc.gif"
             disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/debug_exc.gif"/>
-      <image
-            commandId="org.eclipse.tcf.te.launch.command.showInDebugView"
-            icon="platform:/plugin/org.eclipse.debug.ui/icons/full/eview16/debug_view.gif"/>
       <image
             commandId="org.eclipse.tcf.te.launch.command.attach"
             disabledIcon="icons/dlcl16/attach.gif"
