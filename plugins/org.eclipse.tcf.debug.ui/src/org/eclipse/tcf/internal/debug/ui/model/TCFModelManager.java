@@ -25,6 +25,9 @@ import org.eclipse.debug.core.Launch;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchListener;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * TCFModelManager listens debug launch manager and creates TCF debug models when necessary.
@@ -125,14 +128,39 @@ public class TCFModelManager {
         }
     };
 
+    private final IWorkbenchListener workbench_listener = new IWorkbenchListener() {
+
+        @Override
+        public boolean preShutdown(IWorkbench workbench, boolean forced) {
+            for (ILaunch launch : DebugPlugin.getDefault().getLaunchManager().getLaunches()) {
+                if (launch instanceof TCFLaunch) {
+                    try {
+                        ((TCFLaunch)launch).disconnect();
+                        DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+                    }
+                    catch (Exception x) {
+                        Activator.log("Cannot disconnect TCF launch", x);
+                    }
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public void postShutdown(IWorkbench workbench) {
+        }
+    };
+
     public TCFModelManager() {
         assert Protocol.isDispatchThread();
+        PlatformUI.getWorkbench().addWorkbenchListener(workbench_listener);
         DebugPlugin.getDefault().getLaunchManager().addLaunchListener(debug_launch_listener);
         TCFLaunch.addListener(tcf_launch_listener);
     }
 
     public void dispose() {
         assert Protocol.isDispatchThread();
+        PlatformUI.getWorkbench().removeWorkbenchListener(workbench_listener);
         DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(debug_launch_listener);
         TCFLaunch.removeListener(tcf_launch_listener);
         for (Iterator<TCFModel> i = models.values().iterator(); i.hasNext();) {
