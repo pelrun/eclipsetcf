@@ -49,16 +49,17 @@ public class RuntimeModelProcessServiceListener implements IProcesses.ProcessesL
     @Override
     public void exited(String id, int exit_code) {
     	if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_SERVICE_LISTENER)) {
-    		CoreBundleActivator.getTraceHandler().trace("OCDDevicesServiceListener#contextChanged: id = \"" + id + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-    													0, ITraceIds.TRACE_SERVICE_LISTENER,
-    													IStatus.INFO, this);
-
-    		// Find the terminated process
-    		IModelNode[] nodes = model.getService(IModelLookupService.class).lkupModelNodesById(id);
-    		for (IModelNode node : nodes) {
-    			// Remove the terminated nodes from the model
-    			model.getService(IModelUpdateService.class).remove(node);
-    		}
+    		CoreBundleActivator.getTraceHandler().trace("RuntimeModelProcessServiceListener#exited: id = \"" + id + //$NON-NLS-1$
+    						"\" exitCode=\"" + exit_code + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+    						0, ITraceIds.TRACE_SERVICE_LISTENER,
+    						IStatus.INFO, this);
     	}
+
+   		// Find the terminated process
+   		IModelNode[] nodes = model.getService(IModelLookupService.class).lkupModelNodesById(id);
+   		for (IModelNode node : nodes) {
+   			// Remove the terminated nodes from the model
+   			model.getService(IModelUpdateService.class).remove(node);
+   		}
     }
 }

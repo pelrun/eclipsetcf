@@ -48,7 +48,8 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 	@Override
     public void remove(IModelNode node) {
 		Assert.isNotNull(node);
-		getModel().remove(node, false);
+		Assert.isNotNull(node.getParent());
+		node.getParent().remove(node, false);
 	}
 
 	/* (non-Javadoc)
