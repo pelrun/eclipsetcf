@@ -9,10 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.core.model.properties;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 
 /**
  * The property tester for a process tree node.
@@ -23,7 +25,7 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String, java.lang.Object[], java.lang.Object)
 	 */
 	@Override
-	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
+	public boolean test(Object receiver, String property, Object[] args, final Object expectedValue) {
 		if (receiver instanceof IProcessContextNode) {
 			final IProcessContextNode node = (IProcessContextNode) receiver;
 			if ("isAttached".equals(property) && expectedValue instanceof Boolean) { //$NON-NLS-1$
@@ -91,6 +93,23 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 				else Protocol.invokeAndWait(runnable);
 
 				return ((Boolean) expectedValue).booleanValue() == canTerminate.get();
+			}
+
+			if ("hasCapability".equals(property) && expectedValue instanceof String) { //$NON-NLS-1$
+				final AtomicBoolean hasCapability = new AtomicBoolean();
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						Map<String, Object> caps = (Map<String, Object>)node.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
+						if (caps != null) {
+							hasCapability.set(caps.containsKey(expectedValue) && Boolean.parseBoolean(caps.get(expectedValue).toString()));
+						}
+					}
+				};
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeAndWait(runnable);
+
+				return hasCapability.get();
 			}
 		}
 		return false;

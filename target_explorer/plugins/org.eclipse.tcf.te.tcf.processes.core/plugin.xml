@@ -34,7 +34,7 @@
             class="org.eclipse.tcf.te.tcf.processes.core.model.properties.PropertyTester"
             id="org.eclipse.tcf.te.tcf.processes.core.model.properties"
             namespace="org.eclipse.tcf.te.tcf.processes.core"
-            properties="isAttached,canAttach,hasProcessContext,canTerminate"
+            properties="isAttached,canAttach,hasProcessContext,canTerminate,hasCapability"
             type="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode">
       </propertyTester>
    </extension>
