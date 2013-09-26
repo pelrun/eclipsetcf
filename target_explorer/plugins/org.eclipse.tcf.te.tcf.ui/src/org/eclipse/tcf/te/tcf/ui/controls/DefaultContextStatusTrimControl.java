@@ -49,7 +49,7 @@ public class DefaultContextStatusTrimControl extends WorkbenchWindowControlContr
 		layout.marginHeight = 0; layout.marginWidth = 0;
 		panel.setLayout(layout);
 
-		text = new Text(panel, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
+		text = new Text(panel, SWT.SINGLE | SWT.READ_ONLY);
 		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
 		layoutData.minimumWidth = SWTControlUtil.convertWidthInCharsToPixels(text, 25);
 		text.setLayoutData(layoutData);
