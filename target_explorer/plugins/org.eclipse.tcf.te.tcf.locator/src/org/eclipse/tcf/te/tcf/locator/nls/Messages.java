@@ -69,4 +69,6 @@ public class Messages extends NLS {
 
 	public static String WaitForReadyStep_error_timeout;
 	public static String WaitForReadyStep_error_state;
+	public static String WaitForReadyStep_error_reason_unknown;
+	public static String WaitForReadyStep_error_reason_cause;
 }

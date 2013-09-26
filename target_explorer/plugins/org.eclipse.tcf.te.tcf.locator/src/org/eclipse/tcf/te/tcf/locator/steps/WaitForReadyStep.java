@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
@@ -68,7 +69,9 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 						return;
 					}
 					else if (refreshCount >= getTotalWork(context, data)) {
-						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new TimeoutException(Messages.WaitForReadyStep_error_timeout)), null);
+						@SuppressWarnings("synthetic-access")
+                        String message = NLS.bind(Messages.WaitForReadyStep_error_timeout, getActivePeerContext(context, data, fullQualifiedId).getName());
+						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new TimeoutException(message)), null);
 					}
 					else if (getActivePeerModelContext(context, data, fullQualifiedId).isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY)) {
 						// Refresh the model now (must be executed within the TCF dispatch thread)
@@ -95,8 +98,23 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 							}
 							callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 						}
-						else
-							callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), Messages.WaitForReadyStep_error_state))), null);
+						else {
+							@SuppressWarnings("synthetic-access")
+	                        String message = NLS.bind(Messages.WaitForReadyStep_error_state, getActivePeerContext(context, data, fullQualifiedId).getName());
+
+							String cause = null;
+							if (state == IPeerModelProperties.STATE_ERROR) {
+								cause = getActivePeerModelContext(context, data, fullQualifiedId).getStringProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR);
+							}
+
+							if (cause != null && !"".equals(cause.trim())) { //$NON-NLS-1$
+								message += NLS.bind(Messages.WaitForReadyStep_error_reason_cause, cause);
+							} else {
+								message += Messages.WaitForReadyStep_error_reason_unknown;
+							}
+
+							callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message))), null);
+						}
 					}
 				}
 			});
