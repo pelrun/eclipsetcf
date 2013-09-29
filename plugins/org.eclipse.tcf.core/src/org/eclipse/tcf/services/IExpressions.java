@@ -122,6 +122,14 @@ public interface IExpressions extends IService {
         PROP_HAS_FUNC_CALL = "HasFuncCall";
 
     /**
+     * Expression scope attributes.
+     */
+    static final String
+        SCOPE_CONTEXT_ID = "ContextID",
+        SCOPE_ADDRESS = "Address",
+        SCOPE_LANGUAGE = "Language";
+
+    /**
      * Value represents result of expression evaluation.
      * Note that same expression can be evaluated multiple times with different results.
      */
@@ -256,7 +264,17 @@ public interface IExpressions extends IService {
     IToken create(String parent_id, String language, String expression, DoneCreate done);
 
     /**
-     * Client call back interface for create().
+     * Create an expression context using given scope to resolve symbols.
+     * The context should be disposed after use.
+     * @param scope - see SCOPE_* attribute definitions.
+     * @param expression - expression script
+     * @param done - call back interface called when operation is completed.
+     * @return - pending command handle.
+     */
+    IToken createInScope(Map<String,Object> scope, String expression, DoneCreate done);
+
+    /**
+     * Client call back interface for create() and createInScope().
      */
     interface DoneCreate {
         /**

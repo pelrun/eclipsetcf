@@ -167,8 +167,24 @@ public class ExpressionsProxy implements IExpressions {
 
     public IToken create(String parent_id, String language, String expression, final DoneCreate done) {
         return new Command(channel, this, "create", new Object[]{ parent_id, language, expression }) {
-            @SuppressWarnings("unchecked")
             @Override
+            @SuppressWarnings("unchecked")
+            public void done(Exception error, Object[] args) {
+                Context ctx = null;
+                if (error == null) {
+                    assert args.length == 2;
+                    error = toError(args[0]);
+                    if (args[1] != null) ctx = new Context((Map<String,Object>)args[1]);
+                }
+                done.doneCreate(token, error, ctx);
+            }
+        }.token;
+    }
+
+    public IToken createInScope(Map<String,Object> scope, String expression, final DoneCreate done) {
+        return new Command(channel, this, "createInScope", new Object[]{ scope, expression }) {
+            @Override
+            @SuppressWarnings("unchecked")
             public void done(Exception error, Object[] args) {
                 Context ctx = null;
                 if (error == null) {

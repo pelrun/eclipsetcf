@@ -623,18 +623,41 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                 if (txt.indexOf("(bool)") >= 0) continue;
             }
             if (expr_ctx.get(txt) == null) {
-                srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
-                    public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
-                        if (error != null) {
-                            exit(error);
+                if (rnd.nextBoolean()) {
+                    Map<String,Object> scope = new HashMap<String,Object>();
+                    scope.put(IExpressions.SCOPE_CONTEXT_ID, stack_trace[stack_trace.length - 2]);
+                    if (rnd.nextBoolean()) scope.put(IExpressions.SCOPE_ADDRESS, sym_func3.getValue());
+                    srv_expr.createInScope(scope, txt, new IExpressions.DoneCreate() {
+                        public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
+                            if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
+                                // Command not implemented, retry
+                                runTest();
+                            }
+                            else if (error != null) {
+                                exit(error);
+                            }
+                            else {
+                                expr_to_dispose.add(ctx.getID());
+                                expr_ctx.put(txt, ctx);
+                                runTest();
+                            }
                         }
-                        else {
-                            expr_to_dispose.add(ctx.getID());
-                            expr_ctx.put(txt, ctx);
-                            runTest();
+                    });
+                }
+                else {
+                    srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
+                        public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
+                            if (error != null) {
+                                exit(error);
+                            }
+                            else {
+                                expr_to_dispose.add(ctx.getID());
+                                expr_ctx.put(txt, ctx);
+                                runTest();
+                            }
                         }
-                    }
-                });
+                    });
+                }
                 return;
             }
         }
