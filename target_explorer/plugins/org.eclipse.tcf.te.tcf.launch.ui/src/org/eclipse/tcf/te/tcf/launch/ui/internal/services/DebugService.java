@@ -18,6 +18,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
+import org.eclipse.debug.core.ILaunchListener;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.ILaunchesListener;
 import org.eclipse.debug.ui.DebugUITools;
@@ -114,14 +115,34 @@ public class DebugService extends AbstractService implements IDebugService {
 						}
 
 						if (!skip) {
-							config = LaunchManager.getInstance().createOrUpdateLaunchConfiguration(config, launchSpec);
+							final ILaunchConfiguration finConfig = LaunchManager.getInstance().createOrUpdateLaunchConfiguration(config, launchSpec);
 
-							delegate.validate(ILaunchManager.DEBUG_MODE, config);
-							DebugUITools.launch(config, ILaunchManager.DEBUG_MODE);
+							delegate.validate(ILaunchManager.DEBUG_MODE, finConfig);
+
+							DebugPlugin.getDefault().getLaunchManager().addLaunchListener(new ILaunchListener() {
+								@Override
+								public void launchAdded(ILaunch launch) {
+									if (launch != null && finConfig.equals(launch.getLaunchConfiguration())) {
+										DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
+										callback.done(this, Status.OK_STATUS);
+									}
+								}
+
+								@Override
+								public void launchChanged(ILaunch launch) {
+								}
+
+								@Override
+								public void launchRemoved(ILaunch launch) {
+								}
+							});
+
+							DebugUITools.launch(finConfig, ILaunchManager.DEBUG_MODE);
+						} else {
+							callback.done(this, Status.OK_STATUS);
 						}
 					}
 				}
-				callback.done(this, Status.OK_STATUS);
 			}
 			catch (Exception e) {
 				callback.done(this, StatusHelper.getStatus(e));
