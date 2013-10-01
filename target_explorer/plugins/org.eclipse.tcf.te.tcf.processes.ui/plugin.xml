@@ -509,6 +509,31 @@
             </with>
          </enabledWhen>
       </handler>
+      <handler 
+            class="org.eclipse.tcf.te.tcf.processes.ui.handler.TerminateHandler"
+            commandId="org.eclipse.ui.edit.delete">
+         <activeWhen>
+            <with variable="activePartId">
+               <or>
+                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
+                  <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
+               </or>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="selection">
+               <count value="+"/>
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode">
+                     <and>
+                        <test property="org.eclipse.tcf.te.tcf.processes.core.hasProcessContext" value="true"/>
+                        <test property="org.eclipse.tcf.te.tcf.processes.core.canTerminate" value="true"/>
+                     </and>
+                  </adapt>
+               </iterate>
+            </with>
+         </enabledWhen>
+      </handler>
       
       <handler
             class="org.eclipse.tcf.te.tcf.processes.ui.handler.RefreshHandler"
