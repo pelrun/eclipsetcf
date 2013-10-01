@@ -18,11 +18,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IRunControl;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -36,6 +38,23 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQ
  * Start debugger step implementation.
  */
 public class StartDebuggerStep extends AbstractPeerModelStep {
+
+	/**
+	 * Interface to be implemented by start debugger step delegates.
+	 */
+	public static interface IDelegate {
+
+		/**
+		 * Called once the debugger has been attached.
+		 *
+		 * @param node The peer model node. Must not be <code>null</code>.
+		 * @param data The data giving object. Must not be <code>null</code>.
+		 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
+		 * @param monitor The progress monitor. Must not be <code>null</code>.
+		 * @param callback The callback to invoke if finished. Must not be <code>null</code>.
+		 */
+		public void postAttachDebugger(IPeerModel node, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback);
+	}
 
 	/**
 	 * Constructor.
@@ -59,57 +78,70 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 		Assert.isNotNull(node);
 
 		if (StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data)) {
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				// Don't attach the debugger if no run control is provided by the target
-				final ILocatorModelPeerNodeQueryService queryService = node.getModel().getService(ILocatorModelPeerNodeQueryService.class);
-				Assert.isNotNull(queryService);
-				queryService.queryServicesAsync(node, new ILocatorModelPeerNodeQueryService.DoneQueryServices() {
-					@Override
-					public void doneQueryServices(Throwable error) {
-						if (error == null) {
-							// Get the list of available remote services
-							String remoteServices = node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
-							Assert.isNotNull(remoteServices);
-							boolean canAttachDbg = false;
-							StringTokenizer tokenizer = new StringTokenizer(remoteServices, ","); //$NON-NLS-1$
-							while (tokenizer.hasMoreTokens()) {
-								String svc = tokenizer.nextToken().trim();
-								if (IRunControl.NAME.equals(svc)) {
-									canAttachDbg = true;
-									break;
-								}
-							}
-
-							if (canAttachDbg) {
-								Runnable runnable = new Runnable() {
-									@Override
-									public void run() {
-										IDebugService dbgService = ServiceManager.getInstance().getService(node, IDebugService.class, false);
-										if (dbgService != null) {
-											// Attach the debugger and all cores (OCDDevices)
-											IPropertiesContainer props = new PropertiesContainer();
-											dbgService.attach(node, props, monitor, callback);
-										}
-										else {
-											callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-										}
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					// Don't attach the debugger if no run control is provided by the target
+					final ILocatorModelPeerNodeQueryService queryService = node.getModel().getService(ILocatorModelPeerNodeQueryService.class);
+					Assert.isNotNull(queryService);
+					queryService.queryServicesAsync(node, new ILocatorModelPeerNodeQueryService.DoneQueryServices() {
+						@Override
+						public void doneQueryServices(Throwable error) {
+							if (error == null) {
+								// Get the list of available remote services
+								String remoteServices = node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+								Assert.isNotNull(remoteServices);
+								boolean canAttachDbg = false;
+								StringTokenizer tokenizer = new StringTokenizer(remoteServices, ","); //$NON-NLS-1$
+								while (tokenizer.hasMoreTokens()) {
+									String svc = tokenizer.nextToken().trim();
+									if (IRunControl.NAME.equals(svc)) {
+										canAttachDbg = true;
+										break;
 									}
-								};
-								Protocol.invokeLater(runnable);
-							} else {
-								callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-							}
-						} else {
-							callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
-						}
-					}
-				});
-			}
-		};
+								}
 
-		Protocol.invokeLater(runnable);
+								if (canAttachDbg) {
+									Runnable runnable = new Runnable() {
+										@Override
+										public void run() {
+											IDebugService dbgService = ServiceManager.getInstance().getService(node, IDebugService.class, false);
+											if (dbgService != null) {
+												// Attach the debugger
+												IPropertiesContainer props = new PropertiesContainer();
+												dbgService.attach(node, props, monitor, new Callback() {
+													@Override
+                                                    protected void internalDone(Object caller, IStatus status) {
+														// Check if there is a delegate registered
+														IUIService uiService = ServiceManager.getInstance().getService(node, IUIService.class, false);
+														IDelegate delegate = uiService != null ? uiService.getDelegate(node, IDelegate.class) : null;
+
+														if (delegate != null) {
+															delegate.postAttachDebugger(node, data, fullQualifiedId, monitor, callback);
+														} else {
+															callback(data, fullQualifiedId, callback, status, null);
+														}
+													}
+												});
+											}
+											else {
+												callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+											}
+										}
+									};
+									Protocol.invokeLater(runnable);
+								} else {
+									callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+								}
+							} else {
+								callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
+							}
+						}
+					});
+				}
+			};
+
+			Protocol.invokeLater(runnable);
 		}
 		else {
 			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
