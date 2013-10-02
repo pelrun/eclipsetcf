@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -45,6 +47,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
  * Path map service implementation.
  */
 public class PathMapService extends AbstractService implements IPathMapService {
+	// Lock to handle multi thread access
+	private final Lock lock = new ReentrantLock();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#getPathMap(java.lang.Object)
@@ -53,6 +57,9 @@ public class PathMapService extends AbstractService implements IPathMapService {
 	public PathMapRule[] getPathMap(Object context) {
     	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
+
+		// Acquire the lock before accessing the path mappings
+		lock.lock();
 
 		PathMapRule[] rules = null;
 		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
@@ -88,6 +95,9 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			rules = rulesList.toArray(new PathMapRule[rulesList.size()]);
 		}
 
+		// Release the lock
+		lock.unlock();
+
 		return rules;
 	}
 
@@ -100,6 +110,9 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		Assert.isNotNull(context);
 		Assert.isNotNull(source);
 		Assert.isNotNull(destination);
+
+		// Acquire the lock before accessing the path mappings
+		lock.lock();
 
 		PathMapRule rule = null;
 		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
@@ -144,7 +157,10 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			}
 		}
 
-        return rule;
+		// Release the lock
+		lock.unlock();
+
+		return rule;
     }
 
     /* (non-Javadoc)
@@ -155,6 +171,9 @@ public class PathMapService extends AbstractService implements IPathMapService {
     	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
 		Assert.isNotNull(rule);
+
+		// Acquire the lock before accessing the path mappings
+		lock.lock();
 
 		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
 
@@ -183,6 +202,9 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		        });
 			}
 		}
+
+		// Release the lock
+		lock.unlock();
     }
 
     /**
