@@ -152,6 +152,12 @@ class MemoryMapItemDialog extends Dialog {
         addr_text.setFont(font);
         addr_text.setEditable(enable_editing);
 
+        addr_text.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                updateButtons();
+            }
+        });
+
         Label size_label = new Label(composite, SWT.WRAP);
         size_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
         size_label.setFont(font);
@@ -282,7 +288,11 @@ class MemoryMapItemDialog extends Dialog {
 
     private void updateButtons() {
         Button btn = getButton(IDialogConstants.OK_ID);
-        if (btn != null && file_text != null) btn.setEnabled(!enable_editing || file_text.getText().trim().length() > 0);
+        if (btn != null) {
+            btn.setEnabled(!enable_editing ||
+                    file_text != null && file_text.getText().trim().length() > 0 ||
+                    addr_text != null && addr_text.getText().trim().length() > 0);
+        }
     }
 
     @Override

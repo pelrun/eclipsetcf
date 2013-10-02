@@ -11,13 +11,16 @@
 package org.eclipse.tcf.internal.debug.model;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.services.IMemoryMap;
 
 /**
  * A comparable extension of TCFMemoryRegion.
+ * Note: this class has a natural ordering that is inconsistent with equals.
  */
 public class TCFMemoryRegion extends org.eclipse.tcf.util.TCFMemoryRegion implements Comparable<TCFMemoryRegion> {
 
@@ -31,18 +34,47 @@ public class TCFMemoryRegion extends org.eclipse.tcf.util.TCFMemoryRegion implem
     }
 
     public int compareTo(TCFMemoryRegion r) {
-        if (addr == null && r.addr == null) return 0;
-        if (addr == null) return -1;
-        if (r.addr == null) return +1;
-        return addr.compareTo(r.addr);
+        if (addr != r.addr) {
+            if (addr == null) return -1;
+            if (r.addr == null) return +1;
+            int n = addr.compareTo(r.addr);
+            if (n != 0) return n;
+        }
+        if (size != r.size) {
+            if (size == null) return -1;
+            if (r.size == null) return +1;
+            int n = size.compareTo(r.size);
+            if (n != 0) return n;
+        }
+        return 0;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof TCFMemoryRegion) {
-            return compareTo((TCFMemoryRegion)o) == 0;
+        if (this == o) return true;
+        if (!(o instanceof TCFMemoryRegion)) return false;
+        TCFMemoryRegion r = (TCFMemoryRegion)o;
+        if (compareTo(r) != 0) return false;
+        Map<String,Object> x = getProperties();
+        Map<String,Object> y = r.getProperties();
+        if (x.size() != y.size()) return false;
+        Iterator<Entry<String,Object>> i = x.entrySet().iterator();
+        while (i.hasNext()) {
+            Entry<String,Object> e = i.next();
+            String key = e.getKey();
+            if (key != null) {
+                if (key.equals(IMemoryMap.PROP_ADDRESS)) continue;
+                if (key.equals(IMemoryMap.PROP_SIZE)) continue;
+            }
+            Object val = e.getValue();
+            if (val == null) {
+                if (y.get(key) != null || !y.containsKey(key)) return false;
+            }
+            else {
+                if (!val.equals(y.get(key))) return false;
+            }
         }
-        return false;
+        return true;
     }
 
     @Override
