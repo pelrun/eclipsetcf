@@ -154,6 +154,9 @@ public interface ITerminals extends IService {
         IToken exit(DoneCommand done);
     }
 
+    /**
+     * Call-back interface to be called when "setWinSize" or "exit" command is complete.
+     */
     interface DoneCommand {
         void doneCommand(IToken token, Exception error);
     }
@@ -170,15 +173,14 @@ public interface ITerminals extends IService {
     IToken launch(String type, String encoding, String[] environment, DoneLaunch done);
 
     /**
-     * Call-back interface to be called when "start" command is complete.
+     * Call-back interface to be called when "launch" command is complete.
      */
     interface DoneLaunch {
         void doneLaunch(IToken token, Exception error, TerminalContext terminal);
     }
 
-
     /**
-     * Set the terminal widows size
+     * Set the terminal widow size
      * @param context_id - context ID.
      * @param signal - signal code.
      * @param done - call back interface called when operation is completed.
@@ -207,7 +209,7 @@ public interface ITerminals extends IService {
     void removeListener(TerminalsListener listener);
 
     /**
-     * Process event listener is notified when a terminal exits.
+     * Process event listener is notified when a terminal changes or exits.
      * Event are reported only for terminals that were started by 'launch' command.
      */
     interface TerminalsListener {
@@ -220,11 +222,11 @@ public interface ITerminals extends IService {
         void exited(String terminal_id, int exit_code);
 
         /**
-         * Called when a terminal exits.
+         * Called when a terminal windows size changes.
          * @param terminal_id - terminal context ID
-         * @param newWidth – new terminal width
-         * @param newHeight – new terminal height
+         * @param new_width – new terminal width
+         * @param new_height – new terminal height
          */
-        void winSizeChanged (String terminal_id, int newWidth, int newHeight);
+        void winSizeChanged(String terminal_id, int new_width, int new_height);
     }
 }
