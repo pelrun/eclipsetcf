@@ -39,13 +39,14 @@ import org.eclipse.tcf.internal.rse.TCFConnectorService;
 import org.eclipse.tcf.internal.rse.TCFRSETask;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
-import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.services.ITerminals;
+import org.eclipse.tcf.util.TCFVirtualInputStream;
+import org.eclipse.tcf.util.TCFVirtualOutputStream;
 
 
 public class TCFTerminalShell extends AbstractTerminalShell {
-    private ITCFSessionProvider fSessionProvider;
-    private IChannel fChannel;
+    private final ITCFSessionProvider fSessionProvider;
+    private final IChannel fChannel;
     private String fPtyType;
     private ITerminals.TerminalContext terminalContext;
     private String fEncoding;
@@ -55,12 +56,11 @@ public class TCFTerminalShell extends AbstractTerminalShell {
     private int fWidth = 0;
     private int fHeight = 0;
     private String fContextID;
-    private String in_id;
+    private String inp_id;
     private String out_id;
     private boolean connected;
     private boolean exited;
     private ITerminals terminals;
-    private IStreams streams;
     private int status;
 
     private IPropertySet tcfPropertySet = null;
@@ -204,12 +204,12 @@ public class TCFTerminalShell extends AbstractTerminalShell {
             final String encoding, final String[] environment,
             String initialWorkingDirectory, String commandToRun)
     throws SystemMessageException {
+        fSessionProvider = sessionProvider;
+        fEncoding = encoding;
+        fPtyType = ptyType;
+        fChannel = fSessionProvider.getChannel();
         Exception nestedException = null;
         try {
-            fSessionProvider = sessionProvider;
-            fEncoding = encoding;
-            fPtyType = ptyType;
-            fChannel = fSessionProvider.getChannel();
 
             if (fChannel == null || fChannel.getState() != IChannel.STATE_OPEN)
                 throw new Exception("TCP channel is not connected!");//$NON-NLS-1$
@@ -217,7 +217,6 @@ public class TCFTerminalShell extends AbstractTerminalShell {
             new TCFRSETask<ITerminals.TerminalContext>() {
                 public void run() {
                     terminals = ((TCFConnectorService)sessionProvider).getService(ITerminals.class);
-                    streams = ((TCFConnectorService)sessionProvider).getService(IStreams.class);
                     fSessionProvider.onStreamsConnecting();
                     terminals.launch(ptyType, encoding, environment, new ITerminals.DoneLaunch() {
                         @Override
@@ -225,8 +224,27 @@ public class TCFTerminalShell extends AbstractTerminalShell {
                             if (ctx != null) {
                                 terminalContext = ctx;
                                 terminals.addListener(listeners);
-                                fSessionProvider.onStreamsID(ctx.getStdInID());
-                                fSessionProvider.onStreamsID(ctx.getStdOutID());
+                                inp_id = ctx.getStdOutID();
+                                out_id = ctx.getStdInID();
+                                fSessionProvider.onStreamsID(inp_id);
+                                fSessionProvider.onStreamsID(out_id);
+                                try {
+                                    fInputStream = new TCFVirtualInputStream(fChannel, inp_id, new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            onInputStreamClosed();
+                                        }
+                                    });
+                                    fOutputStream = new TCFVirtualOutputStream(fChannel, out_id, new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            onOutputStreamClosed();
+                                        }
+                                    });
+                                }
+                                catch (Exception x) {
+                                    error = x;
+                                }
                             }
                             fSessionProvider.onStreamsConnected();
                             if (error != null) error(error);
@@ -242,15 +260,11 @@ public class TCFTerminalShell extends AbstractTerminalShell {
             fContextID = terminalContext.getID();
             fWidth = terminalContext.getWidth();
             fHeight = terminalContext.getHeight();
-            in_id = terminalContext.getStdOutID();
-            out_id = terminalContext.getStdInID();
 
             String user = fSessionProvider.getSessionUserId();
             String password = fSessionProvider.getSessionPassword();
             status = ITCFSessionProvider.ERROR_CODE;
 
-            fOutputStream = new TCFTerminalOutputStream(this, streams, out_id);
-            fInputStream = new TCFTerminalInputStream(this, streams, in_id);
             if (fEncoding != null) {
                 fOutputStreamWriter = new BufferedWriter(new OutputStreamWriter(fOutputStream, encoding));
             }
@@ -264,41 +278,39 @@ public class TCFTerminalShell extends AbstractTerminalShell {
                 status = login(user, password);
             }
             finally {
-                if ((status == ITCFSessionProvider.CONNECT_CLOSED)) {
-                    //Give one time chance of retrying....
+                if (status == ITCFSessionProvider.CONNECT_CLOSED) {
+                    // Give one time chance of retrying....
                 }
             }
 
-            //give another chance of retrying
-            if ((status == ITCFSessionProvider.CONNECT_CLOSED))
-            {
+            // give another chance of retrying
+            if (status == ITCFSessionProvider.CONNECT_CLOSED) {
                 status = login(user, password);
             }
 
-            connected = true;
-            if (initialWorkingDirectory!=null && initialWorkingDirectory.length()>0
-                    && !initialWorkingDirectory.equals(".") //$NON-NLS-1$
-                    && !initialWorkingDirectory.equals("Command Shell") //$NON-NLS-1$ //FIXME workaround for bug 153047
-            ) {
-                writeToShell("cd " + PathUtility.enQuoteUnix(initialWorkingDirectory)); //$NON-NLS-1$
-            }
+            if (status == ITCFSessionProvider.SUCCESS_CODE) {
+                connected = true;
+                if (initialWorkingDirectory != null && initialWorkingDirectory.length() > 0
+                        && !initialWorkingDirectory.equals(".") //$NON-NLS-1$
+                        && !initialWorkingDirectory.equals("Command Shell")) //$NON-NLS-1$ //FIXME workaround for bug 153047
+                {
+                    writeToShell("cd " + PathUtility.enQuoteUnix(initialWorkingDirectory)); //$NON-NLS-1$
+                }
 
-            if (commandToRun != null && commandToRun.length() > 0) {
-                writeToShell(commandToRun);
+                if (commandToRun != null && commandToRun.length() > 0) {
+                    writeToShell(commandToRun);
+                }
             }
-
         }
         catch (Exception e) {
             e.printStackTrace();
             nestedException = e;
         }
         finally {
-            if (status == ITCFSessionProvider.SUCCESS_CODE) {
-            }
-            else {
+            if (status != ITCFSessionProvider.SUCCESS_CODE) {
                 SystemMessage msg;
 
-                if (nestedException!=null) {
+                if (nestedException != null) {
                     msg = new SimpleSystemMessage(org.eclipse.tcf.internal.rse.Activator.PLUGIN_ID,
                             ICommonMessageIds.MSG_EXCEPTION_OCCURRED,
                             IStatus.ERROR,
@@ -317,7 +329,7 @@ public class TCFTerminalShell extends AbstractTerminalShell {
                             ICommonMessageIds.MSG_COMM_AUTH_FAILED,
                             IStatus.ERROR,
                             strErr,
-                    "Meet error when trying to login in!");//$NON-NLS-1$
+                            "Meet error when trying to login in!");//$NON-NLS-1$
                     msg.makeSubstitution(((TCFConnectorService)fSessionProvider).getHost().getAliasName());
                 }
                 throw new SystemMessageException(msg);//$NON-NLS-1$
@@ -346,7 +358,6 @@ public class TCFTerminalShell extends AbstractTerminalShell {
         try {
             getOutputStream().close();
             getInputStream().close();
-
         }
         catch (IOException ioe) {
             ioe.printStackTrace();
@@ -370,10 +381,12 @@ public class TCFTerminalShell extends AbstractTerminalShell {
     }
 
     public InputStream getInputStream() {
+        if (!connected) throw new Error("Not connected");
         return fInputStream;
     }
 
     public OutputStream getOutputStream() {
+        if (!connected) throw new Error("Not connected");
         return fOutputStream;
     }
 
@@ -391,6 +404,7 @@ public class TCFTerminalShell extends AbstractTerminalShell {
     }
 
     public void setTerminalSize(int newWidth, int newHeight) {
+        if (fWidth == newWidth && fHeight == newHeight) return;
         if (fChannel == null || (fChannel.getState() == IChannel.STATE_CLOSED) || !connected) {
             // do nothing
             return;
@@ -424,8 +438,8 @@ public class TCFTerminalShell extends AbstractTerminalShell {
         return defaultEncoding;
     }
 
-    void onInputStreamClosed() {
-        in_id = null;
+    private void onInputStreamClosed() {
+        inp_id = null;
         if (out_id == null && !exited) {
             terminalContext.exit(new ITerminals.DoneCommand(){
                 public void doneCommand(IToken token, Exception error) {
@@ -434,9 +448,9 @@ public class TCFTerminalShell extends AbstractTerminalShell {
         }
     }
 
-    void onOutputStreamClosed() {
+    private void onOutputStreamClosed() {
         out_id = null;
-        if (in_id == null && !exited) {
+        if (inp_id == null && !exited) {
             terminalContext.exit(new ITerminals.DoneCommand(){
                 public void doneCommand(IToken token, Exception error) {
                 }
