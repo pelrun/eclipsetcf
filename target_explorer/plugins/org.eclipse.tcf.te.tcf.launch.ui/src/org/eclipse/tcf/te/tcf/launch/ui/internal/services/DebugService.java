@@ -108,6 +108,7 @@ public class DebugService extends AbstractService implements IDebugService {
 								if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && !launch.isTerminated()) {
 									IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
 									if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
+										callback.setProperty("launch", launch); //$NON-NLS-1$
 										skip = true;
 									}
 								}
@@ -124,6 +125,7 @@ public class DebugService extends AbstractService implements IDebugService {
 								public void launchAdded(ILaunch launch) {
 									if (launch != null && finConfig.equals(launch.getLaunchConfiguration())) {
 										DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
+										callback.setProperty("launch", launch); //$NON-NLS-1$
 										callback.done(this, Status.OK_STATUS);
 									}
 								}
