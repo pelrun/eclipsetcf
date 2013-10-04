@@ -72,8 +72,10 @@ import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -674,6 +676,27 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         }
     }
 
+    private static Node cloneXML(Document document, Node node) {
+        if (node instanceof Element) {
+            Element x = (Element)node;
+            Element y = document.createElement(x.getTagName());
+            NamedNodeMap attrs = x.getAttributes();
+            int l = attrs.getLength();
+            for (int i = 0; i < l; i++) {
+                Attr a = (Attr)attrs.item(i);
+                y.setAttribute(a.getName(), a.getValue());
+            }
+            Node c = x.getFirstChild();
+            while (c != null) {
+                Node d = cloneXML(document, c);
+                if (d != null) y.appendChild(d);
+                c = c.getNextSibling();
+            }
+            return y;
+        }
+        return null;
+    }
+
     static void onModelCreated(TCFModel model) {
         assert Protocol.isDispatchThread();
         if (memento_loaded) return;
@@ -838,7 +861,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                         for (String id : blocks_memento.keySet()) {
                             if (memento.containsKey(id)) continue;
                             for (Element xml_block : blocks_memento.get(id)) {
-                                xml_memory.appendChild(xml_block.cloneNode(true));
+                                xml_memory.appendChild(cloneXML(document, xml_block));
                             }
                         }
                         blocks_memento.clear();
