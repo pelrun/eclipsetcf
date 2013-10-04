@@ -323,15 +323,15 @@ public class ElfLoader implements Runnable {
                 if (p_type != PT_LOAD) continue;
                 if (elf64) readInt4();
                 BigInteger p_offset = readNumberX();
-                BigInteger p_vaddr = readNumberX();
                 @SuppressWarnings("unused")
+                BigInteger p_vaddr = readNumberX();
                 BigInteger p_paddr = readNumberX();
                 BigInteger p_filesz = readNumberX();
                 BigInteger p_memsz = readNumberX();
                 byte buf[] = new byte[p_filesz.intValue()];
                 file.seek(p_offset.longValue());
                 file.readFully(buf);
-                cmds.add(context.set(p_vaddr, 4, buf, 0, buf.length, 0, new IMemory.DoneMemory() {
+                cmds.add(context.set(p_paddr, 4, buf, 0, buf.length, 0, new IMemory.DoneMemory() {
                     @Override
                     public void doneMemory(IToken token, IMemory.MemoryError error) {
                         cmds.remove(token);
@@ -342,7 +342,7 @@ public class ElfLoader implements Runnable {
                 BigInteger fill = p_memsz.subtract(p_filesz);
                 if (fill.compareTo(BigInteger.ZERO) > 0) {
                     buf = new byte[4];
-                    cmds.add(context.fill(p_vaddr.add(p_filesz), 4, buf, fill.intValue(), 0, new IMemory.DoneMemory() {
+                    cmds.add(context.fill(p_paddr.add(p_filesz), 4, buf, fill.intValue(), 0, new IMemory.DoneMemory() {
                         @Override
                         public void doneMemory(IToken token, IMemory.MemoryError error) {
                             cmds.remove(token);
