@@ -235,7 +235,7 @@ public class TCFTerminalShell extends AbstractTerminalShell {
                                             onInputStreamClosed();
                                         }
                                     });
-                                    fOutputStream = new TCFVirtualOutputStream(fChannel, out_id, new Runnable() {
+                                    fOutputStream = new TCFVirtualOutputStream(fChannel, out_id, true, new Runnable() {
                                         @Override
                                         public void run() {
                                             onOutputStreamClosed();

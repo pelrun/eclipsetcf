@@ -35,6 +35,7 @@ public final class TCFVirtualInputStream extends InputStream {
         boolean eof;
     }
 
+    private final IChannel channel;
     private final IStreams streams;
     private final String id;
     private final Runnable on_close;
@@ -46,6 +47,7 @@ public final class TCFVirtualInputStream extends InputStream {
     private boolean eof;
 
     public TCFVirtualInputStream(IChannel channel, String id, Runnable on_close) throws IOException {
+        this.channel = channel;
         streams = channel.getRemoteService(IStreams.class);
         if (streams == null) throw new IOException("Streams service not available"); //$NON-NLS-1$
         this.id = id;
@@ -129,12 +131,13 @@ public final class TCFVirtualInputStream extends InputStream {
             public void run() {
                 streams.disconnect(id, new IStreams.DoneDisconnect() {
                     public void doneDisconnect(IToken token, Exception error) {
-                        if (error != null) {
+                        if (error != null && channel.getState() != IChannel.STATE_CLOSED) {
                             error(error);
-                            return;
                         }
-                        if (on_close != null) on_close.run();
-                        done(this);
+                        else {
+                            if (on_close != null) on_close.run();
+                            done(this);
+                        }
                     }
                 });
             }
