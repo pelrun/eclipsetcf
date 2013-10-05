@@ -260,7 +260,7 @@ public class TCFAnnotationManager {
 
         @Override
         public void windowClosed(IWorkbenchWindow window) {
-            assert windows.get(window) != null;
+            if (windows.get(window) == null) return;
             window.getSelectionService().removeSelectionListener(
                     IDebugUIConstants.ID_DEBUG_VIEW, selection_listener);
             windows.remove(window).dispose();
