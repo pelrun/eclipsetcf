@@ -10,17 +10,22 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.tests;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
 
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.services.IStreams;
+import org.eclipse.tcf.util.TCFVirtualInputStream;
+import org.eclipse.tcf.util.TCFVirtualOutputStream;
 
 class TestStreams implements ITCFTest, IStreams.StreamsListener {
 
     private final TCFTestSuite test_suite;
+    private final IChannel channel;
     private final IDiagnostics diag;
     private final IStreams streams;
     private final Random rnd = new Random();
@@ -34,6 +39,7 @@ class TestStreams implements ITCFTest, IStreams.StreamsListener {
 
     TestStreams(TCFTestSuite test_suite, IChannel channel) {
         this.test_suite = test_suite;
+        this.channel = channel;
         diag = channel.getRemoteService(IDiagnostics.class);
         streams = channel.getRemoteService(IStreams.class);
     }
@@ -147,7 +153,12 @@ class TestStreams implements ITCFTest, IStreams.StreamsListener {
         });
     }
 
-    private void testReadWrite(final boolean skip_zeros, final Runnable done) {
+    private void testReadWrite(boolean skip_zeros, final Runnable done) {
+        if (rnd.nextBoolean()) testReadWriteSync(skip_zeros, done);
+        else testReadWriteAsync(skip_zeros, done);
+    }
+
+    private void testReadWriteAsync(final boolean skip_zeros, final Runnable done) {
         final byte[] data_out = new byte[rnd.nextInt(10000) + 1000];
         rnd.nextBytes(data_out);
         if (skip_zeros) data_out[0] = 1;
@@ -196,7 +207,7 @@ class TestStreams implements ITCFTest, IStreams.StreamsListener {
                         cmds.add(streams.read(out_id, 241, this));
                     }
                 }
-                if (cmds.isEmpty()) disposeStreams(done);
+                if (cmds.isEmpty()) disposeStreams(true, done);
             }
         };
         cmds.add(streams.read(out_id, 223, done_read));
@@ -223,7 +234,81 @@ class TestStreams implements ITCFTest, IStreams.StreamsListener {
         });
     }
 
-    private void disposeStreams(final Runnable done) {
+    private void testReadWriteSync(final boolean skip_zeros, final Runnable done) {
+        Runnable on_close = new Runnable() {
+            int cnt;
+            @Override
+            public void run() {
+                cnt++;
+                if (cnt == 2) disposeStreams(false, done);
+                if (cnt > 2) exit(new Exception("Invalid invocation of on_close"));
+            }
+        };
+        try {
+            final TCFVirtualInputStream inp = new TCFVirtualInputStream(channel, out_id, on_close);
+            final TCFVirtualOutputStream out = new TCFVirtualOutputStream(channel, inp_id, true, on_close);
+            final byte[] data_out = new byte[rnd.nextInt(10000) + 1000];
+            final int buf_cnt = 64;
+            rnd.nextBytes(data_out);
+            if (skip_zeros) data_out[0] = 1;
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; i < buf_cnt; i++) {
+                            out.write(data_out);
+                            if (rnd.nextInt(32) == 0) out.flush();
+                        }
+                        out.close();
+                    }
+                    catch (final IOException x) {
+                        Protocol.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                exit(x);
+                            }
+                        });
+                    }
+                }
+            }.start();
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        int pos = 0;
+                        for (;;) {
+                            byte[] data_inp = new byte[rnd.nextInt(10000) + 1000];
+                            int rd = inp.read(data_inp);
+                            if (rd < 0) {
+                                if (pos != data_out.length * buf_cnt) throw new Exception("Invalid byte count");
+                                break;
+                            }
+                            for (int i = 0; i < rd; i++) {
+                                byte b = data_inp[i];
+                                if (skip_zeros && pos == 0 && b == 0) continue;
+                                if (b != data_out[pos % data_out.length]) throw new Exception("Data error");
+                                pos++;
+                            }
+                        }
+                        inp.close();
+                    }
+                    catch (final Exception x) {
+                        Protocol.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                exit(x);
+                            }
+                        });
+                    }
+                }
+            }.start();
+        }
+        catch (IOException x) {
+            exit(x);
+        }
+    }
+
+    private void disposeStreams(boolean disconnect, final Runnable done) {
         final HashSet<IToken> cmds = new HashSet<IToken>();
         IStreams.DoneDisconnect done_disconnect = new IStreams.DoneDisconnect() {
             public void doneDisconnect(IToken token, Exception error) {
@@ -247,10 +332,10 @@ class TestStreams implements ITCFTest, IStreams.StreamsListener {
                 }
             }
         };
-        cmds.add(streams.disconnect(inp_id, done_disconnect));
+        if (disconnect) cmds.add(streams.disconnect(inp_id, done_disconnect));
         cmds.add(diag.disposeTestStream(inp_id, done_dispose));
         cmds.add(diag.disposeTestStream(out_id, done_dispose));
-        cmds.add(streams.disconnect(out_id, done_disconnect));
+        if (disconnect) cmds.add(streams.disconnect(out_id, done_disconnect));
     }
 
     private void unsubscribe() {
