@@ -40,6 +40,23 @@ public final class StatusHelper {
 		String message = error.getLocalizedMessage();
 		if (message == null) message = error.getMessage();
 
+		message = unwrapErrorReport(message);
+
 		return new Status(severity, CoreBundleActivator.getUniqueIdentifier(), message != null ? message : error.toString(), error);
+	}
+
+	/**
+	 * Unwrap a "TCF Error Report:" error text.
+	 *
+	 * @param error The error text or <code>null</code>.
+	 * @return The unwrapped error text or the unmodified input parameter.
+	 */
+	public static final String unwrapErrorReport(String error) {
+		// Unwrap "TCF error report" errors
+		if (error != null && error.startsWith("TCF error report")) { //$NON-NLS-1$
+			error = error.substring(error.indexOf("Error text:") + 11, error.indexOf("Error code:")); //$NON-NLS-1$ //$NON-NLS-2$
+			error = error.trim();
+		}
+		return error;
 	}
 }
