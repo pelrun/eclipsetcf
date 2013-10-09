@@ -29,4 +29,10 @@ public class Messages extends NLS {
 
 	// **** Declare externalized string id's down here *****
 
+	public static String PopupNotificationSink_Popup_Notifier_Job_Label;
+
+	public static String AbstractNotificationPopup_Close_Notification_Job;
+	public static String AbstractNotificationPopup_Notification;
+
+	public static String SwtUtil_Fading;
 }
