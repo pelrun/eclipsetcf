@@ -1406,7 +1406,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 name = type.getName();
             }
             TCFNodeExpression field_node = null;
-            if (data_node != null) field_node = data_node.children.getField(id, data_deref);
+            if (data_node != null) {
+                if (!data_node.children.validate(done)) return false;
+                field_node = data_node.children.getField(id, data_deref);
+            }
             if (field_props.getProperties().get(ISymbols.PROP_OFFSET) == null) {
                 // Bitfield - use field_node to retrieve the value
                 if (name == null || field_node == null) continue;

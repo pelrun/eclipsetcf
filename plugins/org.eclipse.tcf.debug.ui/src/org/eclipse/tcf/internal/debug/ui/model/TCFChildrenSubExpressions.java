@@ -83,6 +83,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
             TCFNodeExpression e = (TCFNodeExpression)n;
             if (field_id.equals(e.getFieldID()) && e.isDeref() == deref) return e;
         }
+        if (isValid()) return null;
         TCFNodeExpression e = new TCFNodeExpression(node, null, field_id, null, null, -1, deref);
         add(e);
         return e;
