@@ -325,6 +325,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     private IChannel channel;
     private TCFNodeLaunch launch_node;
+    private TCFTerminal terminal;
     private boolean disposed;
 
     private final IMemory.MemoryListener mem_listener = new IMemory.MemoryListener() {
@@ -1083,6 +1084,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         for (TCFConsole c : process_consoles.values()) c.close();
         for (TCFConsole c : debug_consoles) c.close();
         if (dprintf_console != null) dprintf_console.close();
+        if (terminal != null) terminal.dispose();
+        disposed = true;
     }
 
     void addNode(String id, TCFNode node) {
@@ -1144,6 +1147,16 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public TCFNodeLaunch getRootNode() {
         return launch_node;
+    }
+
+    /**
+     * Get Terminal view for this model.
+     * Create the view if it is not created yet.
+     * @return the Terminal view.
+     */
+    public TCFTerminal getTerminal() {
+        if (terminal == null) terminal = new TCFTerminal(this);
+        return terminal;
     }
 
     /**
