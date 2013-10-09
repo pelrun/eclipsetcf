@@ -54,6 +54,7 @@
       <import plugin="org.eclipse.tcf.te.tcf.locator" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tm.terminal" version="3.2.100" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.ui.terminals" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.terminals.process" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.equinox.security" version="1.1.100" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tm.terminal.serial" version="2.1.300" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tm.terminal.ssh" version="2.1.300" match="greaterOrEqual"/>
@@ -62,7 +63,6 @@
       <import feature="org.eclipse.tm.terminal.serial" version="2.1.300" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.ssh" version="2.1.300" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.telnet" version="2.1.300" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.ui.terminals.process" version="1.2.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -122,6 +122,13 @@
          unpack="false"/>
 
    <plugin
+         id="org.eclipse.tcf.te.runtime.notifications"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
          id="org.eclipse.tcf.te.runtime.persistence"
          download-size="0"
          install-size="0"
@@ -165,6 +172,13 @@
 
    <plugin
          id="org.eclipse.tcf.te.ui.forms"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.tcf.te.ui.notifications"
          download-size="0"
          install-size="0"
          version="0.0.0"

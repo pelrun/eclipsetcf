@@ -46,6 +46,7 @@
 		<module>target_explorer/plugins/org.eclipse.tcf.te.runtime</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.runtime.concurrent</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.runtime.model</module>
+		<module>target_explorer/plugins/org.eclipse.tcf.te.runtime.notifications</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.runtime.persistence</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.runtime.services</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.runtime.statushandler</module>
@@ -71,6 +72,7 @@
 		<module>target_explorer/plugins/org.eclipse.tcf.te.ui</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.ui.controls</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.ui.forms</module>
+		<module>target_explorer/plugins/org.eclipse.tcf.te.ui.notifications</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.ui.swt</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals</module>
 		<module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.local</module>
