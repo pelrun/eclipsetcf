@@ -11,7 +11,7 @@
  *     Wind River Systems - Extracted from o.e.mylyn.commons and adapted for Target Explorer
  *******************************************************************************/
 
-package org.eclipse.tcf.te.ui.notifications.popup;
+package org.eclipse.tcf.te.ui.notifications.internal.popup;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -40,12 +40,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.ui.notifications.AnimationUtil;
-import org.eclipse.tcf.te.ui.notifications.AnimationUtil.FadeJob;
-import org.eclipse.tcf.te.ui.notifications.AnimationUtil.IFadeListener;
-import org.eclipse.tcf.te.ui.notifications.GradientColors;
 import org.eclipse.tcf.te.ui.notifications.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.notifications.interfaces.ImageConsts;
+import org.eclipse.tcf.te.ui.notifications.internal.popup.AnimationUtil.FadeJob;
+import org.eclipse.tcf.te.ui.notifications.internal.popup.AnimationUtil.IFadeListener;
 import org.eclipse.tcf.te.ui.notifications.nls.Messages;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;

@@ -213,19 +213,10 @@
    </extension>
    
 <!-- Test notifications contributions -->
-   <extension point="org.eclipse.tcf.te.ui.notifications.notifications">
-      <category
-            icon="icons/notifications-category.gif"
-            id="org.eclipse.tcf.te.tests.category1"
-            label="Test Notifications">
-      </category>
-      <event
-            categoryId="org.eclipse.tcf.te.tests.category1"
-            id="org.eclipse.tcf.te.tests.event1"
-            label="Test Event">
-         <defaultHandler
-               sinkId="org.eclipse.tcf.te.ui.notifications.sink.popup">
-         </defaultHandler>
-      </event>
-   </extension>   
+   <extension point="org.eclipse.tcf.te.ui.notifications.factoryDelegates">
+      <delegate
+            class="org.eclipse.tcf.te.tests.notifications.TestFormTextFactoryDelegate"
+            id="org.eclipse.tcf.te.tests.delegates.TestFormTextFactoryDelegate">
+      </delegate>
+   </extension>
 </plugin>

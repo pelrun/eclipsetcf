@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.tcf.te.ui.notifications" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="org.eclipse.tcf.te.ui.notifications" id="factoryDelegates" name="Notification Form Text Factory Delegates"/>
+      </appinfo>
+      <documentation>
+         This extension point is used to contribute notification form text factory delegates.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="delegate" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="delegate">
+      <annotation>
+         <documentation>
+            Declares a notification form text factory delegate contribution.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The unique id of the notification form text factory delegate contribution.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The class that implements &lt;code&gt;org.eclipse.tcf.te.ui.notifications.interfaces.IFormTextFactoryDelegate&lt;/code&gt;.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.tcf.te.ui.notifications.interfaces.IFormTextFactoryDelegate"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         Target Explorer 1.0.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         This is an example of the extension point usage:
+&lt;p&gt;
+&lt;pre&gt;&lt;code&gt;
+  &lt;extension point=&quot;org.eclipse.tcf.te.runtime.model.factoryDelegates&quot;&gt;
+      &lt;delegate
+            id=&quot;org.eclipse.tcf.te.runtime.model.factory.modelNode&quot;
+            class=&quot;org.eclipse.tcf.te.runtime.model.internal.ModelNodeFactoryDelegate&quot;
+            label=&quot;Model Node Factory Delegate&quot;&gt;
+         &lt;nodeType class=&quot;org.eclipse.tcf.te.runtime.model.interfaces.IModelNode&quot;/&gt;
+         &lt;nodeType class=&quot;org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode&quot;/&gt;
+      &lt;/delegate&gt;
+   &lt;/extension&gt;
+&lt;/code&gt;&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="apiinfo"/>
+      </appinfo>
+      <documentation>
+         The provider of a model node factory delegate must implement &lt;samp&gt;org.eclipse.tcf.te.runtime.model.interfaces.factory.IFactoryDelegate&lt;/samp&gt;.
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appinfo>
+         <meta.section type="copyright"/>
+      </appinfo>
+      <documentation>
+         Copyright (c) 2011 Wind River Systems, Inc. and others.
+
+All rights reserved.
+
+This program and the accompanying materials are made available under the terms
+of the Eclipse Public License v1.0 which accompanies this distribution, and is
+available at http://www.eclipse.org/legal/epl-v10.html.
+      </documentation>
+   </annotation>
+
+</schema>

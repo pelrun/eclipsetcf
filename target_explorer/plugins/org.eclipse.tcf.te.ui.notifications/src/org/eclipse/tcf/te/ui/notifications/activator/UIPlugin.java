@@ -16,9 +16,8 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.notifications.interfaces.ImageConsts;
-import org.eclipse.tcf.te.ui.notifications.internal.NotificationModel;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.forms.FormColors;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -31,10 +30,8 @@ public class UIPlugin extends AbstractUIPlugin {
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
 
-	private volatile NotificationModel model;
-
-	// The form colors instance
-	private volatile FormColors formColors = null;
+	// The form toolkit instance
+	private volatile FormToolkit formToolkit = null;
 
 	/**
 	 * The constructor
@@ -74,28 +71,15 @@ public class UIPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Returns the notification model instance.
+	 * Returns a form toolkit instance.
 	 *
-	 * @return The notification model.
+	 * @return The form toolkit instance.
 	 */
-	public NotificationModel getModel() {
-		if (model == null) {
-			model = new NotificationModel();
+	public FormToolkit getFormToolkit() {
+		if (formToolkit == null) {
+			formToolkit = new FormToolkit(PlatformUI.getWorkbench().getDisplay());
 		}
-		return model;
-	}
-
-	/**
-	 * Returns a form colors instance.
-	 *
-	 * @return The form colors instance.
-	 */
-	public FormColors getFormColors() {
-		if (formColors == null) {
-			formColors = new FormColors(PlatformUI.getWorkbench().getDisplay());
-			formColors.markShared();
-		}
-		return formColors;
+		return formToolkit;
 	}
 
 	/* (non-Javadoc)
@@ -112,9 +96,9 @@ public class UIPlugin extends AbstractUIPlugin {
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		if (formColors != null) {
-			formColors.dispose();
-			formColors = null;
+		if (formToolkit != null) {
+			formToolkit.dispose();
+			formToolkit = null;
 		}
 		plugin = null;
 		traceHandler = null;

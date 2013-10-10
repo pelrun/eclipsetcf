@@ -10,7 +10,7 @@
  *     Wind River Systems - Extracted from o.e.mylyn.commons and adapted for Target Explorer
  *******************************************************************************/
 
-package org.eclipse.tcf.te.ui.notifications;
+package org.eclipse.tcf.te.ui.notifications.internal.popup;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;

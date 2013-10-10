@@ -10,13 +10,12 @@
  *     Wind River Systems - Extracted from o.e.mylyn.commons and adapted for Target Explorer
  *******************************************************************************/
 
-package org.eclipse.tcf.te.ui.notifications.popup;
+package org.eclipse.tcf.te.ui.notifications.internal.popup;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.action.LegacyActionTools;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -25,16 +24,18 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.runtime.notifications.AbstractNotification;
-import org.eclipse.tcf.te.ui.notifications.ScalingHyperlink;
+import org.eclipse.tcf.te.runtime.events.NotifyEvent;
 import org.eclipse.tcf.te.ui.notifications.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.notifications.interfaces.IFormTextFactoryDelegate;
+import org.eclipse.tcf.te.ui.notifications.internal.factory.FactoryDelegateManager;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IFormColors;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.widgets.FormText;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
  * @author Rob Elves
@@ -46,7 +47,7 @@ public class NotificationPopup extends AbstractNotificationPopup {
 
 	/* default */ Color hyperlinkWidget = null;
 
-	private List<AbstractNotification> notifications;
+	private List<NotifyEvent> notifications;
 
 	/**
 	 * Constructor
@@ -75,64 +76,32 @@ public class NotificationPopup extends AbstractNotificationPopup {
 		});
 
 		int count = 0;
-		for (final AbstractNotification notification : notifications) {
+		for (final NotifyEvent notification : notifications) {
 			Composite notificationComposite = new Composite(parent, SWT.NO_FOCUS);
-			GridLayout gridLayout = new GridLayout(2, false);
-			GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.TOP).applyTo(notificationComposite);
+			GridLayout gridLayout = new GridLayout(1, false);
+			GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(notificationComposite);
 			notificationComposite.setLayout(gridLayout);
 			notificationComposite.setBackground(parent.getBackground());
 
 			if (count < NUM_NOTIFICATIONS_TO_DISPLAY) {
-				final Label notificationLabelIcon = new Label(notificationComposite, SWT.NO_FOCUS);
-				notificationLabelIcon.setBackground(parent.getBackground());
-				if (notification instanceof AbstractUiNotification) {
-					notificationLabelIcon.setImage(((AbstractUiNotification) notification).getNotificationKindImage());
+				// Get the notification form text factory delegate for the current notification
+				IFormTextFactoryDelegate delegate = null;
+				if (notification.getFactoryId() != null) {
+					delegate = FactoryDelegateManager.getInstance().getFactoryDelegate(notification.getFactoryId());
 				}
+				if (delegate == null) delegate = FactoryDelegateManager.getInstance().getDefaultFactoryDelegate();
+				Assert.isNotNull(delegate);
 
-				final ScalingHyperlink itemLink = new ScalingHyperlink(notificationComposite, SWT.BEGINNING | SWT.NO_FOCUS);
-				GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.TOP).applyTo(itemLink);
-				itemLink.setForeground(hyperlinkWidget);
-				itemLink.registerMouseTrackListener();
-				itemLink.setText(LegacyActionTools.escapeMnemonics(notification.getLabel()));
-				if (notification instanceof AbstractUiNotification) {
-					itemLink.setImage(((AbstractUiNotification) notification).getNotificationImage());
-				}
-				itemLink.setBackground(parent.getBackground());
-				itemLink.addHyperlinkListener(new HyperlinkAdapter() {
-					@Override
-					public void linkActivated(HyperlinkEvent e) {
-						if (notification instanceof AbstractUiNotification) {
-							((AbstractUiNotification) notification).open();
-						}
-						IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-						if (window != null) {
-							Shell windowShell = window.getShell();
-							if (windowShell != null) {
-								if (windowShell.getMinimized()) {
-									windowShell.setMinimized(false);
-								}
+				// Get the form toolkit to use
+				FormToolkit toolkit = UIPlugin.getDefault().getFormToolkit();
+				Assert.isNotNull(toolkit);
 
-								windowShell.open();
-								windowShell.forceActive();
-							}
-						}
-					}
-				});
+				// Create the form text widget.
+				FormText widget = toolkit.createFormText(notificationComposite, true);
+				widget.setBackground(parent.getBackground());
 
-				String descriptionText = null;
-				if (notification.getDescription() != null) {
-					descriptionText = notification.getDescription();
-				}
-				if (descriptionText != null && !descriptionText.trim().equals("")) { //$NON-NLS-1$
-					Label descriptionLabel = new Label(notificationComposite, SWT.NO_FOCUS);
-					descriptionLabel.setText(LegacyActionTools.escapeMnemonics(descriptionText));
-					descriptionLabel.setBackground(parent.getBackground());
-					GridDataFactory.fillDefaults()
-							.span(2, SWT.DEFAULT)
-							.grab(true, false)
-							.align(SWT.FILL, SWT.TOP)
-							.applyTo(descriptionLabel);
-				}
+				// Populate the widget content based on the current notification event
+				delegate.populateFormText(toolkit, widget, notification);
 			} else {
 				int numNotificationsRemain = notifications.size() - count;
 				ScalingHyperlink remainingLink = new ScalingHyperlink(notificationComposite, SWT.NO_FOCUS);
@@ -141,7 +110,6 @@ public class NotificationPopup extends AbstractNotificationPopup {
 				remainingLink.setBackground(parent.getBackground());
 
 				remainingLink.setText(NLS.bind("{0} more", Integer.valueOf(numNotificationsRemain))); //$NON-NLS-1$
-				GridDataFactory.fillDefaults().span(2, SWT.DEFAULT).applyTo(remainingLink);
 				remainingLink.addHyperlinkListener(new HyperlinkAdapter() {
 					@Override
                     public void linkActivated(HyperlinkEvent e) {
@@ -161,8 +129,8 @@ public class NotificationPopup extends AbstractNotificationPopup {
 		}
 	}
 
-	public List<AbstractNotification> getNotifications() {
-		return new ArrayList<AbstractNotification>(notifications);
+	public List<NotifyEvent> getNotifications() {
+		return new ArrayList<NotifyEvent>(notifications);
 	}
 
 	/* (non-Javadoc)
@@ -170,10 +138,16 @@ public class NotificationPopup extends AbstractNotificationPopup {
 	 */
 	@Override
 	protected Color getTitleForeground() {
-		return UIPlugin.getDefault().getFormColors().getColor(IFormColors.TITLE);
+		return UIPlugin.getDefault().getFormToolkit().getColors().getColor(IFormColors.TITLE);
 	}
 
-	public void setContents(List<AbstractNotification> notifications) {
+	/**
+	 * Sets the content of the notify popup.
+	 *
+	 * @param notifications The notification events. Must not be <code>null</code>.
+	 */
+	public void setContents(List<NotifyEvent> notifications) {
+		Assert.isNotNull(notifications);
 		this.notifications = notifications;
 	}
 

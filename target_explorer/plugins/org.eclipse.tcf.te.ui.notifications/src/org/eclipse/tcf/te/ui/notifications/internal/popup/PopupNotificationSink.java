@@ -10,16 +10,17 @@
  *     Wind River Systems - Extracted from o.e.mylyn.commons and adapted for Target Explorer
  *******************************************************************************/
 
-package org.eclipse.tcf.te.ui.notifications.popup.sink;
+package org.eclipse.tcf.te.ui.notifications.internal.popup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.WeakHashMap;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
@@ -28,11 +29,8 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.runtime.notifications.AbstractNotification;
-import org.eclipse.tcf.te.runtime.notifications.NotificationSink;
-import org.eclipse.tcf.te.runtime.notifications.NotificationSinkEvent;
+import org.eclipse.tcf.te.runtime.events.NotifyEvent;
 import org.eclipse.tcf.te.ui.notifications.nls.Messages;
-import org.eclipse.tcf.te.ui.notifications.popup.NotificationPopup;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PlatformUI;
 
@@ -40,7 +38,7 @@ import org.eclipse.ui.PlatformUI;
  * @author Rob Elves
  * @author Steffen Pingel
  */
-public class PopupNotificationSink extends NotificationSink {
+public class PopupNotificationSink {
 
 	private static final long DELAY_OPEN = 1 * 1000;
 
@@ -48,11 +46,11 @@ public class PopupNotificationSink extends NotificationSink {
 
 	/* default */ NotificationPopup popup;
 
-	/* default */ final WeakHashMap<Object, Object> cancelledTokens = new WeakHashMap<Object, Object>();
+	/* default */ final List<NotifyEvent> cancelledNotifications = new ArrayList<NotifyEvent>();
 
-	private final Set<AbstractNotification> notifications = new HashSet<AbstractNotification>();
+	private final Set<NotifyEvent> notifications = new HashSet<NotifyEvent>();
 
-	/* default */ final Set<AbstractNotification> currentlyNotifying = Collections.synchronizedSet(notifications);
+	/* default */ final Set<NotifyEvent> currentlyNotifying = Collections.synchronizedSet(notifications);
 
 	private final Job openJob = new Job(Messages.PopupNotificationSink_Popup_Notifier_Job_Label) {
 		@Override
@@ -65,21 +63,18 @@ public class PopupNotificationSink extends NotificationSink {
 
 						@Override
                         public void run() {
-							collectNotifications();
-
 							if (popup != null && popup.getReturnCode() == Window.CANCEL) {
-								List<AbstractNotification> notifications = popup.getNotifications();
-								for (AbstractNotification notification : notifications) {
-									if (notification.getToken() != null) {
-										cancelledTokens.put(notification.getToken(), null);
+								List<NotifyEvent> notifications = popup.getNotifications();
+								for (NotifyEvent notification : notifications) {
+									if (!cancelledNotifications.contains(notification)) {
+										cancelledNotifications.add(notification);
 									}
 								}
 							}
 
-							for (Iterator<AbstractNotification> it = currentlyNotifying.iterator(); it.hasNext();) {
-								AbstractNotification notification = it.next();
-								if (notification.getToken() != null
-										&& cancelledTokens.containsKey(notification.getToken())) {
+							for (Iterator<NotifyEvent> it = currentlyNotifying.iterator(); it.hasNext();) {
+								NotifyEvent notification = it.next();
+								if (cancelledNotifications.contains(notification)) {
 									it.remove();
 								}
 							}
@@ -116,27 +111,21 @@ public class PopupNotificationSink extends NotificationSink {
 		currentlyNotifying.clear();
 	}
 
-	/** public for testing */
-	public void collectNotifications() {
-	}
-
-	/**
-	 * public for testing purposes
-	 */
-	public Set<AbstractNotification> getNotifications() {
-		synchronized (PopupNotificationSink.class) {
-			return currentlyNotifying;
-		}
-	}
 
 	public boolean isAnimationsEnabled() {
 		IPreferenceStore store = PlatformUI.getPreferenceStore();
 		return store.getBoolean(IWorkbenchPreferenceConstants.ENABLE_ANIMATIONS);
 	}
 
-	@Override
-	public void notify(NotificationSinkEvent event) {
-		currentlyNotifying.addAll(event.getNotifications());
+	/**
+	 * Notify the given notification events.
+	 *
+	 * @param events The notification events. Must not be <code>null</code>.
+	 */
+	public void notify(NotifyEvent[] events) {
+		Assert.isNotNull(events);
+
+		currentlyNotifying.addAll(Arrays.asList(events));
 
 		if (!openJob.cancel()) {
 			try {
@@ -156,7 +145,7 @@ public class PopupNotificationSink extends NotificationSink {
 		Shell shell = new Shell(PlatformUI.getWorkbench().getDisplay());
 		popup = new NotificationPopup(shell);
 		popup.setFadingEnabled(isAnimationsEnabled());
-		List<AbstractNotification> toDisplay = new ArrayList<AbstractNotification>(currentlyNotifying);
+		List<NotifyEvent> toDisplay = new ArrayList<NotifyEvent>(currentlyNotifying);
 		Collections.sort(toDisplay);
 		popup.setContents(toDisplay);
 		cleanNotified();

@@ -11,7 +11,7 @@
  *     Wind River Systems - Extracted from o.e.mylyn.commons and adapted for Target Explorer
  *******************************************************************************/
 
-package org.eclipse.tcf.te.ui.notifications;
+package org.eclipse.tcf.te.ui.notifications.internal.popup;
 
 import org.eclipse.jface.resource.DeviceResourceException;
 import org.eclipse.jface.resource.ResourceManager;

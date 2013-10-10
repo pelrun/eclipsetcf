@@ -13,8 +13,10 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
-import org.eclipse.tcf.te.runtime.notifications.interfaces.INotificationService;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.events.NotifyEvent;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tests.CoreTestCase;
 
 /**
@@ -41,20 +43,14 @@ public class NotificationsTestCase extends CoreTestCase {
 	//      start with 'test'!
 
 	public void testNotifications() {
-		// Get the service
-		INotificationService service = ServiceManager.getInstance().getService(INotificationService.class);
-		assertNotNull("Failed to get notification service instance.", service); //$NON-NLS-1$
+		IPropertiesContainer properties = new PropertiesContainer();
+		properties.setProperty(NotifyEvent.PROP_TITLE_TEXT, "VxWorks Simulator"); //$NON-NLS-1$
+		properties.setProperty(NotifyEvent.PROP_DESCRIPTION_TEXT, "Test notification issued by the unit test framework."); //$NON-NLS-1$
 
-		TestNotification notification = new TestNotification("org.eclipse.tcf.te.tests.event1"); //$NON-NLS-1$
-		assertNotNull("Failed to create test notification.", notification); //$NON-NLS-1$
+		NotifyEvent notification = new NotifyEvent(NotificationsTestCase.this, properties);
+		assertNotNull("Failed to create test notification event.", notification); //$NON-NLS-1$
 
-		notification.setLabel("Test Notification Label"); //$NON-NLS-1$
-		assertEquals("Notification label setter / getter does not match.", "Test Notification Label", notification.getLabel()); //$NON-NLS-1$ //$NON-NLS-2$
-
-		notification.setDescription("Test Notification Description"); //$NON-NLS-1$
-		assertEquals("Notification description setter / getter does not match.", "Test Notification Description", notification.getDescription()); //$NON-NLS-1$ //$NON-NLS-2$
-
-		service.notify(notification);
+		EventManager.getInstance().fireEvent(notification);
 
 		ExecutorsUtil.waitAndExecute(20000, null);
 	}

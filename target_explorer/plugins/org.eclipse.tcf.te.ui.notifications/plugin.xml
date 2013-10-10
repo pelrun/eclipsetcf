@@ -3,31 +3,17 @@
 <plugin>
 
 <!-- Extension point declarations -->
-   <extension-point id="notifications" name="Noification Provider" schema="schema/notifications.exsd"/>
-
-<!-- Notifications contributions -->   
-   <extension point="org.eclipse.tcf.te.ui.notifications.notifications">
-      <sink
-            class="org.eclipse.tcf.te.ui.notifications.popup.sink.PopupNotificationSink"
-            id="org.eclipse.tcf.te.ui.notifications.sink.popup"
-            label="Desktop Popup">
-      </sink>
-   </extension>
+   <extension-point id="factoryDelegates" name="Notification Form Text Factory Delegates" schema="schema/factoryDelegates.exsd"/>
    
-<!-- Preference initializer contributions -->   
-   <extension point="org.eclipse.core.runtime.preferences">
-      <initializer class="org.eclipse.tcf.te.ui.notifications.preferences.PreferencesInitializer"/>
-   </extension>
-
-<!-- Service contributions -->
-   <extension point="org.eclipse.tcf.te.runtime.services.services">
-      <service
-            class="org.eclipse.tcf.te.ui.notifications.internal.NotificationService"
-            id="org.eclipse.tcf.te.ui.notifications.service">
-         <serviceType
-               bundleId="org.eclipse.tcf.te.runtime.notifications"
-               class="org.eclipse.tcf.te.runtime.notifications.interfaces.INotificationService">
-         </serviceType>
-      </service>
-   </extension>
+<!-- Event listener contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.eventListeners">
+      <eventListener
+            class="org.eclipse.tcf.te.ui.notifications.internal.events.EventListener"
+            forcePluginActivation="true">
+         <eventType
+               bundleId="org.eclipse.tcf.te.runtime"
+               class="org.eclipse.tcf.te.runtime.events.NotifyEvent">
+         </eventType>
+      </eventListener>
+   </extension>   
 </plugin>
