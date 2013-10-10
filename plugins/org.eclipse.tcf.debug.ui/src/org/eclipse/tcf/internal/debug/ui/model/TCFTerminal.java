@@ -2,6 +2,8 @@ package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -18,7 +20,6 @@ import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
-import org.eclipse.tm.internal.terminal.view.ITerminalView;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -278,18 +279,37 @@ class TCFTerminal {
                 @Override
                 public void run() {
                     try {
-                        if (view == null) {
-                            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                            if (window == null) return;
-                            IWorkbenchPage page = window.getActivePage();
-                            if (page == null) return;
-                            view = page.showView(
-                                    "org.eclipse.tm.terminal.view.TerminalView", //$NON-NLS-1$
-                                    "TCFTerminal" + view_cnt, IWorkbenchPage.VIEW_ACTIVATE);
-                            view_cnt++;
+                        // If the (old, legacy, deprecated) terminal view is available, show it.
+                        if (PlatformUI.getWorkbench().getViewRegistry().find("org.eclipse.tm.terminal.view.TerminalView") != null) { //$NON-NLS-1$
+                            if (view == null) {
+                                IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                                if (window == null) return;
+                                IWorkbenchPage page = window.getActivePage();
+                                if (page == null) return;
+                                view = page.showView(
+                                        "org.eclipse.tm.terminal.view.TerminalView", //$NON-NLS-1$
+                                        "TCFTerminal" + view_cnt, IWorkbenchPage.VIEW_ACTIVATE);
+                                view_cnt++;
+                            }
+                            connections.add(c);
+                            
+                            // Must use reflection here as we cannot have a hard dependency to "org.eclipse.tm.terminal.view"
+                            if (view != null) {
+                                Class<?> clazz = view.getClass();
+                                if ("ITerminalView".equals(clazz.getSimpleName())) {
+                                    try {
+                                        Method m = clazz.getMethod("newTerminal", ITerminalConnector.class);
+                                        m.invoke(view, c);
+                                    } catch (NoSuchMethodException e) {
+                                        Activator.log("Cannot open Terminal view", e);
+                                    } catch (InvocationTargetException e) {
+                                        Activator.log("Cannot open Terminal view", e);
+                                    } catch (IllegalAccessException e) {
+                                        Activator.log("Cannot open Terminal view", e);
+                                    }
+                                }
+                            }
                         }
-                        connections.add(c);
-                        ((ITerminalView)view).newTerminal(c);
                     }
                     catch (PartInitException x) {
                         Activator.log("Cannot open Terminal view", x);
