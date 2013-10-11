@@ -1423,30 +1423,19 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             }
             int f_offs = field_props.getOffset();
             int f_size = field_props.getSize();
-            if (name == null) {
-                if (offs + f_offs + f_size > data.length) continue;
-                StyledStringBuffer bf1 = new StyledStringBuffer();
-                if (!appendCompositeValueText(bf1, level, field_props, field_node, false,
-                        data, offs + f_offs, f_size, big_endian, done)) return false;
-                if (bf1.length() > 0) {
-                    if (cnt > 0) bf.append(", ");
-                    bf.append(bf1);
-                    cnt++;
-                }
-            }
-            else {
-                if (cnt > 0) bf.append(", ");
+            if (cnt > 0) bf.append(", ");
+            if (name != null) {
                 bf.append(name);
                 bf.append('=');
-                if (offs + f_offs + f_size > data.length) {
-                    bf.append('?');
-                }
-                else {
-                    if (!appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
-                            data, offs + f_offs, f_size, big_endian, done)) return false;
-                }
-                cnt++;
             }
+            if (offs + f_offs + f_size > data.length) {
+                bf.append('?');
+            }
+            else {
+                if (!appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
+                        data, offs + f_offs, f_size, big_endian, done)) return false;
+            }
+            cnt++;
         }
         if (pending == null) return true;
         pending.wait(done);
