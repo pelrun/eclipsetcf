@@ -87,6 +87,10 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_test_short",
         "tcf_test_long",
         "tcf_cpp_test_bool",
+        "tcf_cpp_test_class_extension_var",
+        "tcf_cpp_test_class_extension_ptr",
+        "tcf_cpp_test_class_extension_member_ptr",
+        "tcf_cpp_test_anonymous_union_var"
     };
 
     private static final String[] test_expressions = {
@@ -142,6 +146,13 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_cpp_test_class::tcf_cpp_test_class_nested::s_int == 2",
         "tcf_cpp_test_class_extension::tcf_cpp_test_class_nested::s_int == 2",
         "enum_val1 == 1 && enum_val2 == 2 && enum_val3 == 3",
+        "tcf_cpp_test_anonymous_union_var.f1 == 234",
+        "tcf_cpp_test_anonymous_union_var.f2 == 235",
+        "tcf_cpp_test_anonymous_union_var.f3 == 235",
+        "tcf_cpp_test_class_extension_var.f_int == 345",
+        "tcf_cpp_test_class_extension_ptr == &tcf_cpp_test_class_extension_var",
+        "tcf_cpp_test_class_extension_var.*tcf_cpp_test_class_extension_member_ptr == tcf_cpp_test_class_extension_var.f_int",
+        "tcf_cpp_test_class_extension_ptr->*tcf_cpp_test_class_extension_member_ptr == tcf_cpp_test_class_extension_var.f_int"
     };
 
     private static final String[] test_dprintfs = {
@@ -622,6 +633,11 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                 if (txt.indexOf("tcf_cpp_test") >= 0) continue;
                 if (txt.indexOf("(bool)") >= 0) continue;
             }
+            boolean vars_ok = true;
+            for (String nm : global_var_names) {
+                if (txt.indexOf(nm) >= 0 && global_var_ids.get(nm) == null) vars_ok = false;
+            }
+            if (!vars_ok) continue;
             if (expr_ctx.get(txt) == null) {
                 if (rnd.nextBoolean()) {
                     Map<String,Object> scope = new HashMap<String,Object>();
