@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.debug.ui.ITCFExpression;
 import org.eclipse.tcf.debug.ui.ITCFPrettyExpressionProvider;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
+import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
@@ -1094,18 +1095,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         return false;
     }
 
-    //
-    //  @param return-value Boolean.TRUE  --> Show Types ICON is     selected/depressed
-    //  @param return-value Boolean.FALSE --> Show Types ICON is not selected/depressed
-    //
-    private Boolean isShowTypeNamesEnabled( IPresentationContext context ) {
-        Boolean attribute = (Boolean) context.getProperty(IDebugModelPresentation.DISPLAY_VARIABLE_TYPE_NAMES);
-
-        if (attribute != null) {
-            return attribute;
-        }
-
-        return Boolean.FALSE;
+    private boolean isShowTypeNamesEnabled(IPresentationContext context) {
+        Boolean attribute = (Boolean)context.getProperty(IDebugModelPresentation.DISPLAY_VARIABLE_TYPE_NAMES);
+        return attribute != null && attribute;
     }
 
     @Override
@@ -1187,7 +1179,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (error != null) {
                 if (cols == null || cols.length <= 1) {
                     result.setForeground(ColorCache.rgb_error, 0);
-                    if (isShowTypeNamesEnabled( result.getPresentationContext())) {
+                    if (isShowTypeNamesEnabled(result.getPresentationContext())) {
                         if (!type_name.validate(done)) return false;
                         result.setLabel(name + ": N/A" + " , Type = " + type_name.getData(), 0);
                     }
@@ -1216,7 +1208,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 if (cols == null) {
                     StyledStringBuffer s = getPrettyExpression(done);
                     if (s == null) return false;
-                    if (isShowTypeNamesEnabled( result.getPresentationContext())) {
+                    if (isShowTypeNamesEnabled(result.getPresentationContext())) {
                         if (!type_name.validate(done)) return false;
                         result.setLabel(name + " = " + s + " , Type = " + type_name.getData(), 0);
                     }
@@ -1461,20 +1453,63 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         return false;
     }
 
-    private void appendNumericValueText(StyledStringBuffer bf, ISymbols.TypeClass type_class,
-            byte[] data, int offs, int size, boolean big_endian) {
+    private boolean appendNumericValueText(
+            StyledStringBuffer bf, ISymbols.TypeClass type_class,
+            byte[] data, boolean big_endian, Runnable done) {
+        assert data != null;
         bf.append("Hex: ", SWT.BOLD);
-        bf.append(toNumberString(16, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+        bf.append(toNumberString(16, type_class, data, 0, data.length, big_endian), StyledStringBuffer.MONOSPACED);
         bf.append(", ");
         bf.append("Dec: ", SWT.BOLD);
-        bf.append(toNumberString(10, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+        bf.append(toNumberString(10, type_class, data, 0, data.length, big_endian), StyledStringBuffer.MONOSPACED);
         bf.append(", ");
         bf.append("Oct: ", SWT.BOLD);
-        bf.append(toNumberString(8, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+        bf.append(toNumberString(8, type_class, data, 0, data.length, big_endian), StyledStringBuffer.MONOSPACED);
+        IExpressions.Value v = value.getData();
+        assert data == v.getValue();
+        if (v.getTypeClass() == ISymbols.TypeClass.pointer) {
+            TCFDataCache<TCFNodeExecContext> mem_node_cache = model.searchMemoryContext(parent);
+            if (mem_node_cache != null) {
+                if (!mem_node_cache.validate(done)) return false;
+                if (mem_node_cache.getData() != null) {
+                    BigInteger addr = TCFNumberFormat.toBigInteger(data, 0, data.length, big_endian, false);
+                    TCFDataCache<TCFFunctionRef> func_info_cache = mem_node_cache.getData().getFuncInfo(addr);
+                    if (func_info_cache != null) {
+                        if (!func_info_cache.validate(done)) return false;
+                        TCFFunctionRef func_ref = func_info_cache.getData();
+                        if (func_ref != null && func_ref.symbol_id != null) {
+                            TCFDataCache<ISymbols.Symbol> sym_cache = model.getSymbolInfoCache(func_ref.symbol_id);
+                            if (!sym_cache.validate(done)) return false;
+                            ISymbols.Symbol sym_data = sym_cache.getData();
+                            if (sym_data != null && sym_data.getName() != null) {
+                                bf.append(", ");
+                                bf.append("At: ", SWT.BOLD);
+                                bf.append(sym_data.getName());
+                                if (sym_data.getSymbolClass() == ISymbols.SymbolClass.function) {
+                                    bf.append("()");
+                                }
+                                BigInteger func_addr = JSON.toBigInteger(sym_data.getAddress());
+                                if (func_addr != null) {
+                                    BigInteger addr_offs = addr.subtract(func_addr);
+                                    int cmp = addr_offs.compareTo(BigInteger.ZERO);
+                                    if (cmp > 0) {
+                                        bf.append(" + 0x" + addr_offs.toString(16));
+                                    }
+                                    else if (cmp < 0) {
+                                        bf.append(" - 0x" + addr_offs.abs().toString(16));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         bf.append('\n');
         bf.append("Bin: ", SWT.BOLD);
         bf.append(toNumberString(2), StyledStringBuffer.MONOSPACED);
         bf.append('\n');
+        return true;
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -1493,9 +1528,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (!value.validate(done)) return false;
             if (value.getData() != null) type_class = value.getData().getTypeClass();
             if (level == 0) {
-                assert offs == 0;
-                assert size == data.length;
-                if (size > 0) appendNumericValueText(bf, type_class, data, offs, size, big_endian);
+                assert offs == 0 && size == data.length && data_node == this;
+                if (size > 0 && !appendNumericValueText(bf, type_class, data, big_endian, done)) return false;
                 String s = getTypeName(type_class, size);
                 if (s == null) s = "not available";
                 bf.append("Size: ", SWT.BOLD);
@@ -1535,7 +1569,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             case cardinal:
             case real:
                 if (level == 0) {
-                    appendNumericValueText(bf, type_class, data, offs, size, big_endian);
+                    assert offs == 0 && size == data.length && data_node == this;
+                    if (!appendNumericValueText(bf, type_class, data, big_endian, done)) return false;
                 }
                 else if (type_data.getTypeClass() == ISymbols.TypeClass.cardinal) {
                     bf.append("0x", StyledStringBuffer.MONOSPACED);
@@ -1549,7 +1584,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             case function:
             case member_pointer:
                 if (level == 0) {
-                    appendNumericValueText(bf, type_class, data, offs, size, big_endian);
+                    assert offs == 0 && size == data.length && data_node == this;
+                    if (!appendNumericValueText(bf, type_class, data, big_endian, done)) return false;
                 }
                 else {
                     bf.append("0x", StyledStringBuffer.MONOSPACED);
