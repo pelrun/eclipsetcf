@@ -16,12 +16,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
@@ -78,9 +78,8 @@ public class NotificationPopup extends AbstractNotificationPopup {
 		int count = 0;
 		for (final NotifyEvent notification : notifications) {
 			Composite notificationComposite = new Composite(parent, SWT.NO_FOCUS);
-			GridLayout gridLayout = new GridLayout(1, false);
-			GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(notificationComposite);
-			notificationComposite.setLayout(gridLayout);
+			notificationComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			notificationComposite.setLayout(new GridLayout(1, false));
 			notificationComposite.setBackground(parent.getBackground());
 
 			if (count < NUM_NOTIFICATIONS_TO_DISPLAY) {
@@ -98,7 +97,11 @@ public class NotificationPopup extends AbstractNotificationPopup {
 
 				// Create the form text widget.
 				FormText widget = toolkit.createFormText(notificationComposite, true);
-				widget.setBackground(parent.getBackground());
+				GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+				layoutData.widthHint = 300;
+				widget.setLayoutData(layoutData);
+				widget.setBackground(notificationComposite.getBackground());
+				widget.setWhitespaceNormalized(false);
 
 				// Populate the widget content based on the current notification event
 				delegate.populateFormText(toolkit, widget, notification);

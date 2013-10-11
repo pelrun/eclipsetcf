@@ -453,7 +453,7 @@ public abstract class AbstractNotificationPopup extends Window {
 		/* Create Title Area */
 		createTitleArea(titleCircle);
 
-		/* Outer composite to hold content controlls */
+		/* Outer composite to hold content controls */
 		Composite outerContentCircle = new Composite(outerCircle, SWT.NONE);
 		outerContentCircle.setBackgroundMode(SWT.INHERIT_FORCE);
 
@@ -495,18 +495,7 @@ public abstract class AbstractNotificationPopup extends Window {
 		/* Content Area */
 		createContentArea(innerContent);
 
-		setNullBackground(outerCircle);
-
 		return outerCircle;
-	}
-
-	private void setNullBackground(final Composite outerCircle) {
-		for (Control c : outerCircle.getChildren()) {
-			c.setBackground(null);
-			if (c instanceof Composite) {
-				setNullBackground((Composite) c);
-			}
-		}
 	}
 
 	@Override

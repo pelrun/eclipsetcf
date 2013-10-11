@@ -10,23 +10,21 @@
 package org.eclipse.tcf.te.tests.notifications;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.runtime.events.NotifyEvent;
-import org.eclipse.tcf.te.ui.notifications.interfaces.IFormTextFactoryDelegate;
-import org.eclipse.ui.forms.widgets.FormText;
-import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.tcf.te.tests.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.notifications.delegates.DefaultFormTextFactoryDelegate;
 
 /**
  * Test notification form text factory delegate implementation.
  */
-public class TestFormTextFactoryDelegate implements IFormTextFactoryDelegate {
+public class TestFormTextFactoryDelegate extends DefaultFormTextFactoryDelegate {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.notifications.interfaces.IFormTextFactoryDelegate#populateFormText(org.eclipse.ui.forms.widgets.FormToolkit, org.eclipse.ui.forms.widgets.FormText, org.eclipse.tcf.te.runtime.events.NotifyEvent)
+	 * @see org.eclipse.tcf.te.ui.notifications.delegates.DefaultFormTextFactoryDelegate#getImage(java.lang.String)
 	 */
 	@Override
-	public void populateFormText(FormToolkit toolkit, FormText widget, NotifyEvent event) {
-		Assert.isNotNull(toolkit);
-		Assert.isNotNull(widget);
-		Assert.isNotNull(event);
+	protected Image getImage(String key) {
+		Assert.isNotNull(key);
+	    return UIPlugin.getImage(key);
 	}
 }

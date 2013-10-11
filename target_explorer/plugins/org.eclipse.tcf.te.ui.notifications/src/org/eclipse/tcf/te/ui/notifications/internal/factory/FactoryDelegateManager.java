@@ -14,6 +14,7 @@ import java.util.Collection;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.runtime.extensions.AbstractExtensionPointManager;
 import org.eclipse.tcf.te.runtime.extensions.ExecutableExtensionProxy;
+import org.eclipse.tcf.te.ui.notifications.delegates.DefaultFormTextFactoryDelegate;
 import org.eclipse.tcf.te.ui.notifications.interfaces.IFormTextFactoryDelegate;
 
 

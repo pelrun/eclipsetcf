@@ -218,5 +218,9 @@
             class="org.eclipse.tcf.te.tests.notifications.TestFormTextFactoryDelegate"
             id="org.eclipse.tcf.te.tests.delegates.TestFormTextFactoryDelegate">
       </delegate>
+      <delegate
+            class="org.eclipse.tcf.te.tests.notifications.TestFormTextFactoryDelegate2"
+            id="org.eclipse.tcf.te.tests.delegates.TestFormTextFactoryDelegate2">
+      </delegate>
    </extension>
 </plugin>

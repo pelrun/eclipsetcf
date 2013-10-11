@@ -14,6 +14,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Export-Package: org.eclipse.tcf.te.ui.notifications.activator;x-internal:=true,
+ org.eclipse.tcf.te.ui.notifications.delegates,
  org.eclipse.tcf.te.ui.notifications.interfaces,
  org.eclipse.tcf.te.ui.notifications.internal;x-internal:=true,
  org.eclipse.tcf.te.ui.notifications.internal.events,
