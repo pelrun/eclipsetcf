@@ -74,6 +74,7 @@ import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeLaunch;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.JSON;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.util.TCFDataCache;
@@ -99,26 +100,22 @@ public class MemoryMapWidget {
     private TCFModel model;
     private IChannel channel;
     private TCFNode selection;
+    private final IMemoryMap.MemoryMapListener listener = new MemoryMapListener();
 
     private Combo ctx_text;
     private Table map_table;
     private TableViewer table_viewer;
     private Runnable update_map_buttons;
-    private final Map<String,ArrayList<IMemoryMap.MemoryRegion>> org_maps =
-        new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
-    private final Map<String,ArrayList<IMemoryMap.MemoryRegion>> cur_maps =
-        new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
-    private final ArrayList<IMemoryMap.MemoryRegion> target_map =
-        new ArrayList<IMemoryMap.MemoryRegion>();
-    private final HashMap<String,TCFNodeExecContext> target_map_nodes =
-        new HashMap<String,TCFNodeExecContext>();
+    private final Map<String,ArrayList<IMemoryMap.MemoryRegion>> org_maps = new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
+    private final Map<String,ArrayList<IMemoryMap.MemoryRegion>> cur_maps = new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
+    private final ArrayList<IMemoryMap.MemoryRegion> target_map = new ArrayList<IMemoryMap.MemoryRegion>();
+    private final HashMap<String,TCFNodeExecContext> target_map_nodes = new HashMap<String,TCFNodeExecContext>();
     private TCFNodeExecContext selected_mem_map_node;
     private IMemory.MemoryContext mem_ctx;
     private ILaunchConfiguration cfg;
     private final HashSet<String> loaded_files = new HashSet<String>();
     private String selected_mem_map_id;
-    private final ArrayList<ModifyListener> modify_listeners =
-            new ArrayList<ModifyListener>();
+    private final ArrayList<ModifyListener> modify_listeners = new ArrayList<ModifyListener>();
     
     private Color cError = null;
 
@@ -239,6 +236,27 @@ public class MemoryMapWidget {
         }
     }
 
+    private class MemoryMapListener implements IMemoryMap.MemoryMapListener {
+
+        /* (non-Javadoc)
+         * @see org.eclipse.tcf.services.IMemoryMap.MemoryMapListener#changed(java.lang.String)
+         */
+        @Override
+        public void changed(String context_id) {
+            if (mem_ctx != null && mem_ctx.getID() != null && mem_ctx.getID().equals(context_id)) {
+                if (cfg != null && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
+                    final ILaunchConfiguration lc = cfg; 
+                    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            loadData(lc);
+                        }
+                    });
+                }
+            }
+        }
+    }
+    
     public MemoryMapWidget(Composite composite, TCFNode node) {
         setTCFNode(node);
         createContextText(composite);
@@ -252,6 +270,19 @@ public class MemoryMapWidget {
                     cError.dispose();
                     cError = null;
                 }
+
+                // Remove the memory map listener
+                if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
+                    // Asynchronous execution. Make a copy of the current channel reference.
+                    final IChannel c = channel;
+                    Protocol.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
+                            if (svc != null) svc.removeListener(listener);
+                        }
+                    });
+                }
             }
         });
     }
@@ -260,10 +291,38 @@ public class MemoryMapWidget {
         if (node == null && selection == null || node != null && node.equals(selection)) {
             return false;
         }
+    
+        // Remove the memory map listener from the current channel
+        // before setting the variable to the new channel
+        if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
+            // Asynchronous execution. Make a copy of the current channel reference.
+            final IChannel c = channel;
+            Protocol.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
+                    if (svc != null) svc.removeListener(listener);
+                }
+            });
+        }
+        
         if (node != null) {
             model = node.getModel();
             channel = node.getChannel();
             selection = node;
+            
+            // Register the memory map listener
+            if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
+                // Asynchronous execution. Make a copy of the current channel reference.
+                final IChannel c = channel;
+                Protocol.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
+                        if (svc != null) svc.addListener(listener);
+                    }
+                });
+            }
         }
         else {
             model = null;
