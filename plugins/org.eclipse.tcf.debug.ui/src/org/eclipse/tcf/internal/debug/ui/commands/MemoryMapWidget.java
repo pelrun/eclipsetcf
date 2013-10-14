@@ -22,10 +22,12 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableColorProvider;
+import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableLayout;
@@ -33,6 +35,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -40,6 +44,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -50,11 +56,16 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.tcf.core.ErrorReport;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.model.TCFMemoryRegion;
+import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
 import org.eclipse.tcf.internal.debug.ui.Activator;
+import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildren;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
@@ -108,6 +119,8 @@ public class MemoryMapWidget {
     private String selected_mem_map_id;
     private final ArrayList<ModifyListener> modify_listeners =
             new ArrayList<ModifyListener>();
+    
+    private Color cError = null;
 
     private final IStructuredContentProvider content_provider = new IStructuredContentProvider() {
 
@@ -126,7 +139,7 @@ public class MemoryMapWidget {
         }
     };
 
-    private class MapLabelProvider extends LabelProvider implements ITableLabelProvider, ITableColorProvider {
+    private class MapLabelProvider extends LabelProvider implements ITableLabelProvider, ITableColorProvider, ITableFontProvider {
 
         public Image getColumnImage(Object element, int column) {
             return null;
@@ -154,9 +167,9 @@ public class MemoryMapWidget {
                 {
                     int n = r.getFlags();
                     StringBuffer bf = new StringBuffer();
-                    if ((n & IMemoryMap.FLAG_READ) != 0) bf.append('r');
-                    if ((n & IMemoryMap.FLAG_WRITE) != 0) bf.append('w');
-                    if ((n & IMemoryMap.FLAG_EXECUTE) != 0) bf.append('x');
+                    if ((n & IMemoryMap.FLAG_READ) != 0) bf.append('r'); else bf.append('-');
+                    if ((n & IMemoryMap.FLAG_WRITE) != 0) bf.append('w'); else bf.append('-');
+                    if ((n & IMemoryMap.FLAG_EXECUTE) != 0) bf.append('x'); else bf.append('-');
                     return bf.toString();
                 }
             case 4:
@@ -191,9 +204,36 @@ public class MemoryMapWidget {
                 }
                 return map_table.getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE);
             }
+            
+            String symbolFileInfo = getSymbolFileInfo(r);
+            // Set or reset the symbol file error tooltip marker
+            TableItem[] items = map_table.getItems();
+            for (TableItem item : items) {
+                if (item.getData().equals(r)) {
+                    item.setData("_TOOLTIP", symbolFileInfo); //$NON-NLS-1$
+                }
+            }
+            if (symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:") && cError != null) {
+                return cError;
+            }
+            
             return map_table.getForeground();
         }
 
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ITableFontProvider#getFont(java.lang.Object, int)
+         */
+        @Override
+        public Font getFont(Object element, int columnIndex) {
+            switch (columnIndex) {
+                case 1:
+                case 2:     
+                case 4:
+                    return JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT);
+            }
+            return null;
+        }
+        
         public String getText(Object element) {
             return element.toString();
         }
@@ -203,6 +243,17 @@ public class MemoryMapWidget {
         setTCFNode(node);
         createContextText(composite);
         createMemoryMapTable(composite);
+        
+        cError = new Color(composite.getDisplay(), ColorCache.rgb_error);
+        composite.addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                if (cError != null) {
+                    cError.dispose();
+                    cError = null;
+                }
+            }
+        });
     }
 
     public boolean setTCFNode(TCFNode node) {
@@ -338,18 +389,17 @@ public class MemoryMapWidget {
 
 
         TableLayout layout = new TableLayout();
-        layout.addColumnData(new ColumnPixelData(200));
-        layout.addColumnData(new ColumnPixelData(60));
-        layout.addColumnData(new ColumnPixelData(60));
-        layout.addColumnData(new ColumnPixelData(60));
-        layout.addColumnData(new ColumnPixelData(60));
-        layout.addColumnData(new ColumnPixelData(60));
+        layout.addColumnData(new ColumnPixelData(150));
+        layout.addColumnData(new ColumnPixelData(90));
+        layout.addColumnData(new ColumnPixelData(90));
+        layout.addColumnData(new ColumnPixelData(50));
+        layout.addColumnData(new ColumnPixelData(140));
 
         table.addListener(SWT.Resize, new Listener() {
                 @Override
                 public void handleEvent(Event event) {
                     int width = table.getSize().x - 4 - colAddr.getWidth() - colSize.getWidth() - colFlags.getWidth() - colOffset.getWidth();
-                    colFile.setWidth(Math.max(width, 200));
+                    colFile.setWidth(Math.max(width, 100));
                 }
         });
 
@@ -357,9 +407,9 @@ public class MemoryMapWidget {
                 @Override
                 public void handleEvent(Event event) {
                     int colWidth = colFile.getWidth();
-                    if (colWidth < 150) {
+                    if (colWidth < 100) {
                         event.doit = false;
-                        colFile.setWidth(150);
+                        colFile.setWidth(100);
                     }
                 }
         });
@@ -382,6 +432,79 @@ public class MemoryMapWidget {
         colFlags.addListener(SWT.Resize, listener);
         colOffset.addListener(SWT.Resize, listener);
 
+        // "Symbol File Errors" are displayed as tooltip on the table item.
+        // See http://git.eclipse.org/c/platform/eclipse.platform.swt.git/tree/examples/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet125.java.
+        
+        // Disable native tooltip
+        table.setToolTipText ("");
+        
+        // Implement a "fake" tooltip
+        final Listener labelListener = new Listener () {
+            public void handleEvent (Event event) {
+                Label label = (Label)event.widget;
+                Shell shell = label.getShell ();
+                switch (event.type) {
+                case SWT.MouseDown:
+                    Event e = new Event ();
+                    e.item = (TableItem) label.getData ("_TABLEITEM");
+                    // Assuming table is single select, set the selection as if
+                    // the mouse down event went through to the table
+                    table.setSelection (new TableItem [] {(TableItem) e.item});
+                    table.notifyListeners (SWT.Selection, e);
+                    shell.dispose ();
+                    table.setFocus();
+                    break;
+                case SWT.MouseExit:
+                    shell.dispose ();
+                    break;
+                }
+            }
+        };
+
+        Listener tableListener = new Listener () {
+            Shell tip = null;
+            Label label = null;
+            public void handleEvent (Event event) {
+                switch (event.type) {
+                case SWT.Dispose:
+                case SWT.KeyDown:
+                case SWT.MouseMove: {
+                    if (tip == null) break;
+                    tip.dispose ();
+                    tip = null;
+                    label = null;
+                    break;
+                }
+                case SWT.MouseHover: {
+                    TableItem item = table.getItem (new Point (event.x, event.y));
+                    if (item != null && item.getData("_TOOLTIP") instanceof String) {
+                        if (tip != null  && !tip.isDisposed ()) tip.dispose ();
+                        tip = new Shell (table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
+                        tip.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
+                        FillLayout layout = new FillLayout ();
+                        layout.marginWidth = 2;
+                        tip.setLayout (layout);
+                        label = new Label (tip, SWT.NONE);
+                        label.setForeground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_FOREGROUND));
+                        label.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
+                        label.setData ("_TABLEITEM", item);
+                        label.setText ((String)item.getData("_TOOLTIP"));
+                        label.addListener (SWT.MouseExit, labelListener);
+                        label.addListener (SWT.MouseDown, labelListener);
+                        Point size = tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
+                        Point pt = table.toDisplay (event.x - 20, event.y - size.y);
+                        tip.setBounds (pt.x, pt.y, size.x, size.y);
+                        tip.setVisible (true);
+                    }
+                }
+                }
+            }
+        };
+        table.addListener (SWT.Dispose, tableListener);
+        table.addListener (SWT.KeyDown, tableListener);
+        table.addListener (SWT.MouseMove, tableListener);
+        table.addListener (SWT.MouseHover, tableListener);
+        
         table.setLayout(layout);
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
@@ -609,6 +732,57 @@ public class MemoryMapWidget {
                         }
                     }
                     done(id);
+                }
+            }.get();
+        }
+        catch (Exception x) {
+            if (channel.getState() != IChannel.STATE_OPEN) return null;
+            Activator.log("Cannot get selected memory node", x);
+            return null;
+        }
+    }
+    
+    private String getSymbolFileInfo(final IMemoryMap.MemoryRegion r) {
+        if (channel == null || channel.getState() != IChannel.STATE_OPEN) return null;
+        try {
+            return new TCFTask<String>(channel) {
+                public void run() {
+                    TCFDataCache<TCFNodeExecContext> mem_cache = model.searchMemoryContext(selected_mem_map_node);
+                    if (mem_cache == null) {
+                        error(new Exception("Context does not provide memory access"));
+                        return;
+                    }
+                    if (!mem_cache.validate(this)) return;
+                    if (mem_cache.getError() != null) {
+                        error(mem_cache.getError());
+                        return;
+                    }
+                    StringBuilder symbolFileInfo = new StringBuilder();
+                    TCFNodeExecContext mem_node = mem_cache.getData();
+                    if (mem_node != null) {
+                        TCFDataCache<TCFSymFileRef> sym_cache = mem_node.getSymFileInfo(JSON.toBigInteger(r.getAddress()));
+                        if (sym_cache != null) {
+                            if (!sym_cache.validate(this)) return;
+                            TCFSymFileRef sym_data = sym_cache.getData();
+                            if (sym_data != null) {
+                                if (sym_data.props != null) {
+                                    String sym_file_name = (String)sym_data.props.get("FileName");
+                                    if (sym_file_name != null && !sym_file_name.equals(r.getFileName())) symbolFileInfo.append("Symbol file name: ").append(sym_file_name);
+
+                                    @SuppressWarnings("unchecked")
+                                    Map<String,Object> map = (Map<String,Object>)sym_data.props.get("FileError");
+                                    if (map != null) {
+                                        if (symbolFileInfo.length() > 0) symbolFileInfo.append("\n");
+                                        symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(new ErrorReport("", map), false));
+                                    }
+                                }
+                                if (sym_data.error != null) {
+                                    symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(sym_data.error, false));
+                               }
+                            }
+                        }
+                    }
+                    done(symbolFileInfo.length() > 0 ? symbolFileInfo.toString() : null);
                 }
             }.get();
         }
