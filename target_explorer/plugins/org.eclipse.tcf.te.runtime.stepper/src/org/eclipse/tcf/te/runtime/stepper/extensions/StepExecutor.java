@@ -91,6 +91,7 @@ public class StepExecutor implements IStepExecutor {
 
 		int ticksToUse = step.getTotalWork(context, data);
 		progress = ProgressHelper.getProgressMonitor(progress, ticksToUse);
+		Assert.isNotNull(progress);
 		ProgressHelper.beginTask(progress, step.getLabel(), ticksToUse);
 
 		// Create the handler (and the callback) for the current step
@@ -127,7 +128,7 @@ public class StepExecutor implements IStepExecutor {
 				return;
 			}
 
-			if (callback.getStatus().matches(IStatus.CANCEL) || (progress != null && progress.isCanceled())) {
+			if (callback.getStatus().matches(IStatus.CANCEL) || progress.isCanceled()) {
 				throw new OperationCanceledException(callback.getStatus().getMessage());
 			}
 

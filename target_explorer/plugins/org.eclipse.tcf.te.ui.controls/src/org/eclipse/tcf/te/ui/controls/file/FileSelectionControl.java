@@ -140,7 +140,7 @@ public class FileSelectionControl extends BaseDialogSelectionControl {
 				}
 				String filterFileName = filePath.toFile().isDirectory() || !filePath.toFile().exists() ? null : filePath.lastSegment();
 
-				if (!filterPath.isEmpty()) fileDialog.setFilterPath(filterPath.toString());
+				if (filterPath != null && !filterPath.isEmpty()) fileDialog.setFilterPath(filterPath.toString());
 				if (filterFileName != null) fileDialog.setFileName(filterFileName);
 			} else {
 				String filterPath = last_filter_path != null ? last_filter_path : doGetDefaultFilterPath();

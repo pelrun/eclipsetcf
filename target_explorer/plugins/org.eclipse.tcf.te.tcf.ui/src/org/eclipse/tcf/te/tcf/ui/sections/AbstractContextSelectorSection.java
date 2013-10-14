@@ -189,9 +189,11 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 
 		String encoded = data.getStringProperty(getContextListDataKey());
 		IModelNode[] list = decode(encoded);
-		selector.setCheckedModelContexts(list);
-		if (selector != null && selector.getViewer() != null) {
-			selector.getViewer().refresh();
+		if (selector != null) {
+			selector.setCheckedModelContexts(list);
+			if (selector.getViewer() != null) {
+				selector.getViewer().refresh();
+			}
 		}
 
 		// Mark the control update as completed now

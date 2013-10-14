@@ -64,39 +64,41 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		PathMapRule[] rules = null;
 		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
 
-		// Get the launch configuration for that peer model
-		ILaunchConfiguration config = (ILaunchConfiguration) Platform.getAdapterManager().getAdapter(context, ILaunchConfiguration.class);
-		if (config == null) {
-			config = (ILaunchConfiguration) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfiguration"); //$NON-NLS-1$
+		try {
+			// Get the launch configuration for that peer model
+			ILaunchConfiguration config = (ILaunchConfiguration) Platform.getAdapterManager().getAdapter(context, ILaunchConfiguration.class);
+			if (config == null) {
+				config = (ILaunchConfiguration) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfiguration"); //$NON-NLS-1$
+			}
+
+			if (config != null) {
+				try {
+					String path_map_cfg = config.getAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
+					rulesList.addAll(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parsePathMapAttribute(path_map_cfg));
+
+					path_map_cfg = config.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, ""); //$NON-NLS-1$
+					rulesList.addAll(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parseSourceLocatorMemento(path_map_cfg));
+				} catch (CoreException e) { /* ignored on purpose */ }
+			}
+
+			IPathMapGeneratorService generator = ServiceManager.getInstance().getService(context, IPathMapGeneratorService.class);
+			if (generator != null) {
+				PathMapRule[] generatedRules = generator.getPathMap(context);
+				if (generatedRules != null && generatedRules.length > 0) {
+					rulesList.addAll(Arrays.asList(generatedRules));
+				}
+			}
+
+			if (!rulesList.isEmpty()) {
+				int cnt = 0;
+				String id = getClientID();
+				for (PathMapRule r : rulesList) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++); //$NON-NLS-1$
+				rules = rulesList.toArray(new PathMapRule[rulesList.size()]);
+			}
+		} finally {
+			// Release the lock
+			lock.unlock();
 		}
-
-		if (config != null) {
-			try {
-				String path_map_cfg = config.getAttribute(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
-				rulesList.addAll(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parsePathMapAttribute(path_map_cfg));
-
-				path_map_cfg = config.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, ""); //$NON-NLS-1$
-				rulesList.addAll(org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.parseSourceLocatorMemento(path_map_cfg));
-			} catch (CoreException e) { /* ignored on purpose */ }
-		}
-
-        IPathMapGeneratorService generator = ServiceManager.getInstance().getService(context, IPathMapGeneratorService.class);
-        if (generator != null) {
-        	PathMapRule[] generatedRules = generator.getPathMap(context);
-        	if (generatedRules != null && generatedRules.length > 0) {
-        		rulesList.addAll(Arrays.asList(generatedRules));
-        	}
-        }
-
-		if (!rulesList.isEmpty()) {
-	        int cnt = 0;
-	        String id = getClientID();
-	        for (PathMapRule r : rulesList) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++); //$NON-NLS-1$
-			rules = rulesList.toArray(new PathMapRule[rulesList.size()]);
-		}
-
-		// Release the lock
-		lock.unlock();
 
 		return rules;
 	}
@@ -117,48 +119,50 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		PathMapRule rule = null;
 		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
 
-		// Get the launch configuration for that peer model
-		ILaunchConfigurationWorkingCopy config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().getAdapter(context, ILaunchConfigurationWorkingCopy.class);
-		if (config == null) {
-			config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
-		}
+		try {
+			// Get the launch configuration for that peer model
+			ILaunchConfigurationWorkingCopy config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().getAdapter(context, ILaunchConfigurationWorkingCopy.class);
+			if (config == null) {
+				config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
+			}
 
-		if (config != null) {
-			populatePathMapRulesList(config, rulesList);
+			if (config != null) {
+				populatePathMapRulesList(config, rulesList);
 
-			// Find an existing path map rule for the given source and destination
-			for (PathMapRule candidate : rulesList) {
-				if (source.equals(candidate.getSource()) && destination.equals(candidate.getDestination())) {
-					rule = candidate;
-					break;
+				// Find an existing path map rule for the given source and destination
+				for (PathMapRule candidate : rulesList) {
+					if (source.equals(candidate.getSource()) && destination.equals(candidate.getDestination())) {
+						rule = candidate;
+						break;
+					}
+				}
+
+				// If not matching path map rule exist, create a new one
+				if (rule == null) {
+					Map<String, Object> props = new LinkedHashMap<String, Object>();
+					props.put(IPathMap.PROP_SOURCE, source);
+					props.put(IPathMap.PROP_DESTINATION, destination);
+					rule = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
+					rulesList.add(rule);
+
+					// Update the launch configuration
+					updateLaunchConfiguration(config, rulesList);
+
+					// Apply the path map
+					applyPathMap(context, new Callback() {
+						@Override
+						protected void internalDone(Object caller, IStatus status) {
+							if (status != null && Platform.inDebugMode()) {
+								Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
+							}
+						}
+					});
 				}
 			}
-
-			// If not matching path map rule exist, create a new one
-			if (rule == null) {
-				Map<String, Object> props = new LinkedHashMap<String, Object>();
-				props.put(IPathMap.PROP_SOURCE, source);
-				props.put(IPathMap.PROP_DESTINATION, destination);
-				rule = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
-				rulesList.add(rule);
-
-				// Update the launch configuration
-				updateLaunchConfiguration(config, rulesList);
-
-		        // Apply the path map
-		        applyPathMap(context, new Callback() {
-		        	@Override
-		        	protected void internalDone(Object caller, IStatus status) {
-		        		if (status != null && Platform.inDebugMode()) {
-		        			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-		        		}
-		        	}
-		        });
-			}
+		} finally {
+			// Release the lock
+			lock.unlock();
 		}
-
-		// Release the lock
-		lock.unlock();
 
 		return rule;
     }
@@ -177,34 +181,36 @@ public class PathMapService extends AbstractService implements IPathMapService {
 
 		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
 
-		// Get the launch configuration for that peer model
-		ILaunchConfigurationWorkingCopy config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().getAdapter(context, ILaunchConfigurationWorkingCopy.class);
-		if (config == null) {
-			config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
-		}
-
-		if (config != null) {
-			populatePathMapRulesList(config, rulesList);
-
-			// Remove the given rule from the list of present
-			if (rulesList.remove(rule)) {
-				// Update the launch configuration
-				updateLaunchConfiguration(config, rulesList);
-
-		        // Apply the path map
-		        applyPathMap(context, new Callback() {
-		        	@Override
-		        	protected void internalDone(Object caller, IStatus status) {
-		        		if (status != null && Platform.inDebugMode()) {
-		        			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-		        		}
-		        	}
-		        });
+		try {
+			// Get the launch configuration for that peer model
+			ILaunchConfigurationWorkingCopy config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().getAdapter(context, ILaunchConfigurationWorkingCopy.class);
+			if (config == null) {
+				config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfigurationWorkingCopy"); //$NON-NLS-1$
 			}
-		}
 
-		// Release the lock
-		lock.unlock();
+			if (config != null) {
+				populatePathMapRulesList(config, rulesList);
+
+				// Remove the given rule from the list of present
+				if (rulesList.remove(rule)) {
+					// Update the launch configuration
+					updateLaunchConfiguration(config, rulesList);
+
+					// Apply the path map
+					applyPathMap(context, new Callback() {
+						@Override
+						protected void internalDone(Object caller, IStatus status) {
+							if (status != null && Platform.inDebugMode()) {
+								Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
+							}
+						}
+					});
+				}
+			}
+		} finally {
+			// Release the lock
+			lock.unlock();
+		}
     }
 
     /**

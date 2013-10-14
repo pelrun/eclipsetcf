@@ -144,7 +144,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							});
 							thread.start();
 						} else {
-							done.doneOpenChannel(error, channel);
+							done.doneOpenChannel(null, channel);
 						}
 					}
 				}
