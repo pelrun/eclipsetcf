@@ -43,11 +43,11 @@ public class MemoryMapTab extends TCFMemoryMapTab {
     	protected String getColumnText(int column) {
     		String text = super.getColumnText(column);
     		if (text != null && text.trim().length() > 0) {
-    			String key = "MemoryMapEditorPage_column_" + text; //$NON-NLS-1$
+    			String key = "MemoryMapTab_column_" + text; //$NON-NLS-1$
     			if (Messages.hasString(key))
     				text = Messages.getString(key);
     			else {
-        			key = "MemoryMapEditorPage_column_" + column; //$NON-NLS-1$
+        			key = "MemoryMapTab_column_" + column; //$NON-NLS-1$
         			if (Messages.hasString(key))
         				text = Messages.getString(key);
     			}
