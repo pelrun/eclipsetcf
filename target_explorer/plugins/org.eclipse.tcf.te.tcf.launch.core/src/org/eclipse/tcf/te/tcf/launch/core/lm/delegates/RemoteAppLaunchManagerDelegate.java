@@ -67,14 +67,14 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 	public void initLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.initLaunchConfigAttributes(wc, launchSpec);
 
-		wc.setAttribute(IProcessesStepAttributes.ATTR_STOP_AT_MAIN, true);
-		wc.setAttribute(IProcessesStepAttributes.ATTR_ATTACH_CHILDREN, true);
+		DefaultPersistenceDelegate.setAttribute(wc, IProcessesStepAttributes.ATTR_STOP_AT_MAIN, true);
+		DefaultPersistenceDelegate.setAttribute(wc, IProcessesStepAttributes.ATTR_ATTACH_CHILDREN, true);
 		try {
-			wc.setAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, CdtUtils.getDefaultSourceLookupDirector().getMemento());
+			DefaultPersistenceDelegate.setAttribute(wc, ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, CdtUtils.getDefaultSourceLookupDirector().getMemento());
 			IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launchSpec);
 			if (contexts != null && contexts.length == 1) {
 				ILaunchConfiguration attachLaunch = (ILaunchConfiguration)Platform.getAdapterManager().getAdapter(contexts[0], ILaunchConfiguration.class);
-				wc.setAttribute("org.eclipse.tcf.debug.PathMap", attachLaunch.getAttribute("org.eclipse.tcf.debug.PathMap", (String)null)); //$NON-NLS-1$ //$NON-NLS-2$
+				DefaultPersistenceDelegate.setAttribute(wc, "org.eclipse.tcf.debug.PathMap", attachLaunch.getAttribute("org.eclipse.tcf.debug.PathMap", (String)null)); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
 		catch (Exception e) {

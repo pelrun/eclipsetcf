@@ -22,6 +22,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.tcf.te.launch.core.lm.LaunchManager;
 import org.eclipse.tcf.te.launch.core.lm.LaunchSpecification;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
+import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.persistence.filetransfer.FileTransfersPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
@@ -102,8 +103,8 @@ public class TcfLaunchTests extends TcfTestCase {
 		try {
 			config = LaunchManager.getInstance().getLaunchConfiguration(spec, true);
 			ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
-			wc.setAttribute("org.eclipse.debug.ui.ATTR_CONSOLE_OUTPUT_ON", false); //$NON-NLS-1$
-			wc.setAttribute("org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE", outFile.toOSString()); //$NON-NLS-1$
+			DefaultPersistenceDelegate.setAttribute(wc, "org.eclipse.debug.ui.ATTR_CONSOLE_OUTPUT_ON", false); //$NON-NLS-1$
+			DefaultPersistenceDelegate.setAttribute(wc, "org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE", outFile.toOSString()); //$NON-NLS-1$
 			config = wc.doSave();
 		}
 		catch (Exception e) {

@@ -22,6 +22,7 @@ import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.ILaunchMode;
+import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 
 /**
  * Static launch configuration utility implementations.
@@ -39,22 +40,22 @@ public class LaunchConfigHelper {
 
 	public static void addLaunchConfigAttribute(ILaunchConfigurationWorkingCopy wc, String key, Object value) {
 		if (value instanceof String) {
-			wc.setAttribute(key, (String)value);
+			DefaultPersistenceDelegate.setAttribute(wc, key, (String)value);
 		}
 		else if (value instanceof List) {
-			wc.setAttribute(key, (List<?>)value);
+			DefaultPersistenceDelegate.setAttribute(wc, key, (List<?>)value);
 		}
 		else if (value instanceof Map) {
-			wc.setAttribute(key, (Map<?,?>)value);
+			DefaultPersistenceDelegate.setAttribute(wc, key, (Map<?,?>)value);
 		}
 		else if (value instanceof Set) {
-			wc.setAttribute(key, (Set<?>)value);
+			DefaultPersistenceDelegate.setAttribute(wc, key, (Set<?>)value);
 		}
 		else if (value instanceof Boolean) {
-			wc.setAttribute(key, ((Boolean)value).booleanValue());
+			DefaultPersistenceDelegate.setAttribute(wc, key, ((Boolean)value).booleanValue());
 		}
 		else if (value instanceof Number) {
-			wc.setAttribute(key, ((Number)value).intValue());
+			DefaultPersistenceDelegate.setAttribute(wc, key, ((Number)value).intValue());
 		}
 		else {
 			throw new IllegalArgumentException("Unknown attribute type " + value.getClass().getName() + "(" + value.toString() + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$

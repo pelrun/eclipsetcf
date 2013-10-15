@@ -209,6 +209,31 @@ public class DefaultPersistenceDelegate {
 	}
 
 	/**
+	 * Stores the given set attribute value under the given attribute id if the value
+	 * has changed compared to the already stored value under the given attribute id or
+	 * if the attribute id has not been stored yet. If the attribute value is <code>null</code>,
+	 * the attribute id will be removed from the given launch configuration working copy.
+	 *
+	 * @param wc The launch configuration working copy instance to apply the attribute to. Must not be <code>null</code>.
+	 * @param attributeId The attribute id to store the attribute value under. Must not be <code>null</code>.
+	 * @param attributeValue The attribute value to store under the given attribute id.
+	 */
+	public final static void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, Set<?> attributeValue) {
+		if (wc == null || attributeId == null) return;
+		if (isAttributeChanged(wc, attributeId, attributeValue)) {
+			// Determine the old attribute value
+			Object oldValue = null;
+			if (hasAttribute(wc, attributeId)) try { oldValue = wc.getAttributes().get(attributeId); } catch (CoreException e) { /* ignored on purpose */ }
+
+			// Set the new value to the launch configuration
+			wc.setAttribute(attributeId, attributeValue);
+
+			// And fire an notification event
+			EventManager.getInstance().fireEvent(new LaunchConfigurationChangedEvent(wc, attributeId, oldValue, attributeValue));
+		}
+	}
+
+	/**
 	 * Returns the boolean attribute stored under the given attribute name or
 	 * the default value if the attribute does not exist or the read failed.
 	 *

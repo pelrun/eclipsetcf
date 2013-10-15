@@ -20,6 +20,7 @@ import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.te.launch.core.lm.delegates.DefaultLaunchManagerDelegate;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchContextLaunchAttributes;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
+import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.IRemoteSelectionContext;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ISelectionContext;
@@ -53,8 +54,9 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 	public void updateLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.updateLaunchConfigAttributes(wc, launchSpec);
 
-		wc.setAttribute(ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
-		wc.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
+		DefaultPersistenceDelegate.setAttribute(wc, ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		DefaultPersistenceDelegate.setAttribute(wc, TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
+
 		copySpecToConfig(launchSpec, wc);
 
 		wc.rename(getDefaultLaunchName(wc));
@@ -67,8 +69,8 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 	public void initLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.initLaunchConfigAttributes(wc, launchSpec);
 
-		wc.setAttribute(ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
-		wc.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
+		DefaultPersistenceDelegate.setAttribute(wc, ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		DefaultPersistenceDelegate.setAttribute(wc, TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
 
 		copySpecToConfig(launchSpec, wc);
 
