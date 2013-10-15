@@ -16,8 +16,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -62,11 +66,13 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.tcf.core.ErrorReport;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
+import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule;
 import org.eclipse.tcf.internal.debug.model.TCFMemoryRegion;
 import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
+import org.eclipse.tcf.internal.debug.ui.launch.PathMapRuleDialog;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildren;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
@@ -77,6 +83,7 @@ import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemoryMap;
+import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
 import org.eclipse.ui.ISharedImages;
@@ -387,8 +394,7 @@ public class MemoryMapWidget {
         map_table.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)
-                        table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 editRegion(r);
             }
@@ -619,8 +625,7 @@ public class MemoryMapWidget {
         button_edit.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)
-                        table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 editRegion(r);
             }
@@ -637,8 +642,7 @@ public class MemoryMapWidget {
             public void widgetSelected(SelectionEvent e) {
                 String id = ctx_text.getText();
                 if (id == null || id.length() == 0) return;
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)
-                        table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(id);
                 if (lst != null && lst.remove(r)) table_viewer.refresh();
@@ -650,12 +654,31 @@ public class MemoryMapWidget {
         item_remove.addSelectionListener(sel_adapter);
         item_remove.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_DELETE));
 
+        final Button button_locate = new Button(composite, SWT.PUSH | SWT.WRAP);
+        button_locate.setText(" Locate Symbol File... ");
+        GridData layoutData = new GridData(GridData.FILL_HORIZONTAL);
+        layoutData.widthHint = 50;
+        button_locate.setLayoutData(layoutData);
+        button_locate.addSelectionListener(sel_adapter = new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                String id = ctx_text.getText();
+                if (id == null || id.length() == 0) return;
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                if (r == null) return;
+                locateSymbolFile(r);
+            }
+        });
+        new MenuItem(menu, SWT.SEPARATOR);
+        final MenuItem item_locate = new MenuItem(menu, SWT.PUSH);
+        item_locate.setText("Locate Symbol File...");
+        item_locate.addSelectionListener(sel_adapter);
+        
         map_table.setMenu(menu);
 
         update_map_buttons = new Runnable() {
             public void run() {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)
-                        table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
                 boolean manual = r != null && r.getProperties().get(IMemoryMap.PROP_ID) != null;
                 button_add.setEnabled(selected_mem_map_id != null);
                 button_edit.setEnabled(r != null);
@@ -663,6 +686,11 @@ public class MemoryMapWidget {
                 item_add.setEnabled(selected_mem_map_id != null);
                 item_edit.setEnabled(r != null);
                 item_remove.setEnabled(manual);
+                String symbolFileInfo = getSymbolFileInfo(r);
+                boolean enabled = symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:")
+                                        && r.getFileName() != null && r.getFileName().lastIndexOf('/') != -1;
+                button_locate.setEnabled(enabled);
+                item_locate.setEnabled(enabled);
             }
         };
         update_map_buttons.run();
@@ -689,6 +717,50 @@ public class MemoryMapWidget {
         }
     }
 
+    private void locateSymbolFile(IMemoryMap.MemoryRegion r) {
+        Assert.isNotNull(r);
+        
+        Map<String,Object> props = new HashMap<String,Object>(r.getProperties());
+        Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
+        
+        // Create the new path map rule
+        Map<String, Object> properties = new LinkedHashMap<String, Object>();
+        String fileName = (String)props.get(IMemoryMap.PROP_FILE_NAME);
+        if (fileName == null || fileName.lastIndexOf('/') == -1) return;
+        properties.put(IPathMap.PROP_SOURCE, fileName.lastIndexOf('/') + 1 == fileName.length() ? fileName : fileName.substring(0, fileName.lastIndexOf('/') + 1));
+        PathMapRule rule = new PathMapRule(properties);
+        
+        if (new PathMapRuleDialog(map_table.getShell(), image, rule, true, false).open() == Window.OK) {
+            String source = rule.getSource();
+            String destination = rule.getDestination();
+            if (source != null && source.trim().length() > 0 && destination != null && destination.trim().length() > 0) {
+                if (cfg != null) {
+                    try {
+                        ILaunchConfigurationWorkingCopy wc = cfg instanceof ILaunchConfigurationWorkingCopy ? (ILaunchConfigurationWorkingCopy)cfg : cfg.getWorkingCopy();
+                        
+                        String s = wc.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
+                        List<PathMapRule> map = TCFLaunchDelegate.parsePathMapAttribute(s);
+                        
+                        map.add(0, rule);
+                        
+                        StringBuilder bf = new StringBuilder();
+                        for (IPathMap.PathMapRule m : map) {
+                            bf.append(m.toString());
+                        }
+                        if (bf.length() == 0)
+                            wc.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
+                        else
+                            wc.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
+
+                        if (wc.isDirty()) wc.doSave();
+                    } catch (CoreException e) {
+                        Activator.getDefault().getLog().log(e.getStatus());
+                    }
+                }
+            }
+        }
+    }
+    
     private void readMemoryMapAttribute() {
         cur_maps.clear();
         try {
@@ -802,7 +874,7 @@ public class MemoryMapWidget {
     }
     
     private String getSymbolFileInfo(final IMemoryMap.MemoryRegion r) {
-        if (channel == null || channel.getState() != IChannel.STATE_OPEN) return null;
+        if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null) return null;
         try {
             return new TCFTask<String>(channel) {
                 public void run() {
@@ -847,7 +919,7 @@ public class MemoryMapWidget {
         }
         catch (Exception x) {
             if (channel.getState() != IChannel.STATE_OPEN) return null;
-            Activator.log("Cannot get selected memory node", x);
+            Activator.log("Cannot get selected symbol file info", x);
             return null;
         }
     }

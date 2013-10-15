@@ -33,7 +33,7 @@ import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.services.IPathMap;
 
-class PathMapRuleDialog extends TitleAreaDialog {
+public class PathMapRuleDialog extends TitleAreaDialog {
 
     private final IPathMap.PathMapRule pathMapRule;
     private final boolean enable_editing;
@@ -45,7 +45,7 @@ class PathMapRuleDialog extends TitleAreaDialog {
     private Text context_query_text;
     private Button destination_button;
 
-    PathMapRuleDialog(Shell parent, Image image, IPathMap.PathMapRule pathMapRule, boolean enable_editing, boolean showContextQuery) {
+    public PathMapRuleDialog(Shell parent, Image image, IPathMap.PathMapRule pathMapRule, boolean enable_editing, boolean showContextQuery) {
         super(parent);
         this.image = image != null ? image : ImageCache.getImage(ImageCache.IMG_PATH);
         this.pathMapRule = pathMapRule;
