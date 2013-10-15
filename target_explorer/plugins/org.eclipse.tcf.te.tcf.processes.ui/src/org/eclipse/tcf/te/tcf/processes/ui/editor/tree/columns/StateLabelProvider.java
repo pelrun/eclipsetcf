@@ -40,7 +40,8 @@ public class StateLabelProvider extends AbstractLabelProviderDelegate {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					state.set(node.getSysMonitorContext().getState());
+					if (node.getSysMonitorContext() != null)
+						state.set(node.getSysMonitorContext().getState());
 				}
 			};
 

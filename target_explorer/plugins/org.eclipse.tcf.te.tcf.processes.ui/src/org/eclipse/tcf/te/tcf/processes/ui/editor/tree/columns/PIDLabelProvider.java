@@ -44,7 +44,8 @@ public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					pid.set(node.getSysMonitorContext().getPID());
+					if (node.getSysMonitorContext() != null)
+						pid.set(node.getSysMonitorContext().getPID());
 				}
 			};
 

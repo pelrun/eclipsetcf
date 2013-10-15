@@ -40,7 +40,8 @@ public class UserLabelProvider extends AbstractLabelProviderDelegate {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					username.set(node.getSysMonitorContext().getUserName());
+					if (node.getSysMonitorContext() != null)
+						username.set(node.getSysMonitorContext().getUserName());
 				}
 			};
 
