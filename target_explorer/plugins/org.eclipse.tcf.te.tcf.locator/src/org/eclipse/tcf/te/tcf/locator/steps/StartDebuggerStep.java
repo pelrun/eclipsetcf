@@ -48,12 +48,10 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 		 * Called once the debugger has been attached.
 		 *
 		 * @param node The peer model node. Must not be <code>null</code>.
-		 * @param data The data giving object. Must not be <code>null</code>.
-		 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
 		 * @param monitor The progress monitor. Must not be <code>null</code>.
 		 * @param callback The callback to invoke if finished. Must not be <code>null</code>.
 		 */
-		public void postAttachDebugger(IPeerModel node, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback);
+		public void postAttachDebugger(IPeerModel node, IProgressMonitor monitor, ICallback callback);
 	}
 
 	/**
@@ -76,6 +74,8 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
     public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IPeerModel node = getActivePeerModelContext(context, data, fullQualifiedId);
 		Assert.isNotNull(node);
+		String value = getParameters().get("autoAttachAll"); //$NON-NLS-1$
+		final boolean autoAttachAll = value != null ? Boolean.parseBoolean(value) : false;
 
 		if (StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data)) {
 			Runnable runnable = new Runnable() {
@@ -112,12 +112,16 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 												dbgService.attach(node, props, monitor, new Callback() {
 													@Override
                                                     protected void internalDone(Object caller, IStatus status) {
-														// Check if there is a delegate registered
-														IUIService uiService = ServiceManager.getInstance().getService(node, IUIService.class, false);
-														IDelegate delegate = uiService != null ? uiService.getDelegate(node, IDelegate.class) : null;
+														if (autoAttachAll) {
+															// Check if there is a delegate registered
+															IUIService uiService = ServiceManager.getInstance().getService(node, IUIService.class, false);
+															IDelegate delegate = uiService != null ? uiService.getDelegate(node, IDelegate.class) : null;
 
-														if (delegate != null) {
-															delegate.postAttachDebugger(node, data, fullQualifiedId, monitor, callback);
+															if (delegate != null) {
+																delegate.postAttachDebugger(node, monitor, callback);
+															} else {
+																callback(data, fullQualifiedId, callback, status, null);
+															}
 														} else {
 															callback(data, fullQualifiedId, callback, status, null);
 														}

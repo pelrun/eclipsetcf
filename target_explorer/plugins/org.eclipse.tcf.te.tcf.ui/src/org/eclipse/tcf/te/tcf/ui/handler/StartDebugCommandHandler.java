@@ -16,7 +16,9 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -27,7 +29,9 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.steps.StartDebuggerStep.IDelegate;
 import org.eclipse.tcf.te.ui.async.UICallbackInvocationDelegate;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
@@ -98,9 +102,22 @@ public class StartDebugCommandHandler extends AbstractHandler {
 
 		IDebugService dbgService = ServiceManager.getInstance().getService(peerModel, IDebugService.class, false);
 		if (dbgService != null) {
-			// Attach the debugger and all cores (OCDDevices)
+			final IProgressMonitor monitor = new NullProgressMonitor();
 			IPropertiesContainer props = new PropertiesContainer();
-			dbgService.attach(peerModel, props, null, callback);
+			dbgService.attach(peerModel, props, monitor, new Callback() {
+				@Override
+                protected void internalDone(Object caller, IStatus status) {
+					// Check if there is a delegate registered
+					IUIService uiService = ServiceManager.getInstance().getService(peerModel, IUIService.class, false);
+					IDelegate delegate = uiService != null ? uiService.getDelegate(peerModel, IDelegate.class) : null;
+
+					if (delegate != null) {
+						delegate.postAttachDebugger(peerModel, monitor, callback);
+					} else {
+						callback.done(caller, status);
+					}
+				}
+			});
 		}
 	}
 }

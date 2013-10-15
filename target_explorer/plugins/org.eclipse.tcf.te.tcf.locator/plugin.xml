@@ -218,7 +218,13 @@
             id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"
             iterator="org.eclipse.tcf.te.tcf.locator.iterators.StartDebuggerIterator">
          <references>
-            <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep"/>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep">
+               <parameter
+                     name="autoAttachAll"
+                     value="true">
+               </parameter>
+            </reference>
          </references>
       </stepGroup>
    </extension>
