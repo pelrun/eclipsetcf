@@ -181,20 +181,21 @@ public interface ITerminals extends IService {
 
     /**
      * Set the terminal widow size
-     * @param context_id - context ID.
-     * @param signal - signal code.
+     * @param id - context ID.
+     * @param col - number of columns.
+     * @param row - number of rows.
      * @param done - call back interface called when operation is completed.
      * @return pending command handle, can be used to cancel the command.
      */
-    IToken setWinSize(String context_id, int newWidth, int newHeight, DoneCommand done);
+    IToken setWinSize(String id, int col, int row, DoneCommand done);
 
     /**
      * Exit a terminal.
-     * @param context_id - context ID.
+     * @param id - context ID.
      * @param done - call back interface called when operation is completed.
      * @return pending command handle, can be used to cancel the command.
      */
-    IToken exit(String context_id, DoneCommand done);
+    IToken exit(String id, DoneCommand done);
 
     /**
      * Add terminals service event listener.

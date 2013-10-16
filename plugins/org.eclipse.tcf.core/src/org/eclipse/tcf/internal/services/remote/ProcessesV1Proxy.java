@@ -27,9 +27,7 @@ public class ProcessesV1Proxy extends ProcessesProxy implements IProcessesV1 {
         return IProcessesV1.NAME;
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.services.IProcessesV1#start(java.lang.String, java.lang.String, java.lang.String[], java.util.Map, java.util.Map, org.eclipse.tcf.services.IProcesses.DoneStart)
-     */
+    @Override
     public IToken start(String directory, String file,
             String[] command_line, Map<String,String> environment,
             Map<String,Object> params, final DoneStart done) {
@@ -50,9 +48,20 @@ public class ProcessesV1Proxy extends ProcessesProxy implements IProcessesV1 {
         }.token;
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.services.IProcessesV1#getCapabilities(java.lang.String, org.eclipse.tcf.services.IProcessesV1.DoneGetCapabilities)
-     */
+    @Override
+    public IToken setWinSize(String id, int col, int row, final DoneCommand done) {
+        return new Command(channel, this, "setWinSize", new Object[]{ id, col, row }) { //$NON-NLS-1$
+            @Override
+            public void done(Exception error, Object[] args) {
+                if (error == null) {
+                    assert args.length == 1;
+                    error = toError(args[0]);
+                }
+                done.doneCommand(token, error);
+            }
+        }.token;
+    }
+
     @Override
     public IToken getCapabilities(final String id, final DoneGetCapabilities done) {
         return new Command(channel, this, "getCapabilities", new Object[]{ id }) { //$NON-NLS-1$

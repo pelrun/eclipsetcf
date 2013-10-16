@@ -70,6 +70,17 @@ public interface IProcessesV1 extends IProcesses {
             Map<String,Object> params, DoneStart done);
 
     /**
+     * Set the process TTY widow size.
+     * Applicable only when the process is started with START_USE_TERMINAL.
+     * @param id - process context ID.
+     * @param col - number of columns.
+     * @param row - number of rows.
+     * @param done - call back interface called when operation is completed.
+     * @return pending command handle, can be used to cancel the command.
+     */
+    IToken setWinSize(String id, int col, int row, DoneCommand done);
+
+    /**
      * The command reports the ProcessesV1 service capabilities to clients so they can adjust
      * to different implementations of the service. When called with a null ("") context
      * ID the global capabilities are returned, otherwise context specific capabilities
@@ -79,5 +90,4 @@ public interface IProcessesV1 extends IProcesses {
      * @param done The call back interface called when the operation is completed. Must not be <code>null</code>.
      */
     public IToken getCapabilities(String id, DoneGetCapabilities done);
-
 }
