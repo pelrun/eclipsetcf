@@ -123,7 +123,7 @@ public class MemoryMapWidget {
     private final HashSet<String> loaded_files = new HashSet<String>();
     private String selected_mem_map_id;
     private final ArrayList<ModifyListener> modify_listeners = new ArrayList<ModifyListener>();
-    
+
     private Color cError = null;
 
     private final IStructuredContentProvider content_provider = new IStructuredContentProvider() {
@@ -208,7 +208,7 @@ public class MemoryMapWidget {
                 }
                 return map_table.getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE);
             }
-            
+
             String symbolFileInfo = getSymbolFileInfo(r);
             // Set or reset the symbol file error tooltip marker
             TableItem[] items = map_table.getItems();
@@ -220,7 +220,7 @@ public class MemoryMapWidget {
             if (symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:") && cError != null) {
                 return cError;
             }
-            
+
             return map_table.getForeground();
         }
 
@@ -231,13 +231,13 @@ public class MemoryMapWidget {
         public Font getFont(Object element, int columnIndex) {
             switch (columnIndex) {
                 case 1:
-                case 2:     
+                case 2:
                 case 4:
                     return JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT);
             }
             return null;
         }
-        
+
         public String getText(Object element) {
             return element.toString();
         }
@@ -252,7 +252,7 @@ public class MemoryMapWidget {
         public void changed(String context_id) {
             if (mem_ctx != null && mem_ctx.getID() != null && mem_ctx.getID().equals(context_id)) {
                 if (cfg != null && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
-                    final ILaunchConfiguration lc = cfg; 
+                    final ILaunchConfiguration lc = cfg;
                     PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
                         @Override
                         public void run() {
@@ -263,12 +263,12 @@ public class MemoryMapWidget {
             }
         }
     }
-    
+
     public MemoryMapWidget(Composite composite, TCFNode node) {
         setTCFNode(node);
         createContextText(composite);
         createMemoryMapTable(composite);
-        
+
         cError = new Color(composite.getDisplay(), ColorCache.rgb_error);
         composite.addDisposeListener(new DisposeListener() {
             @Override
@@ -298,7 +298,7 @@ public class MemoryMapWidget {
         if (node == null && selection == null || node != null && node.equals(selection)) {
             return false;
         }
-    
+
         // Remove the memory map listener from the current channel
         // before setting the variable to the new channel
         if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
@@ -312,12 +312,12 @@ public class MemoryMapWidget {
                 }
             });
         }
-        
+
         if (node != null) {
             model = node.getModel();
             channel = node.getChannel();
             selection = node;
-            
+
             // Register the memory map listener
             if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
                 // Asynchronous execution. Make a copy of the current channel reference.
@@ -499,10 +499,10 @@ public class MemoryMapWidget {
 
         // "Symbol File Errors" are displayed as tooltip on the table item.
         // See http://git.eclipse.org/c/platform/eclipse.platform.swt.git/tree/examples/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet125.java.
-        
+
         // Disable native tooltip
         table.setToolTipText ("");
-        
+
         // Implement a "fake" tooltip
         final Listener labelListener = new Listener () {
             public void handleEvent (Event event) {
@@ -569,7 +569,7 @@ public class MemoryMapWidget {
         table.addListener (SWT.KeyDown, tableListener);
         table.addListener (SWT.MouseMove, tableListener);
         table.addListener (SWT.MouseHover, tableListener);
-        
+
         table.setLayout(layout);
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
@@ -673,7 +673,7 @@ public class MemoryMapWidget {
         final MenuItem item_locate = new MenuItem(menu, SWT.PUSH);
         item_locate.setText("Locate Symbol File...");
         item_locate.addSelectionListener(sel_adapter);
-        
+
         map_table.setMenu(menu);
 
         update_map_buttons = new Runnable() {
@@ -719,17 +719,17 @@ public class MemoryMapWidget {
 
     private void locateSymbolFile(IMemoryMap.MemoryRegion r) {
         Assert.isNotNull(r);
-        
+
         Map<String,Object> props = new HashMap<String,Object>(r.getProperties());
         Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
-        
+
         // Create the new path map rule
         Map<String, Object> properties = new LinkedHashMap<String, Object>();
         String fileName = (String)props.get(IMemoryMap.PROP_FILE_NAME);
         if (fileName == null || fileName.lastIndexOf('/') == -1) return;
         properties.put(IPathMap.PROP_SOURCE, fileName.lastIndexOf('/') + 1 == fileName.length() ? fileName : fileName.substring(0, fileName.lastIndexOf('/') + 1));
         PathMapRule rule = new PathMapRule(properties);
-        
+
         if (new PathMapRuleDialog(map_table.getShell(), image, rule, true, false).open() == Window.OK) {
             String source = rule.getSource();
             String destination = rule.getDestination();
@@ -737,12 +737,12 @@ public class MemoryMapWidget {
                 if (cfg != null) {
                     try {
                         ILaunchConfigurationWorkingCopy wc = cfg instanceof ILaunchConfigurationWorkingCopy ? (ILaunchConfigurationWorkingCopy)cfg : cfg.getWorkingCopy();
-                        
+
                         String s = wc.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
                         List<PathMapRule> map = TCFLaunchDelegate.parsePathMapAttribute(s);
-                        
+
                         map.add(0, rule);
-                        
+
                         StringBuilder bf = new StringBuilder();
                         for (IPathMap.PathMapRule m : map) {
                             bf.append(m.toString());
@@ -760,7 +760,7 @@ public class MemoryMapWidget {
             }
         }
     }
-    
+
     private void readMemoryMapAttribute() {
         cur_maps.clear();
         try {
@@ -872,7 +872,7 @@ public class MemoryMapWidget {
             return null;
         }
     }
-    
+
     private String getSymbolFileInfo(final IMemoryMap.MemoryRegion r) {
         if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null) return null;
         try {

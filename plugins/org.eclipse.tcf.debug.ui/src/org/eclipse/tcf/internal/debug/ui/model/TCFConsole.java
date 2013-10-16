@@ -11,241 +11,392 @@
 package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.io.OutputStream;
 import java.util.LinkedList;
-import java.util.Map;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.tcf.internal.debug.cmdline.TCFCommandLine;
+import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
+import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IErrorReport;
+import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.tcf.services.IProcessesV1;
+import org.eclipse.tm.internal.terminal.control.ITerminalListener;
+import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
+import org.eclipse.tm.internal.terminal.control.TerminalViewControlFactory;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.AbstractConsole;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleConstants;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
-import org.eclipse.ui.console.IOConsole;
-import org.eclipse.ui.console.IOConsoleInputStream;
-import org.eclipse.ui.console.IOConsoleOutputStream;
+import org.eclipse.ui.part.IPageBookViewPage;
+import org.eclipse.ui.part.IPageSite;
 
-class TCFConsole {
+@SuppressWarnings("restriction")
+class TCFConsole extends AbstractConsole {
     public static final int
-        TYPE_PROCESS = 1,
-        TYPE_CMD_LINE = 2,
-        TYPE_DPRINTF = 3;
+        TYPE_PROCESS_CONSOLE = 1,
+        TYPE_PROCESS_TERMINAL = 2,
+        TYPE_UART_TERMINAL = 3,
+        TYPE_CMD_LINE = 4,
+        TYPE_DPRINTF = 5;
+
+    private static int page_id_cnt = 0;
 
     private final TCFModel model;
-    private final IOConsole console;
     private final Display display;
-    private final String process_id;
-    private final LinkedList<Message> out_queue;
-    private final TCFCommandLine cmd_line;
+    private final String ctx_id;
+    private final int type;
 
-    private final byte[] prompt = { 't', 'c', 'f', '>' };
-    private final StringBuffer cmd_buf = new StringBuffer();
+    private final LinkedList<ViewPage> pages = new LinkedList<ViewPage>();
+    private final LinkedList<Message> history = new LinkedList<Message>();
 
     private static class Message {
         int stream_id;
         byte[] data;
     }
 
-    private final Thread inp_thread = new Thread() {
-        public void run() {
-            try {
-                IOConsoleInputStream inp = console.getInputStream();
-                final byte[] buf = new byte[0x100];
-                for (;;) {
-                    int len = inp.read(buf);
-                    if (len < 0) break;
-                    // TODO: Eclipse Console view has a bad habit of replacing CR with CR/LF
-                    if (len == 2 && buf[0] == '\r' && buf[1] == '\n') len = 1;
-                    final int n = len;
-                    Protocol.invokeAndWait(new Runnable() {
-                        public void run() {
-                            try {
-                                if (cmd_line != null) {
-                                    String s = new String(buf, 0, n, "UTF-8");
-                                    int l = s.length();
-                                    for (int i = 0; i < l; i++) {
-                                        char ch = s.charAt(i);
-                                        if (ch == '\r') {
-                                            String res = cmd_line.command(cmd_buf.toString());
-                                            cmd_buf.setLength(0);
-                                            if (res != null) {
-                                                if (res.length() > 0 && res.charAt(res.length() - 1) != '\n') {
-                                                    res += '\n';
-                                                }
-                                                write(0, res.getBytes("UTF-8"));
-                                            }
-                                            write(0, prompt);
-                                        }
-                                        else if (ch == '\b') {
-                                            int n = cmd_buf.length();
-                                            if (n > 0) n--;
-                                            cmd_buf.setLength(n);
-                                        }
-                                        else {
-                                            cmd_buf.append(ch);
-                                        }
-                                    }
-                                }
-                                else if (process_id != null) {
-                                    model.getLaunch().writeProcessInputStream(process_id, buf, 0, n);
-                                }
-                            }
-                            catch (Exception x) {
-                                if (process_id != null) model.onProcessStreamError(process_id, 0, x, 0);
-                            }
-                        }
-                    });
-                }
-            }
-            catch (Throwable x) {
-                Activator.log("Cannot read console input", x);
-            }
-        }
-    };
+    private class ViewPage implements IPageBookViewPage, ITerminalConnector, ITerminalListener {
 
-    private final Thread out_thread = new Thread() {
-        public void run() {
-            Map<Integer,IOConsoleOutputStream> out_streams =
-                new HashMap<Integer,IOConsoleOutputStream>();
-            try {
-                for (;;) {
-                    Message m = null;
-                    synchronized (out_queue) {
-                        while (out_queue.size() == 0) out_queue.wait();
-                        m = out_queue.removeFirst();
-                    }
-                    if (m.data == null) break;
-                    IOConsoleOutputStream stream = out_streams.get(m.stream_id);
-                    if (stream == null) {
-                        final int id = m.stream_id;
-                        final IOConsoleOutputStream s = stream = console.newOutputStream();
-                        display.syncExec(new Runnable() {
-                            public void run() {
-                                try {
-                                    int color_id = SWT.COLOR_BLACK;
-                                    switch (id) {
-                                    case 1: color_id = SWT.COLOR_RED; break;
-                                    case 2: color_id = SWT.COLOR_BLUE; break;
-                                    case 3: color_id = SWT.COLOR_GREEN; break;
-                                    }
-                                    s.setColor(display.getSystemColor(color_id));
-                                }
-                                catch (Throwable x) {
-                                    Activator.log("Cannot open console view", x);
-                                }
-                            }
-                        });
-                        out_streams.put(m.stream_id, stream);
-                    }
-                    stream.write(m.data, 0, m.data.length);
-                }
-            }
-            catch (Throwable x) {
-                Activator.log("Cannot write console output", x);
-            }
-            for (IOConsoleOutputStream stream : out_streams.values()) {
-                try {
-                    stream.close();
-                }
-                catch (IOException x) {
-                    Activator.log("Cannot close console stream", x);
-                }
-            }
-            try {
-                console.getInputStream().close();
-            }
-            catch (IOException x) {
-                Activator.log("Cannot close console stream", x);
-            }
-            try {
-                display.syncExec(new Runnable() {
+        private final String page_id = "Page-" + page_id_cnt++;
+        private final LinkedList<Message> inp_queue = new LinkedList<Message>();
+
+        private final OutputStream out_stream = new OutputStream() {
+            @Override
+            public void write(final int b) throws IOException {
+                if (ctx_id == null) return;
+                Protocol.invokeAndWait(new Runnable() {
                     public void run() {
-                        IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
-                        manager.removeConsoles(new IOConsole[]{ console });
+                        try {
+                            String s = "" + (char)b;
+                            byte[] buf = s.getBytes("UTF8");
+                            model.getLaunch().writeProcessInputStream(ctx_id, buf, 0, buf.length);
+                        }
+                        catch (Exception x) {
+                            model.onProcessStreamError(ctx_id, 0, x, 0);
+                        }
                     }
                 });
             }
-            catch (SWTException x) {
-                if (x.code == SWT.ERROR_DEVICE_DISPOSED) return;
-                Activator.log("Cannot remove console", x);
+        };
+
+        private ITerminalViewControl view_control;
+        private IPageSite page_site;
+        private OutputStream rtt;
+        private int ws_col;
+        private int ws_row;
+
+        private final Thread inp_thread = new Thread() {
+            public void run() {
+                try {
+                    for (;;) {
+                        Message m = null;
+                        synchronized (inp_queue) {
+                            while (inp_queue.size() == 0) inp_queue.wait();
+                            m = inp_queue.removeFirst();
+                        }
+                        if (m.data == null) break;
+                        if (type == TYPE_PROCESS_CONSOLE) {
+                            String s = "\u001b[30m";
+                            switch (m.stream_id) {
+                            case 1: s = "\u001b[31m"; break;
+                            case 2: s = "\u001b[34m"; break;
+                            case 3: s = "\u001b[32m"; break;
+                            }
+                            rtt.write(s.getBytes("UTF8"));
+                            for (int i = 0; i < m.data.length; i++) {
+                                int ch = m.data[i] & 0xff;
+                                if (ch == '\n') rtt.write('\r');
+                                rtt.write(ch);
+                            }
+                        }
+                        else {
+                            rtt.write(m.data);
+                        }
+                    }
+                }
+                catch (Throwable x) {
+                    Activator.log("Cannot write console output", x);
+                }
+            }
+        };
+
+        @Override
+        public void createControl(Composite parent) {
+            assert view_control == null;
+            view_control = TerminalViewControlFactory.makeControl(this, parent, null);
+            view_control.setConnector(this);
+            view_control.connectTerminal();
+        }
+
+        @Override
+        public void dispose() {
+            if (view_control != null) {
+                view_control.disconnectTerminal();
+                view_control.setConnector(null);
+                view_control = null;
             }
         }
-    };
 
-    TCFConsole(final TCFModel model, int type, String process_id) {
-        this.model = model;
-        this.process_id = process_id;
-        display = model.getDisplay();
-        out_queue = new LinkedList<Message>();
-        String image = process_id != null ? ImageCache.IMG_PROCESS_RUNNING : ImageCache.IMG_TCF;
-        String title = "TCF";
-        switch (type) {
-        case TYPE_PROCESS:
-            title += " " + process_id;
-            break;
-        case TYPE_CMD_LINE:
-            title += " Debugger";
-            break;
-        case TYPE_DPRINTF:
-            title += " DPrintf";
-            break;
+        @Override
+        public Control getControl() {
+            return view_control.getRootControl();
         }
-        console = new IOConsole(title, null,
-                ImageCache.getImageDescriptor(image), "UTF-8", true);
-        cmd_line = type == TYPE_CMD_LINE ? new TCFCommandLine() : null;
-        if (cmd_line != null) write(0, prompt);
-        display.asyncExec(new Runnable() {
-            public void run() {
-                if (!PlatformUI.isWorkbenchRunning() || PlatformUI.getWorkbench().isStarting()) {
-                    display.timerExec(200, this);
+
+        @Override
+        public void setActionBars(IActionBars actionBars) {
+        }
+
+        @Override
+        public void setFocus() {
+            view_control.setFocus();
+        }
+
+        @Override
+        public IPageSite getSite() {
+            return page_site;
+        }
+
+        @Override
+        public void init(IPageSite site) throws PartInitException {
+            page_site = site;
+        }
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Object getAdapter(Class adapter) {
+            return null;
+        }
+
+        @Override
+        public void setTerminalSize(final int w, final int h) {
+            if (ws_col == w && ws_row == h) return;
+            ws_col = w;
+            ws_row = h;
+            if (type != TYPE_PROCESS_TERMINAL) return;
+            Protocol.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    final TCFLaunch launch = model.getLaunch();
+                    if (launch.isProcessExited()) return;
+                    final IChannel channel = launch.getChannel();
+                    if (channel.getState() != IChannel.STATE_OPEN) return;
+                    IProcessesV1 prs = channel.getRemoteService(IProcessesV1.class);
+                    if (prs == null) return;
+                    prs.setWinSize(ctx_id, w, h, new IProcessesV1.DoneCommand() {
+                        @Override
+                        public void doneCommand(IToken token, Exception error) {
+                            if (error == null) return;
+                            if (launch.isProcessExited()) return;
+                            if (channel.getState() != IChannel.STATE_OPEN) return;
+                            if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) return;
+                            Activator.log("Cannot set process TTY window size", error);
+                        }
+                    });
                 }
-                else if (!PlatformUI.getWorkbench().isClosing()) {
-                    try {
-                        IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
-                        manager.addConsoles(new IConsole[]{ console });
-                        IWorkbenchWindow w = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                        if (w == null) return;
-                        IWorkbenchPage page = w.getActivePage();
-                        if (page == null) return;
-                        IConsoleView view = (IConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW);
-                        view.display(console);
+            });
+        }
+
+        @Override
+        public void save(ISettingsStore store) {
+        }
+
+        @Override
+        public ISettingsPage makeSettingsPage() {
+            return null;
+        }
+
+        @Override
+        public void load(ISettingsStore store) {
+        }
+
+        @Override
+        public boolean isLocalEcho() {
+            return false;
+        }
+
+        @Override
+        public boolean isInitialized() {
+            return true;
+        }
+
+        @Override
+        public boolean isHidden() {
+            return false;
+        }
+
+        @Override
+        public OutputStream getTerminalToRemoteStream() {
+            return out_stream;
+        }
+
+        @Override
+        public String getSettingsSummary() {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return TCFConsole.this.getName();
+        }
+        @Override
+        public String getInitializationErrorMessage() {
+            return null;
+        }
+
+        @Override
+        public String getId() {
+            return page_id;
+        }
+
+        @Override
+        public void disconnect() {
+            Protocol.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    pages.remove(ViewPage.this);
+                    synchronized (inp_queue) {
+                        inp_queue.add(new Message());
+                        inp_queue.notify();
                     }
-                    catch (Throwable x) {
-                        Activator.log("Cannot open console view", x);
+                }
+            });
+        }
+
+        @Override
+        public void connect(ITerminalControl term_control) {
+            try {
+                term_control.setState(TerminalState.CONNECTING);
+                term_control.setEncoding("UTF8");
+                rtt = term_control.getRemoteToTerminalOutputStream();
+                Protocol.invokeAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        pages.add(ViewPage.this);
+                        for (Message m : history) inp_queue.add(m);
+                        inp_thread.setName("TCF Console Input");
+                        inp_thread.start();
                     }
+                });
+                term_control.setState(TerminalState.CONNECTED);
+            }
+            catch (Exception x) {
+                Activator.log("Cannot connect a terminal", x);
+                term_control.setState(TerminalState.CLOSED);
+            }
+        }
+
+        @Override
+        public void setState(TerminalState state) {
+        }
+
+        @Override
+        public void setTerminalTitle(String title) {
+        }
+    }
+
+    TCFConsole(final TCFModel model, int type, String ctx_id) {
+        super(getName(type, ctx_id), null, getImageDescriptor(ctx_id), false);
+        this.model = model;
+        this.type = type;
+        this.ctx_id = ctx_id;
+        display = model.getDisplay();
+        model.asyncExec(new Runnable() {
+            public void run() {
+                try {
+                    if (PlatformUI.getWorkbench().isClosing()) {
+                        return;
+                    }
+                    if (!PlatformUI.isWorkbenchRunning() || PlatformUI.getWorkbench().isStarting()) {
+                        display.timerExec(200, this);
+                        return;
+                    }
+                    IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
+                    manager.addConsoles(new IConsole[]{ TCFConsole.this });
+                    manager.showConsoleView(TCFConsole.this);
+                }
+                catch (Throwable x) {
+                    Activator.log("Cannot open Console view", x);
                 }
             }
         });
-        inp_thread.setName("TCF Console Input");
-        out_thread.setName("TCF Console Output");
-        inp_thread.start();
-        out_thread.start();
+    }
+
+    private static ImageDescriptor getImageDescriptor(String ctx_id) {
+        String image = ctx_id != null ? ImageCache.IMG_PROCESS_RUNNING : ImageCache.IMG_TCF;
+        return ImageCache.getImageDescriptor(image);
+    }
+
+    private static String getName(int type, String ctx_id) {
+        String title = "TCF";
+        switch (type) {
+        case TYPE_PROCESS_CONSOLE:
+            title += " Debug Process Console - " + ctx_id;
+            break;
+        case TYPE_PROCESS_TERMINAL:
+            title += " Debug Process Terminal - " + ctx_id;
+            break;
+        case TYPE_UART_TERMINAL:
+            title += " Debug Virtual Terminal - " + ctx_id;
+            break;
+        case TYPE_CMD_LINE:
+            title += " Debugger Command Line";
+            break;
+        case TYPE_DPRINTF:
+            title += " Debugger Dynamic Print";
+            break;
+        }
+        return title;
     }
 
     void write(final int stream_id, byte[] data) {
+        assert Protocol.isDispatchThread();
         if (data == null || data.length == 0) return;
-        synchronized (out_queue) {
-            Message m = new Message();
-            m.stream_id = stream_id;
-            m.data = data;
-            out_queue.add(m);
-            out_queue.notify();
+        Message m = new Message();
+        m.stream_id = stream_id;
+        m.data = data;
+        history.add(m);
+        if (history.size() > 1000) history.removeFirst();
+        for (ViewPage p : pages) {
+            synchronized (p.inp_queue) {
+                p.inp_queue.add(m);
+                p.inp_queue.notify();
+            }
         }
     }
 
     void close() {
-        synchronized (out_queue) {
-            out_queue.add(new Message());
-            out_queue.notify();
+        assert Protocol.isDispatchThread();
+        Message m = new Message();
+        for (ViewPage p : pages) {
+            synchronized (p.inp_queue) {
+                p.inp_queue.add(m);
+                p.inp_queue.notify();
+            }
         }
+        model.asyncExec(new Runnable() {
+            public void run() {
+                IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
+                manager.removeConsoles(new IConsole[]{ TCFConsole.this });
+            }
+        });
+    }
+
+    @Override
+    public IPageBookViewPage createPage(IConsoleView view) {
+        return new ViewPage();
     }
 }

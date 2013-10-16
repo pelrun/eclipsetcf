@@ -91,6 +91,7 @@ import org.eclipse.tcf.debug.ui.ITCFModel;
 import org.eclipse.tcf.debug.ui.ITCFPresentationProvider;
 import org.eclipse.tcf.debug.ui.ITCFSourceDisplay;
 import org.eclipse.tcf.internal.debug.actions.TCFAction;
+import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupParticipant;
 import org.eclipse.tcf.internal.debug.model.ITCFConstants;
@@ -325,7 +326,6 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     private IChannel channel;
     private TCFNodeLaunch launch_node;
-    private TCFTerminal terminal;
     private boolean disposed;
 
     private final IMemory.MemoryListener mem_listener = new IMemory.MemoryListener() {
@@ -839,6 +839,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 Protocol.invokeLater(new InitialSelection(p));
             }
         }
+        if (launch.isProcessExited()) onContextOrProcessRemoved();
     }
 
     void onDisconnected() {
@@ -861,11 +862,26 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         TCFMemoryBlockRetrieval.onModelDisconnected(this);
     }
 
-    void onProcessOutput(String process_id, final int stream_id, byte[] data) {
-        if (process_id != null) {
-            TCFConsole c = process_consoles.get(process_id);
-            if (c == null) process_consoles.put(process_id,
-                    c = new TCFConsole(this, TCFConsole.TYPE_PROCESS, process_id));
+    void onProcessOutput(String ctx_id, int stream_id, byte[] data) {
+        if (ctx_id != null) {
+            TCFConsole c = process_consoles.get(ctx_id);
+            if (c == null) {
+                int type = TCFConsole.TYPE_UART_TERMINAL;
+                IProcesses.ProcessContext prs = launch.getProcessContext();
+                if (prs != null && ctx_id != null && ctx_id.equals(prs.getID())) {
+                    type = TCFConsole.TYPE_PROCESS_TERMINAL;
+                    boolean use_terminal = true;
+                    try {
+                        use_terminal = launch.getLaunchConfiguration().getAttribute(
+                                TCFLaunchDelegate.ATTR_USE_TERMINAL, true);
+                    }
+                    catch (CoreException e) {
+                    }
+                    if (!use_terminal) type = TCFConsole.TYPE_PROCESS_CONSOLE;
+                }
+                c = new TCFConsole(this, type, ctx_id);
+                process_consoles.put(ctx_id, c);
+            }
             c.write(stream_id, data);
         }
         else {
@@ -1002,8 +1018,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 }
             }
             action_results.remove(id);
-            Object o = context_map.remove(id);
-            if (o instanceof CreateNodeRunnable) ((CreateNodeRunnable)o).onContextRemoved();
+            context_map.remove(id);
             if (mem_blocks_update != null) mem_blocks_update.changeset.remove(id);
         }
 
@@ -1084,7 +1099,6 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         for (TCFConsole c : process_consoles.values()) c.close();
         for (TCFConsole c : debug_consoles) c.close();
         if (dprintf_console != null) dprintf_console.close();
-        if (terminal != null) terminal.dispose();
         disposed = true;
     }
 
@@ -1147,16 +1161,6 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public TCFNodeLaunch getRootNode() {
         return launch_node;
-    }
-
-    /**
-     * Get Terminal view for this model.
-     * Create the view if it is not created yet.
-     * @return the Terminal view.
-     */
-    public TCFTerminal getTerminal() {
-        if (terminal == null) terminal = new TCFTerminal(this);
-        return terminal;
     }
 
     /**
@@ -1367,14 +1371,11 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             }
         }
 
-        void onContextRemoved() {
-            assert context_map.get(id) == null;
-            done(new Exception("Invalid context ID"));
-        }
-
         public void run() {
             if (context_map.get(id) != this) {
-                done(context_map.get(id));
+                Object res = context_map.get(id);
+                if (res == null) res = new Exception("Invalid context ID");
+                done(res);
             }
             else if (service_list.size() == 0) {
                 done(new Exception("Invalid context ID"));

@@ -77,8 +77,6 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     private LinkedHashMap<BigInteger,TCFDataCache<TCFFunctionRef>> func_info_lookup_cache;
     private LookupCacheTimer lookup_cache_timer;
 
-    private TCFTerminal.Connection terminal;
-
     private int mem_seq_no;
     private int exe_seq_no;
 
@@ -499,43 +497,12 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             }
         };
         TCFMemoryBlockRetrieval.onMemoryNodeCreated(this);
-        Protocol.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (terminal != null) return;
-                if (isDisposed()) return;
-                if (!run_context.validate(this)) return;
-                IRunControl.RunControlContext ctx = run_context.getData();
-                if (ctx != null) {
-                    @SuppressWarnings("unchecked")
-                    Map<String,Object> uart = (Map<String,Object>)ctx.getProperties().get("UART");
-                    if (uart != null) {
-                        String name = ctx.getName();
-                        if (name == null) name = ctx.getID();
-                        terminal = model.getTerminal().connect(name, ctx.getID(), uart);
-                        return;
-                    }
-                }
-                if (!prs_context.validate(this)) return;
-                IProcesses.ProcessContext prs = prs_context.getData();
-                if (prs != null) {
-                    @SuppressWarnings("unchecked")
-                    Map<String,Object> uart = (Map<String,Object>)prs.getProperties().get("UART");
-                    if (uart != null) {
-                        String name = prs.getName();
-                        if (name == null) name = prs.getID();
-                        terminal = model.getTerminal().connect(name, ctx.getID(), uart);
-                        return;
-                    }
-                }
-            }
-        });
+        updateTerminal();
     }
 
     @Override
     void dispose() {
         assert !isDisposed();
-        if (terminal != null) terminal.dispose();
         ArrayList<TCFNodeSymbol> l = new ArrayList<TCFNodeSymbol>(symbols.values());
         for (TCFNodeSymbol s : l) s.dispose();
         assert symbols.size() == 0;
@@ -771,6 +738,22 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             }
             if (func_info_lookup_cache.size() == 0) func_info_lookup_cache = null;
         }
+    }
+
+    private void updateTerminal() {
+        new Runnable() {
+            @Override
+            public void run() {
+                if (isDisposed()) return;
+                if (!run_context.validate(this)) return;
+                IRunControl.RunControlContext ctx = run_context.getData();
+                if (ctx != null) {
+                    @SuppressWarnings("unchecked")
+                    Map<String,Object> uart = (Map<String,Object>)ctx.getProperties().get("UART");
+                    if (uart != null) launch.openUartStreams(id, uart);
+                }
+            }
+        }.run();
     }
 
     @Override
@@ -1414,6 +1397,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         children_exec.onAncestorContextChanged();
         for (TCFNodeSymbol s : symbols.values()) s.onMemoryMapChanged();
         postAllChangedDelta();
+        updateTerminal();
     }
 
     void onAncestorContextChanged() {
