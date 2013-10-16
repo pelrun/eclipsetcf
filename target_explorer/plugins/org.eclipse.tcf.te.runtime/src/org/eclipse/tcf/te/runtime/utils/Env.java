@@ -31,8 +31,6 @@ public class Env {
 	// Reference to the monitor to lock if determining the native environment
 	private final static Object ENV_GET_MONITOR = new Object();
 
-	// Reference to the native environment once retrieved
-	private static Map<String, String> nativeEnvironment = null;
 	// Reference to the native environment with the case of the variable names preserved
 	private static Map<String, String> nativeEnvironmentCasePreserved = null;
 
@@ -52,7 +50,7 @@ public class Env {
 	 * @return The merged environment.
 	 */
 	public static String[] getEnvironment(String[] envp, boolean terminal) {
-		Map<String, String> env = getNativeEnvironment();
+		Map<String, String> env = getNativeEnvironmentCasePreserved();
 
 		if (terminal) env.put("TERM", "ansi"); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -80,31 +78,6 @@ public class Env {
 		}
 
 		return strings.toArray(new String[strings.size()]);
-	}
-
-	/**
-	 * Determine the native environment, but returns all environment variable
-	 * names in upper case.
-	 *
-	 * @return The native environment with upper case variable names, or an empty map.
-	 */
-	private static Map<String, String> getNativeEnvironment() {
-		synchronized (ENV_GET_MONITOR) {
-			if (nativeEnvironment == null) {
-				Map<String, String> casePreserved = getNativeEnvironmentCasePreserved();
-				if (Platform.getOS().equals(org.eclipse.osgi.service.environment.Constants.OS_WIN32)) {
-					nativeEnvironment = new HashMap<String, String>();
-					Iterator<Map.Entry<String, String>> entries = casePreserved.entrySet().iterator();
-					while (entries.hasNext()) {
-						Map.Entry<String, String> entry = entries.next();
-						nativeEnvironment.put(entry.getKey().toUpperCase(), entry.getValue());
-					}
-				} else {
-					nativeEnvironment = new HashMap<String, String>(casePreserved);
-				}
-			}
-			return new HashMap<String, String>(nativeEnvironment);
-		}
 	}
 
 	/**
