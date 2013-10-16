@@ -9,26 +9,19 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.utils;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.service.environment.Constants;
-import org.eclipse.tcf.te.runtime.activator.CoreBundleActivator;
 
 /**
  * Environment handling utility methods.
@@ -139,106 +132,71 @@ public class Env {
 
 		try {
 			String nativeCommand = null;
-			boolean isWin9xME = false; // see bug 50567
-			String fileName = null;
 			if (Platform.getOS().equals(Constants.OS_WIN32)) {
-				String osName = System.getProperty("os.name"); //$NON-NLS-1$
-				isWin9xME = osName != null && (osName.startsWith("Windows 9") || osName.startsWith("Windows ME")); //$NON-NLS-1$ //$NON-NLS-2$
-				if (isWin9xME) {
-					// Win 95, 98, and ME
-					// SET might not return therefore we pipe into a file
-					IPath stateLocation = Platform.getStateLocation(CoreBundleActivator.getContext().getBundle());
-					fileName = stateLocation.toOSString() + File.separator + "env.txt"; //$NON-NLS-1$
-					nativeCommand = "command.com /C set > " + fileName; //$NON-NLS-1$
-				} else {
-					// Win NT, 2K, XP
-					nativeCommand = "cmd.exe /C set"; //$NON-NLS-1$
-				}
+				nativeCommand = "cmd.exe /C set"; //$NON-NLS-1$
 			} else if (!Platform.getOS().equals(Constants.OS_UNKNOWN)) {
 				nativeCommand = "env"; //$NON-NLS-1$
 			}
 			if (nativeCommand == null) { return; }
 			Process process = Runtime.getRuntime().exec(nativeCommand);
-			if (isWin9xME) {
-				// read piped data on Win 95, 98, and ME
-				Properties p = new Properties();
-				File file = new File(fileName);
-				InputStream stream = null;
-				try {
-					stream = new BufferedInputStream(new FileInputStream(file));
-					p.load(stream);
-				} finally {
-					if (stream != null) stream.close();
-				}
-				if (!file.delete()) {
-					file.deleteOnExit(); // if delete() fails try again on VM close
-				}
-				for (Enumeration<Object> enumeration = p.keys(); enumeration.hasMoreElements();) {
-					// Win32's environment variables are case insensitive. Put everything
-					// to upper case so that (for example) the "PATH" variable will match
-					// "pAtH" correctly on Windows.
-					String key = (String)enumeration.nextElement();
-					cache.put(key, (String)p.get(key));
-				}
-			} else {
-				// read process directly on other platforms
-				// we need to parse out matching '{' and '}' for function declarations in .bash environments
-				// pattern is [function name]=() { and we must find the '}' on its own line with no trailing ';'
-				InputStream stream = process.getInputStream();
-				InputStreamReader isreader = new InputStreamReader(stream);
-				BufferedReader reader = new BufferedReader(isreader);
-				try {
-					String line = reader.readLine();
-					String key = null;
-					String value = null;
-					while (line != null) {
-						int func = line.indexOf("=()"); //$NON-NLS-1$
-						if (func > 0) {
-							key = line.substring(0, func);
-							// scan until we find the closing '}' with no following chars
-							value = line.substring(func + 1);
-							while (line != null && !line.equals("}")) { //$NON-NLS-1$
-								line = reader.readLine();
-								if (line != null) {
-									value += line;
-								}
-							}
+
+			// read process directly on other platforms
+			// we need to parse out matching '{' and '}' for function declarations in .bash environments
+			// pattern is [function name]=() { and we must find the '}' on its own line with no trailing ';'
+			InputStream stream = process.getInputStream();
+			InputStreamReader isreader = new InputStreamReader(stream);
+			BufferedReader reader = new BufferedReader(isreader);
+			try {
+				String line = reader.readLine();
+				String key = null;
+				String value = null;
+				while (line != null) {
+					int func = line.indexOf("=()"); //$NON-NLS-1$
+					if (func > 0) {
+						key = line.substring(0, func);
+						// scan until we find the closing '}' with no following chars
+						value = line.substring(func + 1);
+						while (line != null && !line.equals("}")) { //$NON-NLS-1$
 							line = reader.readLine();
-						} else {
-							int separator = line.indexOf('=');
-							if (separator > 0) {
-								key = line.substring(0, separator);
-								value = line.substring(separator + 1);
-								StringBuilder bufValue = new StringBuilder(value);
-								line = reader.readLine();
-								if (line != null) {
-									// this line has a '=' read ahead to check next line for '=', might be broken on more
-									// than one line
-									separator = line.indexOf('=');
-									while (separator < 0) {
-										bufValue.append(line.trim());
-										line = reader.readLine();
-										if (line == null) {
-											// if next line read is the end of the file quit the loop
-											break;
-										}
-										separator = line.indexOf('=');
-									}
-								}
-								value = bufValue.toString();
+							if (line != null) {
+								value += line;
 							}
 						}
-						if (key != null) {
-							cache.put(key, value);
-							key = null;
-							value = null;
-						} else {
+						line = reader.readLine();
+					} else {
+						int separator = line.indexOf('=');
+						if (separator > 0) {
+							key = line.substring(0, separator);
+							value = line.substring(separator + 1);
+							StringBuilder bufValue = new StringBuilder(value);
 							line = reader.readLine();
+							if (line != null) {
+								// this line has a '=' read ahead to check next line for '=', might be broken on more
+								// than one line
+								separator = line.indexOf('=');
+								while (separator < 0) {
+									bufValue.append(line.trim());
+									line = reader.readLine();
+									if (line == null) {
+										// if next line read is the end of the file quit the loop
+										break;
+									}
+									separator = line.indexOf('=');
+								}
+							}
+							value = bufValue.toString();
 						}
 					}
-				} finally {
-					reader.close();
+					if (key != null) {
+						cache.put(key, value);
+						key = null;
+						value = null;
+					} else {
+						line = reader.readLine();
+					}
 				}
+			} finally {
+				reader.close();
 			}
 		} catch (IOException e) {
 			// Native environment-fetching code failed.
