@@ -139,12 +139,12 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 			@Override
 			public String[] getTransportTypes() {
 				List<String> types = new ArrayList<String>();
-			    for (String type : super.getTransportTypes()) {
-			    	if (isTransportTypeSupported(type)) {
-			    		types.add(type);
-			    	}
-                }
-			    return types.toArray(new String[types.size()]);
+				for (String type : super.getTransportTypes()) {
+					if (isTransportTypeSupported(type)) {
+						types.add(type);
+					}
+				}
+				return types.toArray(new String[types.size()]);
 			}
 		};
 		transportTypeControl.setFormToolkit(toolkit);
@@ -165,7 +165,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 				}
 				@Override
 				protected boolean hasHistory() {
-				    return true;
+					return true;
 				}
 			};
 			transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_TCP, tcpTransportPanel);
@@ -205,8 +205,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 		transportTypePanelControl.getPanel().setLayoutData(layoutData);
 		toolkit.adapt(transportTypePanelControl.getPanel());
 
-		transportTypePanelControl.showConfigurationPanel(transportTypeControl
-		                .getSelectedTransportType());
+		transportTypePanelControl.showConfigurationPanel(transportTypeControl.getSelectedTransportType());
 
 		// Adjust the control enablement
 		updateEnablement();
@@ -236,10 +235,8 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 		// unsaved data, than fill in the data from the selected node
 		if (active) {
 			// Leave everything unchanged if the page is in dirty state
-			if (getManagedForm().getContainer() instanceof AbstractEditorPage && !((AbstractEditorPage) getManagedForm()
-			                .getContainer()).isDirty()) {
-				Object node = ((AbstractEditorPage) getManagedForm().getContainer())
-				                .getEditorInputNode();
+			if (getManagedForm().getContainer() instanceof AbstractEditorPage && !((AbstractEditorPage) getManagedForm().getContainer()).isDirty()) {
+				Object node = ((AbstractEditorPage) getManagedForm().getContainer()).getEditorInputNode();
 				if (node instanceof IPeerModel) {
 					setupData((IPeerModel) node);
 				}
@@ -627,11 +624,9 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 		// The transport type control is enabled for static peers
 		if (transportTypeControl != null) {
 			boolean enabled = !isReadOnly() && (input == null || (isStatic.get() && !isRemote.get()));
-			SWTControlUtil.setEnabled(transportTypeControl.getEditFieldControl(), enabled);
+			SWTControlUtil.setEnabled(transportTypeControl.getEditFieldControl(), enabled && SWTControlUtil.getItemCount(transportTypeControl.getEditFieldControl()) > 1);
 			if (transportTypePanelControl != null) {
-				IWizardConfigurationPanel panel = transportTypePanelControl
-				                .getConfigurationPanel(transportTypeControl
-				                                .getSelectedTransportType());
+				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportTypeControl.getSelectedTransportType());
 				if (panel != null) {
 					panel.setEnabled(enabled);
 				}
