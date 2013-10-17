@@ -57,7 +57,6 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     private String process_id;
     private String thread_id;
     private boolean run_to_bp_done;
-    private boolean loc_info_done;
     private boolean no_cpp;
     private boolean dprintf_done;
     private boolean test_done;
@@ -511,8 +510,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         }
         for (final String id : local_var_expr_ids) {
             if (expr_ctx.get(id) == null) {
-                srv_expr.getContext(id, new IExpressions.DoneGetContext() {
+                cmds.add(srv_expr.getContext(id, new IExpressions.DoneGetContext() {
                     public void doneGetContext(IToken token, Exception error, IExpressions.Expression ctx) {
+                        cmds.remove(token);
                         if (error != null) {
                             exit(error);
                         }
@@ -522,15 +522,16 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             runTest();
                         }
                     }
-                });
-                return;
+                }));
+                if (rnd.nextInt(16) == 0) return;
             }
         }
         if (srv_syms != null && local_var_expr_ids.length > 0) {
             for (final String nm : global_var_names) {
                 if (!global_var_ids.containsKey(nm)) {
-                    srv_syms.find(process_id, new BigInteger(suspended_pc), nm, new ISymbols.DoneFind() {
+                    cmds.add(srv_syms.find(process_id, new BigInteger(suspended_pc), nm, new ISymbols.DoneFind() {
                         public void doneFind(IToken token, Exception error, String symbol_id) {
+                            cmds.remove(token);
                             if (error != null) {
                                 if (nm.startsWith("tcf_cpp_") && error instanceof IErrorReport &&
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_SYM_NOT_FOUND) {
@@ -550,16 +551,17 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    });
-                    return;
+                    }));
+                    if (rnd.nextInt(16) == 0) return;
                 }
             }
         }
-        if (srv_syms != null && !loc_info_done) {
+        if (srv_syms != null) {
             for (final String id : global_var_ids.values()) {
                 if (id != null && global_var_location.get(id) == null) {
-                    srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
+                    cmds.add(srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
                         public void doneGetLocationInfo(IToken token, Exception error, Map<String, Object> props) {
+                            cmds.remove(token);
                             SymbolLocation l = new SymbolLocation();
                             l.error = error;
                             l.props = props;
@@ -585,14 +587,15 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 }
                             }
                         }
-                    });
-                    return;
+                    }));
+                    if (rnd.nextInt(16) == 0) return;
                 }
             }
             for (final String id : local_var_ids.values()) {
                 if (id != null && local_var_location.get(id) == null) {
-                    srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
+                    cmds.add(srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
                         public void doneGetLocationInfo(IToken token, Exception error, Map<String, Object> props) {
+                            cmds.remove(token);
                             SymbolLocation l = new SymbolLocation();
                             l.error = error;
                             l.props = props;
@@ -613,11 +616,10 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    });
-                    return;
+                    }));
+                    if (rnd.nextInt(16) == 0) return;
                 }
             }
-            loc_info_done = true;
         }
         for (final String txt : test_expressions) {
             if (local_var_expr_ids.length == 0) {
@@ -643,8 +645,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     Map<String,Object> scope = new HashMap<String,Object>();
                     scope.put(IExpressions.SCOPE_CONTEXT_ID, stack_trace[stack_trace.length - 2]);
                     if (rnd.nextBoolean()) scope.put(IExpressions.SCOPE_ADDRESS, sym_func3.getValue());
-                    srv_expr.createInScope(scope, txt, new IExpressions.DoneCreate() {
+                    cmds.add(srv_expr.createInScope(scope, txt, new IExpressions.DoneCreate() {
                         public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
+                            cmds.remove(token);
                             if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
                                 // Command not implemented, retry
                                 runTest();
@@ -658,11 +661,12 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    });
+                    }));
                 }
                 else {
-                    srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
+                    cmds.add(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
                         public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
+                            cmds.remove(token);
                             if (error != null) {
                                 exit(error);
                             }
@@ -672,15 +676,16 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    });
+                    }));
                 }
-                return;
+                if (rnd.nextInt(16) == 0) return;
             }
         }
         for (final String id : local_var_expr_ids) {
             if (expr_val.get(id) == null) {
-                srv_expr.evaluate(id, new IExpressions.DoneEvaluate() {
+                cmds.add(srv_expr.evaluate(id, new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
+                        cmds.remove(token);
                         if (error != null) {
                             exit(error);
                         }
@@ -689,14 +694,15 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             runTest();
                         }
                     }
-                });
-                return;
+                }));
+                if (rnd.nextInt(16) == 0) return;
             }
         }
         for (final String id : expr_ctx.keySet()) {
             if (expr_val.get(id) == null) {
-                srv_expr.evaluate(expr_ctx.get(id).getID(), new IExpressions.DoneEvaluate() {
+                cmds.add(srv_expr.evaluate(expr_ctx.get(id).getID(), new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
+                        cmds.remove(token);
                         if (error != null) {
                             exit(error);
                         }
@@ -711,8 +717,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             runTest();
                         }
                     }
-                });
-                return;
+                }));
+                if (rnd.nextInt(16) == 0) return;
             }
         }
         if (srv_syms != null) {
@@ -721,8 +727,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     IExpressions.Value v = expr_val.get(id);
                     String type_id = v.getTypeID();
                     if (type_id != null) {
-                        srv_syms.getContext(type_id, new ISymbols.DoneGetContext() {
+                        cmds.add(srv_syms.getContext(type_id, new ISymbols.DoneGetContext() {
                             public void doneGetContext(IToken token, Exception error, ISymbols.Symbol ctx) {
+                                cmds.remove(token);
                                 if (error != null) {
                                     exit(error);
                                 }
@@ -734,16 +741,17 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                     runTest();
                                 }
                             }
-                        });
-                        return;
+                        }));
+                        if (rnd.nextInt(16) == 0) return;
                     }
                 }
             }
             for (final String id : expr_sym.keySet()) {
                 if (expr_chld.get(id) == null) {
                     ISymbols.Symbol sym = expr_sym.get(id);
-                    srv_syms.getChildren(sym.getID(), new ISymbols.DoneGetChildren() {
+                    cmds.add(srv_syms.getChildren(sym.getID(), new ISymbols.DoneGetChildren() {
                         public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
+                            cmds.remove(token);
                             if (error != null) {
                                 exit(error);
                             }
@@ -753,11 +761,12 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    });
-                    return;
+                    }));
+                    if (rnd.nextInt(16) == 0) return;
                 }
             }
         }
+        if (cmds.size() > 0) return;
         if (srv_dprintf != null && !dprintf_done && local_var_expr_ids.length > 0) {
             cmds.add(srv_dprintf.open(null, new IDPrintf.DoneCommandOpen() {
                 int test_cnt;
@@ -853,8 +862,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
             return;
         }
         for (final String id : expr_to_dispose) {
-            srv_expr.dispose(id, new IExpressions.DoneDispose() {
+            cmds.add(srv_expr.dispose(id, new IExpressions.DoneDispose() {
                 public void doneDispose(IToken token, Exception error) {
+                    cmds.remove(token);
                     if (error != null) {
                         exit(error);
                     }
@@ -863,9 +873,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                         runTest();
                     }
                 }
-            });
-            return;
+            }));
         }
+        if (cmds.size() > 0) return;
         test_done = true;
     }
 
