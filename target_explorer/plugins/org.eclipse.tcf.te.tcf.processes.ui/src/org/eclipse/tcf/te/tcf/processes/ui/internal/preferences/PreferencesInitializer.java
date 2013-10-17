@@ -45,6 +45,7 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer implem
 	 * @param interval The new interval.
 	 */
 	public static void addMRUInterval(int interval){
+		if (interval <= 0 || DEFAULT_INTERVAL_GRADES.contains(":" + interval)) return; //$NON-NLS-1$
         IPreferenceStore prefStore = UIPlugin.getDefault().getPreferenceStore();
         String mruList = prefStore.getString(PREF_INTERVAL_MRU_LIST);
         if (mruList == null || mruList.trim().length() == 0) {
