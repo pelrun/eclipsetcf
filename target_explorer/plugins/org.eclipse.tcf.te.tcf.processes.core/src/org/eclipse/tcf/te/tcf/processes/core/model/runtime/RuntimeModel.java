@@ -196,22 +196,13 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 			// Get the auto-refresh started if not yet scheduled
 			if (interval != 0 && timer == null) {
 				// Create the timer task to schedule
-				final TimerTask task = new TimerTask() {
+				TimerTask task = new TimerTask() {
 					@Override
 					public void run() {
 						// Drop out of the interval has been set to 0 in the meanwhile
 						if (RuntimeModel.this.interval == 0) return;
-						final TimerTask task = this;
-						// Refresh the model
-						RuntimeModel.this.getService(IModelRefreshService.class).refresh(new Callback() {
-							@Override
-							protected void internalDone(Object caller, IStatus status) {
-								// Re-schedule ourself if the interval is still > 0
-								if (RuntimeModel.this.interval > 0 && timer != null) {
-									timer.schedule(task, RuntimeModel.this.interval);
-								}
-							}
-						});
+						// Do the auto refresh
+						doAutoRefresh();
 					}
 				};
 
@@ -236,14 +227,35 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	    return interval;
 	}
 
-	protected void startAutoRefresh() {
-
-	}
-
 	/**
-	 * Stops the auto-refresh if scheduled.
+	 * Execute the auto refresh of the model and reschedule until stopped.
 	 */
-	protected void stopAutoRefresh() {
+	/* default */ void doAutoRefresh() {
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				// Refresh the model
+				RuntimeModel.this.getService(IModelRefreshService.class).refresh(new Callback() {
+					@Override
+					protected void internalDone(Object caller, IStatus status) {
+						// Re-schedule ourself if the interval is still > 0
+						if (RuntimeModel.this.interval > 0 && timer != null) {
+							// Create the timer task to schedule
+							TimerTask task = new TimerTask() {
+								@Override
+								public void run() {
+									// Drop out of the interval has been set to 0 in the meanwhile
+									if (RuntimeModel.this.interval == 0) return;
+									// Do the auto refresh
+									doAutoRefresh();
+								}
+							};
 
+							timer.schedule(task, RuntimeModel.this.interval);
+						}
+					}
+				});
+			}
+		});
 	}
 }

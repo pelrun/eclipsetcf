@@ -52,7 +52,7 @@ public class ContentProvider implements ITreeContentProvider {
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	@Override
-    public Object[] getChildren(Object parentElement) {
+    public Object[] getChildren(final Object parentElement) {
 		Object[] children = NO_ELEMENTS;
 
 		// If the parent element is a peer model node, than return
@@ -104,7 +104,7 @@ public class ContentProvider implements ITreeContentProvider {
 					// Return the pending operation node
 					return new Object[] { refreshable.getPendingOperationNode() };
 				}
-				else if (refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS)) {
+				else if (refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS) && ((IRuntimeModel)parentElement).getAutoRefreshInterval() == 0) {
 					// Refresh is still running -> return the pending operation node (if set)
 					return refreshable.getPendingOperationNode() != null ? new Object[] { refreshable.getPendingOperationNode() } : NO_ELEMENTS;
 				}
@@ -160,8 +160,20 @@ public class ContentProvider implements ITreeContentProvider {
 					return new Object[] { refreshable.getPendingOperationNode() };
 				}
 				else if (refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS)) {
-					// Refresh is still running -> return the pending operation node (if set)
-					return refreshable.getPendingOperationNode() != null ? new Object[] { refreshable.getPendingOperationNode() } : NO_ELEMENTS;
+					final AtomicReference<IRuntimeModel> model = new AtomicReference<IRuntimeModel>();
+					Runnable runnable = new Runnable() {
+						@Override
+						public void run() {
+							model.set(((IProcessContextNode)parentElement).getParent(IRuntimeModel.class));
+						}
+					};
+					if (Protocol.isDispatchThread()) runnable.run();
+					else Protocol.invokeAndWait(runnable);
+
+					if (model.get() == null || model.get().getAutoRefreshInterval() == 0) {
+						// Refresh is still running -> return the pending operation node (if set)
+						return refreshable.getPendingOperationNode() != null ? new Object[] { refreshable.getPendingOperationNode() } : NO_ELEMENTS;
+					}
 				}
 			}
 
