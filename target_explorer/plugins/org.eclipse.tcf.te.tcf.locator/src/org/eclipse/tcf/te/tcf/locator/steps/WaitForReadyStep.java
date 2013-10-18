@@ -28,9 +28,7 @@ import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
-import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
 
 /**
@@ -104,18 +102,6 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 								// License errors are reported to the user and breaks the wait immediately
 								if (error != null && error.getLocalizedMessage().contains("LMAPI error occured:")) { //$NON-NLS-1$
 									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
-								} else if (peerModel.getIntProperty(IPeerModelProperties.PROP_STATE) == IPeerModelProperties.STATE_ERROR) {
-									@SuppressWarnings("synthetic-access")
-			                        String message = NLS.bind(Messages.WaitForReadyStep_error_state, getActivePeerContext(context, data, fullQualifiedId).getName());
-
-									String cause = peerModel.getStringProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR);
-									if (cause != null && !"".equals(cause.trim())) { //$NON-NLS-1$
-										message += NLS.bind(Messages.WaitForReadyStep_error_reason_cause, cause);
-									} else {
-										message += Messages.WaitForReadyStep_error_reason_unknown;
-									}
-
-									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message))), null);
 								} else {
 									// Try again until timed out
 									refreshCount++;
