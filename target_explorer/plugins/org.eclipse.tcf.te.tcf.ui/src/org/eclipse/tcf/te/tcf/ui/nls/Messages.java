@@ -77,6 +77,9 @@ public class Messages extends NLS {
 	public static String TransportSection_title;
 	public static String TransportSection_description;
 
+	public static String TcpTransportSection_title;
+	public static String TcpTransportSection_description;
+
 	public static String ServicesSection_title;
 	public static String ServicesSection_description;
 	public static String ServicesSection_group_local_title;
@@ -114,8 +117,9 @@ public class Messages extends NLS {
 	public static String MyNetworkAddressControl_information_missingTargetNameAddress;
 	public static String MyNetworkAddressControl_error_invalidTargetNameAddress;
 	public static String MyNetworkAddressControl_error_invalidTargetIpAddress;
-	public static String MyRemoteHostAddressControl_error_targetNameNotResolveable;
 	public static String MyNetworkAddressControl_information_checkNameAddressUserInformation;
+
+	public static String MyRemoteHostAddressControl_label;
 
 	public static String PipeNameControl_label;
 	public static String PipeNameControl_information_missingValue;
