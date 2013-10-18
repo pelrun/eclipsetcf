@@ -97,17 +97,21 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 										}
 									}
 									callback(data, fullQualifiedId, callback, status, null);
+									return;
 								}
 
 								// License errors are reported to the user and breaks the wait immediately
-								if (error != null && error.getLocalizedMessage().contains("LMAPI error occured:")) { //$NON-NLS-1$
+								if (error != null
+										&& (error.getLocalizedMessage().contains("LMAPI error occured:") //$NON-NLS-1$
+												|| error.getLocalizedMessage().contains("Failed to read output from value-add"))) { //$NON-NLS-1$
 									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
-								} else {
-									// Try again until timed out
-									refreshCount++;
-									ProgressHelper.worked(monitor, 1);
-									Protocol.invokeLater(refreshCount < 20 ? 500 : 1000, thisRunnable);
+									return;
 								}
+
+								// Try again until timed out
+								refreshCount++;
+								ProgressHelper.worked(monitor, 1);
+								Protocol.invokeLater(refreshCount < 20 ? 500 : 1000, thisRunnable);
 							}
 						});
 					}

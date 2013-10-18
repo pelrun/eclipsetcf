@@ -217,7 +217,8 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 			if (error == null) {
 				// The agent is started with "-S" to write out the peer attributes in JSON format.
-				int counter = 10;
+				long timeout = getWaitForValueAddOutputTimeout();
+				int counter = Long.valueOf(Math.max(timeout, 200) / 200).intValue();
 				while (counter > 0 && output == null) {
 					try {
 						// Check if the process is still alive or died in the meanwhile
@@ -353,6 +354,17 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		// Create the exception
 		String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, Integer.valueOf(exitCode));
 		return new IOException(cause != null ? message + cause : message);
+	}
+
+	/**
+	 * Returns the timeout to wait from the value-add output to appear.
+	 * <p>
+	 * The timeout is in milliseconds and ideally should be <code>&lt;n&gt; * 200</code>.
+	 *
+	 * @return The timeout to wait for the value-add output to appear in milliseconds.
+	 */
+	protected long getWaitForValueAddOutputTimeout() {
+		return 10 * 200;
 	}
 
 	/**
