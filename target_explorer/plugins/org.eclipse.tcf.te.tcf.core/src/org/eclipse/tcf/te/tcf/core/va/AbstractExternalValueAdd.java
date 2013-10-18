@@ -202,12 +202,8 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				try {
 					// Check if the process exited right after the launch
 					int exitCode = process.exitValue();
-					// Died -> Read the error output if there is any
-					String output = launcher.getOutputReader() != null ? launcher.getOutputReader().getOutput() : null;
-					String cause = output != null && !"".equals(output) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, output) : null; //$NON-NLS-1$
-					// Create the exception
-					String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, Integer.valueOf(exitCode));
-					error = new IOException(cause != null ? message + cause : message);
+					// Died -> Construct the error
+					error = onProcessDied(launcher, exitCode);
 				} catch (IllegalThreadStateException e) {
 					// Still running -> Associate the process with the entry
 					entry.process = process;
@@ -223,6 +219,15 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				// The agent is started with "-S" to write out the peer attributes in JSON format.
 				int counter = 10;
 				while (counter > 0 && output == null) {
+					try {
+						// Check if the process is still alive or died in the meanwhile
+						int exitCode = entry.process.exitValue();
+						// Died -> Construct the error
+						error = onProcessDied(launcher, exitCode);
+					} catch (IllegalThreadStateException e) { /* ignored on purpose */ }
+
+					if (error != null) break;
+
 					// Try to read in the output
 					output = launcher.getOutputReader().getOutput();
 					if ("".equals(output) || output.indexOf("Server-Properties:") == -1) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -235,7 +240,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					}
 					counter--;
 				}
-				if (output == null) {
+				if (output == null && error == null) {
 					error = new IOException(Messages.AbstractExternalValueAdd_error_failedToReadOutput);
 				}
 			}
@@ -305,14 +310,20 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 			if (launcher.getOutputReader() != null) {
 				launcher.getOutputReader().setBuffering(false);
 			}
+			// Stop the buffering of the error reader
+			if (launcher.getErrorReader() != null) {
+				launcher.getErrorReader().setBuffering(false);
+			}
+
+			// On error, dispose the entry
+			if (error != null) entry.dispose();
 		} else {
 			error = new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, this.getId()));
 		}
 
 		IStatus status = Status.OK_STATUS;
 		if (error != null) {
-			status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-								error.getLocalizedMessage(), error);
+			status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error);
 		}
 
 	    done.done(AbstractExternalValueAdd.this, status);
@@ -324,6 +335,25 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 	 * @return The absolute path or <code>null</code> if not found.
 	 */
 	protected abstract IPath getLocation();
+
+	/**
+	 * Called if the value add process dies while launching.
+	 *
+	 * @param launcher The value add launcher. Must not be <code>null</code>.
+	 * @param exitCode The process exit code.
+	 *
+	 * @return The error to report.
+	 */
+	protected Throwable onProcessDied(ValueAddLauncher launcher, int exitCode) {
+		Assert.isNotNull(launcher);
+
+		// Read the error output if there is any
+		String output = launcher.getErrorReader() != null ? launcher.getErrorReader().getOutput() : null;
+		String cause = output != null && !"".equals(output) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, output) : null; //$NON-NLS-1$
+		// Create the exception
+		String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, Integer.valueOf(exitCode));
+		return new IOException(cause != null ? message + cause : message);
+	}
 
 	/**
 	 * Create a new value-add launcher instance.

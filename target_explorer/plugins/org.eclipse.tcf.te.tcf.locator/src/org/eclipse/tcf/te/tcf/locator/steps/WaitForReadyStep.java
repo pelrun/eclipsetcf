@@ -19,21 +19,18 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
-import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
 
 /**
@@ -59,9 +56,9 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 	 */
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
-		// Trigger a refresh of the model to read in the newly created static peer
-		final ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
-		if (service != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
+		final IPeerModel peerModel = getActivePeerModelContext(context, data, fullQualifiedId);
+
+		if (peerModel != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
 			Protocol.invokeLater(new Runnable() {
 				final Runnable thisRunnable = this;
 				int refreshCount = 0;
@@ -75,48 +72,58 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
                         String message = NLS.bind(Messages.WaitForReadyStep_error_timeout, getActivePeerContext(context, data, fullQualifiedId).getName());
 						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new TimeoutException(message)), null);
 					}
-					else if (getActivePeerModelContext(context, data, fullQualifiedId).isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY)) {
-						// Refresh the model now (must be executed within the TCF dispatch thread)
-						service.refresh(new Callback() {
+					else {
+						// Try to open a channel to the target and check for errors
+						Tcf.getChannelManager().openChannel(peerModel.getPeer(), null, new IChannelManager.DoneOpenChannel() {
 							@Override
-							protected void internalDone(Object caller, org.eclipse.core.runtime.IStatus status) {
-								refreshCount++;
-								ProgressHelper.worked(monitor, 1);
-								Protocol.invokeLater(refreshCount < 20 ? 500 : 1000, thisRunnable);
+							public void doneOpenChannel(final Throwable error, final IChannel channel) {
+								IStatus status = null;
+
+								// If the channel open succeeded, we are done
+								if (error == null && channel != null && channel.getState() == IChannel.STATE_OPEN) {
+									status = Status.OK_STATUS;
+								}
+
+								// Close the channel right away
+								if (channel != null) Tcf.getChannelManager().closeChannel(channel);
+
+								// If we have an OK status, we are done
+								if (status != null && status.isOK()) {
+									Object wait = getParameters().get("wait"); //$NON-NLS-1$
+									if (wait != null) {
+										try {
+											int waitValue = Integer.parseInt(wait.toString());
+											ExecutorsUtil.waitAndExecute(waitValue, null);
+										}
+										catch (Exception e) {
+										}
+									}
+									callback(data, fullQualifiedId, callback, status, null);
+								}
+
+								// License errors are reported to the user and breaks the wait immediately
+								if (error != null && error.getLocalizedMessage().contains("LMAPI error occured:")) { //$NON-NLS-1$
+									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
+								} else if (peerModel.getIntProperty(IPeerModelProperties.PROP_STATE) == IPeerModelProperties.STATE_ERROR) {
+									@SuppressWarnings("synthetic-access")
+			                        String message = NLS.bind(Messages.WaitForReadyStep_error_state, getActivePeerContext(context, data, fullQualifiedId).getName());
+
+									String cause = peerModel.getStringProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR);
+									if (cause != null && !"".equals(cause.trim())) { //$NON-NLS-1$
+										message += NLS.bind(Messages.WaitForReadyStep_error_reason_cause, cause);
+									} else {
+										message += Messages.WaitForReadyStep_error_reason_unknown;
+									}
+
+									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message))), null);
+								} else {
+									// Try again until timed out
+									refreshCount++;
+									ProgressHelper.worked(monitor, 1);
+									Protocol.invokeLater(refreshCount < 20 ? 500 : 1000, thisRunnable);
+								}
 							}
 						});
-					}
-					else {
-						int state = getActivePeerModelContext(context, data, fullQualifiedId).getIntProperty(IPeerModelProperties.PROP_STATE);
-						if (state == IPeerModelProperties.STATE_CONNECTED || state == IPeerModelProperties.STATE_REACHABLE) {
-							Object wait = getParameters().get("wait"); //$NON-NLS-1$
-							if (wait != null) {
-								try {
-									int waitValue = Integer.parseInt(wait.toString());
-									ExecutorsUtil.waitAndExecute(waitValue, null);
-								}
-								catch (Exception e) {
-								}
-							}
-							callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-						}
-						else {
-							@SuppressWarnings("synthetic-access")
-	                        String message = NLS.bind(Messages.WaitForReadyStep_error_state, getActivePeerContext(context, data, fullQualifiedId).getName());
-
-							String cause = null;
-							if (state == IPeerModelProperties.STATE_ERROR) {
-								cause = getActivePeerModelContext(context, data, fullQualifiedId).getStringProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR);
-							}
-
-							if (cause != null && !"".equals(cause.trim())) { //$NON-NLS-1$
-								message += NLS.bind(Messages.WaitForReadyStep_error_reason_cause, cause);
-							} else {
-								message += Messages.WaitForReadyStep_error_reason_unknown;
-							}
-
-							callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message))), null);
-						}
 					}
 				}
 			});
@@ -132,22 +139,5 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 	@Override
 	public int getTotalWork(IStepContext context, IPropertiesContainer data) {
 	    return 100;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#rollback(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IStatus, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
-	 */
-	@Override
-	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
-		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
-		if (channel != null) {
-			Protocol.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					Tcf.getChannelManager().closeChannel(channel);
-				}
-			});
-		}
-		super.rollback(context, data, status, fullQualifiedId, monitor, callback);
 	}
 }

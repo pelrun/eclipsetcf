@@ -847,9 +847,9 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 
 								// Reset the error
 								error = null;
-							} else {
-								available.add(valueAdd);
 							}
+
+							if (error == null) available.add(valueAdd);
 
 							// If the value-add failed to launch, no other value-add's are launched
 							if (error != null) {

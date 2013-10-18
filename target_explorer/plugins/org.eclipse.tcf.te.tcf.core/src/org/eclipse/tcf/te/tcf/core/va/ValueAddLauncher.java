@@ -154,9 +154,8 @@ public class ValueAddLauncher extends ProcessLauncher {
 		outputReader = new ProcessOutputReaderThread(path.lastSegment(), new InputStream[] { process.getInputStream() });
 		outputReader.start();
 
-		// Launch the process error reader (not buffering)
+		// Launch the process error reader
 		errorReader = new ProcessOutputReaderThread(path.lastSegment(), new InputStream[] { process.getErrorStream() });
-		errorReader.setBuffering(false);
 		errorReader.start();
 	}
 
