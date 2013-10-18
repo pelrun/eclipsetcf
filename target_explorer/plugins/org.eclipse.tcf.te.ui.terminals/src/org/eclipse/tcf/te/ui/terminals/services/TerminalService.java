@@ -185,7 +185,7 @@ public class TerminalService extends AbstractService implements ITerminalService
 				CTabItem item = ConsoleManager.getInstance().openConsole(id, secondaryId, title, encoding, connector, data, true, forceNew);
 				// Associate the original terminal properties with the tab item.
 				// This makes it easier to persist the connection data within the memento handler
-				if (item != null) item.setData("properties", properties); //$NON-NLS-1$
+				if (item != null && !item.isDisposed()) item.setData("properties", properties); //$NON-NLS-1$
 				// Invoke the callback
 				if (callback != null) callback.done(this, Status.OK_STATUS);
 			}
