@@ -224,15 +224,9 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 								if (IPAddressUtil.getInstance().isSameHost(ip1, ip2)) {
 									// Compare the ports
 									String port1 = peerNode.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
-									if (port1 == null || "".equals(port1)) { //$NON-NLS-1$
-										port1 = "1534"; //$NON-NLS-1$
-									}
 									String port2 = candidate.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
-									if (port2 == null || "".equals(port2)) { //$NON-NLS-1$
-										port2 = "1534"; //$NON-NLS-1$
-									}
 
-									if (port1.equals(port2)) {
+									if (port1 != null && port1.equals(port2)) {
 										// Merge user configured properties between the peers
 										model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
 										toRemove = candidate;

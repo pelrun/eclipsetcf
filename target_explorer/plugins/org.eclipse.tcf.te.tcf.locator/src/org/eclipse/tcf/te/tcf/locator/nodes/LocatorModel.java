@@ -553,9 +553,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 
 					// Get the ports
 					String peerPort = peer.getAttributes().get(IPeer.ATTR_IP_PORT);
-					if (peerPort == null || "".equals(peerPort)) peerPort = "1534"; //$NON-NLS-1$ //$NON-NLS-2$
 					String previousPeerPort = previousPeer.getAttributes().get(IPeer.ATTR_IP_PORT);
-					if (previousPeerPort == null || "".equals(previousPeerPort)) previousPeerPort = "1534"; //$NON-NLS-1$ //$NON-NLS-2$
 
 					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
 						CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeerNodeForAdd: peerIP=" + peerIP //$NON-NLS-1$
@@ -565,7 +563,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 
 					// If the ports of the agent instances are identical,
 					// than try to find the best representation of the agent instance
-					if (peerPort.equals(previousPeerPort))  {
+					if (peerPort != null && peerPort.equals(previousPeerPort))  {
 						// Drop the current node
 						result = null;
 
@@ -752,11 +750,9 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		Map<String, String> parentPeerAttributes = parent.getPeer().getAttributes();
 		if (parentPeerAttributes.get(IPeer.ATTR_IP_HOST) != null && parentPeerAttributes.get(IPeer.ATTR_IP_HOST).equals(peer.getAttributes().get(IPeer.ATTR_IP_HOST))) {
 			String parentPort = parentPeerAttributes.get(IPeer.ATTR_IP_PORT);
-			if (parentPort == null) parentPort = "1534"; //$NON-NLS-1$
 			String port = peer.getAttributes().get(IPeer.ATTR_IP_PORT);
-			if (port == null) port = "1534"; //$NON-NLS-1$
 
-			if (parentPort.equals(port)) return null;
+			if (parentPort != null && parentPort.equals(port)) return null;
 		}
 
 		return node;
