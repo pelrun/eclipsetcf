@@ -57,7 +57,6 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     private String process_id;
     private String thread_id;
     private boolean run_to_bp_done;
-    private boolean no_cpp;
     private boolean dprintf_done;
     private boolean test_done;
     private boolean cancel_test_sent;
@@ -537,7 +536,6 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_SYM_NOT_FOUND) {
 
                                     global_var_ids.put(nm, null);
-                                    no_cpp = true;
                                     runTest();
                                     return;
                                 }
@@ -630,7 +628,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                 if (txt.indexOf("(char *)") >= 0) continue;
                 if (txt.indexOf("enum_val") >= 0) continue;
             }
-            if (local_var_expr_ids.length == 0 || no_cpp) {
+            if (local_var_expr_ids.length == 0 || global_var_ids.get("tcf_cpp_test_bool") == null) {
                 // Agent is not build with C++ compiler
                 if (txt.indexOf("tcf_cpp_test") >= 0) continue;
                 if (txt.indexOf("(bool)") >= 0) continue;
