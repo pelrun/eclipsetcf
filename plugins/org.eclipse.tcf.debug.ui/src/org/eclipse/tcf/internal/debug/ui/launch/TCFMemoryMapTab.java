@@ -107,6 +107,12 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
         }
     }
 
+    @Override
+    public void dispose() {
+        if (widget != null) widget.dispose();
+        super.dispose();
+    }
+    
     public String getName() {
         return "Symbol Files";
     }

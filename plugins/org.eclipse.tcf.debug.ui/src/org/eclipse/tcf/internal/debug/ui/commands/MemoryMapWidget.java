@@ -39,8 +39,6 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -125,6 +123,7 @@ public class MemoryMapWidget {
     private final ArrayList<ModifyListener> modify_listeners = new ArrayList<ModifyListener>();
 
     private Color cError = null;
+    private boolean disposed = false;
 
     private final IStructuredContentProvider content_provider = new IStructuredContentProvider() {
 
@@ -213,7 +212,7 @@ public class MemoryMapWidget {
             // Set or reset the symbol file error tooltip marker
             TableItem[] items = map_table.getItems();
             for (TableItem item : items) {
-                if (item.getData().equals(r)) {
+                if (item.getData() != null && item.getData().equals(r)) {
                     item.setData("_TOOLTIP", symbolFileInfo); //$NON-NLS-1$
                 }
             }
@@ -250,13 +249,23 @@ public class MemoryMapWidget {
          */
         @Override
         public void changed(String context_id) {
+            // If the widget is already disposed but the listener is still invoked,
+            // remove the listener itself from the memory map service.
+            if (disposed) {
+                if (channel != null) {
+                    IMemoryMap svc = channel.getRemoteService(IMemoryMap.class);
+                    if (svc != null) svc.removeListener(this);
+                }
+                return;
+            }
+            
             if (mem_ctx != null && mem_ctx.getID() != null && mem_ctx.getID().equals(context_id)) {
                 if (cfg != null && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
                     final ILaunchConfiguration lc = cfg;
                     PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
                         @Override
                         public void run() {
-                            loadData(lc);
+                            if (!disposed) loadData(lc);
                         }
                     });
                 }
@@ -270,30 +279,34 @@ public class MemoryMapWidget {
         createMemoryMapTable(composite);
 
         cError = new Color(composite.getDisplay(), ColorCache.rgb_error);
-        composite.addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                if (cError != null) {
-                    cError.dispose();
-                    cError = null;
-                }
-
-                // Remove the memory map listener
-                if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
-                    // Asynchronous execution. Make a copy of the current channel reference.
-                    final IChannel c = channel;
-                    Protocol.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
-                            if (svc != null) svc.removeListener(listener);
-                        }
-                    });
-                }
-            }
-        });
     }
 
+    /**
+     * Dispose the widget and cleanup the created resources and listeners.
+     */
+    public void dispose() {
+        if (disposed) return;
+        disposed = true;
+        
+        if (cError != null) {
+            cError.dispose();
+            cError = null;
+        }
+
+        // Remove the memory map listener
+        if (channel != null) {
+            // Asynchronous execution. Make a copy of the current channel reference.
+            final IChannel c = channel;
+            Protocol.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
+                    if (svc != null) svc.removeListener(listener);
+                }
+            });
+        }
+    }
+    
     public boolean setTCFNode(TCFNode node) {
         if (node == null && selection == null || node != null && node.equals(selection)) {
             return false;

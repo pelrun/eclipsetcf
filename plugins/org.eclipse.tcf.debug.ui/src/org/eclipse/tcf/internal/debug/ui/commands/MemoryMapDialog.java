@@ -67,6 +67,7 @@ class MemoryMapDialog extends Dialog {
         try {
             ILaunchConfigurationWorkingCopy copy = cfg.getWorkingCopy();
             if (widget.saveData(copy)) copy.doSave();
+            widget.dispose();
             super.okPressed();
         }
         catch (Throwable x) {
