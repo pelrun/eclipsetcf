@@ -424,7 +424,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 
 																		if (context != null) node.setProperty(IProcessContextNodeProperties.PROPERTY_NAME, context.getName());
 
-																		if (serviceV1 != null) {
+																		if (serviceV1 != null && context != null) {
 																			serviceV1.getCapabilities(context.getID(), new IProcessesV1.DoneGetCapabilities() {
 																				@Override
 							                                                    public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties) {
