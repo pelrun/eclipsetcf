@@ -42,12 +42,12 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IContextQuery;
+import org.eclipse.tcf.services.IDPrintf;
 import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemory.MemoryContext;
-import org.eclipse.tcf.services.IDPrintf;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IProcesses;
@@ -726,10 +726,21 @@ public class TCFLaunch extends Launch {
         host_path_map.addAll(TCFLaunchDelegate.parseSourceLocatorMemento(s));
         readCustomPathMapConfiguration(channel, cfg, host_path_map);
         int cnt = 0;
-        String id = Activator.getClientID();
-        for (IPathMap.PathMapRule r : host_path_map) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++);
+        String id = getClientID();
+        if (id != null) {
+            for (IPathMap.PathMapRule r : host_path_map) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++);
+        }
     }
 
+    /**
+     * Returns the client ID to use to mark the path map rules managed by this client.
+     * 
+     * @return The client ID.
+     */
+    protected String getClientID() {
+        return Activator.getClientID();
+    }
+    
     /**
      * Add custom path map rules to the host path map before applying the path map.
      *
@@ -743,8 +754,8 @@ public class TCFLaunch extends Launch {
 
     private void downloadPathMaps(ILaunchConfiguration cfg, final Runnable done) throws Exception {
         readPathMapConfiguration(cfg);
-        final IPathMap path_map_service = getService(IPathMap.class);
-        path_map_service.set(host_path_map.toArray(new IPathMap.PathMapRule[host_path_map.size()]), new IPathMap.DoneSet() {
+        applyPathMap(channel, host_path_map.toArray(new IPathMap.PathMapRule[host_path_map.size()]), new IPathMap.DoneSet() {
+            @Override
             public void doneSet(IToken token, Exception error) {
                 if (error != null) channel.terminate(error);
                 else done.run();
@@ -752,6 +763,18 @@ public class TCFLaunch extends Launch {
         });
     }
 
+    /**
+     * Apply the path map to the given channel.
+     * 
+     * @param channel The channel. Must not be <code>null</code>.
+     * @param map The path map. Must not be <code>null</code>.
+     * @param done The done to invoke. Must not be <code>null</code>.
+     */
+    protected void applyPathMap(final IChannel channel, final IPathMap.PathMapRule[] map, final IPathMap.DoneSet done) {
+        IPathMap path_map_service = getService(IPathMap.class);
+        path_map_service.set(map, done);
+    }
+    
     private String[] toArgsArray(String file, String cmd) {
         // Create arguments list from a command line.
         int i = 0;
@@ -1207,8 +1230,7 @@ public class TCFLaunch extends Launch {
                         if (update_memory_maps != null) update_memory_maps.run();
                         if (host_path_map != null) {
                             readPathMapConfiguration(cfg);
-                            final IPathMap path_map_service = getService(IPathMap.class);
-                            path_map_service.set(host_path_map.toArray(new IPathMap.PathMapRule[host_path_map.size()]), new IPathMap.DoneSet() {
+                            applyPathMap(channel, host_path_map.toArray(new IPathMap.PathMapRule[host_path_map.size()]), new IPathMap.DoneSet() {
                                 public void doneSet(IToken token, Exception error) {
                                     if (error != null) channel.terminate(error);
                                     done(false);

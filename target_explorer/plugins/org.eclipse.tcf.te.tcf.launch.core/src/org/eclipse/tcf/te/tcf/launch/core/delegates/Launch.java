@@ -9,8 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.delegates;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +22,9 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.services.IPathMap;
+import org.eclipse.tcf.services.IPathMap.DoneSet;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -100,6 +105,72 @@ public final class Launch extends TCFLaunch {
         		host_path_map.addAll(Arrays.asList(generatedRules));
         	}
         }
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#applyPathMap(org.eclipse.tcf.protocol.IChannel, org.eclipse.tcf.services.IPathMap.PathMapRule[], org.eclipse.tcf.services.IPathMap.DoneSet)
+	 */
+	@Override
+	protected void applyPathMap(final IChannel channel, final PathMapRule[] map, final DoneSet done) {
+		// Get the client ID
+		final String clientID = getClientID();
+		// If we have a client ID, we can identify path map rules set by other clients
+		// and leave them alone. Otherwise, just set the path map.
+		if (clientID != null) {
+	        final IPathMap svc = getService(IPathMap.class);
+			if (svc != null) {
+				// Get the old path maps first. Keep path map rules not coming from us
+				svc.get(new IPathMap.DoneGet() {
+					@Override
+					public void doneGet(IToken token, Exception error, PathMapRule[] oldMap) {
+						// Merge the maps to a new list
+						List<PathMapRule> rules = new ArrayList<PathMapRule>();
+
+						if (oldMap != null && oldMap.length > 0) {
+							for (PathMapRule rule : oldMap) {
+								if (rule.getID() == null || !rule.getID().startsWith(clientID)) {
+									rules.add(rule);
+								}
+							}
+						}
+
+						rules.addAll(Arrays.asList(map));
+
+						// Determine if the map has changed
+						boolean changed = oldMap != null ? oldMap.length != rules.size() : !rules.isEmpty();
+						if (!changed && !rules.isEmpty()) {
+							// Make a copy of new map and remove all rules listed
+							// by the old map. If not empty at the end, the new map
+							// is different from the old map.
+							List<PathMapRule> copy = new ArrayList<PathMapRule>(rules);
+							for (PathMapRule rule : oldMap) {
+								Iterator<PathMapRule> iter = copy.iterator();
+								while (iter.hasNext()) {
+									PathMapRule r = iter.next();
+									if (r.equals(rule)) {
+										iter.remove();
+										break;
+									}
+								}
+							}
+
+							changed = !copy.isEmpty();
+						}
+
+						// If the path map has changed, apply the map
+						if (changed) {
+							svc.set(rules.toArray(new PathMapRule[rules.size()]), done);
+						} else {
+							done.doneSet(token, null);
+						}
+					}
+				});
+			} else {
+				done.doneSet(null, null);
+			}
+		} else {
+			super.applyPathMap(channel, map, done);
+		}
 	}
 
 	/* (non-Javadoc)

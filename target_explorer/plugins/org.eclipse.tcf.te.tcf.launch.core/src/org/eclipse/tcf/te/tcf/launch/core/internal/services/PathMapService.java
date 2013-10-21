@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.launch.core.internal.services;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -340,7 +341,30 @@ public class PathMapService extends AbstractService implements IPathMapService {
 										}
 
 										rules.addAll(Arrays.asList(configuredMap));
-										if (!rules.isEmpty()) {
+
+										// Determine if the map has changed
+										boolean changed = map != null ? map.length != rules.size() : !rules.isEmpty();
+										if (!changed && !rules.isEmpty()) {
+											// Make a copy of new map and remove all rules listed
+											// by the old map. If not empty at the end, the new map
+											// is different from the old map.
+											List<PathMapRule> copy = new ArrayList<PathMapRule>(rules);
+											for (PathMapRule rule : map) {
+												Iterator<PathMapRule> iter = copy.iterator();
+												while (iter.hasNext()) {
+													PathMapRule r = iter.next();
+													if (r.equals(rule)) {
+														iter.remove();
+														break;
+													}
+												}
+											}
+
+											changed = !copy.isEmpty();
+										}
+
+										// If the path map has changed, apply the map
+										if (changed) {
 											svc.set(rules.toArray(new PathMapRule[rules.size()]), new IPathMap.DoneSet() {
 												@Override
 												public void doneSet(IToken token, Exception error) {
