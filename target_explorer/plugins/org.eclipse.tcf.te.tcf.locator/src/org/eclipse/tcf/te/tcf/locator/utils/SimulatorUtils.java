@@ -153,7 +153,7 @@ public final class SimulatorUtils {
 						callback.done(this, Status.OK_STATUS);
 					}
 				}
-			});
+			}, monitor);
 		} else {
 			callback.setResult(Boolean.FALSE);
 			callback.done(null, Status.OK_STATUS);
@@ -193,7 +193,7 @@ public final class SimulatorUtils {
 						callback.done(null, Status.OK_STATUS);
 					}
 				}
-			});
+			}, monitor);
 		} else {
 			callback.done(null, Status.OK_STATUS);
 		}

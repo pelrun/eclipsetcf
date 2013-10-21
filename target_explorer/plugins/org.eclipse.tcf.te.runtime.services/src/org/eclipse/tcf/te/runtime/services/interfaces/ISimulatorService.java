@@ -55,8 +55,9 @@ public interface ISimulatorService extends IService {
 	 * @param context The context. Must not be <code>null</code>.
 	 * @param config The encoded simulator settings or <code>null</code>.
 	 * @param callback The callback to invoke once the operation finishes. Must not be <code>null</code>.
+	 * @param monitor The progress monitor or <code>null</code>.
 	 */
-	public void isRunning(Object context, String config, ICallback callback);
+	public void isRunning(Object context, String config, ICallback callback, IProgressMonitor monitor);
 
 	/**
 	 * Get the state of the simulator for the given context.
