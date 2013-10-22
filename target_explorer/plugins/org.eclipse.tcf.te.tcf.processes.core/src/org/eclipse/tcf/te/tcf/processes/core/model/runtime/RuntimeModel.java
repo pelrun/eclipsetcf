@@ -32,6 +32,7 @@ import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelLookupService;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModelChannelService;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModelLookupService;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModelRefreshService;
@@ -52,7 +53,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	private final IPeerModel peerModel;
 
 	// Reference to the refresh service
-	private final IModelRefreshService refreshService = new RuntimeModelRefreshService(this);
+	private final IRuntimeModelRefreshService refreshService = new RuntimeModelRefreshService(this);
 	// Reference to the lookup service
 	private final IRuntimeModelLookupService lookupService = new RuntimeModelLookupService(this);
 	// Reference to the update service
@@ -131,6 +132,9 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	 */
 	@Override
 	public Object getAdapter(Class adapter) {
+		if (IRuntimeModelRefreshService.class.equals(adapter)) {
+			return refreshService;
+		}
 		if (IModelRefreshService.class.equals(adapter)) {
 			return refreshService;
 		}
@@ -208,7 +212,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 
 				// Create the timer
 				timer = new Timer();
-				timer.schedule(task, this.interval);
+				timer.schedule(task, this.interval * 1000);
 			} else if (interval == 0 && timer != null) {
 				timer.cancel();
 				timer = null;
@@ -235,7 +239,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 			@Override
 			public void run() {
 				// Refresh the model
-				RuntimeModel.this.getService(IModelRefreshService.class).refresh(new Callback() {
+				RuntimeModel.this.getService(IRuntimeModelRefreshService.class).autoRefresh(new Callback() {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						// Re-schedule ourself if the interval is still > 0
@@ -251,7 +255,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 								}
 							};
 
-							timer.schedule(task, RuntimeModel.this.interval);
+							timer.schedule(task, RuntimeModel.this.interval * 1000);
 						}
 					}
 				});

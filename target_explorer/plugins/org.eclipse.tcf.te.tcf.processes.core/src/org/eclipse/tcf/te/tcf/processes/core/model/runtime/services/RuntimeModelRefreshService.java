@@ -41,7 +41,6 @@ import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService;
-import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
 import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
@@ -49,12 +48,13 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNod
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode.TYPE;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
 import org.eclipse.tcf.te.tcf.processes.core.model.nodes.PendingOperationNode;
 
 /**
  * Runtime model refresh service implementation.
  */
-public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeModel> implements IModelRefreshService {
+public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeModel> implements IRuntimeModelRefreshService {
 
 	/**
 	 * Constructor.
@@ -170,7 +170,101 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 		}
 
 		// Perform the refresh of the node
-		doRefresh(model, node, flags, callback);
+		doRefresh(model, node, 2, callback);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService#autoRefresh(org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 */
+	@Override
+	public void autoRefresh(ICallback callback) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Get the parent model
+		final IRuntimeModel model = getModel();
+
+		// If the parent model is already disposed, the service will drop out immediately
+		if (model.isDisposed()) {
+			if (callback != null) callback.done(this, Status.OK_STATUS);
+			return;
+		}
+
+		// Create the callback collector to fire once all refresh operations are completed
+		final AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
+
+		// Get the first level of children and check if they are need to be refreshed
+		List<IProcessContextNode> children = model.getChildren(IProcessContextNode.class);
+		if (children.size() > 0) {
+			// Initiate the refresh of the children
+			doAutoRefresh(model, children.toArray(new IProcessContextNode[children.size()]), 0, collector);
+		}
+
+		// Mark the collector initialization done
+		collector.initDone();
+	}
+
+	/**
+	 * Performs the auto refresh of the given nodes.
+	 *
+	 * @param model The runtime model. Must not be <code>null</code>.
+	 * @param nodes The nodes. Must not be <code>null</code>.
+	 * @param index The index of the node to refresh within the nodes array. Must be greater or equal than 0 and less than the array length.
+	 * @param collector The callback collector. Must not be <code>null</code>.
+	 */
+	protected void doAutoRefresh(final IRuntimeModel model, final IProcessContextNode[] nodes, final int index, final AsyncCallbackCollector collector) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(model);
+		Assert.isNotNull(nodes);
+		Assert.isTrue(index >= 0 && index < nodes.length);
+		Assert.isNotNull(collector);
+
+		final IProcessContextNode node = nodes[index];
+
+		// Get the asynchronous refresh context adapter
+		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
+		if (refreshable != null) {
+			// Schedule a refresh if the node got refreshed before
+			if (refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.DONE)) {
+				// Create a new callback for the collector to wait for
+				final ICallback callback = new Callback() {
+					@Override
+                    protected void internalDone(Object caller, IStatus status) {
+						// We need a reference to the outer callback (== this)
+						final ICallback outerCallback = this;
+						// Create the inner callback
+						final ICallback innerCallback = new Callback() {
+							@Override
+							protected void internalDone(Object caller, IStatus status) {
+								// More nodes to process?
+								int newIndex = index + 1;
+								if (newIndex < nodes.length) {
+									doAutoRefresh(model, nodes, newIndex, collector);
+								}
+								// Remove the outer callback from the collector
+								collector.removeCallback(outerCallback);
+							}
+						};
+
+						// If the node has children, process them first
+						List<IProcessContextNode> children = node.getChildren(IProcessContextNode.class);
+						if (children.size() > 0) {
+							// Create a new callback collector for processing the children
+							final AsyncCallbackCollector childCollector = new AsyncCallbackCollector(innerCallback, new CallbackInvocationDelegate());
+							// Initiate the refresh of the children
+							doAutoRefresh(model, children.toArray(new IProcessContextNode[children.size()]), 0, childCollector);
+							// Mark the collector initialization done
+							childCollector.initDone();
+						} else {
+							// Invoke the inner callback right away
+							innerCallback.done(this, Status.OK_STATUS);
+						}
+					}
+				};
+				collector.addCallback(callback);
+				// Refresh the node (only node and the direct children)
+				doRefresh(model, node, 1, callback);
+			}
+		}
 	}
 
 	/**
@@ -178,10 +272,10 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 *
 	 * @param model The runtime model. Must not be <code>null</code>.
 	 * @param node  The node. Must not be <code>null</code>.
-	 * @param flags The flags. See the defined constants for details.
+	 * @param depth Until which depth the tree gets refreshed.
 	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
 	 */
-	protected void doRefresh(final IRuntimeModel model, final IModelNode node, final int flags, final ICallback callback) {
+	protected void doRefresh(final IRuntimeModel model, final IModelNode node, final int depth, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(model);
 		Assert.isNotNull(node);
@@ -199,7 +293,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 				final List<IProcessContextNode> oldChildren = ((IProcessContextNode)node).getChildren(IProcessContextNode.class);
 
 				// Refresh the children of the process context node from the agent
-				refreshContextChildren(oldChildren, model, (IProcessContextNode)node, 2, new Callback() {
+				refreshContextChildren(oldChildren, model, (IProcessContextNode)node, depth, new Callback() {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						final AtomicBoolean isDisposed = new AtomicBoolean();

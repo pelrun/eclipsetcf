@@ -10,8 +10,10 @@
 package org.eclipse.tcf.te.tcf.processes.core.model.runtime.services;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx;
+import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryState;
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
@@ -70,9 +72,23 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 		IAsyncRefreshableCtx dstRefreshable = (IAsyncRefreshableCtx)dst.getAdapter(IAsyncRefreshableCtx.class);
 		IAsyncRefreshableCtx srcRefreshable = (IAsyncRefreshableCtx)src.getAdapter(IAsyncRefreshableCtx.class);
 		if (dstRefreshable != null && srcRefreshable != null) {
-			dstRefreshable.setPendingOperationNode(srcRefreshable.getPendingOperationNode());
-			dstRefreshable.setQueryState(QueryType.CONTEXT, srcRefreshable.getQueryState(QueryType.CONTEXT));
-			dstRefreshable.setQueryState(QueryType.CHILD_LIST, srcRefreshable.getQueryState(QueryType.CHILD_LIST));
+			if (srcRefreshable.getQueryState(QueryType.CONTEXT) == QueryState.IN_PROGRESS || srcRefreshable.getQueryState(QueryType.CHILD_LIST) == QueryState.IN_PROGRESS) {
+				dstRefreshable.setPendingOperationNode(srcRefreshable.getPendingOperationNode());
+			}
+			if (srcRefreshable.getQueryState(QueryType.CONTEXT) != QueryState.PENDING) {
+				dstRefreshable.setQueryState(QueryType.CONTEXT, srcRefreshable.getQueryState(QueryType.CONTEXT));
+			}
+			if (srcRefreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.PENDING) {
+				dstRefreshable.setQueryState(QueryType.CHILD_LIST, srcRefreshable.getQueryState(QueryType.CHILD_LIST));
+				if (dst instanceof IContainerModelNode) {
+					((IContainerModelNode)dst).clear();
+					if (src instanceof IContainerModelNode) {
+						for (IModelNode child : ((IContainerModelNode)src).getChildren()) {
+							((IContainerModelNode)dst).add(child);
+						}
+					}
+				}
+			}
 		}
 
 		if (dst instanceof IProcessContextNode && src instanceof IProcessContextNode) {

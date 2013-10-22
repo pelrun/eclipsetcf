@@ -50,50 +50,45 @@ public class TreeViewerListener implements ITreeViewerListener {
     	if (element instanceof IProcessContextNode) {
     		final IProcessContextNode node = (IProcessContextNode)element;
 
-			// Get the asynchronous refresh context adapter
-			final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
-			// Don't do anything if refresh is IN_PROGRESS
-			if (refreshable != null && refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.IN_PROGRESS)) {
-				return;
-			}
+    		// Get the asynchronous refresh context adapter
+    		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
+    		// Trigger a refresh of the expanded node if the child list query is still pending
+    		if (refreshable != null && refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.PENDING)) {
+    			// Mark the refresh as in progress
+    			refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
+    			// Create a new pending operation node and associate it with the refreshable
+    			PendingOperationModelNode pendingNode = new PendingOperationNode();
+    			pendingNode.setParent(node);
+    			refreshable.setPendingOperationNode(pendingNode);
 
-			// Trigger a refresh of the expanded node to get the children right
-			if (refreshable != null) {
-				// Mark the refresh as in progress
-				refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
-				// Create a new pending operation node and associate it with the refreshable
-				PendingOperationModelNode pendingNode = new PendingOperationNode();
-				pendingNode.setParent(node);
-				refreshable.setPendingOperationNode(pendingNode);
-			}
+    			Runnable runnable = new Runnable() {
+    				@Override
+    				public void run() {
+    					IModel model = node.getParent(IModel.class);
+    					Assert.isNotNull(model);
 
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					IModel model = node.getParent(IModel.class);
-					Assert.isNotNull(model);
+    					// Don't send change events while refreshing
+    					final boolean changed = node.setChangeEventsEnabled(false);
+    					// Initiate the refresh
+    					model.getService(IModelRefreshService.class).refresh(node, new Callback() {
+    						@Override
+    						protected void internalDone(Object caller, IStatus status) {
+    							// Mark the refresh as done
+    							refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
+    							// Reset the pending operation node
+    							refreshable.setPendingOperationNode(null);
+    							// Re-enable the change events if they had been enabled before
+    							if (changed) node.setChangeEventsEnabled(true);
+    							// Trigger a refresh of the view content
+    							ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
+    							EventManager.getInstance().fireEvent(event);
+    						}
+    					});
+    				}
+    			};
 
-					// Don't send change events while refreshing
-					final boolean changed = node.setChangeEventsEnabled(false);
-					// Initiate the refresh
-					model.getService(IModelRefreshService.class).refresh(node, new Callback() {
-						@Override
-		                protected void internalDone(Object caller, IStatus status) {
-							// Mark the refresh as done
-							refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
-							// Reset the pending operation node
-							refreshable.setPendingOperationNode(null);
-							// Re-enable the change events if they had been enabled before
-							if (changed) node.setChangeEventsEnabled(true);
-							// Trigger a refresh of the view content
-							ChangeEvent event = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
-							EventManager.getInstance().fireEvent(event);
-						}
-					});
-				}
-			};
-
-			Protocol.invokeLater(runnable);
+    			Protocol.invokeLater(runnable);
+    		}
     	}
     }
 
