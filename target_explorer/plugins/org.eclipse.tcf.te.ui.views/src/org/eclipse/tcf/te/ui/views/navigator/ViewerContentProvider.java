@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
@@ -108,6 +109,26 @@ public class ViewerContentProvider implements ICommonContentProvider {
 	 */
 	@Override
 	public void init(ICommonContentExtensionSite aConfig) {
+		if (!UIPlugin.getScopedPreferences().getBoolean(getClass().getName() + ".CustomContentActivationDone")) { //$NON-NLS-1$
+			String[] ids = aConfig.getService().getVisibleExtensionIds();
+			for (String id : ids) {
+				String prefKey = id + ".activate"; //$NON-NLS-1$
+				if (UIPlugin.getScopedPreferences().containsKey(prefKey)) {
+					boolean active = aConfig.getService().isActive(id);
+					boolean newActive = UIPlugin.getScopedPreferences().getBoolean(prefKey) || Boolean.getBoolean(prefKey);
+					if (active != newActive) {
+						if (newActive) {
+							aConfig.getService().getActivationService().activateExtensions(new String[]{id}, false);
+						}
+						else {
+							aConfig.getService().getActivationService().deactivateExtensions(new String[]{id}, false);
+						}
+						aConfig.getService().getActivationService().persistExtensionActivations();
+					}
+				}
+	        }
+			UIPlugin.getScopedPreferences().putBoolean(getClass().getName() + ".CustomContentActivationDone", true); //$NON-NLS-1$
+		}
 	}
 
 	/* (non-Javadoc)
