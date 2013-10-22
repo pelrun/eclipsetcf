@@ -27,6 +27,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.ui.interfaces.services.INodePropertiesTableFilterUIDelegate;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
 import org.eclipse.ui.forms.widgets.Section;
@@ -83,10 +84,13 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 				});
 			}
 
+			INodePropertiesTableFilterUIDelegate filterDelegate = service != null ? service.getDelegate(inputElement, INodePropertiesTableFilterUIDelegate.class) : null;
+
 			for (Entry<String, Object> entry : properties.entrySet()) {
 				String name = entry.getKey();
 				// Check if the property is filtered
 				if (name.endsWith(".silent") || name.contains(".transient")) continue; //$NON-NLS-1$ //$NON-NLS-2$
+				if (filterDelegate != null && filterDelegate.isFiltered(inputElement, name, entry.getValue())) continue;
 				// Create the properties node
 				NodePropertiesTableTableNode propertiesNode = new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : ""); //$NON-NLS-1$
 

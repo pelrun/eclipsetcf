@@ -239,6 +239,8 @@
          <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
             <test property="org.eclipse.tcf.te.runtime.services.hasService" 
                   value="org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService"/>
+            <test property="org.eclipse.tcf.te.tcf.locator.isAttribute"
+                  args="SimulatorEnabled" value="true"/>
          </adapt>
       </definition>
 
