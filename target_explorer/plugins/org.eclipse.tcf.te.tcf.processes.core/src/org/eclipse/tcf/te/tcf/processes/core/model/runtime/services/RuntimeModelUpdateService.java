@@ -75,10 +75,12 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 			if (srcRefreshable.getQueryState(QueryType.CONTEXT) == QueryState.IN_PROGRESS || srcRefreshable.getQueryState(QueryType.CHILD_LIST) == QueryState.IN_PROGRESS) {
 				dstRefreshable.setPendingOperationNode(srcRefreshable.getPendingOperationNode());
 			}
-			if (srcRefreshable.getQueryState(QueryType.CONTEXT) != QueryState.PENDING) {
+			Assert.isTrue(srcRefreshable.getQueryState(QueryType.CONTEXT) != QueryState.IN_PROGRESS, "Context query of node '" + src.getName() + "' in progress while updating model."); //$NON-NLS-1$ //$NON-NLS-2$
+			if (srcRefreshable.getQueryState(QueryType.CONTEXT) == QueryState.DONE) {
 				dstRefreshable.setQueryState(QueryType.CONTEXT, srcRefreshable.getQueryState(QueryType.CONTEXT));
 			}
-			if (srcRefreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.PENDING) {
+			Assert.isTrue(srcRefreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.IN_PROGRESS, "Child list query of node '" + src.getName() + "' in progress while updating model."); //$NON-NLS-1$ //$NON-NLS-2$
+			if (srcRefreshable.getQueryState(QueryType.CHILD_LIST) == QueryState.DONE) {
 				dstRefreshable.setQueryState(QueryType.CHILD_LIST, srcRefreshable.getQueryState(QueryType.CHILD_LIST));
 				if (dst instanceof IContainerModelNode) {
 					((IContainerModelNode)dst).clear();
