@@ -76,4 +76,17 @@ public class AsyncRefreshableCtxAdapter implements IAsyncRefreshableCtx {
     public void setPendingOperationNode(PendingOperationModelNode pendingNode) {
     	this.pendingNode = pendingNode;
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+    	StringBuilder buffer = new StringBuilder();
+    	buffer.append("states="); //$NON-NLS-1$
+    	buffer.append(states.toString());
+    	buffer.append(", pendingNode="); //$NON-NLS-1$
+    	buffer.append(pendingNode);
+        return buffer.toString();
+    }
 }
