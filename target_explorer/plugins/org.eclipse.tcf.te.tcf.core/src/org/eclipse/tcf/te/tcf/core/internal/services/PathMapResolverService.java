@@ -56,6 +56,10 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 		Assert.isNotNull(rule);
 		Assert.isNotNull(fnm);
 
+		// Note: For reverse mapping the path map rule, rules having an
+		// absolute path in the destination field but not in the source
+		// field are ignored.
+
 		String dst = rule.getDestination();
 		if (dst == null) return null;
 		if (!(new Path(dst).isPrefixOf(new Path(fnm)))) return null;
@@ -65,6 +69,10 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 		}
 		String src = rule.getSource();
 		if (src == null || src.length() == 0) return null;
+		if (new Path(dst).isAbsolute() && !src.startsWith("/") //$NON-NLS-1$
+					&& (src.indexOf(':') == -1 || src.indexOf(':') > src.indexOf('/'))) {
+			return null;
+		}
 		int l = dst.length();
 		if (src.endsWith("/") && l < fnm.length() && fnm.charAt(l) == '/') l++; //$NON-NLS-1$
 		return new Path(src + fnm.substring(l)).toString();

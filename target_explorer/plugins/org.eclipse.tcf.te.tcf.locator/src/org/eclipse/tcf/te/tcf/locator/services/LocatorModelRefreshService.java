@@ -526,8 +526,8 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		List<IPeerModel> nodesToProcess = new ArrayList<IPeerModel>(Arrays.asList(nodes != null ? nodes : model.getPeers()));
 		// Loop the list of static peers and try to get the agent ID
 		for (IPeerModel node : nodesToProcess) {
-			// If not static --> ignore
-			if (!node.isStatic()) continue;
+			// If not static or not complete --> ignore
+			if (!node.isStatic() || !node.isComplete()) continue;
 			// Refresh the agent ID
 			refreshAgentID(node, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
 		}
