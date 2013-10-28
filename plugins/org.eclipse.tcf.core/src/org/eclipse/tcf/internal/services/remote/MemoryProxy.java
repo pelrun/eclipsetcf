@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,10 +33,24 @@ public class MemoryProxy implements IMemory {
         new HashMap<MemoryListener,IChannel.IEventListener>();
 
     private static class Range implements Comparable<Range> {
-        int offs;
-        int size;
-        int stat;
-        String msg;
+        final int offs;
+        final int size;
+        final int stat;
+        final String msg;
+
+        Range(int offs, int size, int stat, String msg) {
+            this.offs = offs;
+            this.size = size;
+            this.stat = stat;
+            this.msg = msg;
+        }
+
+        @Override
+        public int compareTo(Range o) {
+            if (offs < o.offs) return -1;
+            if (offs > o.offs) return +1;
+            return 0;
+        }
 
         @Override
         public boolean equals(Object o) {
@@ -44,10 +58,9 @@ public class MemoryProxy implements IMemory {
             return false;
         }
 
-        public int compareTo(Range o) {
-            if (offs < o.offs) return -1;
-            if (offs > o.offs) return +1;
-            return 0;
+        @Override
+        public int hashCode() {
+            return offs;
         }
     }
 
@@ -67,13 +80,13 @@ public class MemoryProxy implements IMemory {
                 int n = 0;
                 BigInteger addr_bi = JSON.toBigInteger(addr);
                 for (Map<String,Object> m : c) {
-                    Range r = new Range();
                     Number x = (Number)m.get(RANGE_KEY_ADDR);
                     BigInteger y = JSON.toBigInteger(x);
-                    r.offs = y.subtract(addr_bi).intValue();
-                    r.size = ((Number)m.get(RANGE_KEY_SIZE)).intValue();
-                    r.stat = ((Number)m.get(RANGE_KEY_STAT)).intValue();
-                    r.msg = Command.toErrorString(m.get(RANGE_KEY_MSG));
+                    Range r = new Range(
+                            y.subtract(addr_bi).intValue(),
+                            ((Number)m.get(RANGE_KEY_SIZE)).intValue(),
+                            ((Number)m.get(RANGE_KEY_STAT)).intValue(),
+                            Command.toErrorString(m.get(RANGE_KEY_MSG)));
                     assert r.offs >= 0;
                     assert r.size >= 0;
                     this.ranges[n++] = r;
