@@ -266,6 +266,18 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 bf.append(", ");
                 bf.append("Oct: ", SWT.BOLD);
                 bf.append(toNumberString(8), StyledStringBuffer.MONOSPACED);
+                if ("PC".equals(ctx.getRole())) {
+                    TCFNode p = parent;
+                    while (p != null) {
+                        if (p instanceof TCFNodeExecContext) {
+                            TCFNodeExecContext exe = (TCFNodeExecContext)p;
+                            BigInteger addr = TCFNumberFormat.toBigInteger(v, 0, v.length, ctx.isBigEndian(), false);
+                            if (!exe.appendPointedObject(bf, addr, done)) return false;
+                            break;
+                        }
+                        p = p.parent;
+                    }
+                }
                 bf.append('\n');
                 bf.append("Bin: ", SWT.BOLD);
                 bf.append(toNumberString(2), StyledStringBuffer.MONOSPACED);
@@ -285,6 +297,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 if (l < bf.length()) bf.append(", ");
                 bf.append("Size: ", SWT.BOLD);
                 bf.append(size.toString(10), StyledStringBuffer.MONOSPACED);
+                bf.append(size.compareTo(BigInteger.ONE) == 0 ? " byte" : " bytes");
             }
             if (ctx.isReadable()) {
                 if (l < bf.length()) bf.append(", ");

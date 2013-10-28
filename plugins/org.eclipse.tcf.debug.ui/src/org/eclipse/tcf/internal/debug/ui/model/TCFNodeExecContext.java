@@ -29,6 +29,7 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputUpdat
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.debug.ui.memory.IMemoryRenderingSite;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.SWT;
 import org.eclipse.tcf.debug.ui.ITCFDebugUIConstants;
 import org.eclipse.tcf.debug.ui.ITCFExecContext;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
@@ -1578,6 +1579,42 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     void riseTraceLimit() {
         children_stack.riseTraceLimit();
         postStackChangedDelta();
+    }
+
+    boolean appendPointedObject(StyledStringBuffer bf, BigInteger addr, Runnable done) {
+        TCFDataCache<TCFNodeExecContext> mem_node_cache = model.searchMemoryContext(this);
+        if (mem_node_cache == null) return true;
+        if (!mem_node_cache.validate(done)) return false;
+        if (mem_node_cache.getData() == null) return true;
+        TCFDataCache<TCFFunctionRef> func_info_cache = mem_node_cache.getData().getFuncInfo(addr);
+        if (func_info_cache == null) return true;
+        if (!func_info_cache.validate(done)) return false;
+        TCFFunctionRef func_ref = func_info_cache.getData();
+        if (func_ref != null && func_ref.symbol_id != null) {
+            TCFDataCache<ISymbols.Symbol> sym_cache = model.getSymbolInfoCache(func_ref.symbol_id);
+            if (!sym_cache.validate(done)) return false;
+            ISymbols.Symbol sym_data = sym_cache.getData();
+            if (sym_data != null && sym_data.getName() != null) {
+                bf.append(", ");
+                bf.append("At: ", SWT.BOLD);
+                bf.append(sym_data.getName());
+                if (sym_data.getSymbolClass() == ISymbols.SymbolClass.function) {
+                    bf.append("()");
+                }
+                BigInteger func_addr = JSON.toBigInteger(sym_data.getAddress());
+                if (func_addr != null) {
+                    BigInteger addr_offs = addr.subtract(func_addr);
+                    int cmp = addr_offs.compareTo(BigInteger.ZERO);
+                    if (cmp > 0) {
+                        bf.append(" + 0x" + addr_offs.toString(16));
+                    }
+                    else if (cmp < 0) {
+                        bf.append(" - 0x" + addr_offs.abs().toString(16));
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     public boolean hasSuspendedChildren(ChildrenStateInfo info, Runnable done) {

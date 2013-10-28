@@ -38,7 +38,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.debug.ui.ITCFExpression;
 import org.eclipse.tcf.debug.ui.ITCFPrettyExpressionProvider;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
-import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
@@ -1457,41 +1456,15 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         IExpressions.Value v = value.getData();
         assert data == v.getValue();
         if (v.getTypeClass() == ISymbols.TypeClass.pointer) {
-            TCFDataCache<TCFNodeExecContext> mem_node_cache = model.searchMemoryContext(parent);
-            if (mem_node_cache != null) {
-                if (!mem_node_cache.validate(done)) return false;
-                if (mem_node_cache.getData() != null) {
+            TCFNode p = parent;
+            while (p != null) {
+                if (p instanceof TCFNodeExecContext) {
+                    TCFNodeExecContext exe = (TCFNodeExecContext)p;
                     BigInteger addr = TCFNumberFormat.toBigInteger(data, 0, data.length, big_endian, false);
-                    TCFDataCache<TCFFunctionRef> func_info_cache = mem_node_cache.getData().getFuncInfo(addr);
-                    if (func_info_cache != null) {
-                        if (!func_info_cache.validate(done)) return false;
-                        TCFFunctionRef func_ref = func_info_cache.getData();
-                        if (func_ref != null && func_ref.symbol_id != null) {
-                            TCFDataCache<ISymbols.Symbol> sym_cache = model.getSymbolInfoCache(func_ref.symbol_id);
-                            if (!sym_cache.validate(done)) return false;
-                            ISymbols.Symbol sym_data = sym_cache.getData();
-                            if (sym_data != null && sym_data.getName() != null) {
-                                bf.append(", ");
-                                bf.append("At: ", SWT.BOLD);
-                                bf.append(sym_data.getName());
-                                if (sym_data.getSymbolClass() == ISymbols.SymbolClass.function) {
-                                    bf.append("()");
-                                }
-                                BigInteger func_addr = JSON.toBigInteger(sym_data.getAddress());
-                                if (func_addr != null) {
-                                    BigInteger addr_offs = addr.subtract(func_addr);
-                                    int cmp = addr_offs.compareTo(BigInteger.ZERO);
-                                    if (cmp > 0) {
-                                        bf.append(" + 0x" + addr_offs.toString(16));
-                                    }
-                                    else if (cmp < 0) {
-                                        bf.append(" - 0x" + addr_offs.abs().toString(16));
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    if (!exe.appendPointedObject(bf, addr, done)) return false;
+                    break;
                 }
+                p = p.parent;
             }
         }
         bf.append('\n');
@@ -1522,7 +1495,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 String s = getTypeName(type_class, size);
                 if (s == null) s = "not available";
                 bf.append("Size: ", SWT.BOLD);
-                bf.append(size);
+                bf.append(Integer.toString(size), StyledStringBuffer.MONOSPACED);
                 bf.append(size == 1 ? " byte" : " bytes");
                 bf.append(", ");
                 bf.append("Type: ", SWT.BOLD);
@@ -1599,7 +1572,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         if (level == 0) {
             if (!type_name.validate(done)) return false;
             bf.append("Size: ", SWT.BOLD);
-            bf.append(type_data.getSize());
+            bf.append(Integer.toString(type_data.getSize()), StyledStringBuffer.MONOSPACED);
             bf.append(type_data.getSize() == 1 ? " byte" : " bytes");
             String nm = type_name.getData();
             if (nm != null) {
