@@ -258,7 +258,7 @@ public class MemoryMapWidget {
                 }
                 return;
             }
-            
+
             if (mem_ctx != null && mem_ctx.getID() != null && mem_ctx.getID().equals(context_id)) {
                 if (cfg != null && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
                     final ILaunchConfiguration lc = cfg;
@@ -287,7 +287,7 @@ public class MemoryMapWidget {
     public void dispose() {
         if (disposed) return;
         disposed = true;
-        
+
         if (cError != null) {
             cError.dispose();
             cError = null;
@@ -306,7 +306,7 @@ public class MemoryMapWidget {
             });
         }
     }
-    
+
     public boolean setTCFNode(TCFNode node) {
         if (node == null && selection == null || node != null && node.equals(selection)) {
             return false;
