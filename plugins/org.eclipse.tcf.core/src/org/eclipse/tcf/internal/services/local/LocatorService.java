@@ -384,9 +384,14 @@ public class LocatorService implements ILocator {
             input_thread.setDaemon(true);
             timer_thread.setDaemon(true);
             dns_lookup_thread.setDaemon(true);
-            input_thread.start();
-            timer_thread.start();
-            dns_lookup_thread.start();
+            Protocol.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    input_thread.start();
+                    timer_thread.start();
+                    dns_lookup_thread.start();
+                }
+            });
             listeners.add(new LocatorListener() {
 
                 public void peerAdded(IPeer peer) {
