@@ -54,6 +54,7 @@ public final class Protocol {
             this.run = run;
         }
 
+        @Override
         public int compareTo(Timer x) {
             if (x == this) return 0;
             if (time < x.time) return -1;
@@ -62,6 +63,16 @@ public final class Protocol {
             if (id > x.id) return +1;
             assert false;
             return 0;
+        }
+
+        @Override
+        public boolean equals(Object y) {
+            return (y instanceof Timer) && compareTo((Timer)y) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return id;
         }
     }
 
