@@ -598,7 +598,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             l.error = error;
                             l.props = props;
                             local_var_location.put(id, l);
-                            List<Object> cmds = (List<Object>)props.get(ISymbols.LOC_VALUE_CMDS);
+                            List<Object> cmds = null;
+                            if (props != null) cmds = (List<Object>)props.get(ISymbols.LOC_VALUE_CMDS);
                             if (error != null) {
                                 if (error instanceof IErrorReport &&
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
