@@ -248,26 +248,35 @@ public class LocatorService implements ILocator {
      * Wrapper for final class DatagramPacket so its toString() can present
      * the value in the debugger in a readable fashion.
      */
-    private class InputPacket {
-        private DatagramPacket p;
-        protected InputPacket(DatagramPacket dgPacket) {
-            p = dgPacket;
+    private static class InputPacket {
+
+        final DatagramPacket p;
+
+        InputPacket(DatagramPacket p) {
+            this.p = p;
         }
-        protected DatagramPacket getPacket() {
+
+        DatagramPacket getPacket() {
             return p;
         }
-        protected int getLength() {
+
+        int getLength() {
             return p.getLength();
         }
-        protected byte[] getData() {
+
+        byte[] getData() {
             return p.getData();
         }
-        public int getPort() {
+
+        int getPort() {
             return p.getPort();
         }
-        public InetAddress getAddress() {
+
+        InetAddress getAddress() {
             return p.getAddress();
         }
+
+        @Override
         public String toString() {
             return "[address=" + p.getAddress().toString()
                  + ",port=" + p.getPort()
@@ -281,8 +290,7 @@ public class LocatorService implements ILocator {
                 for (;;) {
                     DatagramSocket socket = LocatorService.this.socket;
                     try {
-                        final InputPacket p
-                          = new InputPacket(new DatagramPacket(inp_buf, inp_buf.length));
+                        final InputPacket p = new InputPacket(new DatagramPacket(inp_buf, inp_buf.length));
                         socket.receive(p.getPacket());
                         Protocol.invokeAndWait(new Runnable() {
                             public void run() {
@@ -393,18 +401,18 @@ public class LocatorService implements ILocator {
                 }
             });
             listeners.add(new LocatorListener() {
-
+                @Override
                 public void peerAdded(IPeer peer) {
                     sendPeerInfo(peer, null, 0);
                 }
-
+                @Override
                 public void peerChanged(IPeer peer) {
                     sendPeerInfo(peer, null, 0);
                 }
-
+                @Override
                 public void peerHeartBeat(String id) {
                 }
-
+                @Override
                 public void peerRemoved(String id) {
                 }
             });
