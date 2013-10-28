@@ -734,13 +734,13 @@ public class TCFLaunch extends Launch {
 
     /**
      * Returns the client ID to use to mark the path map rules managed by this client.
-     * 
+     *
      * @return The client ID.
      */
     protected String getClientID() {
         return Activator.getClientID();
     }
-    
+
     /**
      * Add custom path map rules to the host path map before applying the path map.
      *
@@ -765,7 +765,7 @@ public class TCFLaunch extends Launch {
 
     /**
      * Apply the path map to the given channel.
-     * 
+     *
      * @param channel The channel. Must not be <code>null</code>.
      * @param map The path map. Must not be <code>null</code>.
      * @param done The done to invoke. Must not be <code>null</code>.
@@ -774,7 +774,7 @@ public class TCFLaunch extends Launch {
         IPathMap path_map_service = getService(IPathMap.class);
         path_map_service.set(map, done);
     }
-    
+
     private String[] toArgsArray(String file, String cmd) {
         // Create arguments list from a command line.
         int i = 0;
@@ -1295,7 +1295,7 @@ public class TCFLaunch extends Launch {
             return;
         }
         for (final String rx_id : uart_rx_stream_ids.keySet()) {
-            if (uart_rx_stream_ids.get(rx_id) != prs_id) continue;
+            if (!prs_id.equals(uart_rx_stream_ids.get(rx_id))) continue;
             streams.write(rx_id, buf, pos, len, new IStreams.DoneWrite() {
                 public void doneWrite(IToken token, Exception error) {
                     if (error == null) return;
