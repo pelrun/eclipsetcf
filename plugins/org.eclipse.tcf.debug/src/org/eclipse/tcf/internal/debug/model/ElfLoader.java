@@ -313,7 +313,7 @@ public class ElfLoader implements Runnable {
             BigInteger phoff = readNumberX();
             @SuppressWarnings("unused")
             BigInteger shoff = readNumberX();
-            file.skipBytes(6);
+            file.seek(file.getFilePointer() + 6);
             int phentsize = readInt2();
             int phnum = readInt2();
 
