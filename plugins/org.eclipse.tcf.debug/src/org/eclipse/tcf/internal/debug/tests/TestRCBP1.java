@@ -12,6 +12,7 @@ package org.eclipse.tcf.internal.debug.tests;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -831,7 +832,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 HashSet<String> s = new HashSet<String>();
                 for (String id : ids) s.add(id);
                 if (ids.length != s.size()) {
-                    exit(new Exception("Invalis BP list: " + ids));
+                    exit(new Exception("Invalis BP list: " + Arrays.toString(ids)));
                     return;
                 }
                 for (String id : bp_list.keySet()) {
