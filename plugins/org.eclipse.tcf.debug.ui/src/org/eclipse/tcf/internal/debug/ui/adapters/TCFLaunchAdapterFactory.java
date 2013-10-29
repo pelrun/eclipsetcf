@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.debug.ui.adapters;
 
 import org.eclipse.core.runtime.IAdapterFactory;
+import org.eclipse.debug.core.model.IDebugModelProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementContentProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementLabelProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelProxyFactory;
@@ -28,6 +29,7 @@ public class TCFLaunchAdapterFactory implements IAdapterFactory {
         IModelProxyFactory.class,
         ISuspendTrigger.class,
         IPropertySource.class,
+        IDebugModelProvider.class,
     };
 
     private static final IElementLabelProvider launch_label_provider = new TCFLaunchLabelProvider();
@@ -40,6 +42,7 @@ public class TCFLaunchAdapterFactory implements IAdapterFactory {
             if (model != null) {
                 if (to.isInstance(model)) return model;
                 if (to == IPropertySource.class) return new TCFNodePropertySource(model.getRootNode());
+                if (to == IDebugModelProvider.class) return model.getAdapter(to, model.getRootNode());
             }
             return null;
         }

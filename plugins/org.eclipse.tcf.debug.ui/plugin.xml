@@ -31,6 +31,7 @@
          <adapter type="org.eclipse.debug.internal.ui.viewers.model.provisional.IModelProxyFactory"/>
          <adapter type="org.eclipse.ui.views.properties.IPropertySource"/>
          <adapter type="org.eclipse.debug.ui.contexts.ISuspendTrigger"/>
+         <adapter type="org.eclipse.debug.core.model.IDebugModelProvider"/>
       </factory>
       <factory
          class="org.eclipse.tcf.internal.debug.ui.adapters.TCFNodeAdapterFactory"
