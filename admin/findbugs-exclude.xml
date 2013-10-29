@@ -282,11 +282,39 @@
 		<Class name="org.eclipse.tcf.internal.debug.model.TCFLaunch"/>
 		<Method name="getListeners"/>
 	</Match>
+	<Match>
+		<Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+		<Class name="org.eclipse.tcf.internal.debug.launch.TCFLocalAgent"/>
+		<Method name="runLocalAgent"/>
+	</Match>
+	<Match>
+		<Bug pattern="DM_EXIT"/>
+		<Class name="~org\.eclipse\.tcf\.internal\.debug\.tests\.Main.*"/>
+	</Match>
 
 	<!-- Filters for org.eclipse.tcf.debug.ui bundle -->
 	<Match>
 		<Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
 		<Class name="org.eclipse.tcf.internal.debug.ui.model.TCFNodeSymbol"/>
+	</Match>
+	<Match>
+		<Bug pattern="LI_LAZY_INIT_STATIC"/>
+		<Class name="org.eclipse.tcf.internal.debug.ui.Activator"/>
+	</Match>
+	<Match>
+		<Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+		<Class name="org.eclipse.tcf.internal.debug.ui.model.TCFChildrenStackTrace"/>
+		<Method name="checkHasChildren"/>
+	</Match>
+	<Match>
+		<Bug pattern="LI_LAZY_INIT_UPDATE_STATIC"/>
+		<Class name="org.eclipse.tcf.internal.debug.ui.model.TCFModelFonts"/>
+		<Method name="getNormalFontData"/>
+	</Match>
+	<Match>
+		<Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+		<Class name="org.eclipse.tcf.internal.debug.ui.model.TCFNodeExpression"/>
+		<Method name="usePrevValue"/>
 	</Match>
 
 </FindBugsFilter>
