@@ -1393,7 +1393,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (field_props.getSymbolClass() != ISymbols.SymbolClass.reference) continue;
             if (field_props.getFlag(ISymbols.SYM_FLAG_ARTIFICIAL)) continue;
             String name = field_props.getName();
-            if (name == null && type != null && field_props.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
+            if (name == null && field_props.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
                 name = type.getName();
             }
             TCFNodeExpression field_node = null;
