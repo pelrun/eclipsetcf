@@ -240,26 +240,20 @@
 	<!-- Filters for org.eclipse.tcf bundle -->
 	<Match>
 		<Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
-		<And>
-			<Class name="org.eclipse.tcf.Activator"/>
-			<Method name="initialize"/>
-		</And>
+		<Class name="org.eclipse.tcf.Activator"/>
+		<Method name="initialize"/>
 	</Match>
 
 	<!-- Filters for org.eclipse.tcf.core bundle -->
 	<Match>
 		<Bug pattern="EI_EXPOSE_REP2"/>
-		<And>
-			<Class name="org.eclipse.tcf.core.Command"/>
-			<Method name="initialize"/>
-		</And>
+		<Class name="org.eclipse.tcf.core.Command"/>
+		<Method name="initialize"/>
 	</Match>
 	<Match>
 		<Bug pattern="STCAL_INVOKE_ON_STATIC_DATE_FORMAT_INSTANCE"/>
-		<And>
-			<Class name="org.eclipse.tcf.core.Command"/>
-			<Method name="appendErrorProps"/>
-		</And>
+		<Class name="org.eclipse.tcf.core.Command"/>
+		<Method name="appendErrorProps"/>
 	</Match>
 	<Match>
 		<Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS"/>
@@ -267,34 +261,26 @@
 	</Match>
 	<Match>
 		<Bug pattern="NN_NAKED_NOTIFY"/>
-		<And>
-			<Class name="org.eclipse.tcf.protocol.Protocol"/>
-			<Method name="invokeAndWait"/>
-		</And>
+		<Class name="org.eclipse.tcf.protocol.Protocol$3"/>
+		<Method name="run"/>
 	</Match>
 	<Match>
 		<Bug pattern="UW_UNCOND_WAIT"/>
-		<And>
-			<Class name="org.eclipse.tcf.protocol.Protocol"/>
-			<Method name="invokeAndWait"/>
-		</And>
+		<Class name="org.eclipse.tcf.protocol.Protocol"/>
+		<Method name="invokeAndWait"/>
 	</Match>
 	<Match>
 		<Bug pattern="WA_NOT_IN_LOOP"/>
-		<And>
-			<Class name="org.eclipse.tcf.protocol.Protocol"/>
-			<Method name="invokeAndWait"/>
-		</And>
+		<Class name="org.eclipse.tcf.protocol.Protocol"/>
+		<Method name="invokeAndWait"/>
 	</Match>
 
 
 	<!-- Filters for org.eclipse.tcf.debug bundle -->
 	<Match>
 		<Bug pattern="LI_LAZY_INIT_STATIC"/>
-		<And>
-			<Class name="org.eclipse.tcf.internal.debug.model.TCFLaunch"/>
-			<Method name="getListeners"/>
-		</And>
+		<Class name="org.eclipse.tcf.internal.debug.model.TCFLaunch"/>
+		<Method name="getListeners"/>
 	</Match>
 
 	<!-- Filters for org.eclipse.tcf.debug.ui bundle -->
