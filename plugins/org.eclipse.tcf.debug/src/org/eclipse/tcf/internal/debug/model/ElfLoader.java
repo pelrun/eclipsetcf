@@ -433,7 +433,7 @@ public class ElfLoader implements Runnable {
         if (errors.size() == 0 && mem_ctx == null) {
             /* Download the file */
             String id = (String)args.get(TCFLaunchDelegate.FILES_CONTEXT_ID);
-            if (id != null) {
+            if (id != null && contexts.get(id) != null) {
                 cmds.add(service_mem.getContext(id, done_mem_get_context));
                 return;
             }
@@ -442,9 +442,9 @@ public class ElfLoader implements Runnable {
                 for (IRunControl.RunControlContext ctx : contexts.values()) {
                     if (name.equals(getFullName(ctx))) {
                         cmds.add(service_mem.getContext(ctx.getID(), done_mem_get_context));
+                        return;
                     }
                 }
-                if (cmds.size() > 0) return;
             }
             /* Wait for context */
             if (System.currentTimeMillis() - start_time < 5000) {
