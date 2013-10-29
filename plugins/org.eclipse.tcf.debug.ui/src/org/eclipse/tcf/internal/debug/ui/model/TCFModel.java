@@ -688,6 +688,36 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         }
     }
 
+    private final IPreferenceStore prefs_store = TCFPreferences.getPreferenceStore();
+
+    private final IPropertyChangeListener prefs_listener = new IPropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent event) {
+            launch.setContextActionsInterval(prefs_store.getLong(TCFPreferences.PREF_MIN_STEP_INTERVAL));
+            min_view_updates_interval = prefs_store.getLong(TCFPreferences.PREF_MIN_UPDATE_INTERVAL);
+            view_updates_throttle_enabled = prefs_store.getBoolean(TCFPreferences.PREF_VIEW_UPDATES_THROTTLE);
+            channel_throttle_enabled = prefs_store.getBoolean(TCFPreferences.PREF_TARGET_TRAFFIC_THROTTLE);
+            wait_for_pc_update_after_step = prefs_store.getBoolean(TCFPreferences.PREF_WAIT_FOR_PC_UPDATE_AFTER_STEP);
+            wait_for_views_update_after_step = prefs_store.getBoolean(TCFPreferences.PREF_WAIT_FOR_VIEWS_UPDATE_AFTER_STEP);
+            delay_stack_update_until_last_step = prefs_store.getBoolean(TCFPreferences.PREF_DELAY_STACK_UPDATE_UNTIL_LAST_STEP);
+            stack_frames_limit_enabled = prefs_store.getBoolean(TCFPreferences.PREF_STACK_FRAME_LIMIT_ENABLED);
+            stack_frames_limit_value = prefs_store.getInt(TCFPreferences.PREF_STACK_FRAME_LIMIT_VALUE);
+            show_function_arg_names = prefs_store.getBoolean(TCFPreferences.PREF_STACK_FRAME_ARG_NAMES);
+            show_function_arg_values = prefs_store.getBoolean(TCFPreferences.PREF_STACK_FRAME_ARG_VALUES);
+            auto_children_list_updates = prefs_store.getBoolean(TCFPreferences.PREF_AUTO_CHILDREN_LIST_UPDATES);
+            delay_children_list_updates = prefs_store.getBoolean(TCFPreferences.PREF_DELAY_CHILDREN_LIST_UPDATES);
+            show_full_error_reports = prefs_store.getBoolean(TCFPreferences.PREF_FULL_ERROR_REPORTS);
+            Protocol.invokeLater(new Runnable() {
+                public void run() {
+                    for (TCFNode n : id2node.values()) {
+                        if (n instanceof TCFNodeExecContext) {
+                            ((TCFNodeExecContext)n).onPreferencesChanged();
+                        }
+                    }
+                }
+            });
+        }
+    };
+
     private volatile boolean instruction_stepping_enabled;
 
     TCFModel(final TCFLaunch launch) {
@@ -714,36 +744,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         expr_manager.addExpressionListener(expressions_listener);
         annotation_manager = Activator.getAnnotationManager();
         launch.addActionsListener(actions_listener);
-        final IPreferenceStore prefs = TCFPreferences.getPreferenceStore();
-        IPropertyChangeListener listener = new IPropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent event) {
-                launch.setContextActionsInterval(prefs.getLong(TCFPreferences.PREF_MIN_STEP_INTERVAL));
-                min_view_updates_interval = prefs.getLong(TCFPreferences.PREF_MIN_UPDATE_INTERVAL);
-                view_updates_throttle_enabled = prefs.getBoolean(TCFPreferences.PREF_VIEW_UPDATES_THROTTLE);
-                channel_throttle_enabled = prefs.getBoolean(TCFPreferences.PREF_TARGET_TRAFFIC_THROTTLE);
-                wait_for_pc_update_after_step = prefs.getBoolean(TCFPreferences.PREF_WAIT_FOR_PC_UPDATE_AFTER_STEP);
-                wait_for_views_update_after_step = prefs.getBoolean(TCFPreferences.PREF_WAIT_FOR_VIEWS_UPDATE_AFTER_STEP);
-                delay_stack_update_until_last_step = prefs.getBoolean(TCFPreferences.PREF_DELAY_STACK_UPDATE_UNTIL_LAST_STEP);
-                stack_frames_limit_enabled = prefs.getBoolean(TCFPreferences.PREF_STACK_FRAME_LIMIT_ENABLED);
-                stack_frames_limit_value = prefs.getInt(TCFPreferences.PREF_STACK_FRAME_LIMIT_VALUE);
-                show_function_arg_names = prefs.getBoolean(TCFPreferences.PREF_STACK_FRAME_ARG_NAMES);
-                show_function_arg_values = prefs.getBoolean(TCFPreferences.PREF_STACK_FRAME_ARG_VALUES);
-                auto_children_list_updates = prefs.getBoolean(TCFPreferences.PREF_AUTO_CHILDREN_LIST_UPDATES);
-                delay_children_list_updates = prefs.getBoolean(TCFPreferences.PREF_DELAY_CHILDREN_LIST_UPDATES);
-                show_full_error_reports = prefs.getBoolean(TCFPreferences.PREF_FULL_ERROR_REPORTS);
-                Protocol.invokeLater(new Runnable() {
-                    public void run() {
-                        for (TCFNode n : id2node.values()) {
-                            if (n instanceof TCFNodeExecContext) {
-                                ((TCFNodeExecContext)n).onPreferencesChanged();
-                            }
-                        }
-                    }
-                });
-            }
-        };
-        listener.propertyChange(null);
-        prefs.addPropertyChangeListener(listener);
+        prefs_listener.propertyChange(null);
+        prefs_store.addPropertyChangeListener(prefs_listener);
         List<ITCFPresentationProvider> l = new ArrayList<ITCFPresentationProvider>();
         for (ITCFPresentationProvider p : TCFPresentationProvider.getPresentationProviders()) {
             try {
@@ -1094,6 +1096,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 }
             }
         }
+        prefs_store.removePropertyChangeListener(prefs_listener);
         launch.removeActionsListener(actions_listener);
         expr_manager.removeExpressionListener(expressions_listener);
         for (TCFConsole c : process_consoles.values()) c.close();
