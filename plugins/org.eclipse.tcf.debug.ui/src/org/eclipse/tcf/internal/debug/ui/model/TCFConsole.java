@@ -145,7 +145,11 @@ class TCFConsole extends AbstractConsole {
         @Override
         public void dispose() {
             if (view_control != null) {
-                view_control.disconnectTerminal();
+
+                // TODO: need a way to stop terminal update timer, see PollingTextCanvasModel
+                // It the timer is not stopped, it causes memory leak
+
+                view_control.disposeTerminal();
                 view_control.setConnector(null);
                 view_control = null;
             }

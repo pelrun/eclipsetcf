@@ -1010,6 +1010,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     }
 
     private void onContextRemoved(String[] context_ids) {
+        HashSet<String> set = new HashSet<String>();
         for (String id : context_ids) {
             TCFNode node = getNode(id);
             if (node instanceof TCFNodeExecContext) {
@@ -1020,9 +1021,37 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 }
             }
             action_results.remove(id);
-            context_map.remove(id);
             if (mem_blocks_update != null) mem_blocks_update.changeset.remove(id);
+            set.add(id);
         }
+
+        for (;;) {
+            int n = set.size();
+            for (Map.Entry<String,Object> e : context_map.entrySet()) {
+                Object obj = e.getValue();
+                if (obj instanceof IRunControl.RunControlContext) {
+                    IRunControl.RunControlContext x = (IRunControl.RunControlContext)obj;
+                    if (set.contains(x.getParentID())) set.add(x.getID());
+                    String pid = x.getProcessID();
+                    if (pid != null && set.contains(pid)) set.add(x.getID());
+                }
+                else if (obj instanceof IStackTrace.StackTraceContext) {
+                    IStackTrace.StackTraceContext x = (IStackTrace.StackTraceContext)obj;
+                    if (set.contains(x.getParentID())) set.add(x.getID());
+                }
+                else if (obj instanceof IRegisters.RegistersContext) {
+                    IRegisters.RegistersContext x = (IRegisters.RegistersContext)obj;
+                    if (set.contains(x.getParentID())) set.add(x.getID());
+                    String pid = x.getProcessID();
+                    if (pid != null && set.contains(pid)) set.add(x.getID());
+                }
+                else if (obj instanceof Throwable) {
+                    set.add(e.getKey());
+                }
+            }
+            if (n == set.size()) break;
+        }
+        context_map.keySet().removeAll(set);
 
         launch_node.onAnyContextAddedOrRemoved();
         // Close debug session if the last context is removed:
@@ -1085,6 +1114,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     }
 
     void dispose() {
+        assert Protocol.isDispatchThread();
         if (launch_node != null) onDisconnected();
         if (view_request_listeners != null) {
             for (ITCFPresentationProvider p : view_request_listeners) {
@@ -1102,6 +1132,11 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         for (TCFConsole c : process_consoles.values()) c.close();
         for (TCFConsole c : debug_consoles) c.close();
         if (dprintf_console != null) dprintf_console.close();
+        process_consoles.clear();
+        debug_consoles.clear();
+        dprintf_console = null;
+        context_map.clear();
+        assert id2node.size() == 0;
         disposed = true;
     }
 
@@ -1109,6 +1144,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         assert id != null;
         assert Protocol.isDispatchThread();
         assert id2node.get(id) == null;
+        assert launch_node != null;
         assert !node.isDisposed();
         id2node.put(id, node);
     }
@@ -1346,7 +1382,6 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         final ArrayList<Runnable> waiting_list = new ArrayList<Runnable>();
         final ArrayList<IService> service_list = new ArrayList<IService>();
 
-        // TODO: context_map can accumulate "Invalid context ID" errors
         CreateNodeRunnable(String id) {
             this.id = id;
             assert context_map.get(id) == null;
