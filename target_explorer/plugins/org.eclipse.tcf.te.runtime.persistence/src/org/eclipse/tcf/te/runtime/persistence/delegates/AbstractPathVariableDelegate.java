@@ -11,7 +11,6 @@
 package org.eclipse.tcf.te.runtime.persistence.delegates;
 
 import org.eclipse.core.runtime.Path;
-import org.eclipse.tcf.te.runtime.utils.Host;
 
 /**
  * AbstractPathVariableDelegate
@@ -31,8 +30,8 @@ public abstract class AbstractPathVariableDelegate extends AbstractVariableDeleg
 	@Override
 	protected Object useVariable(String key, Object value, String variableName, String variableValue) {
 		if (isPathKey(key) && value instanceof String) {
-			String valuePath = new Path(Host.isWindowsHost() ? ((String)value).toLowerCase() : (String)value).toString();
-			String variablePath = new Path(Host.isWindowsHost() ? variableValue.toLowerCase() : (String)variableValue).toString();
+			String valuePath = new Path((String)value).toString();
+			String variablePath = new Path(variableValue).toString();
 			return super.useVariable(key, valuePath, variableName, variablePath);
 		}
 

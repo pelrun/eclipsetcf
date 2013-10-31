@@ -17,9 +17,9 @@ import org.eclipse.core.runtime.IConfigurationElement;
 
 /**
  * General path variable delegate that can be configured directly in the contributions.
- * 
+ *
  * To set the list of handled keys you have to use the <code>class</code> and <code>parameter</code> tags
- * with <b>keysToHandle</b> as parameter name and a coma seperated list of handled keys
+ * with <b>keysToHandle</b> as parameter name and a comma separated list of handled keys
  * (i.e. "file,directory") as parameter value.
  */
 public class PathVariableDelegate extends AbstractPathVariableDelegate {

@@ -179,8 +179,7 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 
 			if (data != null) {
 				Map<String, String> variables = null;
-				IVariableDelegate[] delegates = PersistenceManager.getInstance()
-				                .getVariableDelegates(this);
+				IVariableDelegate[] delegates = PersistenceManager.getInstance().getVariableDelegates(this);
 				for (IVariableDelegate delegate : delegates) {
 					variables = delegate.getVariables(data);
 				}

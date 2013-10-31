@@ -13,6 +13,7 @@ package org.eclipse.tcf.te.runtime.persistence.delegates;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -20,6 +21,7 @@ import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableDelegate;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IVariableProvider;
+import org.eclipse.tcf.te.runtime.utils.Host;
 
 /**
  * AbstractVariableDelegate
@@ -34,15 +36,23 @@ public abstract class AbstractVariableDelegate implements IVariableDelegate, IEx
 
 	/**
 	 * Try to use a variable inside the given value.
+	 *
 	 * @param key The key of the value.
 	 * @param value The value to inspect.
 	 * @param variableName The variable name to use.
 	 * @param variableValue The variable value.
+	 *
 	 * @return The new value if the variable was used, <code>null</code> otherwise.
 	 */
 	protected Object useVariable(String key, Object value, String variableName, String variableValue) {
-		if (value instanceof String && ((String)value).contains(variableValue)) {
-			return ((String)value).replaceAll(variableValue, "<"+variableName+">"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (value instanceof String) {
+			boolean contains = Host.isWindowsHost() ? ((String)value).toLowerCase().contains(variableValue.toLowerCase()) : ((String)value).contains(variableValue);
+			if (contains) {
+				if (Host.isWindowsHost()) {
+					return Pattern.compile(variableValue, Pattern.CASE_INSENSITIVE).matcher((String)value).replaceAll("<"+variableName+">"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				return ((String)value).replaceAll(variableValue, "<"+variableName+">"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
 		}
 		return null;
 	}
