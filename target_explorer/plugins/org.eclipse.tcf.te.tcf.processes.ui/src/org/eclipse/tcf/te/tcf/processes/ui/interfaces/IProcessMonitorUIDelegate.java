@@ -39,6 +39,26 @@ public interface IProcessMonitorUIDelegate {
 	public String getText(Object context, String columnId, String text);
 
 	/**
+	 * Returns if or if not the given column is active for the given context.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param columnId The column id. Must not be <code>null</code>.
+	 *
+	 * @return <code>True</code> if the column is active for the given context, <code>false</code> otherwise.
+	 */
+	public boolean isColumnActive(Object context, String columnId);
+
+	/**
+	 * Returns if or if not the given filter is active for the given context.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param filterId The filter id. Must not be <code>null</code>.
+	 *
+	 * @return <code>True</code> if the filter is active for the given context, <code>false</code> otherwise.
+	 */
+	public boolean isFilterActive(Object context, String filterId);
+
+	/**
 	 * Returns the list of searchables to use to find processes in the
 	 * process monitor.
 	 *

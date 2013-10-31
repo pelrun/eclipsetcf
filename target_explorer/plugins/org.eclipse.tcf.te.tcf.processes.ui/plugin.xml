@@ -49,6 +49,17 @@
       </service>
    </extension>
 
+<!-- Eclipse core expressions property tester -->
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.processes.ui.internal.properties.PropertyTester"
+            id="org.eclipse.tcf.te.tcf.processes.ui.properties"
+            namespace="processMonitor.delegatedActivation"
+            properties="isColumnActive,isFilterActive"
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+      </propertyTester>
+   </extension>
+
 <!-- Common navigator contributions -->
    <extension point="org.eclipse.ui.navigator.viewer">
       <viewerContentBinding
@@ -599,6 +610,13 @@
                resizable="true"
                visible="true"
                width="250">
+            <activation>
+               <with variable="input">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="processMonitor.delegatedActivation.isColumnActive" args="name" value="true"/>
+                  </adapt>
+               </with>
+            </activation>
          </column>
          <column
                comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PIDComparator"
@@ -609,6 +627,13 @@
                resizable="true"
                visible="true"
                width="50">
+            <activation>
+               <with variable="input">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="processMonitor.delegatedActivation.isColumnActive" args="PID" value="true"/>
+                  </adapt>
+               </with>
+            </activation>
          </column>
          <column
                comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PPIDComparator"
@@ -619,6 +644,13 @@
                resizable="true"
                visible="false"
                width="50">
+            <activation>
+               <with variable="input">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="processMonitor.delegatedActivation.isColumnActive" args="PPID" value="true"/>
+                  </adapt>
+               </with>
+            </activation>
          </column>
          <column
                comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.StateComparator"
@@ -629,6 +661,13 @@
                resizable="true"
                visible="true"
                width="50">
+            <activation>
+               <with variable="input">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="processMonitor.delegatedActivation.isColumnActive" args="state" value="true"/>
+                  </adapt>
+               </with>
+            </activation>
          </column>
          <column
                comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.UserComparator"
@@ -639,6 +678,13 @@
                resizable="true"
                visible="true"
                width="50">
+            <activation>
+               <with variable="input">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="processMonitor.delegatedActivation.isColumnActive" args="user" value="true"/>
+                  </adapt>
+               </with>
+            </activation>
          </column>
          <column
                comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.CommandLineComparator"
@@ -649,6 +695,13 @@
                resizable="true"
                visible="true"
                width="100">
+            <activation>
+               <with variable="input">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="processMonitor.delegatedActivation.isColumnActive" args="cmdline" value="true"/>
+                  </adapt>
+               </with>
+            </activation>
          </column>
       </columnContribution>
       
@@ -659,6 +712,11 @@
                enabled="true"
                id="org.eclipse.tcf.te.tcf.processes.ui.navigator.filter.singleThread"
                name="%singlethreadfilter.name">
+            <activation>
+               <with variable="input">
+                  <test property="processMonitor.delegatedActivation.isFilterActive" args="singleThread" value="true"/>
+               </with>
+            </activation>
          </filter>
       </filterContribution>
    </extension>
