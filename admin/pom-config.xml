@@ -29,8 +29,8 @@
 	
 	<properties>
 		<!-- Define version id's to be used in the plugins section -->
-		<tycho-version>0.18.1</tycho-version>
-		<tycho-extras-version>0.18.1</tycho-extras-version>
+		<tycho-version>0.19.0</tycho-version>
+		<tycho-extras-version>0.19.0</tycho-extras-version>
 		<maven-resources-version>2.6</maven-resources-version>
 		<maven-antrun-version>1.7</maven-antrun-version>
 		<gmaven-version>1.4</gmaven-version>
@@ -99,18 +99,8 @@
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>repo.eclipse.org</id>
-     		<url>http://repo.eclipse.org/content/repositories</url>
-  			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-    	</pluginRepository>
-		<pluginRepository>
 			<id>sonatype</id>
-			<url>https://repository.sonatype.org/content/repositories/public</url>
+			<url>https://oss.sonatype.org/content/repositories/public</url>
   			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
@@ -118,6 +108,15 @@
 				<enabled>true</enabled>
 			</releases>
 		</pluginRepository>
+		<!--<pluginRepository>
+			<id>repo.eclipse.org</id>
+			<url>http://repo.eclipse.org/content/repositories</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>																		                                <enabled>true</enabled>
+			</releases>																				   </pluginRepository>
+			-->	
 		<pluginRepository>                                                                                         
 			<id>cbi</id>                                                                                         
 			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>                                             
@@ -171,7 +170,6 @@
 						<resolver>p2</resolver>
 						<ignoreTychoRepositories>true</ignoreTychoRepositories>
 						<includePackedArtifacts>true</includePackedArtifacts>
-						<pomDependencies>consider</pomDependencies>
 					</configuration>
 				</plugin>
 				<plugin>
