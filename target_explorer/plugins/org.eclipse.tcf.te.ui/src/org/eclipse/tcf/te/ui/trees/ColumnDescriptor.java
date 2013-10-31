@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.TreeColumn;
  * <li><code>name</code>, the column's name used as the column's label.</li>
  * <li><code>description</code>, the column's description used as the tooltip
  * text of the column.</li>
- * <li><code>moveable</code>, if the column is moveable.</li>
+ * <li><code>moveable</code>, if the column is move able.</li>
  * <li><code>resizable</code>, if the column is resizable.</li>
  * <li><code>visible</code>, if the column is visible.</li>
  * <li><code>style</code>, the column's style when it is created.</li>
@@ -49,8 +49,8 @@ public class ColumnDescriptor {
 	//The description of the column, used as the column's tooltip text.
 	private String description;
 
-	//If the column is moveable.
-	private boolean mveable;
+	//If the column is move able.
+	private boolean moveable;
 	//If the column is resizable, true by default.
 	private boolean resizable = true;
 	//If the column is visible, true by default.
@@ -224,16 +224,16 @@ public class ColumnDescriptor {
 	 * @param m The new value.
 	 */
 	public void setMoveable(boolean m) {
-		mveable = m;
+		moveable = m;
 	}
 
 	/**
-	 * Get if the column is moveable.
+	 * Get if the column is move able.
 	 *
-	 * @return If the column is moveable.
+	 * @return If the column is move able.
 	 */
 	public boolean isMoveable() {
-		return mveable;
+		return moveable;
 	}
 
 	/**

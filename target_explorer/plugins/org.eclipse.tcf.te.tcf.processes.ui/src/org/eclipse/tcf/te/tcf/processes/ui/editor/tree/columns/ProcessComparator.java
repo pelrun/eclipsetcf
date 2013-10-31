@@ -25,6 +25,17 @@ public class ProcessComparator implements Comparator<IProcessContextNode> , Seri
     private static final long serialVersionUID = 1L;
     private static LabelProvider labelProvider = new LabelProviderDelegate();
 
+	/**
+	 * If or if not the sorting should happen case sensitive.
+	 * <p>
+	 * The default implementation returns <code>true</code>.
+	 *
+	 * @return <code>True</code> if the sorting is case sensitive, <code>false</code> otherwise.
+	 */
+	protected boolean isCaseSensitve() {
+		return false;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
@@ -38,13 +49,19 @@ public class ProcessComparator implements Comparator<IProcessContextNode> , Seri
 		String text1 = node1 == null ? null : labelProvider.getText(node1);
 		String text2 = node2 == null ? null : labelProvider.getText(node2);
 
-		// Normalize labels
-		if (text1 == null) text1 = ""; //$NON-NLS-1$
-		if (text2 == null) text2 = ""; //$NON-NLS-1$
+		// If we fail to determine the labels, we cannot continue
+		if (text1 == null && text2 == null) return 0;
+		if (text1 != null && text2 == null) return 1;
+		if (text1 == null && text2 != null) return -1;
+
+		// Convert the labels to compare to lowercase if the sorting is case-insensitive
+		if (!isCaseSensitve()) {
+			text1 = text1.toLowerCase();
+			text2 = text2.toLowerCase();
+		}
 
 		// The tree sorts not strictly alphabetical. First comes entries starting with numbers,
-		// second entries starting with uppercase and than all the rest. Additional, if a label
-		// contains
+		// second entries starting with uppercase and than all the rest. Additional, if a label contains
 		// uppercase characters, it is sorted in before any labels being lowercase only.
 		if (text1.length() > 0 && text2.length() > 0) {
 			// Get the first characters of both
@@ -58,8 +75,7 @@ public class ProcessComparator implements Comparator<IProcessContextNode> , Seri
 			}
 
 			if (Character.isUpperCase(c1) || Character.isUpperCase(c2)) {
-				// Check on the differences. If both are uppercase characters, the standard compare
-				// will do it
+				// Check on the differences. If both are uppercase characters, the standard compare will do it
 				if (Character.isUpperCase(c1) && !Character.isUpperCase(c2)) return -1;
 				if (!Character.isUpperCase(c1) && Character.isUpperCase(c2)) return 1;
 			}
@@ -84,9 +100,7 @@ public class ProcessComparator implements Comparator<IProcessContextNode> , Seri
 						if (l1 < l2) result = -1;
 
 						return result;
-					}
-					catch (NumberFormatException e) { /* ignored on purpose */
-					}
+					} catch (NumberFormatException e) { /* ignored on purpose */ }
 				}
 			}
 
@@ -108,6 +122,7 @@ public class ProcessComparator implements Comparator<IProcessContextNode> , Seri
 				}
 			}
 		}
+
 		return text1.compareTo(text2);
 	}
 }
