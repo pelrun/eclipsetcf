@@ -55,14 +55,6 @@ public class Messages extends NLS {
 
 	public static String PossibleCause;
 
-	public static String ProcessExplorerTreeControl_section_title;
-
-	public static String ProcessesTreeControl_column_name_label;
-	public static String ProcessesTreeControl_column_pid_label;
-	public static String ProcessesTreeControl_column_ppid_label;
-	public static String ProcessesTreeControl_column_state_label;
-	public static String ProcessesTreeControl_column_user_label;
-
 	public static String ProcessLabelProvider_NullNameNodeLabel;
 
 	public static String ProcessPreferencePage_BiggerThanZero;
