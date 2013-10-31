@@ -24,7 +24,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -114,8 +114,8 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
                                                     protected void internalDone(Object caller, IStatus status) {
 														if (autoAttachAll) {
 															// Check if there is a delegate registered
-															IUIService uiService = ServiceManager.getInstance().getService(node, IUIService.class, false);
-															IDelegate delegate = uiService != null ? uiService.getDelegate(node, IDelegate.class) : null;
+															IDelegateService service = ServiceManager.getInstance().getService(node, IDelegateService.class, false);
+															IDelegate delegate = service != null ? service.getDelegate(node, IDelegate.class) : null;
 
 															if (delegate != null) {
 																delegate.postAttachDebugger(node, monitor, callback);

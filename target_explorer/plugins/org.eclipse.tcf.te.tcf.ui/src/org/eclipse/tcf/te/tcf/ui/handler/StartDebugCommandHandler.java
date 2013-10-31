@@ -29,7 +29,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.steps.StartDebuggerStep.IDelegate;
 import org.eclipse.tcf.te.ui.async.UICallbackInvocationDelegate;
@@ -108,8 +108,8 @@ public class StartDebugCommandHandler extends AbstractHandler {
 				@Override
                 protected void internalDone(Object caller, IStatus status) {
 					// Check if there is a delegate registered
-					IUIService uiService = ServiceManager.getInstance().getService(peerModel, IUIService.class, false);
-					IDelegate delegate = uiService != null ? uiService.getDelegate(peerModel, IDelegate.class) : null;
+					IDelegateService service = ServiceManager.getInstance().getService(peerModel, IDelegateService.class, false);
+					IDelegate delegate = service != null ? service.getDelegate(peerModel, IDelegate.class) : null;
 
 					if (delegate != null) {
 						delegate.postAttachDebugger(peerModel, monitor, callback);

@@ -20,7 +20,7 @@ public interface IProcessContextNode extends IContainerModelNode {
 	/**
 	 * Process context node types
 	 */
-	public enum TYPE { Process, Thread }
+	public enum TYPE { Unknown, Process, Thread }
 
 	/**
 	 * Set the type of the context node.

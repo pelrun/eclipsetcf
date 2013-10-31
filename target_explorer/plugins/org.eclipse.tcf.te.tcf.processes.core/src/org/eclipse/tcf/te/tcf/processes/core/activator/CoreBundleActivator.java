@@ -10,7 +10,12 @@
 package org.eclipse.tcf.te.tcf.processes.core.activator;
 
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.processes.core.model.listener.ModelListener;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -21,6 +26,8 @@ public class CoreBundleActivator extends Plugin {
 	private static BundleContext context;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
+	// The locator model listener instance
+	/* default */ IModelListener listener;
 
 	// The shared instance
 	private static CoreBundleActivator plugin;
@@ -72,6 +79,20 @@ public class CoreBundleActivator extends Plugin {
 	public void start(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = bundleContext;
 		plugin = this;
+
+		// Create the model listener instance
+		listener = new ModelListener();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (listener == null) return;
+				// Register the model listener with the locator model
+				Model.getModel().addListener(listener);
+			}
+		};
+
+		Protocol.invokeLater(runnable);
 	}
 
 	/* (non-Javadoc)
@@ -81,6 +102,20 @@ public class CoreBundleActivator extends Plugin {
 	public void stop(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = null;
 		plugin = null;
+
+		// Remove the model listener from the locator model
+		if (listener != null) {
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					ILocatorModel model = Model.getModel(true);
+					if (model != null) model.removeListener(listener);
+					listener = null;
+				}
+			};
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+		}
 	}
 
 }

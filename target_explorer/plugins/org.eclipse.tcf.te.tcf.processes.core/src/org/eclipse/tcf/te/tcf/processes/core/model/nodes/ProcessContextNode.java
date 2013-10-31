@@ -40,7 +40,7 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 	private ISysMonitor.SysMonitorContext sContext = null;
 
 	// The node type
-	private TYPE type = TYPE.Process;
+	private TYPE type = TYPE.Unknown;
 
 	// Context nodes needs asynchronous refreshes
 	private final IAsyncRefreshableCtx refreshableCtxAdapter = new AsyncRefreshableCtxAdapter();
