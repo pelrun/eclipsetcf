@@ -301,6 +301,7 @@
                </pluginState>
             </enablement>
          </action>
+         <!--
          <action
             id="org.eclipse.tcf.debug.ui.actions.Console"
             class="org.eclipse.tcf.internal.debug.ui.commands.ConsoleCommand"
@@ -314,6 +315,7 @@
                </pluginState>
             </enablement>
          </action>
+         -->
          <action
             id="org.eclipse.tcf.debug.ui.actions.Detach"
             class="org.eclipse.tcf.internal.debug.ui.commands.DetachCommand"
