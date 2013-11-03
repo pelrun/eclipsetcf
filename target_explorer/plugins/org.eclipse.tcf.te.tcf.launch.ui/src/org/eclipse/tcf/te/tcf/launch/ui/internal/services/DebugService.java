@@ -38,6 +38,7 @@ import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 
 /**
  * Debug service implementations for TCF contexts.
@@ -139,7 +140,13 @@ public class DebugService extends AbstractService implements IDebugService {
 								}
 							});
 
-							DebugUITools.launch(finConfig, ILaunchManager.DEBUG_MODE);
+							// DebugUITools.launch(...) must be called from within the UI thread.
+							DisplayUtil.safeAsyncExec(new Runnable() {
+								@Override
+								public void run() {
+									DebugUITools.launch(finConfig, ILaunchManager.DEBUG_MODE);
+								}
+							});
 						} else {
 							callback.done(this, Status.OK_STATUS);
 						}
