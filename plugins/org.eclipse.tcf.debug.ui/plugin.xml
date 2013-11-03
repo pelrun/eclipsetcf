@@ -156,6 +156,12 @@
                visible="false"
                id="org.eclipse.tcf.TraceView">
          </view>
+         <view
+               relative="org.eclipse.ui.views.ContentOutline"
+               relationship="stack"
+               visible="false"
+               id="org.eclipse.tcf.ProfilerView">
+         </view>
       </perspectiveExtension>
    </extension>
 
