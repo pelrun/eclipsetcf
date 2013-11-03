@@ -735,7 +735,7 @@ public class ProfilerView extends ViewPart {
             protected void layout(Composite composite, boolean flushCache) {
                 for (;;) {
                     Rectangle rc = composite.getClientArea();
-                    Point p = table.computeSize(SWT.DEFAULT, rc.height, flushCache);
+                    Point p = table.computeSize(SWT.DEFAULT, rc.height, true);
                     if (p.x < rc.width) p.x = rc.width;
                     ScrollBar sb = composite.getHorizontalBar();
                     int pos = 0;
@@ -778,7 +778,7 @@ public class ProfilerView extends ViewPart {
 
     public Composite createTable(Composite parent) {
         Font font = parent.getFont();
-        final Composite composite = new Composite(parent, SWT.NONE | SWT.NO_FOCUS);
+        final Composite composite = new Composite(parent, SWT.NO_FOCUS);
         final FormLayout layout = new FormLayout();
         composite.setFont(font);
         composite.setLayout(layout);
@@ -1000,6 +1000,14 @@ public class ProfilerView extends ViewPart {
                 @Override
                 public void controlResized(ControlEvent e) {
                     int w = c.getWidth();
+                    if (n == column_size.length - 1 && !System.getProperty("os.name", "").startsWith("Windows")) {
+                        // Workaround:
+                        // Linux GTK tries to outsmart a user: last column is auto-resized when table size changes.
+                        // This causes infinite recursion and stack overflow.
+                        if (w > column_size[n]) w = column_size[n]; 
+                    }
+                    if (viewer_up.getTable().getColumn(n).getWidth() == w &&
+                        viewer_dw.getTable().getColumn(n).getWidth() == w) return;
                     viewer_up.getTable().getColumn(n).setWidth(w);
                     viewer_dw.getTable().getColumn(n).setWidth(w);
                     main_composite.layout();
