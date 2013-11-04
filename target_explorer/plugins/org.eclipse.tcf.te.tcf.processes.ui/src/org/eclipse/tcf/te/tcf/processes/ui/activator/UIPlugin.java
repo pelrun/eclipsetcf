@@ -14,7 +14,6 @@ import java.net.URL;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.tcf.te.runtime.model.MessageModelNode;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -83,9 +82,6 @@ public class UIPlugin extends AbstractUIPlugin {
 		registry.put(ImageConsts.OBJ_Process_Root, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "process_polling.png"); //$NON-NLS-1$
 		registry.put(ImageConsts.PM_POLLING, ImageDescriptor.createFromURL(url));
-
-		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "pending.gif"); //$NON-NLS-1$
-		registry.put(MessageModelNode.OBJECT_MESSAGE_PENDING_ID, ImageDescriptor.createFromURL(url));
 	}
 
 	/**
@@ -96,7 +92,11 @@ public class UIPlugin extends AbstractUIPlugin {
 	 * @return The <code>Image</code> object instance or <code>null</code>.
 	 */
 	public static Image getImage(String key) {
-		return getDefault().getImageRegistry().get(key);
+		Image image = getDefault().getImageRegistry().get(key);
+		if (image == null) {
+			image = org.eclipse.tcf.te.ui.activator.UIPlugin.getImage(key);
+		}
+		return image;
 	}
 
 	/**
@@ -107,7 +107,11 @@ public class UIPlugin extends AbstractUIPlugin {
 	 * @return The <code>ImageDescriptor</code> object instance or <code>null</code>.
 	 */
 	public static ImageDescriptor getImageDescriptor(String key) {
-		return getDefault().getImageRegistry().getDescriptor(key);
+		ImageDescriptor descriptor = getDefault().getImageRegistry().getDescriptor(key);
+		if (descriptor == null) {
+			descriptor = org.eclipse.tcf.te.ui.activator.UIPlugin.getImageDescriptor(key);
+		}
+		return descriptor;
 	}
 
 	/**

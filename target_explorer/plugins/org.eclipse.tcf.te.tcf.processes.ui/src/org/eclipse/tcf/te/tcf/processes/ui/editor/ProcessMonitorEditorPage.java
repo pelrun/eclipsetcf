@@ -151,7 +151,7 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	    	EventManager.getInstance().addEventListener(listener, ChangeEvent.class);
 	    }
 
-		if (listener == null && treeControl.getViewer() instanceof TreeViewer) {
+		if (treeListener == null && treeControl.getViewer() instanceof TreeViewer) {
 			final TreeViewer treeViewer = (TreeViewer) treeControl.getViewer();
 
 			treeListener = new TreeViewerListener();

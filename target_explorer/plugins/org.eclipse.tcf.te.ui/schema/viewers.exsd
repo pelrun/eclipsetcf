@@ -23,6 +23,7 @@
             <element ref="viewer"/>
             <element ref="columnContribution"/>
             <element ref="filterContribution"/>
+            <element ref="contentContribution"/>
          </choice>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -134,6 +135,29 @@
             <annotation>
                <documentation>
                   The id of the tree viewer which the filters declared contribute to.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.tcf.te.ui.viewers/viewer/@id"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="contentContribution">
+      <annotation>
+         <documentation>
+            The root of the content contributions.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="content" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="viewerId" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The id of the tree viewer which the content declared contribute to.
                </documentation>
                <appinfo>
                   <meta.attribute kind="identifier" basedOn="org.eclipse.tcf.te.ui.viewers/viewer/@id"/>
@@ -346,10 +370,42 @@
       </complexType>
    </element>
 
+   <element name="content">
+      <complexType>
+         <sequence minOccurs="0" maxOccurs="1">
+            <element ref="activation" minOccurs="0" maxOccurs="1"/>
+         </sequence>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The id of the content contribution which must be unique in this viewer.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The content contribution that extends &lt;samp&gt;org.eclipse.tcf.te.ui.trees.AbstractContentContribution&lt;/samp&gt;.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.tcf.te.ui.trees.AbstractContentContribution:"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="rank" type="string">
+            <annotation>
+               <documentation>
+                  The rank of the content contribution. Used to sort elements from different content contributions within the viewer. If not specified, the default rank 100 is associated.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
    <element name="activation">
       <annotation>
          <documentation>
-            The &lt;b&gt;activation&lt;/b&gt; expression defines a condition under which the column/filter should be activated.
+            The &lt;b&gt;activation&lt;/b&gt; expression defines a condition under which the column, filter or content should be activated.
          </documentation>
       </annotation>
       <complexType>

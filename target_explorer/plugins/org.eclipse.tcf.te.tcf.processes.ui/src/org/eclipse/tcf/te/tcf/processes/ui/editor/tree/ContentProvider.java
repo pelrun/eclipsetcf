@@ -32,7 +32,6 @@ public class ContentProvider extends org.eclipse.tcf.te.tcf.processes.ui.navigat
 				// If the model is auto refreshing, then stop it when the editor is disposed.
 				model.setAutoRefreshInterval(0);
 			}
-//			ModelManager.disposeRuntimeModel(peerModel);
 		}
 	}
 

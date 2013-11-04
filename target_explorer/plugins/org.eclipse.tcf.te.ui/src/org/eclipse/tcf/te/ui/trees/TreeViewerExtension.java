@@ -51,7 +51,8 @@ import org.osgi.framework.Bundle;
 
 /**
  * The implementation of the tree viewer extension which is used to parse
- * the columns and the filters declared in this extension for a specified tree viewer.
+ * the column, filter and content contributions declared in this extension
+ * for a specified tree viewer.
  */
 public class TreeViewerExtension {
 	// The extension point id constant.
@@ -176,7 +177,7 @@ public class TreeViewerExtension {
 	 * filter descriptors.
 	 *
 	 * @param input the new input
-	 * @return The column descriptors from this extension point.
+	 * @return The filter descriptors from this extension point.
 	 */
 	public FilterDescriptor[] parseFilters(Object input) {
 		Assert.isNotNull(viewerId);
@@ -291,6 +292,56 @@ public class TreeViewerExtension {
 					column.setOrder(columns.size());
 				}
 			});
+		}
+	}
+
+	/**
+	 * Parse the content contribution declarations of this extension point and return the
+	 * content descriptors.
+	 *
+	 * @param input the new input
+	 * @return The content descriptors from this extension point.
+	 */
+	public ContentDescriptor[] parseContents(Object input) {
+		Assert.isNotNull(viewerId);
+		List<ContentDescriptor> descriptors = Collections.synchronizedList(new ArrayList<ContentDescriptor>());
+		IExtensionRegistry registry = Platform.getExtensionRegistry();
+		IExtensionPoint extensionPoint = registry.getExtensionPoint(EXTENSION_POINT_ID);
+		IConfigurationElement[] configurations = extensionPoint.getConfigurationElements();
+		for (IConfigurationElement configuration : configurations) {
+			String name = configuration.getName();
+			if ("contentContribution".equals(name)) { //$NON-NLS-1$
+				String aViewerId = configuration.getAttribute("viewerId"); //$NON-NLS-1$
+				if (viewerId.equals(aViewerId)) {
+					IConfigurationElement[] children = configuration.getChildren("content"); //$NON-NLS-1$
+					if (children != null && children.length > 0) {
+						for (IConfigurationElement child : children) {
+							createContentDescriptor(input, descriptors, child);
+						}
+					}
+				}
+			}
+		}
+		return descriptors.toArray(new ContentDescriptor[descriptors.size()]);
+	}
+
+	/**
+	 * Create an content descriptor from the specified configuration element and
+	 * add it to the content descriptor list.
+	 *
+	 * @param input the input of the viewer to initialize the descriptors.
+	 * @param descriptors The content descriptor list to add the created descriptor to.
+	 * @param configuration The extension configuration element to create the descriptor from.
+	 */
+	private void createContentDescriptor(Object input, List<ContentDescriptor> descriptors, final IConfigurationElement configuration) {
+		Assert.isNotNull(descriptors);
+		Assert.isNotNull(configuration);
+
+		if (isElementActivated(input, configuration)) {
+			String id = configuration.getAttribute("id"); //$NON-NLS-1$
+			Assert.isNotNull(id);
+			final ContentDescriptor descriptor = new ContentDescriptor(id, configuration);
+			descriptors.add(descriptor);
 		}
 	}
 

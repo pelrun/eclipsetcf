@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.trees;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.IFontProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -23,19 +24,25 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 
 /**
- * File system tree control label provider implementation.
+ * Tree viewer tree control label provider implementation.
  */
 public class TreeViewerLabelProvider extends PendingAwareLabelProvider implements ITableLabelProvider, ITableColorProvider, ITableFontProvider {
 	// Reference to the parent tree viewer
 	private TreeViewer viewer;
+	// The parent tree control instance
+	private final AbstractTreeControl parentTreeControl;
 
 	/**
 	 * Constructor.
 	 *
+     * @param parentTreeControl The parent tree control instance. Must not be <code>null</code>.
 	 * @param viewer The tree viewer or <code>null</code>.
 	 */
-	public TreeViewerLabelProvider(TreeViewer viewer) {
+	public TreeViewerLabelProvider(AbstractTreeControl parentTreeControl, TreeViewer viewer) {
 		super();
+
+    	Assert.isNotNull(parentTreeControl);
+    	this.parentTreeControl = parentTreeControl;
 		this.viewer = viewer;
 	}
 
@@ -80,6 +87,18 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 		}
 		ColumnDescriptor column = getColumn(columnIndex);
 		if (column != null) {
+			// Determine if the element is handled by a content contribution
+			ContentDescriptor[] descriptors = parentTreeControl.getContentDescriptors();
+			if (descriptors != null) {
+				for (ContentDescriptor descriptor : descriptors) {
+					AbstractContentContribution contribution = descriptor.getContentContribution();
+					if (contribution == null) continue;
+					if (contribution.isElementHandled(element)) {
+						return contribution.getColumnImage(column.getId(), element);
+					}
+				}
+			}
+			// Pass on to the main column label provider
 			ILabelProvider labelProvider = column.getLabelProvider();
 			if (labelProvider != null) {
 				return labelProvider.getImage(element);
@@ -98,6 +117,18 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 		}
 		ColumnDescriptor column = getColumn(columnIndex);
 		if (column != null) {
+			// Determine if the element is handled by a content contribution
+			ContentDescriptor[] descriptors = parentTreeControl.getContentDescriptors();
+			if (descriptors != null) {
+				for (ContentDescriptor descriptor : descriptors) {
+					AbstractContentContribution contribution = descriptor.getContentContribution();
+					if (contribution == null) continue;
+					if (contribution.isElementHandled(element)) {
+						return contribution.getColumnText(column.getId(), element);
+					}
+				}
+			}
+			// Pass on to the main column label provider
 			ILabelProvider labelProvider = column.getLabelProvider();
 			if (labelProvider != null) {
 				return labelProvider.getText(element);
@@ -114,6 +145,18 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 		if (!(element instanceof Pending)) {
 			ColumnDescriptor column = getColumn(columnIndex);
 			if (column != null) {
+				// Determine if the element is handled by a content contribution
+				ContentDescriptor[] descriptors = parentTreeControl.getContentDescriptors();
+				if (descriptors != null) {
+					for (ContentDescriptor descriptor : descriptors) {
+						AbstractContentContribution contribution = descriptor.getContentContribution();
+						if (contribution == null) continue;
+						if (contribution.isElementHandled(element) && contribution instanceof IFontProvider) {
+							return ((IFontProvider)contribution).getFont(element);
+						}
+					}
+				}
+				// Pass on to the main column label provider
 				ILabelProvider labelProvider = column.getLabelProvider();
 				if (labelProvider instanceof IFontProvider) {
 					return ((IFontProvider)labelProvider).getFont(element);
@@ -131,6 +174,18 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 		if (!(element instanceof Pending)) {
 			ColumnDescriptor column = getColumn(columnIndex);
 			if (column != null) {
+				// Determine if the element is handled by a content contribution
+				ContentDescriptor[] descriptors = parentTreeControl.getContentDescriptors();
+				if (descriptors != null) {
+					for (ContentDescriptor descriptor : descriptors) {
+						AbstractContentContribution contribution = descriptor.getContentContribution();
+						if (contribution == null) continue;
+						if (contribution.isElementHandled(element) && contribution instanceof IColorProvider) {
+							return ((IColorProvider)contribution).getForeground(element);
+						}
+					}
+				}
+				// Pass on to the main column label provider
 				ILabelProvider labelProvider = column.getLabelProvider();
 				if (labelProvider instanceof IColorProvider) {
 					return ((IColorProvider)labelProvider).getForeground(element);
@@ -148,6 +203,18 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 		if (!(element instanceof Pending)) {
 			ColumnDescriptor column = getColumn(columnIndex);
 			if (column != null) {
+				// Determine if the element is handled by a content contribution
+				ContentDescriptor[] descriptors = parentTreeControl.getContentDescriptors();
+				if (descriptors != null) {
+					for (ContentDescriptor descriptor : descriptors) {
+						AbstractContentContribution contribution = descriptor.getContentContribution();
+						if (contribution == null) continue;
+						if (contribution.isElementHandled(element) && contribution instanceof IColorProvider) {
+							return ((IColorProvider)contribution).getBackground(element);
+						}
+					}
+				}
+				// Pass on to the main column label provider
 				ILabelProvider labelProvider = column.getLabelProvider();
 				if (labelProvider instanceof IColorProvider) {
 					return ((IColorProvider)labelProvider).getBackground(element);

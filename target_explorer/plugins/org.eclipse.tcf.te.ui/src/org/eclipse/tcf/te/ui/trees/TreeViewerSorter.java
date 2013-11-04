@@ -19,6 +19,7 @@ import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreePathViewerSorter;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -71,6 +72,9 @@ public class TreeViewerSorter extends TreePathViewerSorter {
 	protected String doGetText(Viewer viewer, Object node, int index) {
 		if (node != null) {
 			IBaseLabelProvider labelProvider = doGetLabelProvider(viewer);
+			if (labelProvider instanceof ITableLabelProvider) {
+				return ((ITableLabelProvider)labelProvider).getColumnText(node, index);
+			}
 			if (labelProvider instanceof ILabelProvider) {
 				return ((ILabelProvider)labelProvider).getText(node);
 			}

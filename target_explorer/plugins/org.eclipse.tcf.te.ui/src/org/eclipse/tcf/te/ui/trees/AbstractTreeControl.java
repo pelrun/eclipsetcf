@@ -66,7 +66,9 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	// The descriptors of the viewer filters configured for this viewer.
 	private FilterDescriptor[] filterDescriptors;
 	// The tree viewer columns of this viewer.
-	private ColumnDescriptor[] columns;
+	private ColumnDescriptor[] columnDescriptors;
+	// The content contributions configured for this viewer.
+	private ContentDescriptor[] contentDescriptors;
 	// The state of the tree viewer used to restore and save the the tree viewer's state.
 	private TreeViewerState viewerState;
 	// The action to configure the filters.
@@ -104,9 +106,19 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 			selectionChangedListener = null;
 		}
 
+		// Dispose the descriptors
+		disposeDescriptors();
+
+		super.dispose();
+	}
+
+	/**
+	 * Dispose all descriptors.
+	 */
+	protected void disposeDescriptors() {
 		// Dispose the columns' resources.
-		if (columns != null) {
-			for (ColumnDescriptor column : columns) {
+		if (columnDescriptors != null) {
+			for (ColumnDescriptor column : columnDescriptors) {
 				if (column.getImage() != null) {
 					column.getImage().dispose();
 				}
@@ -114,15 +126,22 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 					column.getLabelProvider().dispose();
 				}
 			}
+			columnDescriptors = null;
 		}
-		if(filterDescriptors != null) {
-			for(FilterDescriptor filterDescriptor : filterDescriptors) {
-				if(filterDescriptor.getImage() != null) {
+		if (filterDescriptors != null) {
+			for (FilterDescriptor filterDescriptor : filterDescriptors) {
+				if (filterDescriptor.getImage() != null) {
 					filterDescriptor.getImage().dispose();
 				}
 			}
+			filterDescriptors = null;
 		}
-		super.dispose();
+		if (contentDescriptors != null) {
+			for (ContentDescriptor contentDescriptor : contentDescriptors) {
+				contentDescriptor.dispose();
+			}
+			contentDescriptors = null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -162,14 +181,22 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 
 		viewer.setAutoExpandLevel(getAutoExpandLevel());
 
-		viewer.setLabelProvider(doCreateTreeViewerLabelProvider(viewer));
+		viewer.setLabelProvider(doCreateTreeViewerLabelProvider(this, viewer));
 
-		final ITreeContentProvider contentProvider = doCreateTreeViewerContentProvider(viewer);
+		ITreeContentProvider mainContentProvider = doCreateTreeViewerContentProvider(viewer);
+		Assert.isNotNull(mainContentProvider);
+		final ITreeContentProvider contentProvider = new TreeViewerDelegatingContentProvider(this, mainContentProvider);
 		InvocationHandler handler = new InvocationHandler() {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 				if (method.getName().equals("inputChanged")) { //$NON-NLS-1$
-					onInputChanged(args[1], args[2]);
+					// Determine if the input really changed
+					Object oldInput = args[1];
+					Object newInput = args[2];
+
+					if ((oldInput == null && newInput != null) || (oldInput != null && newInput == null) || !oldInput.equals(newInput)) {
+						onInputChanged(args[1], args[2]);
+					}
 				}
 				return method.invoke(contentProvider, args);
 			}
@@ -179,7 +206,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 		ITreeContentProvider proxy = (ITreeContentProvider) Proxy.newProxyInstance(classLoader, interfaces, handler);
 		viewer.setContentProvider(proxy);
 
-		viewer.setComparator(doCreateTreeViewerComparator(viewer));
+		viewer.setComparator(doCreateTreeViewerComparator(this, viewer));
 
 		viewer.getTree().setLayoutData(doCreateTreeViewerLayoutData(viewer));
 
@@ -203,11 +230,17 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 */
 	protected void onInputChanged(Object oldInput, Object newInput) {
 		if (newInput != null) {
-			columns = doCreateViewerColumns(newInput);
+			// Dispose the old descriptors first
+			disposeDescriptors();
+
+			columnDescriptors = doCreateViewerColumns(newInput);
 			filterDescriptors = doCreateFilterDescriptors(newInput);
+			contentDescriptors = doCreateContentDescriptors(newInput);
+
 			if (isStatePersistent()) {
 				updateViewerState(newInput);
 			}
+
 			doCreateTreeColumns(viewer);
 			viewer.getTree().setHeaderVisible(true);
 			updateFilters();
@@ -241,11 +274,11 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 				inputId = getViewerId() + "." + inputId; //$NON-NLS-1$
 				viewerState = ViewerStateManager.getInstance().getViewerState(inputId);
 				if (viewerState == null) {
-					viewerState = ViewerStateManager.createViewerState(columns, filterDescriptors);
+					viewerState = ViewerStateManager.createViewerState(columnDescriptors, filterDescriptors);
 					ViewerStateManager.getInstance().putViewerState(inputId, viewerState);
 				}
 				else {
-					viewerState.updateColumnDescriptor(columns);
+					viewerState.updateColumnDescriptor(columnDescriptors);
 					viewerState.updateFilterDescriptor(filterDescriptors);
 				}
 			}
@@ -257,7 +290,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 */
 	private void saveViewerState() {
 		if (isStatePersistent() && viewerState != null) {
-    		viewerState.updateColumnState(columns);
+    		viewerState.updateColumnState(columnDescriptors);
     		viewerState.updateFilterState(filterDescriptors);
 		}
 	}
@@ -314,11 +347,11 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @return The tree viewer columns.
 	 */
 	protected ColumnDescriptor[] doCreateViewerColumns(Object newInput) {
-		if(columns == null) {
+		if (columnDescriptors == null) {
 			TreeViewerExtension viewerExtension = new TreeViewerExtension(getViewerId());
-			columns = viewerExtension.parseColumns(newInput);
+			columnDescriptors = viewerExtension.parseColumns(newInput);
 		}
-		return columns;
+		return columnDescriptors;
 	}
 
 	/**
@@ -329,11 +362,36 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @return The filter descriptors for the viewer.
 	 */
 	protected FilterDescriptor[] doCreateFilterDescriptors(Object newInput) {
-		if(filterDescriptors == null) {
+		if (filterDescriptors == null) {
 			TreeViewerExtension viewerExtension = new TreeViewerExtension(getViewerId());
 			filterDescriptors = viewerExtension.parseFilters(newInput);
 		}
 		return filterDescriptors;
+	}
+
+	/**
+	 * Create the viewer content contributions from the viewers extension. Subclass may
+	 * override it to provide its customized viewer content contributions.
+	 *
+	 * @param newInput the input when the content contributions are initialized.
+	 * @return The content descriptors for the viewer.
+	 */
+	protected ContentDescriptor[] doCreateContentDescriptors(Object newInput) {
+		if (contentDescriptors == null) {
+			TreeViewerExtension viewerExtension = new TreeViewerExtension(getViewerId());
+			contentDescriptors = viewerExtension.parseContents(newInput);
+		}
+		return contentDescriptors;
+	}
+
+	/**
+	 * Returns the current list of viewer content descriptors. The list of content
+	 * descriptors may change if the viewers input element changes.
+	 *
+	 * @return The list of viewer content descriptors or <code>null</code>.
+	 */
+	public ContentDescriptor[] getContentDescriptors() {
+		return contentDescriptors;
 	}
 
 	/**
@@ -360,9 +418,9 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @param viewer The tree viewer.
 	 */
 	protected void doCreateTreeColumns(TreeViewer viewer) {
-		Assert.isTrue(columns != null && columns.length > 0);
+		Assert.isTrue(columnDescriptors != null && columnDescriptors.length > 0);
 		List<ColumnDescriptor> visibleColumns = new ArrayList<ColumnDescriptor>();
-		for (ColumnDescriptor column : columns) {
+		for (ColumnDescriptor column : columnDescriptors) {
 			if (column.isVisible()) visibleColumns.add(column);
 		}
 		Collections.sort(visibleColumns, new Comparator<ColumnDescriptor>(){
@@ -459,12 +517,12 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @return The column index.
 	 */
 	private int getColumnIndex(ColumnDescriptor column) {
-		Assert.isTrue(columns != null);
+		Assert.isTrue(columnDescriptors != null);
 		int visibleCount = 0;
-		for(int i=0;i<columns.length;i++) {
-			if(columns[i] == column)
+		for(int i=0;i<columnDescriptors.length;i++) {
+			if(columnDescriptors[i] == column)
 				break;
-			if(columns[i].isVisible()) {
+			if(columnDescriptors[i].isVisible()) {
 				visibleCount++;
 			}
 		}
@@ -505,11 +563,13 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	/**
 	 * Creates the tree viewer label provider instance.
 	 *
-	 * @param viewer The tree viewer. Must not be <code>null</code>.
+     * @param parentTreeControl The parent tree control instance. Must not be <code>null</code>.
+	 * @param viewer The tree viewer. Must not be <code>null</code>.,
+	 *
 	 * @return The tree viewer label provider instance.
 	 */
-	protected ILabelProvider doCreateTreeViewerLabelProvider(TreeViewer viewer) {
-		TreeViewerLabelProvider labelProvider = new TreeViewerLabelProvider(viewer);
+	protected ILabelProvider doCreateTreeViewerLabelProvider(AbstractTreeControl parentTreeControl, TreeViewer viewer) {
+		TreeViewerLabelProvider labelProvider = new TreeViewerLabelProvider(parentTreeControl, viewer);
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IDecoratorManager manager = workbench.getDecoratorManager();
 		ILabelDecorator decorator = manager.getLabelDecorator();
@@ -527,11 +587,15 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	/**
 	 * Creates the tree viewer comparator instance.
 	 *
+	 * @param parentTreeControl The parent tree control. Must not be <code>null</code>.
 	 * @param viewer The tree viewer. Must not be <code>null</code>.
-	 * @return The tree viewer comparator instance or <code>null</code> to turn of sorting.
+	 *
+	 * @return The tree viewer comparator instance or <code>null</code> to turn off sorting.
 	 */
-	protected ViewerComparator doCreateTreeViewerComparator(TreeViewer viewer) {
-		return new TreeViewerComparator();
+	protected ViewerComparator doCreateTreeViewerComparator(AbstractTreeControl parentTreeControl, TreeViewer viewer) {
+		Assert.isNotNull(parentTreeControl);
+		Assert.isNotNull(viewer);
+		return new TreeControlSorter(parentTreeControl);
 	}
 
 	/**
@@ -602,7 +666,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @return The current viewer columns.
 	 */
 	public ColumnDescriptor[] getViewerColumns() {
-		return columns != null ? Arrays.copyOf(columns, columns.length) : new ColumnDescriptor[0];
+		return columnDescriptors != null ? Arrays.copyOf(columnDescriptors, columnDescriptors.length) : new ColumnDescriptor[0];
 	}
 
 	/**
