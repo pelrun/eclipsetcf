@@ -280,6 +280,25 @@
       
       <menuContribution locationURI="popup:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=additions">
          <separator
+               name="group.showIn"
+               visible="true">
+         </separator>
+         <menu
+               id="org.eclipse.tcf.te.launch.ui.editor.menu.showIn"
+               label="%ShowIn.menu.name">
+               <command
+                     commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
+                     id="org.eclipse.tcf.te.launch.ui.editor.commands.showInProperties"
+                     icon="icons/eview16/prop_ps.gif" 
+                     label="%Properties.menu.name"
+                     style="push">
+                  <visibleWhen>
+                     <reference definitionId="te.expressions.processes.isProcessTreeNode"/>
+                  </visibleWhen>
+               </command>
+            <visibleWhen checkEnabled="true"/>
+         </menu>
+         <separator
                name="group.launch.rundebug"
                visible="true">
          </separator>
@@ -344,6 +363,15 @@
                commandId="org.eclipse.tcf.te.ui.views.command.find"
                label="%command.search.label"
                style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate>
+                     <adapt type="org.eclipse.tcf.te.ui.interfaces.ISearchable">
+                        <instanceof value="org.eclipse.tcf.te.ui.interfaces.ISearchable"/>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
          </command>
          <separator
                name="group.filter"
@@ -353,31 +381,31 @@
                commandId="org.eclipse.tcf.te.ui.views.command.quickfilter"
                label="%command.filter.label"
                style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate>
+                     <adapt type="org.eclipse.tcf.te.core.interfaces.IFilterable">
+                        <instanceof value="org.eclipse.tcf.te.core.interfaces.IFilterable"/>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
          </command>
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.resetfilter"
                label="%command.reset.label"
                style="push">
-         </command>
-         <separator
-               name="group.properties"
-               visible="true">
-         </separator>
-         <command
-               commandId="org.eclipse.ui.file.properties"
-               id="properties"
-               label="%command.properties.label.0">
-            <visibleWhen>
+            <visibleWhen checkEnabled="false">
                <with variable="selection">
-                  <count value="1"/>
-                  <iterate ifEmpty="false" operator="and">
-                     <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                  <iterate>
+                     <adapt type="org.eclipse.tcf.te.core.interfaces.IFilterable">
+                        <instanceof value="org.eclipse.tcf.te.core.interfaces.IFilterable"/>
+                     </adapt>
                   </iterate>
                </with>
             </visibleWhen>
          </command>
       </menuContribution>
-      
    </extension>
 
 <!-- Command contributions -->
@@ -602,7 +630,6 @@
       </viewer>
       <columnContribution viewerId="org.eclipse.tcf.te.ui.controls.viewer.processes">
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.ProcessComparator"
                id="name"
                labelProvider="org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate"
                moveable="true"
@@ -619,7 +646,6 @@
             </activation>
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PIDComparator"
                id="pid"
                labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PIDLabelProvider"
                moveable="true"
@@ -636,7 +662,6 @@
             </activation>
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PPIDComparator"
                id="ppid"
                labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.PPIDLabelProvider"
                moveable="true"
@@ -653,7 +678,6 @@
             </activation>
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.StateComparator"
                id="state"
                labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.StateLabelProvider"
                moveable="true"
@@ -670,7 +694,6 @@
             </activation>
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.UserComparator"
                id="user"
                labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.UserLabelProvider"
                moveable="true"
@@ -687,7 +710,6 @@
             </activation>
          </column>
          <column
-               comparator="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.CommandLineComparator"
                id="cmdline"
                labelProvider="org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns.CommandLineLabelProvider"
                moveable="true"
@@ -714,7 +736,9 @@
                name="%singlethreadfilter.name">
             <activation>
                <with variable="input">
-                  <test property="processMonitor.delegatedActivation.isFilterActive" args="singleThread" value="true"/>
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <test property="processMonitor.delegatedActivation.isFilterActive" args="singleThread" value="true"/>
+                  </adapt>
                </with>
             </activation>
          </filter>

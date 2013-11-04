@@ -517,21 +517,22 @@ public class ConsoleManager {
 		Assert.isNotNull(connector);
 
 		IWorkbenchPage page = getActiveWorkbenchPage();
-
-		IViewReference[] refs = page.getViewReferences();
-		for (int i = 0; i < refs.length; i++) {
-			IViewReference ref = refs[i];
-			if (ref.getId().equals(id)) {
-				IViewPart part = ref.getView(true);
-				if (part instanceof ITerminalsView) {
-					// Get the tab folder manager associated with the view
-					TabFolderManager manager = (TabFolderManager) part.getAdapter(TabFolderManager.class);
-					if (manager == null) {
-						continue;
-					}
-					CTabItem item = manager.findTabItem(title, connector, data);
-					if (item != null) {
-						return item;
+		if (page != null) {
+			IViewReference[] refs = page.getViewReferences();
+			for (int i = 0; i < refs.length; i++) {
+				IViewReference ref = refs[i];
+				if (ref.getId().equals(id)) {
+					IViewPart part = ref.getView(true);
+					if (part instanceof ITerminalsView) {
+						// Get the tab folder manager associated with the view
+						TabFolderManager manager = (TabFolderManager) part.getAdapter(TabFolderManager.class);
+						if (manager == null) {
+							continue;
+						}
+						CTabItem item = manager.findTabItem(title, connector, data);
+						if (item != null) {
+							return item;
+						}
 					}
 				}
 			}

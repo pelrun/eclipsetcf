@@ -433,7 +433,7 @@
             <command
                   commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
                   icon="icons/eview16/prop_ps.gif"
-                  label="%menu.properties.label"
+                  label="%menu.showIn.properties.label"
                   style="push">
             </command>
          </menu>
@@ -579,7 +579,7 @@
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             helpContextId="org.eclipse.tcf.te.ui.views.command_ShowInProperties"
             id="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
-            name="%command.showInProperties.label">
+            name="%command.showInProperties.name">
       </command>
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
@@ -650,12 +650,6 @@
    </extension>
 
    <extension point="org.eclipse.ui.bindings">
-      <key
-            commandId="org.eclipse.tcf.te.ui.views.command.ShowInGroup"
-            contextId="org.eclipse.tcf.te.ui.views.View"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M3+M2+W">
-      </key>
       <key
             commandId="org.eclipse.tcf.te.ui.views.command.find"
             contextId="org.eclipse.tcf.te.ui.views.View"
@@ -768,7 +762,10 @@
             commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties">
          <activeWhen>
             <with variable="activePartId">
-               <equals value="org.eclipse.tcf.te.ui.views.View"/>
+               <or>
+                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
+                  <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
+               </or>
             </with>
          </activeWhen>
       </handler>
