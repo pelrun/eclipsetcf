@@ -657,9 +657,14 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     setDebugViewSelectionForProxy(proxy, n, "Launch");
                 }
                 else {
+                    boolean node_selected = false;
                     for (TCFNodeExecContext n : nodes) {
                         String reason = n.getState().getData().suspend_reason;
-                        setDebugViewSelectionForProxy(proxy, n, reason);
+                        node_selected |= setDebugViewSelectionForProxy(proxy, n, reason);
+                    }
+                    if (!node_selected) {
+                        // bug 420740: No node was selected - select the first one
+                        setDebugViewSelectionForProxy(proxy, nodes.get(0), "Launch");
                     }
                 }
             }
@@ -1712,13 +1717,14 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      * @param proxy - model proxy for a given debug view instance
      * @param node - model node that represents the debug context.
      * @param reason - suspend reason.
+     * @return whether the node was selected
      */
-    public void setDebugViewSelectionForProxy(TCFModelProxy proxy, TCFNode node, String reason) {
+    public boolean setDebugViewSelectionForProxy(TCFModelProxy proxy, TCFNode node, String reason) {
         assert Protocol.isDispatchThread();
-        if (!proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) return;
-        if (node == null) return;
-        if (node.isDisposed()) return;
-        if (reason == null) return;
+        if (!proxy.getPresentationContext().getId().equals(IDebugUIConstants.ID_DEBUG_VIEW)) return false;
+        if (node == null) return false;
+        if (node.isDisposed()) return false;
+        if (reason == null) return false;
 
         boolean user_request =
             reason.equals(IRunControl.REASON_USER_REQUEST) ||
@@ -1726,8 +1732,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             reason.equals(IRunControl.REASON_CONTAINER) ||
             delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
         if (proxy.getAutoExpandNode(node, user_request)) proxy.expand(node);
-        if (reason.equals(IRunControl.REASON_USER_REQUEST)) return;
+        if (reason.equals(IRunControl.REASON_USER_REQUEST)) return false;
         proxy.setSelection(node);
+        return true;
     }
 
     /**
