@@ -255,7 +255,7 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 		// Update the system monitor context object (if necessary)
 		ISysMonitor.SysMonitorContext s1 = dst.getSysMonitorContext();
 		ISysMonitor.SysMonitorContext s2 = src.getSysMonitorContext();
-		if ((s1 == null && s2 != null) || (s1 != null && s2 == null) || !s1.equals(s2)) {
+		if ((s1 == null && s2 != null) || (s1 != null && s2 == null) || (s1 != null && !s1.equals(s2))) {
 			dst.setSysMonitorContext(src.getSysMonitorContext());
 			dstNodeChanged |= true;
 		}
@@ -263,7 +263,7 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 		// Update the process context object (if necessary)
 		IProcesses.ProcessContext p1 = dst.getProcessContext();
 		IProcesses.ProcessContext p2 = src.getProcessContext();
-		if ((p1 == null && p2 != null) || (p1 != null && p2 == null) || !p1.equals(p2)) {
+		if ((p1 == null && p2 != null) || (p1 != null && p2 == null) || (p1 != null && !p1.equals(p2))) {
 			dst.setProcessContext(src.getProcessContext());
 			dstNodeChanged |= true;
 		}
@@ -297,7 +297,7 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 		// Update the nodes only if the id's are matching
 		String dstContextId = dst.getStringProperty(IProcessContextNodeProperties.PROPERTY_ID);
 		String srcContextId = src.getStringProperty(IProcessContextNodeProperties.PROPERTY_ID);
-		if ((dstContextId == null && srcContextId != null) || (dstContextId != null && srcContextId == null) || !dstContextId.equals(srcContextId)) {
+		if ((dstContextId == null && srcContextId != null) || (dstContextId != null && srcContextId == null) || (dstContextId != null && !dstContextId.equals(srcContextId))) {
 			return;
 		}
 

@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
@@ -53,6 +54,9 @@ public class ProcessComparator implements Comparator<IProcessContextNode> , Seri
 		if (text1 == null && text2 == null) return 0;
 		if (text1 != null && text2 == null) return 1;
 		if (text1 == null && text2 != null) return -1;
+
+		Assert.isNotNull(text1);
+		Assert.isNotNull(text2);
 
 		// Convert the labels to compare to lowercase if the sorting is case-insensitive
 		if (!isCaseSensitve()) {

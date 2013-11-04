@@ -59,13 +59,14 @@ public class PathMapService extends AbstractService implements IPathMapService {
     	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
 
-		// Acquire the lock before accessing the path mappings
-		lock.lock();
-
 		PathMapRule[] rules = null;
-		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
 
 		try {
+			// Acquire the lock before accessing the path mappings
+			lock.lock();
+
+			List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
+
 			// Get the launch configuration for that peer model
 			ILaunchConfiguration config = (ILaunchConfiguration) Platform.getAdapterManager().getAdapter(context, ILaunchConfiguration.class);
 			if (config == null) {
@@ -114,13 +115,14 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		Assert.isNotNull(source);
 		Assert.isNotNull(destination);
 
-		// Acquire the lock before accessing the path mappings
-		lock.lock();
-
 		PathMapRule rule = null;
-		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
 
 		try {
+			// Acquire the lock before accessing the path mappings
+			lock.lock();
+
+			List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
+
 			// Get the launch configuration for that peer model
 			ILaunchConfigurationWorkingCopy config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().getAdapter(context, ILaunchConfigurationWorkingCopy.class);
 			if (config == null) {
@@ -177,12 +179,12 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		Assert.isNotNull(context);
 		Assert.isNotNull(rule);
 
-		// Acquire the lock before accessing the path mappings
-		lock.lock();
-
-		List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
-
 		try {
+			// Acquire the lock before accessing the path mappings
+			lock.lock();
+
+			List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
+
 			// Get the launch configuration for that peer model
 			ILaunchConfigurationWorkingCopy config = (ILaunchConfigurationWorkingCopy) Platform.getAdapterManager().getAdapter(context, ILaunchConfigurationWorkingCopy.class);
 			if (config == null) {
