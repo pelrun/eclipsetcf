@@ -881,7 +881,8 @@ public class MemoryMapWidget {
         }
         catch (Exception x) {
             if (channel.getState() != IChannel.STATE_OPEN) return null;
-            Activator.log("Cannot get selected memory node", x);
+            // Don't log error. This is expected if the selected node has no containing memory context
+            // Activator.log("Cannot get selected memory node", x);
             return null;
         }
     }

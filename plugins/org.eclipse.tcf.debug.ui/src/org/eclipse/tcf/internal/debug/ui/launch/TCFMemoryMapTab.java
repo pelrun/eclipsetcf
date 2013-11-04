@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package org.eclipse.tcf.internal.debug.ui.launch;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.Launch;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.swt.SWT;
@@ -22,8 +23,10 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.commands.MemoryMapWidget;
+import org.eclipse.tcf.internal.debug.ui.model.TCFModelManager;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 
 public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
@@ -33,9 +36,7 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
     private MemoryMapWidget widget;
 
     public void createControl(Composite parent) {
-        TCFNode node = null;
-        IAdaptable adaptable = DebugUITools.getDebugContext();
-        if (adaptable != null) node = (TCFNode)adaptable.getAdapter(TCFNode.class);
+        TCFNode node = getSelectedNode();
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
         composite.setFont(parent.getFont());
@@ -77,11 +78,7 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
      */
     public boolean updateContext() {
         if (widget != null) {
-            TCFNode node = null;
-            IAdaptable adaptable = DebugUITools.getDebugContext();
-            if (adaptable != null) {
-                node = (TCFNode)adaptable.getAdapter(TCFNode.class);
-            }
+            TCFNode node = getSelectedNode();
             if (node != null) {
                 return widget.setTCFNode(node);
             }
@@ -126,4 +123,13 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
     public String getId() {
         return TAB_ID;
     }
+
+    private TCFNode getSelectedNode() {
+        TCFNode node = null;
+        IAdaptable adaptable = DebugUITools.getDebugContext();
+        if (adaptable instanceof TCFLaunch) node = TCFModelManager.getRootNodeSync((Launch)adaptable);
+        else if (adaptable != null) node = (TCFNode)adaptable.getAdapter(TCFNode.class);
+        return node;
+    }
+
 }
