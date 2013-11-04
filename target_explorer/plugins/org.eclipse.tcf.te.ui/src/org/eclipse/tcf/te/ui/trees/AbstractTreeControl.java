@@ -194,7 +194,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 					Object oldInput = args[1];
 					Object newInput = args[2];
 
-					if ((oldInput == null && newInput != null) || (oldInput != null && newInput == null) || !oldInput.equals(newInput)) {
+					if ((oldInput == null && newInput != null) || (oldInput != null && newInput == null) || (oldInput != null && !oldInput.equals(newInput))) {
 						onInputChanged(args[1], args[2]);
 					}
 				}
