@@ -389,7 +389,6 @@ public class TreeViewerExtension {
 	 * @param configuration The configuration element.
 	 * @throws CoreException Thrown during parsing.
 	 */
-	@SuppressWarnings("rawtypes")
 	void initColumn(ColumnDescriptor column, IConfigurationElement configuration) throws CoreException {
 		String name = configuration.getAttribute("name"); //$NON-NLS-1$
 		Assert.isNotNull(name);
@@ -439,7 +438,7 @@ public class TreeViewerExtension {
 		}
 		attribute = configuration.getAttribute("comparator"); //$NON-NLS-1$
 		if (attribute != null) {
-			Comparator comparator = (Comparator) configuration.createExecutableExtension("comparator"); //$NON-NLS-1$
+			Comparator<Object> comparator = (Comparator<Object>) configuration.createExecutableExtension("comparator"); //$NON-NLS-1$
 			if (comparator != null) {
 				column.setComparator(comparator);
 			}

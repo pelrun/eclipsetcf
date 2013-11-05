@@ -70,8 +70,7 @@ public class ColumnDescriptor {
 	private ILabelProvider labelProvider;
 
 	//The comparator of the column, used to sort the viewer.
-	@SuppressWarnings("rawtypes")
-	private Comparator comparator;
+	private Comparator<Object> comparator;
 
 	//The corresponding tree column. Not intended to be changed by other callers.
 	private TreeColumn treeColumn;
@@ -131,8 +130,7 @@ public class ColumnDescriptor {
 	 *
 	 * @param comparator The new comparator.
 	 */
-	@SuppressWarnings("rawtypes")
-	public void setComparator(Comparator comparator) {
+	public void setComparator(Comparator<Object> comparator) {
 		this.comparator = comparator;
 	}
 
@@ -141,8 +139,7 @@ public class ColumnDescriptor {
 	 *
 	 * @return The new comparator.
 	 */
-	@SuppressWarnings("rawtypes")
-	public Comparator getComparator() {
+	public Comparator<Object> getComparator() {
 		return comparator;
 	}
 

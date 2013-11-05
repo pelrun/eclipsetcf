@@ -9,8 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.trees;
 
+import java.util.Comparator;
+
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 
 /**
  * The tree control sorter determines if the elements to sort are from the same
@@ -58,6 +63,26 @@ public class TreeControlSorter extends TreeViewerSorterCaseInsensitive {
 				if (descriptor.getContentContribution().isElementHandled(e2)) {
 					c2 = descriptor;
 					break;
+				}
+			}
+		}
+
+		if (c1 == null && c2 == null && viewer instanceof TreeViewer) {
+			// Both elements are from the main content provider, check if
+			// the current column has an comparator associated.
+			Tree tree = ((TreeViewer) viewer).getTree();
+			TreeColumn treeColumn = tree.getSortColumn();
+			if (treeColumn == null) {
+				// If the sort column is not set, then use the first column.
+				treeColumn = tree.getColumn(0);
+			}
+			if (treeColumn != null && !treeColumn.isDisposed()) {
+				ColumnDescriptor column = (ColumnDescriptor) treeColumn.getData();
+				if (column != null) {
+					Comparator<Object> comparator = column.getComparator();
+					if (comparator != null) {
+						return inverter * comparator.compare(e1, e2);
+					}
 				}
 			}
 		}

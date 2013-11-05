@@ -33,7 +33,7 @@ public class FSTreeViewerSorter extends TreeViewerSorterCaseInsensitive {
 	@Override
 	public int compare(Viewer viewer, Object e1, Object e2) {
 		if (e1 instanceof FSTreeNode && e2 instanceof FSTreeNode) {
-			return comparator.compare((FSTreeNode) e1, (FSTreeNode) e2);
+			return comparator.compare(e1, e2);
 		}
 		return super.compare(viewer, e1, e2);
 	}

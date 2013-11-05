@@ -17,7 +17,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 /**
  * The base comparator for all the file system tree column.
  */
-public abstract class FSTreeNodeComparator implements Comparator<FSTreeNode>, Serializable {
+public abstract class FSTreeNodeComparator implements Comparator<Object>, Serializable {
     private static final long serialVersionUID = 1L;
 
 	/*
@@ -25,7 +25,12 @@ public abstract class FSTreeNodeComparator implements Comparator<FSTreeNode>, Se
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public int compare(FSTreeNode node1, FSTreeNode node2) {
+	public final int compare(Object o1, Object o2) {
+		if (!(o1 instanceof FSTreeNode) || !(o2 instanceof FSTreeNode)) return 0;
+
+		FSTreeNode node1 = (FSTreeNode)o1;
+		FSTreeNode node2 = (FSTreeNode)o2;
+
 		// Get the type labels
 		String type1 = node1.type;
 		String type2 = node2.type;
@@ -49,7 +54,7 @@ public abstract class FSTreeNodeComparator implements Comparator<FSTreeNode>, Se
 
 	/**
 	 * Sort the node1 and node2 when they are both directories or files.
-	 * 
+	 *
 	 * @param node1 The first node.
 	 * @param node2 The second node.
 	 * @return The comparison result.

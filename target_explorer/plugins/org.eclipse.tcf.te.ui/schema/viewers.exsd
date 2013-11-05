@@ -753,7 +753,7 @@
       </appinfo>
       <documentation>
          &lt;p&gt;
-In the &quot;column&quot; element, the class referenced by the attribute &quot;labelProvider&quot; must implement &lt;samp&gt;org.eclipse.jface.viewers.ILabelProvider&lt;/samp&gt;. The class referenced by the attribute &quot;comparator&quot; must implement &lt;samp&gt;java.util.Comparator&lt;/samp&gt; that compares the elements of the tree viewer.
+In the &quot;column&quot; element, the class referenced by the attribute &quot;labelProvider&quot; must implement &lt;samp&gt;org.eclipse.jface.viewers.ILabelProvider&lt;/samp&gt;. The class referenced by the attribute &quot;comparator&quot; must implement &lt;samp&gt;java.util.Comparator&amp;lt;Object&amp;gt;&lt;/samp&gt; that compares the elements of the tree viewer.
 &lt;p&gt;
 In the &quot;filter&quot; element, the class referenced by the attribute &quot;class&quot; must extend &lt;samp&gt;org.eclipse.jface.viewers.ViewerFilter&lt;/samp&gt;.
 &lt;p&gt;
