@@ -9,7 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.handler;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -52,6 +54,7 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 		Assert.isNotNull(operation);
 
 		IStructuredSelection selection = getSelection(event);
+		Assert.isNotNull(selection);
 
 		Iterator<?> iterator = selection.iterator();
 		while (iterator.hasNext()) {
@@ -79,7 +82,8 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 	}
 
 	/**
-	 * Get the stepper service for the goven context and operation.
+	 * Get the stepper service for the given context and operation.
+	 *
 	 * @param context The context.
 	 * @param operation The operation.
 	 * @return The stepper service or <code>null</code>.
@@ -98,26 +102,33 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 
 	/**
 	 * Get the selection for the handler execution.
+	 *
 	 * @param event The event.
 	 * @return The selection.
 	 */
 	protected IStructuredSelection getSelection(ExecutionEvent event) {
-		// Get the active part
-		IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		// Get the current selection
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 
-		// If the handler is invoked from an editor part, ignore the selection and
-		// construct an artificial selection from the active editor input.
+		List<Object> elements = new ArrayList<Object>();
+		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			Iterator<Object> iterator = ((IStructuredSelection)selection).iterator();
+			while (iterator.hasNext()) elements.add(iterator.next());
+		}
+
+		// Get the active part
+		IWorkbenchPart part = HandlerUtil.getActivePart(event);
+		// If the handler is invoked from an editor part, construct an artificial selection
+		// from the active editor input.
 		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
 			Object element = input != null ? input.getAdapter(Object.class) : null;
-			if (element != null) {
-				selection = new StructuredSelection(element);
-			}
+			if (element != null) elements.add(element);
 		}
 
-		return (selection instanceof IStructuredSelection && !selection.isEmpty()) ? (IStructuredSelection)selection : new StructuredSelection();
+		selection = elements.isEmpty() ? new StructuredSelection() : new StructuredSelection(elements);
+
+		return (IStructuredSelection)selection;
 	}
 
 	/**
