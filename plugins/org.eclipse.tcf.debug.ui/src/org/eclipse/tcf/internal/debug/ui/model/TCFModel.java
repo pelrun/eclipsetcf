@@ -847,6 +847,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             }
         }
         if (launch.isProcessExited()) onContextOrProcessRemoved();
+        for (TCFConsole c : process_consoles.values()) c.onModelConnected();
     }
 
     void onDisconnected() {
@@ -888,6 +889,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 }
                 c = new TCFConsole(this, type, ctx_id);
                 process_consoles.put(ctx_id, c);
+                if (launch_node != null) c.onModelConnected();
             }
             c.write(stream_id, data);
         }

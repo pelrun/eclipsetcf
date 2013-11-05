@@ -1004,7 +1004,7 @@ public class ProfilerView extends ViewPart {
                         // Workaround:
                         // Linux GTK tries to outsmart a user: last column is auto-resized when table size changes.
                         // This causes infinite recursion and stack overflow.
-                        if (w > column_size[n]) w = column_size[n]; 
+                        if (w > column_size[n]) w = column_size[n];
                     }
                     if (viewer_up.getTable().getColumn(n).getWidth() == w &&
                         viewer_dw.getTable().getColumn(n).getWidth() == w) return;

@@ -26,6 +26,8 @@ import org.eclipse.tcf.protocol.IErrorReport;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcessesV1;
+import org.eclipse.tcf.services.IRunControl;
+import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tm.internal.terminal.control.ITerminalListener;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.control.TerminalViewControlFactory;
@@ -313,7 +315,7 @@ class TCFConsole extends AbstractConsole {
     }
 
     TCFConsole(final TCFModel model, int type, String ctx_id) {
-        super(getName(type, ctx_id), null, getImageDescriptor(ctx_id), false);
+        super(getViewName(type, ctx_id), null, getImageDescriptor(ctx_id), false);
         this.model = model;
         this.type = type;
         this.ctx_id = ctx_id;
@@ -344,17 +346,17 @@ class TCFConsole extends AbstractConsole {
         return ImageCache.getImageDescriptor(image);
     }
 
-    private static String getName(int type, String ctx_id) {
+    private static String getViewName(int type, String name) {
         String title = "TCF";
         switch (type) {
         case TYPE_PROCESS_CONSOLE:
-            title += " Debug Process Console - " + ctx_id;
+            title += " Debug Process Console - " + name;
             break;
         case TYPE_PROCESS_TERMINAL:
-            title += " Debug Process Terminal - " + ctx_id;
+            title += " Debug Process Terminal - " + name;
             break;
         case TYPE_UART_TERMINAL:
-            title += " Debug Virtual Terminal - " + ctx_id;
+            title += " Debug Virtual Terminal - " + name;
             break;
         case TYPE_CMD_LINE:
             title += " Debugger Command Line";
@@ -364,6 +366,34 @@ class TCFConsole extends AbstractConsole {
             break;
         }
         return title;
+    }
+
+    void onModelConnected() {
+        if (ctx_id != null) {
+            // Change view title to include context name instead of context ID
+            Protocol.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    if (!model.createNode(ctx_id, this)) return;
+                    TCFNode node = (TCFNode)model.getNode(ctx_id);
+                    if (node instanceof TCFNodeExecContext) {
+                        TCFNodeExecContext exe = (TCFNodeExecContext)node;
+                        TCFDataCache<IRunControl.RunControlContext> ctx_cache = exe.getRunContext();
+                        if (!ctx_cache.validate(this)) return;
+                        IRunControl.RunControlContext ctx_data = ctx_cache.getData();
+                        if (ctx_data != null && ctx_data.getName() != null) {
+                            final String name = ctx_data.getName();
+                            model.asyncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    setName(getViewName(type, name));
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
     }
 
     void write(final int stream_id, byte[] data) {
