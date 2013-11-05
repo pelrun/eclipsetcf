@@ -1332,7 +1332,7 @@ public class TCFLaunch extends Launch {
                 @Override
                 public void doneConnect(IToken token, Exception error) {
                     if (uart_tx_stream_ids.get(tx_id) != null) return;
-                    uart_rx_stream_ids.put(tx_id, ctx_id);
+                    uart_tx_stream_ids.put(tx_id, ctx_id);
                     if (error == null) {
                         readStream(ctx_id, tx_id, 0);
                         return;
