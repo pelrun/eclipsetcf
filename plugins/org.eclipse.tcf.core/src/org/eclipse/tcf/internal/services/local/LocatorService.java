@@ -14,12 +14,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -30,7 +30,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -635,68 +634,22 @@ public class LocatorService implements ILocator {
     private void getSubNetList(HashSet<SubNet> set) throws SocketException {
         for (Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); e.hasMoreElements();) {
             NetworkInterface f = e.nextElement();
-            /* TODO: Class InterfaceAddress does not exists in Java versions before 1.6.
-             * Fix the code below when support for old Java versions is not needed any more.
-             */
-            try {
-                Method m0 = f.getClass().getMethod("getInterfaceAddresses");
-                for (Object ia : (List<?>)m0.invoke(f)) {
-                    Method m1 = ia.getClass().getMethod("getNetworkPrefixLength");
-                    Method m2 = ia.getClass().getMethod("getAddress");
-                    Method m3 = ia.getClass().getMethod("getBroadcast");
-                    int network_prefix_len = (Short)m1.invoke(ia);
-                    InetAddress address = (InetAddress)m2.invoke(ia);
-                    InetAddress broadcast = (InetAddress)m3.invoke(ia);
+            for (InterfaceAddress ia : f.getInterfaceAddresses()) {
+                int network_prefix_len = ia.getNetworkPrefixLength();
+                InetAddress address = ia.getAddress();
+                InetAddress broadcast = ia.getBroadcast();
 
-                    // TODO: discovery over IPv6
-                    /* Create IPv6 broadcast address.
-                     * The code does not work - commented out until fixed.
-                    if (broadcast == null &&
-                            address instanceof Inet6Address &&
-                            !address.isAnyLocalAddress() &&
-                            !address.isLinkLocalAddress() &&
-                            !address.isMulticastAddress() &&
-                            !address.isLoopbackAddress()) {
-                        byte[] net = address.getAddress();
-                        byte[] buf = new byte[16];
-                        buf[0] = (byte)0xff; // multicast
-                        buf[1] = (byte)0x32; // flags + scope
-                        buf[2] = (byte)0x00; // reserved
-                        buf[3] = (byte)network_prefix_len;
-                        int n = (network_prefix_len + 7) / 8;
-                        for (int i = 0; i < n; i++) buf[i + 4] = net[i];
-                        broadcast = Inet6Address.getByAddress(null, buf);
-                    }
-                    */
-
-                    if (network_prefix_len == 0 && address instanceof Inet4Address) {
-                        // Java 1.6.0 on Linux returns network prefix == 0 for loop-back interface
-                        byte[] buf = address.getAddress();
-                        if (buf[0] == 127) {
-                            network_prefix_len = 8;
-                            if (broadcast == null) broadcast = address;
-                        }
-                    }
-
-                    if (network_prefix_len > 0 && address != null && broadcast != null) {
-                        set.add(new SubNet(network_prefix_len, address, broadcast));
+                if (network_prefix_len == 0 && address instanceof Inet4Address) {
+                    // Java 1.6.0 on Linux returns network prefix == 0 for loop-back interface
+                    byte[] buf = address.getAddress();
+                    if (buf[0] == 127) {
+                        network_prefix_len = 8;
+                        if (broadcast == null) broadcast = address;
                     }
                 }
-            }
-            catch (Exception x) {
-                // Java 1.5 or older
-                // TODO: need a better way to get broadcast addresses on Java 1.5 VM
-                Enumeration<InetAddress> n = f.getInetAddresses();
-                while (n.hasMoreElements()) {
-                    InetAddress addr = n.nextElement();
-                    byte[] buf = addr.getAddress();
-                    if (buf.length != 4) continue;
-                    buf[3] = (byte)255;
-                    try {
-                        set.add(new SubNet(24, addr, InetAddress.getByAddress(buf)));
-                    }
-                    catch (UnknownHostException y) {
-                    }
+
+                if (network_prefix_len > 0 && address != null && broadcast != null) {
+                    set.add(new SubNet(network_prefix_len, address, broadcast));
                 }
             }
         }
