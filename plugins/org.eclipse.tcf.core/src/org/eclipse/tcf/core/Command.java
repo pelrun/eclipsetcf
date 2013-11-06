@@ -13,6 +13,7 @@ package org.eclipse.tcf.core;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -100,6 +101,11 @@ public abstract class Command implements IChannel.ICommandListener {
         assert this.token == token;
         Exception error = null;
         Object[] args = null;
+        if (data != null && data.length > 0 && data[data.length-1] != 0) {
+            byte[] newData = Arrays.copyOf(data, data.length+1);
+            newData[data.length] = 0;
+            data = newData;
+        }
         try {
             args = JSON.parseSequence(data);
         }
