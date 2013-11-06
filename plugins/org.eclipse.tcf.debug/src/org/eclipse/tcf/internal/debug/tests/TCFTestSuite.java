@@ -84,17 +84,17 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Debugger Attach/Terminate Test...", ++count_done, count_total);
+                listener.progress("Running Path Map Test...", ++count_done, count_total);
                 for (IChannel channel : channels) {
-                    active_tests.put(new TestAttachTerminate(TCFTestSuite.this, run_controls.get(channel), channel), channel);
+                    active_tests.put(new TestPathMap(TCFTestSuite.this, channel, path_map), channel);
                 }
             }
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Path Map Test...", ++count_done, count_total);
+                listener.progress("Running Debugger Attach/Terminate Test...", ++count_done, count_total);
                 for (IChannel channel : channels) {
-                    active_tests.put(new TestPathMap(TCFTestSuite.this, channel, path_map), channel);
+                    active_tests.put(new TestAttachTerminate(TCFTestSuite.this, run_controls.get(channel), channel), channel);
                 }
             }
         });
