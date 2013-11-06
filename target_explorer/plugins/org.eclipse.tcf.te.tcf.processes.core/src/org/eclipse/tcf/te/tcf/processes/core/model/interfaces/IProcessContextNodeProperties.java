@@ -38,4 +38,12 @@ public interface IProcessContextNodeProperties {
 	 */
 	public static final String PROPERTY_CAPABILITIES = "capabilities"; //$NON-NLS-1$
 
+	/**
+	 * The property key base to access the parameter lists for the provided capabilities.
+	 * <p>
+	 * The full property key is <code>PROPERTY_PARAMETER_LIST.&lt;command&gt;</code>.
+	 * <p>
+	 * The property data is a <code>List&lt;Map&lt;String, Object&gt;&gt;</code>.
+	 */
+	public static final String PROPERTY_PARAMETER_LIST = "parameterList"; //$NON-NLS-1$
 }
