@@ -93,6 +93,7 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
             for (DirEntry d : entries) {
                 if (d.filename.startsWith("A:")) continue;
                 if (d.filename.startsWith("B:")) continue;
+                if (d.filename.startsWith("/romfs")) continue;
                 root = d.filename;
                 break;
             }
@@ -119,7 +120,7 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
             }
             if (eof) {
                 if (tmp_path == null) {
-                    exit(new Exception("File system test filed: cannot find temporary directory"));
+                    exit(new Exception("File system test failed: cannot find temporary directory"));
                     return;
                 }
                 files.close(handle, this);
