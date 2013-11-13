@@ -132,7 +132,9 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 					ExecutorsUtil.executeInUI(new Runnable() {
 						@Override
 						public void run() {
-							getSelectorControl().refresh();
+							if (getSelectorControl() != null) {
+								getSelectorControl().refresh();
+							}
 							getManagedForm().dirtyStateChanged();
 						}
 					});
@@ -208,7 +210,9 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 	 */
 	@Override
 	public void extractData(IPropertiesContainer data) {
-		data.setProperty(getContextListDataKey(), encode(selector.getCheckedModelContexts()));
+		if (selector != null) {
+			data.setProperty(getContextListDataKey(), encode(selector.getCheckedModelContexts()));
+		}
 	}
 
 	/* (non-Javadoc)

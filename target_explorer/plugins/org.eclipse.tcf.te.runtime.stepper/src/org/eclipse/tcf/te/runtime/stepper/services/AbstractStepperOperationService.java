@@ -16,15 +16,15 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 
 /**
- * AbstractStepperService
+ * AbstractStepperOperationService
  */
-public abstract class AbstractStepperService extends AbstractService implements IStepperService {
+public abstract class AbstractStepperOperationService extends AbstractService implements IStepperOperationService {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService#getStepContext(java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#getStepContext(java.lang.Object, java.lang.String)
 	 */
 	@Override
 	public IStepContext getStepContext(Object context, String operation) {
@@ -43,7 +43,7 @@ public abstract class AbstractStepperService extends AbstractService implements 
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService#getStepData(java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#getStepData(java.lang.Object, java.lang.String)
 	 */
 	@Override
 	public IPropertiesContainer getStepData(Object context, String operation) {

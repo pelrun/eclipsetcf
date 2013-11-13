@@ -22,7 +22,7 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
-import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;

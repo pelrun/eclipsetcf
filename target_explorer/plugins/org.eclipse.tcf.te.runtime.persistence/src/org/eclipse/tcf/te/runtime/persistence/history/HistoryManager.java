@@ -86,16 +86,18 @@ public class HistoryManager {
 	 * Write the history to disk.
 	 */
 	public void flush() {
-		try {
-			// Get the persistence service
-			IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
-			if (uRIPersistenceService == null) {
-				throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
+		synchronized (history) {
+			try {
+				// Get the persistence service
+				IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
+				if (uRIPersistenceService == null) {
+					throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
+				}
+				// Save the history to the persistence storage
+				uRIPersistenceService.write(history, getURI());
+			} catch (IOException e) {
 			}
-			// Save the history to the persistence storage
-			uRIPersistenceService.write(history, getURI());
-		} catch (IOException e) {
-		}
+        }
 	}
 
 	/**

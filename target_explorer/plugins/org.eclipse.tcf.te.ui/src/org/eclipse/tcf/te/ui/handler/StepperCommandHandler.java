@@ -29,12 +29,14 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.part.EditorPart;
 
@@ -45,6 +47,11 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 
 	protected String operation = null;
 	protected String adaptTo = null;
+
+	/**
+	 * Part id: Project Explorer view
+	 */
+	public static final String PART_ID_PROJECT_VIEW = "org.eclipse.ui.navigator.ProjectExplorer"; //$NON-NLS-1$
 
 	/* (non-Javadoc)
 	 * @see com.windriver.te.tcf.ui.handler.AbstractAgentCommandHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -64,13 +71,13 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 				Object adapter = Platform.getAdapterManager().getAdapter(element, adaptTo);
 				if (adapter != null) adapted = adapter;
 			}
-			IStepperService stepperService = getStepperService(adapted, operation);
-			if (stepperService != null) {
-				IStepContext stepContext = stepperService.getStepContext(adapted, operation);
-				String stepGroupId = stepperService.getStepGroupId(adapted, operation);
-				String name = stepperService.getStepGroupName(adapted, operation);
-				boolean isCancelable = stepperService.isCancelable(adapted, operation);
-				IPropertiesContainer data = stepperService.getStepData(adapted, operation);
+			IStepperOperationService stepperOperationService = getStepperService(adapted, operation);
+			if (stepperOperationService != null) {
+				IStepContext stepContext = stepperOperationService.getStepContext(adapted, operation);
+				String stepGroupId = stepperOperationService.getStepGroupId(adapted, operation);
+				String name = stepperOperationService.getStepGroupName(adapted, operation);
+				boolean isCancelable = stepperOperationService.isCancelable(adapted, operation);
+				IPropertiesContainer data = stepperOperationService.getStepData(adapted, operation);
 
 				if (stepGroupId != null && stepContext != null) {
 					scheduleStepperJob(stepContext, data, stepGroupId, name, isCancelable);
@@ -88,16 +95,16 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 	 * @param operation The operation.
 	 * @return The stepper service or <code>null</code>.
 	 */
-	protected IStepperService getStepperService(Object context, String operation) {
-		IService[] services = ServiceManager.getInstance().getServices(context, IStepperService.class, false);
-		IStepperService stepperService = null;
+	protected IStepperOperationService getStepperService(Object context, String operation) {
+		IService[] services = ServiceManager.getInstance().getServices(context, IStepperOperationService.class, false);
+		IStepperOperationService stepperOperationService = null;
 		for (IService service : services) {
-			if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(context, operation)) {
-				stepperService = (IStepperService)service;
+			if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(context, operation)) {
+				stepperOperationService = (IStepperOperationService)service;
 				break;
 			}
         }
-		return stepperService;
+		return stepperOperationService;
 	}
 
 	/**
@@ -123,7 +130,7 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
 			Object element = input != null ? input.getAdapter(Object.class) : null;
-			if (element != null) elements.add(element);
+			if (element != null && !elements.contains(element)) elements.add(element);
 		}
 
 		selection = elements.isEmpty() ? new StructuredSelection() : new StructuredSelection(elements);
@@ -169,5 +176,25 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 				this.adaptTo = dataMap.get("adaptTo").toString(); //$NON-NLS-1$
 			}
 		}
+	}
+
+	public static IStructuredSelection getPartSelection(String partId) {
+		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (partId != null && window != null && window.getActivePage() != null) {
+			ISelection sel = window.getActivePage().getSelection(partId);
+
+			if (sel instanceof IStructuredSelection) {
+				return (IStructuredSelection)sel;
+			}
+		}
+		return null;
+	}
+
+	public static IStructuredSelection getEditorInputSelection() {
+		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (window != null && window.getActivePage() != null && window.getActivePage().getActiveEditor() != null) {
+			return new StructuredSelection(window.getActivePage().getActiveEditor().getEditorInput());
+		}
+		return null;
 	}
 }

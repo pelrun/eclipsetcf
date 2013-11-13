@@ -23,7 +23,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
-import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;

@@ -41,7 +41,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.services.ITerminals;
 import org.eclipse.tcf.services.ITerminals.TerminalContext;
-import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.DisposedEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;

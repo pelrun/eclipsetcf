@@ -192,6 +192,7 @@
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.disconnectStepGroup">
          <references>
+            <reference id="org.eclipse.tcf.te.runtime.stepper.cancelJobsStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
@@ -218,12 +219,8 @@
             id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"
             iterator="org.eclipse.tcf.te.tcf.locator.iterators.StartDebuggerIterator">
          <references>
-            <reference
-                  id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep">
-               <parameter
-                     name="autoAttachAll"
-                     value="true">
-               </parameter>
+            <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep">
+               <parameter name="autoAttachAll" value="true"/>
             </reference>
          </references>
       </stepGroup>

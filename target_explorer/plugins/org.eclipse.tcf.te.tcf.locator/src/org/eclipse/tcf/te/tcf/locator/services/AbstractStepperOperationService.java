@@ -1,5 +1,5 @@
 /**
- * AbstractStepperService.java
+ * AbstractStepperOperationService.java
  * Created on Apr 10, 2013
  *
  * Copyright (c) 2013 Wind River Systems, Inc.
@@ -17,16 +17,16 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperati
 /**
  * Abstract connect/disconnect stepper service implementation.
  */
-public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.stepper.services.AbstractStepperService {
+public abstract class AbstractStepperOperationService extends org.eclipse.tcf.te.runtime.stepper.services.AbstractStepperOperationService {
 
 	/**
 	 * Constructor.
 	 */
-	public AbstractStepperService() {
+	public AbstractStepperOperationService() {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService#isHandledOperation(java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#isHandledOperation(java.lang.Object, java.lang.String)
 	 */
 	@Override
 	public boolean isHandledOperation(Object context, String operation) {
@@ -73,7 +73,7 @@ public abstract class AbstractStepperService extends org.eclipse.tcf.te.runtime.
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService#isCancelable(java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#isCancelable(java.lang.Object, java.lang.String)
 	 */
 	@Override
 	public boolean isCancelable(Object context, String operation) {

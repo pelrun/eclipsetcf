@@ -19,7 +19,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -89,20 +89,20 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 		});
 
 		if (attachDebugger.get()) {
-			IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperService.class, false);
-			IStepperService stepperService = null;
+			IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperOperationService.class, false);
+			IStepperOperationService stepperOperationService = null;
 			for (IService service : services) {
-				if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER)) {
-					stepperService = (IStepperService)service;
+				if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER)) {
+					stepperOperationService = (IStepperOperationService)service;
 					break;
 				}
 	        }
-			if (stepperService != null) {
-				String stepGroupId = stepperService.getStepGroupId(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				IStepContext stepContext = stepperService.getStepContext(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				String name = stepperService.getStepGroupName(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				boolean enabled = stepperService.isEnabled(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+			if (stepperOperationService != null) {
+				String stepGroupId = stepperOperationService.getStepGroupId(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				IStepContext stepContext = stepperOperationService.getStepContext(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				String name = stepperOperationService.getStepGroupName(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				IPropertiesContainer data = stepperOperationService.getStepData(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				boolean enabled = stepperOperationService.isEnabled(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
 
 				if (enabled && stepGroupId != null && stepContext != null) {
 					try {

@@ -9,11 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.stepper.internal;
 
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import java.util.List;
+import java.util.Map;
+
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 
 
@@ -32,37 +34,43 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 		String operation = expectedValue instanceof String ? (String)expectedValue : null;
 
 		if ("isRunning".equals(property)) { //$NON-NLS-1$
-			if (operation != null && receiver instanceof IPropertiesContainer) {
-				IPropertiesAccessService service = ServiceManager.getInstance().getService(receiver, IPropertiesAccessService.class);
-				StepperJob job = service != null ? (StepperJob)service.getProperty(receiver, StepperJob.class.getName() + "." + operation) : null; //$NON-NLS-1$
-				if (service == null && receiver instanceof IPropertiesContainer)
-					job = (StepperJob)((IPropertiesContainer)receiver).getProperty(StepperJob.class.getName() + "." + operation); //$NON-NLS-1$
-				return job != null && !job.isCanceled() && !job.isFinished();
+			if (operation != null) {
+				Map<String,List<Job>> jobs = StepperJob.getJobs(receiver);
+				if (jobs != null && jobs.containsKey(operation)) {
+					for (Job job : jobs.get(operation)) {
+						if (job instanceof StepperJob && !((StepperJob)job).isCanceled() && !((StepperJob)job).isFinished()) {
+							return true;
+						}
+					}
+				}
 			}
 		}
 
 		if ("isRunningOrCanceled".equals(property)) { //$NON-NLS-1$
-			if (operation != null && receiver instanceof IPropertiesContainer) {
-				IPropertiesAccessService service = ServiceManager.getInstance().getService(receiver, IPropertiesAccessService.class);
-				StepperJob job = service != null ? (StepperJob)service.getProperty(receiver, StepperJob.class.getName() + "." + operation) : null; //$NON-NLS-1$
-				if (service == null && receiver instanceof IPropertiesContainer)
-					job = (StepperJob)((IPropertiesContainer)receiver).getProperty(StepperJob.class.getName() + "." + operation); //$NON-NLS-1$
-				return job != null && !job.isFinished();
+			if (operation != null) {
+				Map<String,List<Job>> jobs = StepperJob.getJobs(receiver);
+				if (jobs != null && jobs.containsKey(operation)) {
+					for (Job job : jobs.get(operation)) {
+						if (job instanceof StepperJob && !((StepperJob)job).isFinished()) {
+							return true;
+						}
+					}
+				}
 			}
 		}
 
 		if ("isEnabled".equals(property)) { //$NON-NLS-1$
 			if (operation != null) {
-				IService[] services = ServiceManager.getInstance().getServices(receiver, IStepperService.class, false);
-				IStepperService stepperService = null;
+				IService[] services = ServiceManager.getInstance().getServices(receiver, IStepperOperationService.class, false);
+				IStepperOperationService stepperOperationService = null;
 				for (IService service : services) {
-					if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(receiver, operation)) {
-						stepperService = (IStepperService)service;
+					if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(receiver, operation)) {
+						stepperOperationService = (IStepperOperationService)service;
 						break;
 					}
 	            }
-				if (stepperService != null) {
-					return stepperService.isEnabled(receiver, operation);
+				if (stepperOperationService != null) {
+					return stepperOperationService.isEnabled(receiver, operation);
 				}
 			}
 		}

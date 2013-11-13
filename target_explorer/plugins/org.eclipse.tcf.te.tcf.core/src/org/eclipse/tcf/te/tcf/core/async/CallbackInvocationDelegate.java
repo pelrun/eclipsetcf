@@ -11,7 +11,7 @@ package org.eclipse.tcf.te.tcf.core.async;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 
 /**
  * Asynchronous callback collector callback invocation delegate implementation.

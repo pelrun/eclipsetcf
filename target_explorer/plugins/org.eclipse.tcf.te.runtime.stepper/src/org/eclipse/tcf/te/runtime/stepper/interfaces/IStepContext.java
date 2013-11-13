@@ -41,7 +41,7 @@ public interface IStepContext extends IAdaptable {
 
 	/**
 	 * Returns the context object.
-	 * 
+	 *
 	 * @return The context Object. Must not be <code>null</code>.
 	 */
 	public Object getContextObject();

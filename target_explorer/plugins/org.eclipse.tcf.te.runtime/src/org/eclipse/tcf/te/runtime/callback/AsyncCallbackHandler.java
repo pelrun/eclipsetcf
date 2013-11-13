@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.core.async;
+package org.eclipse.tcf.te.runtime.callback;
 
 import java.util.Hashtable;
 import java.util.Iterator;

@@ -17,4 +17,12 @@
       </propertyTester>
    </extension>
 
+<!-- Step contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
+      <step id="org.eclipse.tcf.te.runtime.stepper.cancelJobsStep"
+      		label="%CancelJobsStep.name" 
+            class="org.eclipse.tcf.te.runtime.stepper.steps.CancelJobsStep">
+      </step>
+   </extension>
+
 </plugin>

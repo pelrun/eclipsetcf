@@ -138,7 +138,10 @@
                   <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           value="connect"/>
                      <not>
                         <test forcePluginActivation="true"
                               property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
@@ -161,6 +164,16 @@
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
                            value="connect"/>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="connect"/>
+                     </not>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="disconnect"/>
+                     </not>
                   </adapt>
                </iterate>
             </with>
@@ -175,17 +188,22 @@
                <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
                   <test forcePluginActivation="true"
                         property="org.eclipse.tcf.te.runtime.services.hasService"
-                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
-                  <not>
+                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
+                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
                      <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
                            value="connect"/>
-                  </not>
-                  <not>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                           value="disconnect"/>
-                  </not>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="connect"/>
+                     </not>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="disconnect"/>
+                     </not>
+                  </adapt>
                </adapt>
             </with>
          </activeWhen>
@@ -199,6 +217,16 @@
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
                            value="connect"/>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="connect"/>
+                     </not>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="disconnect"/>
+                     </not>
                   </adapt>
                </with>
             </and>
@@ -215,12 +243,15 @@
                   <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
-                     <not>
+                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
+                     <or>
                         <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                              value="disconnect"/>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                               value="connect"/>
-                     </not>
+                     </or>
                      <not>
                         <test forcePluginActivation="true"
                               property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
@@ -235,9 +266,19 @@
                <count value="1"/>
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                           value="disconnect"/>
+                     <or>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                              value="disconnect"/>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunning"
+                              value="connect"/>
+                     </or>
+                     <not>
+                        <test forcePluginActivation="true"
+                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                              value="disconnect"/>
+                     </not>
                   </adapt>
                </iterate>
             </with>
@@ -252,12 +293,15 @@
                <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
                   <test forcePluginActivation="true"
                         property="org.eclipse.tcf.te.runtime.services.hasService"
-                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
-                  <not>
+                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
+                  <or>
                      <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           value="disconnect"/>
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                            value="connect"/>
-                  </not>
+                  </or>
                   <not>
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
@@ -269,78 +313,19 @@
          <enabledWhen>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                  <test forcePluginActivation="true"
-                        property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                        value="disconnect"/>
-               </adapt>
-            </with>
-         </enabledWhen>
-      </handler>
-
-      <handler commandId="org.eclipse.tcf.te.ui.command.disconnect">
-         <class class="org.eclipse.tcf.te.ui.handler.CancelStepperCommandHandler">
-            <parameter name="operation" value="connect"/>
-         </class>
-         <activeWhen>
-            <with variable="systemManagerViewSelection">
-               <iterate operator="and" ifEmpty="false">
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <or>
                      <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
+                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           value="disconnect"/>
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.runtime.stepper.isRunning"
                            value="connect"/>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                              value="disconnect"/>
-                     </not>
-                  </adapt>
-               </iterate>
-            </with>
-         </activeWhen>
-         <enabledWhen>
-            <with variable="systemManagerViewSelection">
-               <count value="1"/>
-               <iterate operator="and" ifEmpty="false">
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  </or>
+                  <not>
                      <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunning"
-                           value="connect"/>
-                  </adapt>
-               </iterate>
-            </with>
-         </enabledWhen>
-      </handler>
-      <handler commandId="org.eclipse.tcf.te.ui.editor.command.disconnect"> 
-         <class class="org.eclipse.tcf.te.ui.handler.CancelStepperCommandHandler">
-            <parameter name="operation" value="connect"/>
-         </class>
-         <activeWhen>
-            <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
-                  <test forcePluginActivation="true"
-                        property="org.eclipse.tcf.te.runtime.stepper.isRunning"
-                        value="connect"/>
-               </adapt>
-            </with>
-         </activeWhen>
-         <enabledWhen>
-            <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService"/>
-                  <test forcePluginActivation="true"
-                        property="org.eclipse.tcf.te.runtime.stepper.isRunning"
-                        value="connect"/>
+                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
+                           value="disconnect"/>
+                  </not>
                </adapt>
             </with>
          </enabledWhen>

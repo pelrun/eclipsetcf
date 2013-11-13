@@ -153,10 +153,17 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 	 */
 	@Override
 	public String getDialogSettingsSectionName() {
-		String name = getClass().getSimpleName();
-		Class<?> enclosing = getClass().getEnclosingClass();
+		return getDialogSettingsSection(getClass());
+	}
+
+	protected String getDialogSettingsSection(Class<?> clazz) {
+		String name = clazz.getSimpleName();
+		Class<?> enclosing = clazz.getEnclosingClass();
 		while ((name == null || name.trim().length() == 0) && enclosing != null) {
 			name = enclosing.getSimpleName();
+			if (name != null && name.trim().length() > 0) {
+				name = name + "." + AbstractSectionDialog.class.getSimpleName(); //$NON-NLS-1$
+			}
 			enclosing = enclosing.getEnclosingClass();
 		}
 

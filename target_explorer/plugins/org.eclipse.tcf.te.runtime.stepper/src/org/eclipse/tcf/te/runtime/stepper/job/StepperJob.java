@@ -9,6 +9,11 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.stepper.job;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -25,24 +30,29 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerManager;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
+import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
 import org.eclipse.tcf.te.runtime.stepper.stepper.Stepper;
 
 /**
  * Stepper job implementation.
  */
-public class StepperJob extends Job {
+public final class StepperJob extends Job {
 
 	final private IStepContext stepContext;
 	final private IPropertiesContainer data;
 	final private String stepGroupId;
-	final private String operation;
+	final protected String operation;
+
+	private final boolean isCancelable;
 
 	private ICallback jobCallback = null;
 	private boolean isFinished = false;
 	private boolean isCanceled = false;
-	private final boolean isCancelable;
 	private boolean statusHandled = false;
 
 	private class NotCancelableProgressMonitor implements IProgressMonitor {
@@ -137,22 +147,62 @@ public class StepperJob extends Job {
 		this.operation = operation;
 		this.isCancelable = isCancelable;
 
-		if (stepContext.getContextObject() instanceof ISchedulingRule) {
-			setRule((ISchedulingRule)stepContext.getContextObject());
+		ISchedulingRule rule = null;
+		IStepperService service = ServiceManager.getInstance().getService(stepContext.getContextObject(), IStepperService.class, true);
+		if (service != null) {
+			rule = service.getSchedulingRule(stepContext.getContextObject(), operation);
+		}
+		else if (stepContext.getContextObject() instanceof ISchedulingRule) {
+			rule = (ISchedulingRule)stepContext.getContextObject();
 		}
 
-		IPropertiesAccessService service = ServiceManager.getInstance().getService(stepContext.getContextObject(), IPropertiesAccessService.class);
-		StepperJob job = service != null ? (StepperJob)service.getProperty(stepContext.getContextObject(), StepperJob.class.getName() + "." + operation) : null; //$NON-NLS-1$
-		if (service == null && stepContext.getContextObject() instanceof IPropertiesContainer)
-			job = (StepperJob)((IPropertiesContainer)stepContext.getContextObject()).getProperty(StepperJob.class.getName() + "." + operation); //$NON-NLS-1$
+		setRule(rule);
 
-		if (job != null) throw new IllegalStateException("There is already a stepper job for operation '" + operation + "'."); //$NON-NLS-1$ //$NON-NLS-2$
+		Map<String,List<Job>> jobs = getJobs(stepContext.getContextObject());
+		addJob(jobs, this, operation);
+		setJobs(jobs, stepContext.getContextObject());
 
-		if (service != null)
-			service.setProperty(stepContext.getContextObject(), StepperJob.class.getName() + "." + operation, this); //$NON-NLS-1$
-		else if (stepContext.getContextObject() instanceof IPropertiesContainer)
-			((IPropertiesContainer)stepContext.getContextObject()).setProperty(StepperJob.class.getName() + "." + operation, this); //$NON-NLS-1$
+		data.setProperty(IStepAttributes.ATTR_STEPPER_JOB, this);
+		data.setProperty(IStepAttributes.ATTR_STEPPER_JOB_OPERATION, operation);
 	}
+
+    public static Map<String,List<Job>> getJobs(Object context) {
+		IPropertiesAccessService service = ServiceManager.getInstance().getService(context, IPropertiesAccessService.class);
+		Map<String,List<Job>> jobs = null;
+		if (service == null && context instanceof IPropertiesContainer)
+			jobs = (Map<String,List<Job>>)((IPropertiesContainer)context).getProperty(StepperJob.class.getName());
+		else
+			jobs = service != null ? (Map<String,List<Job>>)service.getProperty(context, StepperJob.class.getName()) : null;
+
+		if (jobs == null)
+			jobs = new HashMap<String, List<Job>>();
+
+		return jobs;
+    }
+
+    public static void addJob(Map<String,List<Job>> jobs, Job job, String operation) {
+		List<Job> jobsForOperation = jobs.get(operation);
+		if (jobsForOperation == null) {
+			jobsForOperation = new ArrayList<Job>();
+			jobs.put(operation, jobsForOperation);
+		}
+		jobsForOperation.add(job);
+    }
+
+    public static void removeJob(Map<String,List<Job>> jobs, Job job, String operation) {
+		List<Job> jobsForOperation = jobs.get(operation);
+		if (jobsForOperation != null) {
+			jobsForOperation.remove(job);
+		}
+    }
+
+    public static void setJobs(Map<String,List<Job>> jobs, Object context) {
+		IPropertiesAccessService service = ServiceManager.getInstance().getService(context, IPropertiesAccessService.class);
+		if (service != null)
+			service.setProperty(context, StepperJob.class.getName(), jobs);
+		else if (context instanceof IPropertiesContainer)
+			((IPropertiesContainer)context).setProperty(StepperJob.class.getName(), jobs);
+    }
 
 	/**
 	 * Set the callback for the job.
@@ -190,7 +240,17 @@ public class StepperJob extends Job {
 		addJobChangeListener(listener);
 
 		// The stepper instance to be used
-		IStepper stepper = new Stepper(getName());
+		IStepper stepper = new Stepper(getName()) {
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.te.runtime.stepper.stepper.Stepper#onInitialize(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
+			 */
+			@Override
+			protected void onInitialize(IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) {
+			    super.onInitialize(data, fullQualifiedId, monitor);
+			    StepperAttributeUtil.setProperty(IStepAttributes.ATTR_STEPPER_JOB, fullQualifiedId, data, StepperJob.this);
+			    StepperAttributeUtil.setProperty(IStepAttributes.ATTR_STEPPER_JOB_OPERATION, fullQualifiedId, data, operation);
+			}
+		};
 		IStatus status = Status.OK_STATUS;
 
 		try {
@@ -205,11 +265,9 @@ public class StepperJob extends Job {
 			// Cleanup the stepper
 			stepper.cleanup();
 
-			IPropertiesAccessService service = ServiceManager.getInstance().getService(stepContext.getContextObject(), IPropertiesAccessService.class);
-			if (service != null)
-				service.setProperty(stepContext.getContextObject(), StepperJob.class.getName() + "." + operation, null); //$NON-NLS-1$
-			else if (stepContext.getContextObject() instanceof IPropertiesContainer)
-				((IPropertiesContainer)stepContext.getContextObject()).setProperty(StepperJob.class.getName() + "." + operation, null); //$NON-NLS-1$
+			Map<String,List<Job>> jobs = getJobs(stepContext.getContextObject());
+			removeJob(jobs, this, operation);
+			setJobs(jobs, stepContext.getContextObject());
 		}
 
 		if (jobCallback != null)
@@ -249,5 +307,13 @@ public class StepperJob extends Job {
 			super.canceling();
 			isCanceled = true;
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.core.runtime.jobs.Job#belongsTo(java.lang.Object)
+	 */
+	@Override
+	public boolean belongsTo(Object family) {
+	    return StepperJob.class.getName().equals(family);
 	}
 }

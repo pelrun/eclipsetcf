@@ -19,14 +19,14 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.async.AsyncCallbackCollector;
+import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
@@ -136,20 +136,20 @@ public class UIPlugin extends AbstractUIPlugin {
 								IPeerModel[] peers = model.getPeers();
 								// Loop them and check if disconnect is available
 								for (IPeerModel peerModel : peers) {
-									IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperService.class, false);
-									IStepperService stepperService = null;
+									IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperOperationService.class, false);
+									IStepperOperationService stepperOperationService = null;
 									for (IService service : services) {
-										if (service instanceof IStepperService && ((IStepperService)service).isHandledOperation(peerModel, IStepperServiceOperations.DISCONNECT)) {
-											stepperService = (IStepperService)service;
+										if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerModel, IStepperServiceOperations.DISCONNECT)) {
+											stepperOperationService = (IStepperOperationService)service;
 											break;
 										}
 							        }
-									if (stepperService != null) {
-										String stepGroupId = stepperService.getStepGroupId(peerModel, IStepperServiceOperations.DISCONNECT);
-										IStepContext stepContext = stepperService.getStepContext(peerModel, IStepperServiceOperations.DISCONNECT);
-										String name = stepperService.getStepGroupName(peerModel, IStepperServiceOperations.DISCONNECT);
-										boolean isEnabled = stepperService.isEnabled(peerModel, IStepperServiceOperations.DISCONNECT);
-										IPropertiesContainer data = stepperService.getStepData(peerModel, IStepperServiceOperations.DISCONNECT);
+									if (stepperOperationService != null) {
+										String stepGroupId = stepperOperationService.getStepGroupId(peerModel, IStepperServiceOperations.DISCONNECT);
+										IStepContext stepContext = stepperOperationService.getStepContext(peerModel, IStepperServiceOperations.DISCONNECT);
+										String name = stepperOperationService.getStepGroupName(peerModel, IStepperServiceOperations.DISCONNECT);
+										boolean isEnabled = stepperOperationService.isEnabled(peerModel, IStepperServiceOperations.DISCONNECT);
+										IPropertiesContainer data = stepperOperationService.getStepData(peerModel, IStepperServiceOperations.DISCONNECT);
 
 										if (isEnabled && stepGroupId != null && stepContext != null) {
 											try {

@@ -19,7 +19,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
@@ -75,6 +74,9 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 						Tcf.getChannelManager().openChannel(peerModel.getPeer(), null, new IChannelManager.DoneOpenChannel() {
 							@Override
 							public void doneOpenChannel(final Throwable error, final IChannel channel) {
+								if (ProgressHelper.isCancel(WaitForReadyStep.this, monitor, callback)) {
+									return;
+								}
 								IStatus status = null;
 
 								// If the channel open succeeded, we are done
@@ -87,25 +89,18 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 
 								// If we have an OK status, we are done
 								if (status != null && status.isOK()) {
-									Object wait = getParameters().get("wait"); //$NON-NLS-1$
-									if (wait != null) {
-										try {
-											int waitValue = Integer.parseInt(wait.toString());
-											ExecutorsUtil.waitAndExecute(waitValue, null);
-										}
-										catch (Exception e) {
-										}
-									}
 									callback(data, fullQualifiedId, callback, status, null);
 									return;
 								}
 
 								// License errors are reported to the user and breaks the wait immediately
-								if (error != null
-										&& (error.getLocalizedMessage().contains("LMAPI error occured:") //$NON-NLS-1$
-												|| error.getLocalizedMessage().contains("Failed to read output from value-add"))) { //$NON-NLS-1$
-									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
-									return;
+								if (error != null) {
+									String message = error.getLocalizedMessage();
+									if (message != null && (message.contains("LMAPI error occured:") //$NON-NLS-1$
+												|| message.contains("Failed to read output from value-add"))) { //$NON-NLS-1$
+										callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
+										return;
+									}
 								}
 
 								// Try again until timed out

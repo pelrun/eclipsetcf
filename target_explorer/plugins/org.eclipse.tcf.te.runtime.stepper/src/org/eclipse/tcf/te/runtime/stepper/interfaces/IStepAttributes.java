@@ -23,4 +23,14 @@ public interface IStepAttributes {
 	 * The active context the launch is operating with.
 	 */
 	public static final String ATTR_ACTIVE_CONTEXT = ATTR_PREFIX + ".active_context"; //$NON-NLS-1$
+
+	/**
+	 * The running job.
+	 */
+	public static final String ATTR_STEPPER_JOB = ATTR_PREFIX + ".stepper_job"; //$NON-NLS-1$
+
+	/**
+	 * The running job operation.
+	 */
+	public static final String ATTR_STEPPER_JOB_OPERATION = ATTR_PREFIX + ".stepper_job_operation"; //$NON-NLS-1$
 }
