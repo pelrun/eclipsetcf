@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,8 +9,6 @@
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.internal.core;
-
-import java.io.UnsupportedEncodingException;
 
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
@@ -33,23 +31,18 @@ public class Token implements IToken {
     public Token(IChannel.ICommandListener listener) {
         this.listener = listener;
         id = Integer.toString(cnt++);
-        try {
-            bytes = id.getBytes("ASCII");
-        }
-        catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
+        int l = id.length();
+        bytes = new byte[l];
+        for (int i = 0; i < l; i++) bytes[i] = (byte)id.charAt(i);
     }
 
     public Token(byte[] bytes) {
         this.bytes = bytes;
         listener = null;
-        try {
-            id = new String(bytes, "ASCII");
-        }
-        catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
+        int l = bytes.length;
+        char[] bf = new char[l];
+        for (int i = 0; i < l; i++) bf[i] = (char)(bytes[i] & 0xff);
+        id = new String(bf);
     }
 
     public boolean cancel() {

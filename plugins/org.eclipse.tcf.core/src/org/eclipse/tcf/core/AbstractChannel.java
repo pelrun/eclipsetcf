@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -163,6 +163,7 @@ public abstract class AbstractChannel implements IChannel {
 
             final byte[] empty_byte_array = new byte[0];
             byte[] buf = new byte[1024];
+            char[] cbf = new char[1024];
             byte[] eos_err_report;
 
             private void error() throws IOException {
@@ -194,20 +195,52 @@ public abstract class AbstractChannel implements IChannel {
             private String readString() throws IOException {
                 int len = 0;
                 for (;;) {
-                    int n = read();
-                    if (n <= 0) {
-                        if (n == 0) break;
-                        if (n == EOM) throw new IOException("Unexpected end of message");
-                        if (n < 0) throw new IOException("Communication channel is closed by remote peer");
+                    int ch = read();
+                    if (ch < 0) {
+                        if (ch == EOM) throw new IOException("Unexpected end of message");
+                        if (ch < 0) throw new IOException("Communication channel is closed by remote peer");
                     }
-                    if (len >= buf.length) {
-                        byte[] tmp = new byte[buf.length * 2];
-                        System.arraycopy(buf, 0, tmp, 0, len);
-                        buf = tmp;
+                    if ((ch & 0x80) != 0) {
+                        int n = 0;
+                        if ((ch & 0xe0) == 0xc0) {
+                            ch &= 0x1f;
+                            n = 1;
+                        }
+                        else if ((ch & 0xf0) == 0xe0) {
+                            ch &= 0x0f;
+                            n = 2;
+                        }
+                        else if ((ch & 0xf8) == 0xf0) {
+                            ch &= 0x07;
+                            n = 3;
+                        }
+                        else if ((ch & 0xfc) == 0xf8) {
+                            ch &= 0x03;
+                            n = 4;
+                        }
+                        else if ((ch & 0xfe) == 0xfc) {
+                            ch &= 0x01;
+                            n = 5;
+                        }
+                        while (n > 0) {
+                            int b = read();
+                            if (b < 0) {
+                                if (b == EOM) throw new IOException("Unexpected end of message");
+                                if (b < 0) throw new IOException("Communication channel is closed by remote peer");
+                            }
+                            ch = (ch << 6) | (b & 0x3f);
+                            n--;
+                        }
                     }
-                    buf[len++] = (byte)n;
+                    if (ch == 0) break;
+                    if (len >= cbf.length) {
+                        char[] tmp = new char[cbf.length * 2];
+                        System.arraycopy(cbf, 0, tmp, 0, len);
+                        cbf = tmp;
+                    }
+                    cbf[len++] = (char)ch;
                 }
-                return new String(buf, 0, len, "UTF8");
+                return new String(cbf, 0, len);
             }
 
             @Override
@@ -298,6 +331,31 @@ public abstract class AbstractChannel implements IChannel {
 
         out_thread = new Thread() {
 
+            void writeString(String s) throws IOException {
+                int l = s.length();
+                for (int i = 0; i < l; i++) {
+                    int ch = s.charAt(i);
+                    if (ch < 0x80) {
+                        write(ch);
+                    }
+                    else if (ch < 0x800) {
+                        write((ch >> 6) | 0xc0);
+                        write(ch & 0x3f | 0x80);
+                    }
+                    else if (ch < 0x10000) {
+                        write((ch >> 12) | 0xe0);
+                        write((ch >> 6) & 0x3f | 0x80);
+                        write(ch & 0x3f | 0x80);
+                    }
+                    else {
+                        write((ch >> 18) | 0xf0);
+                        write((ch >> 12) & 0x3f | 0x80);
+                        write((ch >> 6) & 0x3f | 0x80);
+                        write(ch & 0x3f | 0x80);
+                    }
+                }
+            }
+
             @Override
             public void run() {
                 try {
@@ -338,11 +396,11 @@ public abstract class AbstractChannel implements IChannel {
                             write(0);
                         }
                         if (msg.service != null) {
-                            write(msg.service.getBytes("UTF8"));
+                            writeString(msg.service);
                             write(0);
                         }
                         if (msg.name != null) {
-                            write(msg.name.getBytes("UTF8"));
+                            writeString(msg.name);
                             write(0);
                         }
                         if (msg.data != null) {
