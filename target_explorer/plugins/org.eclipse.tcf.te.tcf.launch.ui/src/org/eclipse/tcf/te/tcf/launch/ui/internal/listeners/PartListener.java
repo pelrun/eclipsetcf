@@ -44,9 +44,6 @@ public class PartListener implements IPartListener2 {
 	 */
 	@Override
 	public void partActivated(IWorkbenchPartReference partRef) {
-		if (IDebugUIConstants.ID_DEBUG_VIEW.equals(partRef.getId()) && partRef instanceof IViewReference && registrations.get(partRef) == null) {
-			partOpened(partRef);
-		}
 	}
 
 	/* (non-Javadoc)
