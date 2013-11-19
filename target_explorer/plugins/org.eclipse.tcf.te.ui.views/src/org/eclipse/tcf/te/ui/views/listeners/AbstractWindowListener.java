@@ -26,6 +26,9 @@ public abstract class AbstractWindowListener implements IWindowListener {
 	// The perspective listener instance
 	protected final IPerspectiveListener perspectiveListener;
 
+	// Flag to remember if the initialization is done or not
+	private boolean initialized = false;
+
 	/**
      * Constructor
      */
@@ -63,6 +66,9 @@ public abstract class AbstractWindowListener implements IWindowListener {
 	 */
 	@Override
 	public void windowActivated(IWorkbenchWindow window) {
+		if (!initialized && window != null) {
+			windowOpened(window);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -117,6 +123,8 @@ public abstract class AbstractWindowListener implements IWindowListener {
 					perspectiveListener.perspectiveActivated(window.getActivePage(), window.getActivePage().getPerspective());
 				}
 			}
+
+			initialized = true;
 		}
 	}
 }
