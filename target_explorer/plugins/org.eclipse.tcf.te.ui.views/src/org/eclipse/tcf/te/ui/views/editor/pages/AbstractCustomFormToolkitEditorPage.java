@@ -107,11 +107,14 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 */
 	@Override
 	public void dispose() {
+		IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
 		// Get the menu service and release the toolbar toolBarManager
-		if (toolBarManager instanceof ContributionManager) {
-			IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
-			if (service != null) {
+		if (service != null) {
+			if (toolBarManager instanceof ContributionManager) {
 				service.releaseContributions((ContributionManager)toolBarManager);
+			}
+			if (menuManager instanceof ContributionManager) {
+				service.releaseContributions((ContributionManager)menuManager);
 			}
 		}
 		// Dispose the custom form toolkit
@@ -179,10 +182,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 
 		// Add the menu items which will appear in the form header
 		menuManager = managedForm.getForm().getForm().getMenuManager();
-		// Add the default "additions" separator
-		menuManager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
-		// Create fixed menu contribution items
-		createMenuContributionItems(menuManager);
 		// Get the menu service and populate contributed menu actions
 		if (service != null && menuManager instanceof ContributionManager) {
 			service.populateContributionManager((ContributionManager)menuManager, "menu:" + getId()); //$NON-NLS-1$
@@ -218,14 +217,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 */
 	protected Image getFormImage() {
 		return null;
-	}
-
-	protected void createMenuContributionItems(IMenuManager manager) {
-		Assert.isNotNull(manager);
-
-		manager.add(new Separator("group.launch")); //$NON-NLS-1$
-		manager.add(new Separator("group.load")); //$NON-NLS-1$
-		manager.add(new Separator("group.additions")); //$NON-NLS-1$
 	}
 
 	/**
@@ -267,10 +258,12 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 			if (helpAction != null) manager.add(helpAction);
 		}
 
+		manager.add(new GroupMarker("group.additions")); //$NON-NLS-1$
+
 //		MenuManager mgr = new MenuManager();
 //		IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
 //		if (service != null) {
-//			service.populateContributionManager(mgr, "toolbarmenu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
+//			service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
 //		}
 //		if (mgr.getSize() > 0) {
 //			toolBarManager.add(new ControlContribution("toolbarmenu") { //$NON-NLS-1$
@@ -278,14 +271,13 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 //				protected Control createControl(Composite parent) {
 //					final ToolBar tb = new ToolBar(parent, SWT.FLAT);
 //					final ToolItem item = new ToolItem(tb, SWT.PUSH);
-//					item.setImage(UIPlugin.getImage(ImageConsts.VIEW_MENU));
 //					item.addSelectionListener(new SelectionAdapter() {
 //						@Override
 //						public void widgetSelected(SelectionEvent e) {
 //							MenuManager mgr = new MenuManager();
 //							IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
 //							if (service != null) {
-//								service.populateContributionManager(mgr, "toolbarmenu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
+//								service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
 //							}
 //
 //							Menu menu = mgr.createContextMenu(tb);
