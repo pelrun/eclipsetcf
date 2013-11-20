@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.handler;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,9 +25,11 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.Protocol;
@@ -98,6 +101,16 @@ public class DeleteHandler extends AbstractHandler {
 		Assert.isNotNull(selection);
 
 		boolean canDelete = false;
+
+		if (!(selection instanceof ITreeSelection) && selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			Iterator<?> it = ((IStructuredSelection)selection).iterator();
+			List<TreePath> treePathes = new ArrayList<TreePath>();
+			while (it.hasNext()) {
+				Object sel = it.next();
+				treePathes.add(new TreePath(new Object[]{sel}));
+			}
+			selection = new TreeSelection(treePathes.toArray(new TreePath[treePathes.size()]));
+		}
 
 		// The selection must be a tree selection and must not be empty
 		if (selection instanceof ITreeSelection && !selection.isEmpty()) {
@@ -294,13 +307,23 @@ public class DeleteHandler extends AbstractHandler {
 	 * @param selection The selection. Must not be <code>null</code>.
 	 * @param callback The callback. Must not be <code>null</code>.
 	 */
-	public void delete(final ISelection selection, final ICallback callback) {
+	public void delete(ISelection selection, final ICallback callback) {
 		Assert.isNotNull(selection);
 		Assert.isNotNull(callback);
 
 		// The callback needs to be invoked in any case. However, if called
 		// from an asynchronous callback, set this flag to false.
 		boolean invokeCallback = true;
+
+		if (!(selection instanceof ITreeSelection) && selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			Iterator<?> it = ((IStructuredSelection)selection).iterator();
+			List<TreePath> treePathes = new ArrayList<TreePath>();
+			while (it.hasNext()) {
+				Object sel = it.next();
+				treePathes.add(new TreePath(new Object[]{sel}));
+			}
+			selection = new TreeSelection(treePathes.toArray(new TreePath[treePathes.size()]));
+		}
 
 		// The selection must be a tree selection and must not be empty
 		if (selection instanceof ITreeSelection && !selection.isEmpty()) {

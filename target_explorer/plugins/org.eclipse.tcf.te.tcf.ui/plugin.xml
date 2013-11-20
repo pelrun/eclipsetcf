@@ -523,16 +523,11 @@
             commandId="org.eclipse.ui.edit.delete"
             class="org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler">
             <activeWhen>
-               <and>
-                  <with variable="activePartId">
-                     <equals value="org.eclipse.tcf.te.ui.views.View"/>
-                  </with>
-                  <with variable="selection">
-                     <iterate operator="and" ifEmpty="false">
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                     </iterate>
-                  </with>
-               </and>
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  </iterate>
+               </with>
             </activeWhen>
             <enabledWhen>
                <with variable="selection">
@@ -545,16 +540,11 @@
             commandId="org.eclipse.ui.edit.rename"
             class="org.eclipse.tcf.te.tcf.ui.handler.RenameHandler">
             <activeWhen>
-               <and>
-                  <with variable="activePartId">
-                     <equals value="org.eclipse.tcf.te.ui.views.View"/>
-                  </with>
-                  <with variable="selection">
-                     <iterate operator="and" ifEmpty="false">
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                     </iterate>
-                  </with>
-               </and>
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  </iterate>
+               </with>
             </activeWhen>
             <enabledWhen>
                <with variable="selection">
@@ -588,19 +578,11 @@
             commandId="org.eclipse.tcf.te.ui.command.refresh"
             class="org.eclipse.tcf.te.tcf.ui.handler.RefreshHandler">
             <activeWhen>
-               <and>
-                  <with variable="activePartId">
-                     <or>
-                        <equals value="org.eclipse.tcf.te.ui.views.View"/>
-                        <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
-                     </or>
-                  </with>
-                  <with variable="selection">
-                     <iterate operator="and" ifEmpty="false">
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                     </iterate>
-                  </with>
-               </and>
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  </iterate>
+               </with>
             </activeWhen>
             <enabledWhen>
                <with variable="selection">
