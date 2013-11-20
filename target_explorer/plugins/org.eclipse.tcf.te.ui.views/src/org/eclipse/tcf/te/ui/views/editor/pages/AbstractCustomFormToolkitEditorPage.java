@@ -10,24 +10,22 @@
 package org.eclipse.tcf.te.ui.views.editor.pages;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.help.HelpSystem;
+import org.eclipse.help.IContext;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionManager;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IPropertyListener;
-import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
@@ -42,8 +40,10 @@ import org.eclipse.ui.menus.IMenuService;
 public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditorPage {
 	// Reference to the form toolkit instance
 	private CustomFormToolkit toolkit = null;
-	// Reference to the toolbar manager to release menu contributions for
-	private IToolBarManager manager = null;
+	// Reference to the toolbar toolBarManager to release menu contributions for
+	private IToolBarManager toolBarManager = null;
+	// Reference to the toolbar MenuManager to release menu contributions for
+	private IMenuManager menuManager = null;
 
 	// The default help action class definition
 	static protected class HelpAction extends Action {
@@ -70,58 +70,16 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 				@Override
 				public void run() {
-					PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpID);
+					IContext context = HelpSystem.getContext(helpID);
+					if (context != null) {
+						PlatformUI.getWorkbench().getHelpSystem().displayHelp(context);
+					}
+					else {
+						PlatformUI.getWorkbench().getHelpSystem().displayHelp();
+					}
 				}
 			});
 		}
-	}
-
-	// The default apply changes action class definition
-	static protected class ApplyAction extends Action implements IPropertyListener, IDisposable {
-		private final IEditorPart part;
-
-		/**
-         * Constructor
-         */
-        public ApplyAction(IEditorPart part) {
-        	super(Messages.AbstractCustomFormToolkitEditorPage_ApplyAction_label, IAction.AS_PUSH_BUTTON);
-        	Assert.isNotNull(part);
-        	this.part = part;
-        	setToolTipText(Messages.AbstractCustomFormToolkitEditorPage_ApplyAction_tooltip);
-        	setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
-        	setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT_DISABLED));
-
-        	part.addPropertyListener(this);
-        }
-
-        /* (non-Javadoc)
-         * @see org.eclipse.tcf.te.runtime.interfaces.IDisposable#dispose()
-         */
-        @Override
-        public void dispose() {
-        	if (part != null) part.dispose();
-        }
-
-        /* (non-Javadoc)
-         * @see org.eclipse.jface.action.Action#run()
-         */
-        @Override
-        public void run() {
-        	if (part != null && part.isDirty()) {
-        		part.doSave(new NullProgressMonitor());
-        	}
-        }
-
-        /* (non-Javadoc)
-         * @see org.eclipse.ui.IPropertyListener#propertyChanged(java.lang.Object, int)
-         */
-        @Override
-        public void propertyChanged(Object source, int propId) {
-			if (propId == IEditorPart.PROP_DIRTY) {
-				boolean dirty = part != null && part.isDirty();
-				setEnabled(dirty);
-			}
-        }
 	}
 
 	/**
@@ -132,6 +90,8 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected final CustomFormToolkit getFormToolkit() {
 		return toolkit;
 	}
+
+
 
 	/**
 	 * Sets the custom form toolkit instance.
@@ -147,11 +107,11 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 */
 	@Override
 	public void dispose() {
-		// Get the menu service and release the toolbar manager
-		if (manager instanceof ContributionManager) {
+		// Get the menu service and release the toolbar toolBarManager
+		if (toolBarManager instanceof ContributionManager) {
 			IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
 			if (service != null) {
-				service.releaseContributions((ContributionManager)manager);
+				service.releaseContributions((ContributionManager)toolBarManager);
 			}
 		}
 		// Dispose the custom form toolkit
@@ -206,18 +166,31 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		managedForm.getForm().getForm().setImage(getFormImage());
 
 		// Add the toolbar items which will appear in the form header
-		manager = managedForm.getForm().getForm().getToolBarManager();
+		toolBarManager = managedForm.getForm().getForm().getToolBarManager();
 		// Add the default "additions" separator
-		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+		toolBarManager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 		// Create fixed toolbar contribution items
-		createToolbarContributionItems(manager);
+		createToolbarContributionItems(toolBarManager);
 		// Get the menu service and populate contributed toolbar actions
 		IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
-		if (service != null && manager instanceof ContributionManager) {
-			service.populateContributionManager((ContributionManager)manager, "toolbar:" + getId()); //$NON-NLS-1$
+		if (service != null && toolBarManager instanceof ContributionManager) {
+			service.populateContributionManager((ContributionManager)toolBarManager, "toolbar:" + getId()); //$NON-NLS-1$
 		}
+
+		// Add the menu items which will appear in the form header
+		menuManager = managedForm.getForm().getForm().getMenuManager();
+		// Add the default "additions" separator
+		menuManager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+		// Create fixed menu contribution items
+		createMenuContributionItems(menuManager);
+		// Get the menu service and populate contributed menu actions
+		if (service != null && menuManager instanceof ContributionManager) {
+			service.populateContributionManager((ContributionManager)menuManager, "menu:" + getId()); //$NON-NLS-1$
+		}
+		// Trigger an update of the menu widget
+		menuManager.update(true);
 		// Trigger an update of the toolbar widget
-		manager.update(true);
+		toolBarManager.update(true);
 	}
 
 	/**
@@ -247,10 +220,18 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		return null;
 	}
 
+	protected void createMenuContributionItems(IMenuManager manager) {
+		Assert.isNotNull(manager);
+
+		manager.add(new Separator("group.launch")); //$NON-NLS-1$
+		manager.add(new Separator("group.load")); //$NON-NLS-1$
+		manager.add(new Separator("group.additions")); //$NON-NLS-1$
+	}
+
 	/**
 	 * Create the toolbar contribution items.
 	 *
-	 * @param manager The toolbar manager. Must not be <code>null</code>.
+	 * @param toolBarManager The toolbar toolBarManager. Must not be <code>null</code>.
 	 */
 	protected void createToolbarContributionItems(IToolBarManager manager) {
 		Assert.isNotNull(manager);
@@ -272,8 +253,10 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		manager.add(new Separator("group.save")); //$NON-NLS-1$
 		// If the page should have an apply button, add one to the toolbar
 		if (hasApplyAction()) {
-			Action applyAction = doCreateApplyAction(getEditor());
-			if (applyAction != null) manager.add(applyAction);
+			manager.add(new CommandContributionItem(new CommandContributionItemParameter(PlatformUI.getWorkbench(),
+	                        "org.eclipse.tcf.te.ui.views.command.save", //$NON-NLS-1$
+	                        "org.eclipse.ui.file.save", //$NON-NLS-1$
+							  CommandContributionItem.STYLE_PUSH)));
 		}
 
 		manager.add(new Separator("group.help")); //$NON-NLS-1$
@@ -283,6 +266,37 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 			Action helpAction = doCreateHelpAction(getContextHelpId());
 			if (helpAction != null) manager.add(helpAction);
 		}
+
+//		MenuManager mgr = new MenuManager();
+//		IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
+//		if (service != null) {
+//			service.populateContributionManager(mgr, "toolbarmenu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
+//		}
+//		if (mgr.getSize() > 0) {
+//			toolBarManager.add(new ControlContribution("toolbarmenu") { //$NON-NLS-1$
+//				@Override
+//				protected Control createControl(Composite parent) {
+//					final ToolBar tb = new ToolBar(parent, SWT.FLAT);
+//					final ToolItem item = new ToolItem(tb, SWT.PUSH);
+//					item.setImage(UIPlugin.getImage(ImageConsts.VIEW_MENU));
+//					item.addSelectionListener(new SelectionAdapter() {
+//						@Override
+//						public void widgetSelected(SelectionEvent e) {
+//							MenuManager mgr = new MenuManager();
+//							IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
+//							if (service != null) {
+//								service.populateContributionManager(mgr, "toolbarmenu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
+//							}
+//
+//							Menu menu = mgr.createContextMenu(tb);
+//
+//							menu.setVisible(true);
+//						}
+//					});
+//					return tb;
+//				}
+//			});
+//		}
 	}
 
 	/**
@@ -294,17 +308,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected Action doCreateHelpAction(String contextHelpId) {
 		Assert.isNotNull(contextHelpId);
 		return new HelpAction(contextHelpId);
-	}
-
-	/**
-	 * Creates the apply action.
-	 *
-	 * @param part The editor part. Must not be <code>null</code>.
-	 * @return The apply action or <code>null</code>.
-	 */
-	protected Action doCreateApplyAction(IEditorPart part) {
-		Assert.isNotNull(part);
-		return new ApplyAction(part);
 	}
 
 	/**
