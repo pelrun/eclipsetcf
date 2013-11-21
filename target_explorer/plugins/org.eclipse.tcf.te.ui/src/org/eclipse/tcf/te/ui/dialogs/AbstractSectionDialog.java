@@ -227,12 +227,7 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		IPropertiesContainer workingData = new PropertiesContainer();
 		if (sections != null) {
 			// get working data
-			for (AbstractSection section : sections) {
-				if (section instanceof IDataExchangeNode) {
-					((IDataExchangeNode)section).extractData(workingData);
-				}
-			}
-
+			internalExtractData(workingData);
 			// update sections
 			for (AbstractSection section : sections) {
 				if (section instanceof IUpdatable) {
@@ -250,6 +245,14 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 	public void extractData(IPropertiesContainer data) {
 		Assert.isNotNull(data);
 		data.setProperties(this.data.getProperties());
+	}
+
+	protected void internalExtractData(IPropertiesContainer data) {
+		for (AbstractSection section : sections) {
+			if (section instanceof IDataExchangeNode) {
+				((IDataExchangeNode)section).extractData(data);
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -330,6 +333,9 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 				valid &= section.isValid();
 				result.setResult(section);
 			}
+
+			valid &= doAdditionalValidation(result);
+
 			setMessage(result.getMessage(), result.getMessageType());
 			if (!isMessageSet()) {
 				setMessage(message);
@@ -338,5 +344,9 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		if (getButton(IDialogConstants.OK_ID) != null) {
 			getButton(IDialogConstants.OK_ID).setEnabled(!readOnly && valid);
 		}
+	}
+
+	protected boolean doAdditionalValidation(ValidationResult result) {
+		return true;
 	}
 }
