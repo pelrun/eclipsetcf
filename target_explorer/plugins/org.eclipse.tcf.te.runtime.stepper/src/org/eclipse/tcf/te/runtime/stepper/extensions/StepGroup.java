@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.runtime.stepper.extensions;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,9 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 	private String baseOn;
 
 	private final List<ReferenceSubElement> references = new ArrayList<ReferenceSubElement>();
+
+	// Map of parameters of the step reference
+	private Map<String,String> parameters = new HashMap<String,String>();
 
 	private ExecutableExtensionProxy<IStepGroupIterator> iteratorProxy = null;
 
@@ -861,11 +865,17 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 	protected IExecutableExtension getCandidate(String id, ReferenceSubElement reference) {
 		Assert.isNotNull(id);
 		IExecutableExtension candidate = StepperManager.getInstance().getStepExtManager().getStep(id, true);
+		Map<String,String> parameters = new HashMap<String, String>();
+		parameters.putAll(getParameters());
+		if (reference != null) {
+			parameters.putAll(reference.getParameters());
+		}
 		if (candidate == null) {
 			candidate = StepperManager.getInstance().getStepGroupExtManager().getStepGroup(id, true);
+			((IStepGroup)candidate).setParameters(parameters);
 		}
 		else if (reference != null && candidate instanceof IStep) {
-			((IStep)candidate).setParameters(reference.getParameters());
+			((IStep)candidate).setParameters(parameters);
 		}
 		return candidate;
 	}
@@ -913,4 +923,26 @@ public class StepGroup extends ExecutableExtension implements IStepGroup {
 	public IStepGroupIterator getStepGroupIterator() {
 		return iteratorProxy != null ? iteratorProxy.newInstance() : null;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroup#setParameters(java.util.Map)
+	 */
+	@Override
+	public void setParameters(Map<String,String> parameters) {
+		if (parameters != null) {
+			this.parameters = parameters;
+		}
+		else {
+			this.parameters = Collections.EMPTY_MAP;
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroup#getParameters()
+	 */
+	@Override
+	public Map<String, String> getParameters() {
+		return parameters;
+	}
+
 }

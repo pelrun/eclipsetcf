@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.stepper.interfaces;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.tcf.te.runtime.interfaces.extensions.IExecutableExtension;
 
@@ -43,4 +45,17 @@ public interface IStepGroup extends IExecutableExtension {
 	 * generate loops and conditions for a step group.
 	 */
 	public IStepGroupIterator getStepGroupIterator();
+
+
+	/**
+	 * Set additional parameters for this step
+	 * @param parameters
+	 */
+	public void setParameters(Map<String,String> parameters);
+
+	/**
+	 * Returns a map of additional parameters given through the parameters section in the Reference section of a StepGroups.
+	 * @return The parameters of an empty Map.
+	 */
+	public Map<String,String> getParameters();
 }
