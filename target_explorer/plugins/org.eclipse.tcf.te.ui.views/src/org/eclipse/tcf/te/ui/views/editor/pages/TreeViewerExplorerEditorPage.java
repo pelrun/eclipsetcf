@@ -32,6 +32,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -427,7 +428,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 		// If the parent control is already disposed, we have no real chance of
 		// testing for it. Catch the SWT exception here just in case.
 		try {
-			selectionProvider.setSelection(selection);
+			selectionProvider.setSelection(selection.isEmpty() ? new StructuredSelection(getEditorInputNode()) : selection);
 			if (selectionProvider instanceof MultiPageSelectionProvider) {
 				SelectionChangedEvent changedEvent = new SelectionChangedEvent(selectionProvider, selection);
 				((MultiPageSelectionProvider) selectionProvider).firePostSelectionChanged(changedEvent);
