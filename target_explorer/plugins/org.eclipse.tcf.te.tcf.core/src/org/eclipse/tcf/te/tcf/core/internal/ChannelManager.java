@@ -481,7 +481,8 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the id of the remote peer
-		String id = channel.getRemotePeer().getID();
+		IPeer peer = channel.getRemotePeer();
+		String id = peer.getID();
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 			CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_closeChannel_message, id),
@@ -494,6 +495,12 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		// If the counter is null or get 0 after the decrement, close the channel
 		if (counter == null || counter.decrementAndGet() == 0) {
 			channel.close();
+
+			// Get the value-add's for the peer to shutdown
+			IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
+			if (valueAdds != null && valueAdds.length > 0) {
+				internalShutdownValueAdds(peer, valueAdds);
+			}
 
 			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 				CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_closeChannel_closed_message, id),
