@@ -31,6 +31,13 @@ public interface ISimulatorServiceUIDelegate {
 	 */
 	public String getName();
 
+	/**
+	 * Get a description fo rthe given config.
+	 * This description is shown i.e. as tooltip of the configure button.
+	 * @return The description of the given config.
+	 */
+	public String getDescription(String config);
+
     /**
      * Configure the simulator.
      *

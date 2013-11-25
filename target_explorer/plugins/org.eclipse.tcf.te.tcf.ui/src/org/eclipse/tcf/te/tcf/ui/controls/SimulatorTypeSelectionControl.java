@@ -202,7 +202,16 @@ public class SimulatorTypeSelectionControl extends BaseEditBrowseTextControl {
 		ISimulatorServiceUIDelegate uiDelegate = id2delegate.get(id);
 		if (getButtonControl() != null) {
 			getButtonControl().setEnabled(enabled && uiDelegate != null && uiDelegate.canConfigure());
+			if (getButtonControl().isEnabled() && uiDelegate != null) {
+				String config = id2config.get(getSelectedSimulatorId());
+				String description = uiDelegate.getDescription(config);
+				getButtonControl().setToolTipText(description);
+			}
+			else {
+				getButtonControl().setToolTipText(null);
+			}
 		}
+
 	}
 
 	/* (non-Javadoc)
