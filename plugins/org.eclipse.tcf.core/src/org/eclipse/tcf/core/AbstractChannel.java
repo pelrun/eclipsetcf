@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -125,7 +126,7 @@ public abstract class AbstractChannel implements IChannel {
     private final Collection<IChannelListener> channel_listeners = new ArrayList<IChannelListener>();
     private final Map<String,IChannel.IEventListener[]> event_listeners = new HashMap<String,IChannel.IEventListener[]>();
     private final Map<String,IChannel.ICommandServer> command_servers = new HashMap<String,IChannel.ICommandServer>();
-    private final Map<String,Message> out_tokens = new HashMap<String,Message>();
+    private final Map<String,Message> out_tokens = new LinkedHashMap<String,Message>();
     private final Thread inp_thread;
     private final Thread out_thread;
     private boolean notifying_channel_opened;
