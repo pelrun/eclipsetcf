@@ -715,4 +715,21 @@
    <extension point="org.eclipse.core.runtime.preferences">
       <initializer class="org.eclipse.tcf.internal.debug.ui.preferences.TCFPreferencesInitializer"/>
    </extension>
+   
+   <extension point="org.eclipse.ui.menus">
+      <!-- Root nodes for the debug view view menu to provide common contribution anchors for
+           debug view context tree filters and sorters -->
+      <menuContribution locationURI="menu:org.eclipse.debug.ui.DebugView?after=additions">
+         <separator name="group.filter" visible="true"/>
+         <menu
+               id="org.eclipse.tcf.debug.ui.DebugView.menu.filters"
+               label="%debugview.menu.filters">
+         </menu>
+         <separator name="group.sort" visible="false"/>
+         <menu
+               id="org.eclipse.tcf.debug.ui.DebugView.menu.sorters"
+               label="%debugview.menu.sorters">
+         </menu>
+      </menuContribution>
+   </extension>   
 </plugin>
