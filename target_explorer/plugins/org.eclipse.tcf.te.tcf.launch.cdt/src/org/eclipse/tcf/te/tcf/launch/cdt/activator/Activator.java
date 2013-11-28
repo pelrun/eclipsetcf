@@ -20,7 +20,7 @@ import org.osgi.framework.BundleContext;
 public class Activator extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.eclipse.cdt.launch.remote.te"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "org.eclipse.tcf.te.tcf.launch.cdt"; //$NON-NLS-1$
 
 	// The shared instance
 	private static Activator plugin;
