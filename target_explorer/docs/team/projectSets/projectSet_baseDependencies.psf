@@ -81,6 +81,12 @@
 <project reference="1.0,http://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.telnet"/>
 <project reference="1.0,http://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git,master,target_explorer/plugins/org.eclipse.tcf.te.ui.views"/>
 <project reference="1.0,http://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git,master,tests/plugins/org.eclipse.tcf.debug.test"/>
+<project reference="1.0,ssh://user@git.eclipse.org:29418/tm/org.eclipse.tm.git,master,terminal/features/org.eclipse.tm.terminal-feature"/>
+<project reference="1.0,ssh://user@git.eclipse.org:29418/tm/org.eclipse.tm.git,master,terminal/features/org.eclipse.tm.terminal.core.sdk-feature"/>
+<project reference="1.0,ssh://user@git.eclipse.org:29418/tm/org.eclipse.tm.git,master,terminal/plugins/org.eclipse.tm.terminal"/>
+<project reference="1.0,ssh://user@git.eclipse.org:29418/tm/org.eclipse.tm.git,master,terminal/plugins/org.eclipse.tm.terminal.serial"/>
+<project reference="1.0,ssh://user@git.eclipse.org:29418/tm/org.eclipse.tm.git,master,terminal/plugins/org.eclipse.tm.terminal.ssh"/>
+<project reference="1.0,ssh://user@git.eclipse.org:29418/tm/org.eclipse.tm.git,master,terminal/plugins/org.eclipse.tm.terminal.telnet"/>
 </provider>
 <provider id="org.eclipse.team.cvs.core.cvsnature">
 <project reference="1.0,:extssh:dev.eclipse.org:/cvsroot/tools,org.eclipse.orbit/com.google.gson,com.google.gson,v2_1"/>
@@ -133,6 +139,10 @@
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.ui.terminals.ssh" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.ui.terminals.telnet" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.ui.views" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tm.terminal" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tm.terminal.serial" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tm.terminal.ssh" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tm.terminal.telnet" type="4"/>
 </workingSets>
 <workingSets editPageId="org.eclipse.ui.resourceWorkingSetPage" id="1385720236614_8" label="Target Explorer (Features)" name="Target Explorer (Features)">
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.feature" type="4"/>
@@ -147,6 +157,8 @@
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.tcf.sdk.feature" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.terminals.feature" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf.te.terminals.sdk.feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tm.terminal-feature" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tm.terminal.core.sdk-feature" type="4"/>
 </workingSets>
 <workingSets editPageId="org.eclipse.ui.resourceWorkingSetPage" id="1385719798265_2" label="TCF Core" name="TCF Core">
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.tcf" type="4"/>
