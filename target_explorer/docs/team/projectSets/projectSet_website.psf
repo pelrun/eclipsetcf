@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.eclipse.egit.core.GitProvider">
+<project reference="1.0,ssh://moberhuber@git.eclipse.org/gitroot/www.eclipse.org/tcf.git,master,."/>
+</provider>
+<workingSets editPageId="org.eclipse.ui.resourceWorkingSetPage" id="1385738989819_9" label="TCF Website" name="TCF Website">
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/www-tcf" type="4"/>
+</workingSets>
+</psf>
