@@ -14,13 +14,21 @@ import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionManager;
+import org.eclipse.jface.action.ControlContribution;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
@@ -43,7 +51,7 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	// Reference to the toolbar toolBarManager to release menu contributions for
 	private IToolBarManager toolBarManager = null;
 	// Reference to the toolbar MenuManager to release menu contributions for
-	private IMenuManager menuManager = null;
+//	private IMenuManager menuManager = null;
 
 	// The default help action class definition
 	static protected class HelpAction extends Action {
@@ -113,9 +121,9 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 			if (toolBarManager instanceof ContributionManager) {
 				service.releaseContributions((ContributionManager)toolBarManager);
 			}
-			if (menuManager instanceof ContributionManager) {
-				service.releaseContributions((ContributionManager)menuManager);
-			}
+//			if (menuManager instanceof ContributionManager) {
+//				service.releaseContributions((ContributionManager)menuManager);
+//			}
 		}
 		// Dispose the custom form toolkit
 		if (toolkit != null) { toolkit.dispose(); toolkit = null; }
@@ -180,14 +188,14 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 			service.populateContributionManager((ContributionManager)toolBarManager, "toolbar:" + getId()); //$NON-NLS-1$
 		}
 
-		// Add the menu items which will appear in the form header
-		menuManager = managedForm.getForm().getForm().getMenuManager();
-		// Get the menu service and populate contributed menu actions
-		if (service != null && menuManager instanceof ContributionManager) {
-			service.populateContributionManager((ContributionManager)menuManager, "menu:" + getId()); //$NON-NLS-1$
-		}
-		// Trigger an update of the menu widget
-		menuManager.update(true);
+//		// Add the menu items which will appear in the form header
+//		menuManager = managedForm.getForm().getForm().getMenuManager();
+//		// Get the menu service and populate contributed menu actions
+//		if (service != null && menuManager instanceof ContributionManager) {
+//			service.populateContributionManager((ContributionManager)menuManager, "menu:" + getId()); //$NON-NLS-1$
+//		}
+//		// Trigger an update of the menu widget
+//		menuManager.update(true);
 		// Trigger an update of the toolbar widget
 		toolBarManager.update(true);
 	}
@@ -260,35 +268,31 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 
 		manager.add(new GroupMarker("group.additions")); //$NON-NLS-1$
 
-//		MenuManager mgr = new MenuManager();
-//		IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
-//		if (service != null) {
-//			service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
-//		}
-//		if (mgr.getSize() > 0) {
-//			toolBarManager.add(new ControlContribution("toolbarmenu") { //$NON-NLS-1$
-//				@Override
-//				protected Control createControl(Composite parent) {
-//					final ToolBar tb = new ToolBar(parent, SWT.FLAT);
-//					final ToolItem item = new ToolItem(tb, SWT.PUSH);
-//					item.addSelectionListener(new SelectionAdapter() {
-//						@Override
-//						public void widgetSelected(SelectionEvent e) {
-//							MenuManager mgr = new MenuManager();
-//							IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
-//							if (service != null) {
-//								service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
-//							}
-//
-//							Menu menu = mgr.createContextMenu(tb);
-//
-//							menu.setVisible(true);
-//						}
-//					});
-//					return tb;
-//				}
-//			});
-//		}
+		final MenuManager mgr = new MenuManager();
+		final IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
+		if (service != null) {
+			service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
+		}
+		if (mgr.getSize() > 0) {
+			toolBarManager.add(new ControlContribution("toolbarmenu") { //$NON-NLS-1$
+				@Override
+				protected Control createControl(Composite parent) {
+					final ToolBar tb = new ToolBar(parent, SWT.FLAT);
+					final ToolItem item = new ToolItem(tb, SWT.PUSH);
+					item.setImage(UIPlugin.getImage(ImageConsts.MENU));
+					item.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							MenuManager mgr = new MenuManager();
+							service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
+							Menu menu = mgr.createContextMenu(tb);
+							menu.setVisible(true);
+						}
+					});
+					return tb;
+				}
+			});
+		}
 	}
 
 	/**
