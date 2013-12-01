@@ -9,8 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.core.va;
 
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -55,9 +57,33 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		 */
 		@Override
 		public void dispose() {
-			if (process != null) process.destroy();
-			if (outputReader != null) outputReader.interrupt();
-			if (errorReader != null) errorReader.interrupt();
+			if (process != null) {
+				// Send "quit" to the process before we destroy the process
+				BufferedWriter writer = null;
+				try {
+					writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+					writer.write("quit"); //$NON-NLS-1$
+
+					// Check the process exit code
+					long start = System.currentTimeMillis();
+					while ((start + 2000) >= System.currentTimeMillis()) {
+						try {
+							process.exitValue();
+							process = null;
+							break;
+						} catch (IllegalThreadStateException e) {
+							try { Thread.sleep(200); } catch (InterruptedException ex) { /* ignored on purpose */ }
+						}
+					}
+				} catch (IOException e) {
+					/* ignored on purpose */
+				} finally {
+					if (writer != null) { try { writer.close(); } catch (IOException e) { /* ignored on purpose */} writer = null; }
+					if (process != null) { process.destroy(); process = null; }
+				}
+			}
+			if (outputReader != null) { outputReader.interrupt(); outputReader = null; }
+			if (errorReader != null) { errorReader.interrupt(); errorReader = null; }
 		}
 	}
 

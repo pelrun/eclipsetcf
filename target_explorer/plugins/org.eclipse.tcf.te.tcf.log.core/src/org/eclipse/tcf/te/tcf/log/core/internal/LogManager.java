@@ -242,7 +242,7 @@ public final class LogManager implements IProtocolStateChangeListener {
 	}
 
 	/**
-	 * Returns the log file base name for the given peer id.
+	 * Returns the log file base name for the given channel.
 	 *
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @return The log file base name.
@@ -254,26 +254,41 @@ public final class LogManager implements IProtocolStateChangeListener {
 		String logName = null;
 
 		IPeer peer = channel.getRemotePeer();
-		if (peer != null) {
-			// Get the peer name
-			logName = peer.getName();
+		if (peer != null) logName = getLogName(peer);
 
-			if (logName != null) {
-				// Get the peer host IP address
-				String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
-				// Fallback: The peer id
-				if (ip == null || "".equals(ip.trim())) { //$NON-NLS-1$
-					ip = peer.getID();
-				}
+		return logName;
+	}
 
-				// Append the peer host IP address
-				if (ip != null && !"".equals(ip.trim())) { //$NON-NLS-1$
-					logName += " " + ip.trim(); //$NON-NLS-1$
-				}
+	/**
+	 * Returns the log file base name for the given peer.
+	 *
+	 * @param channel The channel. Must not be <code>null</code>.
+	 * @return The log file base name.
+	 */
+	public String getLogName(IPeer peer) {
+		Assert.isNotNull(peer);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-				// Unify name and replace all undesired characters with '_'
-				logName = makeValid(logName);
+		String logName = null;
+
+		// Get the peer name
+		logName = peer.getName();
+
+		if (logName != null) {
+			// Get the peer host IP address
+			String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+			// Fallback: The peer id
+			if (ip == null || "".equals(ip.trim())) { //$NON-NLS-1$
+				ip = peer.getID();
 			}
+
+			// Append the peer host IP address
+			if (ip != null && !"".equals(ip.trim())) { //$NON-NLS-1$
+				logName += " " + ip.trim(); //$NON-NLS-1$
+			}
+
+			// Unify name and replace all undesired characters with '_'
+			logName = makeValid(logName);
 		}
 
 		return logName;
