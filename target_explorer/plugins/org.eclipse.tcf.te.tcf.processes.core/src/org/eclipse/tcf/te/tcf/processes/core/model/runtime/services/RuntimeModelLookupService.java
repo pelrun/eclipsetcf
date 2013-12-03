@@ -10,12 +10,14 @@
 package org.eclipse.tcf.te.tcf.processes.core.model.runtime.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -26,6 +28,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
+import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
@@ -164,10 +167,23 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 		Assert.isNotNull(container);
 		Assert.isNotNull(capabilities);
 
+		if (Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
+			String message = "RuntimeModelLookupServer: findInContainerByCapabilitiesRecursively: container=" + container + ", capabilities=" + Arrays.deepToString(capabilities); //$NON-NLS-1$ //$NON-NLS-2$
+			IStatus s = new Status(IStatus.INFO, CoreBundleActivator.getUniqueIdentifier(), message);
+			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(s);
+		}
+
 		IProcessContextNode node = null;
 		List<IProcessContextNode> candidates = container.getChildren(IProcessContextNode.class);
 		for (IProcessContextNode candidate : candidates) {
 			Map<String, Object> caps = (Map<String, Object>)candidate.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
+
+			if (Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
+				String message = "RuntimeModelLookupServer: findInContainerByCapabilitiesRecursively:        candidate=" + candidate + ", capabilities=" + caps.keySet(); //$NON-NLS-1$ //$NON-NLS-2$
+				IStatus s = new Status(IStatus.INFO, CoreBundleActivator.getUniqueIdentifier(), message);
+				Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(s);
+			}
+
 			if (caps != null) {
 				boolean allFound = true;
 				for (String capability : capabilities) {
@@ -191,6 +207,12 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 					break;
 				}
 			}
+		}
+
+		if (Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
+			String message = "RuntimeModelLookupServer: findInContainerByCapabilitiesRecursively:        node=" + node; //$NON-NLS-1$
+			IStatus s = new Status(IStatus.INFO, CoreBundleActivator.getUniqueIdentifier(), message);
+			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(s);
 		}
 
 		return node;
