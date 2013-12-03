@@ -715,7 +715,7 @@
    <extension point="org.eclipse.core.runtime.preferences">
       <initializer class="org.eclipse.tcf.internal.debug.ui.preferences.TCFPreferencesInitializer"/>
    </extension>
-   
+
    <extension point="org.eclipse.ui.menus">
       <!-- Root nodes for the debug view view menu to provide common contribution anchors for
            debug view context tree filters and sorters -->
@@ -731,5 +731,5 @@
                label="%debugview.menu.sorters">
          </menu>
       </menuContribution>
-   </extension>   
+   </extension>
 </plugin>

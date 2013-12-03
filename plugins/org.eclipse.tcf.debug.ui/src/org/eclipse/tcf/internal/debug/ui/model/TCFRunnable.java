@@ -29,6 +29,20 @@ public abstract class TCFRunnable implements Runnable {
     public TCFRunnable(TCFModel model, IRequest request) {
         this.request = request;
         listeners = model.view_request_listeners;
+        if (Protocol.isDispatchThread()) {
+            if (listeners != null) {
+                for (ITCFPresentationProvider l : listeners) {
+                    try {
+                        if (!l.updateStarted(TCFRunnable.this.request)) return;
+                    }
+                    catch (Throwable x) {
+                        Activator.log("Unhandled exception in a presentation provider", x);
+                    }
+                }
+            }
+            run();
+            return;
+        }
         if (listeners == null) {
             Protocol.invokeLater(this);
             return;

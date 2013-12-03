@@ -60,7 +60,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     private final Set<ModelDelta> content_deltas = new HashSet<ModelDelta>();
     private final LinkedList<TCFNode> selection = new LinkedList<TCFNode>();
     private final Set<String> auto_expand_set = new HashSet<String>();
-    private Map<String, Boolean> expanded_nodes = Collections.synchronizedMap(new HashMap<String, Boolean>());
+    private final Map<String,Boolean> expanded_nodes = Collections.synchronizedMap(new HashMap<String,Boolean>());
 
     private ITreeModelViewer viewer;
     private boolean posted;
@@ -76,18 +76,18 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
         public void run() {
             posted = false;
-            if (pending_node != null) return;
+            if (pending_update != null) return;
             long idle_time = System.currentTimeMillis() - last_update_time;
             long min_idle_time = model.getMinViewUpdatesInterval();
             if (model.getViewUpdatesThrottleEnabled()) {
                 int congestion = Protocol.getCongestionLevel() + 50;
-                if (congestion > 0) min_idle_time += congestion * 10;
+                if (congestion > 0) min_idle_time += congestion * 3;
             }
             if (model.getChannelThrottleEnabled()) {
                 int congestion = model.getChannel().getCongestion() + 50;
-                if (congestion > 0) min_idle_time += congestion * 10;
+                if (congestion > 0) min_idle_time += congestion * 3;
             }
-            if (idle_time < min_idle_time - 5) {
+            if (idle_time < min_idle_time - 10) {
                 Protocol.invokeLater(min_idle_time - idle_time, this);
                 posted = true;
             }
@@ -99,10 +99,13 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
     private class ViewerUpdate implements IViewerUpdate {
 
+        TCFNode node;
         IStatus status;
+        boolean canceled;
+        boolean done;
 
         public Object getElement() {
-            return null;
+            return node;
         }
 
         public TreePath getElementPath() {
@@ -118,9 +121,15 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         }
 
         public void cancel() {
+            canceled = true;
         }
 
         public void done() {
+            assert !done;
+            done = true;
+            if (this == pending_update) {
+                Protocol.invokeLater(TCFModelProxy.this);
+            }
         }
 
         public IStatus getStatus() {
@@ -128,7 +137,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         }
 
         public boolean isCanceled() {
-            return false;
+            return canceled;
         }
 
         public void setStatus(IStatus status) {
@@ -140,6 +149,10 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
         int count;
 
+        ChildrenCountUpdate(TCFNode node) {
+            this.node = node;
+        }
+
         public void setChildCount(int count) {
             this.count = count;
         }
@@ -149,6 +162,10 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
 
         int length;
         TCFNode[] children;
+
+        ChildrenUpdate(TCFNode node) {
+            this.node = node;
+        }
 
         void setLength(int length) {
             this.length = length;
@@ -186,11 +203,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         }
     };
 
-    private final ChildrenCountUpdate children_count_update = new ChildrenCountUpdate();
-    private final ChildrenUpdate children_update = new ChildrenUpdate();
-
-    private TCFNode pending_node;
-    private boolean pending_count;
+    private IViewerUpdate pending_update;
 
     TCFModelProxy(TCFModel model) {
         this.model = model;
@@ -343,7 +356,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     public void post() {
         assert Protocol.isDispatchThread();
         assert installed && !disposed;
-        if (!posted && pending_node == null) {
+        if (!posted && pending_update == null) {
             long idle_time = System.currentTimeMillis() - last_update_time;
             Protocol.invokeLater(model.getMinViewUpdatesInterval() - idle_time, timer);
             if (model.getWaitForViewsUpdateAfterStep()) launch.addPendingClient(this);
@@ -354,23 +367,23 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     private TCFNode[] getNodeChildren(TCFNode node) {
         TCFNode[] res = node2children.get(node);
         if (res == null) {
-            if (node.isDisposed()) {
-                res = EMPTY_NODE_ARRAY;
-            }
-            else if (!node.getLockedData(children_count_update, null)) {
-                pending_node = node;
-                pending_count = true;
-                res = EMPTY_NODE_ARRAY;
-            }
-            else {
-                children_update.setLength(children_count_update.count);
-                if (!node.getLockedData(children_update, null)) {
-                    pending_node = node;
-                    pending_count = false;
-                    res = EMPTY_NODE_ARRAY;
+            res = EMPTY_NODE_ARRAY;
+            if (!node.isDisposed()) {
+                ChildrenCountUpdate children_count_update = new ChildrenCountUpdate(node);
+                node.update(children_count_update);
+                if (!children_count_update.done) {
+                    pending_update = children_count_update;
                 }
                 else {
-                    res = children_update.children;
+                    ChildrenUpdate children_update = new ChildrenUpdate(node);
+                    children_update.setLength(children_count_update.count);
+                    node.update(children_update);
+                    if (!children_update.done) {
+                        pending_update = children_update;
+                    }
+                    else {
+                        res = children_update.children;
+                    }
                 }
             }
             node2children.put(node, res);
@@ -378,10 +391,8 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
         return res;
     }
 
-    private int getNodeIndex(TCFNode node) {
-        TCFNode p = node.getParent(getPresentationContext());
-        if (p == null) return -1;
-        TCFNode[] arr = getNodeChildren(p);
+    private int getNodeIndex(TCFNode node, TCFNode parent) {
+        TCFNode[] arr = getNodeChildren(parent);
         for (int i = 0; i < arr.length; i++) {
             if (arr[i] == node) return i;
         }
@@ -433,7 +444,8 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                     int index = -1;
                     int children = -1;
                     if (selection != null || (flags & IModelDelta.INSERTED) != 0 || (flags & IModelDelta.EXPAND) != 0) {
-                        index = getNodeIndex(node);
+                        index = getNodeIndex(node, parent);
+                        if (index < 0) return null;
                     }
                     if (selection != null && selection != node || (flags & IModelDelta.EXPAND) != 0) {
                         children = getNodeChildren(node).length;
@@ -483,7 +495,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
     }
 
     private void postDelta(final ModelDelta root) {
-        assert pending_node == null;
+        assert pending_update == null;
         if (root.getFlags() != 0 || root.getChildDeltas().length > 0) {
             last_update_time = System.currentTimeMillis();
             final Set<TCFNode> save_expand_state = auto_expand_removed_nodes;
@@ -575,22 +587,20 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 }
             }
         }
-        pending_node = null;
-        node2children.clear();
+        node2delta.clear();
+        content_deltas.clear();
         if (flags != 0 || node2flags.size() > 0) {
-            node2delta.clear();
-            content_deltas.clear();
             ModelDelta root = new ModelDelta(input, flags);
             if ((flags & IModelDelta.CONTENT) != 0) content_deltas.add(root);
             for (TCFNode node : node2flags.keySet()) makeDelta(root, node, null);
-            if (pending_node == null) {
+            node2delta.clear();
+            content_deltas.clear();
+            if (pending_update == null) {
                 node2flags.clear();
                 postDelta(root);
             }
         }
-        node2delta.clear();
-        content_deltas.clear();
-        if (pending_node == null) {
+        if (pending_update == null) {
             while (!selection.isEmpty()) {
                 TCFNode node = selection.getFirst();
                 if (!node.isDisposed()) {
@@ -598,35 +608,30 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                     makeDelta(root, node, node);
                     node2delta.clear();
                     content_deltas.clear();
-                    if (pending_node != null) break;
+                    if (pending_update != null) break;
                     postDelta(root);
                 }
                 selection.remove(node);
             }
         }
 
-        if (pending_node == null) {
+        if (pending_update == null) {
             if (auto_expand_created_nodes != null) {
                 for (TCFNode node : auto_expand_created_nodes) {
                     auto_expand_set.remove(node.id);
                     addDelta(node, IModelDelta.EXPAND);
                 }
                 auto_expand_created_nodes = null;
-                post();
             }
         }
-        else if (pending_count ?
-                    pending_node.getLockedData(children_count_update, this) :
-                    pending_node.getLockedData(children_update, this)) {
-            assert false;
-            Protocol.invokeLater(this);
-        }
-        node2children.clear();
     }
 
     public void run() {
+        pending_update = null;
+        node2children.clear();
         postDelta();
-        if (!posted && pending_node == null) {
+        node2children.clear();
+        if (!posted && pending_update == null) {
             launch.removePendingClient(this);
         }
     }
