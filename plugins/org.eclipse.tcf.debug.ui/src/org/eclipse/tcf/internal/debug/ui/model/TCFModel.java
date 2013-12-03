@@ -386,7 +386,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 Map<String,Object> params, String[] suspended_ids) {
             boolean func_call = false;
             if (params != null) {
-                Boolean b = (Boolean)params.get("FuncCall");
+                Boolean b = (Boolean)params.get(IRunControl.STATE_FUNC_CALL);
                 func_call = b != null && b.booleanValue();
             }
             int action_cnt = 0;
@@ -467,7 +467,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         public void contextSuspended(String id, String pc, String reason, Map<String,Object> params) {
             boolean func_call = false;
             if (params != null) {
-                Boolean b = (Boolean)params.get("FuncCall");
+                Boolean b = (Boolean)params.get(IRunControl.STATE_FUNC_CALL);
                 func_call = b != null && b.booleanValue();
             }
             TCFNode node = getNode(id);

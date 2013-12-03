@@ -237,6 +237,12 @@ public interface IRunControl extends IService {
         /** Object - error report that describes a reason why program counter of the context is not available */
         STATE_PC_ERROR = "PCError",
 
+        /** Object - error report if last stepping operation failed to reach its destination */
+        STATE_STEP_ERROR = "StepError",
+
+        /** Boolean - true if the context is stopped by a function call injection */
+        STATE_FUNC_CALL = "FuncCall",
+
         /** Boolean - true if the context is running in reverse */
         STATE_REVERSING = "Reversing";
 

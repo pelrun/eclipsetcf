@@ -60,7 +60,7 @@ public class ErrorReport extends Exception implements IErrorReport {
         return (String)attrs.get(ERROR_ALT_ORG);
     }
 
-    public Map<String, Object> getAttributes() {
+    public Map<String,Object> getAttributes() {
         return attrs;
     }
 }
