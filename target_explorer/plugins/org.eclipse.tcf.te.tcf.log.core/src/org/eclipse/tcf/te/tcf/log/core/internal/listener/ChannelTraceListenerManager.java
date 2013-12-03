@@ -114,6 +114,7 @@ public class ChannelTraceListenerManager {
 		FileWriter writer = LogManager.getInstance().getWriter(channel);
 		if (writer != null) {
 			try {
+				writer.write("\n\n\n"); //$NON-NLS-1$
 				writer.write(message);
 				writer.write("\n"); //$NON-NLS-1$
 				writer.flush();

@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.runtime.stepper.extensions;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.eclipse.core.runtime.Assert;
@@ -62,6 +64,8 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 public class StepExecutor implements IStepExecutor {
 
 	private final IStepper stepper;
+
+	public final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); //$NON-NLS-1$
 
 	/**
      * Constructor.
@@ -240,7 +244,9 @@ public class StepExecutor implements IStepExecutor {
 
 		// In debug mode, there is even more information to add
 		if (Platform.inDebugMode()) {
-			formattedMessage += NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, id.toString());
+			String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+
+			formattedMessage += NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, id.toString().replaceAll("/>", "/>\\n\\t"), date); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		return formattedMessage;
