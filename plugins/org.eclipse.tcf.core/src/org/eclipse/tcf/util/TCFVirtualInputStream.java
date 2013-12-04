@@ -21,7 +21,7 @@ import org.eclipse.tcf.services.IStreams;
 /**
  * TCFVirtualInputStream is InputStream implementation over TCF Streams service.
  *
- * @noextend This class is not intended to be subclassed by clients.
+ * @since 1.2
  */
 public final class TCFVirtualInputStream extends InputStream {
 

@@ -27,6 +27,8 @@ import org.eclipse.tcf.protocol.IToken;
  * If a client has started profiling, it is expected to read and process profiling data periodically.
  * Profiling data format is a contract between the profiler and its clients,
  * the service does not try to interpret the data.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IProfiler extends IService {
 
@@ -35,43 +37,55 @@ public interface IProfiler extends IService {
      */
     static final String NAME = "Profiler";
 
-    /** Profiler configuration parameters */
-    static final String
-        /**
-         * Number: size of stack traces in profiling samples,
-         * 0 means no profiling,
-         * 1 means no stack tracing.
-         */
-        PARAM_FRAME_CNT = "FrameCnt",
 
-        /**
-         * Number: size of profiling data buffer, in samples.
-         */
-        PARAM_MAX_SAMPLES = "MaxSamples";
+    /* Profiler configuration parameters ----------------------------------- */
 
-    /** Profile data properties */
-    static final String
-        /**
-         * String: data format.
-         */
-        PROP_FORMAT = "Format",
+    /**
+     * Profiler configuration parameter:
+     * Number: size of stack traces in profiling samples,
+     * 0 means no profiling,
+     * 1 means no stack tracing.
+     */
+    static final String PARAM_FRAME_CNT = "FrameCnt";
 
-        /**
-         * Number: address size in bytes.
-         * Default is 4 bytes.
-         */
-        PROP_ADDR_SIZE = "AddrSize",
+    /**
+     * Profiler configuration parameter:
+     * Number: size of profiling data buffer, in samples.
+     */
+    static final String PARAM_MAX_SAMPLES = "MaxSamples";
 
-        /**
-         * Sample endianess.
-         * Default is little-endian.
-         */
-        PROP_BIG_ENDIAN = "BigEndian",
 
-        /**
-         * Byte array of profile samples.
-         */
-        PROP_DATA = "Data";
+    /* Profile data properties --------------------------------------------- */
+
+    /**
+     * Profile data property:
+     * String: data format.
+     * @since 1.2
+     */
+    static final String PROP_FORMAT = "Format";
+
+    /**
+     * Profile data property:
+     * Number: address size in bytes.
+     * Default is 4 bytes.
+     */
+    static final String PROP_ADDR_SIZE = "AddrSize";
+
+    /**
+     * Profile data property:
+     * Sample endianess.
+     * Default is little-endian.
+     */
+    static final String PROP_BIG_ENDIAN = "BigEndian";
+
+    /**
+     * Profile data property:
+     * Byte array of profile samples.
+     */
+    static final String PROP_DATA = "Data";
+
+
+    /* Commands ------------------------------------------------------------ */
 
     /**
      * Configure profiling of a debug context 'ctx'.
@@ -110,7 +124,7 @@ public interface IProfiler extends IService {
          * @param token - command handle.
          * @param error - error object or null.
          * @param data - array of profile data buffers.
-         *  Each buffer is collection of properties, see PROP_*.
+         * Each buffer is collection of properties, see PROP_*.
          */
         void doneRead(IToken token, Exception error, Map<String,Object> data[]);
     }

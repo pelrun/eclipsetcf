@@ -37,7 +37,6 @@ import org.eclipse.tcf.core.Base64;
  * Clients can enable writing support for objects of a other classes by
  * registering ObjectWriter interface implementation.
  *
- * @noextend This class is not intended to be subclassed by clients.
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public final class JSON {

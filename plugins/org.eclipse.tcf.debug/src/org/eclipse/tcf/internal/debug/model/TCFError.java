@@ -11,60 +11,50 @@
 package org.eclipse.tcf.internal.debug.model;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.debug.core.DebugException;
 import org.eclipse.tcf.internal.debug.Activator;
 
 
-public class TCFError extends DebugException {
+public class TCFError implements IStatus {
 
-    private static final long serialVersionUID = -4261097789666829020L;
+    private final Throwable exception;
 
     public TCFError(Throwable exception) {
-        super(new Status(exception));
+        this.exception = exception;
     }
 
-    private static class Status implements IStatus {
+    public IStatus[] getChildren() {
+        return null;
+    }
 
-        private final Throwable exception;
+    public int getCode() {
+        return 1;
+    }
 
-        private Status(Throwable exception) {
-            this.exception = exception;
-        }
+    public Throwable getException() {
+        return exception;
+    }
 
-        public IStatus[] getChildren() {
-            return null;
-        }
+    public String getMessage() {
+        return exception.getMessage();
+    }
 
-        public int getCode() {
-            return 1;
-        }
+    public String getPlugin() {
+        return Activator.PLUGIN_ID;
+    }
 
-        public Throwable getException() {
-            return exception;
-        }
+    public int getSeverity() {
+        return ERROR;
+    }
 
-        public String getMessage() {
-            return exception.getMessage();
-        }
+    public boolean isMultiStatus() {
+        return false;
+    }
 
-        public String getPlugin() {
-            return Activator.PLUGIN_ID;
-        }
+    public boolean isOK() {
+        return false;
+    }
 
-        public int getSeverity() {
-            return ERROR;
-        }
-
-        public boolean isMultiStatus() {
-            return false;
-        }
-
-        public boolean isOK() {
-            return false;
-        }
-
-        public boolean matches(int severityMask) {
-            return false;
-        }
+    public boolean matches(int severityMask) {
+        return false;
     }
 }

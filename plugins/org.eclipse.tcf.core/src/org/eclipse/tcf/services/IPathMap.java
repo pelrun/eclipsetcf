@@ -17,6 +17,8 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * IPathMap service manages file path translation across systems.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IPathMap extends IService {
 

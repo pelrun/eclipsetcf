@@ -17,6 +17,8 @@ import org.eclipse.tcf.protocol.JSON;
 /**
  * Line numbers service associates locations in the source files with the corresponding
  * machine instruction addresses in the executable object.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface ILineNumbers extends IService {
 

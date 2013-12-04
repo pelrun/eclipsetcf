@@ -17,6 +17,8 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * TCF symbols service interface.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface ISymbols extends IService {
 

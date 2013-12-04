@@ -22,6 +22,8 @@ import org.eclipse.tcf.protocol.IToken;
  * It provides list of running processes, different process attributes like command line, environment, etc.,
  * and some resource utilization data. The service can be used by a client to provide functionality
  * similar to Unix 'top' utility or Windows 'Task Manager'.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface ISysMonitor extends IService {
 

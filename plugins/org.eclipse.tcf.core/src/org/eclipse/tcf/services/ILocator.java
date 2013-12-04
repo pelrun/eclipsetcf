@@ -26,8 +26,9 @@ import org.eclipse.tcf.protocol.IToken;
  *
  * Clients should use Protocol.getLocator() to obtain local instance of ILocator,
  * then ILocator.getPeers() can be used to get list of available peers (hosts and targets).
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
-
 public interface ILocator extends IService {
 
     static final String NAME = "Locator";

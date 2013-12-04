@@ -17,40 +17,58 @@ import org.eclipse.tcf.protocol.IToken;
 /**
  * Extension of Processes service.
  * It provides new "start" command that supports additional parameters.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IProcessesV1 extends IProcesses {
 
     static final String NAME = "ProcessesV1";
 
-    /** Process start parameters */
-    static final String
-        /** Boolean, attach the debugger to the process */
-        START_ATTACH = "Attach",
-        /** Boolean, auto-attach process children */
-        START_ATTACH_CHILDREN = "AttachChildren",
-        /** Boolean, stop at process entry */
-        START_STOP_AT_ENTRY = "StopAtEntry",
-        /** Boolean, stop at main() */
-        START_STOP_AT_MAIN = "StopAtMain",
-        /** Boolean, Use pseudo-terminal for the process standard I/O */
-        START_USE_TERMINAL = "UseTerminal",
-        /** Bit set of signals that should not be intercepted by the debugger */
-        START_SIG_DONT_STOP = "SigDontStop",
-        /** Bit set of signals that should not be delivered to the process */
-        START_SIG_DONT_PASS = "SigDontPass";
+    /* Process start parameters */
 
     /**
-     * Client call back interface for getCapabilities().
+     * Process start parameter:
+     * Boolean, attach the debugger to the process.
      */
-    interface DoneGetCapabilities {
-        /**
-         * Called when the capability retrieval is done.
-         *
-         * @param error The error description if the operation failed, <code>null</code> if succeeded.
-         * @param properties The global processes service or context specific capabilities.
-         */
-        public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties);
-    }
+    static final String START_ATTACH = "Attach";
+
+    /**
+     * Process start parameter:
+     * Boolean, auto-attach process children.
+     */
+    static final String START_ATTACH_CHILDREN = "AttachChildren";
+
+    /**
+     * Process start parameter:
+     * Boolean, stop at process entry.
+     */
+    static final String START_STOP_AT_ENTRY = "StopAtEntry";
+
+    /**
+     * Process start parameter:
+     * Boolean, stop at main().
+     */
+    static final String START_STOP_AT_MAIN = "StopAtMain";
+
+    /**
+     * Process start parameter:
+     * Boolean, Use pseudo-terminal for the process standard I/O.
+     */
+    static final String START_USE_TERMINAL = "UseTerminal";
+
+    /**
+     * Process start parameter:
+     * Bit set of signals that should not be intercepted by the debugger.
+     * @since 1.2
+     */
+    static final String START_SIG_DONT_STOP = "SigDontStop";
+
+    /**
+     * Process start parameter:
+     * Bit set of signals that should not be delivered to the process.
+     * @since 1.2
+     */
+    static final String START_SIG_DONT_PASS = "SigDontPass";
 
     /**
      * Start a new process on remote machine.
@@ -77,8 +95,23 @@ public interface IProcessesV1 extends IProcesses {
      * @param row - number of rows.
      * @param done - call back interface called when operation is completed.
      * @return pending command handle, can be used to cancel the command.
+     * @since 1.2
      */
     IToken setWinSize(String id, int col, int row, DoneCommand done);
+
+    /**
+     * Client call back interface for getCapabilities().
+     * @since 1.2
+     */
+    interface DoneGetCapabilities {
+        /**
+         * Called when the capability retrieval is done.
+         *
+         * @param error The error description if the operation failed, <code>null</code> if succeeded.
+         * @param properties The global processes service or context specific capabilities.
+         */
+        public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties);
+    }
 
     /**
      * The command reports the ProcessesV1 service capabilities to clients so they can adjust
@@ -88,6 +121,7 @@ public interface IProcessesV1 extends IProcesses {
      *
      * @param id The context ID or <code>null</code>.
      * @param done The call back interface called when the operation is completed. Must not be <code>null</code>.
+     * @since 1.2
      */
     public IToken getCapabilities(String id, DoneGetCapabilities done);
 }

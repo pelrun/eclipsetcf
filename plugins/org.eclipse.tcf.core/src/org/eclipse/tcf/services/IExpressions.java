@@ -18,6 +18,8 @@ import org.eclipse.tcf.protocol.IToken;
 /**
  * Expressions service allows TCF client to perform expression evaluation on remote target.
  * The service can be used to retrieve or modify values of variables or any data structures in remote target memory.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IExpressions extends IService {
 
@@ -123,6 +125,7 @@ public interface IExpressions extends IService {
 
     /**
      * Expression scope attributes.
+     * @since 1.2
      */
     static final String
         SCOPE_CONTEXT_ID = "ContextID",
@@ -270,6 +273,7 @@ public interface IExpressions extends IService {
      * @param expression - expression script
      * @param done - call back interface called when operation is completed.
      * @return - pending command handle.
+     * @since 1.2
      */
     IToken createInScope(Map<String,Object> scope, String expression, DoneCreate done);
 

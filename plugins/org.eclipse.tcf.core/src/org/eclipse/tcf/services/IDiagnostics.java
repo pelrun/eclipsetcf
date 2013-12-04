@@ -19,6 +19,8 @@ import org.eclipse.tcf.protocol.IToken;
  * This is optional service that can be implemented by a peer.
  * If implemented, the service can be used for testing of the peer and
  * communication channel functionality and reliability.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 
 public interface IDiagnostics extends IService {

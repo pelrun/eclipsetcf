@@ -19,6 +19,8 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * IRegisters service provides access to target CPU register values and properties.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IRegisters extends IService {
 

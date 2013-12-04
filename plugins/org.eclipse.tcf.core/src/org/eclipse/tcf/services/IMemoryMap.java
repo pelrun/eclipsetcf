@@ -17,6 +17,8 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * IMemoryMap service provides information about executable modules (files) mapped (loaded) into target memory.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IMemoryMap extends IService {
 

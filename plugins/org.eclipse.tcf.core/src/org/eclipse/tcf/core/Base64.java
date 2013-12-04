@@ -12,7 +12,6 @@ package org.eclipse.tcf.core;
 
 /**
  * Methods for translating Base64 encoded strings to byte arrays and back.
- * @noextend This class is not intended to be subclassed by clients.
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public final class Base64 {

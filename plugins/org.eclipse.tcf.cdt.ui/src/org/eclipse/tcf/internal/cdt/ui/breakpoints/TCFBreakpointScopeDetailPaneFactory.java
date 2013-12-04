@@ -39,8 +39,7 @@ public class TCFBreakpointScopeDetailPaneFactory implements IDetailPaneFactory {
         return TCFBreakpointScopeDetailPane.DESC;
     }
 
-    @SuppressWarnings("rawtypes")
-    public Set getDetailPaneTypes(IStructuredSelection selection) {
+    public Set<String> getDetailPaneTypes(IStructuredSelection selection) {
         HashSet<String> set = new HashSet<String>();
         set.add(TCFBreakpointScopeDetailPane.ID);
         return set;

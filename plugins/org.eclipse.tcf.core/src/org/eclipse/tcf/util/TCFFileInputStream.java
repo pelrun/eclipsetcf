@@ -24,8 +24,6 @@ import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 /**
  * TCFFileInputStream is high performance InputStream implementation over TCF FileSystem service.
  * The class uses read-ahead buffers to achieve maximum throughput.
- *
- * @noextend This class is not intended to be subclassed by clients.
  */
 public final class TCFFileInputStream extends InputStream {
 

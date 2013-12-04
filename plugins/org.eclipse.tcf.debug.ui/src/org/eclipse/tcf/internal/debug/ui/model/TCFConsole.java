@@ -37,7 +37,6 @@ import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.AbstractConsole;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -45,7 +44,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.part.IPageBookViewPage;
-import org.eclipse.ui.part.IPageSite;
+import org.eclipse.ui.part.Page;
 
 @SuppressWarnings("restriction")
 class TCFConsole extends AbstractConsole {
@@ -71,7 +70,7 @@ class TCFConsole extends AbstractConsole {
         byte[] data;
     }
 
-    private class ViewPage implements IPageBookViewPage, ITerminalConnector, ITerminalListener {
+    private class ViewPage extends Page implements ITerminalConnector, ITerminalListener {
 
         private final String page_id = "Page-" + page_id_cnt++;
         private final LinkedList<Message> inp_queue = new LinkedList<Message>();
@@ -96,7 +95,6 @@ class TCFConsole extends AbstractConsole {
         };
 
         private ITerminalViewControl view_control;
-        private IPageSite page_site;
         private OutputStream rtt;
         private int ws_col;
         private int ws_row;
@@ -169,16 +167,6 @@ class TCFConsole extends AbstractConsole {
         @Override
         public void setFocus() {
             view_control.setFocus();
-        }
-
-        @Override
-        public IPageSite getSite() {
-            return page_site;
-        }
-
-        @Override
-        public void init(IPageSite site) throws PartInitException {
-            page_site = site;
         }
 
         @Override

@@ -69,6 +69,8 @@ import org.eclipse.tcf.protocol.IToken;
  * context. The part "**" matches any sequence of contexts. If the query
  * starts with a "/" the first part of the query must match a child of
  * the root of the context tree.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IContextQuery extends IService {
 

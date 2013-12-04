@@ -18,6 +18,8 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * ITerminalsService allows to launch a new terminal on the remote target system.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface ITerminals extends IService {
 

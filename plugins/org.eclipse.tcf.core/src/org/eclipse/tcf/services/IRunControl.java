@@ -15,14 +15,17 @@ import java.util.Map;
 import org.eclipse.tcf.protocol.IService;
 import org.eclipse.tcf.protocol.IToken;
 
-
+/**
+ * Run Control service provides basic run control operations for execution contexts on a target.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
+ */
 public interface IRunControl extends IService {
 
     static final String NAME = "RunControl";
 
-    /**
-     * Context property names.
-     */
+    /* Context property names ---------------------------------------------- */
+
     static final String
         /** Run control context ID */
         PROP_ID = "ID",
@@ -218,44 +221,76 @@ public interface IRunControl extends IService {
         /** Context suspended because of an error in execution environment */
         REASON_ERROR = "Error";
 
-    /**
-     * Optional parameters of context state.
-     */
-    static final String
-        /** Integer - signal that caused the context to become suspended */
-        STATE_SIGNAL = "Signal",
 
-        /** String - name of the signal that caused the context to become suspended */
-        STATE_SIGNAL_NAME = "SignalName",
-
-        /** String - description of the signal that caused the context to become suspended */
-        STATE_SIGNAL_DESCRIPTION = "SignalDescription",
-
-        /** Array of string - IDs of breakpoints that were triggered by the context */
-        STATE_BREAKPOINT_IDS = "BPs",
-
-        /** Object - error report that describes a reason why program counter of the context is not available */
-        STATE_PC_ERROR = "PCError",
-
-        /** Object - error report if last stepping operation failed to reach its destination */
-        STATE_STEP_ERROR = "StepError",
-
-        /** Boolean - true if the context is stopped by a function call injection */
-        STATE_FUNC_CALL = "FuncCall",
-
-        /** Boolean - true if the context is running in reverse */
-        STATE_REVERSING = "Reversing";
+    /* Optional parameters of context state -------------------------------- */
 
     /**
-     * Optional parameters of resume command.
+     * Context state parameter:
+     * Integer - signal that caused the context to become suspended.
      */
-    static final String
-        /** Integer - starting address of step range, inclusive */
-        RP_RANGE_START = "RangeStart",
+    static final String STATE_SIGNAL = "Signal";
 
-        /** Integer - ending address of step range, exclusive */
-        RP_RANGE_END = "RangeEnd";
+    /**
+     * Context state parameter:
+     * String - name of the signal that caused the context to become suspended.
+     */
+    static final String STATE_SIGNAL_NAME = "SignalName";
 
+    /**
+     * Context state parameter:
+     * String - description of the signal that caused the context to become suspended.
+     */
+    static final String STATE_SIGNAL_DESCRIPTION = "SignalDescription";
+
+    /**
+     * Context state parameter:
+     * Array of string - IDs of breakpoints that were triggered by the context.
+     */
+    static final String STATE_BREAKPOINT_IDS = "BPs";
+
+    /**
+     * Context state parameter:
+     * Object - error report that describes a reason why program counter of the context is not available.
+     */
+    static final String STATE_PC_ERROR = "PCError";
+
+    /**
+     * Context state parameter:
+     * Object - error report if last stepping operation failed to reach its destination.
+     * @since 1.2
+     */
+    static final String STATE_STEP_ERROR = "StepError";
+
+    /**
+     * Context state parameter:
+     * Boolean - true if the context is stopped by a function call injection.
+     * @since 1.2
+     */
+    static final String STATE_FUNC_CALL = "FuncCall";
+
+    /**
+     * Context state parameter:
+     * Boolean - true if the context is running in reverse.
+     */
+    static final String STATE_REVERSING = "Reversing";
+
+
+    /* Optional parameters of resume command ------------------------------- */
+
+    /**
+     * Resume command parameter:
+     * Integer - starting address of step range, inclusive.
+     */
+    static final String RP_RANGE_START = "RangeStart";
+
+    /**
+     * Resume command parameter:
+     * Integer - ending address of step range, exclusive.
+     */
+    static final String RP_RANGE_END = "RangeEnd";
+
+
+    /* Commands ------------------------------------------------------------ */
 
     /**
      * Retrieve context properties for given context ID.

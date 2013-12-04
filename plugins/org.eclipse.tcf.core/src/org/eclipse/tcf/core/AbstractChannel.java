@@ -145,6 +145,9 @@ public abstract class AbstractChannel implements IChannel {
     private int local_congestion_cnt;
     private Collection<TraceListener> trace_listeners;
 
+    /**
+     * @since 1.2
+     */
     protected static final boolean TRACE = Boolean.getBoolean("org.eclipse.tcf.core.tracing.channel");
 
     public static final int
@@ -1018,7 +1021,8 @@ public abstract class AbstractChannel implements IChannel {
                                     Protocol.log("Exception in channel listener", x);
                                 }
                             }
-                        } else if (TRACE){
+                        }
+                        else if (TRACE){
                             Protocol.log("TCF channel opened but no one is listening.", null);
                         }
                         notifying_channel_opened = false;

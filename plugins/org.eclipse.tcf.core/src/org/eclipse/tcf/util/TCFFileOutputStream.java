@@ -25,8 +25,6 @@ import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 /**
  * TCFFileOutputStream is high performance OutputStream implementation over TCF FileSystem service.
  * The class uses write-back buffers to achieve maximum throughput.
- *
- * @noextend This class is not intended to be subclassed by clients.
  */
 public final class TCFFileOutputStream extends OutputStream {
 

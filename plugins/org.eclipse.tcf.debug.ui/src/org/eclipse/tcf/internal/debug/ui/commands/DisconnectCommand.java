@@ -45,7 +45,7 @@ public class DisconnectCommand implements IDisconnectHandler {
                     monitor.setStatus(Status.OK_STATUS);
                 }
                 catch (Throwable x) {
-                    monitor.setStatus(new TCFError(x).getStatus());
+                    monitor.setStatus(new TCFError(x));
                 }
                 done();
             }

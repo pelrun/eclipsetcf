@@ -40,8 +40,7 @@ public class TCFDetailPaneFactory implements IDetailPaneFactory {
         return TCFDetailPane.DESC;
     }
 
-    @SuppressWarnings("rawtypes")
-    public Set getDetailPaneTypes(IStructuredSelection selection) {
+    public Set<String> getDetailPaneTypes(IStructuredSelection selection) {
         HashSet<String> set = new HashSet<String>();
         set.add(TCFDetailPane.ID);
         return set;

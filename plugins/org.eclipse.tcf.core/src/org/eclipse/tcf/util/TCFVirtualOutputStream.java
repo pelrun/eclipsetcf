@@ -22,7 +22,7 @@ import org.eclipse.tcf.services.IStreams;
 /**
  * TCFVirtualInputStream is OutputStream implementation over TCF Streams service.
  *
- * @noextend This class is not intended to be subclassed by clients.
+ * @since 1.2
  */
 public final class TCFVirtualOutputStream extends OutputStream {
 

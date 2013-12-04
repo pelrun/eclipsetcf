@@ -22,6 +22,8 @@ import org.eclipse.tcf.protocol.IToken;
  *  2. Multicast: multiple clients can receive data from same stream.
  *  3. Subscription model: clients are required to expressed interest in particular streams by subscribing for the service.
  *  4. Flow control: peers can throttle data flow of individual streams by delaying 'read' and 'write' commands.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IStreams extends IService {
 

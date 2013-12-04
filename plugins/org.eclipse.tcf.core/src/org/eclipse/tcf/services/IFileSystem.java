@@ -75,6 +75,8 @@ import org.eclipse.tcf.protocol.IToken;
  * Clients should not make any other assumptions; however, they can
  * splice path name components returned by readdir() together
  * using a slash ('/') as the separator, and that will work as expected.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IFileSystem extends IService {
 

@@ -28,6 +28,8 @@ import org.eclipse.tcf.protocol.IToken;
  * breakpoint status (Map<String,Object>, see STATUS_*). While breakpoint properties are
  * persistent and represent user input, breakpoint status reflects dynamic target agent reports
  * about breakpoint current state, like actual addresses where breakpoint is planted or planting errors.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IBreakpoints extends IService {
 

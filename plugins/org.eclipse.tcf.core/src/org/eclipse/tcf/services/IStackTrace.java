@@ -15,7 +15,11 @@ import java.util.Map;
 import org.eclipse.tcf.protocol.IService;
 import org.eclipse.tcf.protocol.IToken;
 
-
+/**
+ * Stack Trace service implements thread stack back tracing.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
+ */
 public interface IStackTrace extends IService {
 
     static final String NAME = "StackTrace";
@@ -23,49 +27,85 @@ public interface IStackTrace extends IService {
     /**
      * Stack frame context property names.
      */
-    static final String
-        /** String, stack frame ID */
-        PROP_ID = "ID",
 
-        /** String, stack frame parent ID */
-        PROP_PARENT_ID = "ParentID",
+    static final String PROP_ID = "ID";
 
-        /** String, stack frame process ID */
-        PROP_PROCESS_ID = "ProcessID",
+    /**
+     * Stack frame property:
+     * String, stack frame parent ID.
+     */
+    static final String PROP_PARENT_ID = "ParentID";
 
-        /** String, human readable name */
-        PROP_NAME = "Name",
+    /**
+     * Stack frame property:
+     * String, stack frame process ID.
+     */
+    static final String PROP_PROCESS_ID = "ProcessID";
 
-        /** Boolean, true if the frame is top frame on a stack */
-        PROP_TOP_FRAME = "TopFrame",
+    /**
+     * Stack frame property:
+     * String, human readable name.
+     */
+    static final String PROP_NAME = "Name";
 
-        /** Integer, stack frame index, starting from stack top (current frame) */
-        PROP_INDEX = "Index",
+    /**
+     * Stack frame property:
+     * Boolean, true if the frame is top frame on a stack.
+     */
+    static final String PROP_TOP_FRAME = "TopFrame";
 
-        /** Boolean, true if the frame data was computed using symbols info,
-         * false or not set if the data was collected using stack crawl logic. */
-        PROP_WALK = "Walk",
+    /**
+     * Stack frame property:
+     * Integer, stack frame index, starting from stack top (current frame).
+     * @since 1.2
+     */
+    static final String PROP_INDEX = "Index";
 
-        /** Number, stack frame memory address */
-        PROP_FRAME_ADDRESS = "FP",
+    /**
+     * Stack frame property:
+     * Boolean, true if the frame data was computed using symbols info,
+     * false or not set if the data was collected using stack crawl logic.
+     * @since 1.2
+     */
+    static final String PROP_WALK = "Walk";
 
-        /** Number, return address */
-        PROP_RETURN_ADDRESS = "RP",
+    /**
+     * Stack frame property:
+     * Number, stack frame memory address.
+     */
+    static final String PROP_FRAME_ADDRESS = "FP";
 
-        /** Number, instruction pointer */
-        PROP_INSTRUCTION_ADDRESS = "IP",
+    /**
+     * Stack frame property:
+     * Number, return address.
+     */
+    static final String PROP_RETURN_ADDRESS = "RP";
 
-        /** Integer, number of function arguments */
-        PROP_ARGUMENTS_COUNT = "ArgsCnt",
+    /**
+     * Stack frame property:
+     * Number, instruction pointer.
+     */
+    static final String PROP_INSTRUCTION_ADDRESS = "IP";
 
-        /** Number, memory address of function arguments */
-        PROP_ARGUMENTS_ADDRESS = "ArgsAddr";
+    /**
+     * Stack frame property:
+     * Integer, number of function arguments.
+     */
+    static final String PROP_ARGUMENTS_COUNT = "ArgsCnt";
 
-    static final String
-        /** Integer, stack frame level, starting from stack bottom
-         * @deprecated, use "Index" property.
-         * Note: "Index" is counted from the top of the stack, while "Level" is counted from the bottom. */
-        PROP_LEVEL = "Level";
+    /**
+     * Stack frame property:
+     * Number, memory address of function arguments.
+     */
+    static final String PROP_ARGUMENTS_ADDRESS = "ArgsAddr";
+
+    /**
+     * Stack frame property:
+     * Integer, stack frame level, starting from stack bottom
+     * @deprecated, use "Index" property.
+     * Note: "Index" is counted from the top of the stack, while "Level" is counted from the bottom.
+     */
+    static final String PROP_LEVEL = "Level";
 
     /**
      * Retrieve context info for given context IDs.
@@ -123,6 +163,7 @@ public interface IStackTrace extends IService {
      * @param range_start - start of the range (inclusive).
      * @param range_end - end of the range (inclusive).
      * @param done - call back interface called when operation is completed.
+     * @since 1.2
      */
     IToken getChildrenRange(String parent_context_id, int range_start, int range_end, DoneGetChildren done);
 

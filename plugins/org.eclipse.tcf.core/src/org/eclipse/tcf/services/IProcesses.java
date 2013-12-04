@@ -27,6 +27,8 @@ import org.eclipse.tcf.protocol.IToken;
  * If a process is started by this service, its standard input/output streams are
  * available for client to read/write using Streams service. Stream type of such
  * streams is set to "Processes".
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IProcesses extends IService {
 

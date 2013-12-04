@@ -893,7 +893,6 @@ public class TCFLaunch extends Launch {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void startRemoteProcess(final ILaunchConfiguration cfg) throws Exception {
         final String project = cfg.getAttribute(TCFLaunchDelegate.ATTR_PROJECT_NAME, "");
         final String local_file = cfg.getAttribute(TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE, "");
@@ -1473,7 +1472,7 @@ public class TCFLaunch extends Launch {
             // Don't report this exception - it means Eclipse is being shut down
         }
         catch (Exception x) {
-            throw new TCFError(x);
+            throw new DebugException(new TCFError(x));
         }
     }
 

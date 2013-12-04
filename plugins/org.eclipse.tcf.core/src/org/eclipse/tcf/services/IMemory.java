@@ -19,6 +19,8 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * IMemory service provides basic operations to read/write memory on a target.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IMemory extends IService {
 
