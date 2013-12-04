@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.internal.debug.model.TCFMemoryRegion;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IErrorReport;
@@ -1155,6 +1156,20 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     }
 
     private void checkSuspendedContext(final SuspendedContext sc) {
+        if (sc.params != null) {
+            Object pc_err = sc.params.get(IRunControl.STATE_PC_ERROR);
+            if (pc_err != null) {
+                String msg = Command.toErrorString(pc_err);
+                exit(new Exception("PC error: " + msg));
+                return;
+            }
+            Object step_err = sc.params.get(IRunControl.STATE_STEP_ERROR);
+            if (step_err != null) {
+                String msg = Command.toErrorString(step_err);
+                exit(new Exception("Step error: " + msg));
+                return;
+            }
+        }
         boolean my_breakpoint = isMyBreakpoint(sc);
         if (main_thread_id == null && my_breakpoint) {
             // Process main thread should be the first to hit a breakpoint in the test
@@ -1320,7 +1335,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         final SuspendedContext sc0 = sc;
         ctx.getState(new IRunControl.DoneGetState() {
             public void doneGetState(IToken token, Exception error, boolean susp,
-                    String pc, String reason, Map<String, Object> params) {
+                    String pc, String reason, Map<String,Object> params) {
                 if (error != null) {
                     exit(new Exception("Cannot get context state", error));
                 }
