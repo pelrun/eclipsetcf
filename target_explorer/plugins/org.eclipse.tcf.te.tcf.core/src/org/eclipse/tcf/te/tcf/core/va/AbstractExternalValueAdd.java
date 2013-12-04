@@ -9,7 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.core.va;
 
-import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -59,9 +58,9 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		public void dispose() {
 			if (process != null) {
 				// Send "quit" to the process before we destroy the process
-				BufferedWriter writer = null;
+				OutputStreamWriter writer = null;
 				try {
-					writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+					writer = new OutputStreamWriter(process.getOutputStream());
 					writer.write("quit"); //$NON-NLS-1$
 					writer.flush();
 
