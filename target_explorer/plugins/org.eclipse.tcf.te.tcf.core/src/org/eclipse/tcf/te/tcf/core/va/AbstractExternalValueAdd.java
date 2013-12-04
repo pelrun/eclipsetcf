@@ -63,6 +63,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				try {
 					writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 					writer.write("quit"); //$NON-NLS-1$
+					writer.flush();
 
 					// Check the process exit code
 					long start = System.currentTimeMillis();
