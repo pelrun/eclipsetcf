@@ -169,26 +169,28 @@ public class PresentationFilter implements ITCFPresentationProvider {
             TCFChildren children_cache = exe_context.getChildren();
             if (!children_cache.validate()) pending_cache = children_cache;
 
-            for (TCFNode node : children_cache.getData().values()) {
-                if (node instanceof TCFNodeExecContext && node.getModel().getActiveAction(node.getID()) == null) {
-                    TCFNodeExecContext child = (TCFNodeExecContext) node;
-                    TCFDataCache<IRunControl.RunControlContext> child_ctx_cache = child.getRunContext();
-                    if (!child_ctx_cache.validate()) {
-                        pending_cache = child_ctx_cache;
-                        continue;
-                    }
-                    IRunControl.RunControlContext child_ctx = child_ctx_cache.getData();
-                    if (child_ctx != null && child_ctx.hasState()) {
-                        TCFDataCache<TCFContextState> child_state_cache = child.getState();
-                        if (!child_state_cache.validate()) {
-                            pending_cache = child_state_cache;
+            if (pending_cache == null) {
+                for (TCFNode node : children_cache.getData().values()) {
+                    if (node instanceof TCFNodeExecContext && node.getModel().getActiveAction(node.getID()) == null) {
+                        TCFNodeExecContext child = (TCFNodeExecContext) node;
+                        TCFDataCache<IRunControl.RunControlContext> child_ctx_cache = child.getRunContext();
+                        if (!child_ctx_cache.validate()) {
+                            pending_cache = child_ctx_cache;
                             continue;
                         }
-                        TCFContextState child_state = child_state_cache.getData();
-                        if (child_state != null && !child_state.is_suspended) continue;
+                        IRunControl.RunControlContext child_ctx = child_ctx_cache.getData();
+                        if (child_ctx != null && child_ctx.hasState()) {
+                            TCFDataCache<TCFContextState> child_state_cache = child.getState();
+                            if (!child_state_cache.validate()) {
+                                pending_cache = child_state_cache;
+                                continue;
+                            }
+                            TCFContextState child_state = child_state_cache.getData();
+                            if (child_state != null && !child_state.is_suspended) continue;
+                        }
                     }
+                    list.add(node);
                 }
-                list.add(node);
             }
         }
 
