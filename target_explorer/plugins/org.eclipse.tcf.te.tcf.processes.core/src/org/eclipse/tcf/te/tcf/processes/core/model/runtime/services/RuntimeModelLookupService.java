@@ -140,6 +140,13 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 		Assert.isNotNull(callback);
 
 		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)getModel().getAdapter(IAsyncRefreshableCtx.class);
+
+		if (refreshable != null && Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
+			String message = "RuntimeModelLookupService: lkupModelNodeByCapability: runtime model refreshable=" + refreshable + ", capabilities=" + Arrays.deepToString(capabilities); //$NON-NLS-1$ //$NON-NLS-2$
+			IStatus s = new Status(IStatus.INFO, CoreBundleActivator.getUniqueIdentifier(), message);
+			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(s);
+		}
+
 		if (refreshable != null && refreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.DONE) {
 			// The model needs a refresh
 			getModel().getService(IModelRefreshService.class).refresh(new Callback() {
@@ -168,7 +175,7 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 		Assert.isNotNull(capabilities);
 
 		if (Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
-			String message = "RuntimeModelLookupServer: findInContainerByCapabilitiesRecursively: container=" + container + ", capabilities=" + Arrays.deepToString(capabilities); //$NON-NLS-1$ //$NON-NLS-2$
+			String message = "RuntimeModelLookupService: findInContainerByCapabilitiesRecursively: container=" + container + ", capabilities=" + Arrays.deepToString(capabilities); //$NON-NLS-1$ //$NON-NLS-2$
 			IStatus s = new Status(IStatus.INFO, CoreBundleActivator.getUniqueIdentifier(), message);
 			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(s);
 		}
@@ -179,7 +186,7 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 			Map<String, Object> caps = (Map<String, Object>)candidate.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
 
 			if (Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
-				String message = "RuntimeModelLookupServer: findInContainerByCapabilitiesRecursively:        candidate=" + candidate + ", capabilities=" + caps.keySet(); //$NON-NLS-1$ //$NON-NLS-2$
+				String message = "RuntimeModelLookupService: findInContainerByCapabilitiesRecursively:        candidate=" + candidate + ", capabilities=" + caps.keySet(); //$NON-NLS-1$ //$NON-NLS-2$
 				IStatus s = new Status(IStatus.INFO, CoreBundleActivator.getUniqueIdentifier(), message);
 				Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(s);
 			}
@@ -210,7 +217,7 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 		}
 
 		if (Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
-			String message = "RuntimeModelLookupServer: findInContainerByCapabilitiesRecursively:        node=" + node; //$NON-NLS-1$
+			String message = "RuntimeModelLookupService: findInContainerByCapabilitiesRecursively:        node=" + node; //$NON-NLS-1$
 			IStatus s = new Status(IStatus.INFO, CoreBundleActivator.getUniqueIdentifier(), message);
 			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(s);
 		}

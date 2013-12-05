@@ -266,4 +266,15 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 			}
 		});
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.model.ModelNode#toString()
+	 */
+	@Override
+	public String toString() {
+		if (disposed) {
+			return "*DISPOSED* : " + super.toString(); //$NON-NLS-1$
+		}
+	    return super.toString();
+	}
 }
