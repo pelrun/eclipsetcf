@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tcf
+Bundle-SymbolicName: org.eclipse.tcf.examples.filtering;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.eclipse.tcf.examples.filtering.Activator
+Bundle-Vendor: XILINX
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.tcf.debug.ui,
+ org.eclipse.debug.core,
+ org.eclipse.debug.ui,
+ org.eclipse.tcf.core,
+ org.eclipse.tcf.debug
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
