@@ -89,7 +89,7 @@
 <project reference="1.0,ssh://user@git.eclipse.org:29418/tm/org.eclipse.tm.git,master,terminal/plugins/org.eclipse.tm.terminal.telnet"/>
 </provider>
 <provider id="org.eclipse.team.cvs.core.cvsnature">
-<project reference="1.0,:extssh:dev.eclipse.org:/cvsroot/tools,org.eclipse.orbit/com.google.gson,com.google.gson,v2_1"/>
+<project reference="1.0,:extssh:dev.eclipse.org:/cvsroot/tools,org.eclipse.orbit/com.google.gson,com.google.gson,v2_2_4"/>
 </provider>
 <workingSets editPageId="org.eclipse.ui.resourceWorkingSetPage" id="1385720142364_7" label="Target Explorer" name="Target Explorer">
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/com.google.gson" type="4"/>
