@@ -1377,7 +1377,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     }
 
     void onContextAdded(IRunControl.RunControlContext context) {
-        model.setDebugViewSelection(this, IRunControl.REASON_USER_REQUEST);
+        model.setDebugViewSelection(this, TCFModel.SELECT_ADDED);
         children_exec.onContextAdded(context);
     }
 

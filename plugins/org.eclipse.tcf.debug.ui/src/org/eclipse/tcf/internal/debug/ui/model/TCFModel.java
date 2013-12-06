@@ -156,6 +156,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     /** The id of a pinned view description presentation context */
     public static final String ID_PINNED_VIEW = Activator.PLUGIN_ID + ".pinned_view";
 
+    /** Selection reason in the Debug view - context added */
+    public static final String SELECT_ADDED = "Added";
+
     public static final int
         UPDATE_POLICY_AUTOMATIC  = 0,
         UPDATE_POLICY_MANUAL     = 1,
@@ -1696,7 +1699,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         assert Protocol.isDispatchThread();
         if (node == null) return;
         if (node.isDisposed()) return;
-        runSuspendTrigger(node);
+        if (!SELECT_ADDED.equals(reason)) runSuspendTrigger(node);
         if (initial_selection != null) Protocol.invokeLater(initial_selection);
         if (reason == null) return;
         for (TCFModelProxy proxy : model_proxies) {
