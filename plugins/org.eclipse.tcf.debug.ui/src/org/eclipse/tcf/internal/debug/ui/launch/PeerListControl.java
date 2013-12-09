@@ -486,9 +486,7 @@ public class PeerListControl implements ISelectionProvider {
         if (p != null && p.attrs != null) {
             filtered |= p.attrs.get("ValueAdd") != null && ("1".equals(p.attrs.get("ValueAdd").trim()) || Boolean.parseBoolean(p.attrs.get("ValueAdd").trim())); //$NON-NLS-1$
             filtered |= p.attrs.get(IPeer.ATTR_NAME) != null
-                            && (p.attrs.get(IPeer.ATTR_NAME).startsWith("Eclipse CLI") //$NON-NLS-1$
-                                    || p.attrs.get(IPeer.ATTR_NAME).endsWith("CLI Server") //$NON-NLS-1$
-                                    || p.attrs.get(IPeer.ATTR_NAME).endsWith("CLI Client")); //$NON-NLS-1$
+                            && p.attrs.get(IPeer.ATTR_NAME).endsWith("Command Server"); //$NON-NLS-1$
         }
         return filtered;
     }

@@ -75,9 +75,7 @@ public final class LocatorListener implements ILocator.LocatorListener {
 			filtered |= isValueAdd && hideValueAdds;
 
 			filtered |= peer.getName() != null
-							&& (peer.getName().startsWith("Eclipse CLI") //$NON-NLS-1$
-											|| peer.getName().endsWith("CLI Server") //$NON-NLS-1$
-											|| peer.getName().endsWith("CLI Client")); //$NON-NLS-1$
+							&& peer.getName().endsWith("Command Server"); //$NON-NLS-1$
 		}
 
 		return filtered;

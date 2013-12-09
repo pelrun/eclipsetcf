@@ -132,9 +132,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		}
 
 		filtered |= peerModel.getPeer().getName() != null
-						&& (peerModel.getPeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
-								|| peerModel.getPeer().getName().endsWith("CLI Server") //$NON-NLS-1$
-								|| peerModel.getPeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
+						&& peerModel.getPeer().getName().endsWith("Command Server"); //$NON-NLS-1$
 
 		return filtered;
 	}
