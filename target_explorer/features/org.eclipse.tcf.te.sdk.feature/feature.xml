@@ -21,12 +21,10 @@
       <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
-   <includes
-         id="org.eclipse.tcf.te.feature"
-         version="0.0.0"/>
-
    <requires>
+      <import plugin="com.google.gson.source" version="2.2.4" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.core.sdk" version="3.3.100" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.te.feature" version="1.2.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -195,13 +193,6 @@
          download-size="0"
          install-size="0"
          version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="com.google.gson.source"
-         download-size="0"
-         install-size="0"
-         version="2.2.4.v201311231704"
          unpack="false"/>
 
 </feature>

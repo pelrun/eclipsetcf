@@ -22,14 +22,6 @@
       <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
-   <includes
-         id="org.eclipse.tcf.core.feature"
-         version="0.0.0"/>
-
-   <includes
-         id="org.eclipse.tcf.te.feature"
-         version="0.0.0"/>
-
    <requires>
       <import plugin="org.eclipse.core.runtime" version="3.8.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.expressions" version="3.4.400" match="greaterOrEqual"/>
@@ -70,6 +62,8 @@
       <import plugin="org.eclipse.tcf.te.tcf.core.scripting" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.tcf.log.core" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.tcf.ui.console" version="1.2.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.core.feature" version="1.2.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.te.feature" version="1.2.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

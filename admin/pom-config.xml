@@ -108,15 +108,6 @@
 				<enabled>true</enabled>
 			</releases>
 		</pluginRepository>
-		<!--<pluginRepository>
-			<id>repo.eclipse.org</id>
-			<url>http://repo.eclipse.org/content/repositories</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>																		                                <enabled>true</enabled>
-			</releases>																				   </pluginRepository>
-			-->	
 		<pluginRepository>                                                                                         
 			<id>cbi</id>                                                                                         
 			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>                                             
@@ -216,6 +207,7 @@
 						<strictBinIncludes>false</strictBinIncludes>
 						<timestampProvider>jgit</timestampProvider>
 						<jgit.ignore>pom.xml</jgit.ignore>
+						<jgit.dirtyWorkingTree>ignore</jgit.dirtyWorkingTree>
 						<sourceReferences>
 						    <generate>true</generate>
 						</sourceReferences>

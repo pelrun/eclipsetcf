@@ -21,12 +21,9 @@
       <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
-   <includes
-         id="org.eclipse.tcf.te.terminals.feature"
-         version="0.0.0"/>
-
    <requires>
       <import feature="org.eclipse.tm.terminal.core.sdk" version="3.3.100" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.te.terminals.feature" version="1.2.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
