@@ -106,27 +106,4 @@ public class ModelManager {
 		if (Protocol.isDispatchThread()) runnable.run();
 		else Protocol.invokeAndWait(runnable);
 	}
-
-	/**
-	 * Dispose all runtime models.
-	 */
-	public static void disposeAllRuntimeModels() {
-		if (runtimeModels.isEmpty()) return;
-
-		final IRuntimeModel[] models = runtimeModels.values().toArray(new IRuntimeModel[runtimeModels.values().size()]);
-		runtimeModels.clear();
-
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				for (IRuntimeModel model : models) {
-					model.dispose();
-				}
-			}
-		};
-
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
-	}
-
 }
