@@ -560,7 +560,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     }
 
     public TCFDataCache<TCFSymFileRef> getSymFileInfo(final BigInteger addr) {
-        if (isDisposed()) return null;
+        if (addr == null || isDisposed()) return null;
         TCFDataCache<TCFSymFileRef> ref_cache;
         if (syms_info_lookup_cache != null) {
             ref_cache = syms_info_lookup_cache.get(addr);

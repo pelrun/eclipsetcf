@@ -888,7 +888,7 @@ public class MemoryMapWidget {
     }
 
     private String getSymbolFileInfo(final IMemoryMap.MemoryRegion r) {
-        if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null) return null;
+        if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null || r.getAddress() == null) return null;
         try {
             return new TCFTask<String>(channel) {
                 public void run() {
