@@ -192,8 +192,8 @@ public class Messages extends NLS {
 	public static String AbstractConfigWizardPage_configName_infoMissingValue;
 	public static String AbstractConfigWizardPage_configName_nameInUse;
 	public static String AbstractConfigWizardPage_launchDbg_label;
+	public static String AbstractConfigWizardPage_connect_label;
 	public static String AbstractConfigWizardPage_advancedButton_label;
-	public static String AbstractConfigWizardPage_connectJob_label;
 
 	public static String ToolbarAction_selectPeer;
 	public static String ToolbarAction_selectionDialog_title;

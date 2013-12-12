@@ -307,7 +307,7 @@ public class FilteredCheckedListDialog extends SelectionStatusDialog implements 
 	}
 
 	/**
-	 * Create the checked list and add check state changed listener to monitor events.
+	 * Create the checked list and add check action changed listener to monitor events.
 	 *
 	 * @param composite The parent composite.
 	 */

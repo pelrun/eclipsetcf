@@ -79,30 +79,30 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 		// If auto-connect is switched off, we are done here.
 		if (!autoConnect) return;
 
-		// Attach the debugger
-		final AtomicBoolean attachDebugger = new AtomicBoolean();
+		// Connect and Attach the debugger
+		final AtomicBoolean connect = new AtomicBoolean();
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				attachDebugger.set(Boolean.parseBoolean(peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_AUTO_START_DEBUGGER)));
+				connect.set(Boolean.parseBoolean(peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_AUTO_CONNECT)));
 			}
 		});
 
-		if (attachDebugger.get()) {
+		if (connect.get()) {
 			IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperOperationService.class, false);
 			IStepperOperationService stepperOperationService = null;
 			for (IService service : services) {
-				if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER)) {
+				if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerModel, IStepperServiceOperations.CONNECT)) {
 					stepperOperationService = (IStepperOperationService)service;
 					break;
 				}
 	        }
 			if (stepperOperationService != null) {
-				String stepGroupId = stepperOperationService.getStepGroupId(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				IStepContext stepContext = stepperOperationService.getStepContext(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				String name = stepperOperationService.getStepGroupName(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				IPropertiesContainer data = stepperOperationService.getStepData(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
-				boolean enabled = stepperOperationService.isEnabled(peerModel, IStepperServiceOperations.ATTACH_DEBUGGER);
+				String stepGroupId = stepperOperationService.getStepGroupId(peerModel, IStepperServiceOperations.CONNECT);
+				IStepContext stepContext = stepperOperationService.getStepContext(peerModel, IStepperServiceOperations.CONNECT);
+				String name = stepperOperationService.getStepGroupName(peerModel, IStepperServiceOperations.CONNECT);
+				IPropertiesContainer data = stepperOperationService.getStepData(peerModel, IStepperServiceOperations.CONNECT);
+				boolean enabled = stepperOperationService.isEnabled(peerModel, IStepperServiceOperations.CONNECT);
 
 				if (enabled && stepGroupId != null && stepContext != null) {
 					try {
@@ -110,7 +110,8 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 														stepContext,
 														data,
 														stepGroupId,
-														IStepperServiceOperations.ATTACH_DEBUGGER,
+														IStepperServiceOperations.CONNECT,
+														true,
 														true);
 
 						job.schedule();

@@ -139,10 +139,13 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			return;
 		}
 
-		// Don't scan command server peers
-		boolean isCommandServer = peer.getName() != null
-						&& peer.getName().endsWith("Command Server"); //$NON-NLS-1$
-		if (isCommandServer) {
+		// Don't scan "CLI" peers
+		boolean isCLI = peer.getName() != null
+						&& (peer.getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+								|| peer.getName().startsWith("Eclipse Command Server") //$NON-NLS-1$
+								|| peer.getName().endsWith("CLI Server") //$NON-NLS-1$
+								|| peer.getName().endsWith("CLI Client")); //$NON-NLS-1$
+		if (isCLI) {
 			if (callback != null) callback.done(this, Status.OK_STATUS);
 			return;
 		}
@@ -342,13 +345,17 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 		String remoteIP = channel.getRemotePeer().getAttributes().get(IPeer.ATTR_IP_HOST);
 		boolean isLocal = remoteIP != null && IPAddressUtil.getInstance().isLocalHost(remoteIP);
 
-		boolean isCommandServer = channel.getRemotePeer().getName() != null
-						&& channel.getRemotePeer().getName().endsWith("Command Server"); //$NON-NLS-1$
+		boolean isCLI = channel.getRemotePeer().getName() != null
+						&& (channel.getRemotePeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+								|| channel.getRemotePeer().getName().endsWith("CLI Server") //$NON-NLS-1$
+								|| channel.getRemotePeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
 
-		isCommandServer |= channel.getLocalPeer().getName() != null
-					&& channel.getLocalPeer().getName().endsWith("Command Server"); //$NON-NLS-1$
+		isCLI |= channel.getLocalPeer().getName() != null
+					&& (channel.getLocalPeer().getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+							|| channel.getLocalPeer().getName().endsWith("CLI Server") //$NON-NLS-1$
+							|| channel.getLocalPeer().getName().endsWith("CLI Client")); //$NON-NLS-1$
 
-		return !isLocal && !isCommandServer;
+		return !isLocal && !isCLI;
     }
 
     /**
@@ -407,11 +414,14 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								String value = attributes.get("ValueAdd"); //$NON-NLS-1$
 								boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
-								// Don't process command server service server or clients
+								// Don't process CLI service or clients
 								String name = attributes.get(IPeer.ATTR_NAME);
-								boolean isCommandServer = name != null && name.endsWith("Command Server"); //$NON-NLS-1$
+								boolean isCLI = name != null
+												&& (name.startsWith("Eclipse CLI") //$NON-NLS-1$
+														|| name.endsWith("CLI Server") //$NON-NLS-1$
+														|| name.endsWith("CLI Client")); //$NON-NLS-1$
 
-								if (isValueAdd || isCommandServer) continue;
+								if (isValueAdd || isCLI) continue;
 
 								// Get the peer id
 								String peerId = attributes.get(IPeer.ATTR_ID);

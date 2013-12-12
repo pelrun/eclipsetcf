@@ -113,9 +113,19 @@ public interface IPeerModelProperties {
 	public static final String PROP_SIM_TYPE = "SimulatorType"; //$NON-NLS-1$
 
 	/**
+	 * Property: Discovered target for a static peer
+	 */
+	public static final String PROP_TARGET = "Target"; //$NON-NLS-1$
+
+	/**
 	 * Property: Auto-start the debugger after the agent launch.
 	 */
 	public static final String PROP_AUTO_START_DEBUGGER = "autoStartDebugger"; //$NON-NLS-1$
+
+	/**
+	 * Property: Connect after the configuration has been created.
+	 */
+	public static final String PROP_AUTO_CONNECT = "autoConnect"; //$NON-NLS-1$
 
 	/**
 	 * Property: Exclude from scanner process. If set to <code>true</code>, the node will not be scanned

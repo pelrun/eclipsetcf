@@ -13,7 +13,7 @@ import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
 
 /**
- * Transport type wizard panel control.
+ * Transport simulator wizard panel control.
  */
 public class TransportTypePanelControl extends BaseWizardConfigurationPanelControl {
 

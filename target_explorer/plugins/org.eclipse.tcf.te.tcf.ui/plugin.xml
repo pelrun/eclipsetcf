@@ -34,7 +34,7 @@
             class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
             id="org.eclipse.tcf.te.tcf.ui.propertyTester"
             namespace="org.eclipse.tcf.te.tcf.ui"
-            properties="canDelete,canMakeAvailableOffline"
+            properties="canDelete"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
       <propertyTester
@@ -361,37 +361,6 @@
             </visibleWhen>
          </command>
       </menuContribution>
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.categories">
-         <command
-               commandId="org.eclipse.tcf.te.tcf.ui.command.offline"
-               helpContextId="org.eclipse.tcf.te.tcf.ui.command_Offline"
-               id="org.eclipse.tcf.te.tcf.ui.commands.offline"
-               mnemonic="%command.offline.mnemonic">
-            <visibleWhen checkEnabled="true">
-               <with variable="selection">
-                  <count value="+"/>
-                  <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="false"/>
-                        <or>
-                           <not>
-                              <test
-                                    forcePluginActivation="true"
-                                    property="org.eclipse.tcf.te.runtime.services.hasService"
-                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
-                           </not>
-                           <test
-                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
-                                 args="org.eclipse.tcf.te.tcf.ui.command.offline"
-                                 value="true"/>
-                        </or>
-                     </and>                        
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.refresh">
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
@@ -450,11 +419,30 @@
          </command> 
       </menuContribution>
 
+   <!-- Editor page toolbar contributions -->
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"/>
       </menuContribution>
 
-      <!-- Status line trim area -->
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage">
+         <separator visible="true" name="group.delete"/>
+         <command commandId="org.eclipse.ui.edit.delete"/>
+      </menuContribution>
+
+   <!-- Status line trim area -->
       <menuContribution locationURI="toolbar:org.eclipse.ui.trim.status">
          <toolbar id="org.eclipse.tcf.te.tcf.ui.trim.status.activeconnection">
             <control
@@ -482,13 +470,6 @@
 
 <!-- Command contributions -->
    <extension point="org.eclipse.ui.commands">
-      <command
-            id="org.eclipse.tcf.te.tcf.ui.command.offline"
-            categoryId="org.eclipse.tcf.te.ui.commands.category"
-            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Offline"
-            name="%command.offline.label"
-            description="%command.offline.tooltip">
-      </command>
       <command
             id="org.eclipse.tcf.te.tcf.ui.command.debug"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
@@ -555,21 +536,6 @@
                         <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
                      </and>                        
                   </iterate>
-               </with>
-            </enabledWhen>
-      </handler>
-
-      <handler
-            class="org.eclipse.tcf.te.tcf.ui.handler.OfflineCommandHandler"
-            commandId="org.eclipse.tcf.te.tcf.ui.command.offline">
-            <activeWhen>
-               <with variable="activePartId">
-                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
-               </with>
-            </activeWhen>
-            <enabledWhen>
-               <with variable="selection">
-                  <test property="org.eclipse.tcf.te.tcf.ui.canMakeAvailableOffline" value="true"/>
                </with>
             </enabledWhen>
       </handler>

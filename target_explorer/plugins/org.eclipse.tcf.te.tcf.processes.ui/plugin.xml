@@ -85,6 +85,7 @@
             <triggerPoints>
                <or>
                   <and>
+                     <reference definitionId="te.expressions.IConnectable.connected"/>
                      <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
                      <and>
                         <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
@@ -149,9 +150,10 @@
       <editorPageBinding
             id="org.eclipse.tcf.te.tcf.processes.ui.binding.ProcessExplorerEditorPage"
             pageId="org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage"
-            insertBefore="org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage,org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage">
+            insertBefore="org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage,org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage,org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage">
          <enablement>
             <with variable="activeEditorInput">
+               <reference definitionId="te.expressions.IConnectable.connected"/>
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
                   <and>
                      <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>

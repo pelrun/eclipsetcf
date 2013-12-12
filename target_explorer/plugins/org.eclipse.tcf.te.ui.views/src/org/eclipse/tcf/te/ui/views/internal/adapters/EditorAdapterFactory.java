@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.views.internal.adapters;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.ui.views.editor.Editor;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
@@ -41,6 +42,9 @@ public class EditorAdapterFactory implements IAdapterFactory {
 			if(IModelNode.class.equals(adapterType)) {
 				return editorInput.getAdapter(IModelNode.class);
 			}
+			if(IConnectable.class.equals(adapterType)) {
+				return editorInput.getAdapter(IConnectable.class);
+			}
 		}
 		return null;
 	}
@@ -51,7 +55,7 @@ public class EditorAdapterFactory implements IAdapterFactory {
 	 */
 	@Override
 	public Class[] getAdapterList() {
-		return new Class[]{TreeViewer.class, IModelNode.class};
+		return new Class[]{TreeViewer.class, IModelNode.class, IConnectable.class};
 	}
 
 }

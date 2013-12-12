@@ -171,10 +171,10 @@ public class LocalTypedElement extends MergeTypedElement implements
 	}
 
 	/**
-	 * Set the dirty state.
+	 * Set the dirty action.
 	 *
 	 * @param dirty
-	 *            The dirty state.
+	 *            The dirty action.
 	 */
 	public void setDirty(boolean dirty) {
 		this.dirty = dirty;

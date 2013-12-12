@@ -18,7 +18,7 @@ import org.eclipse.jface.viewers.TreePath;
 public interface IDeleteHandlerDelegate {
 
 	/**
-	 * Returns if or if not the given tree path can be deleted in its current state.
+	 * Returns if or if not the given tree path can be deleted in its current action.
 	 * <p>
 	 * The method is expected to return <code>true</code> if the passed in tree path
 	 * cannot be analyzed by the handler.

@@ -27,16 +27,16 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * The job to restore the expanding state of a tree viewer using the input memento.
+ * The job to restore the expanding action of a tree viewer using the input memento.
  */
 public class RestoreJob extends Job {
-	// The memento where the expanding state of the tree is stored.
+	// The memento where the expanding action of the tree is stored.
 	private IMemento memento;
 
 	/**
-	 * Create an job to restore the expanding state of the specified tree viewer.
+	 * Create an job to restore the expanding action of the specified tree viewer.
 	 *
-	 * @param memento The memento to restore the expanding state.
+	 * @param memento The memento to restore the expanding action.
 	 */
 	public RestoreJob(IMemento memento) {
 		super(Messages.RestoreJob_JobName);

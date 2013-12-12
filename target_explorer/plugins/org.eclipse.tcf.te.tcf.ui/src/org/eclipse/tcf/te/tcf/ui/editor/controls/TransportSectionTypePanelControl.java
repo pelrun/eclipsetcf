@@ -18,7 +18,7 @@ import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 
 /**
- * Transport section transport type panel control implementation.
+ * Transport section transport simulator panel control implementation.
  */
 public class TransportSectionTypePanelControl extends TransportTypePanelControl implements ModifyListener {
 	// Reference to the parent transport section
@@ -46,10 +46,10 @@ public class TransportSectionTypePanelControl extends TransportTypePanelControl 
 
 		TransportSectionTypeControl transportTypeControl = (TransportSectionTypeControl)transportSection.getAdapter(TransportSectionTypeControl.class);
 		if (transportTypeControl != null) {
-			// Get the currently selected transport type
+			// Get the currently selected transport simulator
 			String transportType = transportTypeControl.getSelectedTransportType();
 			if (transportType != null) {
-				// get the panel for the transport type and validate the panel
+				// get the panel for the transport simulator and validate the panel
 				IWizardConfigurationPanel panel = getConfigurationPanel(transportType);
 
 				if (panel != null) {

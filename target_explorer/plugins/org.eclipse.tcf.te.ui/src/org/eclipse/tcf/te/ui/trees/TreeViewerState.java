@@ -17,13 +17,13 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.ui.IMemento;
 
 /**
- * The class to describe the tree viewer's state including the visiblity of the 
+ * The class to describe the tree viewer's action including the visiblity of the 
  * tree columns and the enablement of the viewer filters.
  */
 class TreeViewerState {
-	// The state of the column's visibility.
+	// The action of the column's visibility.
 	private List<ColumnState> columns;
-	// The state of the filter's enablement.
+	// The action of the filter's enablement.
 	private List<FilterState> filters;
 
 	/**
@@ -35,9 +35,9 @@ class TreeViewerState {
 	}
 
 	/**
-	 * Restore the viewer's state using the specified memento.
+	 * Restore the viewer's action using the specified memento.
 	 * 
-	 * @param aMemento The memento to restore the viewer's state.
+	 * @param aMemento The memento to restore the viewer's action.
 	 */
 	public void restoreState(IMemento aMemento) {
 		IMemento[] mColumns = aMemento.getChildren("column"); //$NON-NLS-1$
@@ -75,9 +75,9 @@ class TreeViewerState {
 	}
 
 	/**
-	 * Save the viewer's state to the specified memento.
+	 * Save the viewer's action to the specified memento.
 	 * 
-	 * @param aMemento The memento to save the viewer's state to.
+	 * @param aMemento The memento to save the viewer's action to.
 	 */
 	public void saveState(IMemento aMemento) {
 		if (columns != null) {
@@ -104,7 +104,7 @@ class TreeViewerState {
 	}
 
 	/**
-	 * Add a column state based on the specified column descriptor.
+	 * Add a column action based on the specified column descriptor.
 	 * 
 	 * @param column The column's descriptor.
 	 */
@@ -118,9 +118,9 @@ class TreeViewerState {
     }
 
 	/**
-	 * Add a filter state based on the specified filter descriptor.
+	 * Add a filter action based on the specified filter descriptor.
 	 * 
-	 * @param filter The filter's state.
+	 * @param filter The filter's action.
 	 */
 	public void addFilter(FilterDescriptor filter) {
 		FilterState state = new FilterState();
@@ -130,9 +130,9 @@ class TreeViewerState {
     }
 
 	/**
-	 * Get the column's state in a list.
+	 * Get the column's action in a list.
 	 * 
-	 * @return The column's state list.
+	 * @return The column's action list.
 	 */
 	public List<ColumnState> getColumnStates() {
 		return columns;

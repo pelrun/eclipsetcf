@@ -14,8 +14,8 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 
@@ -29,8 +29,8 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	// the image size
 	private Point imageSize;
 
-	// Flags representing the object states to decorate
-	private int state;
+	// Flags representing the connect states to decorate
+	private int connectState;
 
 	/**
 	 * Constructor.
@@ -66,7 +66,7 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 		Assert.isNotNull(node);
 		Assert.isTrue(Protocol.isDispatchThread());
 
-		state = node.getIntProperty(IPeerModelProperties.PROP_STATE);
+		connectState = node instanceof IConnectable ? ((IConnectable)node).getConnectState() : IConnectable.STATE_UNKNOWN;
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	protected void defineKey(int hashCode) {
 		String key = "PMID:" +  //$NON-NLS-1$
 			hashCode + ":" + //$NON-NLS-1$
-			state;
+			connectState;
 
 		setDecriptorKey(key);
 	}
@@ -89,11 +89,15 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	protected void drawCompositeImage(int width, int height) {
 		drawCentered(baseImage, width, height);
 
-		if (state == IPeerModelProperties.STATE_NOT_REACHABLE) { /* not connected, not reachable */
-			drawBottomRight(ImageConsts.RED_OVR);
+		if (connectState < 0) {
+			drawTopRight(ImageConsts.BUSY_OVR);
 		}
-		else if (state == IPeerModelProperties.STATE_ERROR) { /* not connected, error */
-			drawBottomRight(ImageConsts.RED_X_OVR);
+
+		if (connectState == IConnectable.STATE_CONNECTED) {
+			drawBottomRight(ImageConsts.GREEN_OVR);
+		}
+		else if (connectState == IConnectable.STATE_CONNECTING || connectState == IConnectable.STATE_DISCONNECTING) {
+			drawBottomRight(ImageConsts.GREY_OVR);
 		}
 	}
 

@@ -32,7 +32,7 @@ import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
- * Pipe transport type panel implementation.
+ * Pipe transport simulator panel implementation.
  */
 public class PipeTransportPanel extends AbstractWizardConfigurationPanel implements IDataExchangeNode3 {
 

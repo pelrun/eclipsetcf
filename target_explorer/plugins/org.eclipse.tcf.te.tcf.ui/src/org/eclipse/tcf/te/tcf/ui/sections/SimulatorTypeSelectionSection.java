@@ -11,34 +11,41 @@ package org.eclipse.tcf.te.tcf.ui.sections;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
-import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.tcf.ui.controls.SimulatorTypeSelectionControl;
+import org.eclipse.tcf.te.tcf.ui.dialogs.AgentSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
+import org.eclipse.tcf.te.ui.views.navigator.ViewerSorter;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
@@ -48,8 +55,8 @@ import org.eclipse.ui.forms.widgets.Section;
  */
 public class SimulatorTypeSelectionSection extends AbstractSection implements IDataExchangeNode {
 	// The section sub controls
-	/* default */ Button real;
-	/* default */ SimulatorTypeSelectionControl type;
+	/* default */ BaseEditBrowseTextControl target;
+	/* default */ SimulatorTypeSelectionControl simulator;
 
 	// Reference to the original data object
 	/* default */ IPeerModel od;
@@ -60,6 +67,8 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 	protected static final int SELECTION_REAL = 0;
 	protected static final int SELECTION_SIM = 1;
+
+	protected IPeerModel selectedTarget = null;
 
 	/**
 	 * Constructor.
@@ -97,7 +106,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	 */
 	@Override
 	public void dispose() {
-		if (type != null) { type.dispose(); type = null; }
+		if (simulator != null) { simulator.dispose(); simulator = null; }
 		super.dispose();
 	}
 
@@ -129,30 +138,91 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		Assert.isNotNull(client);
 		section.setClient(client);
 
-		real = toolkit.createButton(client, Messages.TargetSelectorSection_button_enableReal, SWT.RADIO);
-		GridData gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
-		gd.horizontalSpan = 3;
-		real.setSelection(true);
-		real.setLayoutData(gd);
-		real.setBackground(client.getBackground());
-		real.addSelectionListener(new SelectionAdapter() {
+		target = new BaseEditBrowseTextControl(null) {
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.te.ui.controls.BaseDialogPageControl#getValidatingContainer()
+			 */
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (real.getSelection()) {
-					onSelectionChanged(SELECTION_REAL);
-				}
-				// validate the page
-				getValidatingContainer().validate();
-				dataChanged(null);
+			public IValidatingContainer getValidatingContainer() {
+			    return SimulatorTypeSelectionSection.this.getValidatingContainer();
 			}
-		});
-
-		type = new SimulatorTypeSelectionControl(this) {
 			@SuppressWarnings("synthetic-access")
 			@Override
 			protected void onLabelControlSelectedChanged() {
 				super.onLabelControlSelectedChanged();
-				if (type.isLabelControlSelected()) {
+				if (target.isLabelControlSelected()) {
+					onSelectionChanged(SELECTION_REAL);
+					if (!isUpdating()) {
+						onTargetChanged(false, true, selectedTarget, selectedTarget);
+					}
+				}
+			}
+			@Override
+			protected void onButtonControlSelected() {
+				AgentSelectionDialog dialog = new AgentSelectionDialog(null) {
+					@Override
+					protected boolean supportsMultiSelection() {
+						return false;
+					}
+					@Override
+					protected void configureTableViewer(TableViewer viewer) {
+						viewer.addFilter(new ViewerFilter() {
+							@Override
+							public boolean select(Viewer viewer, Object parentElement, final Object element) {
+								if (element instanceof IPeerModel && !(element instanceof IConnectable)) {
+									final IPeer peer = ((IPeerModel)element).getPeer();
+									final AtomicBoolean isValueAdd = new AtomicBoolean();
+									final AtomicBoolean isCLI = new AtomicBoolean();
+									Protocol.invokeAndWait(new Runnable() {
+										@Override
+										public void run() {
+											String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
+											isValueAdd.set(value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim()))); //$NON-NLS-1$
+											isCLI.set(peer.getName() != null
+															&& (peer.getName().startsWith("Eclipse CLI") //$NON-NLS-1$
+																	|| peer.getName().startsWith("Eclipse Command Server") //$NON-NLS-1$
+																	|| peer.getName().endsWith("CLI Server") //$NON-NLS-1$
+																	|| peer.getName().endsWith("CLI Client"))); //$NON-NLS-1$
+										}
+									});
+									return !isValueAdd.get() && !isCLI.get();
+								}
+								return false;
+							}
+						});
+						viewer.setSorter(new ViewerSorter());
+					}
+				};
+
+				// Open the dialog
+				if (dialog.open() == Window.OK) {
+					// Get the selected proxy from the dialog
+					ISelection selection = dialog.getSelection();
+					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeerModel) {
+						IPeerModel oldPeerModel = selectedTarget;
+						selectedTarget = (IPeerModel)((IStructuredSelection)selection).getFirstElement();
+						setEditFieldControlText(selectedTarget.getName());
+						onTargetChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeerModel, selectedTarget);
+					}
+				}
+
+			}
+		};
+		target.setLabelIsButton(true);
+		target.setLabelButtonStyle(SWT.RADIO);
+		target.setParentControlIsInnerPanel(true);
+		target.setEditFieldLabel(Messages.TargetSelectorSection_button_enableReal);
+		target.setHasHistory(false);
+		target.setHideEditFieldControl(true);
+		target.setReadOnly(true);
+		target.setupPanel(client);
+
+		simulator = new SimulatorTypeSelectionControl(this) {
+			@SuppressWarnings("synthetic-access")
+			@Override
+			protected void onLabelControlSelectedChanged() {
+				super.onLabelControlSelectedChanged();
+				if (simulator.isLabelControlSelected()) {
 					onSelectionChanged(SELECTION_SIM);
 					if (!isUpdating()) {
 						onSimulatorChanged(false, true, getSelectedSimulatorId(), getSelectedSimulatorId(), getSimulatorConfig(), getSimulatorConfig());
@@ -175,11 +245,11 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				}
 			}
 		};
-		type.setLabelIsButton(true);
-		type.setLabelButtonStyle(SWT.RADIO);
-		type.setEditFieldLabel(Messages.TargetSelectorSection_button_enableSimulator);
-		type.setParentControlIsInnerPanel(true);
-		type.setupPanel(client);
+		simulator.setLabelIsButton(true);
+		simulator.setLabelButtonStyle(SWT.RADIO);
+		simulator.setEditFieldLabel(Messages.TargetSelectorSection_button_enableSimulator);
+		simulator.setParentControlIsInnerPanel(true);
+		simulator.setupPanel(client);
 
 		// Adjust the control enablement
 		updateEnablement();
@@ -190,22 +260,33 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 	/**
 	 * Called on radio button selection changed.
-	 * @param selectionType The new selected type.
+	 * @param selectionType The new selected simulator.
 	 */
 	protected void onSelectionChanged(int selectionType) {
 	}
 
 	/**
-	 * Called on simulator enabled, simulator type or simulator configuration changed.
+	 * Called on simulator enabled, simulator simulator or simulator configuration changed.
 	 *
-	 * @param oldEnabled The old simulator enabled state.
-	 * @param newEnabled The simulator enabled state.
-	 * @param oldType The old selected simulator type.
-	 * @param newType The selected simulator type.
+	 * @param oldEnabled The old simulator enabled action.
+	 * @param newEnabled The new simulator enabled action.
+	 * @param oldType The old selected simulator simulator.
+	 * @param newType The selected simulator simulator.
 	 * @param oldConfig The old simulator configuration.
 	 * @param newConfig The new simulator configuration.
 	 */
 	protected void onSimulatorChanged(boolean oldEnabled, boolean newEnabled, String oldType, String newType, String oldConfig, String newConfig) {
+	}
+
+	/**
+	 * Called on target enabled and selected peer model changed.
+	 *
+	 * @param oldEnabled The old target enabled action.
+	 * @param newEnabled The new target enabled action.
+	 * @param oldPeerModel The new selected peer model.
+	 * @param newPeerModel The old selected peer model.
+	 */
+	protected void onTargetChanged(boolean oldEnabled, boolean newEnabled, IPeerModel oldPeerModel, IPeerModel newPeerModel) {
 	}
 
 	/**
@@ -217,7 +298,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		// If the parent page has become the active and it does not contain
 		// unsaved data, than fill in the data from the selected node
 		if (active) {
-			// Leave everything unchanged if the page is in dirty state
+			// Leave everything unchanged if the page is in dirty action
 			if (getManagedForm().getContainer() instanceof AbstractEditorPage
 							&& !((AbstractEditorPage)getManagedForm().getContainer()).isDirty()) {
 				Object node = ((AbstractEditorPage)getManagedForm().getContainer()).getEditorInputNode();
@@ -226,7 +307,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				}
 			}
 		} else {
-			// Evaluate the dirty state even if going inactive
+			// Evaluate the dirty action even if going inactive
 			dataChanged(null);
 		}
 	}
@@ -239,21 +320,23 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		// Mark the control update as in-progress now
 		setIsUpdating(true);
 
-		// Initialize the simulator type selection control
-		if (type != null) {
-			type.initialize(od);
-			type.setSelectedSimulatorId(data.getStringProperty(IPeerModelProperties.PROP_SIM_TYPE));
-			type.setSimulatorConfig(data.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES));
-			type.setLabelControlSelection(data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED));
+		// Initialize the simulator simulator selection control
+		if (simulator != null) {
+			simulator.initialize(od);
+			simulator.setSelectedSimulatorId(data.getStringProperty(IPeerModelProperties.PROP_SIM_TYPE));
+			simulator.setSimulatorConfig(data.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES));
+			simulator.setLabelControlSelection(data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED));
 		}
 
-		SWTControlUtil.setSelection(real, !data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED));
+		if (target != null) {
+			target.setLabelControlSelection(!data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED));
+		}
 
 		onSelectionChanged(data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED) ? SELECTION_SIM : SELECTION_REAL);
 
 		// Mark the control update as completed now
 		setIsUpdating(false);
-		// Re-evaluate the dirty state
+		// Re-evaluate the dirty action
 		dataChanged(null);
 	}
 
@@ -325,7 +408,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			setupData(wc);
 		}
 		else {
-			// Re-evaluate the dirty state
+			// Re-evaluate the dirty action
 			dataChanged(null);
 		}
 	}
@@ -338,10 +421,15 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		Assert.isNotNull(data);
 
 		// Extract the widget data into the working copy
-		if (type != null) {
-			data.setProperty(IPeerModelProperties.PROP_SIM_ENABLED, type.isLabelControlSelected());
-			data.setProperty(IPeerModelProperties.PROP_SIM_TYPE, type.getSelectedSimulatorId());
-			data.setProperty(IPeerModelProperties.PROP_SIM_PROPERTIES, type.getSimulatorConfig());
+		if (target != null) {
+			data.setProperty(IPeerModelProperties.PROP_SIM_ENABLED, false);
+			data.setProperty(IPeerModelProperties.PROP_TARGET, target.getEditFieldControlText());
+		}
+
+		if (simulator != null) {
+			data.setProperty(IPeerModelProperties.PROP_SIM_ENABLED, simulator.isLabelControlSelected());
+			data.setProperty(IPeerModelProperties.PROP_SIM_TYPE, simulator.getSelectedSimulatorId());
+			data.setProperty(IPeerModelProperties.PROP_SIM_PROPERTIES, simulator.getSimulatorConfig());
 		}
 	}
 
@@ -425,10 +513,10 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 		boolean valid = super.isValid();
 
-		if (type != null && type.isLabelControlSelected()) {
-			valid &= type.isValid();
-			if (type.getMessageType() > getMessageType()) {
-				setMessage(type.getMessage(), type.getMessageType());
+		if (simulator != null && simulator.isLabelControlSelected()) {
+			valid &= simulator.isValid();
+			if (simulator.getMessageType() > getMessageType()) {
+				setMessage(simulator.getMessage(), simulator.getMessageType());
 			}
 		}
 
@@ -440,9 +528,9 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	 */
 	@Override
 	public void commit(boolean onSave) {
-		// Remember the current dirty state
+		// Remember the current dirty action
 		boolean needsSaving = isDirty();
-		// Call the super implementation (resets the dirty state)
+		// Call the super implementation (resets the dirty action)
 		super.commit(onSave);
 
 		// Nothing to do if not on save or saving is not needed
@@ -468,12 +556,12 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		boolean isDirty = false;
 
 		// Compare the data
-		if (type != null) {
+		if (simulator != null) {
 			boolean oldEnabled = odc.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED);
-			isDirty |= (oldEnabled != type.isLabelControlSelected());
+			isDirty |= (oldEnabled != simulator.isLabelControlSelected());
 
-			if (type.isLabelControlSelected()) {
-				String newType = type.getSelectedSimulatorId();
+			if (simulator.isLabelControlSelected()) {
+				String newType = simulator.getSelectedSimulatorId();
 				String oldType = odc.getStringProperty(IPeerModelProperties.PROP_SIM_TYPE);
 				if (newType == null || "".equals(newType)) { //$NON-NLS-1$
 					isDirty |= oldType != null && !"".equals(oldType); //$NON-NLS-1$
@@ -481,7 +569,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					isDirty |= !newType.equals(oldType);
 				}
 
-				String newConfig = type.getSimulatorConfig();
+				String newConfig = simulator.getSimulatorConfig();
 				String oldConfig = odc.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES);
 				if (newConfig == null || "".equals(newConfig)) { //$NON-NLS-1$
 					isDirty |= oldConfig != null && !"".equals(oldConfig); //$NON-NLS-1$
@@ -507,7 +595,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	@Override
 	public Object getAdapter(Class adapter) {
 		if (SimulatorTypeSelectionControl.class.equals(adapter)) {
-			return type;
+			return simulator;
 		}
 		return super.getAdapter(adapter);
 	}
@@ -516,13 +604,14 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	 * Updates the control enablement.
 	 */
 	protected void updateEnablement() {
-		SimulatorUtils.Result simulator = od != null ? SimulatorUtils.getSimulatorService(od) : null;
+		boolean enabled = od instanceof IConnectable && ((IConnectable)od).getConnectState() == IConnectable.STATE_DISCONNECTED;
 
-		boolean enabled = simulator == null || simulator.service.getState(od, simulator.settings) == ISimulatorService.State.Stopped;
-		SWTControlUtil.setEnabled(real, enabled);
-
-		if (type != null) {
-			SWTControlUtil.setEnabled(type.getEditFieldControl(), type.isLabelControlSelected() && enabled);
+		if (target != null) {
+			SWTControlUtil.setEnabled(target.getEditFieldControl(), target.isLabelControlSelected() && enabled);
+			SWTControlUtil.setEnabled(target.getButtonControl(), target.isLabelControlSelected() && enabled);
+		}
+		if (simulator != null) {
+			SWTControlUtil.setEnabled(simulator.getEditFieldControl(), simulator.isLabelControlSelected() && enabled);
 		}
 	}
 }

@@ -297,7 +297,7 @@ public class TreeViewerSearchDialog extends CustomTitleAreaDialog implements ISe
     }
 
 	/**
-	 * Update the button's state according to
+	 * Update the button's action according to
 	 */
 	protected void updateButtonState() {
 		Button button = getButton(SEARCH_ID);

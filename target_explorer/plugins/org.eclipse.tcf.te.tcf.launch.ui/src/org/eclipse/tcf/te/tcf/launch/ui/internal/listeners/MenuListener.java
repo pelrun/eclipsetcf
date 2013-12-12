@@ -120,7 +120,7 @@ public class MenuListener implements IMenuListener2 {
 					// Get the launch configuration of the launch
 					ILaunchConfiguration lc = launch != null ? launch.getLaunchConfiguration() : null;
 					if (lc != null) {
-						// Get the launch configuration type
+						// Get the launch configuration simulator
 						ILaunchConfigurationType type = lc.getType();
 
 						if (ILaunchTypes.ATTACH.equals(type.getIdentifier())) {

@@ -69,7 +69,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	private ColumnDescriptor[] columnDescriptors;
 	// The content contributions configured for this viewer.
 	private ContentDescriptor[] contentDescriptors;
-	// The state of the tree viewer used to restore and save the the tree viewer's state.
+	// The action of the tree viewer used to restore and save the the tree viewer's action.
 	private TreeViewerState viewerState;
 	// The action to configure the filters.
 	private ConfigFilterAction configFilterAction;
@@ -222,8 +222,8 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	}
 
 	/**
-	 * Handle the event when the new input is set. Get the viewer's state
-	 * and update the state of the viewer's columns and filters.
+	 * Handle the event when the new input is set. Get the viewer's action
+	 * and update the action of the viewer's columns and filters.
 	 *
 	 * @param oldInput the old input.
 	 * @param newInput The new input.
@@ -261,7 +261,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	}
 
 	/**
-	 * Update the viewer state using the states from the viewerState which
+	 * Update the viewer action using the states from the viewerState which
 	 * is retrieved or created based on the input.
 	 *
 	 * @param newInput The new input of the viewer.
@@ -286,7 +286,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
     }
 
 	/**
-	 * Save the viewer's state.
+	 * Save the viewer's action.
 	 */
 	private void saveViewerState() {
 		if (isStatePersistent() && viewerState != null) {
@@ -296,7 +296,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	}
 
 	/**
-	 * Update the filter's state using the latest filter descriptors.
+	 * Update the filter's action using the latest filter descriptors.
 	 */
 	void updateFilterState() {
 		if (isStatePersistent() && viewerState != null) {
@@ -306,11 +306,11 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 
 	/**
 	 * Show or hide the specified column. Return true if the visible
-	 * state has changed.
+	 * action has changed.
 	 *
 	 * @param column The column to be changed.
 	 * @param visible The new visible value.
-	 * @return true if the state has changed.
+	 * @return true if the action has changed.
 	 */
 	boolean setColumnVisible(ColumnDescriptor column, boolean visible) {
 	    if (column.isVisible() && !visible) {
@@ -330,10 +330,10 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
     }
 
 	/**
-	 * Return if this tree viewer's state is persistent. If it is persistent,
-	 * then its viewer state will be persisted during different session.
+	 * Return if this tree viewer's action is persistent. If it is persistent,
+	 * then its viewer action will be persisted during different session.
 	 *
-	 * @return true if the viewer's state is persistent.
+	 * @return true if the viewer's action is persistent.
 	 */
 	protected boolean isStatePersistent() {
 	    return true;

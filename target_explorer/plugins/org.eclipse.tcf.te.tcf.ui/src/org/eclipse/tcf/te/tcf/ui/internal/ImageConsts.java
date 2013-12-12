@@ -81,6 +81,11 @@ public interface ImageConsts {
     public static final String NEW_PEER = "NewPeerObject"; //$NON-NLS-1$
 
     /**
+     * The key to access the peer object busy overlay image.
+     */
+    public static final String BUSY_OVR = "BusyOverlay"; //$NON-NLS-1$
+
+    /**
      * The key to access the peer object gold overlay image.
      */
     public static final String GOLD_OVR = "GoldOverlay"; //$NON-NLS-1$

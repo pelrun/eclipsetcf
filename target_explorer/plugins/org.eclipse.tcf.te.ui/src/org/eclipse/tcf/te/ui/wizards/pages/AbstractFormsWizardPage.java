@@ -160,7 +160,7 @@ public abstract class AbstractFormsWizardPage extends AbstractValidatingWizardPa
 		boolean changed = setValidationInProgress(true);
 		// Create the form content
 		createFormContent(mform);
-		// Reset the validation in progress state
+		// Reset the validation in progress action
 		if (changed) setValidationInProgress(false);
 
 		// Adjust the font

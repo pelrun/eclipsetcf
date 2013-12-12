@@ -10,8 +10,8 @@
 package org.eclipse.tcf.te.ui.trees;
 
 /**
- * The persistable column state used by TreeViewerState to save and restore the tree viewer's column
- * state.
+ * The persistable column action used by TreeViewerState to save and restore the tree viewer's column
+ * action.
  */
 class ColumnState {
 	// The column's id.
@@ -51,9 +51,9 @@ class ColumnState {
 	}
 
 	/**
-	 * Set the column's visible state.
+	 * Set the column's visible action.
 	 * 
-	 * @param visible The new visible state.
+	 * @param visible The new visible action.
 	 */
 	public void setVisible(boolean visible) {
 		this.visible = visible;

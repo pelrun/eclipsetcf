@@ -78,13 +78,13 @@ public class TcfCoreTests extends TcfTestCase {
 
 		IChannel channel = (IChannel)callback.get().getResult();
 		assertNotNull("Unexpected return value 'null'.", channel); //$NON-NLS-1$
-		assertTrue("Channel is not in expected open state.", channel.getState() == IChannel.STATE_OPEN); //$NON-NLS-1$
+		assertTrue("Channel is not in expected open action.", channel.getState() == IChannel.STATE_OPEN); //$NON-NLS-1$
 
 		Tcf.getChannelManager().closeChannel(channel);
 		int counter = 10;
 		while (counter > 0 && channel.getState() != IChannel.STATE_CLOSED) {
 			waitAndDispatch(200);
 		}
-		assertTrue("Channel is not in expected closed state.", channel.getState() == IChannel.STATE_CLOSED); //$NON-NLS-1$
+		assertTrue("Channel is not in expected closed action.", channel.getState() == IChannel.STATE_CLOSED); //$NON-NLS-1$
 	}
 }

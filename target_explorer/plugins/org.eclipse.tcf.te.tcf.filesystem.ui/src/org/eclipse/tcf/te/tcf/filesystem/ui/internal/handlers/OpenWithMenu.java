@@ -125,7 +125,7 @@ public class OpenWithMenu extends ContributionItem {
 		ImageDescriptor imageDesc = null;
 		if (editorDesc == null) {
 			imageDesc = registry.getImageDescriptor(node.name);
-			// TODO: is this case valid, and if so, what are the implications for content-type
+			// TODO: is this case valid, and if so, what are the implications for content-simulator
 			// editor bindings?
 		}
 		else {

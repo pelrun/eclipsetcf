@@ -43,7 +43,7 @@ import org.eclipse.ui.part.EditorPart;
 /**
  * Stepper command handler implementation.
  */
-public class StepperCommandHandler extends AbstractHandler implements IExecutableExtension {
+public abstract class AbstractStepperCommandHandler extends AbstractHandler implements IExecutableExtension {
 
 	protected String operation = null;
 	protected String adaptTo = null;
@@ -60,33 +60,31 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Assert.isNotNull(operation);
 
-		IStructuredSelection selection = getSelection(event);
-		Assert.isNotNull(selection);
+		IPropertiesContainer data = getData(event);
+		if (data == null) {
+			return null;
+		}
 
-		Iterator<?> iterator = selection.iterator();
-		while (iterator.hasNext()) {
-			Object element = iterator.next();
-			Object adapted = element;
-			if (adaptTo != null) {
-				Object adapter = Platform.getAdapterManager().getAdapter(element, adaptTo);
-				if (adapter != null) adapted = adapter;
-			}
-			IStepperOperationService stepperOperationService = getStepperService(adapted, operation);
-			if (stepperOperationService != null) {
-				IStepContext stepContext = stepperOperationService.getStepContext(adapted, operation);
-				String stepGroupId = stepperOperationService.getStepGroupId(adapted, operation);
-				String name = stepperOperationService.getStepGroupName(adapted, operation);
-				boolean isCancelable = stepperOperationService.isCancelable(adapted, operation);
-				IPropertiesContainer data = stepperOperationService.getStepData(adapted, operation);
+		Object context = getContext(event, data);
 
-				if (stepGroupId != null && stepContext != null) {
-					scheduleStepperJob(stepContext, data, stepGroupId, name, isCancelable);
-				}
+		IStepperOperationService stepperOperationService = getStepperService(context, operation);
+		if (stepperOperationService != null) {
+			IStepContext stepContext = stepperOperationService.getStepContext(context, operation);
+			String stepGroupId = stepperOperationService.getStepGroupId(context, operation);
+			String name = stepperOperationService.getStepGroupName(context, operation);
+			boolean isCancelable = stepperOperationService.isCancelable(context, operation);
+
+			if (stepGroupId != null && stepContext != null) {
+				scheduleStepperJob(stepContext, data, stepGroupId, name, isCancelable);
 			}
 		}
 
 		return null;
 	}
+
+	abstract protected IPropertiesContainer getData(ExecutionEvent event);
+
+	abstract protected Object getContext(ExecutionEvent event, IPropertiesContainer data);
 
 	/**
 	 * Get the stepper service for the given context and operation.
@@ -153,7 +151,8 @@ public class StepperCommandHandler extends AbstractHandler implements IExecutabl
 											data,
 											stepGroupId,
 											operation,
-											isCancelable);
+											isCancelable,
+											true);
 			job.schedule();
 		} catch (IllegalStateException e) {
 			if (Platform.inDebugMode()) {

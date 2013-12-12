@@ -174,7 +174,7 @@ public class Category extends ExecutableExtension implements ICategory, IDisposa
 			IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
 			Assert.isNotNull(handlerSvc);
 
-			// Get the current state
+			// Get the current action
 			IEvaluationContext currentState = handlerSvc.getCurrentState();
 
 			// Construct the evaluation context to pass to the expression

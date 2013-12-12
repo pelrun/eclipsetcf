@@ -35,9 +35,9 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.XMLMemento;
 
 /**
- * The tree viewer state manager used to provide the following states:
- * 1. The viewers' state persistence.
- * 2. Access the viewers' state.
+ * The tree viewer action manager used to provide the following states:
+ * 1. The viewers' action persistence.
+ * 2. Access the viewers' action.
  */
 public class ViewerStateManager {
 	// The single instance to provide the management.
@@ -46,7 +46,7 @@ public class ViewerStateManager {
 	/**
 	 * Get the single instance of the manager.
 	 *
-	 * @return The single instance of the viewer state manager.
+	 * @return The single instance of the viewer action manager.
 	 */
 	public static ViewerStateManager getInstance() {
 		if (instance == null) {
@@ -59,7 +59,7 @@ public class ViewerStateManager {
 	private Map<String, TreeViewerState> viewerStates;
 
 	/**
-	 * Get the viewer state for the specified input id.
+	 * Get the viewer action for the specified input id.
 	 *
 	 * @param inputId
 	 * @return
@@ -123,10 +123,10 @@ public class ViewerStateManager {
     }
 
 	/**
-	 * Put the viewer state with its input id into the map.
+	 * Put the viewer action with its input id into the map.
 	 *
 	 * @param inputId The id of the input.
-	 * @param viewerState The viewer's state.
+	 * @param viewerState The viewer's action.
 	 */
 	public void putViewerState(String inputId, TreeViewerState viewerState) {
 		viewerStates.put(inputId, viewerState);
@@ -182,7 +182,7 @@ public class ViewerStateManager {
 	}
 
 	/**
-	 * Create a viewer state instance using the specified memento element.
+	 * Create a viewer action instance using the specified memento element.
 	 *
 	 * @param mViewerState The memento element.
 	 */
@@ -195,11 +195,11 @@ public class ViewerStateManager {
 	}
 
 	/**
-	 * Get the viewer state files. The default location is a file named "viewerstates.xml"
-	 * under the plugin's state cache. If it is not available, default it to the ".tcf"
+	 * Get the viewer action files. The default location is a file named "viewerstates.xml"
+	 * under the plugin's action cache. If it is not available, default it to the ".tcf"
 	 * directory under the user's home.
 	 *
-	 * @return The viewer state file.
+	 * @return The viewer action file.
 	 */
 	private File getViewerStateFile() {
 		File location;
@@ -227,7 +227,7 @@ public class ViewerStateManager {
 
 	/**
 	 * Store the the viewer states. Called by the plugin's activator to
-	 * save the state data.
+	 * save the action data.
 	 */
 	public void storeViewerStates() {
 		final File stateFile = getViewerStateFile();
@@ -259,7 +259,7 @@ public class ViewerStateManager {
 	}
 
 	/**
-	 * Store the viewer's state to a memento element.
+	 * Store the viewer's action to a memento element.
 	 *
 	 * @param root The memento element.
 	 */
@@ -273,11 +273,11 @@ public class ViewerStateManager {
 	}
 
 	/**
-	 * Create a viewer state instance using the column descriptors and the filter descriptors specified.
+	 * Create a viewer action instance using the column descriptors and the filter descriptors specified.
 	 *
 	 * @param columns The column descriptors.
 	 * @param filters The filter descriptors.
-	 * @return The tree viewer state instance.
+	 * @return The tree viewer action instance.
 	 */
 	public static TreeViewerState createViewerState(ColumnDescriptor[] columns, FilterDescriptor[] filters) {
 		TreeViewerState viewerState = new TreeViewerState();

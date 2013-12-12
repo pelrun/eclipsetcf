@@ -10,8 +10,8 @@
 package org.eclipse.tcf.te.ui.trees;
 
 /**
- * The persistable filter state used by TreeViewerState to save and restore the tree viewer's filter
- * state.
+ * The persistable filter action used by TreeViewerState to save and restore the tree viewer's filter
+ * action.
  */
 class FilterState {
 	// The filter's id.
@@ -47,7 +47,7 @@ class FilterState {
 	}
 
 	/**
-	 * Set the filer's enabled state.
+	 * Set the filer's enabled action.
 	 * 
 	 * @param enabled true if the filter is enabled.
 	 */

@@ -44,9 +44,9 @@ public abstract class AbstractValidatingWizardPage extends AbstractWizardPage im
 	}
 
 	/**
-	 * Set the validation in progress state.
+	 * Set the validation in progress action.
 	 *
-	 * @param state <code>True</code> to mark validation in progress, <code>false</code> otherwise.
+	 * @param action <code>True</code> to mark validation in progress, <code>false</code> otherwise.
 	 */
 	public final boolean setValidationInProgress(boolean state) {
 		boolean changed = false;
@@ -73,7 +73,7 @@ public abstract class AbstractValidatingWizardPage extends AbstractWizardPage im
 	}
 
 	/**
-	 * Returns if the current validation in progress state.
+	 * Returns if the current validation in progress action.
 	 *
 	 * @return <code>True</code> to mark validation in progress, <code>false</code> otherwise.
 	 */

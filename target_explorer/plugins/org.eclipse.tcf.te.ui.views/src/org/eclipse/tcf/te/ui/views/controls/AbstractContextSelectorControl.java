@@ -111,7 +111,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 
 	// Currently active set of viewer filters.
 	private ViewerFilter[] filters;
-	// Currently active checkbox tree viewer check state listener
+	// Currently active checkbox tree viewer check action listener
 	private ICheckStateListener listener;
 
 	/**
@@ -155,7 +155,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 		@Override
 		public boolean isExpandable(Object element) {
 			boolean expandable = super.isExpandable(element);
-			// adjust the expandable state if the element does not have
+			// adjust the expandable action if the element does not have
 			// children after the filtering.
 			if (expandable) {
 				expandable = getFilteredChildren(element).length > 0;
@@ -181,7 +181,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 		protected void doCheckStateChanged(Object element) {
 			// Our ghost model elements requires some special handling, as
 			// these elements should be never checked fully. Try to determine
-			// if we have to double check on the parents state.
+			// if we have to double check on the parents action.
 			boolean skipDoubleCheckParentState = false;
 
 			// If the element isn't one of our model elements, pass on to
@@ -222,8 +222,8 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 							treeItem.setExpanded(true);
 						}
 
-						// Decide if we shall gray the checked state.
-						// --> The checked state is grayed if the item is a ghost.
+						// Decide if we shall gray the checked action.
+						// --> The checked action is grayed if the item is a ghost.
 						boolean isGhost = data instanceof IModelNode && isGhost((IModelNode) data);
 						if (!treeItem.getGrayed() && isGhost) {
 							treeItem.setGrayed(true);
@@ -265,7 +265,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 	}
 
 	/**
-	 * Default implementation of the context selector controls check state listener.
+	 * Default implementation of the context selector controls check action listener.
 	 */
 	protected class ContextSelectedCheckStateListener implements ICheckStateListener {
 		/* (non-Javadoc)
@@ -445,7 +445,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 
 
 	/**
-	 * Called from the default check state listener implementation if the checked state of an element has changed.
+	 * Called from the default check action listener implementation if the checked action of an element has changed.
 	 *
 	 * @param element The element checked or unchecked. Must not be <code>null</code>.
 	 * @param checked <code>True</code> if the model node has been checked, <code>false</code> if
@@ -456,7 +456,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 		// we have to uncheck any other element than the given checked one.
 		if (checked && getPropertiesContainer().isProperty(PROPERTY_MULTI_CONTEXT_SELECTOR, false)) {
 			if (getViewer() instanceof ContextSelectorTreeViewer) {
-				// Node: Within here, only methods which do not fire the check state listeners
+				// Node: Within here, only methods which do not fire the check action listeners
 				//       again must be used!
 				ContextSelectorTreeViewer viewer = (ContextSelectorTreeViewer)getViewer();
 
@@ -486,7 +486,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 		if (getViewer() instanceof ContainerCheckedTreeViewer && (getTreeViewerStyle() & SWT.CHECK) != 0) {
 			ContainerCheckedTreeViewer viewer = (ContainerCheckedTreeViewer) getViewer();
 			// Set the checked elements. This will trigger the validation of the
-			// checked state of all the parent and children elements.
+			// checked action of all the parent and children elements.
 			viewer.setCheckedElements(contexts);
 			// Make sure that at least the first checked element is visible to the user
 			if (contexts.length > 0) {
@@ -522,7 +522,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 		configureControlListener();
 
 		// Trigger a selection changed event to give listeners
-		// a chance to initialize their enabled state correctly
+		// a chance to initialize their enabled action correctly
 		viewer.setSelection(viewer.getSelection());
 	}
 
@@ -690,11 +690,11 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 	}
 
 	/**
-	 * Creates a new checkbox tree viewer check state listener. This method will be called from
+	 * Creates a new checkbox tree viewer check action listener. This method will be called from
 	 * {@link #getViewerCheckStateListener()} in case the listener did not got created before.
 	 *
 	 * @param viewer The checkbox tree viewer. Must not be <code>null</code>.
-	 * @return The checkbox tree viewer check state listener or <code>null</code> if none.
+	 * @return The checkbox tree viewer check action listener or <code>null</code> if none.
 	 */
 	protected ICheckStateListener doCreateViewerCheckStateListener(CheckboxTreeViewer viewer) {
 		Assert.isNotNull(viewer);
@@ -702,11 +702,11 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 	}
 
 	/**
-	 * Returns the associated checkbox tree viewer check state listener. If the listener had not yet
+	 * Returns the associated checkbox tree viewer check action listener. If the listener had not yet
 	 * been created, the method calls {@link #doCreateLabelProvider()}.
 	 *
 	 * @param viewer The checkbox tree viewer. Must not be <code>null</code>.
-	 * @return The associated checkbox tree viewer check state listener or <code>null</code> if
+	 * @return The associated checkbox tree viewer check action listener or <code>null</code> if
 	 *         none.
 	 */
 	protected ICheckStateListener getViewerCheckStateListener(CheckboxTreeViewer viewer) {

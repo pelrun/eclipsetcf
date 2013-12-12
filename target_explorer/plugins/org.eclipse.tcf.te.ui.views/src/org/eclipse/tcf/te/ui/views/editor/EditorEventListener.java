@@ -35,7 +35,7 @@ import org.eclipse.ui.services.IEvaluationService;
 public final class EditorEventListener extends AbstractEventListener implements IDisposable, IPropertyListener {
 	// Reference to the parent editor
 	private final Editor editor;
-	// Flag to remember the disposed state
+	// Flag to remember the disposed action
 	private boolean disposed = false;
 
 	/**

@@ -20,7 +20,7 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * The default implementation of ImageProvider, defining the images
- * based on predefined images based on the node type. 
+ * based on predefined images based on the node simulator. 
  */
 public class DefaultImageProvider implements ImageProvider {
 	// The editor registry used to search a file's image.
@@ -52,7 +52,7 @@ public class DefaultImageProvider implements ImageProvider {
 	 * editor registry.
 	 * 
 	 * @param node The file tree node.
-	 * @return The editor image for this type.
+	 * @return The editor image for this simulator.
 	 */
 	protected Image getPredefinedImage(FSTreeNode node) {
 	    Image image;

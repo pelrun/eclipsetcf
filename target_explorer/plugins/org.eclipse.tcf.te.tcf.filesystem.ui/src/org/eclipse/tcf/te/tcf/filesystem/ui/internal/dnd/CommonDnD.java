@@ -289,7 +289,7 @@ public class CommonDnD implements IConfirmCallback {
 	 * 
 	 * @param target The target object.
 	 * @param operation The DnD operation.
-	 * @param transferType The transfered data type.
+	 * @param transferType The transfered data simulator.
 	 * @return true if it is valid for dropping.
 	 */
 	public boolean validateFilesDrop(Object target, int operation, TransferData transferType) {
@@ -312,7 +312,7 @@ public class CommonDnD implements IConfirmCallback {
 	 * 
 	 * @param target The target object.
 	 * @param operation The DnD operation.
-	 * @param transferType The transfered data type.
+	 * @param transferType The transfered data simulator.
 	 * @return true if it is valid for dropping.
 	 */
 	public boolean validateLocalSelectionDrop(Object target, int operation, TransferData transferType) {

@@ -23,7 +23,6 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
@@ -181,7 +180,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	public Image decorateImage(Image image, Object element) {
 		Image decoratedImage = image;
 
-		if (image != null && element instanceof IPeerModel && !((IPeerModel)element).isStatic()) {
+		if (image != null && element instanceof IPeerModel) {
 			AbstractImageDescriptor descriptor = new PeerImageDescriptor(
 							UIPlugin.getDefault().getImageRegistry(),
 							image,
@@ -197,38 +196,21 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	 */
 	@Override
 	public String decorateText(final String text, final Object element) {
-		String label = text;
-
-		if (element instanceof IPeerModel) {
-			final StringBuilder builder = new StringBuilder(label != null && !"".equals(label.trim()) ? label.trim() : "<noname>"); //$NON-NLS-1$ //$NON-NLS-2$
-
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					boolean isStatic = ((IPeerModel)element).isStatic();
-
-					int state = ((IPeerModel)element).getIntProperty(IPeerModelProperties.PROP_STATE);
-					if (state > IPeerModelProperties.STATE_UNKNOWN
-									&& (!isStatic
-									|| state == IPeerModelProperties.STATE_REACHABLE
-									|| state == IPeerModelProperties.STATE_CONNECTED
-									|| state == IPeerModelProperties.STATE_WAITING_FOR_READY)) {
-						builder.append(" ["); //$NON-NLS-1$
-						builder.append(Messages.getString("LabelProviderDelegate_state_" + state)); //$NON-NLS-1$
-						builder.append("]"); //$NON-NLS-1$
-					}
-				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
-
-			label = builder.toString();
-
-			if (!"".equals(label.trim()) && !"<noname>".equals(label.trim())) { //$NON-NLS-1$ //$NON-NLS-2$
-				return label;
-			}
-		}
+//		String label = text;
+//
+//		if (element instanceof IConnectable) {
+//			final StringBuilder builder = new StringBuilder(label != null && !"".equals(label.trim()) ? label.trim() : "<noname>"); //$NON-NLS-1$ //$NON-NLS-2$
+//
+//			builder.append(" ["); //$NON-NLS-1$
+//			builder.append(ConnectStateHelper.getConnectState(((IConnectable)element).getConnectState()));
+//			builder.append("]"); //$NON-NLS-1$
+//
+//			label = builder.toString();
+//
+//			if (!"".equals(label.trim()) && !"<noname>".equals(label.trim())) { //$NON-NLS-1$ //$NON-NLS-2$
+//				return label;
+//			}
+//		}
 		return null;
 	}
 }

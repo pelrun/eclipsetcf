@@ -31,7 +31,7 @@ public class EventListener extends AbstractEventListener {
 		if (event instanceof MonitorEvent) {
 			MonitorEvent monitorEvent = (MonitorEvent)event;
 
-			// Get the event type and message
+			// Get the event simulator and message
 			MonitorEvent.Type type = monitorEvent.getType();
 			MonitorEvent.Message message = monitorEvent.getMessage();
 
@@ -42,7 +42,7 @@ public class EventListener extends AbstractEventListener {
 						// Get the console
 						Console console = Factory.getConsole((IPeer)monitorEvent.getSource(), true);
 						Assert.isNotNull(console);
-						// Message type 'R' is an unknown type and will lead to print the
+						// Message simulator 'R' is an unknown simulator and will lead to print the
 						// message text using the error color.
 						console.appendMessage('R', message.text);
 					}

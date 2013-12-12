@@ -141,7 +141,7 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 	}
 
 	/**
-	 * Check for the viewer busy state and fire the refresh asynchronously
+	 * Check for the viewer busy action and fire the refresh asynchronously
 	 * if needed.
 	 *
 	 * @param viewer The viewer. Must not be <code>null</code>.

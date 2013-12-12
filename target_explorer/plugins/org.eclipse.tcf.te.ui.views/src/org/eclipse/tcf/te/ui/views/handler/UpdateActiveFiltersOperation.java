@@ -34,7 +34,7 @@ import org.eclipse.ui.navigator.INavigatorContentService;
  *
  * <p>
  * This operation is smart enough not to force any change if each id in each set
- * is already in its desired state (<i>active</i> or <i>inactive</i>).
+ * is already in its desired action (<i>active</i> or <i>inactive</i>).
  * <p>
  * Copied and adapted from org.eclipse.ui.internal.navigator.filters.UpdateActiveFiltersOperation
  */
@@ -55,9 +55,9 @@ public class UpdateActiveFiltersOperation extends AbstractOperation {
 	 *            The CommonViewer instance to update
 	 * @param theActiveFilterIds
 	 *            An array of ids that correspond to the filters that should be
-	 *            in the <i>active</i> state after this operation executes. The
+	 *            in the <i>active</i> action after this operation executes. The
 	 *            complement of this set will likewise be in the <i>inactive</i>
-	 *            state after this operation executes.
+	 *            action after this operation executes.
 	 */
 	public UpdateActiveFiltersOperation(CommonViewer aCommonViewer, String[] theActiveFilterIds) {
 		super(Messages.UpdateActiveFiltersOperation_OperationName);

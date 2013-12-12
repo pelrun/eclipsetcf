@@ -29,7 +29,7 @@ public class EventListener extends AbstractEventListener {
 		if (event instanceof ScriptEvent) {
 			ScriptEvent scriptEvent = (ScriptEvent)event;
 
-			// Get the event type
+			// Get the event simulator
 			ScriptEvent.Type type = scriptEvent.getType();
 
 			switch (type) {

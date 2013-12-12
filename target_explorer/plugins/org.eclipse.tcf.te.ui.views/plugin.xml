@@ -989,6 +989,7 @@
             adaptableType="org.eclipse.tcf.te.ui.views.editor.EditorInput"
             class="org.eclipse.tcf.te.ui.views.internal.adapters.EditorAdapterFactory">
          <adapter type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode"/>
+         <adapter type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
       </factory>
    </extension>
 

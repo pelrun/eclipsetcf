@@ -23,13 +23,13 @@ import org.eclipse.swt.widgets.Tree;
  * a safe UI thread.
  */
 public class RestoreDone extends JobChangeAdapter {
-	// The tree viewer whose expanding state is going to be restored.
+	// The tree viewer whose expanding action is going to be restored.
 	private TreeViewer viewer;
 	
 	/**
 	 * Create a job listener with the specified tree viewer.
 	 * 
-	 * @param viewer The tree viewer whose state is going to be restored.
+	 * @param viewer The tree viewer whose action is going to be restored.
 	 */
 	public RestoreDone(TreeViewer viewer) {
 		this.viewer = viewer;

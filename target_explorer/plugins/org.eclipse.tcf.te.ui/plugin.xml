@@ -129,83 +129,30 @@
       </handler>
       
       <handler commandId="org.eclipse.tcf.te.ui.command.connect">
-         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
-            <parameter name="operation" value="connect"/>
+         <class class="org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler">
+            <parameter name="action" value="connect"/>
          </class>
          <activeWhen>
-            <with variable="systemManagerViewSelection">
-               <iterate operator="and" ifEmpty="false">
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                           value="connect"/>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="connect"/>
-                     </not>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="disconnect"/>
-                     </not>
-                  </adapt>
-               </iterate>
-            </with>
+            <reference definitionId="te.expressions.selection.IConnectable"/>
          </activeWhen>
          <enabledWhen>
-            <with variable="systemManagerViewSelection">
-               <count value="1"/>
+            <with variable="selection">
                <iterate operator="and" ifEmpty="false">
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
                      <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           property="org.eclipse.tcf.te.core.isConnectStateChangeActionAllowed"
                            value="connect"/>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="connect"/>
-                     </not>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="disconnect"/>
-                     </not>
                   </adapt>
                </iterate>
             </with>
          </enabledWhen>
       </handler>
       <handler commandId="org.eclipse.tcf.te.ui.editor.command.connect">
-         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
-            <parameter name="operation" value="connect"/>
+         <class class="org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler">
+            <parameter name="action" value="connect"/>
          </class>
          <activeWhen>
-            <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                  <test forcePluginActivation="true"
-                        property="org.eclipse.tcf.te.runtime.services.hasService"
-                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                           value="connect"/>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="connect"/>
-                     </not>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="disconnect"/>
-                     </not>
-                  </adapt>
-               </adapt>
-            </with>
+            <reference definitionId="te.expressions.editor.IConnectable"/>
          </activeWhen>
          <enabledWhen>
             <and>
@@ -213,20 +160,10 @@
                   <test property="org.eclipse.tcf.te.ui.views.isDirty" value="false"/>
                </with>
                <with variable="activeEditorInput">
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
+                  <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
                      <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
+                           property="org.eclipse.tcf.te.core.isConnectStateChangeActionAllowed"
                            value="connect"/>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="connect"/>
-                     </not>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="disconnect"/>
-                     </not>
                   </adapt>
                </with>
             </and>
@@ -234,104 +171,59 @@
       </handler>
 
       <handler commandId="org.eclipse.tcf.te.ui.command.disconnect">
-         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
-            <parameter name="operation" value="disconnect"/>
+         <class class="org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler">
+            <parameter name="action" value="disconnect"/>
          </class>
          <activeWhen>
-            <with variable="systemManagerViewSelection">
-               <iterate operator="and" ifEmpty="false">
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.services.hasService"
-                           value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
-                     <or>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                              value="disconnect"/>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunning"
-                              value="connect"/>
-                     </or>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="disconnect"/>
-                     </not>
-                  </adapt>
-               </iterate>
-            </with>
+            <reference definitionId="te.expressions.selection.IConnectable"/>
          </activeWhen>
          <enabledWhen>
-            <with variable="systemManagerViewSelection">
-               <count value="1"/>
+            <with variable="selection">
                <iterate operator="and" ifEmpty="false">
-                  <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                     <or>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                              value="disconnect"/>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunning"
-                              value="connect"/>
-                     </or>
-                     <not>
-                        <test forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                              value="disconnect"/>
-                     </not>
+                  <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.core.isConnectStateChangeActionAllowed"
+                           value="disconnect"/>
                   </adapt>
                </iterate>
             </with>
          </enabledWhen>
       </handler>
       <handler commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
-         <class class="org.eclipse.tcf.te.ui.handler.StepperCommandHandler">
-            <parameter name="operation" value="disconnect"/>
+         <class class="org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler">
+            <parameter name="action" value="disconnect"/>
          </class>
          <activeWhen>
-            <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                  <test forcePluginActivation="true"
-                        property="org.eclipse.tcf.te.runtime.services.hasService"
-                        value="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService"/>
-                  <or>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                           value="disconnect"/>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunning"
-                           value="connect"/>
-                  </or>
-                  <not>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                           value="disconnect"/>
-                  </not>
-               </adapt>
-            </with>
-         </activeWhen>
+            <reference definitionId="te.expressions.editor.IConnectable"/>
+         </activeWhen> 
          <enabledWhen>
             <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.runtime.model.interfaces.IModelNode">
-                  <or>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isEnabled"
-                           value="disconnect"/>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunning"
-                           value="connect"/>
-                  </or>
-                  <not>
-                     <test forcePluginActivation="true"
-                           property="org.eclipse.tcf.te.runtime.stepper.isRunningOrCanceled"
-                           value="disconnect"/>
-                  </not>
+               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.core.isConnectStateChangeActionAllowed"
+                        value="disconnect"/>
                </adapt>
             </with>
          </enabledWhen>
       </handler>
    </extension>
    
+<!-- Menu contributions -->
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.command.connect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.selection.IConnectable"/>
+            </visibleWhen>
+         </command>
+         <command commandId="org.eclipse.tcf.te.ui.command.disconnect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.selection.IConnectable"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+
 <!-- Context and binding contributions -->
    <extension point="org.eclipse.ui.contexts">
       <context

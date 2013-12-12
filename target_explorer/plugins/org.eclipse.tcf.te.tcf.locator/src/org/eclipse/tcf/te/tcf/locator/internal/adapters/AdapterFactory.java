@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -33,7 +34,7 @@ public class AdapterFactory implements IAdapterFactory {
 	private final IPersistableURIProvider peerModelPersistableURIProvider = new PeerPersistableURIProvider();
 
 	private static final Class<?>[] CLASSES = new Class[] {
-		IPersistableURIProvider.class, IPeerModel.class
+		IPersistableURIProvider.class, IPeerModel.class, IConnectable.class, ILocatorModel.class
 	};
 
 	/* (non-Javadoc)
@@ -44,6 +45,11 @@ public class AdapterFactory implements IAdapterFactory {
 		if (adaptableObject instanceof Map) {
 			if (IPersistableURIProvider.class.equals(adapterType)) {
 				Assert.isTrue(false);
+			}
+		}
+		if (IConnectable.class.isAssignableFrom(adapterType)) {
+			if (adaptableObject instanceof IConnectable) {
+				return adaptableObject;
 			}
 		}
 		if (ILocatorModel.class.isAssignableFrom(adapterType)) {

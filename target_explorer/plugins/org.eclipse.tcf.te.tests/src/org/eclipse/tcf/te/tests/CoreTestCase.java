@@ -50,7 +50,7 @@ import org.osgi.framework.Bundle;
  * Core test case implementation.
  */
 public class CoreTestCase extends TestCase {
-	// Internal property id to store if or if not the views zoom state
+	// Internal property id to store if or if not the views zoom action
 	// got changed before executing the test case.
 	private final static String VIEW_ZOOM_STATE_CHANGED = "viewZoomStateChanged"; //$NON-NLS-1$
 
@@ -435,7 +435,7 @@ public class CoreTestCase extends TestCase {
 		IViewPart part = showView(viewId, perspectiveId);
 		assertNotNull("Main view is not available!", part); //$NON-NLS-1$
 
-		// Get the view reference for setting the maximized state
+		// Get the view reference for setting the maximized action
 		IViewReference reference = findView(viewId, perspectiveId);
 		assertNotNull("Failed to lookup view reference for main view!", reference); //$NON-NLS-1$
 		if (reference.getPage().getPartState(reference) != IWorkbenchPage.STATE_MAXIMIZED
@@ -448,19 +448,19 @@ public class CoreTestCase extends TestCase {
 			setProperty(VIEW_ZOOM_STATE_CHANGED, true);
 		}
 
-		// Give the UI a chance to repaint if the view zoom state changed
+		// Give the UI a chance to repaint if the view zoom action changed
 		if (isProperty(VIEW_ZOOM_STATE_CHANGED, true)) {
 			waitAndDispatch(1000);
 		}
 	}
 
 	/**
-	 * Restore the main view state.
+	 * Restore the main view action.
 	 */
 	protected void restoreView() {
 		Assert.isNotNull(Display.findDisplay(Thread.currentThread()), "Illegal Thread Access"); //$NON-NLS-1$
 
-		// restore the original view zoom state
+		// restore the original view zoom action
 		if (isProperty(VIEW_ZOOM_STATE_CHANGED, true)) {
 			final String perspectiveId = getProperty(IConfigurationProperties.TARGET_PERSPECTIVE);
 			assertNotNull("Invalid null-value for test case perspective id!", perspectiveId); //$NON-NLS-1$

@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 
 /**
- * The comparator for the tree column "type".
+ * The comparator for the tree column "simulator".
  */
 public class FileTypeComparator extends FSTreeNodeComparator {
     private static final long serialVersionUID = 1L;

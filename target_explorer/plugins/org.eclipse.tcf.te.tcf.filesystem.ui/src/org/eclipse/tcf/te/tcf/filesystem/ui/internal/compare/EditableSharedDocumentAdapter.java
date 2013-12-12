@@ -40,8 +40,8 @@ public class EditableSharedDocumentAdapter extends SharedDocumentAdapter impleme
 	private IEditorInput bufferedKey;
 
 	/**
-	 * Interface that provides this adapter with the state of the typed element
-	 * and supports call backs to the element when the adapter state changes.
+	 * Interface that provides this adapter with the action of the typed element
+	 * and supports call backs to the element when the adapter action changes.
 	 */
 	public interface ISharedDocumentAdapterListener {
 
@@ -71,7 +71,7 @@ public class EditableSharedDocumentAdapter extends SharedDocumentAdapter impleme
 		void handleDocumentDeleted();
 
 		/**
-		 * Method invoked when the document dirty state changes from dirty to
+		 * Method invoked when the document dirty action changes from dirty to
 		 * clean.
 		 */
 		void handleDocumentSaved();

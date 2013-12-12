@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
@@ -35,12 +34,9 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
-import org.eclipse.tcf.te.tcf.ui.listeners.WorkbenchWindowListener;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
-import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchListener;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -56,10 +52,6 @@ public class UIPlugin extends AbstractUIPlugin {
 	private IWorkbenchListener listener;
 	// Reference to the workbench listener
 	/* default */ final ListenerList listeners = new ListenerList();
-
-
-	// The global window listener instance
-	private IWindowListener windowListener;
 
 	/**
 	 * Constructor.
@@ -158,6 +150,7 @@ public class UIPlugin extends AbstractUIPlugin {
 																				data,
 																				stepGroupId,
 																				IStepperServiceOperations.DISCONNECT,
+																				false,
 																				false);
 
 												ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
@@ -201,27 +194,7 @@ public class UIPlugin extends AbstractUIPlugin {
 			}
 		};
 		PlatformUI.getWorkbench().addWorkbenchListener(listener);
-
-		if (windowListener == null && PlatformUI.getWorkbench() != null) {
-			windowListener = new WorkbenchWindowListener();
-			PlatformUI.getWorkbench().addWindowListener(windowListener);
-			activateContexts();
-		}
 	}
-
-	void activateContexts() {
-		if (Display.getCurrent() != null) {
-			IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-			if (window != null && windowListener != null) windowListener.windowOpened(window);
-		}
-		else {
-			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable(){
-				@Override
-                public void run() {
-					activateContexts();
-                }});
-		}
-    }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
@@ -229,10 +202,6 @@ public class UIPlugin extends AbstractUIPlugin {
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		if (listener != null) { PlatformUI.getWorkbench().removeWorkbenchListener(listener); listener = null; }
-		if (windowListener != null && PlatformUI.getWorkbench() != null) {
-			PlatformUI.getWorkbench().removeWindowListener(windowListener);
-			windowListener = null;
-		}
 
 		plugin = null;
 		super.stop(context);
@@ -277,6 +246,8 @@ public class UIPlugin extends AbstractUIPlugin {
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_ELCL + "newTarget_wiz.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.NEW_PEER, ImageDescriptor.createFromURL(url));
 
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "busy.gif"); //$NON-NLS-1$
+		registry.put(ImageConsts.BUSY_OVR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "gold_ovr.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.GOLD_OVR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "green_ovr.gif"); //$NON-NLS-1$

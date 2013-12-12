@@ -22,7 +22,7 @@ public class TreeArrayContentProvider extends ArrayContentProvider implements IT
 
 	/**
 	 * Returns an instance of TreeArrayContentProvider. Since instances of this
-	 * class do not maintain any state, they can be shared between multiple
+	 * class do not maintain any action, they can be shared between multiple
 	 * clients.
 	 *
 	 * @return an instance of TreeArrayContentProvider

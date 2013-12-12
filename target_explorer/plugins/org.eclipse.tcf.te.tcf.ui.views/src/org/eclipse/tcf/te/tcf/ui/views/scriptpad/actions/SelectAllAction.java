@@ -43,7 +43,7 @@ public class SelectAllAction extends Action {
     }
 
     /**
-     * Updates the actions enabled state.
+     * Updates the actions enabled action.
      */
     public void updateEnabledState() {
     	setEnabled(view.getStyledText() != null && view.getStyledText().getCharCount() > 0);

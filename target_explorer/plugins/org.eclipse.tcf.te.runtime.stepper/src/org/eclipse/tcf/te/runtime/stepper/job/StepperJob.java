@@ -47,6 +47,7 @@ public final class StepperJob extends Job {
 	final private IPropertiesContainer data;
 	final private String stepGroupId;
 	final protected String operation;
+	private final boolean handleStatus;
 
 	private final boolean isCancelable;
 
@@ -131,8 +132,10 @@ public final class StepperJob extends Job {
 	 * @param data The stepper data.
 	 * @param stepGroupId The step group id to execute.
 	 * @param operation The operation to execute.
+	 * @param isCancelable <code>true</code> if the job can be canceled.
+	 * @param handleStatus <code>true</code> if the job should handle the status itself and return always <code>Status.OK_STATUS</code>.
 	 */
-    public StepperJob(String name, IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String operation, boolean isCancelable) {
+    public StepperJob(String name, IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String operation, boolean isCancelable, boolean handleStatus) {
 		super(name);
 		setPriority(Job.INTERACTIVE);
 
@@ -146,6 +149,7 @@ public final class StepperJob extends Job {
 		this.stepGroupId = stepGroupId;
 		this.operation = operation;
 		this.isCancelable = isCancelable;
+		this.handleStatus = handleStatus;
 
 		ISchedulingRule rule = null;
 		IStepperService service = ServiceManager.getInstance().getService(stepContext.getContextObject(), IStepperService.class, true);
@@ -230,7 +234,7 @@ public final class StepperJob extends Job {
 	 * @see org.eclipse.core.runtime.jobs.Job#run(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	protected final IStatus run(IProgressMonitor monitor) {
+	public final IStatus run(IProgressMonitor monitor) {
 
 		if (!isCancelable) {
 			monitor = new NotCancelableProgressMonitor(monitor);
@@ -275,7 +279,9 @@ public final class StepperJob extends Job {
 
 		isFinished = true;
 
-		handleStatus(status);
+		if (handleStatus) {
+			handleStatus(status);
+		}
 
 		return statusHandled ? Status.OK_STATUS : status;
 	}

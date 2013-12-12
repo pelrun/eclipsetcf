@@ -48,7 +48,7 @@ public class ButtonPanelControl extends BaseControl {
 	private Composite panel;
 	/* default */ Button applyButton;
 
-	// Reference to the dirty state listener
+	// Reference to the dirty action listener
 	private IPropertyListener dirtyListener = null;
 
 	/**
@@ -77,7 +77,7 @@ public class ButtonPanelControl extends BaseControl {
 	 */
 	@Override
 	public void dispose() {
-		// Dispose the dirty state listener
+		// Dispose the dirty action listener
 		if (dirtyListener != null && getEditor() != null) {
 			getEditor().removePropertyListener(dirtyListener);
 			dirtyListener = null;

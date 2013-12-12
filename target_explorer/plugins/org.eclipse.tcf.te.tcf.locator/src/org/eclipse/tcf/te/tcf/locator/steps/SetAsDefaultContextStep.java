@@ -7,33 +7,35 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
+
 package org.eclipse.tcf.te.tcf.locator.steps;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 
 /**
- * Start simulator step implementation.
+ * Set the active context as default context.
  */
-public class StartSimulatorStep extends AbstractPeerModelStep {
+public class SetAsDefaultContextStep extends AbstractPeerModelStep {
 
 	/**
 	 * Constructor.
 	 */
-	public StartSimulatorStep() {
+	public SetAsDefaultContextStep() {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IExtendedStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	public void validateExecute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor) throws CoreException {
+	public void validateExecute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
 	}
 
 	/* (non-Javadoc)
@@ -41,14 +43,11 @@ public class StartSimulatorStep extends AbstractPeerModelStep {
 	 */
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
-		SimulatorUtils.start(getActivePeerModelContext(context, data, fullQualifiedId), monitor, callback);
-	}
+		IDefaultContextService selService = ServiceManager.getInstance().getService(IDefaultContextService.class);
+		if (selService != null) {
+			selService.setDefaultContext(getActivePeerModelContext(context, data, fullQualifiedId));
+		}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#rollback(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IStatus, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
-	 */
-	@Override
-	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
-	    SimulatorUtils.stop(getActivePeerModelContext(context, data, fullQualifiedId), null, callback);
+		callback.done(this, Status.OK_STATUS);
 	}
 }

@@ -114,7 +114,7 @@ public interface ImageConsts {
     public static final String RED_X_OVR = "RedXOverlay"; //$NON-NLS-1$
 
     /**
-     * The key to access the target object busy state overlay image.
+     * The key to access the target object busy action overlay image.
      */
     public static final String BUSY_OVR = "BusyOverlay"; //$NON-NLS-1$
 

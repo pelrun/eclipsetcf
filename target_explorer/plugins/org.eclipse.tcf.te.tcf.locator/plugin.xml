@@ -130,6 +130,20 @@
             <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
          </enablement>
       </service>
+      <service
+            class="org.eclipse.tcf.te.tcf.locator.services.StepperOperationService"
+            id="org.eclipse.tcf.te.tcf.locator.services.stepperOperation">
+         <serviceType
+               bundleId="org.eclipse.tcf.te.runtime.stepper"
+               class="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService">
+         </serviceType>
+         <enablement>
+            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+            <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
+            <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
+         </enablement>
+      </service>
+
    </extension>
 
 <!-- Step contributions -->
@@ -168,6 +182,10 @@
             id="org.eclipse.tcf.te.tcf.locator.signalPeerDisconnectedStep"
             class="org.eclipse.tcf.te.tcf.locator.steps.SignalPeerDisconnectedStep"
             label="%SignalPeerDisconnectedStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.locator.setAsDefaultContextStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.SetAsDefaultContextStep"
+            label="%SetAsDefaultContextStep.name"/>
    </extension>
 
 <!-- Step group contributions -->
@@ -183,20 +201,36 @@
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup">
          <references>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="connecting" />
+            	<parameter name="stateOnCancel" value="disconnected" />
+            	<parameter name="stateOnError" value="disconnected" />
+            </reference>
             <reference id="org.eclipse.tcf.te.tcf.locator.setWaitForReadyStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startSimulatorStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.setAsDefaultContextStep"/>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="connected" />
+            </reference>
          </references>
       </stepGroup>
 
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.disconnectStepGroup">
          <references>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="disconnecting" />
+            	<parameter name="stateOnError" value="disconnected" />
+            </reference>
             <reference id="org.eclipse.tcf.te.runtime.stepper.cancelJobsStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.signalPeerDisconnectedStep"/>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="disconnected" />
+            </reference>
          </references>
       </stepGroup>
       

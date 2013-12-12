@@ -268,7 +268,7 @@ public class NewWizardSelectionPage extends WizardPage {
 
 		setControl(composite);
 
-		// Restore the tree state
+		// Restore the tree action
 		restoreWidgetValues();
 
 		// Initialize the context help id
@@ -426,7 +426,7 @@ public class NewWizardSelectionPage extends WizardPage {
 	}
 
 	/**
-	 * Restore the tree state from the dialog settings.
+	 * Restore the tree action from the dialog settings.
 	 */
 	public void restoreWidgetValues() {
 		IDialogSettings settings = getDialogSettings();
@@ -464,7 +464,7 @@ public class NewWizardSelectionPage extends WizardPage {
 	}
 
 	/**
-	 * Saves the tree state to the wizards settings store.
+	 * Saves the tree action to the wizards settings store.
 	 */
 	public void saveWidgetValues() {
 		IDialogSettings settings = getDialogSettings();

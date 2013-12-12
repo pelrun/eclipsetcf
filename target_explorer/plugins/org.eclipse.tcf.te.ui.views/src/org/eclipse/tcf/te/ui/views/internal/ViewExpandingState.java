@@ -26,7 +26,7 @@ import org.eclipse.ui.navigator.IMementoAware;
  * a common viewer in a navigator.
  */
 public class ViewExpandingState implements IMementoAware {
-	// The common viewer whose expanding state is to be persisted.
+	// The common viewer whose expanding action is to be persisted.
 	private CommonViewer viewer;
 	/**
 	 * The constructor.

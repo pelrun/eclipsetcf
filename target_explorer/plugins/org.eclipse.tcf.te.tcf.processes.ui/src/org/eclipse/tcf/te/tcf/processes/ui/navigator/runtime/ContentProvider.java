@@ -300,6 +300,7 @@ public class ContentProvider implements ITreeContentProvider {
 	 */
 	@Override
     public void dispose() {
+//		ModelManager.disposeAllRuntimeModels();
 	}
 
 	/* (non-Javadoc)

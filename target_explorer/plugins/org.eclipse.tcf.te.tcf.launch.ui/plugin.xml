@@ -147,6 +147,18 @@
             </with>
          </enablement>
       </editorPageBinding>
+      <editorPageBinding
+            id="org.eclipse.tcf.te.tcf.launch.ui.binding.MemoryMapEditorPage"
+            pageId="org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage"
+            insertBefore="org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage,org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage,org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
+         <enablement>
+            <with variable="activeEditorInput">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="MemoryMap"/>
+               </adapt>
+            </with>
+         </enablement>
+      </editorPageBinding>
    </extension>
 
 <!-- Navigator viewer contributions -->
@@ -182,144 +194,8 @@
 
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
-   <!-- Project explorer menu contributions -->
-      <!--menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?before=additions">
-         <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
-         <command
-               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
-               disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/run_exc.gif"
-               icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/run_exc.gif"
-               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.run"
-               label="%command.run.name"
-               style="push">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <and>
-                           <with variable="org.eclipse.core.runtime.Platform">
-                              <test property="org.eclipse.core.runtime.bundleState"
-                                    args="org.eclipse.debug.core"
-                                    value="ACTIVE"/>
-                           </with>
-                           <test property="org.eclipse.debug.core.launchable" value="run"/>
-                        </and>				
-                        <test 
-                              forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
-                              value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
-                              args="run"/>
-                     </and>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-         <command
-               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug"
-               disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/debug_exc.gif"
-               icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/debug_exc.gif"
-               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.debug"
-               label="%command.debug.name"
-               style="push">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <iterate  operator="and" ifEmpty="false">
-                     <and>
-                        <and>
-                           <with variable="org.eclipse.core.runtime.Platform">
-                              <test property="org.eclipse.core.runtime.bundleState"
-                                    args="org.eclipse.debug.core"
-                                    value="ACTIVE"/>
-                           </with>
-                           <test property="org.eclipse.debug.core.launchable" value="run"/>
-                        </and>				
-                        <test 
-                              forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
-                              value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
-                              args="run"/>
-                     </and>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution -->
-      
+     
    <!-- Target explorer menu contributions -->
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.launch.rundebug">
-         <separator name="org.eclipse.tcf.te.tcf.launch.ui.remote.app.launch" visible="true"/>
-         <command
-               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
-               disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/run_exc.gif"
-               icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/run_exc.gif"
-               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.run"
-               label="%command.run.name"
-               style="push">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <iterate 
-                        operator="and" 
-                        ifEmpty="false">
-                     <and>
-                        <test 
-                              forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
-                              value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
-                              args="run"/>
-                        <or>
-                           <not>
-                              <test
-                                    forcePluginActivation="true"
-                                    property="org.eclipse.tcf.te.runtime.services.hasService"
-                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
-                           </not>
-                           <test
-                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
-                                 args="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.run"
-                                 value="true"/>
-                        </or>
-                     </and>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-         <command
-               commandId="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug"
-               disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/debug_exc.gif"
-               icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/debug_exc.gif"
-               id="org.eclipse.tcf.te.tcf.launch.ui.remote.app.debug"
-               label="%command.debug.name"
-               style="push">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <iterate 
-                        operator="and" 
-                        ifEmpty="false">
-                     <and>
-                        <test 
-                              forcePluginActivation="true"
-                              property="org.eclipse.tcf.te.launch.core.isValidLaunchConfigType"
-                              value="org.eclipse.tcf.te.tcf.launch.type.remote.app"
-                              args="debug"/>
-                        <or>
-                           <not>
-                              <test
-                                    forcePluginActivation="true"
-                                    property="org.eclipse.tcf.te.runtime.services.hasService"
-                                    value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
-                           </not>
-                           <test
-                                 property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
-                                 args="org.eclipse.tcf.te.tcf.launch.ui.remote.app.command.debug"
-                                 value="true"/>
-                        </or>
-                     </and>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-      
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.connection">
          <menu
                id="org.eclipse.tcf.te.tcf.launch.ui.menu.diagnostics"

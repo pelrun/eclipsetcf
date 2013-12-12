@@ -34,7 +34,7 @@ import org.eclipse.ui.navigator.INavigatorContentService;
  *
  * <p>
  * This operation is smart enough not to force any change if each id in each set
- * is already in its desired state (<i>active</i> or <i>inactive</i>).
+ * is already in its desired action (<i>active</i> or <i>inactive</i>).
  * <p>
  * Copied and adapted from org.eclipse.ui.internal.navigator.filters.UpdateActiveExtensionsOperation
  */
@@ -50,7 +50,7 @@ public class UpdateActiveExtensionsOperation extends AbstractOperation {
 	 * Create an operation to activate extensions and refresh the viewer.
 	 *
 	 * p> To use only one part of this operation (either "activate" or
-	 * "deactivate", but not both), then supply <b>null</b> for the array state
+	 * "deactivate", but not both), then supply <b>null</b> for the array action
 	 * you are not concerned with.
 	 * </p>
 	 *
@@ -58,7 +58,7 @@ public class UpdateActiveExtensionsOperation extends AbstractOperation {
 	 *            The CommonViewer instance to update
 	 * @param theExtensionsToActivate
 	 *            An array of ids that correspond to the extensions that should
-	 *            be in the <i>active</i> state after this operation executes.
+	 *            be in the <i>active</i> action after this operation executes.
 	 */
 	public UpdateActiveExtensionsOperation(CommonViewer aCommonViewer, String[] theExtensionsToActivate) {
 		super(Messages.UpdateActiveExtensionsOperation_OperationName);

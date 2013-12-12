@@ -11,6 +11,8 @@ package org.eclipse.tcf.te.core.properties;
 
 import org.eclipse.core.runtime.IAdapterManager;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 
 /**
  * Adapter helper property tester implementation.
@@ -97,6 +99,13 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 			// Always check against the string value
 			return value != null ? expectedValue.toString().equals(value) : false;
+		}
+
+		if ("isConnectStateChangeActionAllowed".equals(property) && receiver instanceof IConnectable && expectedValue instanceof String) { //$NON-NLS-1$
+			return ((IConnectable)receiver).isConnectStateChangeActionAllowed(ConnectStateHelper.getConnectAction((String)expectedValue));
+		}
+		if ("isConnectState".equals(property) && receiver instanceof IConnectable && expectedValue instanceof String) { //$NON-NLS-1$
+			return ((IConnectable)receiver).getConnectState() == ConnectStateHelper.getConnectState((String)expectedValue);
 		}
 
 	    return false;

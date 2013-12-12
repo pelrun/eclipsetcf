@@ -13,7 +13,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 
 /**
- * The label provider for the tree column "type".
+ * The label provider for the tree column "simulator".
  */
 public class FileTypeLabelProvider extends LabelProvider {
 	

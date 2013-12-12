@@ -46,7 +46,7 @@ public class PasteAction extends Action {
     }
 
     /**
-     * Updates the actions enabled state.
+     * Updates the actions enabled action.
      */
     public void updateEnabledState() {
 		boolean canPaste = false;

@@ -24,7 +24,7 @@ public class ViewerDescriptor {
 	private IConfigurationElement dropConfig;
 	// The content provider for the tree viewer.
 	private ITreeContentProvider contentProvider;
-	// If the state of the tree viewer is persistent.
+	// If the action of the tree viewer is persistent.
 	private boolean persistent = false;
 	// The auto expand level.
 	private int autoExpandLevel = 2;

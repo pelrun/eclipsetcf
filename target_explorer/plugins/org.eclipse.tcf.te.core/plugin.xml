@@ -18,10 +18,57 @@
             class="org.eclipse.tcf.te.core.properties.PropertyTester"
             id="org.eclipse.tcf.te.core.properties.PropertyTester"
             namespace="org.eclipse.tcf.te.core"
-            properties="hasAdapter,canAdaptTo,hasEnvVar,envVar"
+            properties="hasAdapter,canAdaptTo,hasEnvVar,envVar,isConnectStateChangeActionAllowed,isConnectState"
             type="java.lang.Object">
       </propertyTester>
       
+   </extension>
+
+<!-- Step contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
+      <step id="org.eclipse.tcf.te.core.setConnectStateStep"
+      		label="%SetConnectStateStep.name" 
+            class="org.eclipse.tcf.te.core.steps.SetConnectStateStep">
+      </step>
+   </extension>
+
+<!-- Reusable core expression fragments -->   
+   <extension point="org.eclipse.core.expressions.definitions">
+   
+      <definition id="te.expressions.selection.IConnectable">
+         <with variable="selection">
+            <iterate operator="and" ifEmpty="false">
+               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
+            </iterate>
+         </with>
+      </definition>
+
+      <definition id="te.expressions.editor.IConnectable">
+         <with variable="activeEditorInput">
+            <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
+         </with>
+      </definition>
+
+      <definition id="te.expressions.IConnectable">
+         <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
+      </definition>
+
+      <definition id="te.expressions.IConnectable.connected">
+         <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+            <test forcePluginActivation="true"
+                  property="org.eclipse.tcf.te.core.isConnectState"
+                  value="connected"/>
+         </adapt>
+      </definition>
+
+      <definition id="te.expressions.IConnectable.disconnected">
+         <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+            <test forcePluginActivation="true"
+                  property="org.eclipse.tcf.te.core.isConnectState"
+                  value="disconnected"/>
+         </adapt>
+      </definition>
+
    </extension>
 
 </plugin>

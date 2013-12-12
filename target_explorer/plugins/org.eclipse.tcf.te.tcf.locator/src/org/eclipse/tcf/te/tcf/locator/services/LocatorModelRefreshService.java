@@ -52,6 +52,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupSer
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelLocationUtil;
+import org.eclipse.tcf.te.tcf.locator.nodes.ConnectablePeerModel;
 import org.eclipse.tcf.te.tcf.locator.nodes.LocatorModel;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
@@ -158,7 +159,13 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(entry.getKey());
 			// And create a new one if we cannot find it
 			if (peerNode == null) {
-				peerNode = new PeerModel(model, peer);
+				String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
+				if (value != null && Boolean.parseBoolean(value.trim())) {
+					peerNode = new ConnectablePeerModel(model, peer);
+				}
+				else {
+					peerNode = new PeerModel(model, peer);
+				}
 			}
 			else {
 				oldChildren.remove(peerNode);

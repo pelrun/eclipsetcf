@@ -99,7 +99,7 @@ public class MergeEditorInput extends CompareEditorInput implements
 	}
 
 	/**
-	 * Returns <code>true</code> if the other object is of type
+	 * Returns <code>true</code> if the other object is of simulator
 	 * <code>MergeEditorInput</code> and both of their corresponding fLeft and
 	 * fRight objects are identical. The content is not considered.
 	 */

@@ -17,5 +17,4 @@ public interface IStepperServiceOperations {
 
 	public static final String CONNECT = "connect";  //$NON-NLS-1$
 	public static final String DISCONNECT = "disconnect";  //$NON-NLS-1$
-	public static final String ATTACH_DEBUGGER = "attachDebugger";  //$NON-NLS-1$
 }

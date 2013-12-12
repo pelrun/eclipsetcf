@@ -176,7 +176,6 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 	public final void setHideEditFieldControl(boolean hide) {
 		this.hideEditFieldControl = hide;
 		if (hide) {
-			setHideBrowseButton(hide);
 			setHideEditFieldControlDecoration(hide);
 		}
 	}
@@ -650,6 +649,9 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 			} else {
 				SWTControlUtil.setEnabled(getEditFieldControl(), false);
 				SWTControlUtil.setEnabled(getButtonControl(), false);
+				if (getControlDecoration() != null) {
+					getControlDecoration().hide();
+				}
 			}
 
 			// validate the page
@@ -1319,6 +1321,10 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 			setEditFieldValidator(doCreateEditFieldValidator());
 			// now configure the edit field validator
 			configureEditFieldValidator(getEditFieldValidator());
+		}
+		else if (!isHideBrowseButton()) {
+			@SuppressWarnings("unused")
+            Label spacer = new Label(innerInnerPanel, SWT.NONE);
 		}
 
 		if (!isHideBrowseButton()) {

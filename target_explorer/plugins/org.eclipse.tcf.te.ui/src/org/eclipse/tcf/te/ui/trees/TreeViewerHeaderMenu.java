@@ -135,7 +135,7 @@ public class TreeViewerHeaderMenu extends Menu implements SelectionListener, Lis
 	}
 
 	/**
-	 * Update the menu item's check state according to the new column's visibility.
+	 * Update the menu item's check action according to the new column's visibility.
 	 */
 	public void updateSelection() {
 		ColumnDescriptor[] columns = treeControl.getViewerColumns();

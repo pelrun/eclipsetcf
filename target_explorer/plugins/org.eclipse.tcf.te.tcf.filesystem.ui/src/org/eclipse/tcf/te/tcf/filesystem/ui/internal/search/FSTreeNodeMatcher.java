@@ -22,7 +22,7 @@ public class FSTreeNodeMatcher implements ISearchMatcher {
 	private boolean fMatchPrecise;
 	// The string matcher used for matching.
 	private StringMatcher fStringMatcher;
-	// The current selected target type index.
+	// The current selected target simulator index.
 	private int fTargetType;
 	// The current target names.
 	private String fTargetName;
@@ -36,7 +36,7 @@ public class FSTreeNodeMatcher implements ISearchMatcher {
 	 * 
 	 * @param caseSensitive Option of case sensitive
 	 * @param matchPrecise Option of precise matching
-	 * @param targetType Option of the target type
+	 * @param targetType Option of the target simulator
 	 * @param targetName Option of the target name
 	 * @param includeSystem Option if system files be included
 	 * @param includeHidden Option if hidden files be included

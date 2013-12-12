@@ -88,7 +88,7 @@ public class UIPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		// Load the tree viewer's state.
+		// Load the tree viewer's action.
 		ViewerStateManager.getInstance().loadViewerStates();
 	}
 
@@ -97,7 +97,7 @@ public class UIPlugin extends AbstractUIPlugin {
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		// Save the tree viewer's state.
+		// Save the tree viewer's action.
 		ViewerStateManager.getInstance().storeViewerStates();
 		plugin = null;
 		scopedPreferences = null;

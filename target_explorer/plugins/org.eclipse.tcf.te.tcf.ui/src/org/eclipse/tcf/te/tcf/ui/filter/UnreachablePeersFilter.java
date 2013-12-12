@@ -26,11 +26,11 @@ public class UnreachablePeersFilter extends ViewerFilter {
 	@Override
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
 
-		// Filter only elements of type IPeerModel
+		// Filter only elements of simulator IPeerModel
 		if (element instanceof IPeerModel) {
 			final IPeerModel peerModel = (IPeerModel)element;
 
-			// Determine the current state of the peer model
+			// Determine the current action of the peer model
 			final int[] state = new int[1];
 			if (Protocol.isDispatchThread()) {
 				state[0] = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);

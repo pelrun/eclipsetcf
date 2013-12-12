@@ -246,7 +246,7 @@ public class StepExecutor implements IStepExecutor {
 		if (Platform.inDebugMode()) {
 			String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-			formattedMessage += NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, id.toString().replaceAll("/>", "/>\\n\\t"), date); //$NON-NLS-1$ //$NON-NLS-2$
+			formattedMessage += NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, id.toString().replaceAll("/>", "/>\n"), date); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		return formattedMessage;

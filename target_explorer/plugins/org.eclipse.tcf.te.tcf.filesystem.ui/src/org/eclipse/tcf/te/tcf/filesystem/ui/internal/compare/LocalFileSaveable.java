@@ -420,7 +420,7 @@ public class LocalFileSaveable extends Saveable implements
 	}
 
 	/**
-	 * Revert any changes in the buffer back to the last saved state.
+	 * Revert any changes in the buffer back to the last saved action.
 	 *
 	 * @param monitor
 	 *            a progress monitor on <code>null</code> if progress feedback

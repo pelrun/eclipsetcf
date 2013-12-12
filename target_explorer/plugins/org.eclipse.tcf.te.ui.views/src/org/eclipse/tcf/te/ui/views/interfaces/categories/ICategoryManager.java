@@ -15,7 +15,7 @@ package org.eclipse.tcf.te.ui.views.interfaces.categories;
 public interface ICategoryManager {
 
 	/**
-	 * Flush the current category manager state.
+	 * Flush the current category manager action.
 	 */
 	public void flush();
 

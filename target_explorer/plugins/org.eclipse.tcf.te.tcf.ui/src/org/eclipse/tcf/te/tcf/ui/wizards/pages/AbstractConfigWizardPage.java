@@ -48,8 +48,10 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	private AbstractSection selectorSection = null;
 	private AbstractSection detailsSection = null;
 	/* default */ Button launchDbg = null;
+	/* default */ Button connect = null;
 	private Button advancedButton = null;
 
+	/* default */ boolean autoConnect = false;
 	/* default */ boolean autoLaunchDbg = false;
 
 	// The list of existing configuration names. Used to generate a unique name
@@ -177,6 +179,17 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		if (detailsSection != null) {
 			detailsSection.getSection().setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
 		}
+
+		connect = new Button(parent, SWT.CHECK);
+		connect.setText(Messages.AbstractConfigWizardPage_connect_label);
+		connect.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		connect.setSelection(autoConnect);
+		connect.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				autoConnect = SWTControlUtil.getSelection(connect);
+			}
+		});
 
 		launchDbg = new Button(parent, SWT.CHECK);
 		launchDbg.setText(Messages.AbstractConfigWizardPage_launchDbg_label);
@@ -349,6 +362,15 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	}
 
 	/**
+	 * Returns if or if not to connect after the configuration got created.
+	 *
+	 * @return <code>True</code> to connect, <code>false</code> if not.
+	 */
+	public final boolean isAutoConnect() {
+		return autoConnect;
+	}
+
+	/**
 	 * Returns if or if not to auto-start the debugger after the configuration got created.
 	 *
 	 * @return <code>True</code> to auto-start the debugger, <code>false</code> if not.
@@ -413,6 +435,10 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 
 		if (isAutoStartDebugger()) {
 			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_AUTO_START_DEBUGGER, true);
+		}
+
+		if (isAutoConnect()) {
+			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_AUTO_CONNECT, true);
 		}
 
 		if (selectorSection != null) {
