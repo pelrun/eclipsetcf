@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.tcf.core.va;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,7 +44,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 	/**
 	 * Class representing a value add entry
 	 */
-	protected static class ValueAddEntry implements IDisposable {
+	protected class ValueAddEntry implements IDisposable {
 		public Process process;
 		public IPeer peer;
 		public ProcessOutputReaderThread outputReader;
@@ -57,34 +56,29 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		@Override
 		public void dispose() {
 			if (process != null) {
-				// Send "quit" to the process before we destroy the process
-				OutputStreamWriter writer = null;
-				try {
-					writer = new OutputStreamWriter(process.getOutputStream());
-					writer.write("quit"); //$NON-NLS-1$
-					writer.flush();
-
-					// Check the process exit code
-					long start = System.currentTimeMillis();
-					while ((start + 2000) >= System.currentTimeMillis()) {
-						try {
-							process.exitValue();
-							process = null;
-							break;
-						} catch (IllegalThreadStateException e) {
-							try { Thread.sleep(200); } catch (InterruptedException ex) { /* ignored on purpose */ }
-						}
-					}
-				} catch (IOException e) {
-					/* ignored on purpose */
-				} finally {
-					if (writer != null) { try { writer.close(); } catch (IOException e) { /* ignored on purpose */} writer = null; }
-					if (process != null) { process.destroy(); process = null; }
-				}
+				// Invoke the hook to dispose the value-add process before destroying the process
+				if (!disposeProcess(process)) process.destroy();
+				process = null;
 			}
 			if (outputReader != null) { outputReader.interrupt(); outputReader = null; }
 			if (errorReader != null) { errorReader.interrupt(); errorReader = null; }
 		}
+	}
+
+	/**
+	 * Called from {@link #dispose()} to allow to customize the shutdown of
+	 * the external value-add process. If the method returns with <code>false</code>,
+	 * {@link #dispose()} will invoke {@link Process#destroy()} on the passed
+	 * in process object.
+	 * <p>
+	 * The default implementation will do nothing.
+	 *
+	 * @param process The external value-add process to dispose. Must not be <code>null</code>.
+	 * @return <code>True</code> if the external value-add process got successfully disposed, <code>false</code> otherwise.
+	 */
+	protected boolean disposeProcess(Process process) {
+		Assert.isNotNull(process);
+		return false;
 	}
 
 	/* (non-Javadoc)
