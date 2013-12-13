@@ -142,7 +142,7 @@ public class PeerExportWizardPage extends WizardPage {
 			@Override
 			public Object[] getElements(Object inputElement) {
 				if (inputElement instanceof IPeerModel) {
-					return ((IPeerModel)inputElement).getPeers();
+					return ((IPeerModel)inputElement).getPeerNodes();
 				}
 				return new Object[0];
 			}

@@ -125,7 +125,7 @@ public class UIPlugin extends AbstractUIPlugin {
 							@Override
 							public void run() {
 								// Get all peer model objects
-								IPeerNode[] peers = model.getPeers();
+								IPeerNode[] peers = model.getPeerNodes();
 								// Loop them and check if disconnect is available
 								for (IPeerNode peerNode : peers) {
 									IService[] services = ServiceManager.getInstance().getServices(peerNode, IStepperOperationService.class, false);

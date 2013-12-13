@@ -64,7 +64,6 @@ public class ChannelStateChangeListener implements IChannelStateChangeListener {
 						if (counter < 0) counter = 0;
 						counter++;
 						node.setProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER, counter);
-						if (counter > 0) node.setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_CONNECTED);
 					}
 				}
 				break;
@@ -79,9 +78,6 @@ public class ChannelStateChangeListener implements IChannelStateChangeListener {
 						counter--;
 						if (counter < 0) counter = 0;
 						node.setProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER, counter);
-						if (counter == 0 && node.isProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_CONNECTED)) {
-							node.setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_REACHABLE);
-						}
 					}
 				}
 				break;

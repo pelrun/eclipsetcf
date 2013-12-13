@@ -174,10 +174,6 @@
             class="org.eclipse.tcf.te.tcf.locator.steps.StopDebuggerStep"
             label="%StopDebuggerStep.name"/>
       <step
-            id="org.eclipse.tcf.te.tcf.locator.setWaitForReadyStep"
-            class="org.eclipse.tcf.te.tcf.locator.steps.SetWaitForReadyStep"
-            label="%SetWaitForReadyStep.name"/>
-      <step
             id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"
             class="org.eclipse.tcf.te.tcf.locator.steps.WaitForReadyStep"
             label="%WaitForReadyStep.name"/>
@@ -209,7 +205,6 @@
             	<parameter name="stateOnCancel" value="disconnected" />
             	<parameter name="stateOnError" value="disconnected" />
             </reference>
-            <reference id="org.eclipse.tcf.te.tcf.locator.setWaitForReadyStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startSimulatorStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.setAsDefaultContextStep"/>

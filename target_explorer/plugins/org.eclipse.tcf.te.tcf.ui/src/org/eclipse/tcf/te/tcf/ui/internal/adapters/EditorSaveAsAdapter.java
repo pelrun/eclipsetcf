@@ -150,7 +150,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerNode[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeerNodes();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerNode peerNode : peers) {
 						String name = peerNode.getPeer().getName();

@@ -355,7 +355,7 @@ public class PeerImportWizardPage extends WizardPage {
 							public void run() {
 								peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(((IPeer)config).getID()));
 								if (peerNode.get() == null) {
-									for (IPeerNode peer : model.getPeers()) {
+									for (IPeerNode peer : model.getPeerNodes()) {
 											String name = peer.getPeer().getName();
 											if (name.equalsIgnoreCase(((IPeer)config).getName())) {
 												peerNode.set(peer);

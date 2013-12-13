@@ -204,8 +204,7 @@ public class PeerModelQueryService extends AbstractPeerModelService implements I
 		};
 
 		// Do not try to open a channel to peers known to be unreachable
-		int state = node.getIntProperty(IPeerNodeProperties.PROP_STATE);
-		if (state == IPeerNodeProperties.STATE_ERROR || state == IPeerNodeProperties.STATE_NOT_REACHABLE || !node.isComplete()) {
+		if (!node.isComplete()) {
 			innerDone.doneQueryServices(null);
 			return;
 		}

@@ -45,7 +45,6 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerNameControl;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
-import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -257,7 +256,6 @@ public class GeneralInformationSection extends AbstractSection {
 			public void run() {
 				// The section is handling the ID, the name and
 				// the link state. Ignore other properties.
-				odc.setProperty(IPeerNodeProperties.PROP_STATE, node.getProperty(IPeerNodeProperties.PROP_STATE));
 				odc.setProperty(IPeer.ATTR_ID, node.getPeer().getAttributes().get(IPeer.ATTR_ID));
 				odc.setProperty(IPeer.ATTR_NAME, node.getPeer().getAttributes().get(IPeer.ATTR_NAME));
 				// Initially, the working copy is a duplicate of the original data copy
@@ -279,28 +277,6 @@ public class GeneralInformationSection extends AbstractSection {
 
 			if (nameControl != null) {
 				nameControl.setEditFieldControlText(wc.getStringProperty(IPeer.ATTR_NAME));
-			}
-
-			if (linkState != null && linkStateImage != null) {
-				String state = wc.getStringProperty(IPeerNodeProperties.PROP_STATE);
-				linkState.setText(Messages.getString("GeneralInformationSection_state_" + (state != null ? state.replace('-', '_') : "_1"))); //$NON-NLS-1$ //$NON-NLS-2$
-
-				switch (wc.getIntProperty(IPeerNodeProperties.PROP_STATE)) {
-				case 0:
-					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GOLD_OVR));
-					break;
-				case 1:
-					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GREEN_OVR));
-					break;
-				case 2:
-					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.RED_OVR));
-					break;
-				case 3:
-					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.RED_X_OVR));
-					break;
-				default:
-					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GREY_OVR));
-				}
 			}
 
 			// Mark the control update as completed now
@@ -480,7 +456,7 @@ public class GeneralInformationSection extends AbstractSection {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerNode[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeerNodes();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerNode peerNode : peers) {
 					if (!peerNode.equals(od)) {

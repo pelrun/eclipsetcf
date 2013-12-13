@@ -217,7 +217,7 @@ public class RenameHandler extends AbstractHandler {
 
 				IPeerModel model = Model.getModel();
 				Assert.isNotNull(model);
-				IPeerNode[] peers = model.getPeers();
+				IPeerNode[] peers = model.getPeerNodes();
 				for (IPeerNode peer : peers) {
 						String name = peer.getPeer().getName();
 						Assert.isNotNull(name);

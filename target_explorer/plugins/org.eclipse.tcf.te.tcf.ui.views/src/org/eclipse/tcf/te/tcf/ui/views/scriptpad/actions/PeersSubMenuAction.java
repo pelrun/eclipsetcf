@@ -63,7 +63,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
             public void locatorModelChanged(IPeerModel model, IPeerNode peer, boolean added) {
     			// Re-evaluate the enablement
     			if (actionProxy != null) {
-    				final IPeerNode[] peers = Model.getModel().getPeers();
+    				final IPeerNode[] peers = Model.getModel().getPeerNodes();
     				actionProxy.setEnabled(peers != null && peers.length > 0);
 
     				// If the peer is not set to the view yet, but the action get's
@@ -119,7 +119,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 
         	// Determine the enablement. The action is disabled
         	// if no peers are available.
-        	IPeerNode[] peers = Model.getModel().getPeers();
+        	IPeerNode[] peers = Model.getModel().getPeerNodes();
         	if (peers != null && peers.length > 0) {
         		action.setEnabled(true);
 				if (view instanceof ScriptPad) ((ScriptPad)view).setPeerModel(peers[0]);
@@ -209,18 +209,18 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 
 				boolean selectFirst = selected == null;
 
-				IPeerNode[] peers = Model.getModel().getPeers();
-				if (peers != null && peers.length > 0) {
-					for (IPeerNode peer : peers) {
-						if (isValueAdd(peer)) continue;
-						Action action = new PeerAction(view, peer);
+				IPeerNode[] peerNodes = Model.getModel().getPeerNodes();
+				if (peerNodes != null && peerNodes.length > 0) {
+					for (IPeerNode peerNode : peerNodes) {
+						if (isValueAdd(peerNode)) continue;
+						Action action = new PeerAction(view, peerNode);
 						if (selectFirst) {
 							action.setChecked(true);
 							selectFirst = false;
-							if (view instanceof ScriptPad) ((ScriptPad)view).setPeerModel(peer);
-						} else if (selected != null && selected.equals(peer)) {
+							if (view instanceof ScriptPad) ((ScriptPad)view).setPeerModel(peerNode);
+						} else if (selected != null && selected.equals(peerNode)) {
 							action.setChecked(true);
-							if (view instanceof ScriptPad) ((ScriptPad)view).setPeerModel(peer);
+							if (view instanceof ScriptPad) ((ScriptPad)view).setPeerModel(peerNode);
 						}
 						item = new ActionContributionItem(action);
 						item.fill(m, -1);

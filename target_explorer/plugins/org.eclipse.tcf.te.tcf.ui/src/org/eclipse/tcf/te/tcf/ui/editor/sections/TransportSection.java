@@ -468,7 +468,6 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
 				// As the transport changed, we have to reset the state back to "unknown"
 				// and clear out the services and DNS markers
-				node.setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_UNKNOWN);
 				node.setProperty("dns.name.transient", null); //$NON-NLS-1$
 				node.setProperty("dns.lastIP.transient", null); //$NON-NLS-1$
 				node.setProperty("dns.skip.transient", null); //$NON-NLS-1$

@@ -75,7 +75,7 @@ public interface IPeerModel extends IAdaptable {
 	 *
 	 * @return The list of known peers or an empty list.
 	 */
-	public IPeerNode[] getPeers();
+	public IPeerNode[] getPeerNodes();
 
 	/**
 	 * Returns an unmodifiable list of known children for the given parent peer.

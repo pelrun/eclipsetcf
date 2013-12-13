@@ -111,7 +111,7 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 		}
 
 		// Get the list of old children (update node instances where possible)
-		final List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(Arrays.asList(model.getPeers()));
+		final List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(Arrays.asList(model.getPeerNodes()));
 
 		// Refresh the static peer definitions
 		refreshStaticPeers(oldChildren, model);
@@ -182,7 +182,7 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 				// there exist an dynamically discovered node with a different id but
 				// for the same peer. Do this check only if the peer to add is a static one.
 					IPeerNode toRemove = null;
-					for (IPeerNode candidate : model.getPeers()) {
+					for (IPeerNode candidate : model.getPeerNodes()) {
 						if (candidate.equals(peerNode))continue;
 						String peerID = peerNode.getPeerId();
 						String clientID = candidate.getPeer().getAttributes().get("ClientID"); //$NON-NLS-1$
@@ -272,7 +272,7 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 		}
 
 		// Get the list of old children (update node instances where possible)
-		final List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(Arrays.asList(model.getPeers()));
+		final List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(Arrays.asList(model.getPeerNodes()));
 
 		// Refresh the static peer definitions
 		refreshStaticPeers(oldChildren, model);
@@ -516,7 +516,7 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 		}, new CallbackInvocationDelegate());
 
 		// Make a copy of the current list of static peers before processing
-		List<IPeerNode> nodesToProcess = new ArrayList<IPeerNode>(Arrays.asList(nodes != null ? nodes : model.getPeers()));
+		List<IPeerNode> nodesToProcess = new ArrayList<IPeerNode>(Arrays.asList(nodes != null ? nodes : model.getPeerNodes()));
 		// Loop the list of static peers and try to get the agent ID
 		for (IPeerNode node : nodesToProcess) {
 			// If not static or not complete --> ignore

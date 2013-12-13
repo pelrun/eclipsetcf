@@ -101,7 +101,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 		// Refresh the information of remote services.
 		IPeerModel model = Model.getModel();
 		Assert.isNotNull(model);
-		IPeerNode[] peers = model.getPeers();
+		IPeerNode[] peers = model.getPeerNodes();
 		if (peers != null) {
 			IPeerModelQueryService service = model.getService(IPeerModelQueryService.class);
 			for (IPeerNode peer : peers) {

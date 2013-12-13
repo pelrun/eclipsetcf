@@ -189,7 +189,7 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.ILocatorModel#getPeers()
 	 */
 	@Override
-	public IPeerNode[] getPeers() {
+	public IPeerNode[] getPeerNodes() {
 		final AtomicReference<IPeerNode[]> result = new AtomicReference<IPeerNode[]>();
 
 		Runnable runnable = new Runnable() {

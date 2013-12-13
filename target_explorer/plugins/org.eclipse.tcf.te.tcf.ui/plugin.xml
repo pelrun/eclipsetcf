@@ -148,13 +148,6 @@
             </dropAssistant>
       </navigatorContent>
       <commonFilter
-            activeByDefault="false"
-            class="org.eclipse.tcf.te.tcf.ui.filter.UnreachablePeersFilter"
-            id="org.eclipse.tcf.te.tcf.ui.navigator.UnreachablePeersFilter"
-            name="%UnreachablePeersFilter.name"
-            visibleInUI="true">
-      </commonFilter>
-      <commonFilter
             activeByDefault="true"
             class="org.eclipse.tcf.te.tcf.ui.filter.RedirectPeersFilter"
             id="org.eclipse.tcf.te.tcf.ui.navigator.RedirectPeersFilter"

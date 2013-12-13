@@ -44,7 +44,7 @@ public class PeerModelLookupService extends AbstractPeerModelService implements 
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		IPeerNode node = null;
-		for (IPeerNode candidate : getPeerModel().getPeers()) {
+		for (IPeerNode candidate : getPeerModel().getPeerNodes()) {
 			IPeer peer = candidate.getPeer();
 			if (id.equals(peer.getID())) {
 				node = candidate;
@@ -93,7 +93,7 @@ public class PeerModelLookupService extends AbstractPeerModelService implements 
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
-		for (IPeerNode candidate : getPeerModel().getPeers()) {
+		for (IPeerNode candidate : getPeerModel().getPeerNodes()) {
 			IPeer peer = candidate.getPeer();
 			if (agentId.equals(peer.getAgentID())) {
 				nodes.add(candidate);
@@ -132,7 +132,7 @@ public class PeerModelLookupService extends AbstractPeerModelService implements 
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
-		for (IPeerNode candidate : getPeerModel().getPeers()) {
+		for (IPeerNode candidate : getPeerModel().getPeerNodes()) {
 			IPeer peer = candidate.getPeer();
 			if (name.equals(peer.getName())) {
 				nodes.add(candidate);
@@ -153,7 +153,7 @@ public class PeerModelLookupService extends AbstractPeerModelService implements 
 		IPeerModelQueryService queryService = model.getService(IPeerModelQueryService.class);
 
 		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
-		for (IPeerNode candidate : model.getPeers()) {
+		for (IPeerNode candidate : model.getPeerNodes()) {
 			String services = queryService.queryLocalServices(candidate);
 
 			boolean matchesExpectations = true;
@@ -216,7 +216,7 @@ public class PeerModelLookupService extends AbstractPeerModelService implements 
 		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
 
 		if (peer != null) {
-			for (IPeerNode candidate : getPeerModel().getPeers()) {
+			for (IPeerNode candidate : getPeerModel().getPeerNodes()) {
 				// If the agent id is available, match up the agent id first.
 				if (candidate.getPeer().getAgentID() != null && candidate.getPeer().getAgentID().equals(peer.getAgentID())) {
 					nodes.add(candidate);

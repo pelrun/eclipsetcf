@@ -115,7 +115,7 @@ public final class LocatorListener implements ILocator.LocatorListener {
 					// static peers with unknown link state, refresh the agent ID's first.
 					List<IPeerNode> nodes = new ArrayList<IPeerNode>();
 
-					for (IPeerNode node : model.getPeers()) {
+					for (IPeerNode node : model.getPeerNodes()) {
 						// We expect the agent ID to be set
 						if (node.getPeer().getAgentID() == null || "".equals(node.getPeer().getAgentID())) { //$NON-NLS-1$
 							nodes.add(node);

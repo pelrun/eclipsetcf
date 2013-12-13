@@ -9,7 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator;
 
-import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -192,12 +191,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 		// Turn off change notifications temporarily
 		final boolean changed = peerNode.setChangeEventsEnabled(false);
 
-		// Set the peer state property
-		int counter = peerNode.getIntProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER);
-		if (!peerNode.isProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_WAITING_FOR_READY)) {
-			peerNode.setProperty(IPeerNodeProperties.PROP_STATE, counter > 0 ? IPeerNodeProperties.STATE_CONNECTED : IPeerNodeProperties.STATE_REACHABLE);
-			peerNode.setProperty(IPeerNodeProperties.PROP_LAST_SCANNER_ERROR, null);
-		}
+		peerNode.setProperty(IPeerNodeProperties.PROP_LAST_SCANNER_ERROR, null);
 
 		// Get the parent model from the model mode
 		final IPeerModel model = (IPeerModel)peerNode.getAdapter(IPeerModel.class);
@@ -491,11 +485,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			boolean changed = peerNode.setChangeEventsEnabled(false);
 
 			peerNode.setProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER, null);
-			if (!peerNode.isProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_WAITING_FOR_READY)) {
-				boolean timeout = error instanceof SocketTimeoutException || (error instanceof ConnectException && error.getMessage() != null && error.getMessage().startsWith("Connection timed out:")); //$NON-NLS-1$
-				peerNode.setProperty(IPeerNodeProperties.PROP_STATE, timeout ? IPeerNodeProperties.STATE_NOT_REACHABLE : IPeerNodeProperties.STATE_ERROR);
-				peerNode.setProperty(IPeerNodeProperties.PROP_LAST_SCANNER_ERROR, error instanceof SocketTimeoutException ? null : error);
-			}
+			peerNode.setProperty(IPeerNodeProperties.PROP_LAST_SCANNER_ERROR, error instanceof SocketTimeoutException ? null : error);
 
 			// Clear out previously determined services
 			IPeerModel model = (IPeerModel)peerNode.getAdapter(IPeerModel.class);

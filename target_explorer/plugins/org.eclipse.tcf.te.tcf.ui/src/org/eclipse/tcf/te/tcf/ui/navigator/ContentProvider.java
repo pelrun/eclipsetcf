@@ -105,10 +105,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @return <code>True</code> if the peer model node is a value-add, <code>false</code> otherwise.
 	 */
-	/* default */ final boolean isValueAdd(IPeerNode peerNode) {
-		Assert.isNotNull(peerNode);
+	/* default */ final boolean isValueAdd(IPeer peer) {
+		Assert.isNotNull(peer);
 
-		String value = peerNode.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
+		String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
 		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
 		return isValueAdd;
@@ -123,16 +123,31 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	/* default */ final boolean isFiltered(IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
 
-		boolean filtered = false;
-		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
+		boolean filtered = isFiltered(peerNode.getPeer());
 
-		filtered |= isValueAdd(peerNode) && hideValueAdds;
-		if (!showInvisible) {
+		if (!filtered && !showInvisible) {
 			filtered |= !peerNode.isVisible();
 		}
 
-		filtered |= peerNode.getPeer().getName() != null
-						&& peerNode.getPeer().getName().endsWith("Command Server"); //$NON-NLS-1$
+		return filtered;
+	}
+
+	/**
+	 * Determines if the given peer node is filtered from the view completely.
+	 *
+	 * @param peerNode The peer node. Must not be <code>null</code>.
+	 * @return <code>True</code> if filtered, <code>false</code> otherwise.
+	 */
+	/* default */ final boolean isFiltered(IPeer peer) {
+		Assert.isNotNull(peer);
+
+		boolean filtered = false;
+		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
+
+		filtered |= isValueAdd(peer) && hideValueAdds;
+
+		filtered |= peer.getName() != null
+						&& peer.getName().endsWith("Command Server"); //$NON-NLS-1$
 
 		return filtered;
 	}
@@ -171,11 +186,11 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		// If it is the locator model, get the peers
 		if (parentElement instanceof IPeerModel) {
 			final IPeerModel model = (IPeerModel)parentElement;
-			final IPeerNode[] peers = model.getPeers();
-			final List<IPeerNode> candidates = new ArrayList<IPeerNode>();
+			final IPeerNode[] peerNodes = model.getPeerNodes();
+			final List<Object> candidates = new ArrayList<Object>();
 
 			if (IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
-				for (IPeerNode peer : peers) {
+				for (IPeerNode peer : peerNodes) {
 					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
@@ -189,7 +204,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else if (IUIConstants.ID_CAT_MY_TARGETS.equals(catID)) {
-				for (IPeerNode peer : peers) {
+				for (IPeerNode peer : peerNodes) {
 					// Check for filtered nodes (Value-add's and Proxies)
 					if (isFiltered(peer)) {
 						continue;
@@ -223,40 +238,35 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
-//				for (IPeerNode peer : peers) {
+//				final AtomicReference<IPeer[]> peers = new AtomicReference<IPeer[]>(null);
+//
+//				Protocol.invokeAndWait(new Runnable() {
+//					@Override
+//					public void run() {
+//						// Get the locator service
+//						ILocator locatorService = Protocol.getLocator();
+//						if (locatorService != null) {
+//							// Get the map of peers known to the locator service.
+//							Map<String, IPeer> peerMap = locatorService.getPeers();
+//							peers.set(peerMap.values().toArray(new IPeer[peerMap.size()]));
+//						}
+//					}
+//				});
+//
+//				for (IPeer peer : peers.get()) {
 //					// Check for filtered nodes (Value-add's and Proxies)
 //					if (isFiltered(peer)) {
 //						continue;
 //					}
 //
-//					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
-//					if (categorizable == null) {
-//						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
-//					}
-//					Assert.isNotNull(categorizable);
 //
-//					boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
-//					if (startedByCurrentUser) {
-//						// If the "My Targets" category is not visible, ignore the startedByCurrentUser flag
-//						if (myTargetsCat != null && !myTargetsCat.isEnabled()) {
-//							startedByCurrentUser = false;
-//						}
-//					}
-//
-//					boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-//					if (!isNeighborhood && !isStatic && !startedByCurrentUser) {
-//						// "Neighborhood" is always transient
-//						Managers.getCategoryManager().addTransient(catID, categorizable.getId());
-//						isNeighborhood = true;
-//					}
-//
-//					if (isNeighborhood && !candidates.contains(peer)) {
+//					if (!candidates.contains(peer)) {
 //						candidates.add(peer);
 //					}
 //				}
 			}
 			else if (catID != null) {
-				for (IPeerNode peer : peers) {
+				for (IPeerNode peer : peerNodes) {
 					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
@@ -271,7 +281,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else {
-				for (IPeerNode peer : peers) {
+				for (IPeerNode peer : peerNodes) {
 					// Check for filtered nodes (Value-add's and Proxies)
 					if (isFiltered(peer)) {
 						continue;
@@ -282,7 +292,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 
-			children = candidates.toArray(new IPeerNode[candidates.size()]);
+			children = candidates.toArray(new Object[candidates.size()]);
 		}
 		// If it is a peer model itself, get the child peers
 		else if (parentElement instanceof IPeerNode) {

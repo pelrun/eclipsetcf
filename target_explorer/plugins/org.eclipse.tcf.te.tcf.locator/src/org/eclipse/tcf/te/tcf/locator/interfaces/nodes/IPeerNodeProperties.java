@@ -44,41 +44,6 @@ public interface IPeerNodeProperties {
 	public static final String PROP_REDIRECT_PROXY = "redirect.proxy"; //$NON-NLS-1$
 
 	/**
-	 * Property: The peer state.
-	 */
-	public static final String PROP_STATE = "state"; //$NON-NLS-1$
-
-	/**
-	 * Peer state: Not determined yet (unknown).
-	 */
-	public static final int STATE_UNKNOWN = -1;
-
-	/**
-	 * Peer state: Peer is reachable, no active communication channel is open.
-	 */
-	public static final int STATE_REACHABLE = 0;
-
-	/**
-	 * Peer state: Peer is reachable and an active communication channel is opened.
-	 */
-	public static final int STATE_CONNECTED = 1;
-
-	/**
-	 * Peer state: Peer is not reachable. Connection attempt timed out.
-	 */
-	public static final int STATE_NOT_REACHABLE = 2;
-
-	/**
-	 * Peer state: Peer is not reachable. Connection attempt terminated with error.
-	 */
-	public static final int STATE_ERROR = 3;
-
-	/**
-	 * Peer state: Peer is waiting to become ready.
-	 */
-	public static final int STATE_WAITING_FOR_READY = 4;
-
-	/**
 	 * Property: Reference counter tracking the active channels for this peer.
 	 */
 	public static String PROP_CHANNEL_REF_COUNTER = "channelRefCounter.silent"; //$NON-NLS-1$

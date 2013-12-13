@@ -98,7 +98,7 @@ public class Scanner extends Job implements IScanner {
 		if (monitor == null) monitor = new NullProgressMonitor();
 
 		// Get the current list of peers known to the parent model
-		IPeerNode[] peers = getParentModel().getPeers();
+		IPeerNode[] peers = getParentModel().getPeerNodes();
 		// Do we have something to scan at all
 		if (peers.length > 0) {
 			try {
