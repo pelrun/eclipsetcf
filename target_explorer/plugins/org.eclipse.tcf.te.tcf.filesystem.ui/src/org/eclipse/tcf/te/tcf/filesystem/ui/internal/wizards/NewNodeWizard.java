@@ -20,8 +20,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreate;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
 import org.eclipse.tcf.te.ui.wizards.AbstractWizard;
 import org.eclipse.ui.INewWizard;
@@ -40,7 +40,7 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	// The folder in which the new node is created.
 	private FSTreeNode folder;
 	// The target peer where the new node is created.
-	private IPeerModel peer;
+	private IPeerNode peer;
 	// The wizard page used to create the new node.
 	private NewNodeWizardPage newPage;
 
@@ -70,9 +70,9 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 				}
 				peer = folder.peerNode;
 			}
-			else if (element instanceof IPeerModel) {
-				if(hasFileSystem((IPeerModel) element)) {
-					peer = (IPeerModel) element;
+			else if (element instanceof IPeerNode) {
+				if(hasFileSystem((IPeerNode) element)) {
+					peer = (IPeerNode) element;
 				}
 			}
 		}
@@ -84,10 +84,10 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	 * @param peer The target peer.
 	 * @return true if it has a file system service.
 	 */
-	public boolean hasFileSystem(final IPeerModel peer) {
+	public boolean hasFileSystem(final IPeerNode peer) {
 		if(Protocol.isDispatchThread()) {
 			String services = null;
-			services = peer.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+			services = peer.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 			if (services != null) {
 				// Lookup each service individually
 				for (String service : services.split(",")) { //$NON-NLS-1$
@@ -225,7 +225,7 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	 *
 	 * @return The target peer selected.
 	 */
-	public IPeerModel getPeer(){
+	public IPeerNode getPeer(){
 		return peer;
 	}
 
@@ -234,7 +234,7 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	 *
 	 * @param peer The newly selected target peer.
 	 */
-	public void setPeer(IPeerModel peer) {
+	public void setPeer(IPeerNode peer) {
 		this.peer = peer;
 		newPage.setPeer(peer);
 	}

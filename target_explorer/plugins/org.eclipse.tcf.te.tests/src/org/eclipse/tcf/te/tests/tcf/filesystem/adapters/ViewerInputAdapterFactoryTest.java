@@ -15,7 +15,7 @@ import org.eclipse.tcf.te.tests.tcf.filesystem.FSPeerTestCase;
 
 public class ViewerInputAdapterFactoryTest extends FSPeerTestCase {
 	public void testViewerInputAdapter() {
-		IViewerInput input = (IViewerInput) Platform.getAdapterManager().getAdapter(peerModel, IViewerInput.class);
+		IViewerInput input = (IViewerInput) Platform.getAdapterManager().getAdapter(peerNode, IViewerInput.class);
 		assertNotNull(input);
 	}
 }

@@ -19,7 +19,7 @@ import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.listener.RuntimeModelProcessServiceListener;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.listener.RuntimeModelRunControlServiceListener;
@@ -67,7 +67,7 @@ public class RuntimeModelChannelService extends AbstractModelService<IRuntimeMod
 		}
 
 		// Get the peer model node
-		IPeerModel node = getModel().getPeerModel();
+		IPeerNode node = getModel().getPeerModel();
 		if (node != null) {
 			// Open a new channel to the remote peer
 			Tcf.getChannelManager().openChannel(node.getPeer(), null, new IChannelManager.DoneOpenChannel() {

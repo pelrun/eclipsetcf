@@ -11,7 +11,7 @@
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.wizards;
 
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.dialogs.PatternFilter;
 
@@ -37,7 +37,7 @@ public class TargetPatternFilter extends PatternFilter {
 	 */
 	@Override
     public boolean isElementSelectable(Object element) {
-		return element instanceof IPeerModel;
+		return element instanceof IPeerNode;
 	}
 
 	/*
@@ -46,7 +46,7 @@ public class TargetPatternFilter extends PatternFilter {
 	 */
 	@Override
     protected boolean isLeafMatch(Viewer viewer, Object element) {
-		if ( element instanceof IPeerModel) {
+		if ( element instanceof IPeerNode) {
 			String text = targetLabelProvider.getText(element);
 			if (wordMatches(text)) {
 				return true;

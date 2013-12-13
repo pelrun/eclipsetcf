@@ -56,10 +56,10 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IImportPersistenceService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
@@ -336,7 +336,7 @@ public class PeerImportWizardPage extends WizardPage {
 		UIJob importjob = new UIJob(getContainer().getShell().getDisplay(), Messages.PeerImportWizard_title) {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				final ILocatorModel model = Model.getModel();
+				final IPeerModel model = Model.getModel();
 				final IProgressMonitor finalMonitor;
 				if (monitor == null) {
 					finalMonitor = new NullProgressMonitor();
@@ -349,25 +349,19 @@ public class PeerImportWizardPage extends WizardPage {
 				int toggleResult = -1;
 				for (final Object config : configs) {
 					if (config instanceof IPeer) {
-						final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+						final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 						Protocol.invokeAndWait(new Runnable() {
 							@Override
 							public void run() {
-								peerModel.set(model.getService(ILocatorModelLookupService.class).lkupPeerModelById(((IPeer)config).getID()));
-								if (peerModel.get() == null) {
-									for (IPeerModel peer : model.getPeers()) {
-										if (peer.isStatic()) {
+								peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(((IPeer)config).getID()));
+								if (peerNode.get() == null) {
+									for (IPeerNode peer : model.getPeers()) {
 											String name = peer.getPeer().getName();
 											if (name.equalsIgnoreCase(((IPeer)config).getName())) {
-												peerModel.set(peer);
+												peerNode.set(peer);
 												break;
 											}
-										}
 									}
-
-								}
-								if (peerModel.get() != null && !peerModel.get().isStatic()) {
-									peerModel.set(null);
 								}
 							}
 						});
@@ -376,11 +370,11 @@ public class PeerImportWizardPage extends WizardPage {
 						if (service == null) {
 							service = ServiceManager.getInstance().getService(IURIPersistenceService.class);
 						}
-						if (peerModel.get() != null) {
+						if (peerNode.get() != null) {
 							if (!toggleState || toggleResult < 0) {
 								MessageDialogWithToggle dialog = MessageDialogWithToggle.openYesNoQuestion(
 												getShell(), null,
-												NLS.bind(Messages.PeerImportWizardPage_overwriteDialog_message, peerModel.get().getName()),
+												NLS.bind(Messages.PeerImportWizardPage_overwriteDialog_message, peerNode.get().getName()),
 												Messages.PeerImportWizardPage_overwriteDialogToggle_message, toggleState, null, null);
 								toggleState = dialog.getToggleState();
 								toggleResult = dialog.getReturnCode();
@@ -389,7 +383,7 @@ public class PeerImportWizardPage extends WizardPage {
 								continue;
 							}
 							try {
-								service.delete(peerModel.get().getPeer(), null);
+								service.delete(peerNode.get().getPeer(), null);
 							}
 							catch (IOException e) {
 							}
@@ -413,7 +407,7 @@ public class PeerImportWizardPage extends WizardPage {
 				Protocol.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						model.getService(ILocatorModelRefreshService.class).refresh(null);
+						model.getService(IPeerModelRefreshService.class).refresh(null);
 					}
 				});
 				finalMonitor.done();

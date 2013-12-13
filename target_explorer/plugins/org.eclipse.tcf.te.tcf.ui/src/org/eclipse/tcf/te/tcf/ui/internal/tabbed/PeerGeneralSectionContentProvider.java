@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.interfaces.services.INodePropertiesTableFilterUIDelegate;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
@@ -65,7 +65,7 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 	public Object[] getElements(final Object inputElement) {
 		List<NodePropertiesTableTableNode> nodes = new ArrayList<NodePropertiesTableTableNode>();
 
-		if (inputElement instanceof IPeerModel) {
+		if (inputElement instanceof IPeerNode) {
 			// Get the associated label provider
 			IUIService service = ServiceManager.getInstance().getService(inputElement, IUIService.class);
 			ILabelProvider provider = service != null ? service.getDelegate(inputElement, ILabelProvider.class) : null;
@@ -74,12 +74,12 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 			final Map<String, Object> properties = new HashMap<String, Object>();
 			// And get all native properties of the peer
 			if (Protocol.isDispatchThread()) {
-				properties.putAll(((IPeerModel)inputElement).getPeer().getAttributes());
+				properties.putAll(((IPeerNode)inputElement).getPeer().getAttributes());
 			} else {
 				Protocol.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						properties.putAll(((IPeerModel)inputElement).getPeer().getAttributes());
+						properties.putAll(((IPeerNode)inputElement).getPeer().getAttributes());
 					}
 				});
 			}
@@ -145,10 +145,10 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 		}
 
 		// If the input is a peer model node, set it directly
-		if (newInput instanceof IPeerModel) element = newInput;
+		if (newInput instanceof IPeerNode) element = newInput;
 
 		// Determine the section header text
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerNode) {
 			sectionTitle = NLS.bind(org.eclipse.tcf.te.ui.nls.Messages.NodePropertiesTableControl_section_title, "Peer"); //$NON-NLS-1$
 		}
 

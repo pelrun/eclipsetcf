@@ -19,12 +19,12 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Set the waiting_for_ready state.
  */
-public class SetWaitForReadyStep extends AbstractPeerModelStep {
+public class SetWaitForReadyStep extends AbstractPeerNodeStep {
 
 	/**
 	 * Constructor.
@@ -47,9 +47,9 @@ public class SetWaitForReadyStep extends AbstractPeerModelStep {
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				int state = getActivePeerModelContext(context, data, fullQualifiedId).getIntProperty(IPeerModelProperties.PROP_STATE);
-				if (state == IPeerModelProperties.STATE_UNKNOWN || state == IPeerModelProperties.STATE_NOT_REACHABLE || state == IPeerModelProperties.STATE_ERROR) {
-					getActivePeerModelContext(context, data, fullQualifiedId).setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY);
+				int state = getActivePeerModelContext(context, data, fullQualifiedId).getIntProperty(IPeerNodeProperties.PROP_STATE);
+				if (state == IPeerNodeProperties.STATE_UNKNOWN || state == IPeerNodeProperties.STATE_NOT_REACHABLE || state == IPeerNodeProperties.STATE_ERROR) {
+					getActivePeerModelContext(context, data, fullQualifiedId).setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_WAITING_FOR_READY);
 				}
 			}
 		});
@@ -72,7 +72,7 @@ public class SetWaitForReadyStep extends AbstractPeerModelStep {
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-                getActivePeerModelContext(context, data, fullQualifiedId).setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_NOT_REACHABLE);
+                getActivePeerModelContext(context, data, fullQualifiedId).setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_NOT_REACHABLE);
 			}
 		});
 		super.rollback(context, data, status, fullQualifiedId, monitor, callback);

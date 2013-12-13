@@ -27,7 +27,7 @@ import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandler;
 import org.eclipse.tcf.te.runtime.statushandler.interfaces.IStatusHandlerConstants;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
@@ -52,7 +52,7 @@ public class TerminateStep {
 
 		// If the context is not attached, there is nothing to do
 		if (node.getProcessContext() != null) {
-			IPeerModel peerNode = (IPeerModel)node.getAdapter(IPeerModel.class);
+			IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
 			if (peerNode != null) {
 				doTerminate(node, callback);
 			} else {
@@ -78,7 +78,7 @@ public class TerminateStep {
 		Assert.isNotNull(node);
 
 		// Determine the peer model node
-		final IPeerModel peerNode = (IPeerModel)node.getAdapter(IPeerModel.class);
+		final IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
 
 		// Open a channel
 		Tcf.getChannelManager().openChannel(peerNode.getPeer(), null, new IChannelManager.DoneOpenChannel() {

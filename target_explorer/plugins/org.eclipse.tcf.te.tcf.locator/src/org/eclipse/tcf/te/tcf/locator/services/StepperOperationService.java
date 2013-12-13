@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.tcf.locator.services;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 
 /**
@@ -40,7 +40,7 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	 */
 	@Override
 	public String getStepGroupId(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeerModel);
+		Assert.isTrue(context instanceof IPeerNode);
 
 		if (IStepperServiceOperations.CONNECT.equals(operation)) {
 			return "org.eclipse.tcf.te.tcf.locator.connectStepGroup"; //$NON-NLS-1$
@@ -57,13 +57,13 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	 */
 	@Override
 	public String getStepGroupName(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeerModel);
+		Assert.isTrue(context instanceof IPeerNode);
 
 		if (IStepperServiceOperations.CONNECT.equals(operation)) {
-			return "Connect "+((IPeerModel)context).getName(); //$NON-NLS-1$
+			return "Connect "+((IPeerNode)context).getName(); //$NON-NLS-1$
 		}
 		if (IStepperServiceOperations.DISCONNECT.equals(operation)) {
-			return "Disconnect "+((IPeerModel)context).getName(); //$NON-NLS-1$
+			return "Disconnect "+((IPeerNode)context).getName(); //$NON-NLS-1$
 		}
 
 		return null;

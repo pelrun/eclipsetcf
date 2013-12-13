@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.tcf.processes.ui.editor.tree;
 
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 
@@ -19,15 +19,15 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeMo
  */
 public class ContentProvider extends org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider {
 	// The target's peer model.
-	private IPeerModel peerModel;
+	private IPeerNode peerNode;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#dispose()
 	 */
 	@Override
 	public void dispose() {
-		if (peerModel != null) {
-			IRuntimeModel model = ModelManager.getRuntimeModel(peerModel);
+		if (peerNode != null) {
+			IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
 			if (model != null && model.getAutoRefreshInterval() > 0) {
 				// If the model is auto refreshing, then stop it when the editor is disposed.
 				model.setAutoRefreshInterval(0);
@@ -41,8 +41,8 @@ public class ContentProvider extends org.eclipse.tcf.te.tcf.processes.ui.navigat
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		super.inputChanged(viewer, oldInput, newInput);
-		if (newInput instanceof IPeerModel) {
-			peerModel = (IPeerModel) newInput;
+		if (newInput instanceof IPeerNode) {
+			peerNode = (IPeerNode) newInput;
 		}
 	}
 

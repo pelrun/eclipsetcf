@@ -47,8 +47,8 @@ import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEditorPage;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -71,11 +71,11 @@ public abstract class AbstractDiagnosticsCommandHandler extends AbstractHandler 
 			while (iterator.hasNext()) {
 				Object element = iterator.next();
 
-				// The selected element must be of type IPeerModel
-				if (element instanceof IPeerModel) {
-					final IPeerModel node = (IPeerModel)element;
+				// The selected element must be of type IPeerNode
+				if (element instanceof IPeerNode) {
+					final IPeerNode node = (IPeerNode)element;
 
-					ILocatorModelPeerNodeQueryService service = node.getModel().getService(ILocatorModelPeerNodeQueryService.class);
+					IPeerModelQueryService service = node.getModel().getService(IPeerModelQueryService.class);
 					String remoteServices = service != null ? service.queryRemoteServices(node) : null;
 
 					if (remoteServices != null && remoteServices.contains(IDiagnostics.NAME)) {
@@ -101,7 +101,7 @@ public abstract class AbstractDiagnosticsCommandHandler extends AbstractHandler 
 	 * @param peer The peer. Must not be <code>null</code>.
 	 * @param parentShell The parent shell.  Must not be <code>null</code>.
 	 */
-	/* default */ void runDiagnostics(IPeerModel node, Shell parentShell) {
+	/* default */ void runDiagnostics(IPeerNode node, Shell parentShell) {
 		Assert.isNotNull(node);
 		Assert.isNotNull(parentShell);
 

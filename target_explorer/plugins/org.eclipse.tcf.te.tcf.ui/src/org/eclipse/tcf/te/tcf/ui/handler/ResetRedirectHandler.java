@@ -27,10 +27,10 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -51,13 +51,13 @@ public class ResetRedirectHandler extends AbstractHandler {
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			// Redirect is supporting single selection only
 			Object candidate = ((IStructuredSelection)selection).getFirstElement();
-			if (candidate instanceof IPeerModel) {
-				final IPeerModel peerModel = (IPeerModel)candidate;
+			if (candidate instanceof IPeerNode) {
+				final IPeerNode peerNode = (IPeerNode)candidate;
 
 				Protocol.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						resetRedirect(peerModel);
+						resetRedirect(peerNode);
 					}
 				});
 			}
@@ -71,19 +71,19 @@ public class ResetRedirectHandler extends AbstractHandler {
 	 * <p>
 	 * The method must be called from within the TCF dispatch thread.
 	 *
-	 * @param peerModel The peer to reset. Must not be <code>null</code>.
+	 * @param peerNode The peer to reset. Must not be <code>null</code>.
 	 */
-	public void resetRedirect(IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	public void resetRedirect(IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the peer attributes
 		Map<String, String> attributes = new HashMap<String, String>();
-		attributes.putAll(peerModel.getPeer().getAttributes());
+		attributes.putAll(peerNode.getPeer().getAttributes());
 		// Redirection set?
-		if (attributes.get(IPeerModelProperties.PROP_REDIRECT_PROXY) != null) {
+		if (attributes.get(IPeerNodeProperties.PROP_REDIRECT_PROXY) != null) {
 			// Remove the redirection
-			attributes.remove(IPeerModelProperties.PROP_REDIRECT_PROXY);
+			attributes.remove(IPeerNodeProperties.PROP_REDIRECT_PROXY);
 
 			try {
 				// Save it
@@ -96,22 +96,22 @@ public class ResetRedirectHandler extends AbstractHandler {
 				uRIPersistenceService.write(peer, null);
 
 				// And update the instance
-				peerModel.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+				peerNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
 
 				// Reset proxy (parent) and peer model (child) association
-				Model.getModel().getService(ILocatorModelUpdateService.class).removeChild(peerModel);
-				peerModel.setParent(null);
+				Model.getModel().getService(IPeerModelUpdateService.class).removeChild(peerNode);
+				peerNode.setParent(null);
 
 				// Trigger a refresh of the locator model in a later dispatch cycle
 				Protocol.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						Model.getModel().getService(ILocatorModelRefreshService.class).refresh(null);
+						Model.getModel().getService(IPeerModelRefreshService.class).refresh(null);
 					}
 				});
 			} catch (IOException e) {
 				String template = NLS.bind(Messages.ResetRedirectHandler_error_resetRedirectFailed, Messages.PossibleCause);
-				StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), peerModel, template,
+				StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), peerNode, template,
 												Messages.ResetRedirectHandler_error_title, IContextHelpIds.MESSAGE_RESET_REDIRECT_FAILED, this, null);
 			}
 		}

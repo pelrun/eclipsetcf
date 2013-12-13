@@ -29,13 +29,13 @@ import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.nodes.PeerNode;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 
@@ -44,14 +44,14 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
  */
 public final class LocatorListener implements ILocator.LocatorListener {
 	// Reference to the parent model
-	/* default */ final ILocatorModel model;
+	/* default */ final IPeerModel model;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param model The parent locator model. Must not be <code>null</code>.
 	 */
-	public LocatorListener(ILocatorModel model) {
+	public LocatorListener(IPeerModel model) {
 		super();
 
 		Assert.isNotNull(model);
@@ -96,28 +96,26 @@ public final class LocatorListener implements ILocator.LocatorListener {
 
 		if (model != null && peer != null) {
 			// find the corresponding model node to remove (expected to be null)
-			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peer.getID());
+			IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(peer.getID());
 			if (peerNode == null) {
 				// Double check with "ClientID" if set
 				String clientID = peer.getAttributes().get("ClientID"); //$NON-NLS-1$
 				if (clientID != null) {
-					peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(clientID);
+					peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(clientID);
 				}
 			}
 			// If not found, create a new peer node instance
 			if (peerNode == null) {
-				peerNode = new PeerModel(model, peer);
+				peerNode = new PeerNode(model, peer);
 				// Validate the peer node before adding
 				peerNode = model.validatePeerNodeForAdd(peerNode);
 				// Add the peer node to the model
 				if (peerNode != null) {
 					// If there are reachable static peers without an agent ID associated or
 					// static peers with unknown link state, refresh the agent ID's first.
-					List<IPeerModel> nodes = new ArrayList<IPeerModel>();
+					List<IPeerNode> nodes = new ArrayList<IPeerNode>();
 
-					for (IPeerModel node : model.getPeers()) {
-						// Skip static nodes
-						if (!node.isStatic()) continue;
+					for (IPeerNode node : model.getPeers()) {
 						// We expect the agent ID to be set
 						if (node.getPeer().getAgentID() == null || "".equals(node.getPeer().getAgentID())) { //$NON-NLS-1$
 							nodes.add(node);
@@ -125,31 +123,31 @@ public final class LocatorListener implements ILocator.LocatorListener {
 					}
 
 					// Create the runnable to execute after the agent ID refresh (if needed)
-					final IPeerModel finPeerNode = peerNode;
+					final IPeerNode finPeerNode = peerNode;
 					final IPeer finPeer = peer;
 					final Runnable runnable = new Runnable() {
 						@Override
 						public void run() {
-							IPeerModel[] matches = model.getService(ILocatorModelLookupService.class).lkupMatchingStaticPeerModels(finPeerNode);
+							IPeerNode[] matches = model.getService(IPeerModelLookupService.class).lkupMatchingStaticPeerModels(finPeerNode);
 							if (matches.length == 0) {
 								// If the peer node is still in the model, schedule for immediate status update
-								if (model.getService(ILocatorModelLookupService.class).lkupPeerModelById(finPeerNode.getPeerId()) != null) {
+								if (model.getService(IPeerModelLookupService.class).lkupPeerModelById(finPeerNode.getPeerId()) != null) {
 									Runnable runnable2 = new ScannerRunnable(model.getScanner(), finPeerNode);
 									Protocol.invokeLater(runnable2);
 								}
 							} else {
 								// Remove the preliminary added node from the model again
-								model.getService(ILocatorModelUpdateService.class).remove(finPeerNode);
+								model.getService(IPeerModelUpdateService.class).remove(finPeerNode);
 
-								for (IPeerModel match : matches) {
+								for (IPeerNode match : matches) {
 									IPeer myPeer = model.validatePeer(finPeer);
 									if (myPeer != null) {
 										// Update the matching static node
 										boolean changed = match.setChangeEventsEnabled(false);
 										// Merge user configured properties between the peers
-										model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(match, myPeer, true);
+										model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(match, myPeer, true);
 										if (changed) match.setChangeEventsEnabled(true);
-										match.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, match.getPeer());
+										match.fireChangeEvent(IPeerNodeProperties.PROP_INSTANCE, myPeer, match.getPeer());
 										// And schedule for immediate status update
 										Runnable runnable2 = new ScannerRunnable(model.getScanner(), match);
 										Protocol.invokeLater(runnable2);
@@ -161,11 +159,11 @@ public final class LocatorListener implements ILocator.LocatorListener {
 
 					// Preliminary add the node to the model now. If we have to refresh the agent ID,
 					// this is an asynchronous operation and other peerAdded events might be processed before.
-					model.getService(ILocatorModelUpdateService.class).add(peerNode);
+					model.getService(IPeerModelUpdateService.class).add(peerNode);
 
 					if (nodes.size() > 0) {
 						// Refresh the agent ID's first
-						model.getService(ILocatorModelRefreshService.class).refreshAgentIDs(nodes.toArray(new IPeerModel[nodes.size()]), new Callback() {
+						model.getService(IPeerModelRefreshService.class).refreshAgentIDs(nodes.toArray(new IPeerNode[nodes.size()]), new Callback() {
 							@Override
 							protected void internalDone(Object caller, IStatus status) {
 								// Ignore errors
@@ -179,26 +177,18 @@ public final class LocatorListener implements ILocator.LocatorListener {
 				}
 			} else {
 				// Peer node found, update the peer instance
-				boolean isStatic = peerNode.isStatic();
-				if (isStatic) {
 					// Validate the peer node before updating
 					IPeer myPeer = model.validatePeer(peer);
 					if (myPeer != null) {
 						boolean changed = peerNode.setChangeEventsEnabled(false);
 						// Merge user configured properties between the peers
-						model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, myPeer, true);
+						model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(peerNode, myPeer, true);
 						if (changed) peerNode.setChangeEventsEnabled(true);
-						peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, peerNode.getPeer());
+						peerNode.fireChangeEvent(IPeerNodeProperties.PROP_INSTANCE, myPeer, peerNode.getPeer());
 						// And schedule for immediate status update
 						Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
 						Protocol.invokeLater(runnable);
 					}
-				} else {
-					peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
-					// And schedule for immediate status update
-					Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
-					Protocol.invokeLater(runnable);
-				}
 			}
 		}
 	}
@@ -229,12 +219,12 @@ public final class LocatorListener implements ILocator.LocatorListener {
 
 		if (model != null && peer != null) {
 			// find the corresponding model node to remove
-			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peer.getID());
+			IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(peer.getID());
 			if (peerNode == null) {
 				// Double check with "ClientID" if set
 				String clientID = peer.getAttributes().get("ClientID"); //$NON-NLS-1$
 				if (clientID != null) {
-					peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(clientID);
+					peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(clientID);
 				}
 			}
 			// Update the peer instance
@@ -245,7 +235,7 @@ public final class LocatorListener implements ILocator.LocatorListener {
 			    if (oldPeer != peer) {
 			    	// Peers visible to the locator are replaced with the new instance
 			    	if (oldPeer instanceof AbstractPeer) {
-			    		peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+			    		peerNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
 			    	}
 			    	// Non-visible peers are updated
 			    	else {
@@ -254,15 +244,15 @@ public final class LocatorListener implements ILocator.LocatorListener {
 						if (myPeer != null) {
 							boolean changed = peerNode.setChangeEventsEnabled(false);
 							// Merge user configured properties between the peers
-							model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, myPeer, true);
+							model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(peerNode, myPeer, true);
 							if (changed) peerNode.setChangeEventsEnabled(true);
-							peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, myPeer, peerNode.getPeer());
+							peerNode.fireChangeEvent(IPeerNodeProperties.PROP_INSTANCE, myPeer, peerNode.getPeer());
 						}
 			    	}
 			    }
 			}
 			// Refresh static peers and merge attributes if required
-			model.getService(ILocatorModelRefreshService.class).refreshStaticPeers();
+			model.getService(IPeerModelRefreshService.class).refreshStaticPeers();
 		}
 
 		// Clean up the guardians
@@ -282,7 +272,7 @@ public final class LocatorListener implements ILocator.LocatorListener {
 
 		if (model != null && id != null) {
 			// find the corresponding model node to remove
-			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+			IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(id);
 
 			// If we cannot find a model node, it is probably because the remove is sent for the
 			// non-loopback addresses of the localhost. We have to double check this.
@@ -309,12 +299,11 @@ public final class LocatorListener implements ILocator.LocatorListener {
 				newId.append(id.substring(endIndex + 1));
 
 				// Try the lookup again
-				peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(newId.toString());
+				peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(newId.toString());
 			}
 
 			// If the model node is found in the model, process the removal.
 			if (peerNode != null) {
-				if (peerNode.isStatic()) {
 					boolean changed = peerNode.setChangeEventsEnabled(false);
 					IPeer peer = peerNode.getPeer();
 
@@ -349,8 +338,8 @@ public final class LocatorListener implements ILocator.LocatorListener {
 					}
 
 					// Remove the attributes stored at peer node level
-					peerNode.setProperty(IPeerModelProperties.PROP_LOCAL_SERVICES, null);
-					peerNode.setProperty(IPeerModelProperties.PROP_REMOTE_SERVICES, null);
+					peerNode.setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, null);
+					peerNode.setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, null);
 
 					// Check if we have to remote the peer in the underlying locator service too
 					if (remotePeerID != null) {
@@ -363,11 +352,11 @@ public final class LocatorListener implements ILocator.LocatorListener {
 					peerNode.getModel().setChildren(peerNode.getPeerId(), null);
 
 					if (changed) peerNode.setChangeEventsEnabled(true);
-					peerNode.fireChangeEvent(IPeerModelProperties.PROP_INSTANCE, peer, peerNode.getPeer());
+					peerNode.fireChangeEvent(IPeerNodeProperties.PROP_INSTANCE, peer, peerNode.getPeer());
 
 					final IModelListener[] listeners = model.getListener();
 					if (listeners.length > 0) {
-						final IPeerModel finPeerNode = peerNode;
+						final IPeerNode finPeerNode = peerNode;
 						Protocol.invokeLater(new Runnable() {
 							@Override
 							public void run() {
@@ -377,10 +366,6 @@ public final class LocatorListener implements ILocator.LocatorListener {
 							}
 						});
 					}
-				} else {
-					// Dynamic peer -> Remove peer model node from the model
-					model.getService(ILocatorModelUpdateService.class).remove(peerNode);
-				}
 			}
 		}
 	}

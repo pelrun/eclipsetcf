@@ -9,80 +9,150 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 
+import java.util.List;
+
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.te.core.interfaces.IDecoratable;
-import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
+import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IScanner;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService;
+
 
 /**
- * The peer model is an extension to the TCF peer representation, implementing the {@link IPeer}
- * interface. The peer model provides an offline cache for a peers known list of local and remote
- * services and is the merge point of peer attributes from custom data storages.
+ * The locator model is an extension to the TCF locator service. The
+ * model allows to store additional properties for each peer, keep
+ * track of peers from different origins.
  * <p>
- * <b>Note:</b> Read and write access to the peer model must happen within the TCF dispatch thread.
+ * <b>Note:</b> Updates to the locator model, and the locator model
+ * children needs to be performed in the TCF dispatch thread. The
+ * locator model and all child model nodes do assert this core
+ * assumption. To maintain consistency, and to avoid any performance
+ * overhead for thread synchronization, the model read access must
+ * happen in the TCF dispatch thread as well.
+ *
+ * @see ILocator
  */
-public interface IPeerModel extends IContainerModelNode, IDecoratable {
+public interface IPeerModel extends IAdaptable {
 
 	/**
-	 * Returns the parent locator model instance.
-	 * <p>
-	 * This method may be called from any thread.
+	 * Adds the specified listener to the list of model listener.
+	 * If the same listener has been added before, the listener will
+	 * not be added again.
 	 *
-	 * @return The parent locator model instance.
+	 * @param listener The listener. Must not be <code>null</code>.
 	 */
-	public ILocatorModel getModel();
+	public void addListener(IModelListener listener);
 
 	/**
-	 * Returns the native {@link IPeer} object.
-	 * <p>
-	 * This method may be called from any thread.
+	 * Removes the specified listener from the list of model listener.
 	 *
-	 * @return The native {@link IPeer} instance.
+	 * @param listener The listener. Must not be <code>null</code>.
 	 */
-	public IPeer getPeer();
+	public void removeListener(IModelListener listener);
 
 	/**
-	 * Returns the peer id.
-	 * <p>
-	 * This method may be called from any thread.
+	 * Returns the list of registered model listeners.
 	 *
-	 * @return The peer id.
+	 * @return The list of registered model listeners or an empty list.
 	 */
-	public String getPeerId();
+	public IModelListener[] getListener();
 
 	/**
-	 * Returns the peer id of the remote peer.
-	 * <p>
-	 * For dynamically discovered peers, {@link #getPeerId()} and {@link #getRemotePeerId()} are identical.
-	 * <p>
-	 * For static peers, {@link #getRemotePeerId()} will return <code>null</code> if the static peer is not
-	 * associated with an agent. Otherwise it will return the id of the associated agent.
-	 *
-	 * @return The remote peer id or <code>null</code>.
+	 * Dispose the locator model instance.
 	 */
-	public String getRemotePeerId();
+	public void dispose();
 
 	/**
-	 * Returns if or if not the peer attributes are complete to open a channel to it.
+	 * Returns if or if not the locator model instance is disposed.
 	 *
-	 * @return <code>True</code> if the peer attributes are complete, <code>false</code> otherwise.
+	 * @return <code>True</code> if the locator model instance is disposed, <code>false/code> otherwise.
 	 */
-	public boolean isComplete();
+	public boolean isDisposed();
 
 	/**
-	 * Returns if or if not the peer model node represents a static peer.
-	 * <p>
-	 * <b>Note:</b> A peer model node can be both static and remote at the same time.
+	 * Returns the list of known peers.
 	 *
-	 * @return <code>True</code> if the node represents a static peer, <code>false</code> otherwise.
+	 * @return The list of known peers or an empty list.
 	 */
-	public boolean isStatic();
+	public IPeerNode[] getPeers();
 
 	/**
-	 * Returns if or if not the peer model node represents a remote/discovered peer.
-	 * <p>
-	 * <b>Note:</b> A peer model node can be both static and remote at the same time.
+	 * Returns an unmodifiable list of known children for the given parent peer.
 	 *
-	 * @return <code>True</code> if the node represents a remote peer, <code>false</code> otherwise.
+	 * @param parentPeerID The parent peer id. Must not be <code>null</code>.
+	 * @return The child list.
 	 */
-	public boolean isRemote();
+	public List<IPeerNode> getChildren(String parentPeerID);
+
+	/**
+	 * Sets the list of known children for the given parent peer.
+	 *
+	 * @param parentPeerID The parent peer id. Must not be <code>null</code>.
+	 * @param children The list of children or <code>null</code> to remove the parent peer.
+	 */
+	public void setChildren(String parentPeerID, List<IPeerNode> children);
+
+	/**
+	 * Returns the scanner instance being associated with the
+	 * locator model.
+	 *
+	 * @return The scanner instance.
+	 */
+	public IScanner getScanner();
+
+	/**
+	 * Starts the scanner.
+	 *
+	 * @param delay The delay in millisecond before the scanning starts.
+	 * @param schedule The time in millisecond between the scanner runs.
+	 */
+	public void startScanner(long delay, long schedule);
+
+	/**
+	 * Stops the scanner.
+	 */
+	public void stopScanner();
+
+	/**
+	 * Returns the locator model service, implementing at least the specified
+	 * service interface.
+	 *
+	 * @param serviceInterface The service interface class. Must not be <code>null</code>.
+	 * @return The service instance implementing the specified service interface, or <code>null</code>.
+	 */
+	public <V extends IPeerModelService> V getService(Class<V> serviceInterface);
+
+	/**
+	 * Validate the given peer.
+	 * <p>
+	 * If the peer is for local host, than only the peer using the loopback address is valid.
+	 *
+	 * @param peer The peer. Must not be <code>null</code>.
+	 * @return The peer if the peer is valid, or <code>null</code> if not.
+	 */
+	public IPeer validatePeer(IPeer peer);
+
+	/**
+	 * Validate the given peer model if or if not it can be added to the locator model as new peer
+	 * node.
+	 *
+	 * @param node The peer model. Must not be <code>null</code>.
+	 * @return The peer node if it allowed add it to the model, or <code>null</code> if not.
+	 */
+	public IPeerNode validatePeerNodeForAdd(IPeerNode node);
+
+	/**
+	 * Validate the given child peer model node if or if not it can be added to the locator model
+	 * as new child peer node for the associated parent peer model node.
+	 * <p>
+	 * <b>Note:</b> The parent peer node is determined by calling {@link IPeerNode#getParentNode()}.
+	 *              The call has to return a non-null value, otherwise {@link #validateChildPeerNodeForAdd(IPeerNode)}
+	 *              will do nothing.
+	 *
+	 * @param node The peer model. Must not be <code>null</code>.
+	 * @return The peer node if it allowed add it to the model, or <code>null</code> if not.
+	 */
+	public IPeerNode validateChildPeerNodeForAdd(IPeerNode node);
+
 }

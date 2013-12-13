@@ -11,7 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.internal.adapters;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IEditorSaveAsAdapter;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
@@ -32,7 +32,7 @@ public class AdapterFactory implements IAdapterFactory {
 					ILabelProvider.class,
 					IPersistableElement.class,
 					ICategorizable.class,
-					IPeerModel.class,
+					IPeerNode.class,
 					IEditorSaveAsAdapter.class
 	};
 
@@ -41,12 +41,12 @@ public class AdapterFactory implements IAdapterFactory {
 	 */
 	@Override
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
-		if (adaptableObject instanceof IPeerModel) {
+		if (adaptableObject instanceof IPeerNode) {
 			if (ILabelProvider.class.equals(adapterType)) {
 				return labelProvider;
 			}
 			if (IPersistableElement.class.equals(adapterType)) {
-				return new PersistablePeerModel((IPeerModel)adaptableObject);
+				return new PersistablePeerNode((IPeerNode)adaptableObject);
 			}
 			if (ICategorizable.class.equals(adapterType)) {
 				return new CategorizableAdapter(adaptableObject);
@@ -55,7 +55,7 @@ public class AdapterFactory implements IAdapterFactory {
 		}
 
 		if (adaptableObject instanceof EditorInput) {
-			if (IPeerModel.class.equals(adapterType)) {
+			if (IPeerNode.class.equals(adapterType)) {
 				return ((EditorInput)adaptableObject).getAdapter(adapterType);
 			}
 			if (IEditorSaveAsAdapter.class.equals(adapterType)) {

@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService
 /**
  * Set the active context as default context.
  */
-public class SetAsDefaultContextStep extends AbstractPeerModelStep {
+public class SetAsDefaultContextStep extends AbstractPeerNodeStep {
 
 	/**
 	 * Constructor.

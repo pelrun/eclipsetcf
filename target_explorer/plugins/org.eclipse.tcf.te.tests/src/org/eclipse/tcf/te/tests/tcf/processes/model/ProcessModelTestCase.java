@@ -55,10 +55,10 @@ public class ProcessModelTestCase extends TcfTestCase {
 
 	public void testProcessModel() {
 		assertNotNull("Test peer missing.", peer); //$NON-NLS-1$
-		assertNotNull("Test peer model missing.", peerModel); //$NON-NLS-1$
+		assertNotNull("Test peer model missing.", peerNode); //$NON-NLS-1$
 
 		// Get the process model for the test peer model
-		final IRuntimeModel model = ModelManager.getRuntimeModel(peerModel);
+		final IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
 		assertNotNull("Failed to get runtime model for peer model.", model); //$NON-NLS-1$
 
 		// Create a callback handler to receive all callbacks necessary to
@@ -119,7 +119,7 @@ public class ProcessModelTestCase extends TcfTestCase {
 		assertNotNull("Missing return status.", status); //$NON-NLS-1$
 		assertFalse("Process runtime model refresh failed. Possible cause: " + status.getMessage(), status.getSeverity() == IStatus.ERROR); //$NON-NLS-1$
 
-		ModelManager.disposeRuntimeModel(peerModel);
+		ModelManager.disposeRuntimeModel(peerNode);
 	}
 
 	//***** END SECTION: Single test methods *****

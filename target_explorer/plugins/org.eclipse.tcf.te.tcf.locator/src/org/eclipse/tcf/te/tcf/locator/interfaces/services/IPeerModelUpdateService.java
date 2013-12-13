@@ -12,13 +12,13 @@ package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 import java.util.Collection;
 
 import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 
 /**
  * The service to update the properties of given locator model nodes.
  */
-public interface ILocatorModelUpdateService extends ILocatorModelService {
+public interface IPeerModelUpdateService extends IPeerModelService {
 
 	/**
 	 * Adds the given peer to the list of know peers.
@@ -27,14 +27,14 @@ public interface ILocatorModelUpdateService extends ILocatorModelService {
 	 *
 	 * @param peer The peer model object. Must not be <code>null</code>.
 	 */
-	public void add(IPeerModel peer);
+	public void add(IPeerNode peer);
 
 	/**
 	 * Removes the given peer from the list of known peers.
 	 *
 	 * @param peer The peer model object. Must not be <code>null</code.
 	 */
-	public void remove(IPeerModel peer);
+	public void remove(IPeerNode peer);
 
 	/**
 	 * Update the service nodes of the given peer node with the new set of
@@ -44,31 +44,31 @@ public interface ILocatorModelUpdateService extends ILocatorModelService {
 	 * @param localServices The list of local service names or <code>null</code>.
 	 * @param remoteServices The list of remote service names or <code>null</code>.
 	 */
-	public void updatePeerServices(IPeerModel peerNode, Collection<String> localServices, Collection<String> remoteServices);
+	public void updatePeerServices(IPeerNode peerNode, Collection<String> localServices, Collection<String> remoteServices);
 
 	/**
 	 * Adds the given child peer to the parent peer.
 	 * <p>
-	 * <b>Note:</b> The parent peer node is determined by calling {@link IPeerModel#getParentNode()}.
-	 *              The call has to return a non-null value, otherwise {@link #addChild(IPeerModel)}
+	 * <b>Note:</b> The parent peer node is determined by calling {@link IPeerNode#getParentNode()}.
+	 *              The call has to return a non-null value, otherwise {@link #addChild(IPeerNode)}
 	 *              will do nothing.
 	 *
 	 * @param parent The parent peer model node. Must not be <code>null</code>.
 	 * @param child The child peer model object. Must not be <code>null</code>.
 	 */
-	public void addChild(IPeerModel child);
+	public void addChild(IPeerNode child);
 
 	/**
 	 * Removes the given child peer from the parent peer.
 	 * <p>
-	 * <b>Note:</b> The parent peer node is determined by calling {@link IPeerModel#getParentNode()}.
-	 *              The call has to return a non-null value, otherwise {@link #removeChild(IPeerModel)}
+	 * <b>Note:</b> The parent peer node is determined by calling {@link IPeerNode#getParentNode()}.
+	 *              The call has to return a non-null value, otherwise {@link #removeChild(IPeerNode)}
 	 *              will do nothing.
 	 *
 	 * @param parent The parent peer model node. Must not be <code>null</code>.
 	 * @param child The child peer model object. Must not be <code>null</code>.
 	 */
-	public void removeChild(IPeerModel child);
+	public void removeChild(IPeerNode child);
 
 	/**
 	 * Merge user defined peer attributes from the given peer into the given peer node.
@@ -77,5 +77,5 @@ public interface ILocatorModelUpdateService extends ILocatorModelService {
 	 * @param peer The peer. Must not be <code>null</code>.
 	 * @param force If <code>true</code>, the peer attributes are merged even if the peer id's don't match.
 	 */
-	public void mergeUserDefinedAttributes(IPeerModel node, IPeer peer, boolean force);
+	public void mergeUserDefinedAttributes(IPeerNode node, IPeer peer, boolean force);
 }

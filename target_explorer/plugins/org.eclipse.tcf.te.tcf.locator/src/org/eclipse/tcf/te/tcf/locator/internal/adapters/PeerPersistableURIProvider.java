@@ -18,8 +18,8 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.adapters.ModelNodePersistableURIProvider;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.locator.model.ModelLocationUtil;
 
 /**
@@ -39,11 +39,11 @@ public class PeerPersistableURIProvider extends ModelNodePersistableURIProvider 
 		if (context instanceof IPeer) {
 			peer = (IPeer)context;
 		}
-		else if (context instanceof IPeerModel) {
-			peer = ((IPeerModel)context).getPeer();
+		else if (context instanceof IPeerNode) {
+			peer = ((IPeerNode)context).getPeer();
 		}
-		else if (context instanceof IPeerModelProvider) {
-			peer = ((IPeerModelProvider)context).getPeerModel().getPeer();
+		else if (context instanceof IPeerNodeProvider) {
+			peer = ((IPeerNodeProvider)context).getPeerModel().getPeer();
 		}
 
 		return peer;

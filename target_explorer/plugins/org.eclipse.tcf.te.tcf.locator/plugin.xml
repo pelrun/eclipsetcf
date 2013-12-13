@@ -13,23 +13,23 @@
 <!-- Adapter factory contributions -->
    <extension point="org.eclipse.core.runtime.adapters">
       <factory
-            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"
+            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"
             class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
          <adapter type="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext"/>
-         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
       </factory>
       <factory
             adaptableType="org.eclipse.tcf.protocol.IPeer"
             class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
-         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
       </factory>
       <factory
-            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider"
+            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider"
             class="org.eclipse.tcf.te.tcf.locator.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider"/>
-         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
       </factory>
    </extension>
 
@@ -43,22 +43,22 @@
       <delegate
             class="org.eclipse.tcf.te.tcf.locator.internal.ModelNodeFactoryDelegate"
             id="org.eclipse.tcf.te.tcf.locator.model.factory.delegate">
-         <nodeType class="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+         <nodeType class="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
       </delegate>
    </extension>
 
 <!-- Eclipse core expressions property tester -->
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
-            class="org.eclipse.tcf.te.tcf.locator.internal.LocatorModelPropertyTester"
+            class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester"
             namespace="org.eclipse.tcf.te.tcf.locator"
             properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isStaticPeer,isRedirected,isProxy,isValueAdd,isOfType"
-            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
 
       <propertyTester
-            class="org.eclipse.tcf.te.tcf.locator.internal.LocatorModelPropertyTester"
+            class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester2"
             namespace="org.eclipse.tcf.te.tcf.locator"
             properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isStaticPeer,isRedirected,isProxy,isValueAdd,isOfType"
@@ -70,7 +70,7 @@
             id="org.eclipse.tcf.te.tcf.locator.SimulatorPropertyTester"
             namespace="org.eclipse.tcf.te.tcf.locator"
             properties="isSimulatorState,canStartSimulator"
-            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
    </extension>
 
@@ -104,8 +104,8 @@
             <with variable="context">
                <or>
                   <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider"/>
                   <and>
                      <instanceof value="java.lang.Class"/>
                      <with variable="contextClass">
@@ -127,7 +127,10 @@
                bundleId="org.eclipse.tcf.te.runtime.services"
                class="org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService"/>
          <enablement>
-            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+            <or>
+               <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+            </or>
          </enablement>
       </service>
       <service
@@ -138,7 +141,7 @@
                class="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService">
          </serviceType>
          <enablement>
-            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
             <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
             <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
          </enablement>
@@ -267,7 +270,7 @@
            is adaptable to IPeerModel and has a simulator service
       -->
       <definition id="te.expressions.peerModel.hasSimulatorService">
-         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
             <test property="org.eclipse.tcf.te.runtime.services.hasService" 
                   value="org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService"/>
             <test property="org.eclipse.tcf.te.tcf.locator.isAttribute"
@@ -300,7 +303,7 @@
            is adaptable to IPeerModel and has remote or offline run control
       -->
       <definition id="te.expressions.peerModel.hasRunControl">
-         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
             <or>
                <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
                <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>

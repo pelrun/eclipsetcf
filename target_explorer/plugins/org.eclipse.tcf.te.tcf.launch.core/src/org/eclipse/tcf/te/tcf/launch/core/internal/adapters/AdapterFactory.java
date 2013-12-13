@@ -23,8 +23,8 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
@@ -97,12 +97,12 @@ public class AdapterFactory implements IAdapterFactory {
 				return adapter;
 			}
 		}
-		else if (adaptableObject instanceof IPeerModel) {
+		else if (adaptableObject instanceof IPeerNode) {
 			if (ILaunchConfiguration.class.equals(adapterType)) {
-				return attachLaunchConfigAdapter.getAttachLaunchConfig((IPeerModel)adaptableObject);
+				return attachLaunchConfigAdapter.getAttachLaunchConfig((IPeerNode)adaptableObject);
 			}
 			if (ILaunchConfigurationWorkingCopy.class.equals(adapterType)) {
-				ILaunchConfiguration launchConfig = attachLaunchConfigAdapter.getAttachLaunchConfig((IPeerModel)adaptableObject);
+				ILaunchConfiguration launchConfig = attachLaunchConfigAdapter.getAttachLaunchConfig((IPeerNode)adaptableObject);
 				try {
 					return launchConfig.getWorkingCopy();
 				}
@@ -112,21 +112,21 @@ public class AdapterFactory implements IAdapterFactory {
 			}
 		}
 		else if (adaptableObject instanceof IPeer) {
-			final ILocatorModelLookupService service = Model.getModel().getService(ILocatorModelLookupService.class);
-			final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+			final IPeerModelLookupService service = Model.getModel().getService(IPeerModelLookupService.class);
+			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 
 			if (service != null) {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						peerModel.set(service.lkupPeerModelById(((IPeer)adaptableObject).getID()));
+						peerNode.set(service.lkupPeerModelById(((IPeer)adaptableObject).getID()));
 					}
 				};
 				if (Protocol.isDispatchThread()) runnable.run();
 				else Protocol.invokeAndWait(runnable);
 			}
 
-			if (peerModel.get() != null) return getAdapter(peerModel.get(), adapterType);
+			if (peerNode.get() != null) return getAdapter(peerNode.get(), adapterType);
 		}
 		return null;
 	}

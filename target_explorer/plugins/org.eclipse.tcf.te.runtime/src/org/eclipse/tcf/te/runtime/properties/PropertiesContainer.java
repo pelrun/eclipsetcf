@@ -222,7 +222,7 @@ public class PropertiesContainer extends PlatformObject implements IPropertiesCo
 	protected boolean dropEvent(Object source, String key, Object oldValue, Object newValue) {
 		Assert.isNotNull(source);
 		Assert.isNotNull(key);
-		return !changeEventsEnabled || key.endsWith(".silent"); //$NON-NLS-1$
+		return !changeEventsEnabled || key.endsWith(SILENT_PROPERTY);
 	}
 
 	/**

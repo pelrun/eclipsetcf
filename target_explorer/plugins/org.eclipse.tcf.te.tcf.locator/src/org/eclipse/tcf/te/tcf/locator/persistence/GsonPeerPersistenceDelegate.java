@@ -20,11 +20,11 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelegate;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
+import org.eclipse.tcf.te.tcf.locator.nodes.PeerNode;
 
 /**
  * Peer to string persistence delegate implementation.
@@ -75,8 +75,8 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 		if (context instanceof IPeer || IPeer.class.equals(context)) {
 			return peer;
 		}
-		else if (context instanceof Class && (((Class<?>)context).isAssignableFrom(IPeerModel.class))) {
-			final AtomicReference<IPeerModel> model = new AtomicReference<IPeerModel>();
+		else if (context instanceof Class && (((Class<?>)context).isAssignableFrom(IPeerNode.class))) {
+			final AtomicReference<IPeerNode> model = new AtomicReference<IPeerNode>();
 
 			Runnable runnable = new Runnable() {
 				@Override
@@ -85,14 +85,14 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 					String id = peer.getID();
 					if (id != null) {
 						// Lookup the id within the model
-						IPeerModel peerModel = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
-						if (peerModel == null) {
+						IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(id);
+						if (peerNode == null) {
 							// Not found in the model -> create a ghost object
-							peerModel = new PeerModel(Model.getModel(), peer);
-							peerModel.setProperty(IModelNode.PROPERTY_IS_GHOST, true);
+							peerNode = new PeerNode(Model.getModel(), peer);
+							peerNode.setProperty(IModelNode.PROPERTY_IS_GHOST, true);
 						}
 
-						model.set(peerModel);
+						model.set(peerNode);
 					}
 				}
 			};
@@ -122,11 +122,11 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 		if (context instanceof IPeer) {
 			peer = (IPeer)context;
 		}
-		else if (context instanceof IPeerModel) {
-			peer = ((IPeerModel)context).getPeer();
+		else if (context instanceof IPeerNode) {
+			peer = ((IPeerNode)context).getPeer();
 		}
-		else if (context instanceof IPeerModelProvider) {
-			peer = ((IPeerModelProvider)context).getPeerModel().getPeer();
+		else if (context instanceof IPeerNodeProvider) {
+			peer = ((IPeerNodeProvider)context).getPeerModel().getPeer();
 		}
 
 		return peer;

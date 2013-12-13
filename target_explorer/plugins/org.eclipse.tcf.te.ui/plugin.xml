@@ -150,15 +150,13 @@
       <handler commandId="org.eclipse.tcf.te.ui.editor.command.connect">
          <class class="org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler">
             <parameter name="action" value="connect"/>
+            <parameter name="handleDirty" value="true"/>
          </class>
          <activeWhen>
             <reference definitionId="te.expressions.editor.IConnectable"/>
          </activeWhen>
          <enabledWhen>
             <and>
-               <with variable="activeEditor">
-                  <test property="org.eclipse.tcf.te.ui.views.isDirty" value="false"/>
-               </with>
                <with variable="activeEditorInput">
                   <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
                      <test forcePluginActivation="true"

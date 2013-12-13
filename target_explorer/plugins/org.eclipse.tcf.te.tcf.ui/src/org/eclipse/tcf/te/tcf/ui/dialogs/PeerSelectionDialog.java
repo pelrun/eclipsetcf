@@ -9,11 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.dialogs;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -26,12 +23,7 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TreePath;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -40,11 +32,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -55,15 +46,12 @@ import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 /**
  * TCF agent selection dialog implementation.
  */
-public class AgentSelectionDialog extends CustomTitleAreaDialog {
+public class PeerSelectionDialog extends CustomTitleAreaDialog {
 	// The list of remote services the agents must provide to be included
 	/* default */ final String[] services;
 
 	// The table viewer
 	/* default */ TableViewer viewer;
-
-	// Button to filter non-reachable targets
-	/* default */ Button showOnlyReachable;
 
 	// The selection. Will be filled in if either "OK" or "Cancel" is pressed
 	private ISelection selection;
@@ -73,7 +61,7 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	 *
 	 * @param services The list of (remote) services the agents must provide to be selectable, or <code>null</code>.
 	 */
-	public AgentSelectionDialog(String[] services) {
+	public PeerSelectionDialog(String[] services) {
 		this(null, services);
 	}
 
@@ -83,7 +71,7 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	 * @param parent The parent shell used to view the dialog, or <code>null</code>.
 	 * @param services The list of (remote) services the agents must provide to be selectable, or <code>null</code>.
 	 */
-	public AgentSelectionDialog(Shell parent, String[] services) {
+	public PeerSelectionDialog(Shell parent, String[] services) {
 		super(parent, IContextHelpIds.AGENT_SELECTION_DIALOG);
 
 		this.services = services != null && services.length > 0 ? services : null;
@@ -156,29 +144,25 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	    };
 	    viewer.setLabelProvider(new DecoratingLabelProvider(labelProvider, labelProvider));
 
-	    // Create the filter buttons area
-	    createFilterButtons(parent);
-
 	    // Subclasses may customize the viewer before setting the input
 	    configureTableViewer(viewer);
 
-	    // The content to show is static. Do the filtering manually so that
-	    // we can disable the OK Button if the dialog would not show any content.
-	    final ILocatorModelLookupService service = getModel().getService(ILocatorModelLookupService.class);
-	    final List<IPeerModel> nodes = new ArrayList<IPeerModel>();
-	    if (service != null) {
-	    	nodes.addAll(Arrays.asList(service.lkupPeerModelBySupportedServices(null, services)));
-	    	ListIterator<IPeerModel> iterator = nodes.listIterator();
-	    	while (iterator.hasNext()) {
-	    		IPeerModel node = iterator.next();
+		final AtomicReference<IPeer[]> peers = new AtomicReference<IPeer[]>(null);
 
-	    		String value = node.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
-	    		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				// Get the locator service
+				ILocator locatorService = Protocol.getLocator();
+				if (locatorService != null) {
+					// Get the map of peers known to the locator service.
+					Map<String, IPeer> peerMap = locatorService.getPeers();
+					peers.set(peerMap.values().toArray(new IPeer[peerMap.size()]));
+				}
+			}
+		});
 
-	    		if (isValueAdd) iterator.remove();
-	    	}
-	    }
-	    viewer.setInput(nodes.size() > 0 ? nodes.toArray(new IPeerModel[nodes.size()]) : null);
+	    viewer.setInput(peers.get());
 	    viewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
@@ -188,48 +172,8 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 			}
 		});
 
-	    // Determine the initial state of the "show only reachable" button. If there are no
-	    // reachable target while opening the dialog, this button should be not selected.
-	    boolean showOnlyReachableSelected = true;
-	    ViewerFilter[] filters = viewer.getFilters();
-	    if (filters != null && filters.length > 0) {
-	    	TreePath parentPath = new TreePath(new Object[0]);
-	    	Object[] result = nodes.toArray();
-	    	for (ViewerFilter filter : filters) {
-				Object[] filteredResult = filter.filter(viewer, parentPath, result);
-				result = filteredResult;
-	    	}
-	    	showOnlyReachableSelected = result.length > 0;
-	    } else {
-	    	showOnlyReachableSelected = nodes.size() > 0;
-	    }
-
-	    if (showOnlyReachableSelected != SWTControlUtil.getSelection(showOnlyReachable)) {
-	    	SWTControlUtil.setSelection(showOnlyReachable, showOnlyReachableSelected);
-			viewer.refresh();
-			updateEnablement(viewer);
-	    }
-	}
-
-	/**
-	 * Creates a set of filter buttons in between the main dialog area
-	 * and the button bar.
-	 *
-	 * @param parent The parent composite. Must not be <code>null</code>.
-	 */
-	protected void createFilterButtons(Composite parent) {
-		Assert.isNotNull(parent);
-
-		showOnlyReachable = new Button(parent, SWT.CHECK);
-		SWTControlUtil.setText(showOnlyReachable, getShowOnlyReachableLabel());
-		SWTControlUtil.setSelection(showOnlyReachable, true);
-		showOnlyReachable.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				viewer.refresh();
-				updateEnablement(viewer);
-			}
-		});
+	    viewer.refresh();
+		updateEnablement(viewer);
 	}
 
 	/**
@@ -274,33 +218,6 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	 */
 	protected void configureTableViewer(TableViewer viewer) {
 		Assert.isNotNull(viewer);
-
-		viewer.addFilter(new ViewerFilter() {
-
-			@Override
-			public boolean select(Viewer viewer, Object parentElement, final Object element) {
-				if (element instanceof IPeerModel) {
-					final AtomicInteger state = new AtomicInteger(IPeerModelProperties.STATE_UNKNOWN);
-
-					Runnable runnable = new Runnable() {
-						@Override
-						public void run() {
-							state.set(((IPeerModel)element).getIntProperty(IPeerModelProperties.PROP_STATE));
-						}
-					};
-
-					if (Protocol.isDispatchThread()) runnable.run();
-					else Protocol.invokeAndWait(runnable);
-
-					boolean isShowOnlyReachable = SWTControlUtil.getSelection(showOnlyReachable);
-					if (isShowOnlyReachable) {
-						return state.get() == IPeerModelProperties.STATE_CONNECTED || state.get() == IPeerModelProperties.STATE_REACHABLE || state.get() == IPeerModelProperties.STATE_WAITING_FOR_READY;
-					}
-				}
-
-				return true;
-			}
-		});
 	}
 
 	/**
@@ -336,7 +253,7 @@ public class AgentSelectionDialog extends CustomTitleAreaDialog {
 	 *
 	 * @return The locator model instance.
 	 */
-	protected ILocatorModel getModel() {
+	protected IPeerModel getModel() {
 		return Model.getModel();
 	}
 

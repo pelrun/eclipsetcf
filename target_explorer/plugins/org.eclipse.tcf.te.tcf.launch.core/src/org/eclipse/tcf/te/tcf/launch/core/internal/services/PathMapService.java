@@ -41,8 +41,8 @@ import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapGeneratorService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.launch.core.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 
 /**
  * Path map service implementation.
@@ -307,8 +307,8 @@ public class PathMapService extends AbstractService implements IPathMapService {
     	Assert.isNotNull(callback);
 
     	IPeer peer = context instanceof IPeer ? (IPeer)context : null;
-    	if (peer == null && context instanceof IPeerModel) peer = ((IPeerModel)context).getPeer();
-    	if (peer == null && context instanceof IPeerModelProvider && ((IPeerModelProvider)context).getPeerModel() != null) peer = ((IPeerModelProvider)context).getPeerModel().getPeer();
+    	if (peer == null && context instanceof IPeerNode) peer = ((IPeerNode)context).getPeer();
+    	if (peer == null && context instanceof IPeerNodeProvider && ((IPeerNodeProvider)context).getPeerModel() != null) peer = ((IPeerNodeProvider)context).getPeerModel().getPeer();
 
     	if (peer != null) {
 			final IChannel channel = Tcf.getChannelManager().getChannel(peer);

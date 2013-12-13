@@ -21,8 +21,8 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementLabelProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.search.FSTreeNodeSearchable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.ui.interfaces.ILazyLoader;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 import org.eclipse.ui.IActionFilter;
@@ -36,13 +36,13 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 	// The fFilters map caching fFilters for FS nodes.
 	private Map<FSTreeNode, NodeStateFilter> filters;
 
-	public static class FSTreeNodePeerModelProvider extends PlatformObject implements IPeerModelProvider {
+	public static class FSTreeNodePeerNodeProvider extends PlatformObject implements IPeerNodeProvider {
 		private final FSTreeNode node;
 
 		/**
 		 * Constructor
 		 */
-		public FSTreeNodePeerModelProvider(FSTreeNode node) {
+		public FSTreeNodePeerNodeProvider(FSTreeNode node) {
 			Assert.isNotNull(node);
 			this.node = node;
 		}
@@ -57,10 +57,10 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 		}
 
 		/* (non-Javadoc)
-		 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider#getPeerModel()
+		 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
 		 */
 		@Override
-		public final IPeerModel getPeerModel() {
+		public final IPeerNode getPeerModel() {
 			return node.peerNode;
 		}
 	}
@@ -97,8 +97,8 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 			else if (adapterType == ILazyLoader.class) {
 				return new FSTreeNodeLoader(node);
 			}
-			else if (adapterType == IPeerModelProvider.class) {
-				return new FSTreeNodePeerModelProvider(node);
+			else if (adapterType == IPeerNodeProvider.class) {
+				return new FSTreeNodePeerNodeProvider(node);
 			}
 			else if (adapterType == ISearchable.class) {
 				return new FSTreeNodeSearchable(node);
@@ -113,6 +113,6 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 	 */
 	@Override
 	public Class[] getAdapterList() {
-		return new Class[] { IActionFilter.class, ILabelProvider.class, IPersistableElement.class, ILazyLoader.class, ISearchable.class, IPeerModelProvider.class };
+		return new Class[] { IActionFilter.class, ILabelProvider.class, IPersistableElement.class, ILazyLoader.class, ISearchable.class, IPeerNodeProvider.class };
 	}
 }

@@ -11,7 +11,7 @@
                bundleId="org.eclipse.tcf.te.runtime.services"
                class="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
          <enablement>
-            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
          </enablement>
       </service>
    </extension>
@@ -117,7 +117,7 @@
             insertAfter="last">
          <enablement>
             <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                   <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
                </adapt>
             </with>
@@ -129,7 +129,7 @@
             insertBefore="org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <enablement>
             <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                   <test property="org.eclipse.tcf.te.core.canAdaptTo" value="org.eclipse.debug.core.ILaunchConfiguration" args="forceAdapterLoad"/>
                </adapt>
             </with>
@@ -141,7 +141,7 @@
             insertBefore="org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage,org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <enablement>
             <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                   <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="PathMap"/>
                </adapt>
             </with>
@@ -153,7 +153,7 @@
             insertBefore="org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage,org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage,org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <enablement>
             <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                   <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="MemoryMap"/>
                </adapt>
             </with>
@@ -183,7 +183,7 @@
             labelProvider="org.eclipse.tcf.te.launch.ui.viewer.LaunchTreeLabelProvider"
             priority="lowest">
          <triggerPoints>
-            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
          </triggerPoints>
          <possibleChildren>
             <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
@@ -218,7 +218,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
-                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                         <and>
                            <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Diagnostics"/>
                            <or>

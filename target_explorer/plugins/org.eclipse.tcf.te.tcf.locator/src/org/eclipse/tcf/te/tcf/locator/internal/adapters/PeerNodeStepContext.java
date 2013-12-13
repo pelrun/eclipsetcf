@@ -11,26 +11,26 @@ package org.eclipse.tcf.te.tcf.locator.internal.adapters;
 
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.stepper.context.AbstractStepContext;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Peer model step context implementation.
  */
-public class PeerModelStepContext extends AbstractStepContext {
+public class PeerNodeStepContext extends AbstractStepContext {
 
 	/**
      * Constructor
      */
-    public PeerModelStepContext(IPeerModel peerModel) {
-    	super(peerModel);
+    public PeerNodeStepContext(IPeerNode peerNode) {
+    	super(peerNode);
     }
 
 	/**
 	 * Returns the peer model.
 	 * @return The peer model.
 	 */
-	public IPeerModel getPeerModel() {
-		return (IPeerModel)getContextObject();
+	public IPeerNode getPeerModel() {
+		return (IPeerNode)getContextObject();
 	}
 
 	/* (non-Javadoc)
@@ -54,7 +54,7 @@ public class PeerModelStepContext extends AbstractStepContext {
 	 */
 	@Override
 	public Object getAdapter(final Class adapter) {
-		if (IPeerModel.class.equals(adapter)) {
+		if (IPeerNode.class.equals(adapter)) {
 			return getPeerModel();
 		}
 

@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.tcf.ui.navigator;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.Assert;
@@ -22,8 +21,8 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
@@ -42,7 +41,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	 */
 	@Override
 	public String getText(final Object element) {
-		if (element instanceof IPeerModel || element instanceof IPeer) {
+		if (element instanceof IPeerNode || element instanceof IPeer) {
 			StringBuilder builder = new StringBuilder();
 
 			// Copy the peer node and peer attributes
@@ -51,9 +50,9 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					if (element instanceof IPeerModel) {
-						attrs.putAll(((IPeerModel)element).getProperties());
-						attrs.putAll(((IPeerModel)element).getPeer().getAttributes());
+					if (element instanceof IPeerNode) {
+						attrs.putAll(((IPeerNode)element).getProperties());
+						attrs.putAll(((IPeerNode)element).getPeer().getAttributes());
 					}
 					else if (element instanceof IPeer) {
 						attrs.putAll(((IPeer)element).getAttributes());
@@ -123,7 +122,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					count.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelByName(label).length);
+					count.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelByName(label).length);
 				}
 			};
 
@@ -141,30 +140,8 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	 */
 	@Override
 	public Image getImage(final Object element) {
-		if (element instanceof IPeerModel || element instanceof IPeer) {
-			final AtomicBoolean isStatic = new AtomicBoolean();
-
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					if (element instanceof IPeerModel) {
-						isStatic.set(((IPeerModel)element).isStatic());
-					}
-					else if (element instanceof IPeer) {
-						String value = ((IPeer)element).getAttributes().get("static.transient"); //$NON-NLS-1$
-						isStatic.set(value != null && Boolean.parseBoolean(value.trim()));
-					}
-				}
-			};
-
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
-
-			return isStatic.get() ? UIPlugin.getImage(ImageConsts.PEER) : UIPlugin.getImage(ImageConsts.PEER_DISCOVERED);
+		if (element instanceof IPeerNode || element instanceof IPeer) {
+			return UIPlugin.getImage(ImageConsts.PEER);
 		}
 		if (element instanceof PeerRedirectorGroupNode) {
 			return UIPlugin.getImage(ImageConsts.DISCOVERY_ROOT);
@@ -180,11 +157,11 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	public Image decorateImage(Image image, Object element) {
 		Image decoratedImage = image;
 
-		if (image != null && element instanceof IPeerModel) {
+		if (image != null && element instanceof IPeerNode) {
 			AbstractImageDescriptor descriptor = new PeerImageDescriptor(
 							UIPlugin.getDefault().getImageRegistry(),
 							image,
-							(IPeerModel)element);
+							(IPeerNode)element);
 			decoratedImage = UIPlugin.getSharedImage(descriptor);
 		}
 

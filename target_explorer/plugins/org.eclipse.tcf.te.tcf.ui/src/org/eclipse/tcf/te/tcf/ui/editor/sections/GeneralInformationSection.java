@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+* Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
@@ -30,6 +29,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
@@ -38,8 +38,8 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
@@ -65,7 +65,7 @@ public class GeneralInformationSection extends AbstractSection {
 	private Label linkStateImage = null;
 
 	// Reference to the original data object
-	/* default */ IPeerModel od;
+	/* default */ IPeerNode od;
 	// Reference to a copy of the original data
 	/* default */ final IPropertiesContainer odc = new PropertiesContainer();
 	// Reference to the properties container representing the working copy for the section
@@ -204,8 +204,8 @@ public class GeneralInformationSection extends AbstractSection {
 			if (getManagedForm().getContainer() instanceof AbstractEditorPage
 							&& !((AbstractEditorPage)getManagedForm().getContainer()).isDirty()) {
 				Object node = ((AbstractEditorPage)getManagedForm().getContainer()).getEditorInputNode();
-				if (node instanceof IPeerModel) {
-					setupData((IPeerModel)node);
+				if (node instanceof IPeerNode) {
+					setupData((IPeerNode)node);
 				}
 			}
 		} else {
@@ -222,7 +222,7 @@ public class GeneralInformationSection extends AbstractSection {
 	 *
 	 * @param node The peer node or <code>null</code>.
 	 */
-	public void setupData(final IPeerModel node) {
+	public void setupData(final IPeerNode node) {
 		// If the section is dirty, nothing is changed
 		if (isDirty()) return;
 
@@ -257,7 +257,7 @@ public class GeneralInformationSection extends AbstractSection {
 			public void run() {
 				// The section is handling the ID, the name and
 				// the link state. Ignore other properties.
-				odc.setProperty(IPeerModelProperties.PROP_STATE, node.getProperty(IPeerModelProperties.PROP_STATE));
+				odc.setProperty(IPeerNodeProperties.PROP_STATE, node.getProperty(IPeerNodeProperties.PROP_STATE));
 				odc.setProperty(IPeer.ATTR_ID, node.getPeer().getAttributes().get(IPeer.ATTR_ID));
 				odc.setProperty(IPeer.ATTR_NAME, node.getPeer().getAttributes().get(IPeer.ATTR_NAME));
 				// Initially, the working copy is a duplicate of the original data copy
@@ -282,10 +282,10 @@ public class GeneralInformationSection extends AbstractSection {
 			}
 
 			if (linkState != null && linkStateImage != null) {
-				String state = wc.getStringProperty(IPeerModelProperties.PROP_STATE);
+				String state = wc.getStringProperty(IPeerNodeProperties.PROP_STATE);
 				linkState.setText(Messages.getString("GeneralInformationSection_state_" + (state != null ? state.replace('-', '_') : "_1"))); //$NON-NLS-1$ //$NON-NLS-2$
 
-				switch (wc.getIntProperty(IPeerModelProperties.PROP_STATE)) {
+				switch (wc.getIntProperty(IPeerNodeProperties.PROP_STATE)) {
 				case 0:
 					linkStateImage.setImage(UIPlugin.getImage(ImageConsts.GOLD_OVR));
 					break;
@@ -324,7 +324,7 @@ public class GeneralInformationSection extends AbstractSection {
 	 *
 	 * @param node The peer node or <code>null</code>.
 	 */
-	public void extractData(final IPeerModel node) {
+	public void extractData(final IPeerNode node) {
 		// If no data is available, we are done
 		if (node == null) {
 			return;
@@ -363,7 +363,7 @@ public class GeneralInformationSection extends AbstractSection {
 					IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector)oldPeer).getParent(), attributes) : new Peer(attributes);
 					// Update the peer node instance (silently)
 					boolean changed = node.setChangeEventsEnabled(false);
-					node.setProperty(IPeerModelProperties.PROP_INSTANCE, newPeer);
+					node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
 					if (changed) node.setChangeEventsEnabled(true);
 				}
 			});
@@ -465,27 +465,8 @@ public class GeneralInformationSection extends AbstractSection {
 		// Determine the input
 		final Object input = getManagedForm().getInput();
 
-		// The name control is enabled for static peers
-		if (nameControl != null) {
-			final AtomicBoolean isStatic = new AtomicBoolean();
-			final AtomicBoolean isRemote = new AtomicBoolean();
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					if (input instanceof IPeerModel) {
-						isStatic.set(((IPeerModel)input).isStatic());
-						isRemote.set(((IPeerModel)input).isRemote());
-					}
-				}
-			};
-			if (Protocol.isDispatchThread()) {
-				runnable.run();
-			}
-			else {
-				Protocol.invokeAndWait(runnable);
-			}
-
-			SWTControlUtil.setEnabled(nameControl.getEditFieldControl(), isStatic.get() && !isRemote.get());
+		if (input instanceof IPeerNode) {
+			SWTControlUtil.setEnabled(nameControl.getEditFieldControl(), ((IPeerNode)input).getConnectState() == IConnectable.STATE_DISCONNECTED);
 		}
 	}
 
@@ -499,11 +480,11 @@ public class GeneralInformationSection extends AbstractSection {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerModel[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeers();
 				// Loop them and find the ones which are of our handled types
-				for (IPeerModel peerModel : peers) {
-					if (peerModel.isStatic() && !peerModel.equals(od)) {
-						String name = peerModel.getPeer().getName();
+				for (IPeerNode peerNode : peers) {
+					if (!peerNode.equals(od)) {
+						String name = peerNode.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
 							usedNames.add(name.trim().toUpperCase());

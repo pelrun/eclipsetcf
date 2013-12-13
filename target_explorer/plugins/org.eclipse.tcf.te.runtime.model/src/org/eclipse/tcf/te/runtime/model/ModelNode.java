@@ -120,7 +120,7 @@ public class ModelNode extends PropertiesContainer implements IModelNode, IModel
 	 */
 	@Override
 	public boolean isVisible() {
-		return getBooleanProperty(PROPERTY_IS_VISIBLE);
+		return getBooleanProperty(PROPERTY_VISIBLE);
 	}
 
 	/* (non-Javadoc)

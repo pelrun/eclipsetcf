@@ -27,7 +27,7 @@ import org.eclipse.tcf.te.tcf.launch.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.PathMapTab;
 import org.eclipse.tcf.te.tcf.launch.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * TCF path map launch configuration tab container page implementation.
@@ -49,18 +49,18 @@ public class PathMapEditorPage extends AbstractTcfLaunchTabContainerEditorPage {
 	protected void onPostSave(ILaunchConfiguration config) {
 		Assert.isNotNull(config);
 
-		final IPeerModel peerModel = getPeerModel(getEditorInput());
-		if (peerModel != null && peerModel.getPeer() != null) {
-			IPathMapService service = ServiceManager.getInstance().getService(peerModel.getPeer(), IPathMapService.class);
+		final IPeerNode peerNode = getPeerModel(getEditorInput());
+		if (peerNode != null && peerNode.getPeer() != null) {
+			IPathMapService service = ServiceManager.getInstance().getService(peerNode.getPeer(), IPathMapService.class);
 			if (service != null) {
-				service.applyPathMap(peerModel.getPeer(), new Callback() {
+				service.applyPathMap(peerNode.getPeer(), new Callback() {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						if (status != null && status.getSeverity() == IStatus.ERROR) {
 							IStatus status2 = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-														 NLS.bind(Messages.PathMapEditorPage_error_apply, peerModel.getName(), status.getMessage()),
+														 NLS.bind(Messages.PathMapEditorPage_error_apply, peerNode.getName(), status.getMessage()),
 														 status.getException());
-							IStatusHandler[] handlers = StatusHandlerManager.getInstance().getHandler(peerModel);
+							IStatusHandler[] handlers = StatusHandlerManager.getInstance().getHandler(peerNode);
 							if (handlers.length > 0) {
 								IPropertiesContainer data = new PropertiesContainer();
 								data.setProperty(IStatusHandlerConstants.PROPERTY_TITLE, Messages.PathMapEditorPage_error_title);

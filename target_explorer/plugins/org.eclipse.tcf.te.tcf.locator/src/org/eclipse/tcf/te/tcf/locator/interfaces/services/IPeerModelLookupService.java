@@ -10,12 +10,12 @@
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
 import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The service to lookup/search in the parent locator model.
  */
-public interface ILocatorModelLookupService extends ILocatorModelService {
+public interface IPeerModelLookupService extends IPeerModelService {
 
 	/**
 	 * Lookup the peer model for the given peer id.
@@ -23,7 +23,7 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @param id The peer id. Must not be <code>null</code>.
 	 * @return The peer model instance, or <code>null</code> if the peer model cannot be found.
 	 */
-	public IPeerModel lkupPeerModelById(String id);
+	public IPeerNode lkupPeerModelById(String id);
 
 	/**
 	 * Lookup the peer model for the given peer id from the peers child list of
@@ -33,7 +33,7 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @param id The peer id. Must not be <code>null</code>.
 	 * @return The peer model instance, or <code>null</code> if the peer model cannot be found.
 	 */
-	public IPeerModel lkupPeerModelById(String parentId, String id);
+	public IPeerNode lkupPeerModelById(String parentId, String id);
 
 	/**
 	 * Lookup the matching peer model instances for the given agent id.
@@ -41,7 +41,7 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @param agentId The agent id. Must not be <code>null</code>.
 	 * @return The peer model instances, or an empty list if the given agent id could not be matched.
 	 */
-	public IPeerModel[] lkupPeerModelByAgentId(String agentId);
+	public IPeerNode[] lkupPeerModelByAgentId(String agentId);
 
 	/**
 	 * Lookup the matching peer model instances for the given agent id.
@@ -50,7 +50,7 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @param agentId The agent id. Must not be <code>null</code>.
 	 * @return The peer model instances, or an empty list if the given agent id could not be matched.
 	 */
-	public IPeerModel[] lkupPeerModelByAgentId(String parentId, String agentId);
+	public IPeerNode[] lkupPeerModelByAgentId(String parentId, String agentId);
 
 	/**
 	 * Lookup matching peer model instances for the given name.
@@ -58,7 +58,7 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @param name The name. Must not be <code>null</code>.
 	 * @return The peer model instances, or an empty list if the given name could not be matched.
 	 */
-	public IPeerModel[] lkupPeerModelByName(String name);
+	public IPeerNode[] lkupPeerModelByName(String name);
 
 	/**
 	 * Lookup matching peer model instances which supports the listed local and remote services.
@@ -70,7 +70,7 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 *
 	 * @return The peer model instances, or an empty list if the listed services are not supported by any of the peers.
 	 */
-	public IPeerModel[] lkupPeerModelBySupportedServices(String[] expectedLocalServices, String[] expectedRemoteServices);
+	public IPeerNode[] lkupPeerModelBySupportedServices(String[] expectedLocalServices, String[] expectedRemoteServices);
 
 	/**
 	 * Lookup the matching static peer model instances for the given peer model node.
@@ -78,7 +78,7 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @return The matching peer model instances or an empty list.
 	 */
-	public IPeerModel[] lkupMatchingStaticPeerModels(IPeerModel peerNode);
+	public IPeerNode[] lkupMatchingStaticPeerModels(IPeerNode peerNode);
 
 	/**
 	 * Lookup the matching static peer model instances for the given peer.
@@ -86,5 +86,5 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @param peer The peer or <code>null</code>.
 	 * @return The matching peer model instances or an empty list.
 	 */
-	public IPeerModel[] lkupMatchingStaticPeerModels(IPeer peer);
+	public IPeerNode[] lkupMatchingStaticPeerModels(IPeer peer);
 }

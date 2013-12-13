@@ -32,9 +32,9 @@ import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodePropert
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.dialogs.RenameDialog;
@@ -60,8 +60,8 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 	 */
 	@Override
 	public boolean isSaveAsAllowed(IEditorInput input) {
-		IPeerModel peerModel = (IPeerModel)input.getAdapter(IPeerModel.class);
-		if (peerModel != null) return peerModel.isStatic();
+		IPeerNode peerNode = (IPeerNode)input.getAdapter(IPeerNode.class);
+		if (peerNode != null) return true;
 
 		return false;
 	}
@@ -71,7 +71,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 	 */
 	@Override
 	public Object doSaveAs(IEditorInput input) {
-		IPeerModel model = (IPeerModel)input.getAdapter(IPeerModel.class);
+		IPeerNode model = (IPeerNode)input.getAdapter(IPeerNode.class);
 		if (model != null) {
 
 			Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
@@ -103,12 +103,12 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 				}
 				persistenceService.write(new Peer(attrs), null);
 
-				final AtomicReference<IPeerModel> newPeer = new AtomicReference<IPeerModel>();
+				final AtomicReference<IPeerNode> newPeer = new AtomicReference<IPeerNode>();
 				final Callback cb = new Callback() {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						// Get the peer model node from the model and select it in the tree
-						IPeerModel peerNode = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
+						IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
 						newPeer.set(peerNode);
 						if (peerNode != null) {
 							// Refresh the viewer
@@ -125,7 +125,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 				Protocol.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+						IPeerModelRefreshService service = Model.getModel().getService(IPeerModelRefreshService.class);
 						// Refresh the model now (must be executed within the TCF dispatch thread)
 						if (service != null) {
 							service.refresh(cb);
@@ -150,16 +150,14 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerModel[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeers();
 				// Loop them and find the ones which are of our handled types
-				for (IPeerModel peerModel : peers) {
-					if (peerModel.isStatic()) {
-						String name = peerModel.getPeer().getName();
+				for (IPeerNode peerNode : peers) {
+						String name = peerNode.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
 							usedNames.add(name.trim().toUpperCase());
 						}
-					}
 				}
 			}
 		};

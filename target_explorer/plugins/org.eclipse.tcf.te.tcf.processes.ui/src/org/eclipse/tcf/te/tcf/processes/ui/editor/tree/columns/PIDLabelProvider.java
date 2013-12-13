@@ -15,7 +15,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
@@ -55,9 +55,9 @@ public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 			String id = pid.get() >= 0 ? Long.toString(pid.get()) : ""; //$NON-NLS-1$
 			if (id.startsWith("P")) id = id.substring(1); //$NON-NLS-1$
 
-			IPeerModel peerModel = (IPeerModel)node.getAdapter(IPeerModel.class);
-			IUIService service = peerModel != null ? ServiceManager.getInstance().getService(peerModel, IUIService.class) : null;
-			IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerModel, IProcessMonitorUIDelegate.class) : null;
+			IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
+			IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
+			IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerNode, IProcessMonitorUIDelegate.class) : null;
 
 			String newId = delegate != null ? delegate.getText(element, "PID", id) : null; //$NON-NLS-1$
 			return newId != null ? newId : id;

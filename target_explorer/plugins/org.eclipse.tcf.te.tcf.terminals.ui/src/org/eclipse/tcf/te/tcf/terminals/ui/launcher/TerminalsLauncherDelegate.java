@@ -19,7 +19,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsLauncher;
 import org.eclipse.tcf.te.tcf.terminals.core.launcher.TerminalsLauncher;
 import org.eclipse.tcf.te.tcf.terminals.ui.controls.TerminalsWizardConfigurationPanel;
@@ -62,16 +62,16 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 		ISelection selection = (ISelection)properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION);
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection)selection).getFirstElement();
-			if (element instanceof IPeerModel) {
-				final IPeerModel peerModel = (IPeerModel)element;
+			if (element instanceof IPeerNode) {
+				final IPeerNode peerNode = (IPeerNode)element;
 				final AtomicReference<IPeer> peer = new AtomicReference<IPeer>();
 				if (Protocol.isDispatchThread()) {
-					peer.set(peerModel.getPeer());
+					peer.set(peerNode.getPeer());
 				} else {
 					Protocol.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
-							peer.set(peerModel.getPeer());
+							peer.set(peerNode.getPeer());
 						}
 					});
 				}

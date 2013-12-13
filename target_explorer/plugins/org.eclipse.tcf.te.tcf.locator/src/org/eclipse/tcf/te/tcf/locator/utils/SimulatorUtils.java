@@ -23,8 +23,8 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Simulator related utilities.
@@ -43,18 +43,18 @@ public final class SimulatorUtils {
 	/**
 	 * Returns if or if the given peer model has the simulator enabled or not.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @return <code>True</code> if the simulator is enabled, <code>false</code> otherwise.
 	 */
-	public static boolean isSimulatorEnabled(final IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	public static boolean isSimulatorEnabled(final IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
 		final AtomicBoolean isEnabled = new AtomicBoolean(false);
 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_ENABLED);
+				String value = peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED);
 				if (value != null) {
 					isEnabled.set(Boolean.parseBoolean(value));
 				}
@@ -72,11 +72,11 @@ public final class SimulatorUtils {
 	 * If no simulator service is configured in the peer
 	 * or the configured service is not available, <code>null</code> will be returned.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @return The {@link Result} containing the simulator service and the settings or <code>null</code>.
 	 */
-	public static Result getSimulatorService(final IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	public static Result getSimulatorService(final IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
 		final AtomicBoolean isEnabled = new AtomicBoolean(false);
 		final AtomicReference<String> type = new AtomicReference<String>();
@@ -85,13 +85,13 @@ public final class SimulatorUtils {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_ENABLED);
+				String value = peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED);
 				if (value != null) {
 					isEnabled.set(Boolean.parseBoolean(value));
 				}
 
-				type.set(peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_TYPE));
-				properties.set(peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_PROPERTIES));
+				type.set(peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_TYPE));
+				properties.set(peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_PROPERTIES));
 			}
 		};
 
@@ -101,7 +101,7 @@ public final class SimulatorUtils {
 		Result result = null;
 
 		if (isEnabled.get()) {
-			IService[] services = ServiceManager.getInstance().getServices(peerModel, ISimulatorService.class, false);
+			IService[] services = ServiceManager.getInstance().getServices(peerNode, ISimulatorService.class, false);
 			for (IService service : services) {
 				Assert.isTrue(service instanceof ISimulatorService);
 				// Get the UI service which is associated with the simulator service
@@ -123,25 +123,25 @@ public final class SimulatorUtils {
 	 * model node and the configured simulator service type is available. In any
 	 * other cases, the given callback is invoked immediately.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @param monitor The progress monitor.
 	 * @param callback The callback to invoke if finished. Must not be <code>null</code>.
 	 */
-	public static void start(final IPeerModel peerModel, final IProgressMonitor monitor, final ICallback callback) {
-		Assert.isNotNull(peerModel);
+	public static void start(final IPeerNode peerNode, final IProgressMonitor monitor, final ICallback callback) {
+		Assert.isNotNull(peerNode);
 		Assert.isNotNull(callback);
 
 		// Determine if we have to start a simulator first
-		final Result result = getSimulatorService(peerModel);
+		final Result result = getSimulatorService(peerNode);
 		if (result != null && result.service != null) {
 			// Check if the simulator is already running
-			result.service.isRunning(peerModel, result.settings, new Callback() {
+			result.service.isRunning(peerNode, result.settings, new Callback() {
 				@Override
 				protected void internalDone(Object caller, IStatus status) {
 					Object cbResult = getResult();
 					if (cbResult instanceof Boolean && !((Boolean)cbResult).booleanValue()) {
 						// Start the simulator
-						result.service.start(peerModel, result.settings, new Callback() {
+						result.service.start(peerNode, result.settings, new Callback() {
 							@Override
 							protected void internalDone(Object caller, IStatus status) {
 								callback.setResult(new Boolean(status.isOK()));
@@ -165,25 +165,25 @@ public final class SimulatorUtils {
 	 * model node and the configured simulator service type is available. In any
 	 * other cases, the given callback is invoked immediately.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @param monitor The progress monitor.
 	 * @param callback The callback to invoke if finished. Must not be <code>null</code>.
 	 */
-	public static void stop(final IPeerModel peerModel, final IProgressMonitor monitor, final ICallback callback) {
-		Assert.isNotNull(peerModel);
+	public static void stop(final IPeerNode peerNode, final IProgressMonitor monitor, final ICallback callback) {
+		Assert.isNotNull(peerNode);
 		Assert.isNotNull(callback);
 
 		// Get the associated simulator service
-		final Result result = getSimulatorService(peerModel);
+		final Result result = getSimulatorService(peerNode);
 		if (result != null && result.service != null) {
 			// Determine if the simulator is at all running
-			result.service.isRunning(peerModel, result.settings, new Callback() {
+			result.service.isRunning(peerNode, result.settings, new Callback() {
 				@Override
 				protected void internalDone(Object caller, IStatus status) {
 					Object cbResult = getResult();
 					if (cbResult instanceof Boolean && ((Boolean)cbResult).booleanValue()) {
 						// Stop the simulator
-						result.service.stop(peerModel, result.settings, new Callback(callback) {
+						result.service.stop(peerNode, result.settings, new Callback(callback) {
 							@Override
 							protected void internalDone(Object caller, IStatus status) {
 								callback.done(caller, status);

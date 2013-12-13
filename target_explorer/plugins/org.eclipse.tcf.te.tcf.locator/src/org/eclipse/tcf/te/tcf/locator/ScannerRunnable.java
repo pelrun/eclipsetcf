@@ -37,12 +37,12 @@ import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IScanner;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.nodes.PeerNode;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 
@@ -55,7 +55,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	// Reference to the parent model scanner
 	private final IScanner parentScanner;
 	// Reference to the peer model node to update
-	/* default */ final IPeerModel peerNode;
+	/* default */ final IPeerNode peerNode;
 	// Reference to the channel
 	/* default */ IChannel channel = null;
 	// Mark if the used channel is a shared channel instance
@@ -70,7 +70,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	 * @param scanner The parent model scanner or <code>null</code> if the runnable is constructed from outside a scanner.
 	 * @param peerNode The peer model instance. Must not be <code>null</code>.
 	 */
-	public ScannerRunnable(IScanner scanner, IPeerModel peerNode) {
+	public ScannerRunnable(IScanner scanner, IPeerNode peerNode) {
 		this(scanner, peerNode, null);
 	}
 
@@ -81,7 +81,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	 * @param peerNode The peer model instance. Must not be <code>null</code>.
 	 * @param callback The callback to invoke once the scan has been completed or <code>null</code>.
 	 */
-	public ScannerRunnable(IScanner scanner, IPeerModel peerNode, ICallback callback) {
+	public ScannerRunnable(IScanner scanner, IPeerNode peerNode, ICallback callback) {
 		super();
 
 		parentScanner = scanner;
@@ -193,19 +193,19 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 		final boolean changed = peerNode.setChangeEventsEnabled(false);
 
 		// Set the peer state property
-		int counter = peerNode.getIntProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER);
-		if (!peerNode.isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY)) {
-			peerNode.setProperty(IPeerModelProperties.PROP_STATE, counter > 0 ? IPeerModelProperties.STATE_CONNECTED : IPeerModelProperties.STATE_REACHABLE);
-			peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, null);
+		int counter = peerNode.getIntProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER);
+		if (!peerNode.isProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_WAITING_FOR_READY)) {
+			peerNode.setProperty(IPeerNodeProperties.PROP_STATE, counter > 0 ? IPeerNodeProperties.STATE_CONNECTED : IPeerNodeProperties.STATE_REACHABLE);
+			peerNode.setProperty(IPeerNodeProperties.PROP_LAST_SCANNER_ERROR, null);
 		}
 
 		// Get the parent model from the model mode
-		final ILocatorModel model = (ILocatorModel)peerNode.getAdapter(ILocatorModel.class);
+		final IPeerModel model = (IPeerModel)peerNode.getAdapter(IPeerModel.class);
 
 		if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 
 			// Update the services lists
-			ILocatorModelUpdateService updateService = model != null ? model.getService(ILocatorModelUpdateService.class) : null;
+			IPeerModelUpdateService updateService = model != null ? model.getService(IPeerModelUpdateService.class) : null;
 			if (updateService != null) {
 				Collection<String> localServices = channel.getLocalServices();
 				Collection<String> remoteServices = channel.getRemoteServices();
@@ -294,7 +294,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								// Update the peer attributes
 								Map<String, String> attrs = new HashMap<String, String>(channel.getRemotePeer().getAttributes());
 								attrs.put(IPeer.ATTR_AGENT_ID, agentID);
-								peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
+								peerNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, new Peer(attrs));
 							}
 
 							if (isGetPeersAllowed(channel)) {
@@ -367,7 +367,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
      * @param callback The callback. Must not be <code>null</code>.
      */
 	@SuppressWarnings("unused")
-    protected void getPeers(final IChannel channel, final ILocatorModel model, final String ip, final ICallback callback) {
+    protected void getPeers(final IChannel channel, final IPeerModel model, final String ip, final ICallback callback) {
 		Assert.isNotNull(channel);
 		Assert.isNotNull(model);
 		Assert.isNotNull(callback);
@@ -404,7 +404,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 							// Get the parent peer
 							IPeer parentPeer = channel.getRemotePeer();
 							// Get the old child list
-							List<IPeerModel> oldChildren = new ArrayList<IPeerModel>(model.getChildren(parentPeer.getID()));
+							List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(model.getChildren(parentPeer.getID()));
 
 							// "getPeers" returns a collection of peer attribute maps
 							@SuppressWarnings("unchecked")
@@ -428,35 +428,25 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 								// Create a peer instance
 								IPeer peer = new PeerRedirector(parentPeer, attributes);
 								// Try to find an existing peer node first
-								IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(parentPeer.getID(), peerId);
+								IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(parentPeer.getID(), peerId);
 								if (peerNode == null) {
 									// Not yet known -> add it
-									peerNode = new PeerModel(model, peer);
+									peerNode = new PeerNode(model, peer);
 									peerNode.setParent(ScannerRunnable.this.peerNode);
-									peerNode.setProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE, true);
+									peerNode.setProperty(IPeerNodeProperties.PROP_SCANNER_EXCLUDE, true);
 									// Validate the peer node before adding
 									peerNode = model.validateChildPeerNodeForAdd(peerNode);
 									if (peerNode != null) {
 										// Add the child peer node to model
-										model.getService(ILocatorModelUpdateService.class).addChild(peerNode);
+										model.getService(IPeerModelUpdateService.class).addChild(peerNode);
 									}
 								} else {
 									// The parent node should be set and match
-									Assert.isTrue(peerNode.getParent(IPeerModel.class) != null && peerNode.getParent(IPeerModel.class).equals(ScannerRunnable.this.peerNode));
+									Assert.isTrue(peerNode.getParent(IPeerNode.class) != null && peerNode.getParent(IPeerNode.class).equals(ScannerRunnable.this.peerNode));
 									// Peer node found, update the peer instance
-									peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+									peerNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
 									// And remove it from the old child list
 									oldChildren.remove(peerNode);
-								}
-							}
-
-							// Everything left in the old child list is not longer known to the remote peer
-							// However, the child list may include manual redirected static peers. Do not
-							// remove them here.
-							for (IPeerModel child : oldChildren) {
-								if (!child.isStatic()) {
-									// Remove the child peer node from the model
-									model.getService(ILocatorModelUpdateService.class).removeChild(child);
 								}
 							}
 						}
@@ -500,17 +490,17 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 			// Turn off change notifications temporarily
 			boolean changed = peerNode.setChangeEventsEnabled(false);
 
-			peerNode.setProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER, null);
-			if (!peerNode.isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_WAITING_FOR_READY)) {
+			peerNode.setProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER, null);
+			if (!peerNode.isProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_WAITING_FOR_READY)) {
 				boolean timeout = error instanceof SocketTimeoutException || (error instanceof ConnectException && error.getMessage() != null && error.getMessage().startsWith("Connection timed out:")); //$NON-NLS-1$
-				peerNode.setProperty(IPeerModelProperties.PROP_STATE, timeout ? IPeerModelProperties.STATE_NOT_REACHABLE : IPeerModelProperties.STATE_ERROR);
-				peerNode.setProperty(IPeerModelProperties.PROP_LAST_SCANNER_ERROR, error instanceof SocketTimeoutException ? null : error);
+				peerNode.setProperty(IPeerNodeProperties.PROP_STATE, timeout ? IPeerNodeProperties.STATE_NOT_REACHABLE : IPeerNodeProperties.STATE_ERROR);
+				peerNode.setProperty(IPeerNodeProperties.PROP_LAST_SCANNER_ERROR, error instanceof SocketTimeoutException ? null : error);
 			}
 
 			// Clear out previously determined services
-			ILocatorModel model = (ILocatorModel)peerNode.getAdapter(ILocatorModel.class);
+			IPeerModel model = (IPeerModel)peerNode.getAdapter(IPeerModel.class);
 			if (model != null) {
-				ILocatorModelUpdateService updateService = model.getService(ILocatorModelUpdateService.class);
+				IPeerModelUpdateService updateService = model.getService(IPeerModelUpdateService.class);
 				updateService.updatePeerServices(peerNode, null, null);
 
 				// Clean out possible child nodes
@@ -534,7 +524,7 @@ public class ScannerRunnable implements Runnable, IChannel.IChannelListener {
 	 * @param node The peer model node. Must not be <code>null</code>.
 	 * @param changed <code>True</code> if the change events shall be enabled, <code>false</code> otherwise.
 	 */
-	protected void onDone(IPeerModel node, boolean changed) {
+	protected void onDone(IPeerNode node, boolean changed) {
 		Assert.isNotNull(node);
 
 		// Reset the scanner runnable marker

@@ -22,8 +22,8 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.wizards.pages.AbstractConfigWizardPage;
@@ -61,11 +61,11 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 	protected abstract AbstractConfigWizardPage getConfigWizardPage();
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard#postPerformFinish(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard#postPerformFinish(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-	protected void postPerformFinish(final IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	protected void postPerformFinish(final IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
 		// Determine if or if not to auto-connect the created connection.
 		boolean autoConnect = true;
@@ -84,25 +84,25 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				connect.set(Boolean.parseBoolean(peerModel.getPeer().getAttributes().get(IPeerModelProperties.PROP_AUTO_CONNECT)));
+				connect.set(Boolean.parseBoolean(peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_AUTO_CONNECT)));
 			}
 		});
 
 		if (connect.get()) {
-			IService[] services = ServiceManager.getInstance().getServices(peerModel, IStepperOperationService.class, false);
+			IService[] services = ServiceManager.getInstance().getServices(peerNode, IStepperOperationService.class, false);
 			IStepperOperationService stepperOperationService = null;
 			for (IService service : services) {
-				if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerModel, IStepperServiceOperations.CONNECT)) {
+				if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerNode, IStepperServiceOperations.CONNECT)) {
 					stepperOperationService = (IStepperOperationService)service;
 					break;
 				}
 	        }
 			if (stepperOperationService != null) {
-				String stepGroupId = stepperOperationService.getStepGroupId(peerModel, IStepperServiceOperations.CONNECT);
-				IStepContext stepContext = stepperOperationService.getStepContext(peerModel, IStepperServiceOperations.CONNECT);
-				String name = stepperOperationService.getStepGroupName(peerModel, IStepperServiceOperations.CONNECT);
-				IPropertiesContainer data = stepperOperationService.getStepData(peerModel, IStepperServiceOperations.CONNECT);
-				boolean enabled = stepperOperationService.isEnabled(peerModel, IStepperServiceOperations.CONNECT);
+				String stepGroupId = stepperOperationService.getStepGroupId(peerNode, IStepperServiceOperations.CONNECT);
+				IStepContext stepContext = stepperOperationService.getStepContext(peerNode, IStepperServiceOperations.CONNECT);
+				String name = stepperOperationService.getStepGroupName(peerNode, IStepperServiceOperations.CONNECT);
+				IPropertiesContainer data = stepperOperationService.getStepData(peerNode, IStepperServiceOperations.CONNECT);
+				boolean enabled = stepperOperationService.isEnabled(peerNode, IStepperServiceOperations.CONNECT);
 
 				if (enabled && stepGroupId != null && stepContext != null) {
 					try {

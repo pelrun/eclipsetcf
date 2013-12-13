@@ -25,11 +25,11 @@ import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerType;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -54,8 +54,8 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService#getCandidates(java.lang.Object, org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService.IContextFilter)
 	 */
 	@Override
-	public IPeerModel[] getCandidates(Object currentSelection, IContextFilter filter) {
-		List<IPeerModel> candidates = new ArrayList<IPeerModel>();
+	public IPeerNode[] getCandidates(Object currentSelection, IContextFilter filter) {
+		List<IPeerNode> candidates = new ArrayList<IPeerNode>();
 
 		// add given selection first
 		if (currentSelection instanceof IStructuredSelection) {
@@ -71,26 +71,26 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 		// add system management selection
 		addCandidates(getPartSelection(PART_ID_TE_VIEW), filter, candidates);
 
-		return candidates.toArray(new IPeerModel[candidates.size()]);
+		return candidates.toArray(new IPeerNode[candidates.size()]);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService#setDefaultContext(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService#setDefaultContext(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-	public void setDefaultContext(final IPeerModel peerModel) {
-		if (peerModel != null) {
-			HistoryManager.getInstance().add(getClass().getName(), peerModel.getPeerId());
-			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_ADDED, peerModel, peerModel));
+	public void setDefaultContext(final IPeerNode peerNode) {
+		if (peerNode != null) {
+			HistoryManager.getInstance().add(getClass().getName(), peerNode.getPeerId());
+			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_ADDED, peerNode, peerNode));
 
 			final AtomicReference<String> type = new AtomicReference<String>();
 			Protocol.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					type.set(peerModel.getPeer().getAttributes().get((IPeerModelProperties.PROP_TYPE)));
+					type.set(peerNode.getPeer().getAttributes().get((IPeerNodeProperties.PROP_TYPE)));
 				}
 			});
-			HistoryManager.getInstance().add(type.get() != null ? type.get() : IPeerType.TYPE_GENERIC, peerModel.getPeerId());
+			HistoryManager.getInstance().add(type.get() != null ? type.get() : IPeerType.TYPE_GENERIC, peerNode.getPeerId());
 		}
 		else {
 			HistoryManager.getInstance().clear(getClass().getName());
@@ -102,11 +102,11 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService#getDefaultContext(org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService.IContextFilter)
 	 */
 	@Override
-	public IPeerModel getDefaultContext(IContextFilter filter) {
+	public IPeerNode getDefaultContext(IContextFilter filter) {
 		for (String peerId : HistoryManager.getInstance().getHistory(getClass().getName())) {
-			IPeerModel peerModel = addCandidate(getPeerModel(peerId), filter, null);
-			if (peerModel != null) {
-				return peerModel;
+			IPeerNode peerNode = addCandidate(getPeerModel(peerId), filter, null);
+			if (peerNode != null) {
+				return peerNode;
 			}
 		}
 
@@ -114,52 +114,52 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 	}
 
 
-	private IPeerModel addCandidate(IPeerModel peerModel, IContextFilter filter, List<IPeerModel> candidates) {
-		if (peerModel != null && (filter == null || filter.select(peerModel))) {
-			if (candidates != null && !candidates.contains(peerModel)) {
-				candidates.add(peerModel);
+	private IPeerNode addCandidate(IPeerNode peerNode, IContextFilter filter, List<IPeerNode> candidates) {
+		if (peerNode != null && (filter == null || filter.select(peerNode))) {
+			if (candidates != null && !candidates.contains(peerNode)) {
+				candidates.add(peerNode);
 			}
-			return peerModel;
+			return peerNode;
 		}
 
 		return null;
 	}
 
-	private void addCandidates(IStructuredSelection selection, IContextFilter filter, List<IPeerModel> candidates) {
+	private void addCandidates(IStructuredSelection selection, IContextFilter filter, List<IPeerNode> candidates) {
 		if (selection != null) {
 			Iterator<Object> it = selection.iterator();
 			while (it.hasNext()) {
-				addCandidate((IPeerModel)Platform.getAdapterManager().getAdapter(it.next(), IPeerModel.class), filter, candidates);
+				addCandidate((IPeerNode)Platform.getAdapterManager().getAdapter(it.next(), IPeerNode.class), filter, candidates);
 			}
 		}
 	}
 
-	private void addCandidates(IPeerModel[] peerModels, IContextFilter filter, List<IPeerModel> candidates) {
-		for (IPeerModel peerModel : peerModels) {
-			addCandidate(peerModel, filter, candidates);
+	private void addCandidates(IPeerNode[] peerModels, IContextFilter filter, List<IPeerNode> candidates) {
+		for (IPeerNode peerNode : peerModels) {
+			addCandidate(peerNode, filter, candidates);
 		}
 	}
 
-	private IPeerModel[] getDefaultSelections(IContextFilter filter) {
-		List<IPeerModel> candidates = new ArrayList<IPeerModel>();
+	private IPeerNode[] getDefaultSelections(IContextFilter filter) {
+		List<IPeerNode> candidates = new ArrayList<IPeerNode>();
 
 		for (String peerId : HistoryManager.getInstance().getHistory(getClass().getName())) {
 			addCandidate(getPeerModel(peerId), filter, candidates);
 		}
 
-		return candidates.toArray(new IPeerModel[candidates.size()]);
+		return candidates.toArray(new IPeerNode[candidates.size()]);
 	}
 
-	private IPeerModel getPeerModel(final String peerId) {
+	private IPeerNode getPeerModel(final String peerId) {
 		if (peerId != null) {
-			final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					ILocatorModel model = Model.getModel();
+					IPeerModel model = Model.getModel();
 					Assert.isNotNull(model);
-					peerModel.set(model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId));
+					peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}
 			};
 
@@ -170,7 +170,7 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 				Protocol.invokeAndWait(runnable);
 			}
 
-			return peerModel.get();
+			return peerNode.get();
 		}
 
 		return null;

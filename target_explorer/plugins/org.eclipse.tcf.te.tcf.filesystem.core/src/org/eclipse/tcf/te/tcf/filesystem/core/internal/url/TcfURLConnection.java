@@ -32,8 +32,8 @@ import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFChannelException;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
@@ -117,7 +117,7 @@ public class TcfURLConnection extends URLConnection {
 			public void run() {
 				IPeer p = Protocol.getLocator().getPeers().get(peerId);
 				if (p == null) {
-					IPeerModel peerNode = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
+					IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
 					if (peerNode != null) p = peerNode.getPeer();
 				}
 				peer.set(p);

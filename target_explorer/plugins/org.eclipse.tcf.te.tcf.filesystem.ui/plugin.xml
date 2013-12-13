@@ -27,7 +27,7 @@
             priority="normal">
             <triggerPoints>
                <instanceof
-                     value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                </instanceof>
                 <test
                       property="org.eclipse.tcf.te.tcf.locator.hasRemoteService"
@@ -112,7 +112,7 @@
             pageId="org.eclipse.tcf.te.tcf.filesystem.FSExplorerEditorPage">
          <enablement>
             <with variable="activeEditorInput">
-               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="FileSystem"/>
                <test
                      property="org.eclipse.tcf.te.runtime.preference"
@@ -1680,10 +1680,10 @@
          <adapter type="org.eclipse.ui.IPersistableElement"/>
          <adapter type="org.eclipse.tcf.te.ui.interfaces.ILazyLoader"/>
          <adapter type="org.eclipse.tcf.te.ui.interfaces.ISearchable"/>
-         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider"/>
       </factory>
       <factory
-            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"
+            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"
             class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.ViewerInputAdapterFactory">
          <adapter
                type="org.eclipse.tcf.te.core.interfaces.IViewerInput">
@@ -1878,7 +1878,7 @@
                visibleInUI="true">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.peer.isWindows" />
                   </adapt>
                </with>

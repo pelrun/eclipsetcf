@@ -24,7 +24,7 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.tcf.core.scripting.interfaces.IScriptLauncherProperties;
 import org.eclipse.tcf.te.tcf.core.scripting.launcher.ScriptLauncher;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.views.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.views.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.views.scriptpad.ScriptPad;
@@ -98,21 +98,21 @@ public class PlayAction extends Action implements IViewActionDelegate, IActionDe
     @Override
     public void run() {
     	String script = null;
-    	IPeerModel peerModel = null;
+    	IPeerNode peerNode = null;
 
     	if (view instanceof ScriptPad && ((ScriptPad)view).getStyledText() != null) {
     		script = ((ScriptPad)view).getStyledText().getText();
-    		peerModel = ((ScriptPad)view).getPeerModel();
+    		peerNode = ((ScriptPad)view).getPeerModel();
     	}
 
-    	if (script != null && !"".equals(script) && peerModel != null) { //$NON-NLS-1$
+    	if (script != null && !"".equals(script) && peerNode != null) { //$NON-NLS-1$
         	final ScriptLauncher launcher = new ScriptLauncher();
 
         	IPropertiesContainer properties = new PropertiesContainer();
         	properties.setProperty(IScriptLauncherProperties.PROP_SCRIPT, script);
 
         	final AtomicReference<IPeer> peer = new AtomicReference<IPeer>();
-        	final IPeerModel finPeerModel = peerModel;
+        	final IPeerNode finPeerModel = peerNode;
         	Runnable runnable = new Runnable() {
         		@Override
         		public void run() {

@@ -16,7 +16,7 @@ import java.util.Map;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Peer model properties access service implementation.
@@ -30,13 +30,22 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 	public Map<String, String> getTargetAddress(Object context) {
 		final Map<String, String> result = new HashMap<String, String>();
 
-		if (context instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel) context;
+		final IPeer peer;
+		if (context instanceof IPeer) {
+			peer = (IPeer)context;
+		}
+		else if (context instanceof IPeerNode) {
+			peer = ((IPeerNode)context).getPeer();
+		}
+		else {
+			peer = null;
+		}
 
-			Runnable runnable = new Runnable() {
+		if (peer != null) {
+			Protocol.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					Map<String, String> attributes = peerModel.getPeer().getAttributes();
+					Map<String, String> attributes = peer.getAttributes();
 
 					String value = attributes.get(IPeer.ATTR_NAME);
 					if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
@@ -52,10 +61,7 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 						result.put(IPropertiesAccessServiceConstants.PROP_PORT, value);
 					}
 				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
+			});
 		}
 
 		return !result.isEmpty() ? Collections.unmodifiableMap(result) : null;

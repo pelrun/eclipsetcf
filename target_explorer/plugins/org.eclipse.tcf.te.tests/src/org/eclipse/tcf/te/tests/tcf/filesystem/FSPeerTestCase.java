@@ -50,10 +50,10 @@ public class FSPeerTestCase extends TcfTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		assertNotNull(peerModel);
+		assertNotNull(peerNode);
 		assertNotNull(peer);
 
-		OpParsePath parser = new OpParsePath(peerModel, getTestRoot());
+		OpParsePath parser = new OpParsePath(peerNode, getTestRoot());
 		new NullOpExecutor().execute(parser);
 		testRoot = parser.getResult();
 		if(testRoot == null) {
@@ -61,7 +61,7 @@ public class FSPeerTestCase extends TcfTestCase {
 			if (!file.exists()) {
 				file.mkdirs();
 			}
-			parser = new OpParsePath(peerModel, getTestRoot());
+			parser = new OpParsePath(peerNode, getTestRoot());
 			new NullOpExecutor().execute(parser);
 			testRoot = parser.getResult();
 		}
@@ -127,7 +127,7 @@ public class FSPeerTestCase extends TcfTestCase {
 	}
 
 	protected FSTreeNode getFSNode(String path) {
-		OpParsePath parser = new OpParsePath(peerModel, path);
+		OpParsePath parser = new OpParsePath(peerNode, path);
 		new NullOpExecutor().execute(parser);
 		FSTreeNode node = parser.getResult();
 		if (node == null) {
@@ -136,7 +136,7 @@ public class FSPeerTestCase extends TcfTestCase {
 				refresh.run(new NullProgressMonitor());
 			} catch (Exception e) {}
 			
-			parser = new OpParsePath(peerModel, path);
+			parser = new OpParsePath(peerNode, path);
 			new NullOpExecutor().execute(parser);
 			node = parser.getResult();
 		}

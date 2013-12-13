@@ -33,11 +33,11 @@ import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.controls.SimulatorTypeSelectionControl;
-import org.eclipse.tcf.te.tcf.ui.dialogs.AgentSelectionDialog;
+import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
@@ -59,7 +59,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	/* default */ SimulatorTypeSelectionControl simulator;
 
 	// Reference to the original data object
-	/* default */ IPeerModel od;
+	/* default */ IPeerNode od;
 	// Reference to a copy of the original data
 	/* default */ final IPropertiesContainer odc = new PropertiesContainer();
 	// Reference to the properties container representing the working copy for the section
@@ -68,7 +68,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	protected static final int SELECTION_REAL = 0;
 	protected static final int SELECTION_SIM = 1;
 
-	protected IPeerModel selectedTarget = null;
+	protected IPeer selectedPeer = null;
 
 	/**
 	 * Constructor.
@@ -153,13 +153,13 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				if (target.isLabelControlSelected()) {
 					onSelectionChanged(SELECTION_REAL);
 					if (!isUpdating()) {
-						onTargetChanged(false, true, selectedTarget, selectedTarget);
+						onPeerChanged(false, true, selectedPeer, selectedPeer);
 					}
 				}
 			}
 			@Override
 			protected void onButtonControlSelected() {
-				AgentSelectionDialog dialog = new AgentSelectionDialog(null) {
+				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
 					@Override
 					protected boolean supportsMultiSelection() {
 						return false;
@@ -169,8 +169,8 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 						viewer.addFilter(new ViewerFilter() {
 							@Override
 							public boolean select(Viewer viewer, Object parentElement, final Object element) {
-								if (element instanceof IPeerModel && !(element instanceof IConnectable)) {
-									final IPeer peer = ((IPeerModel)element).getPeer();
+								if (element instanceof IPeer) {
+									final IPeer peer = (IPeer)element;
 									final AtomicBoolean isValueAdd = new AtomicBoolean();
 									final AtomicBoolean isCLI = new AtomicBoolean();
 									Protocol.invokeAndWait(new Runnable() {
@@ -198,11 +198,10 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				if (dialog.open() == Window.OK) {
 					// Get the selected proxy from the dialog
 					ISelection selection = dialog.getSelection();
-					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeerModel) {
-						IPeerModel oldPeerModel = selectedTarget;
-						selectedTarget = (IPeerModel)((IStructuredSelection)selection).getFirstElement();
-						setEditFieldControlText(selectedTarget.getName());
-						onTargetChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeerModel, selectedTarget);
+					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeer) {
+						IPeer oldPeer = selectedPeer;
+						selectedPeer = (IPeer)((IStructuredSelection)selection).getFirstElement();
+						onPeerChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeer, selectedPeer);
 					}
 				}
 
@@ -279,14 +278,14 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	}
 
 	/**
-	 * Called on target enabled and selected peer model changed.
+	 * Called on target enabled and selected peer changed.
 	 *
 	 * @param oldEnabled The old target enabled action.
 	 * @param newEnabled The new target enabled action.
-	 * @param oldPeerModel The new selected peer model.
-	 * @param newPeerModel The old selected peer model.
+	 * @param oldPeer The new selected peer.
+	 * @param newPeer The old selected peer.
 	 */
-	protected void onTargetChanged(boolean oldEnabled, boolean newEnabled, IPeerModel oldPeerModel, IPeerModel newPeerModel) {
+	protected void onPeerChanged(boolean oldEnabled, boolean newEnabled, IPeer oldPeer, IPeer newPeer) {
 	}
 
 	/**
@@ -302,8 +301,8 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			if (getManagedForm().getContainer() instanceof AbstractEditorPage
 							&& !((AbstractEditorPage)getManagedForm().getContainer()).isDirty()) {
 				Object node = ((AbstractEditorPage)getManagedForm().getContainer()).getEditorInputNode();
-				if (node instanceof IPeerModel) {
-					setupData((IPeerModel)node);
+				if (node instanceof IPeerNode) {
+					setupData((IPeerNode)node);
 				}
 			}
 		} else {
@@ -323,16 +322,16 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		// Initialize the simulator simulator selection control
 		if (simulator != null) {
 			simulator.initialize(od);
-			simulator.setSelectedSimulatorId(data.getStringProperty(IPeerModelProperties.PROP_SIM_TYPE));
-			simulator.setSimulatorConfig(data.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES));
-			simulator.setLabelControlSelection(data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED));
+			simulator.setSelectedSimulatorId(data.getStringProperty(IPeerNodeProperties.PROP_SIM_TYPE));
+			simulator.setSimulatorConfig(data.getStringProperty(IPeerNodeProperties.PROP_SIM_PROPERTIES));
+			simulator.setLabelControlSelection(data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED));
 		}
 
 		if (target != null) {
-			target.setLabelControlSelection(!data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED));
+			target.setLabelControlSelection(!data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED));
 		}
 
-		onSelectionChanged(data.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED) ? SELECTION_SIM : SELECTION_REAL);
+		onSelectionChanged(data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED) ? SELECTION_SIM : SELECTION_REAL);
 
 		// Mark the control update as completed now
 		setIsUpdating(false);
@@ -349,7 +348,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	 *
 	 * @param node The peer model node or <code>null</code>.
 	 */
-	public void setupData(final IPeerModel node) {
+	public void setupData(final IPeerNode node) {
 		// If the section is dirty, nothing is changed
 		if (isDirty()) {
 			return;
@@ -388,9 +387,9 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			public void run() {
 				// The section is handling the simulator related properties
 				// Ignore other properties.
-				odc.setProperty(IPeerModelProperties.PROP_SIM_ENABLED, node.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_ENABLED));
-				odc.setProperty(IPeerModelProperties.PROP_SIM_PROPERTIES, node.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_PROPERTIES));
-				odc.setProperty(IPeerModelProperties.PROP_SIM_TYPE, node.getPeer().getAttributes().get(IPeerModelProperties.PROP_SIM_TYPE));
+				odc.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED));
+				odc.setProperty(IPeerNodeProperties.PROP_SIM_PROPERTIES, node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_PROPERTIES));
+				odc.setProperty(IPeerNodeProperties.PROP_SIM_TYPE, node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_TYPE));
 				// Initially, the working copy is a duplicate of the original data copy
 				wc.setProperties(odc.getProperties());
 			}
@@ -422,14 +421,14 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 		// Extract the widget data into the working copy
 		if (target != null) {
-			data.setProperty(IPeerModelProperties.PROP_SIM_ENABLED, false);
-			data.setProperty(IPeerModelProperties.PROP_TARGET, target.getEditFieldControlText());
+			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, false);
+			data.setProperty(IPeerNodeProperties.PROP_TARGET, target.getEditFieldControlText());
 		}
 
 		if (simulator != null) {
-			data.setProperty(IPeerModelProperties.PROP_SIM_ENABLED, simulator.isLabelControlSelected());
-			data.setProperty(IPeerModelProperties.PROP_SIM_TYPE, simulator.getSelectedSimulatorId());
-			data.setProperty(IPeerModelProperties.PROP_SIM_PROPERTIES, simulator.getSimulatorConfig());
+			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, simulator.isLabelControlSelected());
+			data.setProperty(IPeerNodeProperties.PROP_SIM_TYPE, simulator.getSelectedSimulatorId());
+			data.setProperty(IPeerNodeProperties.PROP_SIM_PROPERTIES, simulator.getSimulatorConfig());
 		}
 	}
 
@@ -441,7 +440,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	 *
 	 * @param node The peer node or <code>null</code>.
 	 */
-	public void extractData(final IPeerModel node) {
+	public void extractData(final IPeerNode node) {
 		// If no data is available, we are done
 		if (node == null) {
 			return;
@@ -460,9 +459,9 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				boolean isSimEnabled = wc.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED);
-				String configs = wc.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES);
-				String type = wc.getStringProperty(IPeerModelProperties.PROP_SIM_TYPE);
+				boolean isSimEnabled = wc.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED);
+				String configs = wc.getStringProperty(IPeerNodeProperties.PROP_SIM_PROPERTIES);
+				String type = wc.getStringProperty(IPeerNodeProperties.PROP_SIM_TYPE);
 
 				// To update the peer attributes, the peer needs to be recreated
 				IPeer oldPeer = node.getPeer();
@@ -470,26 +469,26 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				Map<String, String> attributes = new HashMap<String, String>(oldPeer.getAttributes());
 				// Update the data
 				if (isSimEnabled) {
-					attributes.put(IPeerModelProperties.PROP_SIM_ENABLED, Boolean.toString(isSimEnabled));
+					attributes.put(IPeerNodeProperties.PROP_SIM_ENABLED, Boolean.toString(isSimEnabled));
 				} else {
-					attributes.remove(IPeerModelProperties.PROP_SIM_ENABLED);
+					attributes.remove(IPeerNodeProperties.PROP_SIM_ENABLED);
 				}
 				if (configs != null) {
-					attributes.put(IPeerModelProperties.PROP_SIM_PROPERTIES, configs);
+					attributes.put(IPeerNodeProperties.PROP_SIM_PROPERTIES, configs);
 				} else {
-					attributes.remove(IPeerModelProperties.PROP_SIM_PROPERTIES);
+					attributes.remove(IPeerNodeProperties.PROP_SIM_PROPERTIES);
 				}
 				if (type != null) {
-					attributes.put(IPeerModelProperties.PROP_SIM_TYPE, type);
+					attributes.put(IPeerNodeProperties.PROP_SIM_TYPE, type);
 				} else {
-					attributes.remove(IPeerModelProperties.PROP_SIM_TYPE);
+					attributes.remove(IPeerNodeProperties.PROP_SIM_TYPE);
 				}
 				// And merge it to the peer model node
 				if (oldPeer instanceof TransientPeer && !(oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
 					// Create a peer object
 					IPeer newPeer = new Peer(attributes);
 					// Update the peer instance
-					node.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_INSTANCE, newPeer);
+					node.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_INSTANCE, newPeer);
 				} else {
 					if (oldPeer instanceof PeerRedirector) {
 						((PeerRedirector)oldPeer).updateAttributes(attributes);
@@ -539,7 +538,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		}
 
 		// Extract the data into the peer model node
-		extractData((IPeerModel)getManagedForm().getInput());
+		extractData((IPeerNode)getManagedForm().getInput());
 	}
 
 	/**
@@ -557,12 +556,12 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 		// Compare the data
 		if (simulator != null) {
-			boolean oldEnabled = odc.getBooleanProperty(IPeerModelProperties.PROP_SIM_ENABLED);
+			boolean oldEnabled = odc.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED);
 			isDirty |= (oldEnabled != simulator.isLabelControlSelected());
 
 			if (simulator.isLabelControlSelected()) {
 				String newType = simulator.getSelectedSimulatorId();
-				String oldType = odc.getStringProperty(IPeerModelProperties.PROP_SIM_TYPE);
+				String oldType = odc.getStringProperty(IPeerNodeProperties.PROP_SIM_TYPE);
 				if (newType == null || "".equals(newType)) { //$NON-NLS-1$
 					isDirty |= oldType != null && !"".equals(oldType); //$NON-NLS-1$
 				} else {
@@ -570,7 +569,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				}
 
 				String newConfig = simulator.getSimulatorConfig();
-				String oldConfig = odc.getStringProperty(IPeerModelProperties.PROP_SIM_PROPERTIES);
+				String oldConfig = odc.getStringProperty(IPeerNodeProperties.PROP_SIM_PROPERTIES);
 				if (newConfig == null || "".equals(newConfig)) { //$NON-NLS-1$
 					isDirty |= oldConfig != null && !"".equals(oldConfig); //$NON-NLS-1$
 				}
@@ -604,7 +603,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	 * Updates the control enablement.
 	 */
 	protected void updateEnablement() {
-		boolean enabled = od instanceof IConnectable && ((IConnectable)od).getConnectState() == IConnectable.STATE_DISCONNECTED;
+		boolean enabled = od == null || od.getConnectState() == IConnectable.STATE_DISCONNECTED;
 
 		if (target != null) {
 			SWTControlUtil.setEnabled(target.getEditFieldControl(), target.isLabelControlSelected() && enabled);

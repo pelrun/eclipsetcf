@@ -21,7 +21,7 @@ import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 /**
  * Start simulator step implementation.
  */
-public class StartSimulatorStep extends AbstractPeerModelStep {
+public class StartSimulatorStep extends AbstractPeerNodeStep {
 
 	/**
 	 * Constructor.

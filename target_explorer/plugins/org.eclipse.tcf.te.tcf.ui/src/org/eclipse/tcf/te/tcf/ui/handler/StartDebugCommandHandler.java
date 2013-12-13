@@ -30,7 +30,7 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.steps.StartDebuggerStep.IDelegate;
 import org.eclipse.tcf.te.ui.async.UICallbackInvocationDelegate;
 import org.eclipse.ui.IEditorInput;
@@ -78,8 +78,8 @@ public class StartDebugCommandHandler extends AbstractHandler {
 			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
 			while (iterator.hasNext()) {
 				final Object element = iterator.next();
-				if (element instanceof IPeerModel) {
-					startDebugger((IPeerModel)element, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+				if (element instanceof IPeerNode) {
+					startDebugger((IPeerNode)element, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
 				}
 			}
 
@@ -93,26 +93,26 @@ public class StartDebugCommandHandler extends AbstractHandler {
 	/**
 	 * Starts the debugger for the given peer model node.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @param callback The callback. Must not be <code>null</code>.
 	 */
-	public void startDebugger(final IPeerModel peerModel, final ICallback callback) {
-		Assert.isNotNull(peerModel);
+	public void startDebugger(final IPeerNode peerNode, final ICallback callback) {
+		Assert.isNotNull(peerNode);
 		Assert.isNotNull(callback);
 
-		IDebugService dbgService = ServiceManager.getInstance().getService(peerModel, IDebugService.class, false);
+		IDebugService dbgService = ServiceManager.getInstance().getService(peerNode, IDebugService.class, false);
 		if (dbgService != null) {
 			final IProgressMonitor monitor = new NullProgressMonitor();
 			IPropertiesContainer props = new PropertiesContainer();
-			dbgService.attach(peerModel, props, monitor, new Callback() {
+			dbgService.attach(peerNode, props, monitor, new Callback() {
 				@Override
                 protected void internalDone(Object caller, IStatus status) {
 					// Check if there is a delegate registered
-					IDelegateService service = ServiceManager.getInstance().getService(peerModel, IDelegateService.class, false);
-					IDelegate delegate = service != null ? service.getDelegate(peerModel, IDelegate.class) : null;
+					IDelegateService service = ServiceManager.getInstance().getService(peerNode, IDelegateService.class, false);
+					IDelegate delegate = service != null ? service.getDelegate(peerNode, IDelegate.class) : null;
 
 					if (delegate != null) {
-						delegate.postAttachDebugger(peerModel, monitor, callback);
+						delegate.postAttachDebugger(peerNode, monitor, callback);
 					} else {
 						callback.done(caller, status);
 					}

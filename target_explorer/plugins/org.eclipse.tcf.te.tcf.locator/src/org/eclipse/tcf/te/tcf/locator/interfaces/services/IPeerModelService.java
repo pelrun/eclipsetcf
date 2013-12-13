@@ -3,25 +3,24 @@
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
-
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 
 /**
- * Common parent interface for locator model services.
+ * Common parent interface for peer model services.
  */
-public interface ILocatorModelService extends IAdaptable {
+public interface IPeerModelService extends IAdaptable {
 
 	/**
-	 * Returns the parent locator model.
+	 * Returns the parent peer model.
 	 *
-	 * @return The parent locator model.
+	 * @return The parent peer model.
 	 */
-	public ILocatorModel getLocatorModel();
+	public IPeerModel getPeerModel();
 }

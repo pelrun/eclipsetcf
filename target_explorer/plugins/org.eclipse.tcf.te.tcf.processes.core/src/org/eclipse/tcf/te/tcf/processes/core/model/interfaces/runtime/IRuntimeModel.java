@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime;
 
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 
 
 /**
@@ -22,7 +22,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
  * <p>
  * All model access must happen in the TCF dispatch thread.
  */
-public interface IRuntimeModel extends IModel, IPeerModelProvider {
+public interface IRuntimeModel extends IModel, IPeerNodeProvider {
 
 	/**
 	 * Set the auto-refresh interval in seconds.

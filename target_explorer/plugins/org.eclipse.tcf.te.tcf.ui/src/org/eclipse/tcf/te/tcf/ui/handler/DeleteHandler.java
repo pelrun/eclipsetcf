@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -40,8 +39,8 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -116,12 +115,12 @@ public class DeleteHandler extends AbstractHandler {
 		if (selection instanceof ITreeSelection && !selection.isEmpty()) {
 			// Assume the selection to be deletable
 			canDelete = true;
-			// Iterate the selection. All elements must be of type IPeerModel
+			// Iterate the selection. All elements must be of type IPeerNode
 			for (TreePath treePath : ((ITreeSelection)selection).getPaths()) {
 				// Get the element
 				Object element = treePath.getLastSegment();
 				// This handler will take care of peer model nodes only
-				if (!(element instanceof IPeerModel)) {
+				if (!(element instanceof IPeerNode)) {
 					canDelete = false;
 					break;
 				}
@@ -131,37 +130,6 @@ public class DeleteHandler extends AbstractHandler {
 				IDeleteHandlerDelegate delegate = service != null ? service.getDelegate(element, IDeleteHandlerDelegate.class) : null;
 				// If a delegate is available, ask the handler first if the given element is currently deletable
 				if (delegate != null) canDelete = delegate.canDelete(treePath);
-				// If the element is still marked deletable, apply the default check too
-				if (canDelete) {
-					// Determine if the selected peer model is static
-					boolean isStatic = isStatic((IPeerModel)element);
-					// Determine if the selected peer model represents an agent
-					// started by the current user
-					boolean isStartedByCurrentUser = isStartedByCurrentUser((IPeerModel)element);
-					// Static nodes can be handled the one way or the other.
-					// For dynamic nodes, "delete" means "remove from <category>",
-					// and this works only if the parent category is not "Neighborhood".
-					if (!isStatic) {
-						// Determine the parent category of the current tree path
-						ICategory category = treePath.getFirstSegment() instanceof ICategory ? (ICategory)treePath.getFirstSegment() : null;
-						if (category != null) {
-							if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(category.getId())) {
-								canDelete = false;
-								break;
-							}
-							else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
-								if (isStartedByCurrentUser) {
-									canDelete = false;
-									break;
-								}
-							}
-							else if (!IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
-								canDelete = false;
-								break;
-							}
-						}
-					}
-				}
 
 				if (!canDelete) {
 					break;
@@ -173,64 +141,6 @@ public class DeleteHandler extends AbstractHandler {
 	}
 
 	/**
-	 * Determines if the given peer model node is a static node.
-	 *
-	 * @param node The peer model node. Must not be <code>null</code>.
-	 * @return <code>True</code> if the node is static, <code>false</code> otherwise.
-	 */
-	private boolean isStatic(final IPeerModel node) {
-		Assert.isNotNull(node);
-
-		final AtomicBoolean isStatic = new AtomicBoolean();
-
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				isStatic.set(node.isStatic());
-			}
-		};
-
-		if (Protocol.isDispatchThread()) {
-			runnable.run();
-		}
-		else {
-			Protocol.invokeAndWait(runnable);
-		}
-
-		return isStatic.get();
-	}
-
-	/**
-	 * Determines if the given peer model node represents an agent started
-	 * by the current user.
-	 *
-	 * @param node The peer model node. Must not be <code>null</code>.
-	 * @return <code>True</code> if the node represents and agent started by the current user,
-	 *         <code>false</code> otherwise.
-	 */
-	private boolean isStartedByCurrentUser(final IPeerModel node) {
-		Assert.isNotNull(node);
-
-		final AtomicReference<String> username = new AtomicReference<String>();
-
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				username.set(node.getPeer().getUserName());
-			}
-		};
-
-		if (Protocol.isDispatchThread()) {
-			runnable.run();
-		}
-		else {
-			Protocol.invokeAndWait(runnable);
-		}
-
-		return System.getProperty("user.name").equals(username.get()); //$NON-NLS-1$
-	}
-
-	/**
 	 * Internal helper class to describe the delete operation to perform.
 	 */
 	private static class Operation {
@@ -238,7 +148,7 @@ public class DeleteHandler extends AbstractHandler {
 		public enum TYPE { Remove, Unlink }
 
 		// The element to operate on
-		public IPeerModel node;
+		public IPeerNode node;
 		// The operation type to perform
 		public TYPE type;
 		// In case of an "unlink" operation, the parent category
@@ -359,7 +269,7 @@ public class DeleteHandler extends AbstractHandler {
 					Protocol.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+							IPeerModelRefreshService service = Model.getModel().getService(IPeerModelRefreshService.class);
 							// Refresh the model now (must be executed within the TCF dispatch thread)
 							if (service != null) service.refresh(new Callback() {
 								@Override
@@ -391,22 +301,22 @@ public class DeleteHandler extends AbstractHandler {
 
 		List<Operation> operations = new ArrayList<Operation>();
 
-		// Iterate the selection. All elements must be of type IPeerModel
+		// Iterate the selection. All elements must be of type IPeerNode
 		for (TreePath treePath : selection.getPaths()) {
 			// Get the element
 			Object element = treePath.getLastSegment();
-			Assert.isTrue(element instanceof IPeerModel);
-			IPeerModel node = (IPeerModel)element;
+			Assert.isTrue(element instanceof IPeerNode);
+			IPeerNode node = (IPeerNode)element;
 
-			boolean isStatic = isStatic(node);
 			ICategory category = treePath.getFirstSegment() instanceof ICategory ? (ICategory)treePath.getFirstSegment() : null;
 
-			if (category == null && isStatic) {
+			if (category == null) {
 				Operation op = new Operation();
 				op.node = node;
 				op.type = Operation.TYPE.Remove;
 				operations.add(op);
-			} else if (category != null) {
+			}
+			else {
 				// If the parent category is "Favorites", it is always
 				// an "unlink" operation
 				if (IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
@@ -423,11 +333,7 @@ public class DeleteHandler extends AbstractHandler {
 					Operation op = new Operation();
 					op.node = node;
 
-					if (isStatic) {
-						op.type = Operation.TYPE.Remove;
-					} else {
-						op.type = Operation.TYPE.Unlink;
-					}
+					op.type = Operation.TYPE.Remove;
 					op.parentCategory = category;
 
 					operations.add(op);

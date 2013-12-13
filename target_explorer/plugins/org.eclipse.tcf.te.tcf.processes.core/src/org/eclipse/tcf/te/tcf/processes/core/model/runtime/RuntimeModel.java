@@ -29,7 +29,7 @@ import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelLookupService;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
@@ -51,7 +51,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	private IFactory factory = null;
 
 	// Reference to the associated peer model
-	private final IPeerModel peerModel;
+	private final IPeerNode peerNode;
 
 	// Reference to the refresh service
 	private final IRuntimeModelRefreshService refreshService = new RuntimeModelRefreshService(this);
@@ -73,17 +73,17 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	/**
 	 * Constructor.
 	 *
-	 * @param peerModel The peerModel to associated. Must not be <code>null</code>.
+	 * @param peerNode The peerNode to associated. Must not be <code>null</code>.
 	 */
-	public RuntimeModel(IPeerModel peerModel) {
+	public RuntimeModel(IPeerNode peerNode) {
 		super();
 
 		disposed = false;
 		setChangeEventsEnabled(true);
 		suppressEventsOnNullParent = false;
 
-		Assert.isNotNull(peerModel);
-		this.peerModel = peerModel;
+		Assert.isNotNull(peerNode);
+		this.peerNode = peerNode;
 
 		// No initial context query required
 		refreshableCtxAdapter.setQueryState(QueryType.CONTEXT, QueryState.DONE);
@@ -180,12 +180,12 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider#getPeerModel()
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
 	 */
 	@Override
-	public IPeerModel getPeerModel() {
+	public IPeerNode getPeerModel() {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-		return peerModel;
+		return peerNode;
 	}
 
 	/* (non-Javadoc)

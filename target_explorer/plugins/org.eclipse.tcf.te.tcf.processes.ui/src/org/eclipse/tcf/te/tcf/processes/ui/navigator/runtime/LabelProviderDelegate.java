@@ -16,7 +16,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
@@ -35,7 +35,7 @@ public class LabelProviderDelegate extends AbstractLabelProviderDelegate impleme
 	@Override
 	public String getText(final Object element) {
 		if (element instanceof IRuntimeModel) {
-			final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 
 			Runnable runnable = new Runnable() {
 				@Override

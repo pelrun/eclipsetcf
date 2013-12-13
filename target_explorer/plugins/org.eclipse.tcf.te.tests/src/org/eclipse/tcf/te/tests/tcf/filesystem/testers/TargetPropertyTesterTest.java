@@ -16,7 +16,7 @@ import org.eclipse.tcf.te.tests.tcf.filesystem.FSPeerTestCase;
 public class TargetPropertyTesterTest extends FSPeerTestCase {
 	public void testIsWindows() {
         TargetPropertyTester tester = new TargetPropertyTester();
-		boolean value = tester.test(peerModel, "isWindows", null, null); //$NON-NLS-1$
+		boolean value = tester.test(peerNode, "isWindows", null, null); //$NON-NLS-1$
 		if(Host.isWindowsHost()) {
 			assertTrue(value);
 		}

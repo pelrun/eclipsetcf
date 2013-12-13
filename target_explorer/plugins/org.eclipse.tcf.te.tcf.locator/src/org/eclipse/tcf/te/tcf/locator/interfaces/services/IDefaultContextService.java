@@ -10,12 +10,12 @@
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Interface to implement by services providing a default context for others.
  * <p>
- * The context type of the service is {@link IPeerModel}.
+ * The context type of the service is {@link IPeerNode}.
  */
 public interface IDefaultContextService extends IService {
 
@@ -32,17 +32,17 @@ public interface IDefaultContextService extends IService {
 		 * If the filter is matched, the peer model node is added to the list
 		 * of possible contexts.
 		 *
-		 * @param peerModel The peer model node. Must not be <code>null</code>.
+		 * @param peerNode The peer model node. Must not be <code>null</code>.
 		 * @return <code>true</code> if the given peer model node is a possible candidate.
 		 */
-		public boolean select(IPeerModel peerModel);
+		public boolean select(IPeerNode peerNode);
 	}
 
 	/**
 	 * Return a list of possible candidates matching the given filter.
 	 * <p>
 	 * If a selection is given and the filter applies, the selection will be added first to the
-	 * resulting array of candidates. Otherwise, if a default selection was set using {@link #setDefaultContext(IPeerModel)},
+	 * resulting array of candidates. Otherwise, if a default selection was set using {@link #setDefaultContext(IPeerNode)},
 	 * and the filter applies, the default selection will added first to the resulting array of
 	 * candidates.
 	 * <p>
@@ -54,16 +54,16 @@ public interface IDefaultContextService extends IService {
 	 *
 	 * @return An array of peer model nodes or an empty array.
 	 */
-	public IPeerModel[] getCandidates(Object selection, IContextFilter filter);
+	public IPeerNode[] getCandidates(Object selection, IContextFilter filter);
 
 	/**
 	 * Sets the given peer model node as new default context.
 	 * <p>
 	 * If the given peer model node is <code>null</code>, the default context is reseted.
 	 *
-	 * @param peerModel The peer model node or <code>null</code>.
+	 * @param peerNode The peer model node or <code>null</code>.
 	 */
-	public void setDefaultContext(IPeerModel peerModel);
+	public void setDefaultContext(IPeerNode peerNode);
 
 	/**
 	 * Returns the default context matching the given context filter.
@@ -71,5 +71,5 @@ public interface IDefaultContextService extends IService {
 	 * @param filter The context filter or <code>null</code>
 	 * @return The default context if set and the filter applies, <code>null</code> otherwise.
 	 */
-	public IPeerModel getDefaultContext(IContextFilter filter);
+	public IPeerNode getDefaultContext(IContextFilter filter);
 }

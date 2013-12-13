@@ -95,4 +95,7 @@ public class Messages extends NLS {
 	public static String ViewerStateManager_MkdirFailed;
 
 	public static String TriggerCommandEventListener_error_executionFailed;
+
+	public static String AbstractEditorCommandHandler_saveDialog_title;
+	public static String AbstractEditorCommandHandler_saveDialog_message;
 }

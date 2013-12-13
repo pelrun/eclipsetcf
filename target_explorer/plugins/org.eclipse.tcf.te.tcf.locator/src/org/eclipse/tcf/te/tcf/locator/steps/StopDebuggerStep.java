@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 /**
  * Stop debugger step implementation.
  */
-public class StopDebuggerStep extends AbstractPeerModelStep {
+public class StopDebuggerStep extends AbstractPeerNodeStep {
 
 	/**
 	 * Constructor.

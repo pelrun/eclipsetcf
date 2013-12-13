@@ -17,7 +17,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.JobExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRefresh;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -33,7 +33,7 @@ public class RefreshViewerHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IEditorInput editorInput = HandlerUtil.getActiveEditorInputChecked(event);
-		IPeerModel peer = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
+		IPeerNode peer = (IPeerNode) editorInput.getAdapter(IPeerNode.class);
 		if (peer != null) {
 			FSTreeNode root = FSModel.getFSModel(peer).getRoot();
 			if (root != null) {

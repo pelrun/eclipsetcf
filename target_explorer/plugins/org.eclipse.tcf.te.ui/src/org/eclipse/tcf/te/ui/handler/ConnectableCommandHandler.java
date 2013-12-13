@@ -12,13 +12,11 @@ package org.eclipse.tcf.te.ui.handler;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
@@ -28,17 +26,17 @@ import org.eclipse.ui.handlers.HandlerUtil;
 /**
  * Connectable command handler implementation.
  */
-public class ConnectableCommandHandler extends AbstractHandler implements IExecutableExtension {
+public class ConnectableCommandHandler extends AbstractEditorCommandHandler {
 
 	protected static final String PARAM_ACTION = "action"; //$NON-NLS-1$
 
 	protected int action = IConnectable.STATE_UNKNOWN;
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.ui.handler.AbstractAgentCommandHandler#execute(org.eclipse.core.commands.ExecutionEvent)
+	 * @see org.eclipse.tcf.te.ui.handler.AbstractEditorCommandHandler#internalExecute(org.eclipse.core.commands.ExecutionEvent)
 	 */
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object internalExecute(ExecutionEvent event) throws ExecutionException {
 		Assert.isTrue(action >= 0);
 
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
@@ -64,6 +62,7 @@ public class ConnectableCommandHandler extends AbstractHandler implements IExecu
 	 */
 	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
+		super.setInitializationData(config, propertyName, data);
 		if (data instanceof Map) {
 			Map<?,?> dataMap = (Map<?,?>)data;
 			if (dataMap.get(PARAM_ACTION) instanceof String) {

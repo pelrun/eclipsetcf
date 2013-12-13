@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpMove;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.dialogs.FSFolderSelectionDialog;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.ui.handlers.HandlerUtil;
 /**
  * The handler that moves the selected files or folders to a destination folder.
@@ -40,7 +40,7 @@ public class MoveFilesHandler extends AbstractHandler {
 		FSFolderSelectionDialog dialog = new FSFolderSelectionDialog(shell);
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelection(event);
 		List<FSTreeNode> nodes = selection.toList();
-		IPeerModel peer = nodes.get(0).peerNode;
+		IPeerNode peer = nodes.get(0).peerNode;
 		dialog.setInput(peer);
 		dialog.setMovedNodes(nodes);
 		if (dialog.open() == Window.OK) {

@@ -20,10 +20,10 @@ import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableURIProvider;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
@@ -34,7 +34,7 @@ public class AdapterFactory implements IAdapterFactory {
 	private final IPersistableURIProvider peerModelPersistableURIProvider = new PeerPersistableURIProvider();
 
 	private static final Class<?>[] CLASSES = new Class[] {
-		IPersistableURIProvider.class, IPeerModel.class, IConnectable.class, ILocatorModel.class
+		IPersistableURIProvider.class, IPeerNode.class, IConnectable.class, IPeerModel.class
 	};
 
 	/* (non-Javadoc)
@@ -52,30 +52,30 @@ public class AdapterFactory implements IAdapterFactory {
 				return adaptableObject;
 			}
 		}
-		if (ILocatorModel.class.isAssignableFrom(adapterType)) {
-			if (adaptableObject instanceof IPeerModel) {
-				return ((IPeerModel)adaptableObject).getModel();
+		if (IPeerModel.class.isAssignableFrom(adapterType)) {
+			if (adaptableObject instanceof IPeerNode) {
+				return ((IPeerNode)adaptableObject).getModel();
 			}
 		}
-		if (adaptableObject instanceof IPeerModel || adaptableObject instanceof IPeer || adaptableObject instanceof IPeerModelProvider) {
+		if (adaptableObject instanceof IPeerNode || adaptableObject instanceof IPeer || adaptableObject instanceof IPeerNodeProvider) {
 			if (IPersistableURIProvider.class.equals(adapterType)) {
 				return peerModelPersistableURIProvider;
 			}
-			if (IPeerModel.class.equals(adapterType)) {
+			if (IPeerNode.class.equals(adapterType)) {
 				if (adaptableObject instanceof IPeer) {
-					final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+					final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 					final IPeer peer = (IPeer)adaptableObject;
 
 					Runnable runnable = new Runnable() {
 						@Override
 						public void run() {
 							String id = peer.getID();
-							ILocatorModel model = Model.getModel();
+							IPeerModel model = Model.getModel();
 							Assert.isNotNull(model);
-							IPeerModel candidate = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id);
+							IPeerNode candidate = model.getService(IPeerModelLookupService.class).lkupPeerModelById(id);
 							if (candidate != null) node.set(candidate);
 							else {
-								candidate = Factory.getInstance().newInstance(IPeerModel.class, new Object[] { model, peer });
+								candidate = Factory.getInstance().newInstance(IPeerNode.class, new Object[] { model, peer });
 								if (candidate != null) node.set(candidate);
 							}
 						}
@@ -86,12 +86,12 @@ public class AdapterFactory implements IAdapterFactory {
 
 					return node.get();
 				}
-				else if (adaptableObject instanceof IPeerModel) {
+				else if (adaptableObject instanceof IPeerNode) {
 					return adaptableObject;
 				}
-				else if (adaptableObject instanceof IPeerModelProvider) {
-					final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
-					final IPeerModelProvider provider = (IPeerModelProvider)adaptableObject;
+				else if (adaptableObject instanceof IPeerNodeProvider) {
+					final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
+					final IPeerNodeProvider provider = (IPeerNodeProvider)adaptableObject;
 
 					Runnable runnable = new Runnable() {
 						@Override
@@ -107,8 +107,8 @@ public class AdapterFactory implements IAdapterFactory {
 				}
 			}
 			if (IStepContext.class.equals(adapterType)) {
-				if (adaptableObject instanceof IPeerModel) {
-					return new PeerModelStepContext((IPeerModel)adaptableObject);
+				if (adaptableObject instanceof IPeerNode) {
+					return new PeerNodeStepContext((IPeerNode)adaptableObject);
 				}
 			}
 		}

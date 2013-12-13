@@ -30,7 +30,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryState;
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
@@ -57,8 +57,8 @@ public class ContentProvider implements ITreeContentProvider {
 
 		// If the parent element is a peer model node, than return
 		// the children of the corresponding runtime model.
-		if (parentElement instanceof IPeerModel) {
-			IRuntimeModel model = ModelManager.getRuntimeModel((IPeerModel)parentElement);
+		if (parentElement instanceof IPeerNode) {
+			IRuntimeModel model = ModelManager.getRuntimeModel((IPeerNode)parentElement);
 			return isRuntimeModelNodeVisible() ? new Object[] { model } : getChildren(model);
 		}
 
@@ -280,7 +280,7 @@ public class ContentProvider implements ITreeContentProvider {
 				}
 			}
 		}
-		else if (element instanceof IPeerModel) {
+		else if (element instanceof IPeerNode) {
 			hasChildren = true;
 		}
 

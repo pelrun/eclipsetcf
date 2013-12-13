@@ -27,13 +27,13 @@ import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
 
 /**
  * WaitForReadyStep
  */
-public class WaitForReadyStep extends AbstractPeerModelStep {
+public class WaitForReadyStep extends AbstractPeerNodeStep {
 
 	/**
 	 * Constructor.
@@ -53,9 +53,9 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 	 */
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
-		final IPeerModel peerModel = getActivePeerModelContext(context, data, fullQualifiedId);
+		final IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
 
-		if (peerModel != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
+		if (peerNode != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
 			Protocol.invokeLater(new Runnable() {
 				final Runnable thisRunnable = this;
 				int refreshCount = 0;
@@ -71,7 +71,7 @@ public class WaitForReadyStep extends AbstractPeerModelStep {
 					}
 					else {
 						// Try to open a channel to the target and check for errors
-						Tcf.getChannelManager().openChannel(peerModel.getPeer(), null, new IChannelManager.DoneOpenChannel() {
+						Tcf.getChannelManager().openChannel(peerNode.getPeer(), null, new IChannelManager.DoneOpenChannel() {
 							@Override
 							public void doneOpenChannel(final Throwable error, final IChannel channel) {
 								if (ProgressHelper.isCancel(WaitForReadyStep.this, monitor, callback)) {

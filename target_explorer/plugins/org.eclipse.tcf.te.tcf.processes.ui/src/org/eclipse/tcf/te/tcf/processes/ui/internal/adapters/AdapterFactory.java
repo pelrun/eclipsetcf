@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
@@ -30,7 +30,7 @@ public class AdapterFactory implements IAdapterFactory {
 
 	private static final Class<?>[] CLASSES = new Class[] {
 		ILabelProvider.class,
-		IPeerModel.class,
+		IPeerNode.class,
 		ISearchable.class
 	};
 
@@ -43,17 +43,17 @@ public class AdapterFactory implements IAdapterFactory {
 			if (ILabelProvider.class.equals(adapterType)) {
 				return labelProvider;
 			}
-			if (IPeerModel.class.equals(adapterType)) {
+			if (IPeerNode.class.equals(adapterType)) {
 				return ((IProcessContextNode) adaptableObject).getAdapter(adapterType);
 			}
 			if (ISearchable.class.equals(adapterType)) {
-				return new ProcessSearchable((IPeerModel)((IProcessContextNode)adaptableObject).getAdapter(IPeerModel.class));
+				return new ProcessSearchable((IPeerNode)((IProcessContextNode)adaptableObject).getAdapter(IPeerNode.class));
 			}
 		}
 
 		if (adaptableObject instanceof IRuntimeModel) {
 			if (ISearchable.class.equals(adapterType)) {
-				final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+				final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 
 				Runnable runnable = new Runnable() {
 					@Override

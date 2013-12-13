@@ -14,13 +14,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -43,7 +41,7 @@ import org.eclipse.ui.part.EditorPart;
 /**
  * Stepper command handler implementation.
  */
-public abstract class AbstractStepperCommandHandler extends AbstractHandler implements IExecutableExtension {
+public abstract class AbstractStepperCommandHandler extends AbstractEditorCommandHandler {
 
 	protected String operation = null;
 	protected String adaptTo = null;
@@ -54,10 +52,10 @@ public abstract class AbstractStepperCommandHandler extends AbstractHandler impl
 	public static final String PART_ID_PROJECT_VIEW = "org.eclipse.ui.navigator.ProjectExplorer"; //$NON-NLS-1$
 
 	/* (non-Javadoc)
-	 * @see com.windriver.te.tcf.ui.handler.AbstractAgentCommandHandler#execute(org.eclipse.core.commands.ExecutionEvent)
+	 * @see org.eclipse.tcf.te.ui.handler.AbstractEditorCommandHandler#internalExecute(org.eclipse.core.commands.ExecutionEvent)
 	 */
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	protected Object internalExecute(ExecutionEvent event) throws ExecutionException {
 		Assert.isNotNull(operation);
 
 		IPropertiesContainer data = getData(event);
@@ -166,6 +164,7 @@ public abstract class AbstractStepperCommandHandler extends AbstractHandler impl
 	 */
 	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
+		super.setInitializationData(config, propertyName, data);
 		if (data instanceof Map) {
 			Map<?,?> dataMap = (Map<?,?>)data;
 			if (dataMap.get("operation") instanceof String) { //$NON-NLS-1$

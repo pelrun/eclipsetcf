@@ -18,9 +18,9 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.ui.IMemento;
@@ -46,9 +46,9 @@ public class TerminalsMementoHandler implements IMementoHandler {
 		ISelection selection = (ISelection)properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION);
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection)selection).getFirstElement();
-			if (element instanceof IPeerModel) {
-				IPeerModel peerModel = (IPeerModel)element;
-				memento.putString("peerID", peerModel.getPeerId()); //$NON-NLS-1$
+			if (element instanceof IPeerNode) {
+				IPeerNode peerNode = (IPeerNode)element;
+				memento.putString("peerID", peerNode.getPeerId()); //$NON-NLS-1$
 			}
 		}
 	}
@@ -66,13 +66,13 @@ public class TerminalsMementoHandler implements IMementoHandler {
 
 		final String peerID = memento.getString("peerID"); //$NON-NLS-1$
 		if (peerID != null) {
-			final ILocatorModel model = Model.getModel();
+			final IPeerModel model = Model.getModel();
 			Assert.isNotNull(model);
-			final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					peerModel.set(model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peerID));
+					peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(peerID));
 				}
 			};
 			Assert.isTrue(!Protocol.isDispatchThread());
@@ -80,14 +80,14 @@ public class TerminalsMementoHandler implements IMementoHandler {
 
 			// If the node is null, this might mean that the peer to restore is a dynamically discovered peer.
 			// In this case, we have to wait a little bit to give the locator service the chance to sync.
-			if (peerModel.get() == null) {
+			if (peerNode.get() == null) {
 				// Sleep shortly
 				try { Thread.sleep(300); } catch (InterruptedException e) {}
 				Protocol.invokeAndWait(runnable);
 			}
 
-			if (peerModel.get() != null) {
-				properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, new StructuredSelection(peerModel.get()));
+			if (peerNode.get() != null) {
+				properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, new StructuredSelection(peerNode.get()));
 			}
 		}
 	}

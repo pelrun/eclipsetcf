@@ -15,7 +15,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 
@@ -35,7 +35,7 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	/**
 	 * Constructor.
 	 */
-	public PeerImageDescriptor(final ImageRegistry registry, final Image baseImage, final IPeerModel node) {
+	public PeerImageDescriptor(final ImageRegistry registry, final Image baseImage, final IPeerNode node) {
 		super(registry);
 
 		this.baseImage = baseImage;
@@ -62,11 +62,11 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	 *
 	 * @param node The peer model. Must not be <code>null</code>.
 	 */
-	protected void initialize(IPeerModel node) {
+	protected void initialize(IPeerNode node) {
 		Assert.isNotNull(node);
 		Assert.isTrue(Protocol.isDispatchThread());
 
-		connectState = node instanceof IConnectable ? ((IConnectable)node).getConnectState() : IConnectable.STATE_UNKNOWN;
+		connectState = node.getConnectState();
 	}
 
 	/**

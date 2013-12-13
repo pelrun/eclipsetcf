@@ -26,8 +26,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.views.scriptpad.ScriptPad;
@@ -60,10 +60,10 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
     	// Create and register the locator model listener
     	listener = new ModelAdapter() {
     		@Override
-            public void locatorModelChanged(ILocatorModel model, IPeerModel peer, boolean added) {
+            public void locatorModelChanged(IPeerModel model, IPeerNode peer, boolean added) {
     			// Re-evaluate the enablement
     			if (actionProxy != null) {
-    				final IPeerModel[] peers = Model.getModel().getPeers();
+    				final IPeerNode[] peers = Model.getModel().getPeers();
     				actionProxy.setEnabled(peers != null && peers.length > 0);
 
     				// If the peer is not set to the view yet, but the action get's
@@ -119,7 +119,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 
         	// Determine the enablement. The action is disabled
         	// if no peers are available.
-        	IPeerModel[] peers = Model.getModel().getPeers();
+        	IPeerNode[] peers = Model.getModel().getPeers();
         	if (peers != null && peers.length > 0) {
         		action.setEnabled(true);
 				if (view instanceof ScriptPad) ((ScriptPad)view).setPeerModel(peers[0]);
@@ -204,14 +204,14 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 				}
 
 				// Get the selected peer model
-				IPeerModel selected = null;
+				IPeerNode selected = null;
 				if (view instanceof ScriptPad) selected = ((ScriptPad)view).getPeerModel();
 
 				boolean selectFirst = selected == null;
 
-				IPeerModel[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeers();
 				if (peers != null && peers.length > 0) {
-					for (IPeerModel peer : peers) {
+					for (IPeerNode peer : peers) {
 						if (isValueAdd(peer)) continue;
 						Action action = new PeerAction(view, peer);
 						if (selectFirst) {
@@ -235,17 +235,17 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 	/**
 	 * Determines if the given peer model node is a value-add.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @return <code>True</code> if the peer model node is value-add, <code>false</code> otherwise.
 	 */
-	/* default */ final boolean isValueAdd(final IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	/* default */ final boolean isValueAdd(final IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 		final AtomicBoolean isValueAdd = new AtomicBoolean();
 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = peerModel.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
+				String value = peerNode.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
 				boolean isValueAddValue = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
 				isValueAdd.set(isValueAddValue);

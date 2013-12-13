@@ -14,7 +14,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.dialogs.IntervalConfigDialog;
@@ -33,7 +33,7 @@ public class ConfigRefreshIntervalHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IEditorInput editorInput = HandlerUtil.getActiveEditorInputChecked(event);
-		IPeerModel peer = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
+		IPeerNode peer = (IPeerNode) editorInput.getAdapter(IPeerNode.class);
 		if (peer != null) {
 			Shell parent = HandlerUtil.getActiveShellChecked(event);
 			IntervalConfigDialog dialog = new IntervalConfigDialog(peer, parent);

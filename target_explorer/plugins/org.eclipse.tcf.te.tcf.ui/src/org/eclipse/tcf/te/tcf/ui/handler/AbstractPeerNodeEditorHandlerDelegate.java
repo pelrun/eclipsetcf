@@ -12,24 +12,24 @@ package org.eclipse.tcf.te.tcf.ui.handler;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IEditorInput;
 
 /**
- * AbstractPeerModelEditorHandlerDelegate
+ * AbstractPeerNodeEditorHandlerDelegate
  */
-public abstract class AbstractPeerModelEditorHandlerDelegate implements IEditorHandlerDelegate {
+public abstract class AbstractPeerNodeEditorHandlerDelegate implements IEditorHandlerDelegate {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate#getEditorInput(java.lang.Object)
 	 */
 	@Override
 	public IEditorInput getEditorInput(Object element) {
-		IPeerModel model = (IPeerModel)Platform.getAdapterManager().getAdapter(element, IPeerModel.class);
+		IPeerNode model = (IPeerNode)Platform.getAdapterManager().getAdapter(element, IPeerNode.class);
 		if (model == null && element instanceof IAdaptable) {
-			model = (IPeerModel)((IAdaptable)element).getAdapter(IPeerModel.class);
+			model = (IPeerNode)((IAdaptable)element).getAdapter(IPeerNode.class);
 		}
 		return new EditorInput(model != null ? model : element);
 	}

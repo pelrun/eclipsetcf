@@ -34,13 +34,13 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
-import org.eclipse.tcf.te.tcf.ui.dialogs.RedirectAgentSelectionDialog;
+import org.eclipse.tcf.te.tcf.ui.dialogs.RedirectPeerSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
@@ -63,11 +63,11 @@ public class RedirectHandler extends AbstractHandler {
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			// Redirect is supporting single selection only
 			Object candidate = ((IStructuredSelection)selection).getFirstElement();
-			if (candidate instanceof IPeerModel) {
-				final IPeerModel peerModel = (IPeerModel)candidate;
+			if (candidate instanceof IPeerNode) {
+				final IPeerNode peerNode = (IPeerNode)candidate;
 
 				// Create the agent selection dialog
-				RedirectAgentSelectionDialog dialog = new RedirectAgentSelectionDialog(HandlerUtil.getActiveShell(event), null) {
+				RedirectPeerSelectionDialog dialog = new RedirectPeerSelectionDialog(HandlerUtil.getActiveShell(event), null) {
 					@Override
 					protected void configureTableViewer(TableViewer viewer) {
 						Assert.isNotNull(viewer);
@@ -80,7 +80,7 @@ public class RedirectHandler extends AbstractHandler {
 						filter.add(new ViewerFilter() {
 							@Override
 							public boolean select(Viewer viewer, Object parentElement, Object element) {
-								if (peerModel.equals(element)) {
+								if (peerNode.equals(element)) {
 									return false;
 								}
 								return true;
@@ -97,13 +97,13 @@ public class RedirectHandler extends AbstractHandler {
 					selection = dialog.getSelection();
 					if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 						candidate = ((IStructuredSelection)selection).getFirstElement();
-						if (candidate instanceof IPeerModel) {
-							final IPeerModel proxy = (IPeerModel)candidate;
+						if (candidate instanceof IPeerNode) {
+							final IPeerNode proxy = (IPeerNode)candidate;
 
 							Protocol.invokeLater(new Runnable() {
 								@Override
 								public void run() {
-									redirect(peerModel, proxy);
+									redirect(peerNode, proxy);
 
 									DisplayUtil.safeAsyncExec(new Runnable() {
 										@Override
@@ -111,7 +111,7 @@ public class RedirectHandler extends AbstractHandler {
 											IWorkbenchPart part = HandlerUtil.getActivePart(event);
 											if (part instanceof CommonNavigator) {
 												CommonNavigator navigator = (CommonNavigator)part;
-												navigator.selectReveal(new StructuredSelection(peerModel));
+												navigator.selectReveal(new StructuredSelection(peerNode));
 											}
 										}
 									});
@@ -132,19 +132,19 @@ public class RedirectHandler extends AbstractHandler {
 	 * <p>
 	 * The method must be called from within the TCF dispatch thread.
 	 *
-	 * @param peerModel The peer to redirect. Must not be <code>null</code>.
+	 * @param peerNode The peer to redirect. Must not be <code>null</code>.
 	 * @param proxy The proxy. Must not be <code>null</code>
 	 */
-	public void redirect(IPeerModel peerModel, IPeerModel proxy) {
-		Assert.isNotNull(peerModel);
+	public void redirect(IPeerNode peerNode, IPeerNode proxy) {
+		Assert.isNotNull(peerNode);
 		Assert.isNotNull(proxy);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the peer attributes
 		Map<String, String> attributes = new HashMap<String, String>();
-		attributes.putAll(peerModel.getPeer().getAttributes());
+		attributes.putAll(peerNode.getPeer().getAttributes());
 		// Set the redirection
-		attributes.put(IPeerModelProperties.PROP_REDIRECT_PROXY, proxy.getPeerId());
+		attributes.put(IPeerNodeProperties.PROP_REDIRECT_PROXY, proxy.getPeerId());
 
 		try {
 			IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
@@ -156,22 +156,22 @@ public class RedirectHandler extends AbstractHandler {
 			// Create a peer redirector
 			PeerRedirector redirector = new PeerRedirector(proxy.getPeer(), attributes);
 			// And update the instance
-			peerModel.setProperty(IPeerModelProperties.PROP_INSTANCE, redirector);
+			peerNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, redirector);
 
 			// Associate proxy (parent) and peer model (child)
-			peerModel.setParent(proxy);
-			Model.getModel().getService(ILocatorModelUpdateService.class).addChild(peerModel);
+			peerNode.setParent(proxy);
+			Model.getModel().getService(IPeerModelUpdateService.class).addChild(peerNode);
 
 			// Trigger a refresh of the locator model in a later dispatch cycle
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					Model.getModel().getService(ILocatorModelRefreshService.class).refresh(null);
+					Model.getModel().getService(IPeerModelRefreshService.class).refresh(null);
 				}
 			});
 		} catch (IOException e) {
 			String template = NLS.bind(Messages.RedirectHandler_error_redirectFailed, Messages.PossibleCause);
-			StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), peerModel, template,
+			StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), peerNode, template,
 											Messages.RedirectHandler_error_title, IContextHelpIds.MESSAGE_REDIRECT_FAILED, this, null);
 		}
 	}

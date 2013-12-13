@@ -11,32 +11,32 @@ package org.eclipse.tcf.te.tcf.locator.services;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService;
 
 
 /**
- * Abstract locator model service base implementation.
+ * Abstract peer model service base implementation.
  */
-public abstract class AbstractLocatorModelService extends PlatformObject implements ILocatorModelService {
+public abstract class AbstractPeerModelService extends PlatformObject implements IPeerModelService {
 	// Reference to the parent locator model
-	private final ILocatorModel locatorModel;
+	private final IPeerModel peerModel;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param parentModel The parent locator model instance. Must not be <code>null</code>.
+	 * @param parentModel The parent peer model instance. Must not be <code>null</code>.
 	 */
-	public AbstractLocatorModelService(ILocatorModel parentModel) {
+	public AbstractPeerModelService(IPeerModel parentModel) {
 		Assert.isNotNull(parentModel);
-		locatorModel = parentModel;
+		peerModel = parentModel;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelService#getLocatorModel()
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService#getPeerModel()
 	 */
 	@Override
-	public final ILocatorModel getLocatorModel() {
-		return locatorModel;
+	public final IPeerModel getPeerModel() {
+		return peerModel;
 	}
 }

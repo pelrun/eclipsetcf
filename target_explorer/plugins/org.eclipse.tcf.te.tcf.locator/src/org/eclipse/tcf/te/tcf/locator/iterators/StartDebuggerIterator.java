@@ -20,13 +20,13 @@ import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Step group iterator for debugger attach.
  */
-public class StartDebuggerIterator extends AbstractPeerModelStepGroupIterator {
+public class StartDebuggerIterator extends AbstractPeerNodeStepGroupIterator {
 
 	/**
 	 * Constructor.
@@ -44,11 +44,11 @@ public class StartDebuggerIterator extends AbstractPeerModelStepGroupIterator {
 
 	    final AtomicBoolean autoStartDbg = new AtomicBoolean(false);
 
-	    final IPeerModel node = getActivePeerModelContext(context, data, fullQualifiedId);
+	    final IPeerNode node = getActivePeerModelContext(context, data, fullQualifiedId);
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = node.getPeer().getAttributes().get(IPeerModelProperties.PROP_AUTO_START_DEBUGGER);
+				String value = node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_AUTO_START_DEBUGGER);
 				autoStartDbg.set(value != null ? Boolean.parseBoolean(value) : false);
 			}
 		};

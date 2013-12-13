@@ -28,7 +28,7 @@ import org.eclipse.tcf.te.launch.core.selection.RemoteSelectionContext;
 import org.eclipse.tcf.te.launch.ui.interfaces.ILaunchConfigurationTabFormPart;
 import org.eclipse.tcf.te.launch.ui.tabs.launchcontext.AbstractContextSelectorTab;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.controls.ContextSelectorSectionControl;
 import org.eclipse.tcf.te.tcf.ui.sections.AbstractContextSelectorSection;
 import org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl;
@@ -51,7 +51,7 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 		 */
 		@Override
 		public boolean select(Viewer viewer, Object parentElement, Object element) {
-			if (element instanceof IPeerModel) {
+			if (element instanceof IPeerNode) {
 				String typeId = null;
 				if (configuration != null) {
 					try {
@@ -63,7 +63,7 @@ public abstract class AbstractLaunchContextMainTab extends AbstractContextSelect
 				String mode = getLaunchConfigurationDialog().getMode();
 
 				if (typeId != null && mode != null) {
-					return LaunchConfigTypeBindingsManager.getInstance().isValidLaunchConfigType(typeId, mode, new RemoteSelectionContext((IPeerModel)element, true));
+					return LaunchConfigTypeBindingsManager.getInstance().isValidLaunchConfigType(typeId, mode, new RemoteSelectionContext((IPeerNode)element, true));
 				}
 			}
 			return true;

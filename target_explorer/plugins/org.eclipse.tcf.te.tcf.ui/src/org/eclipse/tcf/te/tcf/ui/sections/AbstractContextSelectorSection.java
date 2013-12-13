@@ -27,8 +27,8 @@ import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -46,18 +46,18 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 
 	final IModelListener modelListener = new IModelListener() {
 		@Override
-		public void locatorModelDisposed(ILocatorModel model) {
+		public void locatorModelDisposed(IPeerModel model) {
 			refreshSelectorControl();
 		}
 		@Override
-		public void locatorModelChanged(ILocatorModel model, IPeerModel peerModel, boolean added) {
+		public void locatorModelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
 			refreshSelectorControl();
 		}
 	};
 	final IEventListener eventListener = new IEventListener() {
 		@Override
 		public void eventFired(EventObject event) {
-			if (event.getSource() instanceof IPeer || event.getSource() instanceof IPeerModel) {
+			if (event.getSource() instanceof IPeer || event.getSource() instanceof IPeerNode) {
 				refreshSelectorControl();
 			}
 		}
@@ -159,14 +159,14 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 		try {
 			if (encoded != null && encoded.trim().length() > 0) {
 				IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(IPeer.class, String.class);
-				Object[] input = delegate.readList(IPeerModel.class, encoded);
+				Object[] input = delegate.readList(IPeerNode.class, encoded);
 				List<IModelNode> peers = new ArrayList<IModelNode>();
 				for (Object object : input) {
 	            	if (object instanceof IModelNode) {
 	            		peers.add((IModelNode)object);
 	            	}
             	}
-				return peers.toArray(new IPeerModel[peers.size()]);
+				return peers.toArray(new IPeerNode[peers.size()]);
 			}
 		}
 		catch (Exception e) {

@@ -28,24 +28,24 @@ public interface IModelNode extends IPropertiesContainer, ISchedulingRule {
 	 *           It can be identical to the node object instance UUID, but
 	 *           can be any other string or might be not even set.
 	 */
-	public static final String PROPERTY_ID = "id"; //$NON-NLS-1$
+	public static final String PROPERTY_ID = "id" + PERSISTENT_PROPERTY; //$NON-NLS-1$
 
 	/**
 	 * Property: Model node name. May be used to represent the node
 	 *           in UI widgets.
 	 */
-	public static final String PROPERTY_NAME = "name";  //$NON-NLS-1$
+	public static final String PROPERTY_NAME = "name" + PERSISTENT_PROPERTY;  //$NON-NLS-1$
 
 	/**
 	 * Property: Model node visible state. May be used to hide the node
 	 *           in UI widgets like lists, tables or trees.
 	 */
-	public static final String PROPERTY_IS_VISIBLE = "isVisible"; //$NON-NLS-1$
+	public static final String PROPERTY_VISIBLE = "visible" + PERSISTENT_PROPERTY; //$NON-NLS-1$
 
 	/**
 	 * Property: Type. May be used to group nodes or set an node type id.
 	 */
-	public static final String PROPERTY_TYPE = "type"; //$NON-NLS-1$
+	public static final String PROPERTY_TYPE = "type" + PERSISTENT_PROPERTY; //$NON-NLS-1$
 
 	/**
 	 * Property: Type label. May be used to represent the group or node

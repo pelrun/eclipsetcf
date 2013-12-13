@@ -17,8 +17,8 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.services.contexts.interfaces.IContextService;
@@ -40,10 +40,10 @@ public class AdapterFactory implements IAdapterFactory {
     public AdapterFactory() {
     	final IModelListener listener = new ModelAdapter() {
     		/* (non-Javadoc)
-    		 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, boolean)
+    		 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
     		 */
     		@Override
-    		public void locatorModelChanged(ILocatorModel model, IPeerModel peer, boolean added) {
+    		public void locatorModelChanged(IPeerModel model, IPeerNode peer, boolean added) {
     			// If a peer gets removed, remove the context service proxy
     			if (peer != null && peer.getPeer() != null && !added) {
     				IContextService adapter = adapters.remove(peer.getPeer());

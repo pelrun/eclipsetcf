@@ -38,7 +38,7 @@ import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
@@ -54,20 +54,20 @@ public class AttachStep {
 	 * <p>
 	 * <b>Note:</b> This method must be called from within the TCF dispatch thread.
 	 *
-	 * @param peerModel The peer model. Must not be <code>null</code>.
+	 * @param peerNode The peer model. Must not be <code>null</code>.
 	 * @param nodes The list of process context nodes. Must not be <code>null</code>.
 	 * @param callback The callback to invoke once the operation completed, or<code>null</code>.
 	 */
-	public void executeAttach(final IPeerModel peerModel, final IProcessContextNode[] nodes, final ICallback callback) {
+	public void executeAttach(final IPeerNode peerNode, final IProcessContextNode[] nodes, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		Assert.isNotNull(peerModel);
+		Assert.isNotNull(peerNode);
 		Assert.isNotNull(nodes);
 
 		// Determine if we have to execute the attach at all
 		final List<IProcessContextNode> nodesToAttach = new ArrayList<IProcessContextNode>();
 		for (IProcessContextNode node : nodes) {
-			IPeerModel parentPeerModel = (IPeerModel)node.getAdapter(IPeerModel.class);
-			if (!peerModel.equals(parentPeerModel)) continue;
+			IPeerNode parentPeerModel = (IPeerNode)node.getAdapter(IPeerNode.class);
+			if (!peerNode.equals(parentPeerModel)) continue;
 
 			// If not yet attached, we have to attach to it
 			if (node.getProcessContext() != null && !node.getProcessContext().isAttached()) {
@@ -78,17 +78,17 @@ public class AttachStep {
 		// Anything to attach?
 		if (!nodesToAttach.isEmpty()) {
 			// Determine the debug service to attach to the peer node
-			IDebugService dbgService = ServiceManager.getInstance().getService(peerModel, IDebugService.class, false);
+			IDebugService dbgService = ServiceManager.getInstance().getService(peerNode, IDebugService.class, false);
 			if (dbgService != null) {
 				// Attach to the peer node first
-				dbgService.attach(peerModel, new PropertiesContainer(), null, new Callback() {
+				dbgService.attach(peerNode, new PropertiesContainer(), null, new Callback() {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						callback.setProperty("launch", getProperty("launch")); //$NON-NLS-1$ //$NON-NLS-2$
 						Runnable runnable = new Runnable() {
 							@Override
 							public void run() {
-								doAttach(peerModel, Collections.unmodifiableList(nodesToAttach), callback);
+								doAttach(peerNode, Collections.unmodifiableList(nodesToAttach), callback);
 							}
 						};
 						if (Protocol.isDispatchThread()) runnable.run();
@@ -96,7 +96,7 @@ public class AttachStep {
 					}
 				});
 			} else {
-				doAttach(peerModel, Collections.unmodifiableList(nodesToAttach), callback);
+				doAttach(peerNode, Collections.unmodifiableList(nodesToAttach), callback);
 			}
 		} else {
 			onDone(callback);
@@ -109,19 +109,19 @@ public class AttachStep {
 	 * <p>
 	 * <b>Note:</b> This method must be called from within the TCF dispatch thread.
 	 *
-	 * @param peerModel The peer model. Must not be <code>null</code>.
+	 * @param peerNode The peer model. Must not be <code>null</code>.
 	 * @param nodes The process context node. Must not be <code>null</code>.
 	 * @param callback The callback to invoke once the operation completed, or<code>null</code>.
 	 */
-	protected void doAttach(final IPeerModel peerModel, final List<IProcessContextNode> nodes, final ICallback callback) {
+	protected void doAttach(final IPeerNode peerNode, final List<IProcessContextNode> nodes, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		Assert.isNotNull(peerModel);
+		Assert.isNotNull(peerNode);
 		Assert.isNotNull(nodes);
 
 		// Loop the nodes and attach to them
 		if (!nodes.isEmpty()) {
 			// Open a channel
-			Tcf.getChannelManager().openChannel(peerModel.getPeer(), null, new IChannelManager.DoneOpenChannel() {
+			Tcf.getChannelManager().openChannel(peerNode.getPeer(), null, new IChannelManager.DoneOpenChannel() {
 				@Override
 				public void doneOpenChannel(final Throwable error, final IChannel channel) {
 					if (error == null) {
@@ -132,7 +132,7 @@ public class AttachStep {
 								@Override
 								protected void internalDone(Object caller, IStatus status) {
 									if (status.getSeverity() == IStatus.ERROR) {
-										onError(peerModel, status.getMessage(), status.getException(), callback);
+										onError(peerNode, status.getMessage(), status.getException(), callback);
 									} else {
 										onDone(callback);
 									}
@@ -177,10 +177,10 @@ public class AttachStep {
 							// Mark the collector initialization done
 							collector.initDone();
 						} else {
-							onError(peerModel, NLS.bind(Messages.AttachStep_error_missingService, peerModel.getName()), null, callback);
+							onError(peerNode, NLS.bind(Messages.AttachStep_error_missingService, peerNode.getName()), null, callback);
 						}
 					} else {
-						onError(peerModel, NLS.bind(Messages.AttachStep_error_openChannel, peerModel.getName()), error, callback);
+						onError(peerNode, NLS.bind(Messages.AttachStep_error_openChannel, peerNode.getName()), error, callback);
 					}
 				}
 			});

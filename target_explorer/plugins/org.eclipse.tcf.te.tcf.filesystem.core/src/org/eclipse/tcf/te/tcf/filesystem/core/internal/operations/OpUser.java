@@ -27,7 +27,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFException;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFFileSystemException;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.UserAccount;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The operation to get the user account of a specified peer.
@@ -37,7 +37,7 @@ public class OpUser extends Operation {
 	/* default */ static final String USER_ACCOUNT_KEY = CorePlugin.getUniqueIdentifier()+".user.account"; //$NON-NLS-1$
 
 	// The target peer.
-	IPeerModel peerNode;
+	IPeerNode peerNode;
 	// The resulting account.
 	UserAccount result;
 	
@@ -45,7 +45,7 @@ public class OpUser extends Operation {
 	 * Create an operation using the target peer.
 	 * @param peerNode The peer whose user account to be checked.
 	 */
-	public OpUser(IPeerModel peerNode) {
+	public OpUser(IPeerNode peerNode) {
 		this.peerNode = peerNode;
 	}
 	
@@ -127,7 +127,7 @@ public class OpUser extends Operation {
 	 *            The peer model from which the user account is retrieved.
 	 * @return The user account if it exists or null if not.
 	 */
-	private UserAccount getUserFromPeer(final IPeerModel peer) {
+	private UserAccount getUserFromPeer(final IPeerNode peer) {
 		Assert.isNotNull(peer);
 		if (Protocol.isDispatchThread()) {
 			return (UserAccount) peer.getProperty(USER_ACCOUNT_KEY);
@@ -149,7 +149,7 @@ public class OpUser extends Operation {
 	 * @param peer
 	 *            The peer model to which the user account is saved.
 	 */
-	void setUserToPeer(final IPeerModel peer, final UserAccount account) {
+	void setUserToPeer(final IPeerNode peer, final UserAccount account) {
 		Assert.isNotNull(peer);
 		Assert.isNotNull(account);
 

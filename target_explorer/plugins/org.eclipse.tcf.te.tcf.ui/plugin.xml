@@ -5,7 +5,7 @@
 <!-- Adapter factory contributions -->
    <extension point="org.eclipse.core.runtime.adapters">
       <factory
-            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"
+            adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"
             class="org.eclipse.tcf.te.tcf.ui.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.jface.viewers.ILabelProvider"/>
          <adapter type="org.eclipse.ui.IPersistableElement"/>
@@ -15,7 +15,7 @@
       <factory
             adaptableType="org.eclipse.tcf.te.ui.views.editor.EditorInput"
             class="org.eclipse.tcf.te.tcf.ui.internal.adapters.AdapterFactory">
-         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
          <adapter type="org.eclipse.tcf.te.ui.views.interfaces.IEditorSaveAsAdapter"/>
       </factory>
    </extension>   
@@ -23,7 +23,7 @@
 <!-- Element factory contributions -->   
    <extension point="org.eclipse.ui.elementFactories">
       <factory
-            class="org.eclipse.tcf.te.tcf.ui.internal.adapters.PeerModelFactory"
+            class="org.eclipse.tcf.te.tcf.ui.internal.adapters.PeerNodeFactory"
             id="org.eclipse.tcf.te.ui.views.peerFactory">
       </factory>
    </extension>
@@ -49,7 +49,7 @@
             id="org.eclipse.tcf.te.tcf.ui.propertyTester.simulator"
             namespace="org.eclipse.tcf.te.tcf.ui"
             properties="isValidSimulatorConfig"
-            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
    </extension>
 
@@ -75,7 +75,7 @@
             class="org.eclipse.tcf.te.tcf.ui.navigator.events.EventListener">
          <eventSourceType
                bundleId="org.eclipse.tcf.te.tcf.locator"
-               class="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+               class="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
          </eventSourceType>
       </eventListener>
    </extension>
@@ -107,13 +107,13 @@
                <or>
                   <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.IRoot"/>
                   <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.ICategory"/>
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   <instanceof value="org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode"/>
                </or>
             </triggerPoints>
             <possibleChildren>
                <or>
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   <instanceof value="org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode"/>
                </or>               
             </possibleChildren>
@@ -126,7 +126,7 @@
                <enablement>
                   <or>
                      <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                         <test property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
                      </and>
                      <and>
@@ -177,7 +177,7 @@
             id="org.eclipse.tcf.te.tcf.ui.peerLabelProviderDelegate">
          <enablement>
             <or>
-               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
                <instanceof value="org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode"/>
             </or>
@@ -299,7 +299,7 @@
             insertBefore="first">
          <enablement>
             <with variable="activeEditorInput">
-               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                   <test property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
                </adapt>
             </with>
@@ -335,7 +335,7 @@
                <with variable="selection">
                   <count value="+"/>
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   </iterate>
                </with>
             </visibleWhen>
@@ -353,7 +353,7 @@
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
                      <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                         <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
                      </and>                        
                   </iterate>
@@ -372,7 +372,7 @@
                   <count value="+"/>
                   <iterate operator="and" ifEmpty="false">
                      <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                         <or>
                            <not>
                               <test
@@ -397,7 +397,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
-                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                         <or>
                            <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
                            <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
@@ -506,7 +506,7 @@
             <activeWhen>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   </iterate>
                </with>
             </activeWhen>
@@ -523,7 +523,7 @@
             <activeWhen>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   </iterate>
                </with>
             </activeWhen>
@@ -532,7 +532,7 @@
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
                      <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                         <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
                      </and>                        
                   </iterate>
@@ -546,7 +546,7 @@
             <activeWhen>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   </iterate>
                </with>
             </activeWhen>
@@ -554,8 +554,8 @@
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
                      <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
-                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel"/>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
                      </and>
                   </iterate>
                </with>
@@ -568,7 +568,7 @@
          <activeWhen>
             <with variable="systemManagerViewSelection">
                <iterate operator="and" ifEmpty="false">
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                </iterate>
             </with>
          </activeWhen>
@@ -576,7 +576,7 @@
             <with variable="systemManagerViewSelection">
                <count value="1"/>
                <iterate operator="and" ifEmpty="false">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
                      <test property="org.eclipse.tcf.te.launch.core.isLaunched" value="false"/>
                   </adapt>
@@ -589,12 +589,12 @@
             class="org.eclipse.tcf.te.tcf.ui.handler.StartDebugCommandHandler">
             <activeWhen>
                <with variable="activeEditorInput">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                </with>
             </activeWhen>
             <enabledWhen>
                <with variable="activeEditorInput">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
                      <test property="org.eclipse.tcf.te.launch.core.isLaunched" value="false"/>
                   </adapt>

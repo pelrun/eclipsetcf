@@ -27,9 +27,9 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -72,18 +72,18 @@ public class RefreshHandler extends AbstractHandler {
 		// The selection must be a structured selection and must not be empty
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			// The list of locator model instances to refresh
-			List<ILocatorModel> locatorToRefresh = new ArrayList<ILocatorModel>();
-			List<IPeerModel> peerToRefresh = new ArrayList<IPeerModel>();
+			List<IPeerModel> locatorToRefresh = new ArrayList<IPeerModel>();
+			List<IPeerNode> peerToRefresh = new ArrayList<IPeerNode>();
 
 			// Iterate the selection and determine the model instances
 			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
 			while (iterator.hasNext()) {
 				Object element = iterator.next();
-				Assert.isTrue(element instanceof IPeerModel);
-				IPeerModel node = (IPeerModel)element;
+				Assert.isTrue(element instanceof IPeerNode);
+				IPeerNode node = (IPeerNode)element;
 
 				// Get the associated locator model of the node
-				ILocatorModel model = (ILocatorModel)node.getAdapter(ILocatorModel.class);
+				IPeerModel model = (IPeerModel)node.getAdapter(IPeerModel.class);
 				Assert.isNotNull(model);
 				// If not yet in the list, add it
 				if (!locatorToRefresh.contains(model)) {
@@ -97,14 +97,14 @@ public class RefreshHandler extends AbstractHandler {
 			// Trigger an refresh on all determined models and wait for the
 			// refresh to complete. Once completed, fire the parent callback.
 			AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
-			for (ILocatorModel model : locatorToRefresh) {
-				final ILocatorModel finModel = model;
+			for (IPeerModel model : locatorToRefresh) {
+				final IPeerModel finModel = model;
 				final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
 
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						finModel.getService(ILocatorModelRefreshService.class).refresh(new Callback() {
+						finModel.getService(IPeerModelRefreshService.class).refresh(new Callback() {
 							@Override
 							protected void internalDone(Object caller, IStatus status) {
 								innerCallback.done(this, Status.OK_STATUS);
@@ -115,8 +115,8 @@ public class RefreshHandler extends AbstractHandler {
 				Protocol.invokeLater(runnable);
 			}
 
-			for (IPeerModel model : peerToRefresh) {
-				final IPeerModel finModel = model;
+			for (IPeerNode model : peerToRefresh) {
+				final IPeerNode finModel = model;
 				final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
 
 				Runnable runnable = new Runnable() {

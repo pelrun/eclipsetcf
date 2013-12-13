@@ -33,7 +33,7 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeViewerSorter;
 import org.eclipse.tcf.te.tcf.filesystem.ui.interfaces.IFSConstants;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementLabelProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.trees.FilterDescriptor;
 import org.eclipse.tcf.te.ui.trees.Pending;
 import org.eclipse.tcf.te.ui.trees.ViewerStateManager;
@@ -117,9 +117,9 @@ public class FSOpenFileDialog extends ElementTreeSelectionDialog {
 
 	    if (filterPath != null && !"".equals(filterPath.trim())) { //$NON-NLS-1$
 	    	IPath path = new Path(filterPath);
-	    	if (viewer.getInput() instanceof IPeerModel) {
+	    	if (viewer.getInput() instanceof IPeerNode) {
 	    		Object element = null;
-	    		FSModel model = FSModel.getFSModel((IPeerModel)viewer.getInput());
+	    		FSModel model = FSModel.getFSModel((IPeerNode)viewer.getInput());
 	    		if (model != null) {
 	    			FSTreeNode root = model.getRoot();
 	    			ITreeContentProvider contentProvider = (ITreeContentProvider)viewer.getContentProvider();

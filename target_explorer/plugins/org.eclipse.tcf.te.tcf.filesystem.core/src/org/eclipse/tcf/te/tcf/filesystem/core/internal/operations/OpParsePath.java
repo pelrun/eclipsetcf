@@ -26,8 +26,8 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.TargetPropertyTes
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
@@ -35,7 +35,7 @@ import org.eclipse.tcf.te.tcf.locator.model.Model;
  */
 public class OpParsePath extends Operation {
 	// The peer on which the file is located.
-	IPeerModel peer;
+	IPeerNode peer;
 	// The path on the target.
 	String path;
 	// The parsing result.
@@ -47,7 +47,7 @@ public class OpParsePath extends Operation {
 	 * @param peer The target peer.
 	 * @param path The path to be parsed.
 	 */
-	public OpParsePath(IPeerModel peer, String path) {
+	public OpParsePath(IPeerNode peer, String path) {
 		this.peer = peer;
 		this.path = path;
 	}
@@ -66,21 +66,21 @@ public class OpParsePath extends Operation {
 				String peerId = filePath.substring(0, slash);
 				peerId = peerId.replace(CacheManager.PATH_ESCAPE_CHAR, ':');
 
-				final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+				final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 				final String finPeerId = peerId;
 
 				Runnable runnable = new Runnable() {
 
 					@Override
 					public void run() {
-						peerModel.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(finPeerId));
+						peerNode.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(finPeerId));
 					}
 				};
 
 				if (Protocol.isDispatchThread()) runnable.run();
 				else Protocol.invokeAndWait(runnable);
 
-				this.peer = peerModel.get();
+				this.peer = peerNode.get();
 				if (peer != null) {
 					boolean hostWindows = Host.isWindowsHost();
 					boolean windows = TargetPropertyTester.isWindows(peer);

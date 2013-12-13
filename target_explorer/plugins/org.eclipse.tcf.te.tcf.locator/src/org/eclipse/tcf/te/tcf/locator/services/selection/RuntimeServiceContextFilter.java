@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 
 /**
@@ -51,19 +51,19 @@ public class RuntimeServiceContextFilter implements IDefaultContextService.ICont
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService.IContextFilter#select(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService.IContextFilter#select(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-	public boolean select(final IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	public boolean select(final IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
-		final IPeer peer = peerModel.getPeer();
+		final IPeer peer = peerNode.getPeer();
 		final AtomicBoolean result = new AtomicBoolean(false);
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
 				List<String> list;
-				String services = peerModel.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+				String services = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 				if (services != null) {
 					list = Arrays.asList(services.split(",\\s*")); //$NON-NLS-1$
 					boolean containsAll = true;
@@ -78,7 +78,7 @@ public class RuntimeServiceContextFilter implements IDefaultContextService.ICont
 				}
 
 				if (useDisconnectedContexts) {
-					services = peer.getAttributes().get(IPeerModelProperties.PROP_OFFLINE_SERVICES);
+					services = peer.getAttributes().get(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
 					list = services != null ? Arrays.asList(services.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 					boolean containsAll = true;
 					for (String serviceName : serviceNames) {

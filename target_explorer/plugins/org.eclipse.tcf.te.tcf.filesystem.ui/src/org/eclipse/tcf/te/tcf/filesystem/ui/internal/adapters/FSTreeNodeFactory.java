@@ -15,8 +15,8 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
@@ -33,13 +33,13 @@ public class FSTreeNodeFactory implements IElementFactory {
 	@Override
 	public IAdaptable createElement(IMemento memento) {
 		String peerId = memento.getString("peerId"); //$NON-NLS-1$
-		IPeerModel peerModel = Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId);
-		if(peerModel != null) {
+		IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
+		if(peerNode != null) {
 			String path = memento.getString("path"); //$NON-NLS-1$
 			if(path == null) {
-				return FSModel.getFSModel(peerModel).getRoot();
+				return FSModel.getFSModel(peerNode).getRoot();
 			}
-			OpParsePath op = new OpParsePath(peerModel, path);
+			OpParsePath op = new OpParsePath(peerNode, path);
 			IOpExecutor executor = new NullOpExecutor();
 			IStatus status = executor.execute(op);
 			if(status.isOK()) {

@@ -11,7 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.views.scriptpad.actions;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.Action;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.views.scriptpad.ScriptPad;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.IViewPart;
@@ -24,7 +24,7 @@ public class PeerAction extends Action {
 	private final static DelegatingLabelProvider delegate = new DelegatingLabelProvider();
 
 	// Reference to the peer model
-	private IPeerModel peerModel;
+	private IPeerNode peerNode;
 	// Reference to the parent view part
 	private IViewPart view;
 
@@ -32,17 +32,17 @@ public class PeerAction extends Action {
      * Constructor.
      *
      * @param view The parent view part. Must not be <code>null</code>.
-     * @param peerModel The peer model. Must not be <code>null</code>.
+     * @param peerNode The peer model. Must not be <code>null</code>.
      */
-    public PeerAction(IViewPart view, IPeerModel peerModel) {
+    public PeerAction(IViewPart view, IPeerNode peerNode) {
     	super("", AS_CHECK_BOX); //$NON-NLS-1$
 
-    	Assert.isNotNull(peerModel);
-    	this.peerModel = peerModel;
+    	Assert.isNotNull(peerNode);
+    	this.peerNode = peerNode;
 
-    	String label = delegate.getText(peerModel);
+    	String label = delegate.getText(peerNode);
     	if (label != null) {
-    		setText(delegate.decorateText(label, peerModel));
+    		setText(delegate.decorateText(label, peerNode));
     	}
 
     	Assert.isNotNull(view);
@@ -58,7 +58,7 @@ public class PeerAction extends Action {
 
     	// Pass on the selected peer model to the parent view
     	if (view instanceof ScriptPad) {
-    		((ScriptPad)view).setPeerModel(peerModel);
+    		((ScriptPad)view).setPeerModel(peerNode);
     	}
     }
 }

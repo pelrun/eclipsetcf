@@ -9,7 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.interfaces;
 
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 
 
@@ -65,5 +65,5 @@ public interface IProcessMonitorUIDelegate {
 	 * @param node The peer model node context. Must not be <code>null</code>.
 	 * @return The list of searchables to use or <code>null</code>.
 	 */
-	public ISearchable[] getSearchables(IPeerModel node);
+	public ISearchable[] getSearchables(IPeerNode node);
 }

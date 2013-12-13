@@ -9,11 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.internal.adapters;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
@@ -41,8 +38,8 @@ public class CategorizableAdapter implements ICategorizable {
 	 */
 	@Override
 	public String getId() {
-		if (element instanceof IPeerModel) {
-			return ((IPeerModel)element).getPeerId();
+		if (element instanceof IPeerNode) {
+			return ((IPeerNode)element).getPeerId();
 		}
 		return null;
 	}
@@ -55,7 +52,7 @@ public class CategorizableAdapter implements ICategorizable {
 		Assert.isNotNull(operation);
 		Assert.isNotNull(category);
 
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerNode) {
 			// ADD: Parent and destination category are the same -> not valid
 			if (OPERATION.ADD.equals(operation) && category.equals(parentCategory)) {
 				return false;
@@ -63,26 +60,6 @@ public class CategorizableAdapter implements ICategorizable {
 
 			// ALL: Static peer's cannot be removed from or added to "My Targets"
 			if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
-				final AtomicBoolean isStatic = new AtomicBoolean();
-
-				Runnable runnable = new Runnable() {
-					@Override
-					public void run() {
-						isStatic.set(((IPeerModel)element).isStatic());
-					}
-				};
-
-				if (Protocol.isDispatchThread()) {
-					runnable.run();
-				}
-				else {
-					Protocol.invokeAndWait(runnable);
-				}
-
-				if (isStatic.get()) {
-					return false;
-				}
-
 				return true;
 			}
 
@@ -103,7 +80,7 @@ public class CategorizableAdapter implements ICategorizable {
 		Assert.isNotNull(operation);
 		Assert.isNotNull(category);
 
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerNode) {
 			// ADD: element belongs to category -> not enabled
 			if (OPERATION.ADD.equals(operation)
 							&& Managers.getCategoryManager().belongsTo(category.getId(), getId())) {

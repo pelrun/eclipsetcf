@@ -15,8 +15,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IAdapterService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
@@ -32,7 +32,7 @@ import org.eclipse.ui.navigator.CommonViewer;
  * TCF locator model listener implementation.
  */
 public class ModelListener extends ModelAdapter {
-	private final ILocatorModel parentModel;
+	private final IPeerModel parentModel;
 	/* default */ final CommonViewer viewer;
 
 	/**
@@ -41,7 +41,7 @@ public class ModelListener extends ModelAdapter {
 	 * @param parent The parent locator model. Must not be <code>null</code>.
 	 * @param viewer The common viewer instance. Must not be <code>null</code>.
 	 */
-	public ModelListener(ILocatorModel parent, CommonViewer viewer) {
+	public ModelListener(IPeerModel parent, CommonViewer viewer) {
 		Assert.isNotNull(parent);
 		Assert.isNotNull(viewer);
 
@@ -50,10 +50,10 @@ public class ModelListener extends ModelAdapter {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, boolean)
+	 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
 	 */
 	@Override
-	public void locatorModelChanged(final ILocatorModel model, final IPeerModel peerModel, final boolean added) {
+	public void locatorModelChanged(final IPeerModel model, final IPeerNode peerNode, final boolean added) {
 		if (parentModel.equals(model)) {
 			// Locator model changed -> refresh the tree
 			Tree tree = viewer.getTree();
@@ -69,17 +69,17 @@ public class ModelListener extends ModelAdapter {
 				});
 			}
 
-			if (peerModel != null) {
+			if (peerNode != null) {
 				// Check if the peer model node can be adapted to IModelListener.
-				IAdapterService service = ServiceManager.getInstance().getService(peerModel, IAdapterService.class);
-				IModelListener listener = service != null ? service.getAdapter(peerModel, IModelListener.class) : null;
+				IAdapterService service = ServiceManager.getInstance().getService(peerNode, IAdapterService.class);
+				IModelListener listener = service != null ? service.getAdapter(peerNode, IModelListener.class) : null;
 				// If yes -> Invoke the adapted model listener instance
 				if (listener != null) {
-					listener.locatorModelChanged(model, peerModel, added);
+					listener.locatorModelChanged(model, peerNode, added);
 				}
 				// If no -> Default behavior for dynamic discovered peers is to close the editor (if any).
 				// 			For static peers, leave the editor untouched.
-				else if (!added && !peerModel.isStatic()) {
+				else if (!added) {
 					Display display = PlatformUI.getWorkbench().getDisplay();
 					if (display != null && !display.isDisposed()) {
 						display.asyncExec(new Runnable() {
@@ -91,7 +91,7 @@ public class ModelListener extends ModelAdapter {
 									// Get the active page
 									IWorkbenchPage page = window.getActivePage();
 									// Create the editor input object
-									IEditorInput input = new EditorInput(peerModel);
+									IEditorInput input = new EditorInput(peerNode);
 									// Lookup the editors matching the editor input
 									IEditorReference[] editors = page.findEditors(input, IUIConstants.ID_EDITOR, IWorkbenchPage.MATCH_INPUT);
 									if (editors != null && editors.length > 0) {

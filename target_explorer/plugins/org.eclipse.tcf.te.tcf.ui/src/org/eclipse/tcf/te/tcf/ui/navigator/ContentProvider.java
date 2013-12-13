@@ -28,12 +28,12 @@ import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerRedirector;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
@@ -102,13 +102,13 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	/**
 	 * Determines if the given peer model node is a value-add.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @return <code>True</code> if the peer model node is a value-add, <code>false</code> otherwise.
 	 */
-	/* default */ final boolean isValueAdd(IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	/* default */ final boolean isValueAdd(IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
-		String value = peerModel.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
+		String value = peerNode.getPeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
 		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
 		return isValueAdd;
@@ -117,22 +117,22 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	/**
 	 * Determines if the given peer model node is filtered from the view completely.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 * @return <code>True</code> if filtered, <code>false</code> otherwise.
 	 */
-	/* default */ final boolean isFiltered(IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	/* default */ final boolean isFiltered(IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
 		boolean filtered = false;
 		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
 
-		filtered |= isValueAdd(peerModel) && hideValueAdds;
+		filtered |= isValueAdd(peerNode) && hideValueAdds;
 		if (!showInvisible) {
-			filtered |= !peerModel.isVisible();
+			filtered |= !peerNode.isVisible();
 		}
 
-		filtered |= peerModel.getPeer().getName() != null
-						&& peerModel.getPeer().getName().endsWith("Command Server"); //$NON-NLS-1$
+		filtered |= peerNode.getPeer().getName() != null
+						&& peerNode.getPeer().getName().endsWith("Command Server"); //$NON-NLS-1$
 
 		return filtered;
 	}
@@ -169,13 +169,13 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		}
 
 		// If it is the locator model, get the peers
-		if (parentElement instanceof ILocatorModel) {
-			final ILocatorModel model = (ILocatorModel)parentElement;
-			final IPeerModel[] peers = model.getPeers();
-			final List<IPeerModel> candidates = new ArrayList<IPeerModel>();
+		if (parentElement instanceof IPeerModel) {
+			final IPeerModel model = (IPeerModel)parentElement;
+			final IPeerNode[] peers = model.getPeers();
+			final List<IPeerNode> candidates = new ArrayList<IPeerNode>();
 
 			if (IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
-				for (IPeerModel peer : peers) {
+				for (IPeerNode peer : peers) {
 					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
@@ -189,7 +189,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else if (IUIConstants.ID_CAT_MY_TARGETS.equals(catID)) {
-				for (IPeerModel peer : peers) {
+				for (IPeerNode peer : peers) {
 					// Check for filtered nodes (Value-add's and Proxies)
 					if (isFiltered(peer)) {
 						continue;
@@ -200,8 +200,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
 					}
 					Assert.isNotNull(categorizable);
-
-					boolean isStatic = peer.isStatic();
 
 					// Static peers, or if launched by current user -> add automatically to "My Targets"
 					boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
@@ -213,7 +211,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 					}
 
 					boolean isMyTargets = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-					if (!isMyTargets && (isStatic || startedByCurrentUser)) {
+					if (!isMyTargets && startedByCurrentUser) {
 						// "Value-add's" are not saved to the category persistence automatically
 						Managers.getCategoryManager().addTransient(catID, categorizable.getId());
 						isMyTargets = true;
@@ -225,42 +223,40 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
-				for (IPeerModel peer : peers) {
-					// Check for filtered nodes (Value-add's and Proxies)
-					if (isFiltered(peer)) {
-						continue;
-					}
-
-					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
-					if (categorizable == null) {
-						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
-					}
-					Assert.isNotNull(categorizable);
-
-					boolean isStatic = peer.isStatic();
-
-					boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
-					if (startedByCurrentUser) {
-						// If the "My Targets" category is not visible, ignore the startedByCurrentUser flag
-						if (myTargetsCat != null && !myTargetsCat.isEnabled()) {
-							startedByCurrentUser = false;
-						}
-					}
-
-					boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-					if (!isNeighborhood && !isStatic && !startedByCurrentUser) {
-						// "Neighborhood" is always transient
-						Managers.getCategoryManager().addTransient(catID, categorizable.getId());
-						isNeighborhood = true;
-					}
-
-					if (isNeighborhood && !candidates.contains(peer)) {
-						candidates.add(peer);
-					}
-				}
+//				for (IPeerNode peer : peers) {
+//					// Check for filtered nodes (Value-add's and Proxies)
+//					if (isFiltered(peer)) {
+//						continue;
+//					}
+//
+//					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+//					if (categorizable == null) {
+//						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
+//					}
+//					Assert.isNotNull(categorizable);
+//
+//					boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
+//					if (startedByCurrentUser) {
+//						// If the "My Targets" category is not visible, ignore the startedByCurrentUser flag
+//						if (myTargetsCat != null && !myTargetsCat.isEnabled()) {
+//							startedByCurrentUser = false;
+//						}
+//					}
+//
+//					boolean isNeighborhood = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
+//					if (!isNeighborhood && !isStatic && !startedByCurrentUser) {
+//						// "Neighborhood" is always transient
+//						Managers.getCategoryManager().addTransient(catID, categorizable.getId());
+//						isNeighborhood = true;
+//					}
+//
+//					if (isNeighborhood && !candidates.contains(peer)) {
+//						candidates.add(peer);
+//					}
+//				}
 			}
 			else if (catID != null) {
-				for (IPeerModel peer : peers) {
+				for (IPeerNode peer : peers) {
 					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
@@ -275,7 +271,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else {
-				for (IPeerModel peer : peers) {
+				for (IPeerNode peer : peers) {
 					// Check for filtered nodes (Value-add's and Proxies)
 					if (isFiltered(peer)) {
 						continue;
@@ -286,12 +282,12 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 
-			children = candidates.toArray(new IPeerModel[candidates.size()]);
+			children = candidates.toArray(new IPeerNode[candidates.size()]);
 		}
 		// If it is a peer model itself, get the child peers
-		else if (parentElement instanceof IPeerModel) {
-			String parentPeerId = ((IPeerModel)parentElement).getPeerId();
-			List<IPeerModel> candidates = Model.getModel().getChildren(parentPeerId);
+		else if (parentElement instanceof IPeerNode) {
+			String parentPeerId = ((IPeerNode)parentElement).getPeerId();
+			List<IPeerNode> candidates = Model.getModel().getChildren(parentPeerId);
 			if (candidates != null && candidates.size() > 0) {
 				PeerRedirectorGroupNode rootNode = roots.get(parentPeerId);
 				if (rootNode == null) {
@@ -306,15 +302,15 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		// If it is a remote peer discover root node, return the children
 		// for the associated peer id.
 		else if (parentElement instanceof PeerRedirectorGroupNode) {
-			List<IPeerModel> candidates = Model.getModel().getChildren(((PeerRedirectorGroupNode)parentElement).peerId);
+			List<IPeerNode> candidates = Model.getModel().getChildren(((PeerRedirectorGroupNode)parentElement).peerId);
 			if (candidates != null && candidates.size() > 0) {
 				// Mark all candidates to be included in the scan process and
 				// schedule an scan asynchronously
-				for (final IPeerModel candidate: candidates) {
+				for (final IPeerNode candidate: candidates) {
 					Protocol.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							candidate.setProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE, false);
+							candidate.setProperty(IPeerNodeProperties.PROP_SCANNER_EXCLUDE, false);
 
 							ScannerRunnable runnable = new ScannerRunnable(null, candidate);
 							runnable.run();
@@ -344,10 +340,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	@Override
 	public Object getParent(final Object element) {
 		// If it is a peer model node, return the parent locator model
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerNode) {
 			// If it is a peer redirector, return the parent remote peer discover root node
-			if (((IPeerModel)element).getPeer() instanceof IPeerRedirector) {
-				IPeer parentPeer =  ((IPeerRedirector)((IPeerModel)element).getPeer()).getParent();
+			if (((IPeerNode)element).getPeer() instanceof IPeerRedirector) {
+				IPeer parentPeer =  ((IPeerRedirector)((IPeerNode)element).getPeer()).getParent();
 				String parentPeerId = parentPeer.getID();
 				if (!roots.containsKey(parentPeerId)) {
 					roots.put(parentPeer.getID(), new PeerRedirectorGroupNode(parentPeerId));
@@ -357,21 +353,21 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 
 			// Determine the parent category node
 			ICategory category = null;
-			String[] categoryIds = Managers.getCategoryManager().getCategoryIds(((IPeerModel)element).getPeerId());
+			String[] categoryIds = Managers.getCategoryManager().getCategoryIds(((IPeerNode)element).getPeerId());
 			// If we have more than one, take the first one as parent category.
 			// To get all parents, the getParents(Object) method must be called
 			if (categoryIds != null && categoryIds.length > 0) {
 				category = CategoriesExtensionPointManager.getInstance().getCategory(categoryIds[0], false);
 			}
 
-			return category != null ? category : ((IPeerModel)element).getModel();
+			return category != null ? category : ((IPeerNode)element).getModel();
 		} else if (element instanceof PeerRedirectorGroupNode) {
 			// Return the parent peer model node
-			final AtomicReference<IPeerModel> parent = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> parent = new AtomicReference<IPeerNode>();
 			final Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					parent.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(((PeerRedirectorGroupNode)element).peerId));
+					parent.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(((PeerRedirectorGroupNode)element).peerId));
 				}
 			};
 
@@ -402,8 +398,8 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		// is consuming only the last segment.
 		List<TreePath> pathes = new ArrayList<TreePath>();
 
-		if (element instanceof IPeerModel) {
-			if (Managers.getCategoryManager().belongsTo(IUIConstants.ID_CAT_FAVORITES, ((IPeerModel)element).getPeerId())) {
+		if (element instanceof IPeerNode) {
+			if (Managers.getCategoryManager().belongsTo(IUIConstants.ID_CAT_FAVORITES, ((IPeerNode)element).getPeerId())) {
 				// Get the "Favorites" category
 				ICategory favCategory = CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_FAVORITES, false);
 				if (favCategory != null) {
@@ -484,7 +480,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 */
 	@Override
 	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
-		final ILocatorModel model = Model.getModel();
+		final IPeerModel model = Model.getModel();
 
 		// Create and attach the model listener if not yet done
 		if (modelListener == null && model != null && viewer instanceof CommonViewer) {
@@ -509,7 +505,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					model.getService(ILocatorModelRefreshService.class).refresh(null);
+					model.getService(IPeerModelRefreshService.class).refresh(null);
 				}
 			});
 		}

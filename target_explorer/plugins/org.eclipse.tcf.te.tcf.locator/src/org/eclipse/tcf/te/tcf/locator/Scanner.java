@@ -29,9 +29,9 @@ import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IScanner;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 
@@ -40,7 +40,7 @@ import org.eclipse.tcf.te.tcf.locator.model.Model;
  */
 public class Scanner extends Job implements IScanner {
 	// Reference to the parent model instance.
-	private final ILocatorModel parentModel;
+	private final IPeerModel parentModel;
 
 	// Reference to the scanner configuration
 	private final Map<String, Object> configuration = new HashMap<String, Object>();
@@ -53,7 +53,7 @@ public class Scanner extends Job implements IScanner {
 	 *
 	 * @param parentModel The parent model instance. Must not be <code>null</code>.
 	 */
-	public Scanner(ILocatorModel parentModel) {
+	public Scanner(IPeerModel parentModel) {
 		super(Scanner.class.getName());
 		Assert.isNotNull(parentModel);
 		this.parentModel = parentModel;
@@ -68,7 +68,7 @@ public class Scanner extends Job implements IScanner {
 	 *
 	 * @return The parent model instance.
 	 */
-	protected ILocatorModel getParentModel() {
+	protected IPeerModel getParentModel() {
 		return parentModel;
 	}
 
@@ -98,7 +98,7 @@ public class Scanner extends Job implements IScanner {
 		if (monitor == null) monitor = new NullProgressMonitor();
 
 		// Get the current list of peers known to the parent model
-		IPeerModel[] peers = getParentModel().getPeers();
+		IPeerNode[] peers = getParentModel().getPeers();
 		// Do we have something to scan at all
 		if (peers.length > 0) {
 			try {
@@ -131,7 +131,7 @@ public class Scanner extends Job implements IScanner {
 				}, new CallbackInvocationDelegate());
 
 				// Loop the nodes and try to get an channel
-				for (IPeerModel peer : peers) {
+				for (IPeerNode peer : peers) {
 					// Check for the progress monitor getting canceled
 					if (monitor.isCanceled() || isTerminated()) break;
 					// Scan the peer
@@ -155,7 +155,7 @@ public class Scanner extends Job implements IScanner {
 	 * @param collector The callback collector. Must not be <code>null</code>.
 	 * @param monitor The progress monitor. Must not be <code>null</code>.
 	 */
-	/* default */ void doScan(final IPeerModel peer, final AsyncCallbackCollector collector, final IProgressMonitor monitor) {
+	/* default */ void doScan(final IPeerNode peer, final AsyncCallbackCollector collector, final IProgressMonitor monitor) {
 		Assert.isNotNull(peer);
 		Assert.isNotNull(collector);
 		Assert.isNotNull(monitor);
@@ -174,7 +174,7 @@ public class Scanner extends Job implements IScanner {
 
 			@Override
 			public void run() {
-				isExcluded.set(peer.getBooleanProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE));
+				isExcluded.set(peer.getBooleanProperty(IPeerNodeProperties.PROP_SCANNER_EXCLUDE));
 			}
 		};
 
@@ -191,9 +191,9 @@ public class Scanner extends Job implements IScanner {
 					if (!monitor.isCanceled() && !isTerminated()) {
 						// Get the children of the scanned peer model and make sure
 						// they are scanned too if not excluded
-						List<IPeerModel> candidates = Model.getModel().getChildren(peer.getPeerId());
+						List<IPeerNode> candidates = Model.getModel().getChildren(peer.getPeerId());
 						if (candidates != null && candidates.size() > 0) {
-							for (IPeerModel candidate : candidates) {
+							for (IPeerNode candidate : candidates) {
 								doScan(candidate, collector, monitor);
 							}
 						}

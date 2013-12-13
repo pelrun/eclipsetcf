@@ -15,7 +15,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
 
 /**
@@ -28,12 +28,12 @@ public class RedirectPeersFilter extends ViewerFilter {
 	 */
 	@Override
 	public boolean select(final Viewer viewer, final Object parentElement, final Object element) {
-		if (element instanceof IPeerModel && parentElement instanceof IRoot) {
-			final AtomicReference<IPeerModel> parent = new AtomicReference<IPeerModel>();
+		if (element instanceof IPeerNode && parentElement instanceof IRoot) {
+			final AtomicReference<IPeerNode> parent = new AtomicReference<IPeerNode>();
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					parent.set(((IPeerModel)element).getParent(IPeerModel.class));
+					parent.set(((IPeerNode)element).getParent(IPeerNode.class));
 				}
 			};
 			Assert.isTrue(!Protocol.isDispatchThread());

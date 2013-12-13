@@ -21,16 +21,16 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 /**
  * Locator model property tester.
  */
-public class LocatorModelPropertyTester extends PropertyTester {
+public class PeerModelPropertyTester extends PropertyTester {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String, java.lang.Object[], java.lang.Object)
@@ -38,25 +38,25 @@ public class LocatorModelPropertyTester extends PropertyTester {
 	@Override
 	public boolean test(Object receiver, final String property, final Object[] args, final Object expectedValue) {
 		if (receiver instanceof IPeer) {
-			receiver = Platform.getAdapterManager().getAdapter(receiver, IPeerModel.class);
+			receiver = Platform.getAdapterManager().getAdapter(receiver, IPeerNode.class);
 		}
 		// The receiver is expected to be a peer model node or a peer
-		if (receiver instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel)receiver;
+		if (receiver instanceof IPeerNode) {
+			final IPeerNode peerNode = (IPeerNode)receiver;
 			final AtomicBoolean result = new AtomicBoolean();
 
 			// If we have to test for local or remote services, we have to handle it special
 			if ("hasLocalService".equals(property) || "hasRemoteService".equals(property)) { //$NON-NLS-1$ //$NON-NLS-2$
 				// This tests must happen outside the TCF dispatch thread's
 				if (!Protocol.isDispatchThread()) {
-					result.set(testServices(peerModel, property, args, expectedValue));
+					result.set(testServices(peerNode, property, args, expectedValue));
 				}
 			}
 			else {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						result.set(testPeerModel(peerModel, property, args, expectedValue));
+						result.set(testPeerModel(peerNode, property, args, expectedValue));
 					}
 				};
 
@@ -84,11 +84,11 @@ public class LocatorModelPropertyTester extends PropertyTester {
 	 * @return <code>True</code> if the property to test has the expected value, <code>false</code>
 	 *         otherwise.
 	 */
-	protected boolean testPeerModel(IPeerModel peerModel, String property, Object[] args, Object expectedValue) {
-		Assert.isNotNull(peerModel);
+	protected boolean testPeerModel(IPeerNode peerNode, String property, Object[] args, Object expectedValue) {
+		Assert.isNotNull(peerNode);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		IPeer peer = peerModel.getPeer();
+		IPeer peer = peerNode.getPeer();
 
 		if ("name".equals(property)) { //$NON-NLS-1$
 			if (peer.getName() != null && peer.getName().equals(expectedValue)) {
@@ -145,7 +145,7 @@ public class LocatorModelPropertyTester extends PropertyTester {
 		}
 
 		if ("isOfType".equals(property)) { //$NON-NLS-1$
-			String value = peer.getAttributes().get(IPeerModelProperties.PROP_TYPE);
+			String value = peer.getAttributes().get(IPeerNodeProperties.PROP_TYPE);
 			if (expectedValue instanceof String) {
 				return value != null ? ((String)expectedValue).equals(value) : ((String)expectedValue).equalsIgnoreCase("null"); //$NON-NLS-1$
 			}
@@ -168,8 +168,8 @@ public class LocatorModelPropertyTester extends PropertyTester {
 		}
 
 		if ("hasOfflineService".equals(property)) { //$NON-NLS-1$
-			String offlineServices = peer.getAttributes().get(IPeerModelProperties.PROP_OFFLINE_SERVICES);
-			String remoteServices = peerModel.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+			String offlineServices = peer.getAttributes().get(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
+			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 			List<String> offline = offlineServices != null ? Arrays.asList(offlineServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$
 			boolean hasOfflineService = (remote == null) ? offline.contains(expectedValue) : remote.contains(expectedValue);
@@ -195,14 +195,14 @@ public class LocatorModelPropertyTester extends PropertyTester {
 	 * @return <code>True</code> if the property to test has the expected value, <code>false</code>
 	 *         otherwise.
 	 */
-	protected boolean testServices(final IPeerModel node, final String property, final Object[] args, final Object expectedValue) {
+	protected boolean testServices(final IPeerNode node, final String property, final Object[] args, final Object expectedValue) {
 		Assert.isNotNull(node);
 		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		String services = null;
 
-		ILocatorModel model = node.getModel();
-		ILocatorModelPeerNodeQueryService queryService = model.getService(ILocatorModelPeerNodeQueryService.class);
+		IPeerModel model = node.getModel();
+		IPeerModelQueryService queryService = model.getService(IPeerModelQueryService.class);
 		if ("hasLocalService".equals(property)) { //$NON-NLS-1$
 			services = queryService.queryLocalServices(node);
 		} else {
@@ -211,7 +211,7 @@ public class LocatorModelPropertyTester extends PropertyTester {
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_PROPERTY_TESTER)) {
 			CoreBundleActivator.getTraceHandler().trace("testServices: property = " + property + ", expectedValue = " + expectedValue + ", services = " + services, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-														ITracing.ID_TRACE_PROPERTY_TESTER, LocatorModelPropertyTester.this);
+														ITracing.ID_TRACE_PROPERTY_TESTER, PeerModelPropertyTester.this);
 		}
 
 		if (services != null) {

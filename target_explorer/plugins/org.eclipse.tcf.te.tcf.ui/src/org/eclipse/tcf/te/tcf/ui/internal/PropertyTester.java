@@ -11,7 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.internal;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler;
 import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
@@ -39,8 +39,8 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 			return ((NewWizardNode)receiver).getWizardId().equals(expectedValue);
 		}
 
-		if ("isValidSimulatorConfig".equals(property) && receiver instanceof IPeerModel && expectedValue instanceof Boolean) { //$NON-NLS-1$
-			SimulatorUtils.Result simulator = SimulatorUtils.getSimulatorService((IPeerModel)receiver);
+		if ("isValidSimulatorConfig".equals(property) && receiver instanceof IPeerNode && expectedValue instanceof Boolean) { //$NON-NLS-1$
+			SimulatorUtils.Result simulator = SimulatorUtils.getSimulatorService((IPeerNode)receiver);
 			boolean valid = simulator != null && simulator.service.isValidConfig(receiver, simulator.settings);
 			return ((Boolean)expectedValue).booleanValue() == valid;
 		}

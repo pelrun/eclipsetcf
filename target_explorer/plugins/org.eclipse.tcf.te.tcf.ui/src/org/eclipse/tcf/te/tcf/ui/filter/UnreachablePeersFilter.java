@@ -12,8 +12,8 @@ package org.eclipse.tcf.te.tcf.ui.filter;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Filter implementation filtering unreachable peers.
@@ -26,24 +26,24 @@ public class UnreachablePeersFilter extends ViewerFilter {
 	@Override
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
 
-		// Filter only elements of simulator IPeerModel
-		if (element instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel)element;
+		// Filter only elements of simulator IPeerNode
+		if (element instanceof IPeerNode) {
+			final IPeerNode peerNode = (IPeerNode)element;
 
 			// Determine the current action of the peer model
 			final int[] state = new int[1];
 			if (Protocol.isDispatchThread()) {
-				state[0] = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);
+				state[0] = peerNode.getIntProperty(IPeerNodeProperties.PROP_STATE);
 			} else {
 				Protocol.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						state[0] = peerModel.getIntProperty(IPeerModelProperties.PROP_STATE);
+						state[0] = peerNode.getIntProperty(IPeerNodeProperties.PROP_STATE);
 					}
 				});
 			}
 
-			return state[0] != IPeerModelProperties.STATE_NOT_REACHABLE && state[0] != IPeerModelProperties.STATE_ERROR;
+			return state[0] != IPeerNodeProperties.STATE_NOT_REACHABLE && state[0] != IPeerNodeProperties.STATE_ERROR;
 		}
 
 		return true;

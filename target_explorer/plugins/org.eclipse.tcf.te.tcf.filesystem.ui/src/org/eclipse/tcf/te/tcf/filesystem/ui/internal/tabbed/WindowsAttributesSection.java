@@ -16,9 +16,9 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
-import org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory.FSTreeNodePeerModelProvider;
+import org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory.FSTreeNodePeerNodeProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.ui.tabbed.BaseTitledSection;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
@@ -65,9 +65,9 @@ public class WindowsAttributesSection extends BaseTitledSection {
 	 * @see org.eclipse.tcf.te.ui.views.tabbed.BaseTitledSection#updateData(org.eclipse.tcf.te.ui.interfaces.IPropertyChangeProvider)
 	 */
 	@Override
-    protected void updateInput(IPeerModelProvider input) {
-        Assert.isTrue(input instanceof FSTreeNodePeerModelProvider);
-        this.node = ((FSTreeNodePeerModelProvider)input).getFSTreeNode();
+    protected void updateInput(IPeerNodeProvider input) {
+        Assert.isTrue(input instanceof FSTreeNodePeerNodeProvider);
+        this.node = ((FSTreeNodePeerNodeProvider)input).getFSTreeNode();
         this.clone = (FSTreeNode) node.clone();
     }
 

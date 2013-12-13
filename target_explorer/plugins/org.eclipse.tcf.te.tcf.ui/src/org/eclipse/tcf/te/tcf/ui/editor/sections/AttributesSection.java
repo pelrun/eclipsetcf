@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
@@ -24,11 +23,12 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerAttributesTablePart;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -47,7 +47,7 @@ public class AttributesSection extends AbstractSection {
 	private PeerAttributesTablePart tablePart;
 
 	// Reference to the original data object
-	/* default */ IPeerModel od;
+	/* default */ IPeerNode od;
 	// Reference to a copy of the original data
 	/* default */ final IPropertiesContainer odc = new PropertiesContainer();
 	// Reference to the properties container representing the working copy for the section
@@ -62,7 +62,7 @@ public class AttributesSection extends AbstractSection {
 		IPeer.ATTR_NAME, IPeer.ATTR_TRANSPORT_NAME, IPeer.ATTR_IP_HOST,
 		IPeer.ATTR_IP_PORT, "PipeName", //$NON-NLS-1$
 		"redirect.proxy", //$NON-NLS-1$
-		IPeerModelProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
+		IPeerNodeProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
 	};
 
 	/*
@@ -75,7 +75,7 @@ public class AttributesSection extends AbstractSection {
 		IPeer.ATTR_NAME, IPeer.ATTR_TRANSPORT_NAME, IPeer.ATTR_IP_HOST,
 		IPeer.ATTR_IP_PORT, "PipeName", //$NON-NLS-1$
 		"redirect.proxy", //$NON-NLS-1$
-		IPeerModelProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
+		IPeerNodeProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
 	};
 
 	/**
@@ -160,8 +160,8 @@ public class AttributesSection extends AbstractSection {
 			if (getManagedForm().getContainer() instanceof AbstractEditorPage
 							&& !((AbstractEditorPage)getManagedForm().getContainer()).isDirty()) {
 				Object node = ((AbstractEditorPage)getManagedForm().getContainer()).getEditorInputNode();
-				if (node instanceof IPeerModel) {
-					setupData((IPeerModel)node);
+				if (node instanceof IPeerNode) {
+					setupData((IPeerNode)node);
 				}
 			}
 		} else {
@@ -178,7 +178,7 @@ public class AttributesSection extends AbstractSection {
 	 *
 	 * @param node The peer node or <code>null</code>.
 	 */
-	public void setupData(final IPeerModel node) {
+	public void setupData(final IPeerNode node) {
 		// If the section is dirty, nothing is changed
 		if (isDirty()) return;
 
@@ -276,7 +276,7 @@ public class AttributesSection extends AbstractSection {
 	 *
 	 * @param node The GDB Remote configuration node or <code>null</code>.
 	 */
-	public void extractData(final IPeerModel node) {
+	public void extractData(final IPeerNode node) {
 		// If no data is available, we are done
 		if (node == null) {
 			return;
@@ -330,7 +330,7 @@ public class AttributesSection extends AbstractSection {
 				IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector)oldPeer).getParent(), attributes) : new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
-				node.setProperty(IPeerModelProperties.PROP_INSTANCE, newPeer);
+				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
 				if (changed) {
 					node.setChangeEventsEnabled(true);
 				}
@@ -393,30 +393,12 @@ public class AttributesSection extends AbstractSection {
 	 * Updates the control enablement.
 	 */
 	protected void updateEnablement() {
-		// Determine the input
-		final Object input = getManagedForm().getInput();
-
-		// Determine if the peer is a static peer
-		final AtomicBoolean isStatic = new AtomicBoolean();
-		final AtomicBoolean isRemote = new AtomicBoolean();
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				if (input instanceof IPeerModel) {
-					isStatic.set(((IPeerModel)input).isStatic());
-					isRemote.set(((IPeerModel)input).isRemote());
-				}
-			}
-		};
-		if (Protocol.isDispatchThread()) {
-			runnable.run();
-		}
-		else {
-			Protocol.invokeAndWait(runnable);
-		}
-
 		if (tablePart != null) {
-			tablePart.setReadOnly(!isStatic.get() || isRemote.get());
+			// Determine the input
+			final Object input = getManagedForm().getInput();
+			if (input instanceof IPeerNode) {
+				tablePart.setReadOnly(((IPeerNode)input).getConnectState() != IConnectable.STATE_DISCONNECTED);
+			}
 		}
 	}
 }

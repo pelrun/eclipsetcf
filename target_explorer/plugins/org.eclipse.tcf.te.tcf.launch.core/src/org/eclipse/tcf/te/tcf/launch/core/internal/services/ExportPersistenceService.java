@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.persistence.services.URIPersistenceService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Persistence service implementation for import/export.
@@ -46,8 +46,8 @@ public class ExportPersistenceService extends URIPersistenceService implements I
 			throw new IOException("The persistence delegate for context '" + context.getClass().getName() + "' cannot be determined."); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
-		if (context instanceof IPeerModel) {
-			final IPeerModel node = (IPeerModel)context;
+		if (context instanceof IPeerNode) {
+			final IPeerNode node = (IPeerNode)context;
 			ILaunchConfiguration launchConfig = (ILaunchConfiguration)Platform.getAdapterManager().getAdapter(node, ILaunchConfiguration.class);
 			if (launchConfig != null) {
 				IPersistenceDelegate launchDelegate = PersistenceManager.getInstance().getDelegate(launchConfig, String.class);

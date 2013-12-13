@@ -16,8 +16,8 @@ import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.ui.navigator.CommonViewer;
@@ -52,13 +52,13 @@ public class TreeViewerListener implements ITreeViewerListener, IDisposable {
 	@Override
 	public void treeCollapsed(TreeExpansionEvent event) {
 		if (event.getElement() instanceof PeerRedirectorGroupNode) {
-			final List<IPeerModel> candidates = Model.getModel().getChildren(((PeerRedirectorGroupNode)event.getElement()).peerId);
+			final List<IPeerNode> candidates = Model.getModel().getChildren(((PeerRedirectorGroupNode)event.getElement()).peerId);
 			if (candidates != null && candidates.size() > 0) {
 				Protocol.invokeLater(new Runnable() {
 					@Override
 					public void run() {
 						// Mark all candidates to be excluded from the scan process
-						for (final IPeerModel candidate: candidates) {
+						for (final IPeerNode candidate: candidates) {
 							markExcluded(candidate);
 						}
 					}
@@ -70,17 +70,17 @@ public class TreeViewerListener implements ITreeViewerListener, IDisposable {
 	/**
 	 * Mark the given peer model node and it's child nodes to be excluded from the scanner.
 	 *
-	 * @param peerModel The peer model node. Must not be <code>null</code>.
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
 	 */
-	/* default */ void markExcluded(IPeerModel peerModel) {
+	/* default */ void markExcluded(IPeerNode peerNode) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		Assert.isNotNull(peerModel);
+		Assert.isNotNull(peerNode);
 
-		peerModel.setProperty(IPeerModelProperties.PROP_SCANNER_EXCLUDE, true);
+		peerNode.setProperty(IPeerNodeProperties.PROP_SCANNER_EXCLUDE, true);
 
-		List<IPeerModel> candidates = Model.getModel().getChildren(peerModel.getPeerId());
+		List<IPeerNode> candidates = Model.getModel().getChildren(peerNode.getPeerId());
 		if (candidates != null && candidates.size() > 0) {
-			for (final IPeerModel candidate: candidates) {
+			for (final IPeerNode candidate: candidates) {
 				markExcluded(candidate);
 			}
 		}

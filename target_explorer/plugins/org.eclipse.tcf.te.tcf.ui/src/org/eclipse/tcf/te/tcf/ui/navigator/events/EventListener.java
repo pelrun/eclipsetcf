@@ -14,7 +14,7 @@ import java.util.EventObject;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.views.events.AbstractEventListener;
 
 /**
@@ -34,7 +34,7 @@ public class EventListener extends AbstractEventListener {
 			// Property changes for the model refreshes the parent peer
 			// node. The runtime model is not visible by itself.
 			if (source instanceof IModel) {
-				IPeerModel node = (IPeerModel)((IModel)source).getAdapter(IPeerModel.class);
+				IPeerNode node = (IPeerNode)((IModel)source).getAdapter(IPeerNode.class);
 				refresh(node, false);
 			}
 

@@ -15,7 +15,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Filter implementation filtering peers not started by the current user.
@@ -28,18 +28,14 @@ public class PeersByCurrentUserFilter extends ViewerFilter {
 	 */
 	@Override
 	public boolean select(final Viewer viewer, final Object parentElement, final Object element) {
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerNode) {
 			final AtomicReference<String> user = new AtomicReference<String>();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					IPeerModel peerModel = (IPeerModel)element;
-					if (!peerModel.isStatic()) {
-						user.set(peerModel.getPeer().getUserName());
-					} else {
-						user.set(USERNAME);
-					}
+					IPeerNode peerNode = (IPeerNode)element;
+					user.set(peerNode.getPeer().getUserName());
 				}
 			};
 			Assert.isTrue(!Protocol.isDispatchThread());

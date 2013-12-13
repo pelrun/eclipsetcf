@@ -20,6 +20,17 @@ import org.eclipse.core.runtime.IAdaptable;
 public interface IPropertiesContainer extends IAdaptable {
 
 	/**
+	 * If a property key ends with ".silent", no change events will be fired.
+	 */
+	public static final String SILENT_PROPERTY = ".silent"; //$NON-NLS-1$
+
+	/**
+	 * If a property key ends with ".persistent", it should be persisted when the properties container is saved.
+	 * This string should always be used at the end of all other property key extensions!
+	 */
+	public static final String PERSISTENT_PROPERTY = ""; //$NON-NLS-1$
+
+	/**
 	 * Returns the unique identified of the properties container.
 	 *
 	 * @return The unique identifier.

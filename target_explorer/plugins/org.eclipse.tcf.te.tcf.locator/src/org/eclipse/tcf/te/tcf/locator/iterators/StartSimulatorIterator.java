@@ -20,7 +20,7 @@ import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 /**
  * Step group iterator for simulator start.
  */
-public class StartSimulatorIterator extends AbstractPeerModelStepGroupIterator {
+public class StartSimulatorIterator extends AbstractPeerNodeStepGroupIterator {
 
 	/**
 	 * Constructor.

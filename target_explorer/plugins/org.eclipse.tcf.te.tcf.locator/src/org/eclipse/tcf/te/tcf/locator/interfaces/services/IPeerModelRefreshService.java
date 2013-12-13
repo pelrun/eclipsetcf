@@ -10,12 +10,12 @@
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The service to refresh the parent locator model from remote.
  */
-public interface ILocatorModelRefreshService extends ILocatorModelService {
+public interface IPeerModelRefreshService extends IPeerModelService {
 
 	/**
 	 * Refreshes the list of known peers from the local locator service
@@ -37,5 +37,5 @@ public interface ILocatorModelRefreshService extends ILocatorModelService {
 	 * @param nodes The list of nodes to refresh or <code>null</code> to refresh all.
 	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
 	 */
-	public void refreshAgentIDs(IPeerModel[] nodes, ICallback callback);
+	public void refreshAgentIDs(IPeerNode[] nodes, ICallback callback);
 }

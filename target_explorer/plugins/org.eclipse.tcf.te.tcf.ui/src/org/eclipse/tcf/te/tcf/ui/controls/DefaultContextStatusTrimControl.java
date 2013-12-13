@@ -26,7 +26,7 @@ import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -60,17 +60,17 @@ public class DefaultContextStatusTrimControl extends WorkbenchWindowControlContr
 
 		IDefaultContextService service = ServiceManager.getInstance().getService(IDefaultContextService.class);
 		if (service != null) {
-			IPeerModel peerModel = service.getDefaultContext(null);
-			if (peerModel != null) {
-				IUIService uiService = ServiceManager.getInstance().getService(peerModel, IUIService.class);
-				ILabelProviderDelegate delegate = uiService != null ? uiService.getDelegate(peerModel, ILabelProviderDelegate.class) : null;
+			IPeerNode peerNode = service.getDefaultContext(null);
+			if (peerNode != null) {
+				IUIService uiService = ServiceManager.getInstance().getService(peerNode, IUIService.class);
+				ILabelProviderDelegate delegate = uiService != null ? uiService.getDelegate(peerNode, ILabelProviderDelegate.class) : null;
 				if (delegate == null) {
-					ILabelProvider provider = (ILabelProvider)Platform.getAdapterManager().getAdapter(peerModel, ILabelProvider.class);
+					ILabelProvider provider = (ILabelProvider)Platform.getAdapterManager().getAdapter(peerNode, ILabelProvider.class);
 					if (provider instanceof ILabelProviderDelegate) {
 						delegate = (ILabelProviderDelegate)provider;
 					}
 				}
-				selected = NLS.bind(Messages.DefaultContextStatusTrimControl_label, delegate != null ? delegate.getText(peerModel) : peerModel.getName());
+				selected = NLS.bind(Messages.DefaultContextStatusTrimControl_label, delegate != null ? delegate.getText(peerNode) : peerNode.getName());
 			}
 		}
 

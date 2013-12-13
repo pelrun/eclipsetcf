@@ -14,11 +14,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IElementFactory;
@@ -30,20 +30,20 @@ import org.eclipse.ui.internal.part.NullEditorInput;
  * from an external persistent storage and holds a peer id.
  */
 @SuppressWarnings("restriction")
-public class PeerModelFactory implements IElementFactory {
+public class PeerNodeFactory implements IElementFactory {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IElementFactory#createElement(org.eclipse.ui.IMemento)
 	 */
 	@Override
 	public IAdaptable createElement(IMemento memento) {
-		final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+		final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 		final String peerId = memento.getString("peerId"); //$NON-NLS-1$
 		if (peerId != null) {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					node.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId));
+					node.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}
 			};
 
@@ -60,8 +60,8 @@ public class PeerModelFactory implements IElementFactory {
 				Runnable runnable2 = new Runnable() {
 					@Override
 					public void run() {
-						Model.getModel().getService(ILocatorModelRefreshService.class).refresh(null);
-						node.set(Model.getModel().getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId));
+						Model.getModel().getService(IPeerModelRefreshService.class).refresh(null);
+						node.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 					}
 				};
 
@@ -69,8 +69,8 @@ public class PeerModelFactory implements IElementFactory {
 			}
 
 			if (node.get() != null) {
-				ILocatorModel model = node.get().getModel();
-				ILocatorModelPeerNodeQueryService queryService = model.getService(ILocatorModelPeerNodeQueryService.class);
+				IPeerModel model = node.get().getModel();
+				IPeerModelQueryService queryService = model.getService(IPeerModelQueryService.class);
 				queryService.queryRemoteServices(node.get());
 			}
 		}

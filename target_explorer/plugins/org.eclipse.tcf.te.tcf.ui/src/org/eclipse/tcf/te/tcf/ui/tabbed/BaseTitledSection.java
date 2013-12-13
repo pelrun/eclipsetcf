@@ -28,8 +28,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -51,7 +51,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	protected IPropertyChangeProvider viewerInput;
 
 	// The input node.
-	protected IPeerModelProvider provider;
+	protected IPeerNodeProvider provider;
 
 	/*
 	 * (non-Javadoc)
@@ -66,13 +66,13 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
         Assert.isTrue(selection instanceof IStructuredSelection);
         Object input = ((IStructuredSelection) selection).getFirstElement();
 
-        IPeerModelProvider provider = input instanceof IPeerModelProvider ? (IPeerModelProvider) input : null;
-        if (provider == null) provider = input instanceof IAdaptable ? (IPeerModelProvider)((IAdaptable)input).getAdapter(IPeerModelProvider.class) : null;
-        if (provider == null) provider = (IPeerModelProvider)Platform.getAdapterManager().getAdapter(input, IPeerModelProvider.class);
+        IPeerNodeProvider provider = input instanceof IPeerNodeProvider ? (IPeerNodeProvider) input : null;
+        if (provider == null) provider = input instanceof IAdaptable ? (IPeerNodeProvider)((IAdaptable)input).getAdapter(IPeerNodeProvider.class) : null;
+        if (provider == null) provider = (IPeerNodeProvider)Platform.getAdapterManager().getAdapter(input, IPeerNodeProvider.class);
 
 		if (provider != null) {
 			this.provider = provider;
-			IPeerModel peerNode = getPeerModel(provider);
+			IPeerNode peerNode = getPeerModel(provider);
 			this.viewerInput = (IPropertyChangeProvider) peerNode.getAdapter(IPropertyChangeProvider.class);
 			if (this.viewerInput != null) {
 				this.viewerInput.addPropertyChangeListener(this);
@@ -90,7 +90,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 * @param provider
 	 * @return
 	 */
-	protected IPeerModel getPeerModel(IPeerModelProvider provider) {
+	protected IPeerNode getPeerModel(IPeerNodeProvider provider) {
 		Assert.isNotNull(provider);
 		return provider.getPeerModel();
 	}
@@ -100,7 +100,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 	 *
 	 * @param input The input node.
 	 */
-	protected void updateInput(IPeerModelProvider input) {
+	protected void updateInput(IPeerNodeProvider input) {
 	}
 
 	/*

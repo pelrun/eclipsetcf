@@ -8,7 +8,7 @@
             adaptableType="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"
             class="org.eclipse.tcf.te.tcf.processes.ui.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.jface.viewers.ILabelProvider"/>
-         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
          <adapter type="org.eclipse.tcf.te.ui.interfaces.ISearchable"/>
       </factory>
 
@@ -56,7 +56,7 @@
             id="org.eclipse.tcf.te.tcf.processes.ui.properties"
             namespace="processMonitor.delegatedActivation"
             properties="isColumnActive,isFilterActive"
-            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
    </extension>
 
@@ -86,7 +86,7 @@
                <or>
                   <and>
                      <reference definitionId="te.expressions.IConnectable.connected"/>
-                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                      <and>
                         <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
                         <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="SysMonitor"/>
@@ -154,7 +154,7 @@
          <enablement>
             <with variable="activeEditorInput">
                <reference definitionId="te.expressions.IConnectable.connected"/>
-               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                   <and>
                      <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
                      <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="SysMonitor"/>
@@ -182,7 +182,7 @@
                   <iterate operator="and" ifEmpty="false">
                      <and>
                         <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
-                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                            <test
                                  forcePluginActivation="true"
                                  property="org.eclipse.tcf.te.runtime.services.hasService"
@@ -208,7 +208,7 @@
                   <iterate operator="and" ifEmpty="false">
                      <and>
                         <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
-                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                            <test
                                  forcePluginActivation="true"
                                  property="org.eclipse.tcf.te.runtime.services.hasService"
@@ -459,7 +459,7 @@
                   <count value="+"/>
                   <iterate operator="and" ifEmpty="false">
                      <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
-                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                         <test
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.runtime.services.hasService"
@@ -500,7 +500,7 @@
                   <count value="+"/>
                   <iterate operator="and" ifEmpty="false">
                      <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
-                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                         <test
                               forcePluginActivation="true"
                               property="org.eclipse.tcf.te.runtime.services.hasService"
@@ -641,7 +641,7 @@
                width="250">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="processMonitor.delegatedActivation.isColumnActive" args="name" value="true"/>
                   </adapt>
                </with>
@@ -657,7 +657,7 @@
                width="50">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="processMonitor.delegatedActivation.isColumnActive" args="PID" value="true"/>
                   </adapt>
                </with>
@@ -673,7 +673,7 @@
                width="50">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="processMonitor.delegatedActivation.isColumnActive" args="PPID" value="true"/>
                   </adapt>
                </with>
@@ -689,7 +689,7 @@
                width="50">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="processMonitor.delegatedActivation.isColumnActive" args="state" value="true"/>
                   </adapt>
                </with>
@@ -705,7 +705,7 @@
                width="50">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="processMonitor.delegatedActivation.isColumnActive" args="user" value="true"/>
                   </adapt>
                </with>
@@ -721,7 +721,7 @@
                width="100">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="processMonitor.delegatedActivation.isColumnActive" args="cmdline" value="true"/>
                   </adapt>
                </with>
@@ -738,7 +738,7 @@
                name="%singlethreadfilter.name">
             <activation>
                <with variable="input">
-                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="processMonitor.delegatedActivation.isFilterActive" args="singleThread" value="true"/>
                   </adapt>
                </with>

@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.preferences.IPreferenceConsts;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
@@ -44,7 +44,7 @@ public class IntervalConfigDialog extends StatusDialog implements ModifyListener
 	// The entered result
 	private int result;
 	// The parent element
-	private final IPeerModel node;
+	private final IPeerNode node;
 
 	/**
 	 * Constructor
@@ -52,7 +52,7 @@ public class IntervalConfigDialog extends StatusDialog implements ModifyListener
 	 * @param node The parent peer model node. Must not be <code>null</code>.
 	 * @param parent The parent shell or <code>null</code>.
 	 */
-	public IntervalConfigDialog(IPeerModel node, Shell parent) {
+	public IntervalConfigDialog(IPeerNode node, Shell parent) {
 	    super(parent);
 	    Assert.isNotNull(node);
 	    this.node = node;

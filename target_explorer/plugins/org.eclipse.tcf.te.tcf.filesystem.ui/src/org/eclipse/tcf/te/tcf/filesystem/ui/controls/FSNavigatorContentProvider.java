@@ -15,7 +15,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ITreeNodeModel;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 
 /**
@@ -63,10 +63,10 @@ public class FSNavigatorContentProvider extends NavigatorContentProvider {
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.ui.controls.NavigatorContentProvider#doGetModel(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.filesystem.ui.controls.NavigatorContentProvider#doGetModel(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-    protected ITreeNodeModel doGetModel(IPeerModel peerNode) {
+    protected ITreeNodeModel doGetModel(IPeerNode peerNode) {
 		return FSModel.getFSModel(peerNode);
 	}
 

@@ -58,7 +58,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.views.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.views.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.views.scriptpad.actions.CopyAction;
@@ -91,7 +91,7 @@ public class ScriptPad extends ViewPart implements ISelectionProvider, Selection
 	private final List<ISelectionChangedListener> listeners = new ArrayList<ISelectionChangedListener>();
 
 	// Reference to the selected peer model
-	/* default */ IPeerModel peerModel;
+	/* default */ IPeerNode peerNode;
 
 	// References to the global action handlers
 	private CutAction cutHandler;
@@ -392,10 +392,10 @@ public class ScriptPad extends ViewPart implements ISelectionProvider, Selection
 
 		label.append(" - "); //$NON-NLS-1$
 
-		if (peerModel == null) {
+		if (peerNode == null) {
 			label.append("<no peer>"); //$NON-NLS-1$
 		} else {
-			PeerAction action = new PeerAction(this, peerModel);
+			PeerAction action = new PeerAction(this, peerNode);
 			label.append(action.getText());
 		}
 
@@ -421,10 +421,10 @@ public class ScriptPad extends ViewPart implements ISelectionProvider, Selection
 	/**
 	 * Sets the peer model.
 	 *
-	 * @param peerModel The peer model or <code>null</code>.
+	 * @param peerNode The peer model or <code>null</code>.
 	 */
-	public void setPeerModel(IPeerModel peerModel) {
-		this.peerModel = peerModel;
+	public void setPeerModel(IPeerNode peerNode) {
+		this.peerNode = peerNode;
 		// Update the head label
 		updateHeadLabel();
 		// Update the action bars
@@ -444,8 +444,8 @@ public class ScriptPad extends ViewPart implements ISelectionProvider, Selection
 	 *
 	 * @return The associated peer model.
 	 */
-	public IPeerModel getPeerModel() {
-		return peerModel;
+	public IPeerNode getPeerModel() {
+		return peerNode;
 	}
 
 	/**

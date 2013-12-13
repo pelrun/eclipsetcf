@@ -19,14 +19,14 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 
 /**
  * Signal peer disconnected step.
  */
-public class SignalPeerDisconnectedStep extends AbstractPeerModelStep {
+public class SignalPeerDisconnectedStep extends AbstractPeerNodeStep {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
@@ -46,14 +46,14 @@ public class SignalPeerDisconnectedStep extends AbstractPeerModelStep {
 		Assert.isNotNull(monitor);
 		Assert.isNotNull(callback);
 
-		final IPeerModel peerModel = getActivePeerModelContext(context, data, fullQualifiedId);
-		if (peerModel != null) {
+		final IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
+		if (peerNode != null) {
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					ILocatorModel model = Model.getModel();
+					IPeerModel model = Model.getModel();
 					for (IModelListener listener : model.getListener()) {
-						listener.locatorModelChanged(model, peerModel, false);
+						listener.locatorModelChanged(model, peerNode, false);
 					}
 					callback.done(SignalPeerDisconnectedStep.this, Status.OK_STATUS);
 				}

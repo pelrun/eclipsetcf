@@ -25,7 +25,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
@@ -174,10 +174,10 @@ public class ConfigIntervalDynamicContribution extends CompoundContributionItem 
 	@Override
 	protected IContributionItem[] getContributionItems() {
 		IEditorInput editorInput = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput();
-		IPeerModel peerModel = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
+		IPeerNode peerNode = (IPeerNode) editorInput.getAdapter(IPeerNode.class);
 		List<IContributionItem> items = new ArrayList<IContributionItem>();
-		if (peerModel != null) {
-			IRuntimeModel model = ModelManager.getRuntimeModel(peerModel);
+		if (peerNode != null) {
+			IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
 			List<IContributionItem> groupItems = createGradeActions(model);
 			if(!groupItems.isEmpty()) {
 				items.addAll(groupItems);

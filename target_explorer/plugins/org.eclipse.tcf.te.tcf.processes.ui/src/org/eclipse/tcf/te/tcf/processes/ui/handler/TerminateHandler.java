@@ -27,7 +27,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.steps.TerminateStep;
 import org.eclipse.tcf.te.tcf.processes.ui.help.IContextHelpIds;
@@ -97,7 +97,7 @@ public class TerminateHandler extends AbstractHandler implements IElementUpdater
 			IWorkbenchPart part = site.getPart();
 			if (part instanceof IEditorPart) {
 				IEditorInput editorInput = ((IEditorPart)part).getEditorInput();
-				IPeerModel node = editorInput != null ? (IPeerModel) editorInput.getAdapter(IPeerModel.class) : null;
+				IPeerNode node = editorInput != null ? (IPeerNode) editorInput.getAdapter(IPeerNode.class) : null;
 
 				IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
 				IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;

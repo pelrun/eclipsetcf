@@ -44,12 +44,12 @@ public class TcfStepperTests extends TcfTestCase {
 	}
 
 	public void testChannelSteps() {
-		assertNotNull("Precondition Failure: peer model is not available.", peerModel); //$NON-NLS-1$
+		assertNotNull("Precondition Failure: peer model is not available.", peerNode); //$NON-NLS-1$
 
 		final IStepper stepper = new Stepper("testExecuteStepGroup"); //$NON-NLS-1$
 
 		IPropertiesContainer properties = new PropertiesContainer();
-		IStepContext context = (IStepContext)Platform.getAdapterManager().getAdapter(peerModel, IStepContext.class);
+		IStepContext context = (IStepContext)Platform.getAdapterManager().getAdapter(peerNode, IStepContext.class);
 		assertNotNull("Failed to get step context adapter for peer model.", context); //$NON-NLS-1$
 
 		// Initialize the stepper

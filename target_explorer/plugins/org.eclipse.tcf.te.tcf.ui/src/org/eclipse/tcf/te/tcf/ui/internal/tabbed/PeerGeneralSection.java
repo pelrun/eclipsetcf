@@ -19,7 +19,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.tables.TableViewerComparator;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableControl;
@@ -32,7 +32,7 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  */
 public class PeerGeneralSection extends AbstractPropertySection {
 	// The peer to be displayed.
-	private IPeerModel peer;
+	private IPeerNode peer;
 	// The table control to display the properties.
 	private NodePropertiesTableControl tableControl;
 	// The form toolkit
@@ -90,9 +90,9 @@ public class PeerGeneralSection extends AbstractPropertySection {
 		super.setInput(part, selection);
 		Assert.isTrue(selection instanceof IStructuredSelection);
 		Object input = ((IStructuredSelection) selection).getFirstElement();
-		this.peer = (IPeerModel)Platform.getAdapterManager().getAdapter(input, IPeerModel.class);
-		//        Assert.isTrue(input instanceof IPeerModel);
-		//        this.peer = (IPeerModel) input;
+		this.peer = (IPeerNode)Platform.getAdapterManager().getAdapter(input, IPeerNode.class);
+		//        Assert.isTrue(input instanceof IPeerNode);
+		//        this.peer = (IPeerNode) input;
 	}
 
 	/* (non-Javadoc)

@@ -9,12 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The service to query asynchronous properties of peers.
  */
-public interface ILocatorModelPeerNodeQueryService extends ILocatorModelService {
+public interface IPeerModelQueryService extends IPeerModelService {
 
 	/**
 	 * Query the list of available local services for the given peer.
@@ -27,7 +27,7 @@ public interface ILocatorModelPeerNodeQueryService extends ILocatorModelService 
 	 * @param node The peer node. Must not be <code>null</code>.
 	 * @param done The client callback. Must not be <code>null</code>.
 	 */
-	public String queryLocalServices(IPeerModel node);
+	public String queryLocalServices(IPeerNode node);
 
 	/**
 	 * Query the list of available remote services for the given peer.
@@ -40,7 +40,7 @@ public interface ILocatorModelPeerNodeQueryService extends ILocatorModelService 
 	 * @param node The peer node. Must not be <code>null</code>.
 	 * @param done The client callback. Must not be <code>null</code>.
 	 */
-	public String queryRemoteServices(IPeerModel node);
+	public String queryRemoteServices(IPeerNode node);
 
 	/**
 	 * Client call back interface for queryServicesAsync(...).
@@ -62,6 +62,6 @@ public interface ILocatorModelPeerNodeQueryService extends ILocatorModelService 
 	 * @param node The peer node. Must not be <code>null</code>.
 	 * @param done The client callback. Must not be <code>null</code>.
 	 */
-	public void queryServicesAsync(IPeerModel node, DoneQueryServices done);
+	public void queryServicesAsync(IPeerNode node, DoneQueryServices done);
 
 }

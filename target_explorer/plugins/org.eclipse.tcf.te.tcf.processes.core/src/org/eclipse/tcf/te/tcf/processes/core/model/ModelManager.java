@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.runtime.RuntimeModel;
 
@@ -31,11 +31,11 @@ public class ModelManager {
 	 * <p>
 	 * If not yet initialized, a new runtime model will be initialized before returning.
 	 *
-	 * @param peerModel The peer model instance. Must not be <code>null</code>.
+	 * @param peerNode The peer model instance. Must not be <code>null</code>.
 	 * @return The runtime model.
 	 */
-	public static IRuntimeModel getRuntimeModel(final IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	public static IRuntimeModel getRuntimeModel(final IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
 		// The result reference holder
 		final AtomicReference<IRuntimeModel> runtimeModel = new AtomicReference<IRuntimeModel>();
@@ -47,12 +47,12 @@ public class ModelManager {
 				Assert.isTrue(Protocol.isDispatchThread());
 
 				// Get the peer id
-				String id = peerModel.getPeerId();
+				String id = peerNode.getPeerId();
 				// Lookup the runtime model instance
 				IRuntimeModel candidate = runtimeModels.get(id);
 				// Initialize a new runtime model instance if necessary
 				if (candidate == null) {
-					candidate = initializeRuntimeModel(peerModel);
+					candidate = initializeRuntimeModel(peerNode);
 					if (candidate != null) runtimeModels.put(id, candidate);
 				}
 				// Store to the result reference holder
@@ -72,22 +72,22 @@ public class ModelManager {
 	 * <p>
 	 * Must be called within the TCF dispatch thread.
 	 *
-	 * @param peerModel The peer model instance. Must not be <code>null</code>.
+	 * @param peerNode The peer model instance. Must not be <code>null</code>.
 	 * @return The runtime model.
 	 */
-	protected static IRuntimeModel initializeRuntimeModel(IPeerModel peerModel) {
+	protected static IRuntimeModel initializeRuntimeModel(IPeerNode peerNode) {
 		Assert.isTrue(Protocol.isDispatchThread());
-		IRuntimeModel runtimeModel = new RuntimeModel(peerModel);
+		IRuntimeModel runtimeModel = new RuntimeModel(peerNode);
 		return runtimeModel;
 	}
 
 	/**
 	 * Dispose the runtime model.
 	 *
-	 * @param peerModel The peer model instance. Must not be <code>null</code>.
+	 * @param peerNode The peer model instance. Must not be <code>null</code>.
 	 */
-	public static void disposeRuntimeModel(final IPeerModel peerModel) {
-		Assert.isNotNull(peerModel);
+	public static void disposeRuntimeModel(final IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
 
 		Runnable runnable = new Runnable() {
 			@Override
@@ -95,7 +95,7 @@ public class ModelManager {
 				Assert.isTrue(Protocol.isDispatchThread());
 
 				// Get the peer id
-				String id = peerModel.getPeerId();
+				String id = peerNode.getPeerId();
 				// Lookup the runtime model instance
 				IRuntimeModel candidate = runtimeModels.remove(id);
 				// Dispose it

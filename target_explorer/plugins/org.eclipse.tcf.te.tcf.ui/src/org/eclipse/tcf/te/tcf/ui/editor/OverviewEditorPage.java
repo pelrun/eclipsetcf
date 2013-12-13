@@ -24,7 +24,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.AttributesSection;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.GeneralInformationSection;
@@ -175,9 +175,9 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 			return;
 		}
 	    super.setInput(input);
-		if (getEditorInputNode() instanceof IPeerModel) {
+		if (getEditorInputNode() instanceof IPeerNode) {
 			// Invoke the scanner runnable
-			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerModel)getEditorInputNode()));
+			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerNode)getEditorInputNode()));
 			Protocol.invokeLater(runnable);
 		}
 	}
@@ -188,8 +188,8 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	@Override
 	protected void setInputWithNotify(IEditorInput input) {
 	    super.setInputWithNotify(input);
-		if (getEditorInputNode() instanceof IPeerModel) {
-			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerModel)getEditorInputNode()));
+		if (getEditorInputNode() instanceof IPeerNode) {
+			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerNode)getEditorInputNode()));
 			Protocol.invokeLater(runnable);
 		}
 	}
@@ -201,24 +201,21 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	public void postDoSave(IProgressMonitor monitor) {
 		// If necessary, write the changed peer attributes
 		final Object input = getEditorInputNode();
-		if (input instanceof IPeerModel) {
+		if (input instanceof IPeerNode) {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
 					try {
-						boolean isStatic = ((IPeerModel)input).isStatic();
-						if (isStatic) {
 							// Get the persistence service
 							IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
 							if (uRIPersistenceService == null) {
 								throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
 							}
 							// Save the peer node to the new persistence storage
-							uRIPersistenceService.write(((IPeerModel)input).getPeer(), null);
-						}
+							uRIPersistenceService.write(((IPeerNode)input).getPeer(), null);
 					} catch (IOException e) {
 						// Build up the message template
-						String template = NLS.bind(Messages.OverviewEditorPage_error_save, ((IPeerModel)input).getName(), Messages.PossibleCause);
+						String template = NLS.bind(Messages.OverviewEditorPage_error_save, ((IPeerNode)input).getName(), Messages.PossibleCause);
 						// Handle the status
 						StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), input, template, null, IContextHelpIds.MESSAGE_SAVE_FAILED, OverviewEditorPage.this, null);
 					}
@@ -231,12 +228,12 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 				@Override
 				public void run() {
 					// Trigger a change event for the original data node
-					((IPeerModel)input).fireChangeEvent("properties", null, ((IPeerModel)input).getProperties()); //$NON-NLS-1$
+					((IPeerNode)input).fireChangeEvent("properties", null, ((IPeerNode)input).getProperties()); //$NON-NLS-1$
 				}
 			});
 
 			// Force a scan of the peer
-			ScannerRunnable runnable2 = new ScannerRunnable(null, ((IPeerModel)input));
+			ScannerRunnable runnable2 = new ScannerRunnable(null, ((IPeerNode)input));
 			Protocol.invokeLater(runnable2);
 		}
 	}

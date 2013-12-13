@@ -35,7 +35,7 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.filesystem.ui.interfaces.IFSConstants;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementLabelProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.trees.FilterDescriptor;
@@ -172,7 +172,7 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 		treeViewer.setLabelProvider(createDecoratingLabelProvider(new FSTreeElementLabelProvider()));
 		treeViewer.setComparator(new FSTreeViewerSorter());
 		treeViewer.addFilter(new DirectoryFilter());
-		IPeerModel peer = wizard.getPeer();
+		IPeerNode peer = wizard.getPeer();
 		if (peer != null) {
 			setInput(peer);
 		}
@@ -276,7 +276,7 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 	 *
 	 * @param peer The new target peer.
 	 */
-	public void setPeer(IPeerModel peer) {
+	public void setPeer(IPeerNode peer) {
 		if (peer != null) {
 			setInput(peer);
 		}
@@ -345,7 +345,7 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 	 */
 	public FSTreeNode getInputDir() {
 		NewNodeWizard wizard = getWizard();
-		IPeerModel peer = wizard.getPeer();
+		IPeerNode peer = wizard.getPeer();
 		if (peer == null) return null;
 		final String text = folderControl.getEditFieldControlText();
 		if (text != null) {

@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -27,14 +26,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.controls.CustomTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.PipeTransportPanel;
@@ -61,7 +61,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 	/* default */TransportSectionTypePanelControl transportTypePanelControl = null;
 
 	// Reference to the original data object
-	protected IPeerModel od;
+	protected IPeerNode od;
 	// Reference to a copy of the original data
 	/* default */final IPropertiesContainer odc = new PropertiesContainer();
 	// Reference to the properties container representing the working copy for the section
@@ -237,8 +237,8 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 			// Leave everything unchanged if the page is in dirty state
 			if (getManagedForm().getContainer() instanceof AbstractEditorPage && !((AbstractEditorPage) getManagedForm().getContainer()).isDirty()) {
 				Object node = ((AbstractEditorPage) getManagedForm().getContainer()).getEditorInputNode();
-				if (node instanceof IPeerModel) {
-					setupData((IPeerModel) node);
+				if (node instanceof IPeerNode) {
+					setupData((IPeerNode) node);
 				}
 			}
 		}
@@ -289,7 +289,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 	 *
 	 * @param node The peer node or <code>null</code>.
 	 */
-	public void setupData(final IPeerModel node) {
+	public void setupData(final IPeerNode node) {
 		// If the section is dirty, nothing is changed
 		if (isDirty()) return;
 
@@ -402,7 +402,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 	 *
 	 * @param node The GDB Remote configuration node or <code>null</code>.
 	 */
-	public void extractData(final IPeerModel node) {
+	public void extractData(final IPeerNode node) {
 		// If no data is available, we are done
 		if (node == null) {
 			return;
@@ -465,16 +465,16 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 				                .getParent(), attributes) : new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
-				node.setProperty(IPeerModelProperties.PROP_INSTANCE, newPeer);
+				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
 				// As the transport changed, we have to reset the state back to "unknown"
 				// and clear out the services and DNS markers
-				node.setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_UNKNOWN);
+				node.setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_UNKNOWN);
 				node.setProperty("dns.name.transient", null); //$NON-NLS-1$
 				node.setProperty("dns.lastIP.transient", null); //$NON-NLS-1$
 				node.setProperty("dns.skip.transient", null); //$NON-NLS-1$
 
-				ILocatorModelUpdateService service = node.getModel()
-				                .getService(ILocatorModelUpdateService.class);
+				IPeerModelUpdateService service = node.getModel()
+				                .getService(IPeerModelUpdateService.class);
 				service.updatePeerServices(node, null, null);
 
 				if (changed) {
@@ -605,25 +605,9 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 		// Determine the input
 		final Object input = od; // getManagedForm().getInput();
 
-		// Determine if the peer is a static peer
-		final AtomicBoolean isStatic = new AtomicBoolean();
-		final AtomicBoolean isRemote = new AtomicBoolean();
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				if (input instanceof IPeerModel) {
-					isStatic.set(((IPeerModel) input).isStatic());
-					isRemote.set(((IPeerModel) input).isRemote());
-				}
-			}
-		};
-
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
-
 		// The transport type control is enabled for static peers
 		if (transportTypeControl != null) {
-			boolean enabled = !isReadOnly() && (input == null || (isStatic.get() && !isRemote.get()));
+			boolean enabled = !isReadOnly() && (!(input instanceof IPeerNode) || ((IPeerNode)input).getConnectState() == IConnectable.STATE_DISCONNECTED);
 			SWTControlUtil.setEnabled(transportTypeControl.getEditFieldControl(), enabled && SWTControlUtil.getItemCount(transportTypeControl.getEditFieldControl()) > 1);
 			if (transportTypePanelControl != null) {
 				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportTypeControl.getSelectedTransportType());

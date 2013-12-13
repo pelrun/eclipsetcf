@@ -24,7 +24,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.steps.AttachStep;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -67,18 +67,18 @@ public class AttachHandler extends AbstractHandler {
 		Assert.isNotNull(selection);
 
 		// Analyze the selection and collect all nodes per parent peer model node.
-		final Map<IPeerModel, List<IProcessContextNode>> contexts = new HashMap<IPeerModel, List<IProcessContextNode>>();
+		final Map<IPeerNode, List<IProcessContextNode>> contexts = new HashMap<IPeerNode, List<IProcessContextNode>>();
 		Iterator<?> iterator = selection.iterator();
 		while (iterator.hasNext()) {
 			Object candidate = iterator.next();
 			if (candidate instanceof IProcessContextNode) {
 				IProcessContextNode node = (IProcessContextNode)candidate;
-				IPeerModel peerModel = (IPeerModel)node.getAdapter(IPeerModel.class);
-				if (peerModel != null) {
-					List<IProcessContextNode> nodes = contexts.get(peerModel);
+				IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
+				if (peerNode != null) {
+					List<IProcessContextNode> nodes = contexts.get(peerNode);
 					if (nodes == null) {
 						nodes = new ArrayList<IProcessContextNode>();
-						contexts.put(peerModel, nodes);
+						contexts.put(peerNode, nodes);
 					}
 					if (!nodes.contains(node)) nodes.add(node);
 				}
@@ -87,10 +87,10 @@ public class AttachHandler extends AbstractHandler {
 
 		// If not empty, attach to all nodes of the original selection per parent peer model node.
 		if (!contexts.isEmpty()) {
-			for (Entry<IPeerModel, List<IProcessContextNode>> entry : contexts.entrySet()) {
-				IPeerModel peerModel = entry.getKey();
+			for (Entry<IPeerNode, List<IProcessContextNode>> entry : contexts.entrySet()) {
+				IPeerNode peerNode = entry.getKey();
 				List<IProcessContextNode> nodes = entry.getValue();
-				doAttach(event, peerModel, nodes.toArray(new IProcessContextNode[nodes.size()]));
+				doAttach(event, peerNode, nodes.toArray(new IProcessContextNode[nodes.size()]));
 			}
 		}
 	}
@@ -103,14 +103,14 @@ public class AttachHandler extends AbstractHandler {
 	 * @param event The execution event.
 	 * @param nodes The list of process context nodes. Must not be <code>null</code>.
 	 */
-	protected void doAttach(final ExecutionEvent event, final IPeerModel peerModel, final IProcessContextNode[] nodes) {
+	protected void doAttach(final ExecutionEvent event, final IPeerNode peerNode, final IProcessContextNode[] nodes) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		Assert.isNotNull(peerModel);
+		Assert.isNotNull(peerNode);
 		Assert.isNotNull(nodes);
 
 		if (nodes.length > 0) {
 			AttachStep step = new AttachStep();
-			step.executeAttach(peerModel, nodes, new Callback());
+			step.executeAttach(peerNode, nodes, new Callback());
 		}
 	}
 }

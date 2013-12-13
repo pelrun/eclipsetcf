@@ -11,7 +11,7 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.testers;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The property tester to test if the target OS is a Windows OS.
@@ -24,10 +24,10 @@ public class TargetPropertyTester extends PropertyTester {
 	 */
 	@Override
 	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
-		if(receiver instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel) receiver;
+		if(receiver instanceof IPeerNode) {
+			final IPeerNode peerNode = (IPeerNode) receiver;
 			if(property.equals("isWindows")) { //$NON-NLS-1$
-				return isWindows(peerModel);
+				return isWindows(peerNode);
 			}
 		}
 		return false;
@@ -36,30 +36,30 @@ public class TargetPropertyTester extends PropertyTester {
 	/**
 	 * Test if the target represented by the peer model is a windows target.
 	 * 
-	 * @param peerModel The peer model of the target.
+	 * @param peerNode The peer model of the target.
 	 * @return true if it is a windows target.
 	 */
-	public static boolean isWindows(final IPeerModel peerModel) {
-		final String osName = getOSName(peerModel);
+	public static boolean isWindows(final IPeerNode peerNode) {
+		final String osName = getOSName(peerNode);
 		return osName == null ? false : (osName.startsWith("Windows")); //$NON-NLS-1$
 	}
 	
 	/**
 	 * Get the OS name from the peer model.
 	 * 
-	 * @param peerModel The peer model.
+	 * @param peerNode The peer model.
 	 * @return OS name.
 	 */
-	public static String getOSName(final IPeerModel peerModel) {
+	public static String getOSName(final IPeerNode peerNode) {
 	    final String[] osName = new String[1];
 		if (Protocol.isDispatchThread()) {
-			osName[0] = peerModel.getPeer().getOSName();
+			osName[0] = peerNode.getPeer().getOSName();
 		}
 		else {
 			Protocol.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					osName[0] = peerModel.getPeer().getOSName();
+					osName[0] = peerNode.getPeer().getOSName();
 				}
 			});
 		}

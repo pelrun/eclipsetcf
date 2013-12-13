@@ -35,9 +35,9 @@ import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodePropert
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
@@ -80,7 +80,7 @@ public class CommonDnD {
 	 * @return true if it is draggable.
 	 */
 	private static boolean isDraggableObject(Object object) {
-		return object instanceof IPeerModel;
+		return object instanceof IPeerNode;
 	}
 
 	/**
@@ -120,9 +120,9 @@ public class CommonDnD {
 				if (target instanceof ICategory) {
 					ICategory category = (ICategory) target;
 
-					if (element instanceof IPeerModel && category.getId().equals(parentCategory.getId()) && ((IPeerModel)element).isStatic()) {
+					if (element instanceof IPeerNode && category.getId().equals(parentCategory.getId())) {
 						List<String> usedNames = getUsedNames();
-						Map<String,String> attrs = new HashMap<String,String>(((IPeerModel)element).getPeer().getAttributes());
+						Map<String,String> attrs = new HashMap<String,String>(((IPeerNode)element).getPeer().getAttributes());
 						attrs.put(IPeer.ATTR_ID, UUID.randomUUID().toString());
 						attrs.remove(IPersistableNodeProperties.PROPERTY_URI);
 						int i = 0;
@@ -178,7 +178,7 @@ public class CommonDnD {
 				final Object finalElement = elementToSelect;
 				final IPeer finalNewPeer = (elementToSelect instanceof IPeer) ? (IPeer)elementToSelect : null;
                 // Trigger a refresh of the model to read in the newly created static peer
-                final ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+                final IPeerModelRefreshService service = Model.getModel().getService(IPeerModelRefreshService.class);
                 if (service != null) {
                 	Runnable runnable = new Runnable() {
                 		@Override
@@ -186,14 +186,14 @@ public class CommonDnD {
                             service.refresh(new Callback() {
                             	@Override
                                 protected void internalDone(Object caller, org.eclipse.core.runtime.IStatus status) {
-            						IPeerModel peerModel = null;
+            						IPeerNode peerNode = null;
                     				if (finalNewPeer != null) {
-                    					ILocatorModelLookupService service = Model.getModel().getService(ILocatorModelLookupService.class);
+                    					IPeerModelLookupService service = Model.getModel().getService(IPeerModelLookupService.class);
                     					if (service != null) {
-                    						peerModel = service.lkupPeerModelById(finalNewPeer.getID());
+                    						peerNode = service.lkupPeerModelById(finalNewPeer.getID());
                     					}
                     				}
-                    				refresh(cNav, finalCat, peerModel != null ? peerModel : finalElement);
+                    				refresh(cNav, finalCat, peerNode != null ? peerNode : finalElement);
                             	}
                             });
 
@@ -305,7 +305,7 @@ public class CommonDnD {
 				if (target instanceof ICategory) {
 					ICategory category = (ICategory) target;
 
-					if (!link && element instanceof IPeerModel && category.getId().equals(parentCategory.getId()) && ((IPeerModel)element).isStatic()) {
+					if (!link && element instanceof IPeerNode && category.getId().equals(parentCategory.getId())) {
 						overrideOperation = DND.DROP_COPY;
 						copy = true;
 					}
@@ -380,16 +380,14 @@ public class CommonDnD {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerModel[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeers();
 				// Loop them and find the ones which are of our handled types
-				for (IPeerModel peerModel : peers) {
-					if (peerModel.isStatic()) {
-						String name = peerModel.getPeer().getName();
+				for (IPeerNode peerNode : peers) {
+						String name = peerNode.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
 							usedNames.add(name.trim().toUpperCase());
 						}
-					}
 				}
 			}
 		};

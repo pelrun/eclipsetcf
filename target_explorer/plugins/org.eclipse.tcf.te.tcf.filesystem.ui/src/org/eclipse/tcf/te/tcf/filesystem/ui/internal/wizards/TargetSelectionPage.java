@@ -36,9 +36,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.navigator.ContentProvider;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
@@ -99,12 +99,12 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 	 */
 	private void initialize() {
 		// Refresh the information of remote services.
-		ILocatorModel model = Model.getModel();
+		IPeerModel model = Model.getModel();
 		Assert.isNotNull(model);
-		IPeerModel[] peers = model.getPeers();
+		IPeerNode[] peers = model.getPeers();
 		if (peers != null) {
-			ILocatorModelPeerNodeQueryService service = model.getService(ILocatorModelPeerNodeQueryService.class);
-			for (IPeerModel peer : peers) {
+			IPeerModelQueryService service = model.getService(IPeerModelQueryService.class);
+			for (IPeerNode peer : peers) {
 				service.queryRemoteServices(peer);
 			}
 		}
@@ -178,8 +178,8 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 		ViewerFilter fsPeerFilter = new ViewerFilter() {
 			@Override
 			public boolean select(Viewer viewer, Object parentElement, Object element) {
-				if (element instanceof IPeerModel) {
-					IPeerModel peer = (IPeerModel) element;
+				if (element instanceof IPeerNode) {
+					IPeerNode peer = (IPeerNode) element;
 
 
 
@@ -204,7 +204,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 					IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 					// The tree is single selection, so look for the first element only.
 					Object element = selection.getFirstElement();
-					if (element instanceof IPeerModel) {
+					if (element instanceof IPeerNode) {
 						// Double-click on a connection type is triggering the sub wizard
 						getWizard().getContainer().showPage(getNextPage());
 					}
@@ -220,7 +220,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 
 		treeViewer.setInput(Model.getModel());
 		NewNodeWizard wizard = getWizard();
-		IPeerModel peer = wizard.getPeer();
+		IPeerNode peer = wizard.getPeer();
 		if (wizard.getPeer() != null) {
 			treeViewer.setSelection(new StructuredSelection(peer), true);
 		}
@@ -267,8 +267,8 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 			IStructuredSelection filteredTreeSelection = (IStructuredSelection) filteredTree
 			                .getViewer().getSelection();
 			NewNodeWizard wizard = getWizard();
-			if (filteredTreeSelection.getFirstElement() instanceof IPeerModel) {
-				wizard.setPeer((IPeerModel) filteredTreeSelection.getFirstElement());
+			if (filteredTreeSelection.getFirstElement() instanceof IPeerNode) {
+				wizard.setPeer((IPeerNode) filteredTreeSelection.getFirstElement());
 			}
 			else {
 				wizard.setPeer(null);

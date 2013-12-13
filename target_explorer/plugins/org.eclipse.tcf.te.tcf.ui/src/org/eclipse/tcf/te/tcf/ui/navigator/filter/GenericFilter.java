@@ -16,8 +16,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerType;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
@@ -34,13 +34,13 @@ public class GenericFilter extends ViewerFilter {
 	public boolean select(Viewer viewer, Object parentElement, final Object element) {
 		boolean visible = true;
 
-		if (element instanceof IPeerModel) {
+		if (element instanceof IPeerNode) {
 			final AtomicReference<String> type = new AtomicReference<String>();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					type.set(((IPeerModel)element).getPeer().getAttributes().get(IPeerModelProperties.PROP_TYPE));
+					type.set(((IPeerNode)element).getPeer().getAttributes().get(IPeerNodeProperties.PROP_TYPE));
 				}
 			};
 

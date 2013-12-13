@@ -30,14 +30,14 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 
 /**
  * Start debugger step implementation.
  */
-public class StartDebuggerStep extends AbstractPeerModelStep {
+public class StartDebuggerStep extends AbstractPeerNodeStep {
 
 	/**
 	 * Interface to be implemented by start debugger step delegates.
@@ -51,7 +51,7 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 		 * @param monitor The progress monitor. Must not be <code>null</code>.
 		 * @param callback The callback to invoke if finished. Must not be <code>null</code>.
 		 */
-		public void postAttachDebugger(IPeerModel node, IProgressMonitor monitor, ICallback callback);
+		public void postAttachDebugger(IPeerNode node, IProgressMonitor monitor, ICallback callback);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 	 */
 	@Override
     public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
-		final IPeerModel node = getActivePeerModelContext(context, data, fullQualifiedId);
+		final IPeerNode node = getActivePeerModelContext(context, data, fullQualifiedId);
 		Assert.isNotNull(node);
 		String value = getParameters().get("autoAttachAll"); //$NON-NLS-1$
 		final boolean autoAttachAll = value != null ? Boolean.parseBoolean(value) : false;
@@ -82,14 +82,14 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 				@Override
 				public void run() {
 					// Don't attach the debugger if no run control is provided by the target
-					final ILocatorModelPeerNodeQueryService queryService = node.getModel().getService(ILocatorModelPeerNodeQueryService.class);
+					final IPeerModelQueryService queryService = node.getModel().getService(IPeerModelQueryService.class);
 					Assert.isNotNull(queryService);
-					queryService.queryServicesAsync(node, new ILocatorModelPeerNodeQueryService.DoneQueryServices() {
+					queryService.queryServicesAsync(node, new IPeerModelQueryService.DoneQueryServices() {
 						@Override
 						public void doneQueryServices(Throwable error) {
 							if (error == null) {
 								// Get the list of available remote services
-								String remoteServices = node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+								String remoteServices = node.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 								Assert.isNotNull(remoteServices);
 								boolean canAttachDbg = false;
 								StringTokenizer tokenizer = new StringTokenizer(remoteServices, ","); //$NON-NLS-1$
@@ -157,7 +157,7 @@ public class StartDebuggerStep extends AbstractPeerModelStep {
 	 */
 	@Override
 	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
-		final IPeerModel node = getActivePeerModelContext(context, data, fullQualifiedId);
+		final IPeerNode node = getActivePeerModelContext(context, data, fullQualifiedId);
 		IDebugService dbgService = ServiceManager.getInstance().getService(node, IDebugService.class, false);
 		if (dbgService != null) {
 			IPropertiesContainer props = new PropertiesContainer();

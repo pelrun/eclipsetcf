@@ -11,7 +11,7 @@
 package org.eclipse.tcf.te.tcf.locator.internal;
 
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService.State;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils.Result;
 
@@ -27,9 +27,9 @@ public class SimulatorPropertyTester extends org.eclipse.core.expressions.Proper
 	 */
 	@Override
 	public boolean test(final Object receiver, String property, Object[] args, Object expectedValue) {
-		if (receiver instanceof IPeerModel) {
-			final IPeerModel peerModel = (IPeerModel) receiver;
-			Result result = SimulatorUtils.getSimulatorService(peerModel);
+		if (receiver instanceof IPeerNode) {
+			final IPeerNode peerNode = (IPeerNode) receiver;
+			Result result = SimulatorUtils.getSimulatorService(peerNode);
 
 			if (result.service != null) {
 				if ("isSimulatorState".equals(property) && expectedValue instanceof String) { //$NON-NLS-1$

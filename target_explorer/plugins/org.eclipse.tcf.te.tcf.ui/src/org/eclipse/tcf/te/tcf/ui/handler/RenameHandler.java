@@ -38,10 +38,10 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
@@ -103,8 +103,8 @@ public class RenameHandler extends AbstractHandler {
 			Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
 			while (iterator.hasNext()) {
 				Object element = iterator.next();
-				Assert.isTrue(element instanceof IPeerModel);
-				final IPeerModel node = (IPeerModel)element;
+				Assert.isTrue(element instanceof IPeerNode);
+				final IPeerNode node = (IPeerNode)element;
 
 				RenameDialog dialog = createRenameDialog(shell, node);
 				int ok = dialog.open();
@@ -135,7 +135,7 @@ public class RenameHandler extends AbstractHandler {
 									IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector)oldPeer).getParent(), attributes) : new Peer(attributes);
 									// Update the peer node instance (silently)
 									boolean changed = node.setChangeEventsEnabled(false);
-									node.setProperty(IPeerModelProperties.PROP_INSTANCE, newPeer);
+									node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
 									if (changed) {
 										node.setChangeEventsEnabled(true);
 									}
@@ -174,7 +174,7 @@ public class RenameHandler extends AbstractHandler {
 					Protocol.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							final ILocatorModelRefreshService service = Model.getModel().getService(ILocatorModelRefreshService.class);
+							final IPeerModelRefreshService service = Model.getModel().getService(IPeerModelRefreshService.class);
 							// Refresh the model now (must be executed within the TCF dispatch thread)
 							if (service != null) {
 								service.refresh(new Callback() {
@@ -204,7 +204,7 @@ public class RenameHandler extends AbstractHandler {
 	 *
 	 * @return The renaming dialog.
 	 */
-	private RenameDialog createRenameDialog(final Shell shell, final IPeerModel node) {
+	private RenameDialog createRenameDialog(final Shell shell, final IPeerNode node) {
 		Assert.isNotNull(node);
 
 		final AtomicReference<String> name = new AtomicReference<String>();
@@ -215,17 +215,15 @@ public class RenameHandler extends AbstractHandler {
 			public void run() {
 				name.set(node.getPeer().getName());
 
-				ILocatorModel model = Model.getModel();
+				IPeerModel model = Model.getModel();
 				Assert.isNotNull(model);
-				IPeerModel[] peers = model.getPeers();
-				for (IPeerModel peer : peers) {
-					if (peer.isStatic()) {
+				IPeerNode[] peers = model.getPeers();
+				for (IPeerNode peer : peers) {
 						String name = peer.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
 							usedNames.add(name.trim().toUpperCase());
 						}
-					}
 				}
 			}
 		};

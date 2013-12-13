@@ -24,7 +24,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.ui.IEditorInput;
@@ -47,7 +47,7 @@ public class RefreshProcessListHandler extends AbstractHandler implements IEleme
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IEditorInput editorInput = HandlerUtil.getActiveEditorInputChecked(event);
-		final IPeerModel peer = (IPeerModel) editorInput.getAdapter(IPeerModel.class);
+		final IPeerNode peer = (IPeerNode) editorInput.getAdapter(IPeerNode.class);
 		if (peer != null) {
 			BusyIndicator.showWhile(PlatformUI.getWorkbench().getDisplay(), new Runnable() {
 				@Override
@@ -85,7 +85,7 @@ public class RefreshProcessListHandler extends AbstractHandler implements IEleme
 			IWorkbenchPart part = site.getPart();
 			if (part instanceof IEditorPart) {
 				IEditorInput editorInput = ((IEditorPart)part).getEditorInput();
-				IPeerModel node = editorInput != null ? (IPeerModel) editorInput.getAdapter(IPeerModel.class) : null;
+				IPeerNode node = editorInput != null ? (IPeerNode) editorInput.getAdapter(IPeerNode.class) : null;
 
 				IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
 				IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;

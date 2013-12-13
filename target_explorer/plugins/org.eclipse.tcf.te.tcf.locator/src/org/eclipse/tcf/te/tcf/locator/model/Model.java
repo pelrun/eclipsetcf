@@ -11,9 +11,9 @@ package org.eclipse.tcf.te.tcf.locator.model;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.nodes.LocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
 
 
 /**
@@ -21,7 +21,7 @@ import org.eclipse.tcf.te.tcf.locator.nodes.LocatorModel;
  */
 public final class Model {
 	// Reference to the locator model
-	/* default */ static volatile ILocatorModel locatorModel;
+	/* default */ static volatile IPeerModel peerModel;
 
 	/**
 	 * Returns the shared locator model instance.
@@ -31,7 +31,7 @@ public final class Model {
 	 *
 	 * @return The shared locator model.
 	 */
-	public static ILocatorModel getModel() {
+	public static IPeerModel getModel() {
 		return getModel(false);
 	}
 
@@ -48,9 +48,9 @@ public final class Model {
 	 *
 	 * @return The shared locator model.
 	 */
-	public static ILocatorModel getModel(boolean shutdown) {
+	public static IPeerModel getModel(boolean shutdown) {
 		// Access to the locator model must happen in the TCF dispatch thread
-		if (locatorModel == null && !shutdown) {
+		if (peerModel == null && !shutdown) {
 			if (Protocol.isDispatchThread()) {
 				initialize();
 			} else {
@@ -62,7 +62,7 @@ public final class Model {
 				});
 			}
 		}
-		return locatorModel;
+		return peerModel;
 	}
 
 	/**
@@ -73,35 +73,35 @@ public final class Model {
 
 		// If locator model is set in the mean while, initialize got
 		// called twice. Return immediately in this case.
-		if (locatorModel != null) return;
+		if (peerModel != null) return;
 
 		// Create the model instance
-		locatorModel = new LocatorModel();
+		peerModel = new PeerModel();
 		// Refresh the model right away
-		locatorModel.getService(ILocatorModelRefreshService.class).refresh(null);
+		peerModel.getService(IPeerModelRefreshService.class).refresh(null);
 		// Start the scanner
-		locatorModel.startScanner(5000, 120000);
+		peerModel.startScanner(5000, 120000);
 	}
 
 	/**
 	 * Dispose the root node.
 	 */
 	public static void dispose() {
-		if (locatorModel == null) return;
+		if (peerModel == null) return;
 
 		// Access to the locator model must happen in the TCF dispatch thread
 		if (Protocol.isDispatchThread()) {
-			locatorModel.dispose();
+			peerModel.dispose();
 		} else {
 			Protocol.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					locatorModel.dispose();
+					peerModel.dispose();
 				}
 			});
 		}
 
-		locatorModel = null;
+		peerModel = null;
 	}
 
 }

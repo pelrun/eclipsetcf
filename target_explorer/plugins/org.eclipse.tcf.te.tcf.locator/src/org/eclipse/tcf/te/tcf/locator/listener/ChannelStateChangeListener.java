@@ -16,10 +16,10 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IChannelStateChangeListener;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 
 
 /**
@@ -27,14 +27,14 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupSer
  */
 public class ChannelStateChangeListener implements IChannelStateChangeListener {
 	// Reference to the parent model
-	private final ILocatorModel model;
+	private final IPeerModel model;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param model The parent locator model. Must not be <code>null</code>.
 	 */
-	public ChannelStateChangeListener(ILocatorModel model) {
+	public ChannelStateChangeListener(IPeerModel model) {
 		Assert.isNotNull(model);
 		this.model = model;
 	}
@@ -57,14 +57,14 @@ public class ChannelStateChangeListener implements IChannelStateChangeListener {
 				IPeer peer = channel.getRemotePeer();
 				if (peer != null && peer.getID() != null) {
 					// Find the corresponding model node
-					IPeerModel node = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peer.getID());
+					IPeerNode node = model.getService(IPeerModelLookupService.class).lkupPeerModelById(peer.getID());
 					if (node != null) {
 						// Increase the channel reference counter by 1
-						int counter = node.getIntProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER);
+						int counter = node.getIntProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER);
 						if (counter < 0) counter = 0;
 						counter++;
-						node.setProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER, counter);
-						if (counter > 0) node.setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_CONNECTED);
+						node.setProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER, counter);
+						if (counter > 0) node.setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_CONNECTED);
 					}
 				}
 				break;
@@ -72,15 +72,15 @@ public class ChannelStateChangeListener implements IChannelStateChangeListener {
 				peer = channel.getRemotePeer();
 				if (peer != null && peer.getID() != null) {
 					// Find the corresponding model node
-					IPeerModel node = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peer.getID());
+					IPeerNode node = model.getService(IPeerModelLookupService.class).lkupPeerModelById(peer.getID());
 					if (node != null) {
 						// Decrease the channel reference counter by 1
-						int counter = node.getIntProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER);
+						int counter = node.getIntProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER);
 						counter--;
 						if (counter < 0) counter = 0;
-						node.setProperty(IPeerModelProperties.PROP_CHANNEL_REF_COUNTER, counter);
-						if (counter == 0 && node.isProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_CONNECTED)) {
-							node.setProperty(IPeerModelProperties.PROP_STATE, IPeerModelProperties.STATE_REACHABLE);
+						node.setProperty(IPeerNodeProperties.PROP_CHANNEL_REF_COUNTER, counter);
+						if (counter == 0 && node.isProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_CONNECTED)) {
+							node.setProperty(IPeerNodeProperties.PROP_STATE, IPeerNodeProperties.STATE_REACHABLE);
 						}
 					}
 				}

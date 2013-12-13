@@ -27,7 +27,7 @@ import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
@@ -50,9 +50,9 @@ public class GeneralInformationPage extends PropertyPage {
 
 		node = (IProcessContextNode) element;
 
-		IPeerModel peerModel = (IPeerModel)node.getAdapter(IPeerModel.class);
-		IUIService service = peerModel != null ? ServiceManager.getInstance().getService(peerModel, IUIService.class) : null;
-		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerModel, IProcessMonitorUIDelegate.class) : null;
+		IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
+		IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
+		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerNode, IProcessMonitorUIDelegate.class) : null;
 
 		final Map<String, Object> props = new HashMap<String, Object>();
 
@@ -77,15 +77,15 @@ public class GeneralInformationPage extends PropertyPage {
 		createField(Messages.GeneralInformationPage_User, props.get(ISysMonitor.PROP_USERNAME), page);
 		createSeparator(page);
 
-		String label = Messages.getStringDelegated(peerModel, "GeneralInformationPage_ProcessID"); //$NON-NLS-1$
+		String label = Messages.getStringDelegated(peerNode, "GeneralInformationPage_ProcessID"); //$NON-NLS-1$
 		String value = delegate != null ? delegate.getText(node, "PID", (props.get(ISysMonitor.PROP_PID) != null ? props.get(ISysMonitor.PROP_PID).toString() : null)) : null; //$NON-NLS-1$
 		createField(label != null ? label : Messages.GeneralInformationPage_ProcessID, value != null ? value : props.get(ISysMonitor.PROP_PID), page);
-		label = Messages.getStringDelegated(peerModel, "GeneralInformationPage_ParentPID"); //$NON-NLS-1$
+		label = Messages.getStringDelegated(peerNode, "GeneralInformationPage_ParentPID"); //$NON-NLS-1$
 		value = delegate != null ? delegate.getText(node, "PPID", (props.get(ISysMonitor.PROP_PPID) != null ? props.get(ISysMonitor.PROP_PPID).toString() : null)) : null; //$NON-NLS-1$
 		createField(label != null ? label : Messages.GeneralInformationPage_ParentPID, props.get(ISysMonitor.PROP_PPID), page);
-		label = Messages.getStringDelegated(peerModel, "GeneralInformationPage_InternalPID"); //$NON-NLS-1$
+		label = Messages.getStringDelegated(peerNode, "GeneralInformationPage_InternalPID"); //$NON-NLS-1$
 		createField(label != null ? label : Messages.GeneralInformationPage_InternalPID, props.get(IProcesses.PROP_ID), page);
-		label = Messages.getStringDelegated(peerModel, "GeneralInformationPage_InternalPPID"); //$NON-NLS-1$
+		label = Messages.getStringDelegated(peerNode, "GeneralInformationPage_InternalPPID"); //$NON-NLS-1$
 		createField(label != null ? label : Messages.GeneralInformationPage_InternalPPID, props.get(IProcesses.PROP_PARENTID), page);
 
 		return page;

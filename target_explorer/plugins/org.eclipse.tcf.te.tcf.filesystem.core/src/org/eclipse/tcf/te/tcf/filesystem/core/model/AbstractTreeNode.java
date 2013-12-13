@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUser;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The base class of FSTreeNode and ProcessTreeNode which provides base members and methods.
@@ -45,7 +45,7 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	/**
 	 * The peer node the file system tree node is associated with.
 	 */
-	public IPeerModel peerNode = null;
+	public IPeerNode peerNode = null;
 
 	/**
 	 * Flag to mark once the children of the node got queried
@@ -130,7 +130,7 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	 * @param peerNode The peer node of the TCF agent.
 	 * @return The user account that runs the agent.
 	 */
-	protected UserAccount getUserAccount(IPeerModel peerNode) {
+	protected UserAccount getUserAccount(IPeerNode peerNode) {
 		OpUser user = new OpUser(peerNode);
 		new NullOpExecutor().execute(user);
 		return user.getUserAccount();

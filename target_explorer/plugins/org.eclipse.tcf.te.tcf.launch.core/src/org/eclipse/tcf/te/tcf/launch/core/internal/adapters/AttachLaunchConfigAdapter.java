@@ -21,14 +21,14 @@ import org.eclipse.tcf.te.launch.core.selection.LaunchSelection;
 import org.eclipse.tcf.te.launch.core.selection.RemoteSelectionContext;
 import org.eclipse.tcf.te.launch.core.selection.interfaces.ILaunchSelection;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * AttachLaunchConfigAdapter
  */
 public class AttachLaunchConfigAdapter {
 
-	public ILaunchConfiguration getAttachLaunchConfig(IPeerModel peer) {
+	public ILaunchConfiguration getAttachLaunchConfig(IPeerNode peer) {
 		ILaunchConfigurationType launchConfigType =	DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurationType(ILaunchTypes.ATTACH);
 		ILaunchSelection launchSelection = new LaunchSelection(ILaunchManager.DEBUG_MODE, new RemoteSelectionContext(peer, true));
 		ILaunchManagerDelegate delegate = LaunchManager.getInstance().getLaunchManagerDelegate(launchConfigType, ILaunchManager.DEBUG_MODE);

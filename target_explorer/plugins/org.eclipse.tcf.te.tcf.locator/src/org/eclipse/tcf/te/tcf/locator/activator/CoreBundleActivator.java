@@ -13,7 +13,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.osgi.framework.BundleContext;
 
@@ -87,7 +87,7 @@ public class CoreBundleActivator extends Plugin {
 		plugin = null;
 
 		// Dispose the locator model
-		final ILocatorModel model = Model.getModel(true);
+		final IPeerModel model = Model.getModel(true);
 		if (model != null) {
 			Runnable runnable = new Runnable() {
 				@Override

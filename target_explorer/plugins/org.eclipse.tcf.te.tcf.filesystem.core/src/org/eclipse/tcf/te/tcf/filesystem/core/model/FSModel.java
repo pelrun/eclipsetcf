@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.filesystem.core.activator.CorePlugin;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The file system model implementation.
@@ -26,19 +26,19 @@ public final class FSModel implements ITreeNodeModel {
 	 * Get the file system model of the peer model. If it does not
 	 * exist yet, create a new instance and store it.
 	 *
-	 * @param peerModel The peer model
+	 * @param peerNode The peer model
 	 * @return The file system model connected this peer model.
 	 */
-	public static FSModel getFSModel(final IPeerModel peerModel) {
+	public static FSModel getFSModel(final IPeerNode peerNode) {
 		final AtomicReference<FSModel> model = new AtomicReference<FSModel>();
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				if (peerModel != null) {
-					model.set((FSModel) peerModel.getProperty(FSMODEL_KEY));
+				if (peerNode != null) {
+					model.set((FSModel) peerNode.getProperty(FSMODEL_KEY));
 					if (model.get() == null) {
-						model.set(new FSModel(peerModel));
-						peerModel.setProperty(FSMODEL_KEY, model.get());
+						model.set(new FSModel(peerNode));
+						peerNode.setProperty(FSMODEL_KEY, model.get());
 					}
 				}
 			}
@@ -52,11 +52,11 @@ public final class FSModel implements ITreeNodeModel {
 
 	// The root node of the peer model
 	private FSTreeNode root;
-	private IPeerModel peerNode;
+	private IPeerNode peerNode;
 	/**
 	 * Create a File System Model.
 	 */
-	/* default */ FSModel(IPeerModel peerNode) {
+	/* default */ FSModel(IPeerNode peerNode) {
 		this.peerNode = peerNode;
 	}
 
@@ -100,7 +100,7 @@ public final class FSModel implements ITreeNodeModel {
 	 * @param peerNode The peer.
 	 * @return The root file system node.
 	 */
-	public static FSTreeNode createRootNode(IPeerModel peerNode) {
+	public static FSTreeNode createRootNode(IPeerNode peerNode) {
 		FSTreeNode node = new FSTreeNode();
 		node.type = "FSRootNode"; //$NON-NLS-1$
 		node.peerNode = peerNode;

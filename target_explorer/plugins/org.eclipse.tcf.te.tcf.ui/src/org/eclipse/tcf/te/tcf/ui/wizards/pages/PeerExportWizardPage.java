@@ -51,8 +51,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
@@ -100,13 +100,13 @@ public class PeerExportWizardPage extends WizardPage {
 		createPeersGroup(composite);
 		createDestinationGroup(composite);
 
-		List<IPeerModel> elements = new ArrayList<IPeerModel>();
+		List<IPeerNode> elements = new ArrayList<IPeerNode>();
 		Iterator<Object> it = fSelection.iterator();
 		while (it.hasNext()) {
 			Object element = it.next();
-			IPeerModel peerModel = (IPeerModel)Platform.getAdapterManager().getAdapter(element, IPeerModel.class);
-			if (peerModel != null) {
-				elements.add((IPeerModel)element);
+			IPeerNode peerNode = (IPeerNode)Platform.getAdapterManager().getAdapter(element, IPeerNode.class);
+			if (peerNode != null) {
+				elements.add((IPeerNode)element);
 			}
 		}
 		fViewer.setCheckedElements(elements.toArray());
@@ -141,14 +141,10 @@ public class PeerExportWizardPage extends WizardPage {
 			}
 			@Override
 			public Object[] getElements(Object inputElement) {
-				List<IPeerModel> elements = new ArrayList<IPeerModel>();
-				for (IPeerModel peerModel : ((ILocatorModel)inputElement).getPeers()) {
-					if (peerModel.isStatic()) {
-						elements.add(peerModel);
-					}
-
+				if (inputElement instanceof IPeerModel) {
+					return ((IPeerModel)inputElement).getPeers();
 				}
-				return elements.toArray();
+				return new Object[0];
 			}
 			@Override
 			public Object[] getChildren(TreePath parentPath) {
@@ -287,7 +283,7 @@ public class PeerExportWizardPage extends WizardPage {
 		Object[] elements = fViewer.getCheckedElements();
 		boolean selected = false;
 		for (Object element : elements) {
-			if(element instanceof IPeerModel) {
+			if(element instanceof IPeerNode) {
 				selected = true;
 				break;
 			}

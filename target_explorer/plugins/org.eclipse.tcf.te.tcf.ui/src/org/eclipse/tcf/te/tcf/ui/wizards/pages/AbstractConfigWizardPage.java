@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerNameControl;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -310,16 +310,14 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerModel[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeers();
 				// Loop them and find the ones which are of our handled types
-				for (IPeerModel peerModel : peers) {
-					if (peerModel.isStatic()) {
-						String name = peerModel.getPeer().getName();
+				for (IPeerNode peerNode : peers) {
+						String name = peerNode.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
 							usedNames.add(name.trim().toUpperCase());
 						}
-					}
 				}
 			}
 		};
@@ -434,11 +432,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		}
 
 		if (isAutoStartDebugger()) {
-			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_AUTO_START_DEBUGGER, true);
+			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_START_DEBUGGER, true);
 		}
 
 		if (isAutoConnect()) {
-			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties.PROP_AUTO_CONNECT, true);
+			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT, true);
 		}
 
 		if (selectorSection != null) {

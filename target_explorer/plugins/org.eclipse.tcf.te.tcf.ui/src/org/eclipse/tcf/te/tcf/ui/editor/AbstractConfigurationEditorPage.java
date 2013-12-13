@@ -16,13 +16,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
@@ -134,33 +135,31 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 
 		// If necessary, write the changed peer attributes
 		final Object input = getEditorInputNode();
-		if (input instanceof IPeerModel) {
+		if (input instanceof IPeerNode) {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
 					try {
-						boolean isDynamic = !((IPeerModel)input).isStatic();
-
 						// Get the persistence service
 						IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
 						if (uRIPersistenceService == null) {
 							throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
 						}
 						// Save the peer node to the new persistence storage
-						uRIPersistenceService.write(((IPeerModel)input).getPeer(), null);
+						uRIPersistenceService.write(((IPeerNode)input).getPeer(), null);
 
 						// In case the node had been dynamically discovered before, we have to trigger a refresh
 						// to the locator model to read in the newly created static peer
-						if (isDynamic) {
+						if (((IPeerNode)input).getConnectState() == IConnectable.STATE_CONNECTED) {
 							// Refresh the static peers
-							((IPeerModel)input).getModel().getService(ILocatorModelRefreshService.class).refreshStaticPeers();
+							((IPeerNode)input).getModel().getService(IPeerModelRefreshService.class).refreshStaticPeers();
 
 							// Reopen the editor on the current page
 							ViewsUtil.reopenEditor(getEditor(), getEditor().getActivePageInstance().getId(), false);
 						}
 					} catch (IOException e) {
 						// Build up the message template
-						String template = NLS.bind(Messages.AbstractConfigurationEditorPage_error_save, ((IPeerModel)input).getName(), Messages.AbstractConfigurationEditorPage_error_possibleCause);
+						String template = NLS.bind(Messages.AbstractConfigurationEditorPage_error_save, ((IPeerNode)input).getName(), Messages.AbstractConfigurationEditorPage_error_possibleCause);
 						// Handle the status
 						StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), input, template, null, IContextHelpIds.MESSAGE_SAVE_FAILED, AbstractConfigurationEditorPage.this, null);
 					}
@@ -173,7 +172,7 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 				@Override
 				public void run() {
 					// Trigger a change event for the original data node
-					((IPeerModel)input).fireChangeEvent("properties", null, ((IPeerModel)input).getProperties()); //$NON-NLS-1$
+					((IPeerNode)input).fireChangeEvent("properties", null, ((IPeerNode)input).getProperties()); //$NON-NLS-1$
 				}
 			});
 		}

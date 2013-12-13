@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
@@ -176,10 +176,10 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	@Override
     protected Object getViewerInput() {
 		Object element = getEditorInputNode();
-		IPeerModel peerModel = element instanceof IPeerModel ? (IPeerModel)element : null;
-		if (peerModel == null && element instanceof IAdaptable) {
-			peerModel = (IPeerModel)((IAdaptable)element).getAdapter(IPeerModel.class);
+		IPeerNode peerNode = element instanceof IPeerNode ? (IPeerNode)element : null;
+		if (peerNode == null && element instanceof IAdaptable) {
+			peerNode = (IPeerNode)((IAdaptable)element).getAdapter(IPeerNode.class);
 		}
-		return peerModel != null ? ModelManager.getRuntimeModel(peerModel) : null;
+		return peerNode != null ? ModelManager.getRuntimeModel(peerNode) : null;
     }
 }

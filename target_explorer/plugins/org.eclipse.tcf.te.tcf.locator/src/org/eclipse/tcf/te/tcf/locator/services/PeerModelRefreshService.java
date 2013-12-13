@@ -44,31 +44,29 @@ import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelLocationUtil;
-import org.eclipse.tcf.te.tcf.locator.nodes.ConnectablePeerModel;
-import org.eclipse.tcf.te.tcf.locator.nodes.LocatorModel;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
+import org.eclipse.tcf.te.tcf.locator.nodes.PeerNode;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 
 /**
  * Default locator model refresh service implementation.
  */
-public class LocatorModelRefreshService extends AbstractLocatorModelService implements ILocatorModelRefreshService {
+public class PeerModelRefreshService extends AbstractPeerModelService implements IPeerModelRefreshService {
 
 	/**
 	 * Constructor.
 	 *
 	 * @param parentModel The parent locator model instance. Must not be <code>null</code>.
 	 */
-	public LocatorModelRefreshService(ILocatorModel parentModel) {
+	public PeerModelRefreshService(IPeerModel parentModel) {
 		super(parentModel);
 	}
 
@@ -84,21 +82,21 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+					callback.done(PeerModelRefreshService.this, Status.OK_STATUS);
 				}
 			});
 		}
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService#refresh(org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService#refresh(org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
 	public void refresh(final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the parent locator model
-		ILocatorModel model = getLocatorModel();
+		IPeerModel model = getPeerModel();
 
 		// If the parent model is already disposed, the service will drop out immediately
 		if (model.isDisposed()) {
@@ -113,27 +111,27 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		}
 
 		// Get the list of old children (update node instances where possible)
-		final List<IPeerModel> oldChildren = new ArrayList<IPeerModel>(Arrays.asList(model.getPeers()));
+		final List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(Arrays.asList(model.getPeers()));
 
 		// Refresh the static peer definitions
 		refreshStaticPeers(oldChildren, model);
 
-		// Get the locator service
-		ILocator locatorService = Protocol.getLocator();
-		if (locatorService != null) {
-			// Check for the locator listener to be created and registered
-			if (model instanceof LocatorModel) {
-				((LocatorModel)model).checkLocatorListener();
-			}
-			// Get the map of peers known to the locator service.
-			Map<String, IPeer> peers = locatorService.getPeers();
-			// Process the peers
-			processPeers(peers, oldChildren, model);
-		}
+//		// Get the locator service
+//		ILocator locatorService = Protocol.getLocator();
+//		if (locatorService != null) {
+//			// Check for the locator listener to be created and registered
+//			if (model instanceof PeerModel) {
+//				((PeerModel)model).checkLocatorListener();
+//			}
+//			// Get the map of peers known to the locator service.
+//			Map<String, IPeer> peers = locatorService.getPeers();
+//			// Process the peers
+//			processPeers(peers, oldChildren, model);
+//		}
 
 		// If there are remaining old children, remove them from the model (non-recursive)
-		for (IPeerModel oldChild : oldChildren) {
-			model.getService(ILocatorModelUpdateService.class).remove(oldChild);
+		for (IPeerNode oldChild : oldChildren) {
+			model.getService(IPeerModelUpdateService.class).remove(oldChild);
 		}
 
 		// Invoke the callback
@@ -147,7 +145,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 	 * @param oldChildren The list of old children. Must not be <code>null</code>.
 	 * @param model The locator model. Must not be <code>null</code>.
 	 */
-	protected void processPeers(Map<String, IPeer> peers, List<IPeerModel> oldChildren, ILocatorModel model) {
+	protected void processPeers(Map<String, IPeer> peers, List<IPeerNode> oldChildren, IPeerModel model) {
 		Assert.isNotNull(peers);
 		Assert.isNotNull(oldChildren);
 		Assert.isNotNull(model);
@@ -156,35 +154,25 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			// Get the peer instance for the current peer id
 			IPeer peer = entry.getValue();
 			// Try to find an existing peer node first
-			IPeerModel peerNode = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(entry.getKey());
+			IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(entry.getKey());
 			// And create a new one if we cannot find it
 			if (peerNode == null) {
-				String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
-				if (value != null && Boolean.parseBoolean(value.trim())) {
-					peerNode = new ConnectablePeerModel(model, peer);
-				}
-				else {
-					peerNode = new PeerModel(model, peer);
-				}
+				peerNode = new PeerNode(model, peer);
 			}
 			else {
 				oldChildren.remove(peerNode);
 			}
 
 			if (peerNode.getPeer() != peer) {
-				if (!peerNode.isStatic()) {
-					peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
-				} else {
 					String value = peerNode.getPeer().getAttributes().get(IPersistableNodeProperties.PROPERTY_URI);
 					URI uri = value != null ? URI.create(value) : null;
 					File file = uri != null && "file".equals(uri.getScheme()) ? new File(uri.normalize()) : null; //$NON-NLS-1$
 					if (file != null && !file.exists()) {
-						peerNode.setProperty(IPeerModelProperties.PROP_INSTANCE, peer);
+						peerNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
 					} else {
 						// Merge user configured properties between the peers
-						model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, false);
+						model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(peerNode, peer, false);
 					}
-				}
 			}
 
 			// Validate the peer node before adding
@@ -193,15 +181,14 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 				// There is still the chance that the node we add is a static node and
 				// there exist an dynamically discovered node with a different id but
 				// for the same peer. Do this check only if the peer to add is a static one.
-				if (peerNode.isStatic()) {
-					IPeerModel toRemove = null;
-					for (IPeerModel candidate : model.getPeers()) {
-						if (candidate.isStatic() || candidate.equals(peerNode))continue;
+					IPeerNode toRemove = null;
+					for (IPeerNode candidate : model.getPeers()) {
+						if (candidate.equals(peerNode))continue;
 						String peerID = peerNode.getPeerId();
 						String clientID = candidate.getPeer().getAttributes().get("ClientID"); //$NON-NLS-1$
 						if (clientID != null && clientID.equals(peerID)) {
 							// Merge user configured properties between the peers
-							model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(candidate, peerNode.getPeer(), true);
+							model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(candidate, peerNode.getPeer(), true);
 							peerNode = null;
 							break;
 						}
@@ -215,13 +202,13 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 								// Same pipe -> same node
 								if (name1 != null && name1.equals(name2)) {
 									// Merge user configured properties between the peers
-									model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
+									model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
 									toRemove = candidate;
 									break;
 								}
 							} else if ("Loop".equals(candidate.getPeer().getTransportName())) { //$NON-NLS-1$
 								// Merge user configured properties between the peers
-								model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
+								model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
 								toRemove = candidate;
 								break;
 							} else {
@@ -235,7 +222,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 
 									if (port1 != null && port1.equals(port2)) {
 										// Merge user configured properties between the peers
-										model.getService(ILocatorModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
+										model.getService(IPeerModelUpdateService.class).mergeUserDefinedAttributes(peerNode, candidate.getPeer(), true);
 										toRemove = candidate;
 										break;
 									}
@@ -245,14 +232,13 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 					}
 
 					if (toRemove != null) {
-						model.getService(ILocatorModelUpdateService.class).remove(toRemove);
+						model.getService(IPeerModelUpdateService.class).remove(toRemove);
 						toRemove = null;
 					}
-				}
 
 				if (peerNode != null) {
 					// Add the peer node to model
-					model.getService(ILocatorModelUpdateService.class).add(peerNode);
+					model.getService(IPeerModelUpdateService.class).add(peerNode);
 					// And schedule for immediate status update
 					Runnable runnable = new ScannerRunnable(model.getScanner(), peerNode);
 					Protocol.invokeLater(runnable);
@@ -264,7 +250,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 	private final AtomicBoolean REFRESH_STATIC_PEERS_GUARD = new AtomicBoolean(false);
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService#refreshStaticPeers()
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService#refreshStaticPeers()
 	 */
 	@Override
 	public void refreshStaticPeers() {
@@ -278,7 +264,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		REFRESH_STATIC_PEERS_GUARD.set(true);
 
 		// Get the parent locator model
-		ILocatorModel model = getLocatorModel();
+		IPeerModel model = getPeerModel();
 
 		// If the parent model is already disposed, the service will drop out immediately
 		if (model.isDisposed()) {
@@ -286,7 +272,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		}
 
 		// Get the list of old children (update node instances where possible)
-		final List<IPeerModel> oldChildren = new ArrayList<IPeerModel>(Arrays.asList(model.getPeers()));
+		final List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(Arrays.asList(model.getPeers()));
 
 		// Refresh the static peer definitions
 		refreshStaticPeers(oldChildren, model);
@@ -300,7 +286,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 	 * @param oldChildren The list of old children. Must not be <code>null</code>.
 	 * @param model The locator model. Must not be <code>null</code>.
 	 */
-	protected void refreshStaticPeers(List<IPeerModel> oldChildren, ILocatorModel model) {
+	protected void refreshStaticPeers(List<IPeerNode> oldChildren, IPeerModel model) {
 		Assert.isNotNull(oldChildren);
 		Assert.isNotNull(model);
 
@@ -367,19 +353,19 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 							}
 
 							// If the redirect property is not set, create the peer right away
-							if (attrs.get(IPeerModelProperties.PROP_REDIRECT_PROXY) == null) {
+							if (attrs.get(IPeerNodeProperties.PROP_REDIRECT_PROXY) == null) {
 								// Construct the peer from the attributes
 								IPeer peer = new Peer(attrs);
 								// Add the constructed peer to the peers map
 								peers.put(peer.getID(), peer);
 							} else {
 								// Try to get the peer proxy
-								String proxyId = attrs.get(IPeerModelProperties.PROP_REDIRECT_PROXY);
+								String proxyId = attrs.get(IPeerNodeProperties.PROP_REDIRECT_PROXY);
 								IPeer proxy = peers.get(proxyId);
 								if (proxy == null) {
-									IPeerModel peerModel = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(proxyId);
-									if (peerModel != null) {
-										proxy = peerModel.getPeer();
+									IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(proxyId);
+									if (peerNode != null) {
+										proxy = peerNode.getPeer();
 									}
 								}
 
@@ -403,12 +389,12 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			// Process postponed peers if there are any
 			if (!postponed.isEmpty()) {
 				for (Map<String, String> attrs : postponed) {
-					String proxyId = attrs.get(IPeerModelProperties.PROP_REDIRECT_PROXY);
+					String proxyId = attrs.get(IPeerNodeProperties.PROP_REDIRECT_PROXY);
 					IPeer proxy = proxyId != null ? peers.get(proxyId) : null;
 					if (proxy == null) {
-						IPeerModel peerModel = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(proxyId);
-						if (peerModel != null) {
-							proxy = peerModel.getPeer();
+						IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(proxyId);
+						if (peerNode != null) {
+							proxy = peerNode.getPeer();
 						}
 					}
 
@@ -419,7 +405,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 						peers.put(redirector.getID(), redirector);
 					} else {
 						// Proxy not available -> reset redirection
-						attrs.remove(IPeerModelProperties.PROP_REDIRECT_PROXY);
+						attrs.remove(IPeerNodeProperties.PROP_REDIRECT_PROXY);
 						// Construct the peer from the attributes
 						IPeer peer = new Peer(attrs);
 						// Add the constructed peer to the peers map
@@ -441,16 +427,16 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 				}
 
 				// Get the peers peer model object
-				IPeerModel peerModel = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(entry.getKey());
-				Assert.isNotNull(peerModel);
+				IPeerNode peerNode = model.getService(IPeerModelLookupService.class).lkupPeerModelById(entry.getKey());
+				Assert.isNotNull(peerNode);
 
 				// The peer is a peer redirector -> get the proxy peer id and proxy peer model
 				String proxyPeerId = ((PeerRedirector)peer).getParent().getID();
-				IPeerModel proxy = model.getService(ILocatorModelLookupService.class).lkupPeerModelById(proxyPeerId);
+				IPeerNode proxy = model.getService(IPeerModelLookupService.class).lkupPeerModelById(proxyPeerId);
 				Assert.isNotNull(proxy);
 
-				peerModel.setParent(proxy);
-				model.getService(ILocatorModelUpdateService.class).addChild(peerModel);
+				peerNode.setParent(proxy);
+				model.getService(IPeerModelUpdateService.class).addChild(peerNode);
 			}
 		}
 	}
@@ -493,10 +479,10 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 	/* default */ final List<ICallback> refreshAgentIDCallbacks = new ArrayList<ICallback>();
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService#refreshAgentIDs(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel[], org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService#refreshAgentIDs(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode[], org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void refreshAgentIDs(IPeerModel[] nodes, final ICallback callback) {
+	public void refreshAgentIDs(IPeerNode[] nodes, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// This method might be called reentrant while processing. Add
@@ -508,7 +494,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		refreshAgentIDCallbacks.add(callback);
 
 		// Get the parent locator model
-		ILocatorModel model = getLocatorModel();
+		IPeerModel model = getPeerModel();
 
 		// If the parent model is already disposed, the service will drop out immediately
 		if (model.isDisposed()) {
@@ -530,11 +516,11 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		}, new CallbackInvocationDelegate());
 
 		// Make a copy of the current list of static peers before processing
-		List<IPeerModel> nodesToProcess = new ArrayList<IPeerModel>(Arrays.asList(nodes != null ? nodes : model.getPeers()));
+		List<IPeerNode> nodesToProcess = new ArrayList<IPeerNode>(Arrays.asList(nodes != null ? nodes : model.getPeers()));
 		// Loop the list of static peers and try to get the agent ID
-		for (IPeerModel node : nodesToProcess) {
+		for (IPeerNode node : nodesToProcess) {
 			// If not static or not complete --> ignore
-			if (!node.isStatic() || !node.isComplete()) continue;
+			if (!node.isComplete()) continue;
 			// Refresh the agent ID
 			refreshAgentID(node, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
 		}
@@ -549,18 +535,11 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 	 * @param node The peer model node. Must not be <code>null</code>.
 	 * @param callback The callback. Must not be <code>null</code>.
 	 */
-	protected void refreshAgentID(final IPeerModel node, final ICallback callback)  {
+	protected void refreshAgentID(final IPeerNode node, final ICallback callback)  {
 		Assert.isNotNull(node);
 		Assert.isNotNull(callback);
 
-		// If the peer is not static or associated with an remote peer
-		// --> skip the node
-		if (!node.isStatic() || node.isRemote()) {
-			callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
-			return;
-		}
-
-		Assert.isTrue(node.getPeer() instanceof Peer);
+		if (!(node.getPeer() instanceof Peer)) return;
 
 		// Try to open a channel to the node
 		Map<String, Boolean> flags = new HashMap<String, Boolean>();
@@ -588,30 +567,30 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 										// Remove the old agent ID
 										Map<String, String> attrs = new HashMap<String, String>(channel.getRemotePeer().getAttributes());
 										attrs.remove(IPeer.ATTR_AGENT_ID);
-										node.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
+										node.setProperty(IPeerNodeProperties.PROP_INSTANCE, new Peer(attrs));
 									}
 								} else if (node.getPeer().getAgentID() == null || !agentID.equals(node.getPeer().getAgentID())){
 									// Set the new agent ID
 									Map<String, String> attrs = new HashMap<String, String>(channel.getRemotePeer().getAttributes());
 									attrs.put(IPeer.ATTR_AGENT_ID, agentID);
-									node.setProperty(IPeerModelProperties.PROP_INSTANCE, new Peer(attrs));
+									node.setProperty(IPeerNodeProperties.PROP_INSTANCE, new Peer(attrs));
 								}
 
 								// Invoke the callback
-								callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+								callback.done(PeerModelRefreshService.this, Status.OK_STATUS);
 							}
 						});
 					} else {
 						// Close the channel
 						Tcf.getChannelManager().closeChannel(channel);
 						// Invoke the callback
-						callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+						callback.done(PeerModelRefreshService.this, Status.OK_STATUS);
 					}
 				} else {
 					// Close the channel in any case
 					if (channel != null) Tcf.getChannelManager().closeChannel(channel);
 					// Invoke the callback
-					callback.done(LocatorModelRefreshService.this, Status.OK_STATUS);
+					callback.done(PeerModelRefreshService.this, Status.OK_STATUS);
 				}
 
 			}

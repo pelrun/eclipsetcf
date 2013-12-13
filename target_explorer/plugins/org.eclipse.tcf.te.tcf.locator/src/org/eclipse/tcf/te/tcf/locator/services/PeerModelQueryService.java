@@ -23,31 +23,31 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.IConditionTester;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 
 /**
  * Default locator model peer node query service implementation.
  */
-public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelService implements ILocatorModelPeerNodeQueryService {
+public class PeerModelQueryService extends AbstractPeerModelService implements IPeerModelQueryService {
 
 	/**
 	 * Constructor.
 	 *
 	 * @param parentModel The parent locator model instance. Must not be <code>null</code>.
 	 */
-	public LocatorModelPeerNodeQueryService(ILocatorModel parentModel) {
+	public PeerModelQueryService(IPeerModel parentModel) {
 		super(parentModel);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService#queryLocalServices(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService#queryLocalServices(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-	public String queryLocalServices(final IPeerModel node) {
+	public String queryLocalServices(final IPeerNode node) {
 		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 
@@ -56,7 +56,7 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
+				services.set(node.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
 			}
 		});
 
@@ -75,7 +75,7 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 					@Override
 					public void doneQueryServices(Throwable error) {
 						if (error == null) {
-							services.set(node.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
+							services.set(node.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
 						}
 						completed.set(true);
 					}
@@ -104,10 +104,10 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService#queryRemoteServices(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService#queryRemoteServices(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-	public String queryRemoteServices(final IPeerModel node) {
+	public String queryRemoteServices(final IPeerNode node) {
 		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 
@@ -116,7 +116,7 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
+				services.set(node.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
 			}
 		});
 
@@ -135,7 +135,7 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 					@Override
 					public void doneQueryServices(Throwable error) {
 						if (error == null) {
-							services.set(node.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
+							services.set(node.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
 						}
 						completed.set(true);
 					}
@@ -163,13 +163,13 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		return services.get();
 	}
 
-	/* default */ final Map<IPeerModel, List<DoneQueryServices>> serviceQueriesInProgress = new HashMap<IPeerModel, List<DoneQueryServices>>();
+	/* default */ final Map<IPeerNode, List<DoneQueryServices>> serviceQueriesInProgress = new HashMap<IPeerNode, List<DoneQueryServices>>();
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService#queryServicesAsync(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService.DoneQueryServices)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService#queryServicesAsync(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService.DoneQueryServices)
 	 */
 	@Override
-	public void queryServicesAsync(final IPeerModel node, final DoneQueryServices done) {
+	public void queryServicesAsync(final IPeerNode node, final DoneQueryServices done) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 		Assert.isNotNull(done);
@@ -204,8 +204,8 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 		};
 
 		// Do not try to open a channel to peers known to be unreachable
-		int state = node.getIntProperty(IPeerModelProperties.PROP_STATE);
-		if (state == IPeerModelProperties.STATE_ERROR || state == IPeerModelProperties.STATE_NOT_REACHABLE || !node.isComplete()) {
+		int state = node.getIntProperty(IPeerNodeProperties.PROP_STATE);
+		if (state == IPeerNodeProperties.STATE_ERROR || state == IPeerNodeProperties.STATE_NOT_REACHABLE || !node.isComplete()) {
 			innerDone.doneQueryServices(null);
 			return;
 		}
@@ -234,7 +234,7 @@ public class LocatorModelPeerNodeQueryService extends AbstractLocatorModelServic
 					Collections.sort(remoteServices);
 
 					// Update the services
-					ILocatorModelUpdateService updateService = node.getModel().getService(ILocatorModelUpdateService.class);
+					IPeerModelUpdateService updateService = node.getModel().getService(IPeerModelUpdateService.class);
 					updateService.updatePeerServices(node, localServices, remoteServices);
 
 					// Invoke the callback

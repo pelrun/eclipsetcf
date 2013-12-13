@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Abstract simulator service implementation.
@@ -27,12 +27,12 @@ public abstract class AbstractSimulatorService extends AbstractService implement
 	 */
 	@Override
 	public boolean isValidContext(final Object context, String config) {
-		if (context instanceof IPeerModel) {
+		if (context instanceof IPeerNode) {
 			final AtomicBoolean complete = new AtomicBoolean(false);
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					complete.set(((IPeerModel)context).isComplete());
+					complete.set(((IPeerNode)context).isComplete());
 				}
 			};
 			Protocol.invokeAndWait(runnable);

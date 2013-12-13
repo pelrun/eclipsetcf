@@ -56,7 +56,7 @@ public class TcfLaunchTests extends TcfTestCase {
 
 	public void testRemoteAppLaunch() {
 		final ILaunchSpecification spec = new LaunchSpecification(ILaunchTypes.REMOTE_APPLICATION, ILaunchManager.RUN_MODE);
-		LaunchContextsPersistenceDelegate.setLaunchContexts(spec, new IModelNode[]{peerModel});
+		LaunchContextsPersistenceDelegate.setLaunchContexts(spec, new IModelNode[]{peerNode});
 
 		IPath helloWorldLocation = getHelloWorldLocation();
 		assertTrue("Missing hello world example for current OS and Arch:" + Platform.getOS() + "/" + Platform.getOSArch(), //$NON-NLS-1$ //$NON-NLS-2$

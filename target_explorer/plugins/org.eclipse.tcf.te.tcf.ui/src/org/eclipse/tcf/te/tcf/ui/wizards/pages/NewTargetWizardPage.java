@@ -28,7 +28,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tcf.ui.controls.CustomTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerAttributesTablePart;
@@ -454,16 +454,14 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerModel[] peers = Model.getModel().getPeers();
+				IPeerNode[] peers = Model.getModel().getPeers();
 				// Loop them and find the ones which are of our handled types
-				for (IPeerModel peerModel : peers) {
-					if (peerModel.isStatic()) {
-						String name = peerModel.getPeer().getName();
+				for (IPeerNode peerNode : peers) {
+						String name = peerNode.getPeer().getName();
 						Assert.isNotNull(name);
 						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
 							usedNames.add(name.trim().toUpperCase());
 						}
-					}
 				}
 			}
 		};

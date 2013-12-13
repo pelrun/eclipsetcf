@@ -22,9 +22,9 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
 import org.eclipse.tcf.te.tests.CoreTestCase;
 
@@ -39,7 +39,7 @@ public class TcfTestCase extends CoreTestCase {
 	// The peer instance
 	protected IPeer peer;
 	// The peer model instance
-	protected IPeerModel peerModel;
+	protected IPeerNode peerNode;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tests.CoreTestCase#setUp()
@@ -57,7 +57,7 @@ public class TcfTestCase extends CoreTestCase {
 	protected void tearDown() throws Exception {
 		if (launcher != null) launcher.dispose();
 		peer = null;
-		peerModel = null;
+		peerNode = null;
 	    super.tearDown();
 	}
 
@@ -158,7 +158,7 @@ public class TcfTestCase extends CoreTestCase {
         final Map<String, String> attrs = new HashMap<String, String>((Map<String, String>)object);
 
 		// Lookup the corresponding peer object
-		final ILocatorModel model = Model.getModel();
+		final IPeerModel model = Model.getModel();
 		assertNotNull("Failed to access locator model instance.", model); //$NON-NLS-1$
 
 		// The expected peer id is "<transport>:<canonical IP>:<port>"
@@ -170,17 +170,17 @@ public class TcfTestCase extends CoreTestCase {
 		assertNotNull("Unexpected return value 'null'.", ip); //$NON-NLS-1$
 
 		final String id = transport + ":" + ip + ":" + port; //$NON-NLS-1$ //$NON-NLS-2$
-		final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+		final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				node.set(model.getService(ILocatorModelLookupService.class).lkupPeerModelById(id));
+				node.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(id));
 				// If the peer model is not found by id, try the agent id as fallback.
 				if (node.get() == null) {
 					String agentID = attrs.get(IPeer.ATTR_AGENT_ID);
 					assertNotNull("Unexpected return value 'null'.", agentID); //$NON-NLS-1$
-					IPeerModel[] candidates = model.getService(ILocatorModelLookupService.class).lkupPeerModelByAgentId(agentID);
+					IPeerNode[] candidates = model.getService(IPeerModelLookupService.class).lkupPeerModelByAgentId(agentID);
 					if (candidates != null && candidates.length > 0) node.set(candidates[0]);
 				}
 			}
@@ -193,10 +193,10 @@ public class TcfTestCase extends CoreTestCase {
 			attrs.put(IPeer.ATTR_ID, id);
 			attrs.put(IPeer.ATTR_IP_HOST, ip);
 			peer = new TransientPeer(attrs);
-			peerModel = Factory.getInstance().newInstance(IPeerModel.class, new Object[] { model, peer });
+			peerNode = Factory.getInstance().newInstance(IPeerNode.class, new Object[] { model, peer });
 		} else {
-			peerModel = node.get();
-			peer = peerModel.getPeer();
+			peerNode = node.get();
+			peer = peerNode.getPeer();
 		}
 		assertNotNull("Failed to determine the peer to use for the tests.", peer); //$NON-NLS-1$
 	}

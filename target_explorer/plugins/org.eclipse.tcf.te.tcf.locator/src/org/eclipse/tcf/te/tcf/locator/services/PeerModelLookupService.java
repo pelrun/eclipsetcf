@@ -15,23 +15,23 @@ import java.util.List;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 
 
 /**
  * Default locator model lookup service implementation.
  */
-public class LocatorModelLookupService extends AbstractLocatorModelService implements ILocatorModelLookupService {
+public class PeerModelLookupService extends AbstractPeerModelService implements IPeerModelLookupService {
 
 	/**
 	 * Constructor.
 	 *
 	 * @param parentModel The parent locator model instance. Must not be <code>null</code>.
 	 */
-	public LocatorModelLookupService(ILocatorModel parentModel) {
+	public PeerModelLookupService(IPeerModel parentModel) {
 		super(parentModel);
 	}
 
@@ -39,12 +39,12 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.services.ILocatorModelLookupService#lkupPeerModelById(java.lang.String)
 	 */
 	@Override
-	public IPeerModel lkupPeerModelById(String id) {
+	public IPeerNode lkupPeerModelById(String id) {
 		Assert.isNotNull(id);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		IPeerModel node = null;
-		for (IPeerModel candidate : getLocatorModel().getPeers()) {
+		IPeerNode node = null;
+		for (IPeerNode candidate : getPeerModel().getPeers()) {
 			IPeer peer = candidate.getPeer();
 			if (id.equals(peer.getID())) {
 				node = candidate;
@@ -60,16 +60,16 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupPeerModelById(java.lang.String, java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService#lkupPeerModelById(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public IPeerModel lkupPeerModelById(String parentId, String id) {
+	public IPeerNode lkupPeerModelById(String parentId, String id) {
 		Assert.isNotNull(parentId);
 		Assert.isNotNull(id);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		IPeerModel node = null;
-		for (IPeerModel candidate : getLocatorModel().getChildren(parentId)) {
+		IPeerNode node = null;
+		for (IPeerNode candidate : getPeerModel().getChildren(parentId)) {
 			IPeer peer = candidate.getPeer();
 			if (id.equals(peer.getID())) {
 				node = candidate;
@@ -85,75 +85,75 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupPeerModelByAgentId(java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService#lkupPeerModelByAgentId(java.lang.String)
 	 */
 	@Override
-	public IPeerModel[] lkupPeerModelByAgentId(String agentId) {
+	public IPeerNode[] lkupPeerModelByAgentId(String agentId) {
 		Assert.isNotNull(agentId);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		List<IPeerModel> nodes = new ArrayList<IPeerModel>();
-		for (IPeerModel candidate : getLocatorModel().getPeers()) {
+		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
+		for (IPeerNode candidate : getPeerModel().getPeers()) {
 			IPeer peer = candidate.getPeer();
 			if (agentId.equals(peer.getAgentID())) {
 				nodes.add(candidate);
 			}
 		}
 
-		return nodes.toArray(new IPeerModel[nodes.size()]);
+		return nodes.toArray(new IPeerNode[nodes.size()]);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupPeerModelByAgentId(java.lang.String, java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService#lkupPeerModelByAgentId(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public IPeerModel[] lkupPeerModelByAgentId(String parentId, String agentId) {
+	public IPeerNode[] lkupPeerModelByAgentId(String parentId, String agentId) {
 		Assert.isNotNull(parentId);
 		Assert.isNotNull(agentId);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		List<IPeerModel> nodes = new ArrayList<IPeerModel>();
-		for (IPeerModel candidate : getLocatorModel().getChildren(parentId)) {
+		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
+		for (IPeerNode candidate : getPeerModel().getChildren(parentId)) {
 			IPeer peer = candidate.getPeer();
 			if (agentId.equals(peer.getAgentID())) {
 				nodes.add(candidate);
 			}
 		}
 
-		return nodes.toArray(new IPeerModel[nodes.size()]);
+		return nodes.toArray(new IPeerNode[nodes.size()]);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupPeerModelByName(java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService#lkupPeerModelByName(java.lang.String)
 	 */
 	@Override
-	public IPeerModel[] lkupPeerModelByName(String name) {
+	public IPeerNode[] lkupPeerModelByName(String name) {
 		Assert.isNotNull(name);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		List<IPeerModel> nodes = new ArrayList<IPeerModel>();
-		for (IPeerModel candidate : getLocatorModel().getPeers()) {
+		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
+		for (IPeerNode candidate : getPeerModel().getPeers()) {
 			IPeer peer = candidate.getPeer();
 			if (name.equals(peer.getName())) {
 				nodes.add(candidate);
 			}
 		}
 
-		return nodes.toArray(new IPeerModel[nodes.size()]);
+		return nodes.toArray(new IPeerNode[nodes.size()]);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupPeerModelBySupportedServices(java.lang.String[], java.lang.String[])
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService#lkupPeerModelBySupportedServices(java.lang.String[], java.lang.String[])
 	 */
 	@Override
-	public IPeerModel[] lkupPeerModelBySupportedServices(String[] expectedLocalServices, String[] expectedRemoteServices) {
+	public IPeerNode[] lkupPeerModelBySupportedServices(String[] expectedLocalServices, String[] expectedRemoteServices) {
 		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		ILocatorModel model = getLocatorModel();
-		ILocatorModelPeerNodeQueryService queryService = model.getService(ILocatorModelPeerNodeQueryService.class);
+		IPeerModel model = getPeerModel();
+		IPeerModelQueryService queryService = model.getService(IPeerModelQueryService.class);
 
-		List<IPeerModel> nodes = new ArrayList<IPeerModel>();
-		for (IPeerModel candidate : model.getPeers()) {
+		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
+		for (IPeerNode candidate : model.getPeers()) {
 			String services = queryService.queryLocalServices(candidate);
 
 			boolean matchesExpectations = true;
@@ -193,33 +193,30 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 			if (matchesExpectations) nodes.add(candidate);
 		}
 
-		return nodes.toArray(new IPeerModel[nodes.size()]);
+		return nodes.toArray(new IPeerNode[nodes.size()]);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupMatchingStaticPeerModels(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService#lkupMatchingStaticPeerModels(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-	public IPeerModel[] lkupMatchingStaticPeerModels(IPeerModel peerNode) {
+	public IPeerNode[] lkupMatchingStaticPeerModels(IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		return lkupMatchingStaticPeerModels(peerNode.getPeer());
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupMatchingStaticPeerModels(org.eclipse.tcf.protocol.IPeer)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService#lkupMatchingStaticPeerModels(org.eclipse.tcf.protocol.IPeer)
 	 */
 	@Override
-	public IPeerModel[] lkupMatchingStaticPeerModels(IPeer peer) {
+	public IPeerNode[] lkupMatchingStaticPeerModels(IPeer peer) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		List<IPeerModel> nodes = new ArrayList<IPeerModel>();
+		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
 
 		if (peer != null) {
-			for (IPeerModel candidate : getLocatorModel().getPeers()) {
-				// Look only at the static peers here
-				if (!candidate.isStatic()) continue;
-
+			for (IPeerNode candidate : getPeerModel().getPeers()) {
 				// If the agent id is available, match up the agent id first.
 				if (candidate.getPeer().getAgentID() != null && candidate.getPeer().getAgentID().equals(peer.getAgentID())) {
 					nodes.add(candidate);
@@ -245,6 +242,6 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 			}
 		}
 
-		return nodes.toArray(new IPeerModel[nodes.size()]);
+		return nodes.toArray(new IPeerNode[nodes.size()]);
 	}
 }

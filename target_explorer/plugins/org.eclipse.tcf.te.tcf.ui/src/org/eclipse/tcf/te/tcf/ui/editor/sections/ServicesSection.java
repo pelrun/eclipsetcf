@@ -21,9 +21,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelPeerNodeQueryService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
@@ -43,7 +43,7 @@ public class ServicesSection extends AbstractSection {
 	/* default */ Text remote;
 
 	// Reference to the original data object
-	/* default */ IPeerModel od;
+	/* default */ IPeerNode od;
 	// Reference to a copy of the original data
 	/* default */ final IPropertiesContainer odc = new PropertiesContainer();
 
@@ -118,8 +118,8 @@ public class ServicesSection extends AbstractSection {
 			if (getManagedForm().getContainer() instanceof AbstractEditorPage
 					&& !((AbstractEditorPage)getManagedForm().getContainer()).isDirty()) {
 				Object node = ((AbstractEditorPage)getManagedForm().getContainer()).getEditorInputNode();
-				if (node instanceof IPeerModel) {
-					setupData((IPeerModel)node);
+				if (node instanceof IPeerNode) {
+					setupData((IPeerNode)node);
 				}
 			}
 		}
@@ -136,7 +136,7 @@ public class ServicesSection extends AbstractSection {
 	 *
 	 * @param node The peer node or <code>null</code>.
 	 */
-	public void setupData(final IPeerModel node) {
+	public void setupData(final IPeerNode node) {
 		// Reset the services query triggered flag if we setup for a new peer model node
 		if (od != node) servicesQueryTriggered = false;
 
@@ -181,10 +181,10 @@ public class ServicesSection extends AbstractSection {
 			public void run() {
 				boolean fireNotification = fireRefreshTabs.get();
 
-				String value = odc.getStringProperty(IPeerModelProperties.PROP_LOCAL_SERVICES);
+				String value = odc.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES);
 				fireNotification |= value != null && !value.equals(SWTControlUtil.getText(local));
 				SWTControlUtil.setText(local, value != null ? value : ""); //$NON-NLS-1$
-				value = odc.getStringProperty(IPeerModelProperties.PROP_REMOTE_SERVICES);
+				value = odc.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 				fireNotification |= value != null && !value.equals(SWTControlUtil.getText(remote));
 				SWTControlUtil.setText(remote, value != null ? value : ""); //$NON-NLS-1$
 
@@ -208,18 +208,18 @@ public class ServicesSection extends AbstractSection {
 				public void run() {
 					// Check if we have to run the query at all
 					boolean doQuery = finForceQuery ||
-										(!node.containsKey(IPeerModelProperties.PROP_REMOTE_SERVICES)
-											&& !node.containsKey(IPeerModelProperties.PROP_LOCAL_SERVICES));
+										(!node.containsKey(IPeerNodeProperties.PROP_REMOTE_SERVICES)
+											&& !node.containsKey(IPeerNodeProperties.PROP_LOCAL_SERVICES));
 
 					if (doQuery) {
-						ILocatorModelPeerNodeQueryService service = node.getModel().getService(ILocatorModelPeerNodeQueryService.class);
+						IPeerModelQueryService service = node.getModel().getService(IPeerModelQueryService.class);
 						if (service != null) {
-							service.queryServicesAsync(node, new ILocatorModelPeerNodeQueryService.DoneQueryServices() {
+							service.queryServicesAsync(node, new IPeerModelQueryService.DoneQueryServices() {
 								@Override
 								public void doneQueryServices(Throwable error) {
 									// Copy over the service properties
-									odc.setProperty(IPeerModelProperties.PROP_REMOTE_SERVICES, node.getProperty(IPeerModelProperties.PROP_REMOTE_SERVICES));
-									odc.setProperty(IPeerModelProperties.PROP_LOCAL_SERVICES, node.getProperty(IPeerModelProperties.PROP_LOCAL_SERVICES));
+									odc.setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, node.getProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
+									odc.setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, node.getProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
 
 									// Setup the data within the UI controls and fire the change notification
 									fireRefreshTabs.set(true);

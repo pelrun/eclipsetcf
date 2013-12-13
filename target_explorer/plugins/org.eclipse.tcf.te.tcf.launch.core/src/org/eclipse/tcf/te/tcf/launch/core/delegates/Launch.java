@@ -32,7 +32,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapGeneratorService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Default tcf launch implementation.
@@ -70,7 +70,7 @@ public final class Launch extends TCFLaunch {
 	 *
 	 * @param node The peer model node. Must not be <code>null</code>.
 	 */
-	public void attachDebugger(IPeerModel node) {
+	public void attachDebugger(IPeerNode node) {
 		Assert.isNotNull(node);
 
 		final String name = node.getPeer().getName();

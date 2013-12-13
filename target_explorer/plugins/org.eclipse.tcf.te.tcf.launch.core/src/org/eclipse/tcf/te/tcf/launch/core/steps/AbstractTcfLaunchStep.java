@@ -15,7 +15,7 @@ import org.eclipse.tcf.te.launch.core.steps.AbstractLaunchStep;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Abstract TCF launch step implementation.
@@ -30,16 +30,16 @@ public abstract class AbstractTcfLaunchStep extends AbstractLaunchStep {
 	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
 	 * @return The active peer model context.
 	 */
-	protected IPeerModel getActivePeerModelContext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId) {
+	protected IPeerNode getActivePeerModelContext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId) {
 		Object activeContext = getActiveContext(context, data, fullQualifiedId);
-		IPeerModel peerModel = null;
-		if (activeContext instanceof IPeerModel)
-			return (IPeerModel)activeContext;
+		IPeerNode peerNode = null;
+		if (activeContext instanceof IPeerNode)
+			return (IPeerNode)activeContext;
 		if (activeContext instanceof IAdaptable)
-			peerModel = (IPeerModel)((IAdaptable)activeContext).getAdapter(IPeerModel.class);
-		if (peerModel == null)
-			peerModel = (IPeerModel)Platform.getAdapterManager().getAdapter(activeContext, IPeerModel.class);
+			peerNode = (IPeerNode)((IAdaptable)activeContext).getAdapter(IPeerNode.class);
+		if (peerNode == null)
+			peerNode = (IPeerNode)Platform.getAdapterManager().getAdapter(activeContext, IPeerNode.class);
 
-		return peerModel;
+		return peerNode;
 	}
 }

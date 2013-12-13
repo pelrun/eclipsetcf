@@ -40,11 +40,11 @@ import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.Model;
-import org.eclipse.tcf.te.tcf.ui.dialogs.AgentSelectionDialog;
+import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.navigator.ViewerSorter;
@@ -134,12 +134,12 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 			if (e.getSource() instanceof HistoryManager && getPeerTypeId().equals(e.getNewValue())) {
 				recreateMenuCtlParent.set(true);
 				recreateMenuMenuParent.set(true);
-				IPeerModel peerModel = getPeerModel(HistoryManager.getInstance().getFirst(getPeerTypeId()));
+				IPeerNode peerNode = getPeerModel(HistoryManager.getInstance().getFirst(getPeerTypeId()));
 				if (action != null) {
-					if (peerModel != null) {
-						ILabelProvider labelProvider = getLabelProvider(peerModel);
+					if (peerNode != null) {
+						ILabelProvider labelProvider = getLabelProvider(peerNode);
 						if (labelProvider != null) {
-							action.setToolTipText("Open " + labelProvider.getText(peerModel)); //$NON-NLS-1$
+							action.setToolTipText("Open " + labelProvider.getText(peerNode)); //$NON-NLS-1$
 							return;
 						}
 
@@ -200,16 +200,16 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 		});
 	}
 
-	private IPeerModel getPeerModel(final String peerId) {
+	private IPeerNode getPeerModel(final String peerId) {
 		if (peerId != null) {
-			final AtomicReference<IPeerModel> peerModel = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					ILocatorModel model = Model.getModel();
+					IPeerModel model = Model.getModel();
 					Assert.isNotNull(model);
-					peerModel.set(model.getService(ILocatorModelLookupService.class).lkupPeerModelById(peerId));
+					peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}
 			};
 
@@ -220,7 +220,7 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 				Protocol.invokeAndWait(runnable);
 			}
 
-			return peerModel.get();
+			return peerNode.get();
 		}
 
 		return null;
@@ -234,20 +234,20 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 	@SuppressWarnings("unused")
 	protected void fillMenu(Menu menu) {
 		int accelerator = 1;
-		List<IPeerModel> peerModels = new ArrayList<IPeerModel>();
+		List<IPeerNode> peerNodes = new ArrayList<IPeerNode>();
 		for (String id : HistoryManager.getInstance().getHistory(getPeerTypeId())) {
-			IPeerModel peerModel = getPeerModel(id);
-			if (peerModel != null && !peerModels.contains(peerModel)) {
-				peerModels.add(peerModel);
+			IPeerNode peerNode = getPeerModel(id);
+			if (peerNode != null && !peerNodes.contains(peerNode)) {
+				peerNodes.add(peerNode);
 			}
 		}
-		for (final IPeerModel peerModel: peerModels) {
-			ILabelProvider labelProvider = getLabelProvider(peerModel);
-			String label = peerModel.getPeer().getName();
+		for (final IPeerNode peerNode: peerNodes) {
+			ILabelProvider labelProvider = getLabelProvider(peerNode);
+			String label = peerNode.getPeer().getName();
 			if (labelProvider != null) {
-				label = labelProvider.getText(peerModel);
+				label = labelProvider.getText(peerNode);
 				if (labelProvider instanceof ILabelDecorator) {
-					label = ((ILabelDecorator)labelProvider).decorateText(label, peerModel);
+					label = ((ILabelDecorator)labelProvider).decorateText(label, peerNode);
 				}
 			}
 			Action action = new Action(label) {
@@ -256,7 +256,7 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 					// Get the active page
 					IWorkbenchPage page = window.getActivePage();
 					// Create the editor input object
-					IEditorInput input = new EditorInput(peerModel);
+					IEditorInput input = new EditorInput(peerNode);
 					try {
 						// Opens the configuration editor
 						page.openEditor(input, IUIConstants.ID_EDITOR);
@@ -266,7 +266,7 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 				}
 			};
 			if (labelProvider != null) {
-				action.setImageDescriptor(ImageDescriptor.createFromImage(labelProvider.getImage(peerModel)));
+				action.setImageDescriptor(ImageDescriptor.createFromImage(labelProvider.getImage(peerNode)));
 			}
 			addToMenu(menu, action, accelerator);
 			accelerator++;
@@ -283,7 +283,7 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 				// Get the active page
 				IWorkbenchPage page = window.getActivePage();
 				// Create the agent selection dialog
-				AgentSelectionDialog dialog = new AgentSelectionDialog(null) {
+				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
 					@Override
 					protected String getTitle() {
 					    return getSelectExistingDialogTitle();
@@ -312,7 +312,7 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 				if (dialog.open() == Window.OK) {
 					// Get the selected proxy from the dialog
 					ISelection selection = dialog.getSelection();
-					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeerModel) {
+					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeerNode) {
 						// Create the editor input object
 						IEditorInput input = new EditorInput(((IStructuredSelection)selection).getFirstElement());
 						try {
@@ -375,12 +375,12 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 	@SuppressWarnings("restriction")
     @Override
 	public void run(IAction action) {
-		IPeerModel peerModel = getPeerModel(HistoryManager.getInstance().getFirst(getPeerTypeId()));
-		if (peerModel != null) {
+		IPeerNode peerNode = getPeerModel(HistoryManager.getInstance().getFirst(getPeerTypeId()));
+		if (peerNode != null) {
 			// Get the active page
 			IWorkbenchPage page = window.getActivePage();
 			// Create the editor input object
-			IEditorInput input = new EditorInput(peerModel);
+			IEditorInput input = new EditorInput(peerNode);
 			try {
 				// Opens the configuration editor
 				page.openEditor(input, IUIConstants.ID_EDITOR);
@@ -404,13 +404,13 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 	/**
 	 * Get the label provider for a peer model node.
 	 *
-	 * @param peerModel The peer model node.
+	 * @param peerNode The peer model node.
 	 * @return The label provider or <code>null</code>.
 	 */
-	protected ILabelProvider getLabelProvider(IPeerModel peerModel) {
-		ILabelProvider labelProvider = (ILabelProvider)peerModel.getAdapter(ILabelProvider.class);
+	protected ILabelProvider getLabelProvider(IPeerNode peerNode) {
+		ILabelProvider labelProvider = (ILabelProvider)peerNode.getAdapter(ILabelProvider.class);
 		if (labelProvider == null) {
-			labelProvider = (ILabelProvider)Platform.getAdapterManager().loadAdapter(peerModel, ILabelProvider.class.getName());
+			labelProvider = (ILabelProvider)Platform.getAdapterManager().loadAdapter(peerNode, ILabelProvider.class.getName());
 		}
 		return labelProvider;
 	}

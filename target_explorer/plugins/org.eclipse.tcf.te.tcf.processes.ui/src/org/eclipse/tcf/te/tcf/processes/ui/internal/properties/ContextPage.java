@@ -25,7 +25,7 @@ import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
@@ -59,9 +59,9 @@ public class ContextPage extends PropertyPage {
 		Assert.isTrue(!Protocol.isDispatchThread());
 		Protocol.invokeAndWait(runnable);
 
-		IPeerModel peerModel = (IPeerModel)node.getAdapter(IPeerModel.class);
-		IUIService service = peerModel != null ? ServiceManager.getInstance().getService(peerModel, IUIService.class) : null;
-		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerModel, IProcessMonitorUIDelegate.class) : null;
+		IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
+		IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
+		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerNode, IProcessMonitorUIDelegate.class) : null;
 
 		SysMonitorContext context = ctx.get();
 		createField(Messages.ContextPage_File, context == null ? null : context.getFile(), page);
@@ -73,11 +73,11 @@ public class ContextPage extends PropertyPage {
 		createField(Messages.ContextPage_ID, context == null ? null : context.getID(), page);
 		createField(Messages.ContextPage_ParentID, context == null ? null : context.getParentID(), page);
 		createField(Messages.ContextPage_GroupID, context == null || context.getPGRP() < 0 ? null : Long.valueOf(context.getPGRP()), page);
-		String label = Messages.getStringDelegated(peerModel, "ContextPage_PID"); //$NON-NLS-1$
+		String label = Messages.getStringDelegated(peerNode, "ContextPage_PID"); //$NON-NLS-1$
 		Long v = context == null || context.getPID() < 0 ? null : Long.valueOf(context.getPID());
 		String value = delegate != null && v != null ? delegate.getText(node, "PID", v.toString()) : null; //$NON-NLS-1$
 		createField(label != null ? label : Messages.ContextPage_PID, value != null ? value : v, page);
-		label = Messages.getStringDelegated(peerModel, "ContextPage_PPID"); //$NON-NLS-1$
+		label = Messages.getStringDelegated(peerNode, "ContextPage_PPID"); //$NON-NLS-1$
 		v = context == null || context.getPPID() < 0 ? null : Long.valueOf(context.getPPID());
 		value = delegate != null && v != null ? delegate.getText(node, "PPID", v.toString()) : null; //$NON-NLS-1$
 		createField(label != null ? label : Messages.ContextPage_PPID, value != null ? value : v, page);

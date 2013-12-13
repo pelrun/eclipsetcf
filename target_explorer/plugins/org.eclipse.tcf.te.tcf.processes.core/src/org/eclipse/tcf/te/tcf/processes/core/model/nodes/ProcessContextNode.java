@@ -25,15 +25,15 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryState;
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 
 /**
  * A process context node implementation.
  */
-public class ProcessContextNode extends ContainerModelNode implements IProcessContextNode, IPeerModelProvider, IFilterable {
+public class ProcessContextNode extends ContainerModelNode implements IProcessContextNode, IPeerNodeProvider, IFilterable {
 	// Reference to the agent side process context object
 	private IProcesses.ProcessContext pContext = null;
 	// Reference to the agent side system monitor context object
@@ -156,11 +156,11 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
     }
 
     /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModelProvider#getPeerModel()
+     * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
      */
     @Override
-    public IPeerModel getPeerModel() {
-        return (IPeerModel)getAdapter(IPeerModel.class);
+    public IPeerNode getPeerModel() {
+        return (IPeerNode)getAdapter(IPeerNode.class);
     }
 
 	/* (non-Javadoc)
@@ -224,13 +224,13 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 		if (ISysMonitor.SysMonitorContext.class.isAssignableFrom(adapter)) {
 			return sContext;
 		}
-		if (IPeerModelProvider.class.isAssignableFrom(adapter)) {
+		if (IPeerNodeProvider.class.isAssignableFrom(adapter)) {
 			IModel model = getParent(IModel.class);
-			if (model instanceof IPeerModelProvider) return model;
+			if (model instanceof IPeerNodeProvider) return model;
 		}
-		if (IPeerModel.class.isAssignableFrom(adapter)) {
+		if (IPeerNode.class.isAssignableFrom(adapter)) {
 			IModel model = getParent(IModel.class);
-			if (model instanceof IPeerModelProvider) return ((IPeerModelProvider)model).getPeerModel();
+			if (model instanceof IPeerNodeProvider) return ((IPeerNodeProvider)model).getPeerModel();
 		}
 		if (IAsyncRefreshableCtx.class.isAssignableFrom(adapter)) {
 			return refreshableCtxAdapter;

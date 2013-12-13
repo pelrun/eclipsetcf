@@ -18,7 +18,7 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
@@ -39,7 +39,7 @@ public class ProcessSearchable extends CompositeSearchable {
 	 *
 	 * @param node The peer model node context. Must not be <code>null</code>.
 	 */
-	public ProcessSearchable(IPeerModel node) {
+	public ProcessSearchable(IPeerNode node) {
 		super();
 
 		IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
@@ -56,7 +56,7 @@ public class ProcessSearchable extends CompositeSearchable {
 	 */
 	@Override
 	public String getSearchTitle(final Object rootElement) {
-		final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+		final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 
 		if (rootElement instanceof IRuntimeModel) {
 			Runnable runnable = new Runnable() {
@@ -72,7 +72,7 @@ public class ProcessSearchable extends CompositeSearchable {
 			else Protocol.invokeAndWait(runnable);
 		}
 		else if (rootElement != null) {
-			node.set(rootElement instanceof IAdaptable ? (IPeerModel)((IAdaptable)rootElement).getAdapter(IPeerModel.class) : (IPeerModel)Platform.getAdapterManager().getAdapter(rootElement, IPeerModel.class));
+			node.set(rootElement instanceof IAdaptable ? (IPeerNode)((IAdaptable)rootElement).getAdapter(IPeerNode.class) : (IPeerNode)Platform.getAdapterManager().getAdapter(rootElement, IPeerNode.class));
 		}
 
 		String label = Messages.getStringDelegated(node.get(), "ProcessSearchable_SearchTitle"); //$NON-NLS-1$
@@ -85,7 +85,7 @@ public class ProcessSearchable extends CompositeSearchable {
 	@Override
     public String getSearchMessage(final Object rootElement) {
 		if (rootElement == null || rootElement instanceof IRuntimeModel) {
-			final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 
 			Runnable runnable = new Runnable() {
 				@Override
@@ -103,7 +103,7 @@ public class ProcessSearchable extends CompositeSearchable {
 			return label != null ? label : Messages.ProcessSearchable_PromptFindInProcessList;
 		}
 
-		IPeerModel node = rootElement instanceof IAdaptable ? (IPeerModel)((IAdaptable)rootElement).getAdapter(IPeerModel.class) : (IPeerModel)Platform.getAdapterManager().getAdapter(rootElement, IPeerModel.class);
+		IPeerNode node = rootElement instanceof IAdaptable ? (IPeerNode)((IAdaptable)rootElement).getAdapter(IPeerNode.class) : (IPeerNode)Platform.getAdapterManager().getAdapter(rootElement, IPeerNode.class);
 		String label = Messages.getStringDelegated(node, "ProcessSearchable_PromptFindUnderProcess"); //$NON-NLS-1$
 		String message = label != null ? label : Messages.ProcessSearchable_PromptFindUnderProcess;
 		String rootName = "\"" + getElementName(rootElement) + "\""; //$NON-NLS-1$//$NON-NLS-2$
@@ -116,7 +116,7 @@ public class ProcessSearchable extends CompositeSearchable {
 	 */
 	@Override
 	public String getCustomMessage(final Object rootElement, final String key) {
-		final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+		final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 
 		if (rootElement instanceof IRuntimeModel) {
 			Runnable runnable = new Runnable() {
@@ -132,7 +132,7 @@ public class ProcessSearchable extends CompositeSearchable {
 			else Protocol.invokeAndWait(runnable);
 		}
 		else if (rootElement != null) {
-			node.set(rootElement instanceof IAdaptable ? (IPeerModel)((IAdaptable)rootElement).getAdapter(IPeerModel.class) : (IPeerModel)Platform.getAdapterManager().getAdapter(rootElement, IPeerModel.class));
+			node.set(rootElement instanceof IAdaptable ? (IPeerNode)((IAdaptable)rootElement).getAdapter(IPeerNode.class) : (IPeerNode)Platform.getAdapterManager().getAdapter(rootElement, IPeerNode.class));
 		}
 
 		String message = Messages.getStringDelegated(node.get(), key);
@@ -147,7 +147,7 @@ public class ProcessSearchable extends CompositeSearchable {
 	 */
 	private String getElementName(final Object rootElement) {
 		if (rootElement == null || rootElement instanceof IRuntimeModel) {
-			final AtomicReference<IPeerModel> node = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> node = new AtomicReference<IPeerNode>();
 
 			Runnable runnable = new Runnable() {
 				@Override

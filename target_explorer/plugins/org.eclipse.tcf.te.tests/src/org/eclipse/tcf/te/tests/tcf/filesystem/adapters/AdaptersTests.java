@@ -17,7 +17,7 @@ public class AdaptersTests {
 		TestSuite suite = new TestSuite("File System: Adapters Tests"); //$NON-NLS-1$
 		suite.addTestSuite(FSTreeNodeAdapterFactoryTest.class);
 		suite.addTestSuite(NodeStateFilterTest.class);
-		suite.addTestSuite(PeerModelViewerInputTest.class);
+		suite.addTestSuite(PeerNodeViewerInputTest.class);
 		suite.addTestSuite(ViewerInputAdapterFactoryTest.class);
 		return suite;
 	}

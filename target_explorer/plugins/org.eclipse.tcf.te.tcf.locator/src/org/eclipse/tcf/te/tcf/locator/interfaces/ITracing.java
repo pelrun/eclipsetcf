@@ -18,7 +18,7 @@ public interface ITracing {
 	/**
 	 * If enabled, prints information about locator model method invocations.
 	 */
-	public static String ID_TRACE_LOCATOR_MODEL = "trace/locatorModel"; //$NON-NLS-1$
+	public static String ID_TRACE_LOCATOR_MODEL = "trace/peerModel"; //$NON-NLS-1$
 
 	/**
 	 * If enabled, prints information about locator listener method invocations.

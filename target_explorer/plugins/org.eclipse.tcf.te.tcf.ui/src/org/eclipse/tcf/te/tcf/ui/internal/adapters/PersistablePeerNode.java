@@ -9,24 +9,22 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.internal.adapters;
 
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistableElement;
 
 /**
- * The persistable element implementation for an IPeerModel.
+ * The persistable element implementation for an IPeerNode.
  */
-public class PersistablePeerModel implements IPersistableElement {
+public class PersistablePeerNode implements IPersistableElement {
 	// The peer model to be persisted.
-	private IPeerModel peerModel;
-	private boolean isStatic;
+	private IPeerNode peerNode;
 
 	/**
 	 * Constructor
 	 */
-	public PersistablePeerModel(IPeerModel peerModel) {
-		this.peerModel = peerModel;
-		isStatic = peerModel.isStatic();
+	public PersistablePeerNode(IPeerNode peerNode) {
+		this.peerNode = peerNode;
 	}
 
 	/*
@@ -35,9 +33,7 @@ public class PersistablePeerModel implements IPersistableElement {
 	 */
 	@Override
 	public void saveState(IMemento memento) {
-		if (isStatic) {
-			memento.putString("peerId", peerModel.getPeerId()); //$NON-NLS-1$
-		}
+		memento.putString("peerId", peerNode.getPeerId()); //$NON-NLS-1$
 	}
 
 	/*
@@ -46,9 +42,6 @@ public class PersistablePeerModel implements IPersistableElement {
 	 */
 	@Override
 	public String getFactoryId() {
-		if (isStatic) {
-			return "org.eclipse.tcf.te.ui.views.peerFactory"; //$NON-NLS-1$
-		}
-		return null;
+		return "org.eclipse.tcf.te.ui.views.peerFactory"; //$NON-NLS-1$
 	}
 }
