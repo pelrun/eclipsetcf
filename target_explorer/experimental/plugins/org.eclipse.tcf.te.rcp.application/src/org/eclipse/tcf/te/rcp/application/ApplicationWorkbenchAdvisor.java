@@ -9,12 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.rcp.application;
 
-import java.text.Collator;
-
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
-import org.eclipse.jface.util.Policy;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -50,7 +47,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 		workbenchAdvisor = this;
 
 		Listener closeListener = new Listener() {
-			public void handleEvent(Event event) {
+			@Override
+            public void handleEvent(Event event) {
 				boolean doExit = ApplicationWorkbenchWindowAdvisor.promptOnExit(null);
 				event.doit = doExit;
 				if (!doExit) event.type = SWT.None;
@@ -74,8 +72,6 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
 		// show Help button in JFace dialogs
 		TrayDialog.setDialogHelpAvailable(true);
-
-		Policy.setComparator(Collator.getInstance());
 	}
 
 	/*
@@ -113,7 +109,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
 			boolean currentHighContrast = Display.getCurrent().getHighContrast();
 
-			public void handleEvent(org.eclipse.swt.widgets.Event event) {
+			@Override
+            public void handleEvent(org.eclipse.swt.widgets.Event event) {
 				if (Display.getCurrent().getHighContrast() == currentHighContrast) return;
 
 				currentHighContrast = !currentHighContrast;

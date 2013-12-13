@@ -38,18 +38,19 @@ public class LaunchConfigHelper {
 		return DebugPlugin.getDefault().getLaunchManager().generateLaunchConfigurationName(name);
 	}
 
-	public static void addLaunchConfigAttribute(ILaunchConfigurationWorkingCopy wc, String key, Object value) {
+	@SuppressWarnings("unchecked")
+    public static void addLaunchConfigAttribute(ILaunchConfigurationWorkingCopy wc, String key, Object value) {
 		if (value instanceof String) {
 			DefaultPersistenceDelegate.setAttribute(wc, key, (String)value);
 		}
 		else if (value instanceof List) {
-			DefaultPersistenceDelegate.setAttribute(wc, key, (List<?>)value);
+			DefaultPersistenceDelegate.setAttribute(wc, key, (List<String>)value);
 		}
 		else if (value instanceof Map) {
-			DefaultPersistenceDelegate.setAttribute(wc, key, (Map<?,?>)value);
+			DefaultPersistenceDelegate.setAttribute(wc, key, (Map<String, String>)value);
 		}
 		else if (value instanceof Set) {
-			DefaultPersistenceDelegate.setAttribute(wc, key, (Set<?>)value);
+			DefaultPersistenceDelegate.setAttribute(wc, key, (Set<String>)value);
 		}
 		else if (value instanceof Boolean) {
 			DefaultPersistenceDelegate.setAttribute(wc, key, ((Boolean)value).booleanValue());

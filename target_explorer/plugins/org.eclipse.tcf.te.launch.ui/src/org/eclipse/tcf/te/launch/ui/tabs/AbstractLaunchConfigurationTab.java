@@ -121,7 +121,7 @@ public abstract class AbstractLaunchConfigurationTab extends org.eclipse.debug.u
 	 *
 	 * @see DefaultPersistenceDelegate
 	 */
-	protected final void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, List<?> attributeValue) {
+	protected final void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, List<String> attributeValue) {
 		if (wc == null || attributeId == null) return;
 		DefaultPersistenceDelegate.setAttribute(wc, attributeId, attributeValue);
 	}
@@ -138,7 +138,7 @@ public abstract class AbstractLaunchConfigurationTab extends org.eclipse.debug.u
 	 *
 	 * @see DefaultPersistenceDelegate
 	 */
-	protected final void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, Map<?, ?> attributeValue) {
+	protected final void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, Map<String, String> attributeValue) {
 		if (wc == null || attributeId == null) return;
 		DefaultPersistenceDelegate.setAttribute(wc, attributeId, attributeValue);
 	}

@@ -168,7 +168,7 @@ public class DefaultPersistenceDelegate {
 	 * @param attributeId The attribute id to store the attribute value under. Must not be <code>null</code>.
 	 * @param attributeValue The attribute value to store under the given attribute id.
 	 */
-	public final static void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, List<?> attributeValue) {
+	public final static void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, List<String> attributeValue) {
 		if (wc == null || attributeId == null) return;
 		if (isAttributeChanged(wc, attributeId, attributeValue)) {
 			// Determine the old attribute value
@@ -193,7 +193,7 @@ public class DefaultPersistenceDelegate {
 	 * @param attributeId The attribute id to store the attribute value under. Must not be <code>null</code>.
 	 * @param attributeValue The attribute value to store under the given attribute id.
 	 */
-	public final static void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, Map<?, ?> attributeValue) {
+	public final static void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, Map<String, String> attributeValue) {
 		if (wc == null || attributeId == null) return;
 		if (isAttributeChanged(wc, attributeId, attributeValue)) {
 			// Determine the old attribute value
@@ -218,7 +218,7 @@ public class DefaultPersistenceDelegate {
 	 * @param attributeId The attribute id to store the attribute value under. Must not be <code>null</code>.
 	 * @param attributeValue The attribute value to store under the given attribute id.
 	 */
-	public final static void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, Set<?> attributeValue) {
+	public final static void setAttribute(ILaunchConfigurationWorkingCopy wc, String attributeId, Set<String> attributeValue) {
 		if (wc == null || attributeId == null) return;
 		if (isAttributeChanged(wc, attributeId, attributeValue)) {
 			// Determine the old attribute value
@@ -281,11 +281,11 @@ public class DefaultPersistenceDelegate {
 	 *
 	 * @return The list attribute or the default value.
 	 */
-	public final static List<?> getAttribute(ILaunchConfiguration lc, String attributeName, List<?> defaultValue) {
+	public final static List<String> getAttribute(ILaunchConfiguration lc, String attributeName, List<String> defaultValue) {
 		Assert.isNotNull(lc);
 		Assert.isNotNull(attributeName);
 
-		List<?> value = defaultValue;
+		List<String> value = defaultValue;
 		try { value = lc.getAttribute(attributeName, defaultValue); } catch (CoreException e) { /* ignored on purpose */ }
 		return value;
 	}
@@ -300,11 +300,11 @@ public class DefaultPersistenceDelegate {
 	 *
 	 * @return The set attribute or the default value.
 	 */
-	public final static Set<?> getAttribute(ILaunchConfiguration lc, String attributeName, Set<?> defaultValue) {
+	public final static Set<String> getAttribute(ILaunchConfiguration lc, String attributeName, Set<String> defaultValue) {
 		Assert.isNotNull(lc);
 		Assert.isNotNull(attributeName);
 
-		Set<?> value = defaultValue;
+		Set<String> value = defaultValue;
 		try { value = lc.getAttribute(attributeName, defaultValue); } catch (CoreException e) { /* ignored on purpose */ }
 		return value;
 	}
@@ -320,11 +320,11 @@ public class DefaultPersistenceDelegate {
 	 *
 	 * @return The map attribute or the default value.
 	 */
-	public final static Map<?,?> getAttribute(ILaunchConfiguration lc, String attributeName, Map<?,?> defaultValue) {
+	public final static Map<String, String> getAttribute(ILaunchConfiguration lc, String attributeName, Map<String, String> defaultValue) {
 		Assert.isNotNull(lc);
 		Assert.isNotNull(attributeName);
 
-		Map<?,?> value = defaultValue;
+		Map<String, String> value = defaultValue;
 		try { value = lc.getAttribute(attributeName, defaultValue); } catch (CoreException e) { /* ignored on purpose */ }
 		return value;
 	}

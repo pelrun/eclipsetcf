@@ -217,13 +217,15 @@ public final class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		// listener for the "close editors automatically"
 		// preference change
 		propPrefListener = new IPropertyChangeListener() {
-			@SuppressWarnings("synthetic-access")
+			@Override
+            @SuppressWarnings("synthetic-access")
 			public void propertyChange(PropertyChangeEvent event) {
 				if (event.getProperty().equals(IPreferenceConstants.REUSE_EDITORS_BOOLEAN)) {
 					if (window.getShell() != null && !window.getShell().isDisposed()) {
 						// this property change notification could be from a non-UI thread
 						window.getShell().getDisplay().syncExec(new Runnable() {
-							public void run() {
+							@Override
+                            public void run() {
 								updatePinActionToolbar();
 							}
 						});

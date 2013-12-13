@@ -54,7 +54,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 	public void updateLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.updateLaunchConfigAttributes(wc, launchSpec);
 
-		DefaultPersistenceDelegate.setAttribute(wc, ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		DefaultPersistenceDelegate.setAttribute(wc, ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<String>)null);
 		DefaultPersistenceDelegate.setAttribute(wc, TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
 
 		copySpecToConfig(launchSpec, wc);
@@ -69,7 +69,7 @@ public class AttachLaunchManagerDelegate extends DefaultLaunchManagerDelegate {
 	public void initLaunchConfigAttributes(ILaunchConfigurationWorkingCopy wc, ILaunchSpecification launchSpec) {
 		super.initLaunchConfigAttributes(wc, launchSpec);
 
-		DefaultPersistenceDelegate.setAttribute(wc, ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<?>)null);
+		DefaultPersistenceDelegate.setAttribute(wc, ITcfLaunchStepAttributes.ATTR_ATTACH_SERVICES, (List<String>)null);
 		DefaultPersistenceDelegate.setAttribute(wc, TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, false);
 
 		copySpecToConfig(launchSpec, wc);

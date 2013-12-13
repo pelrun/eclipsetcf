@@ -66,7 +66,8 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	private String lastEditorTitle = ""; //$NON-NLS-1$
 
 	private IPropertyListener editorPropertyListener = new IPropertyListener() {
-		@SuppressWarnings("synthetic-access")
+		@Override
+        @SuppressWarnings("synthetic-access")
 		public void propertyChanged(Object source, int propId) {
 			if (propId == IWorkbenchPartConstants.PROP_TITLE) {
 				if (lastActiveEditor != null) {
@@ -190,15 +191,18 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	private void hookTitleUpdateListeners(IWorkbenchWindowConfigurer configurer) {
 		// hook up the listeners to update the window title
 		configurer.getWindow().addPageListener(new IPageListener() {
-			public void pageActivated(IWorkbenchPage page) {
+			@Override
+            public void pageActivated(IWorkbenchPage page) {
 				updateTitle(false);
 			}
 
-			public void pageClosed(IWorkbenchPage page) {
+			@Override
+            public void pageClosed(IWorkbenchPage page) {
 				updateTitle(false);
 			}
 
-			public void pageOpened(IWorkbenchPage page) {
+			@Override
+            public void pageOpened(IWorkbenchPage page) {
 				// do nothing
 			}
 		});
@@ -219,43 +223,51 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 			}
 		});
 		configurer.getWindow().getPartService().addPartListener(new IPartListener2() {
-			public void partActivated(IWorkbenchPartReference ref) {
+			@Override
+            public void partActivated(IWorkbenchPartReference ref) {
 				if (ref instanceof IEditorReference) {
 					updateTitle(false);
 				}
 			}
 
-			public void partBroughtToTop(IWorkbenchPartReference ref) {
+			@Override
+            public void partBroughtToTop(IWorkbenchPartReference ref) {
 				if (ref instanceof IEditorReference) {
 					updateTitle(false);
 				}
 			}
 
-			public void partClosed(IWorkbenchPartReference ref) {
+			@Override
+            public void partClosed(IWorkbenchPartReference ref) {
 				updateTitle(false);
 			}
 
-			public void partDeactivated(IWorkbenchPartReference ref) {
+			@Override
+            public void partDeactivated(IWorkbenchPartReference ref) {
 				// do nothing
 			}
 
-			public void partOpened(IWorkbenchPartReference ref) {
+			@Override
+            public void partOpened(IWorkbenchPartReference ref) {
 				// do nothing
 			}
 
-			public void partHidden(IWorkbenchPartReference ref) {
+			@Override
+            public void partHidden(IWorkbenchPartReference ref) {
 				if (ref.getPart(false) == lastActiveEditor && lastActiveEditor != null) {
 					updateTitle(true);
 				}
 			}
 
-			public void partVisible(IWorkbenchPartReference ref) {
+			@Override
+            public void partVisible(IWorkbenchPartReference ref) {
 				if (ref.getPart(false) == lastActiveEditor && lastActiveEditor != null) {
 					updateTitle(false);
 				}
 			}
 
-			public void partInputChanged(IWorkbenchPartReference ref) {
+			@Override
+            public void partInputChanged(IWorkbenchPartReference ref) {
 				// do nothing
 			}
 		});
@@ -353,10 +365,11 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.ui.application.WorkbenchAdvisor#createEmptyWindowContents(org.eclipse.ui.application.IWorkbenchWindowConfigurer,
-	 *      org.eclipse.swt.widgets.Composite)
+	 * @see org.eclipse.ui.application.WorkbenchAdvisor#createEmptyWindowContents(org.eclipse.ui.application.IWorkbenchWindowConfigurer, org.eclipse.swt.widgets.Composite)
 	 */
-	@Override
+	@SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
 	public Control createEmptyWindowContents(Composite parent) {
 		final IWorkbenchWindow window = getWindowConfigurer().getWindow();
 		Composite composite = new Composite(parent, SWT.NONE);
