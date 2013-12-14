@@ -64,7 +64,7 @@ public interface IMemory extends IService {
     /**
      * Retrieve context info for given context ID.
      *
-     * @param id – context ID.
+     * @param id - context ID.
      * @param done - call back interface called when operation is completed.
      * @return - pending command handle.
      */
@@ -76,8 +76,8 @@ public interface IMemory extends IService {
     interface DoneGetContext {
         /**
          * Called when context data retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context – context data.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context - context data.
          */
         void doneGetContext(IToken token, Exception error, MemoryContext context);
     }
@@ -92,7 +92,7 @@ public interface IMemory extends IService {
      * with same IDs, however, each service accesses its own subset of context's
      * attributes and functionality, which is relevant to that service.
      *
-     * @param parent_context_id – parent context ID. Can be null –
+     * @param parent_context_id - parent context ID. Can be null -
      * to retrieve top level of the hierarchy, or one of context IDs retrieved
      * by previous getChildren commands.
      * @param done - call back interface called when operation is completed.
@@ -106,8 +106,8 @@ public interface IMemory extends IService {
     interface DoneGetChildren {
         /**
          * Called when context list retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context_ids – array of available context IDs.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context_ids - array of available context IDs.
          */
         void doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
@@ -303,7 +303,7 @@ public interface IMemory extends IService {
          * corresponding cached memory data.
          * Not every change is notified - it is not possible,
          * only those, which are not caused by normal execution of the debuggee.
-         * ‘addr’ and ‘size’ can be null if unknown.
+         * 'addr' and 'size' can be null if unknown.
          */
         void memoryChanged(String context_id, Number[] addr, long[] size);
     }

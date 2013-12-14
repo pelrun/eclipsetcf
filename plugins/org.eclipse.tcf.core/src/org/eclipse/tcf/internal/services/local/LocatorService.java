@@ -52,7 +52,7 @@ import org.eclipse.tcf.services.ILocator;
 /**
  * Locator service uses transport layer to search
  * for peers and to collect and maintain up-to-date
- * data about peer’s attributes.
+ * data about peer's attributes.
  */
 // TODO: research usage of DNS-SD (DNS Service Discovery) to discover TCF peers
 public class LocatorService implements ILocator {

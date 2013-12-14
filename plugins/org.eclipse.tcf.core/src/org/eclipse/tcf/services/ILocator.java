@@ -19,7 +19,7 @@ import org.eclipse.tcf.protocol.IToken;
 
 /**
  * ILocator service uses transport layer to search for peers and to collect data about
- * peer’s attributes and capabilities (services). Discovery mechanism depends on transport protocol
+ * peer's attributes and capabilities (services). Discovery mechanism depends on transport protocol
  * and is part of that protocol handler. Targets, known to other hosts, can be found through
  * remote instances of ILocator service. Automatically discovered targets require no further
  * configuration. Additional targets can be configured manually.

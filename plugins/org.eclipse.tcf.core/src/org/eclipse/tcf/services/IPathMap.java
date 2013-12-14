@@ -131,8 +131,8 @@ public interface IPathMap extends IService {
     interface DoneGet {
         /**
          * Called when file path mapping retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param map – file path mapping data.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param map - file path mapping data.
          */
         void doneGet(IToken token, Exception error, PathMapRule[] map);
     }
@@ -140,7 +140,7 @@ public interface IPathMap extends IService {
     /**
      * Set file path mapping rules.
      *
-     * @param map – file path mapping rules.
+     * @param map - file path mapping rules.
      * @param done - call back interface called when operation is completed.
      * @return - pending command handle.
      */
@@ -152,8 +152,8 @@ public interface IPathMap extends IService {
     interface DoneSet {
         /**
          * Called when file path mapping transmission is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param map – memory map data.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param map - memory map data.
          */
         void doneSet(IToken token, Exception error);
     }

@@ -38,7 +38,7 @@ public interface ITerminals extends IService {
      * If the ID is not a terminal ID, 'ITerminals.getContext' may not return any
      * useful information
      *
-     * @param id – context ID.
+     * @param id - context ID.
      * @param done - call back interface called when operation is completed.
      */
     IToken getContext(String id, DoneGetContext done);
@@ -49,8 +49,8 @@ public interface ITerminals extends IService {
     interface DoneGetContext {
         /**
          * Called when contexts data retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context – context data.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context - context data.
          */
         void doneGetContext(IToken token, Exception error, TerminalContext context);
     }
@@ -227,8 +227,8 @@ public interface ITerminals extends IService {
         /**
          * Called when a terminal windows size changes.
          * @param terminal_id - terminal context ID
-         * @param new_width – new terminal width
-         * @param new_height – new terminal height
+         * @param new_width - new terminal width
+         * @param new_height - new terminal height
          */
         void winSizeChanged(String terminal_id, int new_width, int new_height);
     }

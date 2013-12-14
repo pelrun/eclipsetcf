@@ -113,7 +113,7 @@ public interface IChannel {
     /**
      * Get current level of out-bound traffic congestion.
      *
-     * @return integer value in range –100..100, where –100 means no pending
+     * @return integer value in range -100..100, where -100 means no pending
      *         messages (no traffic), 0 means optimal load, and positive numbers
      *         indicate level of congestion.
      *
@@ -136,7 +136,7 @@ public interface IChannel {
 
         /**
          * Called when channel closed. If it is closed because of an error,
-         * ‘error’ parameter will describe the error. ‘error’ is null if channel
+         * 'error' parameter will describe the error. 'error' is null if channel
          * is closed normally by calling Channel.close().
          * @param error - channel exception or null
          */

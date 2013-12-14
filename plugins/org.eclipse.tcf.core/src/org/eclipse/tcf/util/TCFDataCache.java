@@ -25,7 +25,7 @@ import org.eclipse.tcf.protocol.Protocol;
  * A cache instance can be created on any data type that needs to be cached.
  * Examples might be context children list, context properties, context state, memory data,
  * register data, symbol, variable, etc.
- * Clients of cache items can register for cache changes, but don’t need to think about any particular events
+ * Clients of cache items can register for cache changes, but don't need to think about any particular events
  * since that is handled by the cache item itself.
  *
  * A typical cache client should implement Runnable interface.

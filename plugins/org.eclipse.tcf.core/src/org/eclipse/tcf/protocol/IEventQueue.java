@@ -41,7 +41,7 @@ public interface IEventQueue {
     /**
      * Get current level of queue congestion.
      *
-     * @return integer value in range –100..100, where –100 means no pending
+     * @return integer value in range -100..100, where -100 means no pending
      *         messages (no traffic), 0 means optimal load, and positive numbers
      *         indicate level of congestion.
      */

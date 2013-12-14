@@ -295,7 +295,7 @@ public interface IRunControl extends IService {
     /**
      * Retrieve context properties for given context ID.
      *
-     * @param id – context ID.
+     * @param id - context ID.
      * @param done - callback interface called when operation is completed.
      */
     IToken getContext(String id, DoneGetContext done);
@@ -306,8 +306,8 @@ public interface IRunControl extends IService {
     interface DoneGetContext {
         /**
          * Called when context data retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context – context data.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context - context data.
          */
         void doneGetContext(IToken token, Exception error, RunControlContext context);
     }
@@ -315,7 +315,7 @@ public interface IRunControl extends IService {
     /**
      * Retrieve children of given context.
      *
-     * @param parent_context_id – parent context ID. Can be null –
+     * @param parent_context_id - parent context ID. Can be null -
      * to retrieve top level of the hierarchy, or one of context IDs retrieved
      * by previous getContext or getChildren commands.
      * @param done - callback interface called when operation is completed.
@@ -328,8 +328,8 @@ public interface IRunControl extends IService {
     interface DoneGetChildren {
         /**
          * Called when context list retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context_ids – array of available context IDs.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context_ids - array of available context IDs.
          */
         void doneGetChildren(IToken token, Exception error, String[] context_ids);
     }

@@ -74,7 +74,7 @@ public interface IRegisters extends IService {
     /**
      * Retrieve context info for given context ID.
      *
-     * @param id – context ID.
+     * @param id - context ID.
      * @param done - call back interface called when operation is completed.
      */
     IToken getContext(String id, DoneGetContext done);
@@ -86,8 +86,8 @@ public interface IRegisters extends IService {
         /**
          * Called when context data retrieval is done.
          * @param token - command handle
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context – context data.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context - context data.
          */
         void doneGetContext(IToken token, Exception error, RegistersContext context);
     }
@@ -102,7 +102,7 @@ public interface IRegisters extends IService {
      * with same IDs, however, each service accesses its own subset of context's
      * attributes and functionality, which is relevant to that service.
      *
-     * @param parent_context_id – parent context ID. Can be null –
+     * @param parent_context_id - parent context ID. Can be null -
      * to retrieve top level of the hierarchy, or one of context IDs retrieved
      * by previous getChildren commands.
      * @param done - call back interface called when operation is completed.
@@ -116,8 +116,8 @@ public interface IRegisters extends IService {
         /**
          * Called when context list retrieval is done.
          * @param token - command handle
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context_ids – array of available context IDs.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context_ids - array of available context IDs.
          */
         void doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
@@ -374,8 +374,8 @@ public interface IRegisters extends IService {
         /**
          * Called when value retrieval is done.
          * @param token - command handle
-         * @param error – error description if operation failed, null if succeeded.
-         * @param value – context value as array of bytes.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param value - context value as array of bytes.
          */
         void doneGet(IToken token, Exception error, byte[] value);
     }
@@ -387,7 +387,7 @@ public interface IRegisters extends IService {
         /**
          * Called when value setting is done.
          * @param token - command handle.
-         * @param error – error description if operation failed, null if succeeded.
+         * @param error - error description if operation failed, null if succeeded.
          */
         void doneSet(IToken token, Exception error);
     }
@@ -399,7 +399,7 @@ public interface IRegisters extends IService {
         /**
          * Called when context search is done.
          * @param token - command handle.
-         * @param error – error description if operation failed, null if succeeded.
+         * @param error - error description if operation failed, null if succeeded.
          * @param paths - array of paths to each context with properties matching the filter
          */
         void doneSearch(IToken token, Exception error, String[][] paths);

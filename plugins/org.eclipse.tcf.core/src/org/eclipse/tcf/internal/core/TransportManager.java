@@ -173,7 +173,7 @@ public class TransportManager {
 
     /**
      * Transmit TCF event message.
-     * The message is sent to all open communication channels – broadcasted.
+     * The message is sent to all open communication channels - broadcasted.
      *
      * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}.
      */

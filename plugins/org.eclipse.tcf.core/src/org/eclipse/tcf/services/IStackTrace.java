@@ -113,7 +113,7 @@ public interface IStackTrace extends IService {
      * The command will fail if parent thread is not suspended.
      * Client can use Run Control service to suspend a thread.
      *
-     * @param id – array of context IDs.
+     * @param id - array of context IDs.
      * @param done - call back interface called when operation is completed.
      */
     IToken getContext(String[] id, DoneGetContext done);
@@ -124,8 +124,8 @@ public interface IStackTrace extends IService {
     interface DoneGetContext {
         /**
          * Called when context data retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context – array of context data or null if error.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context - array of context data or null if error.
          */
         void doneGetContext(IToken token, Exception error, StackTraceContext[] context);
     }
@@ -142,7 +142,7 @@ public interface IStackTrace extends IService {
      * The command will fail if parent thread is not suspended.
      * Client can use Run Control service to suspend a thread.
      *
-     * @param parent_context_id – parent context ID.
+     * @param parent_context_id - parent context ID.
      * @param done - call back interface called when operation is completed.
      */
     IToken getChildren(String parent_context_id, DoneGetChildren done);
@@ -159,7 +159,7 @@ public interface IStackTrace extends IService {
      * The command will fail if parent thread is not suspended.
      * Client can use Run Control service to suspend a thread.
      *
-     * @param parent_context_id – parent context ID.
+     * @param parent_context_id - parent context ID.
      * @param range_start - start of the range (inclusive).
      * @param range_end - end of the range (inclusive).
      * @param done - call back interface called when operation is completed.
@@ -173,8 +173,8 @@ public interface IStackTrace extends IService {
     interface DoneGetChildren {
         /**
          * Called when context ID list retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param context_ids – array of available context IDs.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param context_ids - array of available context IDs.
          */
         void doneGetChildren(IToken token, Exception error, String[] context_ids);
     }

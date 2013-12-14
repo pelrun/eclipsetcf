@@ -146,7 +146,7 @@ public interface IMemoryMap extends IService {
     /**
      * Retrieve memory map for given context ID.
      *
-     * @param id – context ID.
+     * @param id - context ID.
      * @param done - call back interface called when operation is completed.
      * @return - pending command handle.
      */
@@ -158,8 +158,8 @@ public interface IMemoryMap extends IService {
     interface DoneGet {
         /**
          * Called when memory map data retrieval is done.
-         * @param error – error description if operation failed, null if succeeded.
-         * @param map – memory map data.
+         * @param error - error description if operation failed, null if succeeded.
+         * @param map - memory map data.
          */
         void doneGet(IToken token, Exception error, MemoryRegion[] map);
     }
@@ -171,8 +171,8 @@ public interface IMemoryMap extends IService {
      *
      * Using non-null 'id' is deprecated - use ContextQuery instead.
      *
-     * @param id – symbols context group ID or name.
-     * @param map – memory map data.
+     * @param id - symbols context group ID or name.
+     * @param map - memory map data.
      * @param done - call back interface called when operation is completed.
      * @return - pending command handle.
      */
@@ -184,7 +184,7 @@ public interface IMemoryMap extends IService {
     interface DoneSet {
         /**
          * Called when memory map set command is done.
-         * @param error – error description if operation failed, null if succeeded.
+         * @param error - error description if operation failed, null if succeeded.
          */
         void doneSet(IToken token, Exception error);
     }

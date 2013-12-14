@@ -326,7 +326,7 @@ public final class Protocol {
 
     /**
      * Transmit TCF event message.
-     * The message is sent to all open communication channels – broadcasted.
+     * The message is sent to all open communication channels - broadcasted.
      */
     public static void sendEvent(String service_name, String event_name, byte[] data) {
         assert isDispatchThread();
@@ -362,7 +362,7 @@ public final class Protocol {
     public interface CongestionMonitor {
         /**
          * Get current level of client resource utilization.
-         * @return integer value in range –100..100, where –100 means all resources are free,
+         * @return integer value in range -100..100, where -100 means all resources are free,
          *         0 means optimal load, and positive numbers indicate level of congestion.
          */
         int getCongestionLevel();
@@ -390,7 +390,7 @@ public final class Protocol {
     /**
      * Get current level of local traffic congestion.
      *
-     * @return integer value in range –100..100, where –100 means no pending
+     * @return integer value in range -100..100, where -100 means no pending
      *         messages (no traffic), 0 means optimal load, and positive numbers
      *         indicate level of congestion.
      */
