@@ -354,31 +354,31 @@ public interface IRunControl extends IService {
 
         /**
          * Retrieve context ID.
-         * Same as getProperties().get(“ID”)
+         * Same as getProperties().get("ID")
          */
         String getID();
 
         /**
          * Retrieve parent context ID.
-         * Same as getProperties().get(“ParentID”)
+         * Same as getProperties().get("ParentID")
          */
         String getParentID();
 
         /**
          * Retrieve context process ID.
-         * Same as getProperties().get(“ProcessID”)
+         * Same as getProperties().get("ProcessID")
          */
         String getProcessID();
 
         /**
          * Retrieve context creator ID.
-         * Same as getProperties().get(“CreatorID”)
+         * Same as getProperties().get("CreatorID")
          */
         String getCreatorID();
 
         /**
          * Retrieve human readable context name.
-         * Same as getProperties().get(“Name”)
+         * Same as getProperties().get("Name")
          */
         String getName();
 

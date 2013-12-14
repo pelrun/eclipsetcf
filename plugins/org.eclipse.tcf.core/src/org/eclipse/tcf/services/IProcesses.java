@@ -116,20 +116,20 @@ public interface IProcesses extends IService {
 
         /**
          * Get context ID.
-         * Same as getProperties().get(“ID”)
+         * Same as getProperties().get("ID")
          */
         String getID();
 
         /**
          * Get parent context ID.
-         * Same as getProperties().get(“ParentID”)
+         * Same as getProperties().get("ParentID")
          */
         String getParentID();
 
         /**
          * Get process name.
          * Client UI can show this name to a user.
-         * Same as getProperties().get(“Name”)
+         * Same as getProperties().get("Name")
          */
         String getName();
 

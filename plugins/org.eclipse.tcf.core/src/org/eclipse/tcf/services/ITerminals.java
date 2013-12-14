@@ -90,55 +90,55 @@ public interface ITerminals extends IService {
 
         /**
          * Get context ID.
-         * Same as getProperties().get(“ID”)
+         * Same as getProperties().get("ID")
          */
         String getID();
 
         /**
          * Get process ID of the login process of the terminal.
-         * Same as getProperties().get(“ProcessID”)
+         * Same as getProperties().get("ProcessID")
          */
         String getProcessID();
 
         /**
          * Get terminal type.
-         * Same as getProperties().get(“PtyType”)
+         * Same as getProperties().get("PtyType")
          */
         String getPtyType();
 
         /**
          * Get encoding.
-         * Same as getProperties().get(“Encoding”)
+         * Same as getProperties().get("Encoding")
          */
         String getEncoding();
 
         /**
          * Get width.
-         * Same as getProperties().get(“Width”)
+         * Same as getProperties().get("Width")
          */
         int getWidth();
 
         /**
          * Get height.
-         * Same as getProperties().get(“Height”)
+         * Same as getProperties().get("Height")
          */
         int getHeight();
 
         /**
          * Get standard input stream ID of the terminal.
-         * Same as getProperties().get(“StdInID”)
+         * Same as getProperties().get("StdInID")
          */
         String getStdInID();
 
         /**
          * Get standard output stream ID of the terminal.
-         * Same as getProperties().get(“StdOutID”)
+         * Same as getProperties().get("StdOutID")
          */
         String getStdOutID();
 
         /**
          * Get standard error stream ID of the terminal.
-         * Same as getProperties().get(“StdErrID”)
+         * Same as getProperties().get("StdErrID")
          */
         String getStdErrID();
 

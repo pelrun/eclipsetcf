@@ -248,109 +248,109 @@ public interface ISysMonitor extends IService {
 
         /**
          * Get context ID.
-         * Same as getProperties().get(“ID”)
+         * Same as getProperties().get("ID")
          */
         String getID();
 
         /**
          * Get parent context ID.
-         * Same as getProperties().get(“ParentID”)
+         * Same as getProperties().get("ParentID")
          */
         String getParentID();
 
         /**
          * Get process group ID.
-         * Same as getProperties().get(“PGRP”)
+         * Same as getProperties().get("PGRP")
          */
         long getPGRP();
 
         /**
          * Get process ID.
-         * Same as getProperties().get(“PID”)
+         * Same as getProperties().get("PID")
          */
         long getPID();
 
         /**
          * Get process parent ID.
-         * Same as getProperties().get(“PPID”)
+         * Same as getProperties().get("PPID")
          */
         long getPPID();
 
         /**
          * Get process TTY group ID.
-         * Same as getProperties().get(“TGID”)
+         * Same as getProperties().get("TGID")
          */
         long getTGID();
 
         /**
          * Get tracer process ID.
-         * Same as getProperties().get(“TracerPID”)
+         * Same as getProperties().get("TracerPID")
          */
         long getTracerPID();
 
         /**
          * Get process owner user ID.
-         * Same as getProperties().get(“UID”)
+         * Same as getProperties().get("UID")
          */
         long getUID();
 
         /**
          * Get process owner user name.
-         * Same as getProperties().get(“UserName”)
+         * Same as getProperties().get("UserName")
          */
         String getUserName();
 
         /**
          * Get process owner user group ID.
-         * Same as getProperties().get(“UGID”)
+         * Same as getProperties().get("UGID")
          */
         long getUGID();
 
         /**
          * Get process owner user group name.
-         * Same as getProperties().get(“GroupName”)
+         * Same as getProperties().get("GroupName")
          */
         String getGroupName();
 
         /**
          * Get process state.
-         * Same as getProperties().get(“State”)
+         * Same as getProperties().get("State")
          */
         String getState();
 
         /**
          * Get process virtual memory size in bytes.
-         * Same as getProperties().get(“VSize”)
+         * Same as getProperties().get("VSize")
          */
         long getVSize();
 
         /**
          * Get process virtual memory page size in bytes.
-         * Same as getProperties().get(“PSize”)
+         * Same as getProperties().get("PSize")
          */
         long getPSize();
 
         /**
          * Get number of memory pages in process resident set.
-         * Same as getProperties().get(“RSS”)
+         * Same as getProperties().get("RSS")
          */
         long getRSS();
 
         /**
          * Get context executable file.
-         * Same as getProperties().get(“File”)
+         * Same as getProperties().get("File")
          */
         String getFile();
 
         /**
          * Get context current file system root.
-         * Same as getProperties().get(“Root”)
+         * Same as getProperties().get("Root")
          */
         String getRoot();
 
         /**
          * Get context current working directory.
-         * Same as getProperties().get(“CWD”)
+         * Same as getProperties().get("CWD")
          */
         String getCurrentWorkingDirectory();
 
