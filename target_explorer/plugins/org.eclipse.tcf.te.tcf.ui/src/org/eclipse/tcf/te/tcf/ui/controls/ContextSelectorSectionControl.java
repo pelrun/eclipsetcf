@@ -45,7 +45,7 @@ public class ContextSelectorSectionControl extends AbstractContextSelectorContro
 	 */
 	@Override
 	protected Object getInitialViewerInput() {
-		return Model.getModel();
+		return Model.getPeerModel();
 	}
 
 	/* (non-Javadoc)

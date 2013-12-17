@@ -85,10 +85,10 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 					String id = peer.getID();
 					if (id != null) {
 						// Lookup the id within the model
-						IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(id);
+						IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(id);
 						if (peerNode == null) {
 							// Not found in the model -> create a ghost object
-							peerNode = new PeerNode(Model.getModel(), peer);
+							peerNode = new PeerNode(Model.getPeerModel(), peer);
 							peerNode.setProperty(IModelNode.PROPERTY_IS_GHOST, true);
 						}
 

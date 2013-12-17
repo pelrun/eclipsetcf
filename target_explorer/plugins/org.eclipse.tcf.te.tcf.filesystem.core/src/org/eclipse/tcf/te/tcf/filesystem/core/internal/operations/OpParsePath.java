@@ -73,7 +73,7 @@ public class OpParsePath extends Operation {
 
 					@Override
 					public void run() {
-						peerNode.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(finPeerId));
+						peerNode.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(finPeerId));
 					}
 				};
 

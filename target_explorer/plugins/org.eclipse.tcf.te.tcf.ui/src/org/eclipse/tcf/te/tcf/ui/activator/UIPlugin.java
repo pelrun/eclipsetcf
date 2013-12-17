@@ -104,18 +104,7 @@ public class UIPlugin extends AbstractUIPlugin {
 
 				if (proceedShutdown || forced) {
 					// Terminate the scanner
-					final IPeerModel model = Model.getModel(true);
-					if (model != null) {
-						Runnable runnable = new Runnable() {
-							@Override
-							public void run() {
-								model.getScanner().terminate();
-							}
-						};
-
-						Assert.isTrue(!Protocol.isDispatchThread());
-						Protocol.invokeAndWait(runnable);
-					}
+					final IPeerModel model = Model.getPeerModel(true);
 
 					// Disconnect all connected connections via the stepper service
 					if (model != null) {

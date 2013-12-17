@@ -66,7 +66,7 @@ public class TerminalsMementoHandler implements IMementoHandler {
 
 		final String peerID = memento.getString("peerID"); //$NON-NLS-1$
 		if (peerID != null) {
-			final IPeerModel model = Model.getModel();
+			final IPeerModel model = Model.getPeerModel();
 			Assert.isNotNull(model);
 			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 			Runnable runnable = new Runnable() {

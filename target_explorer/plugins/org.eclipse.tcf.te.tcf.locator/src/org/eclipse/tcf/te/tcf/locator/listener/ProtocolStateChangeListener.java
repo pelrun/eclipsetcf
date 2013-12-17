@@ -23,7 +23,7 @@ public class ProtocolStateChangeListener implements IProtocolStateChangeListener
 	@Override
 	public void stateChanged(boolean state) {
 		// If the TCF frame work got started, initialize the locator model as well
-		if (state) Model.getModel();
+		if (state) Model.getPeerModel();
 	}
 
 }

@@ -345,10 +345,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
-                     </and>                        
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   </iterate>
                </with>
             </visibleWhen>
@@ -524,10 +521,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
-                     <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
-                     </and>                        
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                   </iterate>
                </with>
             </enabledWhen>

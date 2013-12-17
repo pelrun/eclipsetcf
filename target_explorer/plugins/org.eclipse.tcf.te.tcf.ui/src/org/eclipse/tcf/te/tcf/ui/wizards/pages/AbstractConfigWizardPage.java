@@ -310,7 +310,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerNode[] peers = Model.getModel().getPeerNodes();
+				IPeerNode[] peers = Model.getPeerModel().getPeerNodes();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerNode peerNode : peers) {
 						String name = peerNode.getPeer().getName();

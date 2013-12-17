@@ -336,7 +336,7 @@ public class PeerImportWizardPage extends WizardPage {
 		UIJob importjob = new UIJob(getContainer().getShell().getDisplay(), Messages.PeerImportWizard_title) {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				final IPeerModel model = Model.getModel();
+				final IPeerModel model = Model.getPeerModel();
 				final IProgressMonitor finalMonitor;
 				if (monitor == null) {
 					finalMonitor = new NullProgressMonitor();

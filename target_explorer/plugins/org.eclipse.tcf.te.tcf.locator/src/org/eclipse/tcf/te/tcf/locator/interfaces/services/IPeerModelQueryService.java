@@ -12,14 +12,14 @@ package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
- * The service to query asynchronous properties of peers.
+ * The service to query asynchronous properties of peer nodes.
  */
 public interface IPeerModelQueryService extends IPeerModelService {
 
 	/**
-	 * Query the list of available local services for the given peer.
+	 * Query the list of available local services for the given peer node.
 	 * <p>
-	 * <b>Note:</b> The result of the query is cached within the given peer model
+	 * <b>Note:</b> The result of the query is cached within the given peer
 	 * node and subsequent calls will return immediately with the cached value.
 	 * <p>
 	 * <b>Note:</b> This method must be called outside the TCF dispatch thread.
@@ -30,9 +30,9 @@ public interface IPeerModelQueryService extends IPeerModelService {
 	public String queryLocalServices(IPeerNode node);
 
 	/**
-	 * Query the list of available remote services for the given peer.
+	 * Query the list of available remote services for the given peer node.
 	 * <p>
-	 * <b>Note:</b> The result of the query is cached within the given peer model
+	 * <b>Note:</b> The result of the query is cached within the given peer
 	 * node and subsequent calls will return immediately with the cached value.
 	 * <p>
 	 * <b>Note:</b> This method must be called outside the TCF dispatch thread.
@@ -55,7 +55,7 @@ public interface IPeerModelQueryService extends IPeerModelService {
 	}
 
 	/**
-	 * Asynchronously query the services for the given peer model node.
+	 * Asynchronously query the services for the given peer node.
 	 * <p>
 	 * <b>Note:</b> This method must be called from within the TCF dispatch thread.
 	 *

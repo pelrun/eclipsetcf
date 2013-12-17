@@ -16,9 +16,14 @@ public interface ITracing {
 
 
 	/**
+	 * If enabled, prints information about peer model method invocations.
+	 */
+	public static String ID_TRACE_PEER_MODEL = "trace/peerModel"; //$NON-NLS-1$
+
+	/**
 	 * If enabled, prints information about locator model method invocations.
 	 */
-	public static String ID_TRACE_LOCATOR_MODEL = "trace/peerModel"; //$NON-NLS-1$
+	public static String ID_TRACE_LOCATOR_MODEL = "trace/locatorModel"; //$NON-NLS-1$
 
 	/**
 	 * If enabled, prints information about locator listener method invocations.
@@ -29,14 +34,4 @@ public interface ITracing {
 	 * If enabled, prints information about locator model property tester invocations.
 	 */
 	public static String ID_TRACE_PROPERTY_TESTER = "trace/propertyTester"; //$NON-NLS-1$
-
-	/**
-	 * If enabled, prints information about channel state change listener method invocations.
-	 */
-	public static String ID_TRACE_CHANNEL_STATE_CHANGE_LISTENER = "trace/channelStateChangeListener"; //$NON-NLS-1$
-
-	/**
-	 * If enabled, prints information about the scanner.
-	 */
-	public static String ID_TRACE_SCANNER = "trace/scanner"; //$NON-NLS-1$
 }

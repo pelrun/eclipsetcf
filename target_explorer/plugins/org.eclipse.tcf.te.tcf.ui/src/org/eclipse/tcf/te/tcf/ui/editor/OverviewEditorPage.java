@@ -23,7 +23,6 @@ import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
-import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.AttributesSection;
@@ -35,7 +34,6 @@ import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
@@ -165,36 +163,6 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInput(org.eclipse.ui.IEditorInput)
-	 */
-	@Override
-	protected void setInput(IEditorInput input) {
-		IEditorInput oldInput = getEditorInput();
-		// do nothing when input did not change
-		if (oldInput != null && oldInput.equals(input)) {
-			return;
-		}
-	    super.setInput(input);
-		if (getEditorInputNode() instanceof IPeerNode) {
-			// Invoke the scanner runnable
-			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerNode)getEditorInputNode()));
-			Protocol.invokeLater(runnable);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInputWithNotify(org.eclipse.ui.IEditorInput)
-	 */
-	@Override
-	protected void setInputWithNotify(IEditorInput input) {
-	    super.setInputWithNotify(input);
-		if (getEditorInputNode() instanceof IPeerNode) {
-			ScannerRunnable runnable = new ScannerRunnable(null, ((IPeerNode)getEditorInputNode()));
-			Protocol.invokeLater(runnable);
-		}
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#postDoSave(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
@@ -231,10 +199,6 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 					((IPeerNode)input).fireChangeEvent("properties", null, ((IPeerNode)input).getProperties()); //$NON-NLS-1$
 				}
 			});
-
-			// Force a scan of the peer
-			ScannerRunnable runnable2 = new ScannerRunnable(null, ((IPeerNode)input));
-			Protocol.invokeLater(runnable2);
 		}
 	}
 }

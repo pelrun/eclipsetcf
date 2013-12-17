@@ -254,7 +254,7 @@ public class PeerSelectionDialog extends CustomTitleAreaDialog {
 	 * @return The locator model instance.
 	 */
 	protected IPeerModel getModel() {
-		return Model.getModel();
+		return Model.getPeerModel();
 	}
 
 	/**

@@ -55,7 +55,7 @@ public class AdapterFactory implements IAdapterFactory {
     	Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-		    	Model.getModel().addListener(listener);
+		    	Model.getPeerModel().addListener(listener);
 			}
 		};
 

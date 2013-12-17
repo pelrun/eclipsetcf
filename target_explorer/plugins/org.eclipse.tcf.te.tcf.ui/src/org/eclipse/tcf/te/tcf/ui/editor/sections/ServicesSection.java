@@ -9,8 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.editor.sections;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -23,10 +21,8 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
-import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.ui.forms.IManagedForm;
@@ -125,9 +121,6 @@ public class ServicesSection extends AbstractSection {
 		}
 	}
 
-	// Flag to mark that the services query had been done for the current peer model node
-	private boolean servicesQueryTriggered = false;
-
 	/**
 	 * Initialize the page widgets based of the data from the given peer node.
 	 * <p>
@@ -137,8 +130,6 @@ public class ServicesSection extends AbstractSection {
 	 * @param node The peer node or <code>null</code>.
 	 */
 	public void setupData(final IPeerNode node) {
-		// Reset the services query triggered flag if we setup for a new peer model node
-		if (od != node) servicesQueryTriggered = false;
 
 		// Besides the node itself, we need to look at the node data to determine
 		// if the widgets needs to be updated. For the comparisation, keep the
@@ -164,82 +155,19 @@ public class ServicesSection extends AbstractSection {
 			}
 		});
 
-		boolean forceQuery = false;
-
-		// If the original data copy does not match the previous original
-		// data copy, the services needs to be queried again.
-		if (!previousOdc.getProperties().equals(odc.getProperties())) {
-			servicesQueryTriggered = false;
-			forceQuery = true;
-		}
-
 		// Create the UI runnable
-		final AtomicBoolean fireRefreshTabs = new AtomicBoolean();
-		final Runnable uiRunnable = new Runnable() {
+		boolean fireNotification = false;
 
-			@Override
-			public void run() {
-				boolean fireNotification = fireRefreshTabs.get();
+		String value = odc.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES);
+		fireNotification |= value != null && !value.equals(SWTControlUtil.getText(local));
+		SWTControlUtil.setText(local, value != null ? value : ""); //$NON-NLS-1$
+		value = odc.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+		fireNotification |= value != null && !value.equals(SWTControlUtil.getText(remote));
+		SWTControlUtil.setText(remote, value != null ? value : ""); //$NON-NLS-1$
 
-				String value = odc.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES);
-				fireNotification |= value != null && !value.equals(SWTControlUtil.getText(local));
-				SWTControlUtil.setText(local, value != null ? value : ""); //$NON-NLS-1$
-				value = odc.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
-				fireNotification |= value != null && !value.equals(SWTControlUtil.getText(remote));
-				SWTControlUtil.setText(remote, value != null ? value : ""); //$NON-NLS-1$
-
-				if (fireNotification) {
-					// Fire a change event to trigger the editor refresh
-					od.fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
-				}
-			}
-		};
-
-		// If not yet triggered or if forced, run the service query
-		if (!servicesQueryTriggered) {
-			// Mark the services query as triggered
-			servicesQueryTriggered = true;
-
-			final boolean finForceQuery = forceQuery;
-
-			Runnable runnable = new Runnable() {
-
-				@Override
-				public void run() {
-					// Check if we have to run the query at all
-					boolean doQuery = finForceQuery ||
-										(!node.containsKey(IPeerNodeProperties.PROP_REMOTE_SERVICES)
-											&& !node.containsKey(IPeerNodeProperties.PROP_LOCAL_SERVICES));
-
-					if (doQuery) {
-						IPeerModelQueryService service = node.getModel().getService(IPeerModelQueryService.class);
-						if (service != null) {
-							service.queryServicesAsync(node, new IPeerModelQueryService.DoneQueryServices() {
-								@Override
-								public void doneQueryServices(Throwable error) {
-									// Copy over the service properties
-									odc.setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, node.getProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
-									odc.setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, node.getProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
-
-									// Setup the data within the UI controls and fire the change notification
-									fireRefreshTabs.set(true);
-									DisplayUtil.safeAsyncExec(uiRunnable);
-								}
-							});
-						}
-					} else {
-						// Copy over the properties
-						odc.setProperties(node.getProperties());
-						// Setup the data within the UI controls
-						DisplayUtil.safeAsyncExec(uiRunnable);
-					}
-				}
-			};
-
-			Protocol.invokeLater(runnable);
-		} else {
-			// Setup the data within the UI controls
-			uiRunnable.run();
+		if (fireNotification) {
+			// Fire a change event to trigger the editor refresh
+			od.fireChangeEvent("editor.refreshTab", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
 		}
 	}
 }

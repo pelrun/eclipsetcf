@@ -174,7 +174,7 @@ public class RenameHandler extends AbstractHandler {
 					Protocol.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							final IPeerModelRefreshService service = Model.getModel().getService(IPeerModelRefreshService.class);
+							final IPeerModelRefreshService service = Model.getPeerModel().getService(IPeerModelRefreshService.class);
 							// Refresh the model now (must be executed within the TCF dispatch thread)
 							if (service != null) {
 								service.refresh(new Callback() {
@@ -215,7 +215,7 @@ public class RenameHandler extends AbstractHandler {
 			public void run() {
 				name.set(node.getPeer().getName());
 
-				IPeerModel model = Model.getModel();
+				IPeerModel model = Model.getPeerModel();
 				Assert.isNotNull(model);
 				IPeerNode[] peers = model.getPeerNodes();
 				for (IPeerNode peer : peers) {

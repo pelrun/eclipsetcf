@@ -112,7 +112,7 @@ public class AdapterFactory implements IAdapterFactory {
 			}
 		}
 		else if (adaptableObject instanceof IPeer) {
-			final IPeerModelLookupService service = Model.getModel().getService(IPeerModelLookupService.class);
+			final IPeerModelLookupService service = Model.getPeerModel().getService(IPeerModelLookupService.class);
 			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 
 			if (service != null) {

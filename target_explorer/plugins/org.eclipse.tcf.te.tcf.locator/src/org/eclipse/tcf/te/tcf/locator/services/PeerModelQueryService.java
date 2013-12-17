@@ -30,14 +30,14 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 
 /**
- * Default locator model peer node query service implementation.
+ * Default peer model peer node query service implementation.
  */
 public class PeerModelQueryService extends AbstractPeerModelService implements IPeerModelQueryService {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param parentModel The parent locator model instance. Must not be <code>null</code>.
+	 * @param parentModel The parent peer model instance. Must not be <code>null</code>.
 	 */
 	public PeerModelQueryService(IPeerModel parentModel) {
 		super(parentModel);

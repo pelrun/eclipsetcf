@@ -25,12 +25,10 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
-import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerRedirector;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
@@ -70,8 +68,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 
 	// The locator model listener instance
 	/* default */ IModelListener modelListener = null;
-	// The tree view listener instance
-	/* default */ TreeViewerListener treeViewerListener = null;
 
 	// Internal map of PeerRedirectorGroupNodes per peer id
 	private final Map<String, PeerRedirectorGroupNode> roots = new HashMap<String, PeerRedirectorGroupNode>();
@@ -175,12 +171,12 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		// If the parent element is a category, than we assume
 		// the locator model as parent element.
 		if (parentElement instanceof ICategory) {
-			parentElement = Model.getModel();
+			parentElement = Model.getPeerModel();
 		}
 		// If the parent element is the root element and "all"
 		// categories are hidden, assume the locator model as parent element
 		if (parentElement instanceof IRoot && allHidden) {
-			parentElement = Model.getModel();
+			parentElement = Model.getPeerModel();
 		}
 
 		// If it is the locator model, get the peers
@@ -238,32 +234,16 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
-//				final AtomicReference<IPeer[]> peers = new AtomicReference<IPeer[]>(null);
-//
-//				Protocol.invokeAndWait(new Runnable() {
-//					@Override
-//					public void run() {
-//						// Get the locator service
-//						ILocator locatorService = Protocol.getLocator();
-//						if (locatorService != null) {
-//							// Get the map of peers known to the locator service.
-//							Map<String, IPeer> peerMap = locatorService.getPeers();
-//							peers.set(peerMap.values().toArray(new IPeer[peerMap.size()]));
-//						}
-//					}
-//				});
-//
-//				for (IPeer peer : peers.get()) {
-//					// Check for filtered nodes (Value-add's and Proxies)
-//					if (isFiltered(peer)) {
-//						continue;
-//					}
-//
-//
-//					if (!candidates.contains(peer)) {
-//						candidates.add(peer);
-//					}
-//				}
+				for (IPeer peer : Model.getLocatorModel().getPeers()) {
+					// Check for filtered nodes (Value-add's and Proxies)
+					if (isFiltered(peer)) {
+						continue;
+					}
+
+					if (!candidates.contains(peer)) {
+						candidates.add(peer);
+					}
+				}
 			}
 			else if (catID != null) {
 				for (IPeerNode peer : peerNodes) {
@@ -293,43 +273,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 
 			children = candidates.toArray(new Object[candidates.size()]);
-		}
-		// If it is a peer model itself, get the child peers
-		else if (parentElement instanceof IPeerNode) {
-			String parentPeerId = ((IPeerNode)parentElement).getPeerId();
-			List<IPeerNode> candidates = Model.getModel().getChildren(parentPeerId);
-			if (candidates != null && candidates.size() > 0) {
-				PeerRedirectorGroupNode rootNode = roots.get(parentPeerId);
-				if (rootNode == null) {
-					rootNode = new PeerRedirectorGroupNode(parentPeerId);
-					roots.put(parentPeerId, rootNode);
-				}
-				children = new Object[] { rootNode };
-			} else {
-				roots.remove(parentPeerId);
-			}
-		}
-		// If it is a remote peer discover root node, return the children
-		// for the associated peer id.
-		else if (parentElement instanceof PeerRedirectorGroupNode) {
-			List<IPeerNode> candidates = Model.getModel().getChildren(((PeerRedirectorGroupNode)parentElement).peerId);
-			if (candidates != null && candidates.size() > 0) {
-				// Mark all candidates to be included in the scan process and
-				// schedule an scan asynchronously
-				for (final IPeerNode candidate: candidates) {
-					Protocol.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							candidate.setProperty(IPeerNodeProperties.PROP_SCANNER_EXCLUDE, false);
-
-							ScannerRunnable runnable = new ScannerRunnable(null, candidate);
-							runnable.run();
-						}
-					});
-				}
-
-				children = candidates.toArray();
-			}
 		}
 
 		return children;
@@ -377,7 +320,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			final Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					parent.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(((PeerRedirectorGroupNode)element).peerId));
+					parent.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(((PeerRedirectorGroupNode)element).peerId));
 				}
 			};
 
@@ -469,17 +412,12 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					Model.getModel().removeListener(modelListener);
+					Model.getPeerModel().removeListener(modelListener);
 				}
 			};
 			if (Protocol.isDispatchThread()) runnable.run();
 			else Protocol.invokeAndWait(runnable);
 			modelListener = null;
-		}
-
-		if (treeViewerListener != null) {
-			treeViewerListener.dispose();
-			treeViewerListener = null;
 		}
 
 		roots.clear();
@@ -490,7 +428,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 */
 	@Override
 	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
-		final IPeerModel model = Model.getModel();
+		final IPeerModel model = Model.getPeerModel();
 
 		// Create and attach the model listener if not yet done
 		if (modelListener == null && model != null && viewer instanceof CommonViewer) {
@@ -501,13 +439,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 					model.addListener(modelListener);
 				}
 			});
-		}
-
-		// Create and attach the tree listener if not yet done
-		if (treeViewerListener == null && viewer instanceof CommonViewer) {
-			CommonViewer v = (CommonViewer)viewer;
-			treeViewerListener = new TreeViewerListener(v);
-			v.addTreeListener(treeViewerListener);
 		}
 
 		if (model != null && newInput instanceof IRoot) {

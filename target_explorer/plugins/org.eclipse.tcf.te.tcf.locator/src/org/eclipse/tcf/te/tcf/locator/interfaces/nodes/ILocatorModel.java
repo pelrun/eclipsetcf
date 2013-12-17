@@ -9,11 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 
+import java.util.List;
+
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.services.ILocator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelService;
 
 
 /**
@@ -30,30 +31,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService;
  *
  * @see ILocator
  */
-public interface IPeerModel extends IAdaptable {
-
-	/**
-	 * Adds the specified listener to the list of model listener.
-	 * If the same listener has been added before, the listener will
-	 * not be added again.
-	 *
-	 * @param listener The listener. Must not be <code>null</code>.
-	 */
-	public void addListener(IModelListener listener);
-
-	/**
-	 * Removes the specified listener from the list of model listener.
-	 *
-	 * @param listener The listener. Must not be <code>null</code>.
-	 */
-	public void removeListener(IModelListener listener);
-
-	/**
-	 * Returns the list of registered model listeners.
-	 *
-	 * @return The list of registered model listeners or an empty list.
-	 */
-	public IModelListener[] getListener();
+public interface ILocatorModel extends IAdaptable {
 
 	/**
 	 * Dispose the locator model instance.
@@ -72,7 +50,23 @@ public interface IPeerModel extends IAdaptable {
 	 *
 	 * @return The list of known peers or an empty list.
 	 */
-	public IPeerNode[] getPeerNodes();
+	public IPeer[] getPeers();
+
+	/**
+	 * Returns an unmodifiable list of known children for the given parent peer.
+	 *
+	 * @param parentPeerID The parent peer id. Must not be <code>null</code>.
+	 * @return The child list.
+	 */
+	public List<IPeer> getChildren(String parentPeerID);
+
+	/**
+	 * Sets the list of known children for the given parent peer.
+	 *
+	 * @param parentPeerID The parent peer id. Must not be <code>null</code>.
+	 * @param children The list of children or <code>null</code> to remove the parent peer.
+	 */
+	public void setChildren(String parentPeerID, List<IPeer> children);
 
 	/**
 	 * Returns the locator model service, implementing at least the specified
@@ -81,16 +75,5 @@ public interface IPeerModel extends IAdaptable {
 	 * @param serviceInterface The service interface class. Must not be <code>null</code>.
 	 * @return The service instance implementing the specified service interface, or <code>null</code>.
 	 */
-	public <V extends IPeerModelService> V getService(Class<V> serviceInterface);
-
-	/**
-	 * Validate the given peer.
-	 * <p>
-	 * If the peer is for local host, than only the peer using the loopback address is valid.
-	 *
-	 * @param peer The peer. Must not be <code>null</code>.
-	 * @return The peer if the peer is valid, or <code>null</code> if not.
-	 */
-	public IPeer validatePeer(IPeer peer);
-
+	public <V extends ILocatorModelService> V getService(Class<V> serviceInterface);
 }

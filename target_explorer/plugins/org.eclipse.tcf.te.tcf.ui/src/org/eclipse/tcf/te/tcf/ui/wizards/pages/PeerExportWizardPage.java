@@ -167,7 +167,7 @@ public class PeerExportWizardPage extends WizardPage {
 			}
 		};
 		fViewer.addCheckStateListener(checkListener);
-		fViewer.setInput(Model.getModel());
+		fViewer.setInput(Model.getPeerModel());
 
 		// top level group
 		Composite buttonComposite = new Composite(resourcesGroup, SWT.NONE);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,17 +9,18 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 
 /**
- * The service to refresh the parent peer model.
+ * Common parent interface for locator model services.
  */
-public interface IPeerModelRefreshService extends IPeerModelService {
+public interface ILocatorModelService extends IAdaptable {
 
 	/**
-	 * Refreshes the list of known peer nodes and update the peer model.
+	 * Returns the parent locator model.
 	 *
-	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
+	 * @return The parent locator model.
 	 */
-	public void refresh(ICallback callback);
+	public ILocatorModel getLocatorModel();
 }

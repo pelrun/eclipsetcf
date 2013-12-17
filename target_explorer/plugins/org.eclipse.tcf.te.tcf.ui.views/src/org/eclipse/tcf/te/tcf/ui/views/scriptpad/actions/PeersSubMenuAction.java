@@ -63,7 +63,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
             public void locatorModelChanged(IPeerModel model, IPeerNode peer, boolean added) {
     			// Re-evaluate the enablement
     			if (actionProxy != null) {
-    				final IPeerNode[] peers = Model.getModel().getPeerNodes();
+    				final IPeerNode[] peers = Model.getPeerModel().getPeerNodes();
     				actionProxy.setEnabled(peers != null && peers.length > 0);
 
     				// If the peer is not set to the view yet, but the action get's
@@ -83,7 +83,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
     	Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-		    	Model.getModel().addListener(listener);
+		    	Model.getPeerModel().addListener(listener);
 			}
 		});
     }
@@ -104,7 +104,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
     	// If the action proxy is already set, it means that the init(IAction)
     	// has been called before. Re-trigger the action enablement.
     	if (actionProxy != null) {
-    		listener.locatorModelChanged(Model.getModel(), null, false);
+    		listener.locatorModelChanged(Model.getPeerModel(), null, false);
     	}
     }
 
@@ -119,7 +119,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 
         	// Determine the enablement. The action is disabled
         	// if no peers are available.
-        	IPeerNode[] peers = Model.getModel().getPeerNodes();
+        	IPeerNode[] peers = Model.getPeerModel().getPeerNodes();
         	if (peers != null && peers.length > 0) {
         		action.setEnabled(true);
 				if (view instanceof ScriptPad) ((ScriptPad)view).setPeerModel(peers[0]);
@@ -160,7 +160,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
         	Protocol.invokeLater(new Runnable() {
     			@Override
     			public void run() {
-    				Model.getModel().removeListener(listener);
+    				Model.getPeerModel().removeListener(listener);
     				listener = null;
     			}
     		});
@@ -209,7 +209,7 @@ public class PeersSubMenuAction extends Action implements IMenuCreator, IViewAct
 
 				boolean selectFirst = selected == null;
 
-				IPeerNode[] peerNodes = Model.getModel().getPeerNodes();
+				IPeerNode[] peerNodes = Model.getPeerModel().getPeerNodes();
 				if (peerNodes != null && peerNodes.length > 0) {
 					for (IPeerNode peerNode : peerNodes) {
 						if (isValueAdd(peerNode)) continue;

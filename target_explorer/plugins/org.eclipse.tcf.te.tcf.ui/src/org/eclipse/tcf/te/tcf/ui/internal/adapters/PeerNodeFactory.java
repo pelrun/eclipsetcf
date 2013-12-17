@@ -43,7 +43,7 @@ public class PeerNodeFactory implements IElementFactory {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					node.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
+					node.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}
 			};
 
@@ -60,8 +60,8 @@ public class PeerNodeFactory implements IElementFactory {
 				Runnable runnable2 = new Runnable() {
 					@Override
 					public void run() {
-						Model.getModel().getService(IPeerModelRefreshService.class).refresh(null);
-						node.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
+						Model.getPeerModel().getService(IPeerModelRefreshService.class).refresh(null);
+						node.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 					}
 				};
 

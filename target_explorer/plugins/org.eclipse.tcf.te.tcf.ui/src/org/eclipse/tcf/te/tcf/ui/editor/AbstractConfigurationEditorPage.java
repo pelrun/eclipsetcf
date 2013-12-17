@@ -16,14 +16,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
@@ -148,15 +146,8 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 						// Save the peer node to the new persistence storage
 						uRIPersistenceService.write(((IPeerNode)input).getPeer(), null);
 
-						// In case the node had been dynamically discovered before, we have to trigger a refresh
-						// to the locator model to read in the newly created static peer
-						if (((IPeerNode)input).getConnectState() == IConnectable.STATE_CONNECTED) {
-							// Refresh the static peers
-							((IPeerNode)input).getModel().getService(IPeerModelRefreshService.class).refreshStaticPeers();
-
-							// Reopen the editor on the current page
-							ViewsUtil.reopenEditor(getEditor(), getEditor().getActivePageInstance().getId(), false);
-						}
+						// Reopen the editor on the current page
+						ViewsUtil.reopenEditor(getEditor(), getEditor().getActivePageInstance().getId(), false);
 					} catch (IOException e) {
 						// Build up the message template
 						String template = NLS.bind(Messages.AbstractConfigurationEditorPage_error_save, ((IPeerNode)input).getName(), Messages.AbstractConfigurationEditorPage_error_possibleCause);

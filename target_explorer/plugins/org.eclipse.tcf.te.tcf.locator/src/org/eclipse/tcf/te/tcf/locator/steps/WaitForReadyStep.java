@@ -10,6 +10,9 @@
 
 package org.eclipse.tcf.te.tcf.locator.steps;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import org.eclipse.core.runtime.CoreException;
@@ -28,6 +31,7 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
 
 /**
@@ -85,10 +89,26 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 								}
 
 								// Close the channel right away
-								if (channel != null) Tcf.getChannelManager().closeChannel(channel);
+//								if (channel != null) Tcf.getChannelManager().closeChannel(channel);
 
 								// If we have an OK status, we are done
 								if (status != null && status.isOK()) {
+									// Get the local service
+									List<String> localServices = new ArrayList<String>(channel.getLocalServices());
+									// Get the remote services
+									List<String> remoteServices = new ArrayList<String>(channel.getRemoteServices());
+
+									// Close the channel
+									Tcf.getChannelManager().closeChannel(channel);
+
+									// Sort the service lists
+									Collections.sort(localServices);
+									Collections.sort(remoteServices);
+
+									// Update the services
+									IPeerModelUpdateService updateService = peerNode.getModel().getService(IPeerModelUpdateService.class);
+									updateService.updatePeerServices(peerNode, localServices, remoteServices);
+
 									callback(data, fullQualifiedId, callback, status, null);
 									return;
 								}

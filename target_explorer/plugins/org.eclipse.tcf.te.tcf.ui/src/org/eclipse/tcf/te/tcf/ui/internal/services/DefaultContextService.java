@@ -157,7 +157,7 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					IPeerModel model = Model.getModel();
+					IPeerModel model = Model.getPeerModel();
 					Assert.isNotNull(model);
 					peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}

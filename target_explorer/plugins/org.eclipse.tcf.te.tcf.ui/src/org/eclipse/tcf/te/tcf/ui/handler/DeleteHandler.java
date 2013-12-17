@@ -269,7 +269,7 @@ public class DeleteHandler extends AbstractHandler {
 					Protocol.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							IPeerModelRefreshService service = Model.getModel().getService(IPeerModelRefreshService.class);
+							IPeerModelRefreshService service = Model.getPeerModel().getService(IPeerModelRefreshService.class);
 							// Refresh the model now (must be executed within the TCF dispatch thread)
 							if (service != null) service.refresh(new Callback() {
 								@Override

@@ -26,7 +26,6 @@ import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
-import org.eclipse.tcf.te.tcf.locator.ScannerRunnable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
@@ -110,20 +109,6 @@ public class RefreshHandler extends AbstractHandler {
 								innerCallback.done(this, Status.OK_STATUS);
 							}
 						});
-					}
-				};
-				Protocol.invokeLater(runnable);
-			}
-
-			for (IPeerNode model : peerToRefresh) {
-				final IPeerNode finModel = model;
-				final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
-
-				Runnable runnable = new Runnable() {
-					@Override
-					public void run() {
-						new ScannerRunnable(null, finModel).run();
-						innerCallback.done(this, Status.OK_STATUS);
 					}
 				};
 				Protocol.invokeLater(runnable);

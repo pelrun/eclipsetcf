@@ -122,7 +122,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					count.set(Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelByName(label).length);
+					count.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelByName(label).length);
 				}
 			};
 

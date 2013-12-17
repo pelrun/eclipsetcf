@@ -99,7 +99,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 	 */
 	private void initialize() {
 		// Refresh the information of remote services.
-		IPeerModel model = Model.getModel();
+		IPeerModel model = Model.getPeerModel();
 		Assert.isNotNull(model);
 		IPeerNode[] peers = model.getPeerNodes();
 		if (peers != null) {
@@ -218,7 +218,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 			}
 		});
 
-		treeViewer.setInput(Model.getModel());
+		treeViewer.setInput(Model.getPeerModel());
 		NewNodeWizard wizard = getWizard();
 		IPeerNode peer = wizard.getPeer();
 		if (wizard.getPeer() != null) {

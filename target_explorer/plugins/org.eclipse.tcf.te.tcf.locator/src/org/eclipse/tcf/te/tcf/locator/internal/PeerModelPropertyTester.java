@@ -19,12 +19,8 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 /**
@@ -45,28 +41,12 @@ public class PeerModelPropertyTester extends PropertyTester {
 			final IPeerNode peerNode = (IPeerNode)receiver;
 			final AtomicBoolean result = new AtomicBoolean();
 
-			// If we have to test for local or remote services, we have to handle it special
-			if ("hasLocalService".equals(property) || "hasRemoteService".equals(property)) { //$NON-NLS-1$ //$NON-NLS-2$
-				// This tests must happen outside the TCF dispatch thread's
-				if (!Protocol.isDispatchThread()) {
-					result.set(testServices(peerNode, property, args, expectedValue));
+			Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					result.set(testPeerModel(peerNode, property, args, expectedValue));
 				}
-			}
-			else {
-				Runnable runnable = new Runnable() {
-					@Override
-					public void run() {
-						result.set(testPeerModel(peerNode, property, args, expectedValue));
-					}
-				};
-
-				if (Protocol.isDispatchThread()) {
-					runnable.run();
-				}
-				else {
-					Protocol.invokeAndWait(runnable);
-				}
-			}
+			});
 
 			return result.get();
 		}
@@ -111,14 +91,6 @@ public class PeerModelPropertyTester extends PropertyTester {
 		if ("osNameRegex".equals(property) && expectedValue instanceof String) { //$NON-NLS-1$
 			if (peer.getOSName() != null && peer.getOSName().matches((String)expectedValue)) {
 				return true;
-			}
-		}
-
-		if ("isStaticPeer".equals(property)) { //$NON-NLS-1$
-			String value = peer.getAttributes().get("static.transient"); //$NON-NLS-1$
-			boolean isStaticPeer = value != null && Boolean.parseBoolean(value.trim());
-			if (expectedValue instanceof Boolean) {
-				return ((Boolean) expectedValue).booleanValue() == isStaticPeer;
 			}
 		}
 
@@ -174,53 +146,29 @@ public class PeerModelPropertyTester extends PropertyTester {
 			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$
 			boolean hasOfflineService = (remote == null) ? offline.contains(expectedValue) : remote.contains(expectedValue);
 			if (expectedValue instanceof Boolean) {
-				return ((Boolean) expectedValue).booleanValue() == hasOfflineService;
+				return ((Boolean)expectedValue).booleanValue() == hasOfflineService;
 			}
 			return hasOfflineService;
 		}
 
-		return false;
-	}
-
-	/**
-	 * Test for the peer model node local or remote services.
-	 * <p>
-	 * <b>Node:</b> This method cannot be called from within the TCF Dispatch Thread.
-	 *
-	 * @param node The model node. Must not be <code>null</code>.
-	 * @param property The property to test.
-	 * @param args The property arguments.
-	 * @param expectedValue The expected value.
-	 *
-	 * @return <code>True</code> if the property to test has the expected value, <code>false</code>
-	 *         otherwise.
-	 */
-	protected boolean testServices(final IPeerNode node, final String property, final Object[] args, final Object expectedValue) {
-		Assert.isNotNull(node);
-		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		String services = null;
-
-		IPeerModel model = node.getModel();
-		IPeerModelQueryService queryService = model.getService(IPeerModelQueryService.class);
-		if ("hasLocalService".equals(property)) { //$NON-NLS-1$
-			services = queryService.queryLocalServices(node);
-		} else {
-			services = queryService.queryRemoteServices(node);
-		}
-
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(ITracing.ID_TRACE_PROPERTY_TESTER)) {
-			CoreBundleActivator.getTraceHandler().trace("testServices: property = " + property + ", expectedValue = " + expectedValue + ", services = " + services, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-														ITracing.ID_TRACE_PROPERTY_TESTER, PeerModelPropertyTester.this);
-		}
-
-		if (services != null) {
-			// Lookup each service individually to avoid "accidental" matching
-			for (String service : services.split(",")) { //$NON-NLS-1$
-				if (service != null && service.trim().equals(expectedValue)) {
-					return true;
-				}
+		if ("hasRemoteService".equals(property)) { //$NON-NLS-1$
+			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
+			boolean hasRemoteService = remote.contains(expectedValue);
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean)expectedValue).booleanValue() == hasRemoteService;
 			}
+			return hasRemoteService;
+		}
+
+		if ("hasLocalService".equals(property)) { //$NON-NLS-1$
+			String localServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES);
+			List<String> remote = localServices != null ? Arrays.asList(localServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
+			boolean hasLocalService = remote.contains(expectedValue);
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean)expectedValue).booleanValue() == hasLocalService;
+			}
+			return hasLocalService;
 		}
 
 		return false;

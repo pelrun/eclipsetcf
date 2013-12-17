@@ -117,7 +117,7 @@ public class TcfURLConnection extends URLConnection {
 			public void run() {
 				IPeer p = Protocol.getLocator().getPeers().get(peerId);
 				if (p == null) {
-					IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
+					IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
 					if (peerNode != null) p = peerNode.getPeer();
 				}
 				peer.set(p);

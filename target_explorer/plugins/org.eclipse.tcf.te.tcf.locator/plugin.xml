@@ -53,7 +53,7 @@
             class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester"
             namespace="org.eclipse.tcf.te.tcf.locator"
-            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isStaticPeer,isRedirected,isProxy,isValueAdd,isOfType"
+            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isRedirected,isProxy,isValueAdd,isOfType"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
 
@@ -61,7 +61,7 @@
             class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester2"
             namespace="org.eclipse.tcf.te.tcf.locator"
-            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isStaticPeer,isRedirected,isProxy,isValueAdd,isOfType"
+            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,sRedirected,isProxy,isValueAdd,isOfType"
             type="org.eclipse.tcf.protocol.IPeer">
       </propertyTester>
 
@@ -142,7 +142,6 @@
          </serviceType>
          <enablement>
             <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
-            <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isStaticPeer" value="true"/>
             <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
          </enablement>
       </service>
@@ -177,10 +176,6 @@
             id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"
             class="org.eclipse.tcf.te.tcf.locator.steps.WaitForReadyStep"
             label="%WaitForReadyStep.name"/>
-      <step
-            id="org.eclipse.tcf.te.tcf.locator.signalPeerDisconnectedStep"
-            class="org.eclipse.tcf.te.tcf.locator.steps.SignalPeerDisconnectedStep"
-            label="%SignalPeerDisconnectedStep.name"/>
       <step
             id="org.eclipse.tcf.te.tcf.locator.setAsDefaultContextStep"
             class="org.eclipse.tcf.te.tcf.locator.steps.SetAsDefaultContextStep"
@@ -225,7 +220,6 @@
             <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
-            <reference id="org.eclipse.tcf.te.tcf.locator.signalPeerDisconnectedStep"/>
             <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
             	<parameter name="state" value="disconnected" />
             </reference>
@@ -262,7 +256,7 @@
    <extension point="org.eclipse.core.expressions.definitions">
    
       <!-- Expression to test if current variable 
-           is adaptable to IPeerModel and has a simulator service
+           is adaptable to IPeerNode and has a simulator service
       -->
       <definition id="te.expressions.peerModel.hasSimulatorService">
          <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
@@ -274,7 +268,7 @@
       </definition>
 
       <!-- Expression to test if the active editor input 
-           is adaptable to IPeerModel and has a simulator service
+           is adaptable to IPeerNode and has a simulator service
       -->
       <definition id="te.expressions.editor.hasSimulatorService">
          <with variable="activeEditorInput">
@@ -283,7 +277,7 @@
       </definition>
 
       <!-- Expression to test if the selection 
-           is adaptable to IPeerModel and has a simulator service
+           is adaptable to IPeerNode and has a simulator service
       -->
       <definition id="te.expressions.selection.hasSimulatorService">
          <with variable="selection">
@@ -295,7 +289,7 @@
       </definition>
 
       <!-- Expression to test if current variable 
-           is adaptable to IPeerModel and has remote or offline run control
+           is adaptable to IPeerNode and has remote or offline run control
       -->
       <definition id="te.expressions.peerModel.hasRunControl">
          <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
@@ -307,7 +301,7 @@
       </definition>
 
       <!-- Expression to test if the active editor input 
-           is adaptable to IPeerModel and has remote or offline run control
+           is adaptable to IPeerNode and has remote or offline run control
       -->
       <definition id="te.expressions.editor.hasRunControl">
          <with variable="activeEditorInput">
@@ -316,7 +310,7 @@
       </definition>
 
       <!-- Expression to test if the selection 
-           is adaptable to IPeerModel and has remote or offline run control
+           is adaptable to IPeerNode and has remote or offline run control
       -->
       <definition id="te.expressions.selection.hasRunControl">
          <with variable="selection">

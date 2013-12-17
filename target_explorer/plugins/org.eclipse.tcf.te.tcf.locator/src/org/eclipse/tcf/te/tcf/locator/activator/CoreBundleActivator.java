@@ -87,7 +87,7 @@ public class CoreBundleActivator extends Plugin {
 		plugin = null;
 
 		// Dispose the locator model
-		final IPeerModel model = Model.getModel(true);
+		final IPeerModel model = Model.getPeerModel(true);
 		if (model != null) {
 			Runnable runnable = new Runnable() {
 				@Override

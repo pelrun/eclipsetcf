@@ -128,13 +128,13 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					IPeerModelRefreshService service = Model.getModel().getService(IPeerModelRefreshService.class);
+					IPeerModelRefreshService service = Model.getPeerModel().getService(IPeerModelRefreshService.class);
 					// Refresh the model now (must be executed within the TCF dispatch thread)
 					if (service != null) service.refresh(new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							// Get the peer model node from the model and select it in the tree
-							final IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
+							final IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
 							if (peerNode != null) {
 								// Refresh the viewer
 								ViewsUtil.refresh(IUIConstants.ID_EXPLORER);

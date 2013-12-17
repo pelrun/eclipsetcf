@@ -158,7 +158,7 @@ public class TcfTestCase extends CoreTestCase {
         final Map<String, String> attrs = new HashMap<String, String>((Map<String, String>)object);
 
 		// Lookup the corresponding peer object
-		final IPeerModel model = Model.getModel();
+		final IPeerModel model = Model.getPeerModel();
 		assertNotNull("Failed to access locator model instance.", model); //$NON-NLS-1$
 
 		// The expected peer id is "<transport>:<canonical IP>:<port>"

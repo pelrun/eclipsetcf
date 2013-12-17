@@ -88,7 +88,7 @@ public class CoreBundleActivator extends Plugin {
 			public void run() {
 				if (listener == null) return;
 				// Register the model listener with the locator model
-				Model.getModel().addListener(listener);
+				Model.getPeerModel().addListener(listener);
 			}
 		};
 
@@ -108,7 +108,7 @@ public class CoreBundleActivator extends Plugin {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					IPeerModel model = Model.getModel(true);
+					IPeerModel model = Model.getPeerModel(true);
 					if (model != null) model.removeListener(listener);
 					listener = null;
 				}

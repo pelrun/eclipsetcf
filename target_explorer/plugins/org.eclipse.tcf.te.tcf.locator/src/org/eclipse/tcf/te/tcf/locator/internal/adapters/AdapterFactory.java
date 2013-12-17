@@ -70,7 +70,7 @@ public class AdapterFactory implements IAdapterFactory {
 						@Override
 						public void run() {
 							String id = peer.getID();
-							IPeerModel model = Model.getModel();
+							IPeerModel model = Model.getPeerModel();
 							Assert.isNotNull(model);
 							IPeerNode candidate = model.getService(IPeerModelLookupService.class).lkupPeerModelById(id);
 							if (candidate != null) node.set(candidate);

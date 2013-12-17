@@ -103,7 +103,7 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 		    Protocol.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-			    	Model.getModel().removeListener(modelListener);
+			    	Model.getPeerModel().removeListener(modelListener);
 				}
 			});
 	    }
@@ -117,7 +117,7 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 	    Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				Model.getModel().addListener(modelListener);
+				Model.getPeerModel().addListener(modelListener);
 			}
 		});
     	EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);

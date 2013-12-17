@@ -33,7 +33,7 @@ public class FSTreeNodeFactory implements IElementFactory {
 	@Override
 	public IAdaptable createElement(IMemento memento) {
 		String peerId = memento.getString("peerId"); //$NON-NLS-1$
-		IPeerNode peerNode = Model.getModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
+		IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
 		if(peerNode != null) {
 			String path = memento.getString("path"); //$NON-NLS-1$
 			if(path == null) {
