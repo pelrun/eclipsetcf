@@ -167,6 +167,8 @@
 
 <!-- Processes menu contributions -->
    <extension point="org.eclipse.ui.menus">
+
+   <!-- System Managegement View context menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.launch.rundebug">
          <command
                commandId="org.eclipse.tcf.te.launch.command.attach"
@@ -193,7 +195,6 @@
                </with>
             </visibleWhen>
          </command>
-
          <command
                commandId="org.eclipse.tcf.te.launch.command.detach"
                disabledIcon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/dlcl16/detach.gif"
@@ -219,7 +220,6 @@
                </with>
             </visibleWhen>
          </command>
-         
          <command
                commandId="org.eclipse.tcf.te.launch.command.terminate"
                icon="platform:/plugin/org.eclipse.debug.ui/icons/full/elcl16/terminate_co.gif"
@@ -232,7 +232,6 @@
             </visibleWhen>
          </command>
       </menuContribution>
-     
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.refresh">
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
@@ -255,7 +254,23 @@
          </command>
       </menuContribution>
 
-      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?before=additions">
+   <!-- Editor page toolbar contributions -->
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"/>
+      </menuContribution>
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.additions">
          <command
                commandId="org.eclipse.tcf.te.tcf.processes.ui.command.refreshViewer"
                icon="icons/obj16/refresh.gif"
@@ -272,14 +287,19 @@
                tooltip="%command.configure.tooltip">
          </command>
       </menuContribution>
-
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage.refreshInterval">
          <dynamic
                class="org.eclipse.tcf.te.tcf.processes.ui.handler.ConfigIntervalDynamicContribution"
                id="org.eclipse.tcf.te.tcf.processes.ui.menu.refreshIntervalDynamic">
          </dynamic>
       </menuContribution>
+
+   <!-- Editor page toolbar menu contributions -->
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.additions">
+         <command commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"/>
+      </menuContribution>
       
+   <!-- Editor page context menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=additions">
          <separator
                name="group.showIn"

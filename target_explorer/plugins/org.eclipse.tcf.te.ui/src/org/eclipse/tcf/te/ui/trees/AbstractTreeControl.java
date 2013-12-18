@@ -647,8 +647,9 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 * @param toolbarManager The toolbar to add the toolbar items too. Must not be <code>null</code>.
 	 */
 	public void createToolbarContributionItems(IToolBarManager toolbarManager) {
-		toolbarManager.add(new CollapseAllAction(this));
-		toolbarManager.add(configFilterAction = new ConfigFilterAction(this));
+		toolbarManager.insertAfter("group.additions.control", new CollapseAllAction(this)); //$NON-NLS-1$
+		configFilterAction = new ConfigFilterAction(this);
+		toolbarManager.insertAfter("group.additions.control", configFilterAction); //$NON-NLS-1$
 	}
 
 	/**

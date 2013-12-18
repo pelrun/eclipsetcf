@@ -52,14 +52,6 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 		super.setInput(input);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#hasApplyAction()
-	 */
-	@Override
-	protected boolean hasApplyAction() {
-		return true;
-	}
-
 	/**
 	 * Add the target selector section if an {@link ISimulatorService} is available.
 	 * @param form The form.

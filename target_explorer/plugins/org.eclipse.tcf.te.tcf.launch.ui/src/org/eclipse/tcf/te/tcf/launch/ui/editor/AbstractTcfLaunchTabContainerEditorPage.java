@@ -45,14 +45,6 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 		return (IPeerNode) ((IAdaptable) input).getAdapter(IPeerNode.class);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.launch.ui.editor.AbstractLaunchTabContainerEditorPage#hasApplyAction()
-	 */
-	@Override
-	protected boolean hasApplyAction() {
-		return !isAutoSave();
-	}
-
 	private boolean isAutoSave() {
 		boolean autoSave = !UIPlugin.getDefault().getPreferenceStore().getBoolean("NoLaunchEditorTabAutoSave"); //$NON-NLS-1$
 		return autoSave;

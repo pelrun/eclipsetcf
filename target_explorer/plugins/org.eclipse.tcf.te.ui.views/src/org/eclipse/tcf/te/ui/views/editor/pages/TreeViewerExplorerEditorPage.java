@@ -141,8 +141,8 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 	@Override
     protected void createToolbarContributionItems(IToolBarManager manager) {
 	    this.toolbarMgr = manager;
-	    treeControl.createToolbarContributionItems(manager);
 	    super.createToolbarContributionItems(manager);
+	    treeControl.createToolbarContributionItems(manager);
 	}
 
 	/* (non-Javadoc)

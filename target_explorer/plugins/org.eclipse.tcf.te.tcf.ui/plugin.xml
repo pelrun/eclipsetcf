@@ -137,6 +137,7 @@
                   wizardId="org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard">
                <enablement>
                   <or>
+                     <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
                      <and>
                         <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                         <test property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
@@ -399,7 +400,8 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
-                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                         <or>
                            <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
                            <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
@@ -414,11 +416,59 @@
                                  args="org.eclipse.tcf.te.tcf.ui.command.debug"
                                  value="true"/>
                         </or>
-                     </adapt>
+                     </and>
                   </iterate>
                </with>
             </visibleWhen>
          </command> 
+      </menuContribution>
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.importexport">
+          <command commandId="org.eclipse.ui.file.import">
+             <visibleWhen checkEnabled="false">
+                <with variable="selection">
+                   <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                         <or>
+                            <not>
+                               <test
+                                     forcePluginActivation="true"
+                                     property="org.eclipse.tcf.te.runtime.services.hasService"
+                                     value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                            </not>
+                            <test
+                                  property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                  args="org.eclipse.ui.file.import"
+                                  value="true"/>
+                         </or>
+                      </and>
+                   </iterate>
+                </with>
+             </visibleWhen>
+          </command>
+          <command commandId="org.eclipse.ui.file.export">
+             <visibleWhen checkEnabled="false">
+                <with variable="selection">
+                   <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                         <or>
+                            <not>
+                               <test
+                                     forcePluginActivation="true"
+                                     property="org.eclipse.tcf.te.runtime.services.hasService"
+                                     value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+                            </not>
+                            <test
+                                  property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
+                                  args="org.eclipse.ui.file.export"
+                                  value="true"/>
+                         </or>
+                      </and>
+                   </iterate>
+                </with>
+             </visibleWhen>
+          </command>
       </menuContribution>
 
    <!-- Editor page toolbar contributions -->

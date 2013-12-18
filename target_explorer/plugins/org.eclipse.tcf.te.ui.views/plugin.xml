@@ -361,51 +361,6 @@
          </command>
       </menuContribution>
       
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.importexport">
-          <command
-                commandId="org.eclipse.ui.file.import">
-             <visibleWhen checkEnabled="false">
-                <with variable="selection">
-                   <iterate operator="and" ifEmpty="false">
-                      <or>
-                         <not>
-                            <test
-                                  forcePluginActivation="true"
-                                  property="org.eclipse.tcf.te.runtime.services.hasService"
-                                  value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
-                         </not>
-                         <test
-                               property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
-                               args="org.eclipse.ui.file.import"
-                               value="true"/>
-                      </or>
-                   </iterate>
-                </with>
-             </visibleWhen>
-          </command>
-          <command
-                commandId="org.eclipse.ui.file.export">
-             <visibleWhen checkEnabled="false">
-                <with variable="selection">
-                   <iterate operator="and" ifEmpty="false">
-                      <or>
-                         <not>
-                            <test
-                                  forcePluginActivation="true"
-                                  property="org.eclipse.tcf.te.runtime.services.hasService"
-                                  value="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
-                         </not>
-                         <test
-                               property="org.eclipse.tcf.te.runtime.services.menu.isVisible"
-                               args="org.eclipse.ui.file.export"
-                               value="true"/>
-                      </or>
-                   </iterate>
-                </with>
-             </visibleWhen>
-          </command>
-      </menuContribution>
-      
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.showIn">
          <menu
                commandId="org.eclipse.tcf.te.ui.views.command.ShowInGroup"

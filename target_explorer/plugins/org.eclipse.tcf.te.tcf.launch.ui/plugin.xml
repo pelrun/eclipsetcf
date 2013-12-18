@@ -265,6 +265,45 @@
          </command>
       </menuContribution>
 
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+         <command commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
+            <visibleWhen checkEnabled="false">
+               <reference definitionId="te.expressions.editor.IConnectable"/>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
    </extension>
 
 <!-- Command contributions -->

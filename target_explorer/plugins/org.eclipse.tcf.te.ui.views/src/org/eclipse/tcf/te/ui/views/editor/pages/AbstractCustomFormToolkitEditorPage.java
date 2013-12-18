@@ -37,8 +37,6 @@ import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
-import org.eclipse.ui.menus.CommandContributionItem;
-import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.IMenuService;
 
 /**
@@ -238,26 +236,9 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		manager.add(new Separator("group.connect")); //$NON-NLS-1$
 		manager.add(new Separator("group.launch")); //$NON-NLS-1$
 		manager.add(new GroupMarker("group.launch.rundebug")); //$NON-NLS-1$
-		manager.add(new GroupMarker("group.launch.modes")); //$NON-NLS-1$
 		manager.add(new GroupMarker("group.launch.additions")); //$NON-NLS-1$
-
-		manager.add(new Separator("group.showIn")); //$NON-NLS-1$
-		if (hasShowInSystemManagementAction()) {
-			manager.add(new CommandContributionItem(new CommandContributionItemParameter(PlatformUI.getWorkbench(),
-                        "org.eclipse.tcf.te.ui.views.command.showIn.systemManagement", //$NON-NLS-1$
-                        "org.eclipse.tcf.te.ui.command.showIn.systemManagement", //$NON-NLS-1$
-						  CommandContributionItem.STYLE_PUSH)));
-		}
-
-		manager.add(new Separator("group.save")); //$NON-NLS-1$
-		// If the page should have an apply button, add one to the toolbar
-		if (hasApplyAction()) {
-			manager.add(new CommandContributionItem(new CommandContributionItemParameter(PlatformUI.getWorkbench(),
-	                        "org.eclipse.tcf.te.ui.views.command.save", //$NON-NLS-1$
-	                        "org.eclipse.ui.file.save", //$NON-NLS-1$
-							  CommandContributionItem.STYLE_PUSH)));
-		}
-
+		manager.add(new Separator("group.additions")); //$NON-NLS-1$
+		manager.add(new Separator("group.additions.control")); //$NON-NLS-1$
 		manager.add(new Separator("group.help")); //$NON-NLS-1$
 		// If the page is associated with a context help id, add a default
 		// help action button into the toolbar
@@ -266,14 +247,17 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 			if (helpAction != null) manager.add(helpAction);
 		}
 
-		manager.add(new GroupMarker("group.additions")); //$NON-NLS-1$
-
 		final MenuManager mgr = new MenuManager();
+		mgr.add(new Separator("group.launch")); //$NON-NLS-1$
+		mgr.add(new GroupMarker("group.launch.rundebug")); //$NON-NLS-1$
+		mgr.add(new Separator("group.launch.additions")); //$NON-NLS-1$
+		mgr.add(new Separator("group.delete")); //$NON-NLS-1$
+		mgr.add(new Separator("group.additions")); //$NON-NLS-1$
 		final IMenuService service = (IMenuService) getSite().getService(IMenuService.class);
 		if (service != null) {
 			service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
 		}
-		if (mgr.getSize() > 0) {
+		if (mgr.getSize() > 5) {
 			toolBarManager.add(new ControlContribution("toolbarmenu") { //$NON-NLS-1$
 				@Override
 				protected Control createControl(Composite parent) {
@@ -284,6 +268,11 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							MenuManager mgr = new MenuManager();
+							mgr.add(new Separator("group.launch")); //$NON-NLS-1$
+							mgr.add(new GroupMarker("group.launch.rundebug")); //$NON-NLS-1$
+							mgr.add(new Separator("group.launch.additions")); //$NON-NLS-1$
+							mgr.add(new Separator("group.delete")); //$NON-NLS-1$
+							mgr.add(new Separator("group.additions")); //$NON-NLS-1$
 							service.populateContributionManager(mgr, "menu:" + AbstractCustomFormToolkitEditorPage.this.getId()); //$NON-NLS-1$
 							Menu menu = mgr.createContextMenu(tb);
 							menu.setVisible(true);
@@ -304,30 +293,6 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected Action doCreateHelpAction(String contextHelpId) {
 		Assert.isNotNull(contextHelpId);
 		return new HelpAction(contextHelpId);
-	}
-
-	/**
-	 * Returns if or if not the page should have an
-	 * ShowInSystemManagementView button in the toolbar.
-	 * <p>
-	 * The default implementation returns <code>true</code>.
-	 *
-	 * @return <code>True</code> if the page does have an ShowInSystemManagementView button, <code>false</code> otherwise.
-	 */
-	protected boolean hasShowInSystemManagementAction() {
-		return true;
-	}
-
-	/**
-	 * Returns if or if not the page should have an apply button in
-	 * the toolbar.
-	 * <p>
-	 * The default implementation returns <code>false</code>.
-	 *
-	 * @return <code>True</code> if the page does have an apply button, <code>false</code> otherwise.
-	 */
-	protected boolean hasApplyAction() {
-		return false;
 	}
 
 	/**
