@@ -150,10 +150,13 @@ public class Messages extends NLS {
 
 	public static String DeleteHandlerDelegate_MsgDeleteOnePeer;
 
-	public static String AgentSelectionDialog_dialogTitle;
-	public static String AgentSelectionDialog_title;
-	public static String AgentSelectionDialog_message;
-	public static String AgentSelectionDialog_button_showOnlyReachable;
+	public static String PeerSelectionDialog_dialogTitle;
+	public static String PeerSelectionDialog_title;
+	public static String PeerSelectionDialog_message;
+
+	public static String PeerNodeSelectionDialog_dialogTitle;
+	public static String PeerNodeSelectionDialog_title;
+	public static String PeerNodeSelectionDialog_message;
 
 	public static String RedirectHandler_error_title;
 	public static String RedirectHandler_error_redirectFailed;

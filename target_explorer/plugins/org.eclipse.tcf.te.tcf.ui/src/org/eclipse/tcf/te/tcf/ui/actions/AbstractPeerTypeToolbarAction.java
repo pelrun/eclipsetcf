@@ -25,7 +25,6 @@ import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -44,10 +43,9 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
-import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
+import org.eclipse.tcf.te.tcf.ui.dialogs.PeerNodeSelectionDialog;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
-import org.eclipse.tcf.te.ui.views.navigator.ViewerSorter;
 import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
 import org.eclipse.ui.IActionDelegate2;
 import org.eclipse.ui.IEditorInput;
@@ -89,7 +87,6 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 	protected abstract ImageDescriptor getSelectExistingActionImageDescriptor();
 	protected abstract String getSelectExistingDialogTitle();
 	protected abstract String getSelectExistingDialogDescription();
-	protected abstract String getSelectExistingDialogReachableOnlyLabel();
 	protected abstract ViewerFilter getSelectExistingDialogViewerFilter();
 
 	/* (non-Javadoc)
@@ -283,7 +280,7 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 				// Get the active page
 				IWorkbenchPage page = window.getActivePage();
 				// Create the agent selection dialog
-				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
+				PeerNodeSelectionDialog dialog = new PeerNodeSelectionDialog(null) {
 					@Override
 					protected String getTitle() {
 					    return getSelectExistingDialogTitle();
@@ -293,18 +290,8 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 					    return getSelectExistingDialogDescription();
 					}
 					@Override
-					protected String getShowOnlyReachableLabel() {
-					    return getSelectExistingDialogReachableOnlyLabel();
-					}
-					@Override
-					protected boolean supportsMultiSelection() {
-						return false;
-					}
-					@Override
-					protected void configureTableViewer(TableViewer viewer) {
-						super.configureTableViewer(viewer);
-						viewer.addFilter(getSelectExistingDialogViewerFilter());
-						viewer.setSorter(new ViewerSorter());
+					protected String getType() {
+					    return getPeerTypeId();
 					}
 				};
 

@@ -1,0 +1,127 @@
+/*******************************************************************************
+ * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * This program and the accompanying materials are made available under the terms
+ * of the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * Wind River Systems - initial API and implementation
+ *******************************************************************************/
+package org.eclipse.tcf.te.tcf.ui.dialogs;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
+import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+
+/**
+ * Peer selection dialog implementation.
+ */
+public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog {
+
+	final String[] services;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param shell The shell used to view the dialog, or <code>null</code>.
+	 */
+	public PeerNodeSelectionDialog(Shell shell) {
+		super(shell, IContextHelpIds.PEER_NODE_SELECTION_DIALOG);
+
+		this.services = null;
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param shell The shell used to view the dialog, or <code>null</code>.
+	 */
+	public PeerNodeSelectionDialog(Shell shell, String[] services) {
+		super(shell, IContextHelpIds.PEER_NODE_SELECTION_DIALOG);
+
+		this.services = services;
+	}
+
+	@Override
+    protected Object[] getInput() {
+		List<IPeerNode> peerNodes = new ArrayList<IPeerNode>();
+	    for (final IPeerNode peerNode : ModelManager.getPeerModel().getPeerNodes()) {
+	    	if (getType() == null || getType().equals(peerNode.getPeerType())) {
+	    		if (services != null && services.length > 0) {
+	    			final AtomicBoolean hasServices = new AtomicBoolean();
+	    			Protocol.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+			    			String offlineServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
+			    			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+			    			List<String> offline = offlineServices != null ? Arrays.asList(offlineServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
+			    			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$
+			    			boolean hasOfflineService = true;
+			    			for (String service : services) {
+				    			hasOfflineService &= (remote == null) ? offline.contains(service) : remote.contains(service);
+				    			if (!hasOfflineService) {
+				    				break;
+				    			}
+                            }
+			    			hasServices.set(hasOfflineService);
+						}
+					});
+	    			if (!hasServices.get()) {
+	    				continue;
+	    			}
+	    		}
+	    		peerNodes.add(peerNode);
+	    	}
+        }
+
+	    return peerNodes.toArray();
+	}
+
+	/**
+	 * Get the peer node type to filter.
+	 * @return The peer type id or <code>null</code> for all peer nodes.
+	 */
+	protected String getType() {
+		return null;
+	}
+
+	/**
+	 * Returns the dialog title.
+	 *
+	 * @return The dialog title.
+	 */
+	@Override
+    protected String getDialogTitle() {
+		return Messages.PeerNodeSelectionDialog_dialogTitle;
+	}
+
+	/**
+	 * Returns the title.
+	 *
+	 * @return The title.
+	 */
+	@Override
+    protected String getTitle() {
+		return Messages.PeerNodeSelectionDialog_title;
+	}
+
+	/**
+	 * Returns the default message.
+	 *
+	 * @return The default message.
+	 */
+	@Override
+    protected String getDefaultMessage() {
+		return Messages.PeerNodeSelectionDialog_message;
+	}
+}

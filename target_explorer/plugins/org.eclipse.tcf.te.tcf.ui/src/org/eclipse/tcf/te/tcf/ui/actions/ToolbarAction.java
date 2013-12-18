@@ -65,14 +65,6 @@ public class ToolbarAction extends AbstractPeerTypeToolbarAction {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.actions.AbstractPeerTypeToolbarAction#getSelectExistingDialogReachableOnlyLabel()
-	 */
-	@Override
-	protected String getSelectExistingDialogReachableOnlyLabel() {
-	    return Messages.ToolbarAction_selectionDialog_button_showOnlyReachable;
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.ui.actions.AbstractPeerTypeToolbarAction#getSelectExistingDialogViewerFilter()
 	 */
 	@Override

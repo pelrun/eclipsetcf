@@ -51,6 +51,15 @@ public interface IPeerNode extends IContainerModelNode, IDecoratable, IConnectab
 	public String getPeerId();
 
 	/**
+	 * Returns the peer type.
+	 * <p>
+	 * This method may be called from any thread.
+	 *
+	 * @return The peer type or <code>null</code>.
+	 */
+	public String getPeerType();
+
+	/**
 	 * Returns if or if not the peer attributes are complete to open a channel to it.
 	 *
 	 * @return <code>True</code> if the peer attributes are complete, <code>false</code> otherwise.

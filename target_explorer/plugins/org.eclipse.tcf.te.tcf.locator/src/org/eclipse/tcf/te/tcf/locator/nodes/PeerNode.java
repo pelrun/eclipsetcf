@@ -301,6 +301,21 @@ public class PeerNode extends ContainerModelNode implements IPeerNode {
     	return state.get();
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode#getPeerType()
+     */
+    @Override
+    public String getPeerType() {
+    	final AtomicReference<String> type = new AtomicReference<String>();
+    	Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				type.set(getPeer().getAttributes().get(IPeerNodeProperties.PROP_TYPE));
+			}
+		});
+    	return type.get();
+    }
+
     @Override
     public boolean setConnectState(final int newState) {
     	final AtomicBoolean result = new AtomicBoolean(false);

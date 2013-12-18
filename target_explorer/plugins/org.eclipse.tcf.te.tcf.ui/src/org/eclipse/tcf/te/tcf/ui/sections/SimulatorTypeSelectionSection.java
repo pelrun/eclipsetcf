@@ -154,12 +154,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			}
 			@Override
 			protected void onButtonControlSelected() {
-				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
-					@Override
-					protected boolean supportsMultiSelection() {
-						return false;
-					}
-				};
+				PeerSelectionDialog dialog = new PeerSelectionDialog(null);
 
 				// Open the dialog
 				if (dialog.open() == Window.OK) {

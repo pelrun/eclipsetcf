@@ -133,10 +133,14 @@
             <parameter name="action" value="connect"/>
          </class>
          <activeWhen>
-            <reference definitionId="te.expressions.selection.IConnectable"/>
+            <with variable="systemManagerViewSelection">
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
+               </iterate>
+            </with>
          </activeWhen>
          <enabledWhen>
-            <with variable="selection">
+            <with variable="systemManagerViewSelection">
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
                      <test forcePluginActivation="true"
@@ -173,10 +177,14 @@
             <parameter name="action" value="disconnect"/>
          </class>
          <activeWhen>
-            <reference definitionId="te.expressions.selection.IConnectable"/>
+            <with variable="systemManagerViewSelection">
+               <iterate operator="and" ifEmpty="false">
+                  <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
+               </iterate>
+            </with>
          </activeWhen>
          <enabledWhen>
-            <with variable="selection">
+            <with variable="systemManagerViewSelection">
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
                      <test forcePluginActivation="true"
@@ -208,6 +216,7 @@
    
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
+
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.connect">
          <command commandId="org.eclipse.tcf.te.ui.command.connect">
             <visibleWhen checkEnabled="false">
@@ -219,6 +228,11 @@
                <reference definitionId="te.expressions.selection.IConnectable"/>
             </visibleWhen>
          </command>
+      </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.ui.views.View?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.command.connect"/>
+         <command commandId="org.eclipse.tcf.te.ui.command.disconnect"/>
       </menuContribution>
    </extension>
 

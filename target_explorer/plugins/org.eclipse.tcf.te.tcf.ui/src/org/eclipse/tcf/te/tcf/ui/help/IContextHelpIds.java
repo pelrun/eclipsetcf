@@ -43,9 +43,14 @@ public interface IContextHelpIds {
 	// ***** Dialogs and Dialog Pages *****
 
 	/**
-	 * TCF agent selection dialog.
+	 * Peer selection dialog.
 	 */
-	public final static String AGENT_SELECTION_DIALOG = PREFIX + "PeerSelectionDialog"; //$NON-NLS-1$
+	public final static String PEER_SELECTION_DIALOG = PREFIX + "PeerSelectionDialog"; //$NON-NLS-1$
+
+	/**
+	 * Peer node selection dialog.
+	 */
+	public final static String PEER_NODE_SELECTION_DIALOG = PREFIX + "PeerNodeSelectionDialog"; //$NON-NLS-1$
 
 	// ***** Message dialog boxes *****
 
