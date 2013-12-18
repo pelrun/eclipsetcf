@@ -14,7 +14,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.navigator.ContentProvider;
 import org.eclipse.tcf.te.ui.views.controls.AbstractContextSelectorControl;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
@@ -45,7 +45,7 @@ public class ContextSelectorSectionControl extends AbstractContextSelectorContro
 	 */
 	@Override
 	protected Object getInitialViewerInput() {
-		return Model.getPeerModel();
+		return ModelManager.getPeerModel();
 	}
 
 	/* (non-Javadoc)

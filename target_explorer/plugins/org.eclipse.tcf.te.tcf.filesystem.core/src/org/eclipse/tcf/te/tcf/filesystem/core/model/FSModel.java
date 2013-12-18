@@ -54,7 +54,7 @@ public final class FSModel implements ITreeNodeModel {
 	private FSTreeNode root;
 	private IPeerNode peerNode;
 	/**
-	 * Create a File System Model.
+	 * Create a File System ModelManager.
 	 */
 	/* default */ FSModel(IPeerNode peerNode) {
 		this.peerNode = peerNode;

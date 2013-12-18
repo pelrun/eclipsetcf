@@ -14,6 +14,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
 
@@ -43,6 +44,18 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		Map<String, IPeer> peers = (Map<String, IPeer>)getLocatorModel().getAdapter(Map.class);
 		Assert.isNotNull(peers);
 		peers.put(peer.getID(), peer);
+
+		final ILocatorModelListener[] listeners = getLocatorModel().getListener();
+		if (listeners.length > 0) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					for (ILocatorModelListener listener : listeners) {
+						listener.modelChanged(getLocatorModel(), peer, true);
+					}
+				}
+			});
+		}
 	}
 
 	/* (non-Javadoc)
@@ -56,13 +69,25 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		Map<String, IPeer> peers = (Map<String, IPeer>)getLocatorModel().getAdapter(Map.class);
 		Assert.isNotNull(peers);
 		peers.remove(peer.getID());
+
+		final ILocatorModelListener[] listeners = getLocatorModel().getListener();
+		if (listeners.length > 0) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					for (ILocatorModelListener listener : listeners) {
+						listener.modelChanged(getLocatorModel(), peer, false);
+					}
+				}
+			});
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#update(org.eclipse.tcf.protocol.IPeer, org.eclipse.tcf.protocol.IPeer)
 	 */
 	@Override
-	public void update(IPeer oldPeer, IPeer newPeer) {
+	public void update(final IPeer oldPeer, final IPeer newPeer) {
 		Assert.isNotNull(oldPeer);
 		Assert.isNotNull(newPeer);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
@@ -71,5 +96,24 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		Assert.isNotNull(peers);
 		peers.remove(oldPeer.getID());
 		peers.put(newPeer.getID(), newPeer);
+
+
+		final ILocatorModelListener[] listeners = getLocatorModel().getListener();
+		if (listeners.length > 0) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					for (ILocatorModelListener listener : listeners) {
+						if (!oldPeer.getID().equals(newPeer.getID())) {
+							listener.modelChanged(getLocatorModel(), oldPeer, false);
+							listener.modelChanged(getLocatorModel(), newPeer, true);
+						}
+						else {
+							listener.modelChanged(getLocatorModel(), newPeer, false);
+						}
+					}
+				}
+			});
+		}
 	}
 }

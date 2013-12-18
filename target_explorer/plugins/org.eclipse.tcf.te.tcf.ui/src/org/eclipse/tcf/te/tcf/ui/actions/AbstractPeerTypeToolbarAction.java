@@ -43,7 +43,7 @@ import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
@@ -207,7 +207,7 @@ public abstract class AbstractPeerTypeToolbarAction extends Action implements IA
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					IPeerModel model = Model.getPeerModel();
+					IPeerModel model = ModelManager.getPeerModel();
 					Assert.isNotNull(model);
 					peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}

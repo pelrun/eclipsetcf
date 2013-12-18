@@ -35,7 +35,7 @@ import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.dialogs.RenameDialog;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
@@ -108,7 +108,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						// Get the peer model node from the model and select it in the tree
-						IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
+						IPeerNode peerNode = ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
 						newPeer.set(peerNode);
 						if (peerNode != null) {
 							// Refresh the viewer
@@ -125,7 +125,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 				Protocol.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						IPeerModelRefreshService service = Model.getPeerModel().getService(IPeerModelRefreshService.class);
+						IPeerModelRefreshService service = ModelManager.getPeerModel().getService(IPeerModelRefreshService.class);
 						// Refresh the model now (must be executed within the TCF dispatch thread)
 						if (service != null) {
 							service.refresh(cb);
@@ -150,7 +150,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerNode[] peers = Model.getPeerModel().getPeerNodes();
+				IPeerNode[] peers = ModelManager.getPeerModel().getPeerNodes();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerNode peerNode : peers) {
 						String name = peerNode.getPeer().getName();

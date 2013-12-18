@@ -32,7 +32,7 @@ import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.IWorkbench;
@@ -104,7 +104,7 @@ public class UIPlugin extends AbstractUIPlugin {
 
 				if (proceedShutdown || forced) {
 					// Terminate the scanner
-					final IPeerModel model = Model.getPeerModel(true);
+					final IPeerModel model = ModelManager.getPeerModel(true);
 
 					// Disconnect all connected connections via the stepper service
 					if (model != null) {

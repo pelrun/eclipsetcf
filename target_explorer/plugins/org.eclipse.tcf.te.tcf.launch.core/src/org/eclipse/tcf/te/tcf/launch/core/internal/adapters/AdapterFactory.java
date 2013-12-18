@@ -25,7 +25,7 @@ import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 
 /**
  * Adapter factory implementation.
@@ -112,7 +112,7 @@ public class AdapterFactory implements IAdapterFactory {
 			}
 		}
 		else if (adaptableObject instanceof IPeer) {
-			final IPeerModelLookupService service = Model.getPeerModel().getService(IPeerModelLookupService.class);
+			final IPeerModelLookupService service = ModelManager.getPeerModel().getService(IPeerModelLookupService.class);
 			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 
 			if (service != null) {

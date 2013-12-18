@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDe
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerImageDescriptor;
@@ -122,7 +122,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					count.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelByName(label).length);
+					count.set(ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelByName(label).length);
 				}
 			};
 

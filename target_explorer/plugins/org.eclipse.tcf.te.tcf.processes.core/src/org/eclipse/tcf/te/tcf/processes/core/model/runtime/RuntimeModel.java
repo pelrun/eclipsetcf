@@ -41,7 +41,7 @@ import org.eclipse.tcf.te.tcf.processes.core.model.runtime.services.RuntimeModel
 
 
 /**
- * Model implementation dealing with Processes at runtime.
+ * ModelManager implementation dealing with Processes at runtime.
  */
 public final class RuntimeModel extends ContainerModelNode implements IRuntimeModel, IFilterable {
 	// Flag to mark the model disposed

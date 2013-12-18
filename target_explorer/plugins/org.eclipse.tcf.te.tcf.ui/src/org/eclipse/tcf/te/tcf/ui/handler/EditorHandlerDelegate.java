@@ -16,11 +16,12 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 
 /**
- * AbstractPeerNodeEditorHandlerDelegate
+ * EditorHandlerDelegate
  */
-public abstract class AbstractPeerNodeEditorHandlerDelegate implements IEditorHandlerDelegate {
+public class EditorHandlerDelegate implements IEditorHandlerDelegate {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate#getEditorInput(java.lang.Object)
@@ -32,5 +33,12 @@ public abstract class AbstractPeerNodeEditorHandlerDelegate implements IEditorHa
 			model = (IPeerNode)((IAdaptable)element).getAdapter(IPeerNode.class);
 		}
 		return new EditorInput(model != null ? model : element);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate#postOpenEditor(org.eclipse.ui.IEditorPart, java.lang.Object)
+	 */
+	@Override
+	public void postOpenEditor(IEditorPart editor, Object element) {
 	}
 }

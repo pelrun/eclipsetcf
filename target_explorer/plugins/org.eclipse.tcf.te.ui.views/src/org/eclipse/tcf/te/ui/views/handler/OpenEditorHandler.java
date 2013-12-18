@@ -24,7 +24,6 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
-import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IEditorInput;
@@ -99,7 +98,7 @@ public class OpenEditorHandler extends AbstractHandler {
 				// Create the editor input object
 				IUIService service = ServiceManager.getInstance().getService(element, IUIService.class);
 				IEditorHandlerDelegate delegate = service != null ? service.getDelegate(element, IEditorHandlerDelegate.class) : null;
-				IEditorInput input = (delegate != null) ? delegate.getEditorInput(element) : new EditorInput(element);
+				IEditorInput input = (delegate != null) ? delegate.getEditorInput(element) : null;
 				try {
 					// Opens the Target Explorer properties editor
 					IEditorPart editor = page.openEditor(input, IUIConstants.ID_EDITOR);

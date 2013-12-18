@@ -26,10 +26,10 @@ import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
@@ -44,13 +44,13 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 
 	private boolean disposed = false;
 
-	final IModelListener modelListener = new IModelListener() {
+	final IPeerModelListener modelListener = new IPeerModelListener() {
 		@Override
-		public void locatorModelDisposed(IPeerModel model) {
+		public void modelDisposed(IPeerModel model) {
 			refreshSelectorControl();
 		}
 		@Override
-		public void locatorModelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
+		public void modelChanged(final IPeerModel model, final IPeerNode peerNode, final boolean added) {
 			refreshSelectorControl();
 		}
 	};
@@ -103,7 +103,7 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 		    Protocol.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-			    	Model.getPeerModel().removeListener(modelListener);
+			    	ModelManager.getPeerModel().removeListener(modelListener);
 				}
 			});
 	    }
@@ -117,7 +117,7 @@ public abstract class AbstractContextSelectorSection extends org.eclipse.tcf.te.
 	    Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				Model.getPeerModel().addListener(modelListener);
+				ModelManager.getPeerModel().addListener(modelListener);
 			}
 		});
     	EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);

@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IAdapterService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter;
@@ -29,19 +29,19 @@ import org.eclipse.ui.navigator.CommonViewer;
 
 
 /**
- * TCF locator model listener implementation.
+ * Peer model listener implementation.
  */
-public class ModelListener extends ModelAdapter {
+public class PeerModelListener extends ModelAdapter {
 	private final IPeerModel parentModel;
 	/* default */ final CommonViewer viewer;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param parent The parent locator model. Must not be <code>null</code>.
+	 * @param parent The parent peer model. Must not be <code>null</code>.
 	 * @param viewer The common viewer instance. Must not be <code>null</code>.
 	 */
-	public ModelListener(IPeerModel parent, CommonViewer viewer) {
+	public PeerModelListener(IPeerModel parent, CommonViewer viewer) {
 		Assert.isNotNull(parent);
 		Assert.isNotNull(viewer);
 
@@ -50,10 +50,10 @@ public class ModelListener extends ModelAdapter {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
+	 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
 	 */
 	@Override
-	public void locatorModelChanged(final IPeerModel model, final IPeerNode peerNode, final boolean added) {
+	public void modelChanged(final IPeerModel model, final IPeerNode peerNode, final boolean added) {
 		if (parentModel.equals(model)) {
 			// Locator model changed -> refresh the tree
 			Tree tree = viewer.getTree();
@@ -70,12 +70,12 @@ public class ModelListener extends ModelAdapter {
 			}
 
 			if (peerNode != null) {
-				// Check if the peer model node can be adapted to IModelListener.
+				// Check if the peer model node can be adapted to IPeerModelListener.
 				IAdapterService service = ServiceManager.getInstance().getService(peerNode, IAdapterService.class);
-				IModelListener listener = service != null ? service.getAdapter(peerNode, IModelListener.class) : null;
+				IPeerModelListener listener = service != null ? service.getAdapter(peerNode, IPeerModelListener.class) : null;
 				// If yes -> Invoke the adapted model listener instance
 				if (listener != null) {
-					listener.locatorModelChanged(model, peerNode, added);
+					listener.modelChanged(model, peerNode, added);
 				}
 				// If no -> Default behavior for dynamic discovered peers is to close the editor (if any).
 				// 			For static peers, leave the editor untouched.

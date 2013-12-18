@@ -60,7 +60,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.progress.UIJob;
@@ -336,7 +336,7 @@ public class PeerImportWizardPage extends WizardPage {
 		UIJob importjob = new UIJob(getContainer().getShell().getDisplay(), Messages.PeerImportWizard_title) {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				final IPeerModel model = Model.getPeerModel();
+				final IPeerModel model = ModelManager.getPeerModel();
 				final IProgressMonitor finalMonitor;
 				if (monitor == null) {
 					finalMonitor = new NullProgressMonitor();

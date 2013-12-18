@@ -26,13 +26,15 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerRedirector;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
@@ -66,8 +68,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	private final static String CURRENT_USER_FILTER_ID = "org.eclipse.tcf.te.tcf.ui.navigator.PeersByCurrentUserFilter"; //$NON-NLS-1$
 
 
+	// The peer model listener instance
+	/* default */ IPeerModelListener peerModelListener = null;
 	// The locator model listener instance
-	/* default */ IModelListener modelListener = null;
+	/* default */ ILocatorModelListener locatorModelListener = null;
 
 	// Internal map of PeerRedirectorGroupNodes per peer id
 	private final Map<String, PeerRedirectorGroupNode> roots = new HashMap<String, PeerRedirectorGroupNode>();
@@ -119,9 +123,9 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	/* default */ final boolean isFiltered(IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
 
-		boolean filtered = isFiltered(peerNode.getPeer());
+		boolean filtered = false;
 
-		if (!filtered && !showInvisible) {
+		if (!showInvisible) {
 			filtered |= !peerNode.isVisible();
 		}
 
@@ -171,12 +175,12 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		// If the parent element is a category, than we assume
 		// the locator model as parent element.
 		if (parentElement instanceof ICategory) {
-			parentElement = Model.getPeerModel();
+			parentElement = ModelManager.getPeerModel();
 		}
 		// If the parent element is the root element and "all"
 		// categories are hidden, assume the locator model as parent element
 		if (parentElement instanceof IRoot && allHidden) {
-			parentElement = Model.getPeerModel();
+			parentElement = ModelManager.getPeerModel();
 		}
 
 		// If it is the locator model, get the peers
@@ -186,55 +190,45 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			final List<Object> candidates = new ArrayList<Object>();
 
 			if (IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
-				for (IPeerNode peer : peerNodes) {
-					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+				for (IPeerNode peerNode : peerNodes) {
+					ICategorizable categorizable = (ICategorizable)peerNode.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
-						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
+						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peerNode, ICategorizable.class);
 					}
 					Assert.isNotNull(categorizable);
 
 					boolean isFavorite = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-					if (isFavorite && !candidates.contains(peer)) {
-						candidates.add(peer);
+					if (isFavorite && !candidates.contains(peerNode)) {
+						candidates.add(peerNode);
 					}
 				}
 			}
 			else if (IUIConstants.ID_CAT_MY_TARGETS.equals(catID)) {
-				for (IPeerNode peer : peerNodes) {
+				for (IPeerNode peerNode : peerNodes) {
 					// Check for filtered nodes (Value-add's and Proxies)
-					if (isFiltered(peer)) {
+					if (isFiltered(peerNode)) {
 						continue;
 					}
 
-					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+					ICategorizable categorizable = (ICategorizable)peerNode.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
-						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
+						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peerNode, ICategorizable.class);
 					}
 					Assert.isNotNull(categorizable);
 
-					// Static peers, or if launched by current user -> add automatically to "My Targets"
-					boolean startedByCurrentUser = System.getProperty("user.name").equals(peer.getPeer().getUserName()); //$NON-NLS-1$
-					if (!startedByCurrentUser) {
-						// If the "Neighborhood" category is not visible, ignore the startedByCurrentUser flag
-						if (neighborhoodCat != null && !neighborhoodCat.isEnabled()) {
-							startedByCurrentUser = true;
-						}
-					}
-
 					boolean isMyTargets = Managers.getCategoryManager().belongsTo(catID, categorizable.getId());
-					if (!isMyTargets && startedByCurrentUser) {
-						// "Value-add's" are not saved to the category persistence automatically
+					if (!isMyTargets) {
 						Managers.getCategoryManager().addTransient(catID, categorizable.getId());
 						isMyTargets = true;
 					}
 
-					if (isMyTargets && !candidates.contains(peer)) {
-						candidates.add(peer);
+					if (isMyTargets && !candidates.contains(peerNode)) {
+						candidates.add(peerNode);
 					}
 				}
 			}
 			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
-				for (IPeer peer : Model.getLocatorModel().getPeers()) {
+				for (IPeer peer : ModelManager.getLocatorModel().getPeers()) {
 					// Check for filtered nodes (Value-add's and Proxies)
 					if (isFiltered(peer)) {
 						continue;
@@ -246,28 +240,28 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 			else if (catID != null) {
-				for (IPeerNode peer : peerNodes) {
-					ICategorizable categorizable = (ICategorizable)peer.getAdapter(ICategorizable.class);
+				for (IPeerNode peerNode : peerNodes) {
+					ICategorizable categorizable = (ICategorizable)peerNode.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
-						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peer, ICategorizable.class);
+						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peerNode, ICategorizable.class);
 					}
 					Assert.isNotNull(categorizable);
 
-					boolean belongsTo = category.belongsTo(peer);
-					if (belongsTo && !candidates.contains(peer)) {
+					boolean belongsTo = category.belongsTo(peerNode);
+					if (belongsTo && !candidates.contains(peerNode)) {
                         Managers.getCategoryManager().addTransient(catID, categorizable.getId());
-						candidates.add(peer);
+						candidates.add(peerNode);
 					}
 				}
 			}
 			else {
-				for (IPeerNode peer : peerNodes) {
+				for (IPeerNode peerNode : peerNodes) {
 					// Check for filtered nodes (Value-add's and Proxies)
-					if (isFiltered(peer)) {
+					if (isFiltered(peerNode)) {
 						continue;
 					}
-					if (!candidates.contains(peer)) {
-						candidates.add(peer);
+					if (!candidates.contains(peerNode)) {
+						candidates.add(peerNode);
 					}
 				}
 			}
@@ -320,7 +314,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			final Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					parent.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(((PeerRedirectorGroupNode)element).peerId));
+					parent.set(ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(((PeerRedirectorGroupNode)element).peerId));
 				}
 			};
 
@@ -408,16 +402,27 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 */
 	@Override
 	public void dispose() {
-		if (modelListener != null) {
+		if (peerModelListener != null) {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					Model.getPeerModel().removeListener(modelListener);
+					ModelManager.getPeerModel().removeListener(peerModelListener);
 				}
 			};
 			if (Protocol.isDispatchThread()) runnable.run();
 			else Protocol.invokeAndWait(runnable);
-			modelListener = null;
+			peerModelListener = null;
+		}
+		if (locatorModelListener != null) {
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					ModelManager.getLocatorModel().removeListener(locatorModelListener);
+				}
+			};
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+			locatorModelListener = null;
 		}
 
 		roots.clear();
@@ -428,25 +433,36 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 */
 	@Override
 	public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
-		final IPeerModel model = Model.getPeerModel();
+		final IPeerModel peerModel = ModelManager.getPeerModel();
+		final ILocatorModel locatorModel = ModelManager.getLocatorModel();
 
 		// Create and attach the model listener if not yet done
-		if (modelListener == null && model != null && viewer instanceof CommonViewer) {
-			modelListener = new ModelListener(model, (CommonViewer)viewer);
+		if (peerModelListener == null && peerModel != null && viewer instanceof CommonViewer) {
+			peerModelListener = new PeerModelListener(peerModel, (CommonViewer)viewer);
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					model.addListener(modelListener);
+					peerModel.addListener(peerModelListener);
+				}
+			});
+		}
+		// Create and attach the model listener if not yet done
+		if (locatorModelListener == null && locatorModel != null && viewer instanceof CommonViewer) {
+			locatorModelListener = new LocatorModelListener(locatorModel, (CommonViewer)viewer);
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					locatorModel.addListener(locatorModelListener);
 				}
 			});
 		}
 
-		if (model != null && newInput instanceof IRoot) {
+		if (peerModel != null && newInput instanceof IRoot) {
 			// Refresh the model asynchronously
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					model.getService(IPeerModelRefreshService.class).refresh(null);
+					peerModel.getService(IPeerModelRefreshService.class).refresh(null);
 				}
 			});
 		}

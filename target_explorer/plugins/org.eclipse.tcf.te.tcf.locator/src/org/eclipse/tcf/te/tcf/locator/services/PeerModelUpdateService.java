@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -45,6 +46,18 @@ public class PeerModelUpdateService extends AbstractPeerModelService implements 
 		Map<String, IPeerNode> peerNodes = (Map<String, IPeerNode>)getPeerModel().getAdapter(Map.class);
 		Assert.isNotNull(peerNodes);
 		peerNodes.put(peerNode.getPeerId(), peerNode);
+
+		final IPeerModelListener[] listeners = getPeerModel().getListener();
+		if (listeners.length > 0) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					for (IPeerModelListener listener : listeners) {
+						listener.modelChanged(getPeerModel(), peerNode, true);
+					}
+				}
+			});
+		}
 	}
 
 	/* (non-Javadoc)
@@ -58,6 +71,18 @@ public class PeerModelUpdateService extends AbstractPeerModelService implements 
 		Map<String, IPeerNode> peerNodes = (Map<String, IPeerNode>)getPeerModel().getAdapter(Map.class);
 		Assert.isNotNull(peerNodes);
 		peerNodes.remove(peerNode.getPeerId());
+
+		final IPeerModelListener[] listeners = getPeerModel().getListener();
+		if (listeners.length > 0) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					for (IPeerModelListener listener : listeners) {
+						listener.modelChanged(getPeerModel(), peerNode, false);
+					}
+				}
+			});
+		}
 	}
 
 	/* (non-Javadoc)

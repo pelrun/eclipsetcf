@@ -40,7 +40,7 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerNameControl;
@@ -456,7 +456,7 @@ public class GeneralInformationSection extends AbstractSection {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerNode[] peers = Model.getPeerModel().getPeerNodes();
+				IPeerNode[] peers = ModelManager.getPeerModel().getPeerNodes();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerNode peerNode : peers) {
 					if (!peerNode.equals(od)) {

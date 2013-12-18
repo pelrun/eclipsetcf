@@ -12,9 +12,9 @@ package org.eclipse.tcf.te.tcf.processes.core.activator;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.listener.ModelListener;
 import org.osgi.framework.BundleContext;
 
@@ -27,7 +27,7 @@ public class CoreBundleActivator extends Plugin {
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
 	// The locator model listener instance
-	/* default */ IModelListener listener;
+	/* default */ IPeerModelListener listener;
 
 	// The shared instance
 	private static CoreBundleActivator plugin;
@@ -88,7 +88,7 @@ public class CoreBundleActivator extends Plugin {
 			public void run() {
 				if (listener == null) return;
 				// Register the model listener with the locator model
-				Model.getPeerModel().addListener(listener);
+				ModelManager.getPeerModel().addListener(listener);
 			}
 		};
 
@@ -108,7 +108,7 @@ public class CoreBundleActivator extends Plugin {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					IPeerModel model = Model.getPeerModel(true);
+					IPeerModel model = ModelManager.getPeerModel(true);
 					if (model != null) model.removeListener(listener);
 					listener = null;
 				}

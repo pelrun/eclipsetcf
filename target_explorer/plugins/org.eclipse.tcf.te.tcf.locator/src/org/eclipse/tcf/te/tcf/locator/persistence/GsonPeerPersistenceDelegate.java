@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerNode;
 
 /**
@@ -85,10 +85,10 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 					String id = peer.getID();
 					if (id != null) {
 						// Lookup the id within the model
-						IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(id);
+						IPeerNode peerNode = ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(id);
 						if (peerNode == null) {
 							// Not found in the model -> create a ghost object
-							peerNode = new PeerNode(Model.getPeerModel(), peer);
+							peerNode = new PeerNode(ModelManager.getPeerModel(), peer);
 							peerNode.setProperty(IModelNode.PROPERTY_IS_GHOST, true);
 						}
 

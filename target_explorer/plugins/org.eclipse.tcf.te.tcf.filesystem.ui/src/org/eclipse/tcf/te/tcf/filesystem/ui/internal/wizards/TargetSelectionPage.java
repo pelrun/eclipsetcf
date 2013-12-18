@@ -39,7 +39,7 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.navigator.ContentProvider;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.interfaces.IUIConstants;
@@ -99,7 +99,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 	 */
 	private void initialize() {
 		// Refresh the information of remote services.
-		IPeerModel model = Model.getPeerModel();
+		IPeerModel model = ModelManager.getPeerModel();
 		Assert.isNotNull(model);
 		IPeerNode[] peers = model.getPeerNodes();
 		if (peers != null) {
@@ -218,7 +218,7 @@ public class TargetSelectionPage extends AbstractValidatingWizardPage {
 			}
 		});
 
-		treeViewer.setInput(Model.getPeerModel());
+		treeViewer.setInput(ModelManager.getPeerModel());
 		NewNodeWizard wizard = getWizard();
 		IPeerNode peer = wizard.getPeer();
 		if (wizard.getPeer() != null) {

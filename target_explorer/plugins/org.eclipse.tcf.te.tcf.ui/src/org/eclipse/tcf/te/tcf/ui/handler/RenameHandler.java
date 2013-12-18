@@ -42,7 +42,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -174,7 +174,7 @@ public class RenameHandler extends AbstractHandler {
 					Protocol.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							final IPeerModelRefreshService service = Model.getPeerModel().getService(IPeerModelRefreshService.class);
+							final IPeerModelRefreshService service = ModelManager.getPeerModel().getService(IPeerModelRefreshService.class);
 							// Refresh the model now (must be executed within the TCF dispatch thread)
 							if (service != null) {
 								service.refresh(new Callback() {
@@ -215,7 +215,7 @@ public class RenameHandler extends AbstractHandler {
 			public void run() {
 				name.set(node.getPeer().getName());
 
-				IPeerModel model = Model.getPeerModel();
+				IPeerModel model = ModelManager.getPeerModel();
 				Assert.isNotNull(model);
 				IPeerNode[] peers = model.getPeerNodes();
 				for (IPeerNode peer : peers) {

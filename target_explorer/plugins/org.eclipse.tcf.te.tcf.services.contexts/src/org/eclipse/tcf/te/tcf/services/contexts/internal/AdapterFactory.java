@@ -16,11 +16,11 @@ import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.services.contexts.interfaces.IContextService;
 
 /**
@@ -38,15 +38,12 @@ public class AdapterFactory implements IAdapterFactory {
      * Constructor.
      */
     public AdapterFactory() {
-    	final IModelListener listener = new ModelAdapter() {
-    		/* (non-Javadoc)
-    		 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
-    		 */
+    	final IPeerModelListener listener = new ModelAdapter() {
     		@Override
-    		public void locatorModelChanged(IPeerModel model, IPeerNode peer, boolean added) {
+    		public void modelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
     			// If a peer gets removed, remove the context service proxy
-    			if (peer != null && peer.getPeer() != null && !added) {
-    				IContextService adapter = adapters.remove(peer.getPeer());
+    			if (peerNode != null && peerNode.getPeer() != null && !added) {
+    				IContextService adapter = adapters.remove(peerNode.getPeer());
     				if (adapter instanceof IDisposable) ((IDisposable)adapter).dispose();
     			}
     		}
@@ -55,7 +52,7 @@ public class AdapterFactory implements IAdapterFactory {
     	Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-		    	Model.getPeerModel().addListener(listener);
+		    	ModelManager.getPeerModel().addListener(listener);
 			}
 		};
 

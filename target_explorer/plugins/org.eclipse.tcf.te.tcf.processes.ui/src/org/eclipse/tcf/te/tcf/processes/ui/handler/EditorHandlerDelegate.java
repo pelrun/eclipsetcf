@@ -15,7 +15,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.editor.ProcessMonitorEditorPage;
-import org.eclipse.tcf.te.tcf.ui.handler.AbstractPeerNodeEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.views.editor.Editor;
 import org.eclipse.ui.IEditorPart;
@@ -25,7 +24,7 @@ import org.eclipse.ui.forms.editor.IFormPage;
 /**
  * Processes properties command handler implementation.
  */
-public class EditorHandlerDelegate extends AbstractPeerNodeEditorHandlerDelegate {
+public class EditorHandlerDelegate extends org.eclipse.tcf.te.tcf.ui.handler.EditorHandlerDelegate {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate#postOpenProperties(org.eclipse.ui.IEditorPart, java.lang.Object)

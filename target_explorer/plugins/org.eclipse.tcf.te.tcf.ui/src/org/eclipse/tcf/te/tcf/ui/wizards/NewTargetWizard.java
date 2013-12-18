@@ -36,7 +36,7 @@ import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.wizards.pages.NewTargetWizardPage;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
@@ -128,13 +128,13 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					IPeerModelRefreshService service = Model.getPeerModel().getService(IPeerModelRefreshService.class);
+					IPeerModelRefreshService service = ModelManager.getPeerModel().getService(IPeerModelRefreshService.class);
 					// Refresh the model now (must be executed within the TCF dispatch thread)
 					if (service != null) service.refresh(new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							// Get the peer model node from the model and select it in the tree
-							final IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
+							final IPeerNode peerNode = ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(attrs.get(IPeer.ATTR_ID));
 							if (peerNode != null) {
 								// Refresh the viewer
 								ViewsUtil.refresh(IUIConstants.ID_EXPLORER);

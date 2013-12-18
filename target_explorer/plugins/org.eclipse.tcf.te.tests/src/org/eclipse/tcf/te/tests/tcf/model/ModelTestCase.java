@@ -45,7 +45,7 @@ public class ModelTestCase extends CoreTestCase {
 		// Create the TCF test model instance
 		IModel model = new TestModel();
 		assertNotNull("Failed to create test model instance", model); //$NON-NLS-1$
-		assertFalse("Model is disposed but should not", model.isDisposed()); //$NON-NLS-1$
+		assertFalse("ModelManager is disposed but should not", model.isDisposed()); //$NON-NLS-1$
 
 		// Get the test model service
 		IModelService service = model.getService(TestModelService.class);
@@ -54,7 +54,7 @@ public class ModelTestCase extends CoreTestCase {
 
 		// Dispose the model
 		model.dispose();
-		assertTrue("Model is not disposed but should", model.isDisposed()); //$NON-NLS-1$
+		assertTrue("ModelManager is not disposed but should", model.isDisposed()); //$NON-NLS-1$
 
 		org.eclipse.tcf.te.tcf.core.model.activator.CoreBundleActivator.getContext();
 		org.eclipse.tcf.te.tcf.core.model.activator.CoreBundleActivator.getUniqueIdentifier();

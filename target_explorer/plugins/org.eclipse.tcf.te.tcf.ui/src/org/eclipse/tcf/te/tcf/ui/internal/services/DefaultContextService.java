@@ -30,7 +30,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -157,7 +157,7 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					IPeerModel model = Model.getPeerModel();
+					IPeerModel model = ModelManager.getPeerModel();
 					Assert.isNotNull(model);
 					peerNode.set(model.getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}

@@ -25,7 +25,7 @@ import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tests.CoreTestCase;
 
 /**
@@ -158,7 +158,7 @@ public class TcfTestCase extends CoreTestCase {
         final Map<String, String> attrs = new HashMap<String, String>((Map<String, String>)object);
 
 		// Lookup the corresponding peer object
-		final IPeerModel model = Model.getPeerModel();
+		final IPeerModel model = ModelManager.getPeerModel();
 		assertNotNull("Failed to access locator model instance.", model); //$NON-NLS-1$
 
 		// The expected peer id is "<transport>:<canonical IP>:<port>"

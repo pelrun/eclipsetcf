@@ -38,7 +38,7 @@ import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
@@ -178,7 +178,7 @@ public class CommonDnD {
 				final Object finalElement = elementToSelect;
 				final IPeer finalNewPeer = (elementToSelect instanceof IPeer) ? (IPeer)elementToSelect : null;
                 // Trigger a refresh of the model to read in the newly created static peer
-                final IPeerModelRefreshService service = Model.getPeerModel().getService(IPeerModelRefreshService.class);
+                final IPeerModelRefreshService service = ModelManager.getPeerModel().getService(IPeerModelRefreshService.class);
                 if (service != null) {
                 	Runnable runnable = new Runnable() {
                 		@Override
@@ -188,7 +188,7 @@ public class CommonDnD {
                                 protected void internalDone(Object caller, org.eclipse.core.runtime.IStatus status) {
             						IPeerNode peerNode = null;
                     				if (finalNewPeer != null) {
-                    					IPeerModelLookupService service = Model.getPeerModel().getService(IPeerModelLookupService.class);
+                    					IPeerModelLookupService service = ModelManager.getPeerModel().getService(IPeerModelLookupService.class);
                     					if (service != null) {
                     						peerNode = service.lkupPeerModelById(finalNewPeer.getID());
                     					}
@@ -380,7 +380,7 @@ public class CommonDnD {
 			@Override
 			public void run() {
 				// Get all peer model objects
-				IPeerNode[] peers = Model.getPeerModel().getPeerNodes();
+				IPeerNode[] peers = ModelManager.getPeerModel().getPeerNodes();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerNode peerNode : peers) {
 						String name = peerNode.getPeer().getName();

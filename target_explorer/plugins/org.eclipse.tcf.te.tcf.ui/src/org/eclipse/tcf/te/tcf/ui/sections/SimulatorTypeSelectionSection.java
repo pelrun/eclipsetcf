@@ -11,14 +11,10 @@ package org.eclipse.tcf.te.tcf.ui.sections;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -45,7 +41,6 @@ import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
-import org.eclipse.tcf.te.ui.views.navigator.ViewerSorter;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
@@ -163,34 +158,6 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					@Override
 					protected boolean supportsMultiSelection() {
 						return false;
-					}
-					@Override
-					protected void configureTableViewer(TableViewer viewer) {
-						viewer.addFilter(new ViewerFilter() {
-							@Override
-							public boolean select(Viewer viewer, Object parentElement, final Object element) {
-								if (element instanceof IPeer) {
-									final IPeer peer = (IPeer)element;
-									final AtomicBoolean isValueAdd = new AtomicBoolean();
-									final AtomicBoolean isCLI = new AtomicBoolean();
-									Protocol.invokeAndWait(new Runnable() {
-										@Override
-										public void run() {
-											String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
-											isValueAdd.set(value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim()))); //$NON-NLS-1$
-											isCLI.set(peer.getName() != null
-															&& (peer.getName().startsWith("Eclipse CLI") //$NON-NLS-1$
-																	|| peer.getName().startsWith("Eclipse Command Server") //$NON-NLS-1$
-																	|| peer.getName().endsWith("CLI Server") //$NON-NLS-1$
-																	|| peer.getName().endsWith("CLI Client"))); //$NON-NLS-1$
-										}
-									});
-									return !isValueAdd.get() && !isCLI.get();
-								}
-								return false;
-							}
-						});
-						viewer.setSorter(new ViewerSorter());
 					}
 				};
 

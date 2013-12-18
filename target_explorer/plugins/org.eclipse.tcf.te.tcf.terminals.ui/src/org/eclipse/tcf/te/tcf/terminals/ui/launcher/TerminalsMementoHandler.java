@@ -21,7 +21,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnec
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.ui.IMemento;
 
@@ -66,7 +66,7 @@ public class TerminalsMementoHandler implements IMementoHandler {
 
 		final String peerID = memento.getString("peerID"); //$NON-NLS-1$
 		if (peerID != null) {
-			final IPeerModel model = Model.getPeerModel();
+			final IPeerModel model = ModelManager.getPeerModel();
 			Assert.isNotNull(model);
 			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 			Runnable runnable = new Runnable() {

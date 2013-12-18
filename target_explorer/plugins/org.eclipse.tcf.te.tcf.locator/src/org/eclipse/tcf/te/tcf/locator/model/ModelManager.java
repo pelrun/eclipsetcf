@@ -22,7 +22,7 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
 /**
  * Helper class to instantiate and initialize the peer and locator model.
  */
-public final class Model {
+public final class ModelManager {
 	// Reference to the peer model
 	/* default */ static volatile IPeerModel peerModel;
 
@@ -127,6 +127,7 @@ public final class Model {
 			locatorModel = new LocatorModel();
 			// Refresh the model right away
 			locatorModel.getService(ILocatorModelRefreshService.class).refresh(null);
+			((LocatorModel)locatorModel).checkLocatorListener();
 		}
 	}
 

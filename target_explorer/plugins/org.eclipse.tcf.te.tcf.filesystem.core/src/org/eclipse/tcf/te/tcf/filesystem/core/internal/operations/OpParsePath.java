@@ -28,7 +28,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 
 /**
  * The operation to parse a platform specific path to a target's node.
@@ -73,7 +73,7 @@ public class OpParsePath extends Operation {
 
 					@Override
 					public void run() {
-						peerNode.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(finPeerId));
+						peerNode.set(ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(finPeerId));
 					}
 				};
 

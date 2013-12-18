@@ -17,7 +17,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
 
@@ -33,7 +33,7 @@ public class FSTreeNodeFactory implements IElementFactory {
 	@Override
 	public IAdaptable createElement(IMemento memento) {
 		String peerId = memento.getString("peerId"); //$NON-NLS-1$
-		IPeerNode peerNode = Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
+		IPeerNode peerNode = ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
 		if(peerNode != null) {
 			String path = memento.getString("path"); //$NON-NLS-1$
 			if(path == null) {

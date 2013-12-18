@@ -9,27 +9,27 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.listener;
 
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * Default model listener implementation.
  */
-public class ModelAdapter implements IModelListener {
+public class ModelAdapter implements IPeerModelListener {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
 	 */
 	@Override
-	public void locatorModelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
+	public void modelChanged(final IPeerModel model, final IPeerNode peerNode, final boolean added) {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.IModelListener#locatorModelDisposed(org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.ILocatorModel)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelDisposed(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
 	 */
 	@Override
-	public void locatorModelDisposed(IPeerModel model) {
+	public void modelDisposed(IPeerModel model) {
 	}
 
 }

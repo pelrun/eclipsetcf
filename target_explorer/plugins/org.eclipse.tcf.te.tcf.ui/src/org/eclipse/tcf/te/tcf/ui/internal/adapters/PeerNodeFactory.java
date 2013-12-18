@@ -19,7 +19,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
@@ -43,7 +43,7 @@ public class PeerNodeFactory implements IElementFactory {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					node.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
+					node.set(ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}
 			};
 
@@ -60,8 +60,8 @@ public class PeerNodeFactory implements IElementFactory {
 				Runnable runnable2 = new Runnable() {
 					@Override
 					public void run() {
-						Model.getPeerModel().getService(IPeerModelRefreshService.class).refresh(null);
-						node.set(Model.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
+						ModelManager.getPeerModel().getService(IPeerModelRefreshService.class).refresh(null);
+						node.set(ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 					}
 				};
 

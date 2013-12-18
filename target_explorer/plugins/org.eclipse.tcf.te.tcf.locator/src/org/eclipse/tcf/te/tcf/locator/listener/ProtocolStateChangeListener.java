@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.tcf.locator.listener;
 
 import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IProtocolStateChangeListener;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 
 /**
  * Protocol state change listener implementation.
@@ -23,7 +23,7 @@ public class ProtocolStateChangeListener implements IProtocolStateChangeListener
 	@Override
 	public void stateChanged(boolean state) {
 		// If the TCF frame work got started, initialize the locator model as well
-		if (state) Model.getPeerModel();
+		if (state) ModelManager.getPeerModel();
 	}
 
 }

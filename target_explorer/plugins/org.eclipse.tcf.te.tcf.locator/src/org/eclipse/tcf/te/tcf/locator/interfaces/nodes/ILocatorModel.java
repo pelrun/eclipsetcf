@@ -14,6 +14,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelService;
 
 
@@ -32,6 +33,29 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelService;
  * @see ILocator
  */
 public interface ILocatorModel extends IAdaptable {
+
+	/**
+	 * Adds the specified listener to the list of model listener.
+	 * If the same listener has been added before, the listener will
+	 * not be added again.
+	 *
+	 * @param listener The listener. Must not be <code>null</code>.
+	 */
+	public void addListener(ILocatorModelListener listener);
+
+	/**
+	 * Removes the specified listener from the list of model listener.
+	 *
+	 * @param listener The listener. Must not be <code>null</code>.
+	 */
+	public void removeListener(ILocatorModelListener listener);
+
+	/**
+	 * Returns the list of registered model listeners.
+	 *
+	 * @return The list of registered model listeners or an empty list.
+	 */
+	public ILocatorModelListener[] getListener();
 
 	/**
 	 * Dispose the locator model instance.

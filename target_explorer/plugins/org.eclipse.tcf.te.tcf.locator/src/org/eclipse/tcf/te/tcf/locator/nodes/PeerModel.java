@@ -22,7 +22,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -50,7 +50,7 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	/* default */ final Map<String, IPeerNode> peerNodes = new HashMap<String, IPeerNode>();
 
 	// The list of registered model listeners
-	private final List<IModelListener> modelListener = new ArrayList<IModelListener>();
+	private final List<IPeerModelListener> modelListener = new ArrayList<IPeerModelListener>();
 
 	// Reference to the refresh service
 	private final IPeerModelRefreshService refreshService = new PeerModelRefreshService(this);
@@ -73,7 +73,7 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.ILocatorModel#addListener(org.eclipse.tcf.te.tcf.locator.core.interfaces.IModelListener)
 	 */
 	@Override
-	public void addListener(IModelListener listener) {
+	public void addListener(IPeerModelListener listener) {
 		Assert.isNotNull(listener);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -88,7 +88,7 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.ILocatorModel#removeListener(org.eclipse.tcf.te.tcf.locator.core.interfaces.IModelListener)
 	 */
 	@Override
-	public void removeListener(IModelListener listener) {
+	public void removeListener(IPeerModelListener listener) {
 		Assert.isNotNull(listener);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -103,9 +103,9 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel#getListener()
 	 */
 	@Override
-	public IModelListener[] getListener() {
+	public IPeerModelListener[] getListener() {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		return modelListener.toArray(new IModelListener[modelListener.size()]);
+		return modelListener.toArray(new IPeerModelListener[modelListener.size()]);
 	}
 
 	/* (non-Javadoc)
@@ -124,13 +124,13 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 
 		disposed = true;
 
-		final IModelListener[] listeners = getListener();
+		final IPeerModelListener[] listeners = getListener();
 		if (listeners.length > 0) {
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					for (IModelListener listener : listeners) {
-						listener.locatorModelDisposed(PeerModel.this);
+					for (IPeerModelListener listener : listeners) {
+						listener.modelDisposed(PeerModel.this);
 					}
 				}
 			});

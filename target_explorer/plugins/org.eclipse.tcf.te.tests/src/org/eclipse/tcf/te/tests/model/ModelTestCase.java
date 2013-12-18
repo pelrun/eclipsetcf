@@ -27,7 +27,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransfer
 import org.eclipse.tcf.te.tests.CoreTestCase;
 
 /**
- * Model test cases.
+ * ModelManager test cases.
  */
 public class ModelTestCase extends CoreTestCase {
 

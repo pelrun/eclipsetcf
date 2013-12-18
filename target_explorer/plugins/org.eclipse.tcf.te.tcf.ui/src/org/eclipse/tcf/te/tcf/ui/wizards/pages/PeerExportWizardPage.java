@@ -53,7 +53,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.progress.UIJob;
@@ -167,7 +167,7 @@ public class PeerExportWizardPage extends WizardPage {
 			}
 		};
 		fViewer.addCheckStateListener(checkListener);
-		fViewer.setInput(Model.getPeerModel());
+		fViewer.setInput(ModelManager.getPeerModel());
 
 		// top level group
 		Composite buttonComposite = new Composite(resourcesGroup, SWT.NONE);

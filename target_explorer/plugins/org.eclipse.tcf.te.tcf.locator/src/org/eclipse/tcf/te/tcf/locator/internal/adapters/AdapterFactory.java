@@ -24,7 +24,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 
 /**
  * Static peers adapter factory implementation.
@@ -70,7 +70,7 @@ public class AdapterFactory implements IAdapterFactory {
 						@Override
 						public void run() {
 							String id = peer.getID();
-							IPeerModel model = Model.getPeerModel();
+							IPeerModel model = ModelManager.getPeerModel();
 							Assert.isNotNull(model);
 							IPeerNode candidate = model.getService(IPeerModelLookupService.class).lkupPeerModelById(id);
 							if (candidate != null) node.set(candidate);

@@ -22,16 +22,16 @@ import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 public class ModelListener extends ModelAdapter {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#locatorModelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
+	 * @see org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
 	 */
 	@Override
-	public void locatorModelChanged(IPeerModel model, IPeerNode peer, boolean added) {
+	public void modelChanged(final IPeerModel model, final IPeerNode peerNode, final boolean added) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		if (peer == null) return;
+		if (peerNode == null) return;
 
 		if (!added) {
 			// Dispose possibly associated models
-			ModelManager.disposeRuntimeModel(peer);
+			ModelManager.disposeRuntimeModel(peerNode);
 		}
 	}
 }

@@ -23,6 +23,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
@@ -49,6 +50,9 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	// The list of "proxied" peers per proxy peer id
 	/* default */ final Map<String, List<IPeer>> peerChildren = new HashMap<String, List<IPeer>>();
 
+	// The list of registered model listeners
+	private final List<ILocatorModelListener> modelListener = new ArrayList<ILocatorModelListener>();
+
 	// Reference to the model locator listener
 	private ILocator.LocatorListener locatorListener = null;
 
@@ -64,6 +68,45 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	public LocatorModel() {
 		super();
 		disposed = false;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.ILocatorModel#addListener(org.eclipse.tcf.te.tcf.locator.core.interfaces.IModelListener)
+	 */
+	@Override
+	public void addListener(ILocatorModelListener listener) {
+		Assert.isNotNull(listener);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+			CoreBundleActivator.getTraceHandler().trace("PeerModel.addListener( " + listener + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		if (!modelListener.contains(listener)) modelListener.add(listener);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.ILocatorModel#removeListener(org.eclipse.tcf.te.tcf.locator.core.interfaces.IModelListener)
+	 */
+	@Override
+	public void removeListener(ILocatorModelListener listener) {
+		Assert.isNotNull(listener);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+			CoreBundleActivator.getTraceHandler().trace("PeerModel.removeListener( " + listener + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		modelListener.remove(listener);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel#getListener()
+	 */
+	@Override
+	public ILocatorModelListener[] getListener() {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		return modelListener.toArray(new ILocatorModelListener[modelListener.size()]);
 	}
 
 	/* (non-Javadoc)
@@ -86,6 +129,18 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 			Protocol.getLocator().removeListener(locatorListener);
 			locatorListener = null;
 		}
+		final ILocatorModelListener[] listeners = getListener();
+		if (listeners.length > 0) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					for (ILocatorModelListener listener : listeners) {
+						listener.modelDisposed(LocatorModel.this);
+					}
+				}
+			});
+		}
+		modelListener.clear();
 
 		peers.clear();
 	}
@@ -103,19 +158,7 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	 */
 	@Override
 	public IPeer[] getPeers() {
-		final AtomicReference<IPeer[]> result = new AtomicReference<IPeer[]>();
-
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				result.set(peers.values().toArray(new IPeer[peers.values().size()]));
-			}
-		};
-
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
-
-		return result.get();
+		return peers.values().toArray(new IPeer[peers.size()]);
 	}
 
 	/* (non-Javadoc)

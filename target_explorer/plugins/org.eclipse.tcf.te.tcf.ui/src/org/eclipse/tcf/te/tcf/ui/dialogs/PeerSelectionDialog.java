@@ -9,9 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.dialogs;
 
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -32,11 +29,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog;
@@ -147,22 +141,7 @@ public class PeerSelectionDialog extends CustomTitleAreaDialog {
 	    // Subclasses may customize the viewer before setting the input
 	    configureTableViewer(viewer);
 
-		final AtomicReference<IPeer[]> peers = new AtomicReference<IPeer[]>(null);
-
-		Protocol.invokeAndWait(new Runnable() {
-			@Override
-			public void run() {
-				// Get the locator service
-				ILocator locatorService = Protocol.getLocator();
-				if (locatorService != null) {
-					// Get the map of peers known to the locator service.
-					Map<String, IPeer> peerMap = locatorService.getPeers();
-					peers.set(peerMap.values().toArray(new IPeer[peerMap.size()]));
-				}
-			}
-		});
-
-	    viewer.setInput(peers.get());
+	    viewer.setInput(ModelManager.getLocatorModel().getPeers());
 	    viewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
@@ -254,7 +233,7 @@ public class PeerSelectionDialog extends CustomTitleAreaDialog {
 	 * @return The locator model instance.
 	 */
 	protected IPeerModel getModel() {
-		return Model.getPeerModel();
+		return ModelManager.getPeerModel();
 	}
 
 	/**

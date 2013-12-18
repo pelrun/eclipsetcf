@@ -62,6 +62,18 @@
                bundleId="org.eclipse.tcf.te.tcf.locator"
                class="org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService"/>
       </service>
+
+      <service
+            class="org.eclipse.tcf.te.tcf.ui.internal.services.UIService"
+            id="org.eclipse.tcf.te.tcf.ui.services.UIService">
+         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.IUIService"/>
+         <enablement>
+            <and>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               <test property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
+            </and>
+         </enablement>
+      </service>
    </extension>
    
 <!-- Preference contributions -->   

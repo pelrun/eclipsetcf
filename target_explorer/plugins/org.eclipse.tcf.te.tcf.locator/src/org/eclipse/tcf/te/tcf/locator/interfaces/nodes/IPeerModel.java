@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.services.ILocator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService;
 
 
@@ -39,21 +39,21 @@ public interface IPeerModel extends IAdaptable {
 	 *
 	 * @param listener The listener. Must not be <code>null</code>.
 	 */
-	public void addListener(IModelListener listener);
+	public void addListener(IPeerModelListener listener);
 
 	/**
 	 * Removes the specified listener from the list of model listener.
 	 *
 	 * @param listener The listener. Must not be <code>null</code>.
 	 */
-	public void removeListener(IModelListener listener);
+	public void removeListener(IPeerModelListener listener);
 
 	/**
 	 * Returns the list of registered model listeners.
 	 *
 	 * @return The list of registered model listeners or an empty list.
 	 */
-	public IModelListener[] getListener();
+	public IPeerModelListener[] getListener();
 
 	/**
 	 * Dispose the locator model instance.
