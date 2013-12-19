@@ -1876,6 +1876,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             String input = (String)value;
                             String error = null;
                             if (TCFColumnPresentationExpression.COL_HEX_VALUE.equals(property)) {
+                                if (input.startsWith("0x")) input = input.substring(2);
                                 error = TCFNumberFormat.isValidHexNumber(input);
                                 if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, signed, big_endian);
                             }

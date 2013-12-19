@@ -701,6 +701,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                             int[] bits = ctx.getBitNumbers();
                             if (bits != null) size = (bits.length + 7) / 8;
                             if (TCFColumnPresentationRegister.COL_HEX_VALUE.equals(property)) {
+                                if (input.startsWith("0x")) input = input.substring(2);
                                 error = TCFNumberFormat.isValidHexNumber(input);
                                 if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, false, big_endian);
                             }
