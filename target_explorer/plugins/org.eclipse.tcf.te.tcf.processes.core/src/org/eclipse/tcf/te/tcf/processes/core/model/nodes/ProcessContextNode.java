@@ -159,7 +159,7 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
      * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
      */
     @Override
-    public IPeerNode getPeerModel() {
+    public IPeerNode getPeerNode() {
         return (IPeerNode)getAdapter(IPeerNode.class);
     }
 
@@ -230,7 +230,7 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 		}
 		if (IPeerNode.class.isAssignableFrom(adapter)) {
 			IModel model = getParent(IModel.class);
-			if (model instanceof IPeerNodeProvider) return ((IPeerNodeProvider)model).getPeerModel();
+			if (model instanceof IPeerNodeProvider) return ((IPeerNodeProvider)model).getPeerNode();
 		}
 		if (IAsyncRefreshableCtx.class.isAssignableFrom(adapter)) {
 			return refreshableCtxAdapter;

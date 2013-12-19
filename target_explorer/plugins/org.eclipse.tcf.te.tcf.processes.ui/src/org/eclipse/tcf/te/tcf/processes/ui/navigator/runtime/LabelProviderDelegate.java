@@ -40,7 +40,7 @@ public class LabelProviderDelegate extends AbstractLabelProviderDelegate impleme
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					node.set(((IRuntimeModel)element).getPeerModel());
+					node.set(((IRuntimeModel)element).getPeerNode());
 				}
 			};
 

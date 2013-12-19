@@ -28,13 +28,14 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 
 
 /**
  * Default peer model implementation.
  */
-public class PeerNode extends ContainerModelNode implements IPeerNode {
+public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNodeProvider {
 	// Reference to the parent locator model
 	private final IPeerModel model;
 	// Reference to the peer id (cached for performance optimization)
@@ -72,6 +73,14 @@ public class PeerNode extends ContainerModelNode implements IPeerNode {
 
 		// Enable change events
 		setChangeEventsEnabled(true);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
+	 */
+	@Override
+	public IPeerNode getPeerNode() {
+	    return this;
 	}
 
 	/* (non-Javadoc)

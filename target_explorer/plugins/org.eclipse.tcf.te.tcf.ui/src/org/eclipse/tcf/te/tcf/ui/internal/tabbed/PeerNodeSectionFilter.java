@@ -1,5 +1,5 @@
 /**
- * PeerGeneralSectionFilter.java
+ * PeerNodeSectionFilter.java
  * Created on Sep 6, 2012
  *
  * Copyright (c) 2012 Wind River Systems, Inc.
@@ -14,9 +14,9 @@ import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
- * Peer model node general section filter implementation.
+ * Peer node general section filter implementation.
  */
-public class PeerGeneralSectionFilter implements IFilter {
+public class PeerNodeSectionFilter implements IFilter {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IFilter#select(java.lang.Object)

@@ -96,7 +96,7 @@ public class AdapterFactory implements IAdapterFactory {
 					Runnable runnable = new Runnable() {
 						@Override
 						public void run() {
-							node.set(provider.getPeerModel());
+							node.set(provider.getPeerNode());
 						}
 					};
 

@@ -67,7 +67,7 @@ public class RuntimeModelChannelService extends AbstractModelService<IRuntimeMod
 		}
 
 		// Get the peer model node
-		IPeerNode node = getModel().getPeerModel();
+		IPeerNode node = getModel().getPeerNode();
 		if (node != null) {
 			// Open a new channel to the remote peer
 			Tcf.getChannelManager().openChannel(node.getPeer(), null, new IChannelManager.DoneOpenChannel() {

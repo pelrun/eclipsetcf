@@ -126,7 +126,7 @@ public class GsonPeerPersistenceDelegate extends GsonMapPersistenceDelegate {
 			peer = ((IPeerNode)context).getPeer();
 		}
 		else if (context instanceof IPeerNodeProvider) {
-			peer = ((IPeerNodeProvider)context).getPeerModel().getPeer();
+			peer = ((IPeerNodeProvider)context).getPeerNode().getPeer();
 		}
 
 		return peer;

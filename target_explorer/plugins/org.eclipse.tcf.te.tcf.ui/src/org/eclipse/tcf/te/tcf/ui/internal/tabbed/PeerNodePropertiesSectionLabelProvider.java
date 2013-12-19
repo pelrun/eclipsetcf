@@ -20,7 +20,7 @@ import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 /**
  * Peer properties general section table label provider implementation.
  */
-public class PeerGeneralSectionLabelProvider extends LabelProvider implements ITableLabelProvider {
+public class PeerNodePropertiesSectionLabelProvider extends LabelProvider implements ITableLabelProvider {
 	// Reference to the parent table viewer
 	private final TableViewer parentViewer;
 
@@ -29,7 +29,7 @@ public class PeerGeneralSectionLabelProvider extends LabelProvider implements IT
 	 *
 	 * @param viewer The table viewer or <code>null</code>.
 	 */
-	public PeerGeneralSectionLabelProvider(TableViewer viewer) {
+	public PeerNodePropertiesSectionLabelProvider(TableViewer viewer) {
 		super();
 		parentViewer = viewer;
 	}

@@ -63,7 +63,7 @@ public class ProcessSearchable extends CompositeSearchable {
 				@Override
 				public void run() {
 					if (rootElement instanceof IRuntimeModel) {
-						node.set(((IRuntimeModel)rootElement).getPeerModel());
+						node.set(((IRuntimeModel)rootElement).getPeerNode());
 					}
 				}
 			};
@@ -91,7 +91,7 @@ public class ProcessSearchable extends CompositeSearchable {
 				@Override
 				public void run() {
 					if (rootElement instanceof IRuntimeModel) {
-						node.set(((IRuntimeModel)rootElement).getPeerModel());
+						node.set(((IRuntimeModel)rootElement).getPeerNode());
 					}
 				}
 			};
@@ -123,7 +123,7 @@ public class ProcessSearchable extends CompositeSearchable {
 				@Override
 				public void run() {
 					if (rootElement instanceof IRuntimeModel) {
-						node.set(((IRuntimeModel)rootElement).getPeerModel());
+						node.set(((IRuntimeModel)rootElement).getPeerNode());
 					}
 				}
 			};
@@ -152,7 +152,7 @@ public class ProcessSearchable extends CompositeSearchable {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					node.set(((IRuntimeModel)rootElement).getPeerModel());
+					node.set(((IRuntimeModel)rootElement).getPeerNode());
 				}
 			};
 

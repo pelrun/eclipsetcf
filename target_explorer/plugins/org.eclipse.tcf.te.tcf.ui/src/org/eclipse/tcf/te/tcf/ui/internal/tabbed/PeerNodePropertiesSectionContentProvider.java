@@ -36,7 +36,7 @@ import org.eclipse.ui.forms.widgets.Section;
 /**
  * Peer properties general section table content provider implementation.
  */
-public class PeerGeneralSectionContentProvider implements IStructuredContentProvider {
+public class PeerNodePropertiesSectionContentProvider implements IStructuredContentProvider {
 
 	// Flag to control if the content provide may update the parent section title
 	private final boolean updateParentSectionTitle;
@@ -47,7 +47,7 @@ public class PeerGeneralSectionContentProvider implements IStructuredContentProv
 	 * @param updateParentSectionTitle Specify <code>true</code> to allow the content provider to update
 	 *                                 the parent section title, <code>false</code> if no title update is desired.
 	 */
-	public PeerGeneralSectionContentProvider(boolean updateParentSectionTitle) {
+	public PeerNodePropertiesSectionContentProvider(boolean updateParentSectionTitle) {
 		this.updateParentSectionTitle = updateParentSectionTitle;
 	}
 

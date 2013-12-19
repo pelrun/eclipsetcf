@@ -60,7 +60,7 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 		 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
 		 */
 		@Override
-		public final IPeerNode getPeerModel() {
+		public final IPeerNode getPeerNode() {
 			return node.peerNode;
 		}
 	}

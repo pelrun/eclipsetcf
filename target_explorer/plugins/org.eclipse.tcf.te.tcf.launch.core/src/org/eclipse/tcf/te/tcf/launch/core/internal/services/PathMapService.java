@@ -308,7 +308,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 
     	IPeer peer = context instanceof IPeer ? (IPeer)context : null;
     	if (peer == null && context instanceof IPeerNode) peer = ((IPeerNode)context).getPeer();
-    	if (peer == null && context instanceof IPeerNodeProvider && ((IPeerNodeProvider)context).getPeerModel() != null) peer = ((IPeerNodeProvider)context).getPeerModel().getPeer();
+    	if (peer == null && context instanceof IPeerNodeProvider && ((IPeerNodeProvider)context).getPeerNode() != null) peer = ((IPeerNodeProvider)context).getPeerNode().getPeer();
 
     	if (peer != null) {
 			final IChannel channel = Tcf.getChannelManager().getChannel(peer);

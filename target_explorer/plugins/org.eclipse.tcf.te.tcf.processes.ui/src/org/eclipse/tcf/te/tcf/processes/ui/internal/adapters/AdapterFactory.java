@@ -58,7 +58,7 @@ public class AdapterFactory implements IAdapterFactory {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						node.set(((IRuntimeModel)adaptableObject).getPeerModel());
+						node.set(((IRuntimeModel)adaptableObject).getPeerNode());
 					}
 				};
 

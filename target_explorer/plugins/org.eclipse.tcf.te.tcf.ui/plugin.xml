@@ -13,6 +13,12 @@
       </factory>
       
       <factory
+            adaptableType="org.eclipse.tcf.protocol.IPeer"
+            class="org.eclipse.tcf.te.tcf.ui.internal.adapters.AdapterFactory">
+         <adapter type="org.eclipse.jface.viewers.ILabelProvider"/>
+      </factory>
+      
+      <factory
             adaptableType="org.eclipse.tcf.te.ui.views.editor.EditorInput"
             class="org.eclipse.tcf.te.tcf.ui.internal.adapters.AdapterFactory">
          <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
@@ -657,21 +663,25 @@
       <propertyTabs contributorId="org.eclipse.tcf.te.ui">
          <propertyTab
                category="org.eclipse.tcf.te"
-               id="org.eclipse.tcf.te.ui.views.propertyTab.peer.general"
-               label="%propertyTab.general.label">
-         </propertyTab>
+               id="org.eclipse.tcf.te.ui.views.propertyTab.locator.general"
+               label="%propertyTab.general.label"/>
       </propertyTabs>
    </extension>
    
    <extension point="org.eclipse.ui.views.properties.tabbed.propertySections">
       <propertySections contributorId="org.eclipse.tcf.te.ui">
          <propertySection
-               class="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerGeneralSection"
+               class="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerNodePropertiesSection"
                enablesFor="1"
-               filter="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerGeneralSectionFilter"
+               filter="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerNodeSectionFilter"
+               id="org.eclipse.tcf.te.ui.views.propertysections.peerNode.general"
+               tab="org.eclipse.tcf.te.ui.views.propertyTab.locator.general"/>
+         <propertySection
+               class="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerPropertiesSection"
+               enablesFor="1"
+               filter="org.eclipse.tcf.te.tcf.ui.internal.tabbed.PeerSectionFilter"
                id="org.eclipse.tcf.te.ui.views.propertysections.peer.general"
-               tab="org.eclipse.tcf.te.ui.views.propertyTab.peer.general">
-         </propertySection>
+               tab="org.eclipse.tcf.te.ui.views.propertyTab.locator.general"/>
       </propertySections>
    </extension>
 </plugin>

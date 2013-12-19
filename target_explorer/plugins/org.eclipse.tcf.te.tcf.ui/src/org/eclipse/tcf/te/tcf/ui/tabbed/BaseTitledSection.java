@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.tabbed;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
@@ -27,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
@@ -72,7 +74,7 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
 
 		if (provider != null) {
 			this.provider = provider;
-			IPeerNode peerNode = getPeerModel(provider);
+			IPeerNode peerNode = getPeerNode(provider);
 			this.viewerInput = (IPropertyChangeProvider) peerNode.getAdapter(IPropertyChangeProvider.class);
 			if (this.viewerInput != null) {
 				this.viewerInput.addPropertyChangeListener(this);
@@ -85,14 +87,21 @@ public abstract class BaseTitledSection extends AbstractPropertySection implemen
     }
 
 	/**
-	 * Get the peer model from the provider.
-	 * Needs to be overwritten in case of save thread access.
+	 * Get the peer node from the provider.
 	 * @param provider
 	 * @return
 	 */
-	protected IPeerNode getPeerModel(IPeerNodeProvider provider) {
+	protected IPeerNode getPeerNode(final IPeerNodeProvider provider) {
 		Assert.isNotNull(provider);
-		return provider.getPeerModel();
+		final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				peerNode.set(provider.getPeerNode());
+			}
+		});
+
+		return peerNode.get();
 	}
 
 	/**

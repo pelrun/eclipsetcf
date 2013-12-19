@@ -183,7 +183,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
 	 */
 	@Override
-	public IPeerNode getPeerModel() {
+	public IPeerNode getPeerNode() {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
 		return peerNode;
 	}

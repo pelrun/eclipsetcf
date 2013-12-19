@@ -72,8 +72,8 @@ public class Messages extends NLS {
 
 	public static String AbstractChannelCommandHandler_statusDialog_title;
 
-	public static String AdvancedPropertiesSection_Name;
-	public static String AdvancedPropertiesSection_Value;
+	public static String ProcessNodePropertiesSection_Title;
+	public static String SystemMonitorContextPropertiesSection_Title;
 
 	public static String BasicContextSection_File;
 	public static String BasicContextSection_Group;

@@ -249,4 +249,10 @@ public class Messages extends NLS {
 
 	public static String DefaultContextStatusTrimControl_label;
 	public static String DefaultContextStatusTrimControl_tooltip;
+
+	public static String AbstractMapPropertiesSection_name_label;
+	public static String AbstractMapPropertiesSection_value_label;
+
+	public static String PeerNodePropertiesSection_title;
+	public static String PeerPropertiesSection_title;
 }

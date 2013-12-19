@@ -13,14 +13,14 @@ import org.eclipse.core.runtime.IAdaptable;
 
 /**
  * Interface to be implemented by nodes providing access to an peer
- * model object instance without being a peer model object itself.
+ * node object instance without being a peer node object itself.
  */
 public interface IPeerNodeProvider extends IAdaptable {
 
 	/**
-	 * Returns the associated peer model object.
+	 * Returns the associated peer node object.
 	 *
-	 * @return The peer model object instance or <code>null</code>.
+	 * @return The peer node object instance or <code>null</code>.
 	 */
-	public IPeerNode getPeerModel();
+	public IPeerNode getPeerNode();
 }

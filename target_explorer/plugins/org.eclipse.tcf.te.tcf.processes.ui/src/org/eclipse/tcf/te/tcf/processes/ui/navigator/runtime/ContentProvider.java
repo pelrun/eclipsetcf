@@ -195,7 +195,7 @@ public class ContentProvider implements ITreeContentProvider {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					parent.set(((IRuntimeModel)element).getPeerModel());
+					parent.set(((IRuntimeModel)element).getPeerNode());
 				}
 			};
 
