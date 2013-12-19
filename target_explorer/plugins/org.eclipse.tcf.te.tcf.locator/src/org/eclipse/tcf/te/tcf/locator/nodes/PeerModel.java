@@ -75,7 +75,6 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	@Override
 	public void addListener(IPeerModelListener listener) {
 		Assert.isNotNull(listener);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PEER_MODEL)) {
 			CoreBundleActivator.getTraceHandler().trace("PeerModel.addListener( " + listener + " )", ITracing.ID_TRACE_PEER_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
@@ -90,7 +89,6 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	@Override
 	public void removeListener(IPeerModelListener listener) {
 		Assert.isNotNull(listener);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PEER_MODEL)) {
 			CoreBundleActivator.getTraceHandler().trace("PeerModel.removeListener( " + listener + " )", ITracing.ID_TRACE_PEER_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$

@@ -18,6 +18,8 @@ import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
@@ -28,6 +30,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
@@ -124,9 +127,26 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 				}
 			}
 		});
+	    viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				updateEnablement(viewer);
+			}
+		});
 
 	    viewer.refresh();
 		updateEnablement(viewer);
+	}
+
+	protected void refresh() {
+		ExecutorsUtil.executeInUI(new Runnable() {
+			@Override
+			public void run() {
+			    viewer.setInput(getInput());
+			    viewer.refresh();
+				updateEnablement(viewer);
+			}
+		});
 	}
 
 	protected abstract Object[] getInput();
@@ -151,7 +171,9 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 
 	    // Adjust the OK button enablement
 	    Button okButton = getButton(IDialogConstants.OK_ID);
-	    SWTControlUtil.setEnabled(okButton, viewer.getTable().getItems().length > 0);
+	    int selCount = viewer.getTable().getSelectionCount();
+	    boolean selOk = supportsMultiSelection() ? selCount > 0 : selCount == 1;
+	    SWTControlUtil.setEnabled(okButton, viewer.getTable().getItems().length > 0 && selOk);
 	}
 
 	/**

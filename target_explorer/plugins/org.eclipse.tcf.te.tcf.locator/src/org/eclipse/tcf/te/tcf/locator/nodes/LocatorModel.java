@@ -76,7 +76,6 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	@Override
 	public void addListener(ILocatorModelListener listener) {
 		Assert.isNotNull(listener);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
 			CoreBundleActivator.getTraceHandler().trace("PeerModel.addListener( " + listener + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
@@ -91,7 +90,6 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	@Override
 	public void removeListener(ILocatorModelListener listener) {
 		Assert.isNotNull(listener);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
 			CoreBundleActivator.getTraceHandler().trace("PeerModel.removeListener( " + listener + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$

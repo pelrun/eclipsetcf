@@ -56,7 +56,7 @@ public final class LocatorListener implements ILocator.LocatorListener {
 			filtered |= isValueAdd && hideValueAdds;
 
 			filtered |= peer.getName() != null
-							&& peer.getName().endsWith("Command Server"); //$NON-NLS-1$
+							&& (peer.getName().endsWith("Command Server") || peer.getName().endsWith("CLI Server")); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		return filtered;

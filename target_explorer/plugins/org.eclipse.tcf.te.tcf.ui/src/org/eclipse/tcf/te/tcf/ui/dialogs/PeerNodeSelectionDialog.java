@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -26,7 +28,7 @@ import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 /**
  * Peer selection dialog implementation.
  */
-public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog {
+public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog implements IPeerModelListener {
 
 	final String[] services;
 
@@ -36,9 +38,7 @@ public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog {
 	 * @param shell The shell used to view the dialog, or <code>null</code>.
 	 */
 	public PeerNodeSelectionDialog(Shell shell) {
-		super(shell, IContextHelpIds.PEER_NODE_SELECTION_DIALOG);
-
-		this.services = null;
+		this(shell, null);
 	}
 
 	/**
@@ -50,6 +50,17 @@ public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog {
 		super(shell, IContextHelpIds.PEER_NODE_SELECTION_DIALOG);
 
 		this.services = services;
+
+		ModelManager.getPeerModel().addListener(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog#dispose()
+	 */
+	@Override
+	protected void dispose() {
+	    super.dispose();
+		ModelManager.getPeerModel().removeListener(this);
 	}
 
 	@Override
@@ -124,4 +135,19 @@ public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog {
     protected String getDefaultMessage() {
 		return Messages.PeerNodeSelectionDialog_message;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
+	 */
+    @Override
+    public void modelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
+    	refresh();
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelDisposed(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 */
+    @Override
+    public void modelDisposed(IPeerModel model) {
+    }
 }

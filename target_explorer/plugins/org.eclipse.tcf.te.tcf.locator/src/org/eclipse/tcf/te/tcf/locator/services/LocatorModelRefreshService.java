@@ -21,6 +21,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
@@ -106,6 +107,8 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		for (Entry<String, IPeer> entry : peers.entrySet()) {
 			// Get the peer instance for the current peer id
 			IPeer peer = entry.getValue();
+
+			if (isFiltered(peer)) continue;
 			// Try to find an existing peer node first
 			IPeer lkupPeer = model.getService(ILocatorModelLookupService.class).lkupPeerById(entry.getKey());
 			// And create a new one if we cannot find it
@@ -122,5 +125,28 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 				model.getService(ILocatorModelUpdateService.class).remove(oldPeer);
             }
 		}
+	}
+
+	/**
+	 * Returns if or if not the given peer is filtered.
+	 *
+	 * @param peer The peer or <code>null</code>.
+	 * @return <code>True</code> if the given peer is filtered, <code>false</code> otherwise.
+	 */
+	private boolean isFiltered(IPeer peer) {
+		boolean filtered = peer == null;
+		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
+
+		if (!filtered) {
+			String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
+			boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+
+			filtered |= isValueAdd && hideValueAdds;
+
+			filtered |= peer.getName() != null
+							&& (peer.getName().endsWith("Command Server") || peer.getName().endsWith("CLI Server")); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		return filtered;
 	}
 }
