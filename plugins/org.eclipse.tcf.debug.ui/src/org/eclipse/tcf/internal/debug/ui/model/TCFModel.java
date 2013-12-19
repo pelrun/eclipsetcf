@@ -124,6 +124,7 @@ import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IProcesses;
+import org.eclipse.tcf.services.IProfiler;
 import org.eclipse.tcf.services.IRegisters;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IStackTrace;
@@ -2223,5 +2224,126 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public boolean isReverseDebugEnabled() {
         return reverse_debug_enabled;
+    }
+
+    /*-------------------- Profiling/tracing interface -------------------------------- */
+
+    public interface ProfilerDataListener {
+        void onDataReceived(String ctx, Map<String,Object> data[]);
+    }
+
+    private final List<ProfilerDataListener> profiler_listeners =
+            new ArrayList<ProfilerDataListener>();
+
+    private final Map<String,Map<String,Object>> profiler_configuration =
+            new HashMap<String,Map<String,Object>>();
+
+    private final Map<String,IToken> profiler_read_cmds = new HashMap<String,IToken>();
+
+    private final Runnable profiler_read_event = new Runnable() {
+        @Override
+        public void run() {
+            assert profiler_read_posted;
+            IProfiler profiler = channel.getRemoteService(IProfiler.class);
+            for (final String ctx : profiler_configuration.keySet()) {
+                if (profiler_read_cmds.get(ctx) != null) continue;
+                profiler_read_cmds.put(ctx, profiler.read(ctx, new IProfiler.DoneRead() {
+                    @Override
+                    public void doneRead(IToken token, Exception error, Map<String,Object>[] data) {
+                        profiler_read_cmds.remove(ctx);
+                        if (error != null && channel.getState() == IChannel.STATE_OPEN) {
+                            Protocol.log("Cannot read profiler data", error);
+                        }
+                        if (data != null) {
+                            for (ProfilerDataListener listener : profiler_listeners) {
+                                listener.onDataReceived(ctx, data);
+                            }
+                        }
+                    }
+                }));
+            }
+            if (profiler_configuration.size() > 0) {
+                Protocol.invokeLater(profiler_read_delay, this);
+            }
+            else {
+                profiler_read_posted = false;
+            }
+        }
+    };
+
+    private boolean profiler_read_posted;
+    private long profiler_read_delay = 4000;
+
+    /**
+     * Get profiler configuration data for given context ID.
+     * See Profiler service documentation for more details.
+     * @param ctx - debug context ID.
+     * @return profiler configuration.
+     */
+    public Map<String,Object> getProfilerConfiguration(String ctx) {
+        assert Protocol.isDispatchThread();
+        Map<String,Object> m = profiler_configuration.get(ctx);
+        if (m == null) profiler_configuration.put(ctx, m = new HashMap<String,Object>());
+        return m;
+    }
+
+    /**
+     * Send profiler configuration to remote peer.
+     * Clients should call this method after making changes in the profiler configuration.
+     * @param ctx - debug context ID.
+     */
+    public void sendProfilerConfiguration(String ctx) {
+        assert Protocol.isDispatchThread();
+        Map<String,Object> m = profiler_configuration.get(ctx);
+        IProfiler profiler = channel.getRemoteService(IProfiler.class);
+        if (profiler == null) return;
+        if (m.size() == 0) profiler_configuration.remove(ctx);
+        profiler.configure(ctx, m, new IProfiler.DoneConfigure() {
+            @Override
+            public void doneConfigure(IToken token, final Exception error) {
+                if (error != null) {
+                    channel.terminate(error);
+                }
+                else if (!profiler_read_posted && profiler_configuration.size() > 0) {
+                    Protocol.invokeLater(profiler_read_event);
+                    profiler_read_posted = true;
+                }
+            }
+        });
+    }
+
+    /**
+     * Get delay between profiler data reads.
+     * @return delay in milliseconds.
+     */
+    public long getProfilerReadDelay() {
+        return profiler_read_delay;
+    }
+
+    /**
+     * Set delay between profiler data reads.
+     * @param - delay in milliseconds.
+     */
+    public void setProfilerReadDelay(long delay) {
+        if (delay < 100) delay = 100;
+        profiler_read_delay = delay;
+    }
+
+    /**
+     * Add profiler data listener.
+     * @param listener
+     */
+    public void addProfilerDataListener(ProfilerDataListener listener) {
+        assert Protocol.isDispatchThread();
+        profiler_listeners.add(listener);
+    }
+
+    /**
+     * Remove profiler data listener.
+     * @param listener
+     */
+    public void removeProfilerDataListener(ProfilerDataListener listener) {
+        assert Protocol.isDispatchThread();
+        profiler_listeners.remove(listener);
     }
 }

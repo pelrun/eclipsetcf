@@ -55,7 +55,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Table;
@@ -70,10 +69,8 @@ import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModelManager;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
-import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.IProfiler;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
@@ -84,7 +81,6 @@ import org.eclipse.ui.part.ViewPart;
 
 public class ProfilerView extends ViewPart {
 
-    private static final long UPDATE_DELAY = 4000;
     private static final int FRAME_COUNT = 5;
     private static final String PARAM_VIEW_UPDATE_PERIOD = ProfilerSettingsDlg.PARAM_VIEW_UPDATE_PERIOD;
     private static final String PARAM_AGGREGATE = ProfilerSettingsDlg.PARAM_AGGREGATE;
@@ -149,34 +145,36 @@ public class ProfilerView extends ViewPart {
         }
     }
 
-    private final Map<TCFModel,Map<String,ProfileData>> data =
-            new HashMap<TCFModel,Map<String,ProfileData>>();
+    private class ProfileModel implements TCFModel.ProfilerDataListener {
 
-    private class DebugContextListener implements IDebugContextListener {
+        final Map<String,ProfileData> data = new HashMap<String,ProfileData>();
+
+        @Override
+        public void onDataReceived(String ctx, Map<String, Object>[] arr) {
+            int cnt = 0;
+            ProfileData p = data.get(ctx);
+            if (p == null) return;
+            if (p.stopped) return;
+            for (Map<String,Object> props : arr) {
+                if (props == null) continue;
+                String format = (String)props.get(IProfiler.PROP_FORMAT);
+                if (format == null || !format.equals("StackTraces")) continue;
+                addSamples(p, props);
+                cnt++;
+            }
+            if (p.unsupported != (cnt == 0)) {
+                p.unsupported = cnt == 0;
+                updateView();
+            }
+        }
+    }
+
+    private final IDebugContextListener selection_listener = new IDebugContextListener() {
         @Override
         public void debugContextChanged(DebugContextEvent event) {
             selectionChanged(event.getContext());
         }
-        void selectionChanged(ISelection s) {
-            if (s instanceof IStructuredSelection) {
-                final Object obj = ((IStructuredSelection)s).getFirstElement();
-                Protocol.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (obj instanceof TCFNode) {
-                            selection = (TCFNode)obj;
-                        }
-                        else {
-                            selection = null;
-                        }
-                        updateView();
-                    }
-                });
-            }
-        }
     };
-
-    private final DebugContextListener selection_listener = new DebugContextListener();
 
     private final TCFModelManager.ModelManagerListener launch_listener = new TCFModelManager.ModelManagerListener() {
         @Override
@@ -185,51 +183,9 @@ public class ProfilerView extends ViewPart {
 
         @Override
         public void onDisconnected(TCFLaunch launch, TCFModel model) {
-            data.remove(model);
+            ProfileModel prf_model = models.remove(model);
+            if (prf_model != null) model.removeProfilerDataListener(prf_model);
             updateView();
-        }
-    };
-
-    private final Runnable read_data = new Runnable() {
-        final Set<IToken> cmds = new HashSet<IToken>();
-        @Override
-        public void run() {
-            if (disposed) {
-                data.clear();
-                return;
-            }
-            for (Map.Entry<TCFModel,Map<String,ProfileData>> e : data.entrySet()) {
-                TCFModel model = e.getKey();
-                IProfiler profiler = model.getChannel().getRemoteService(IProfiler.class);
-                if (profiler == null) continue;
-                Map<String,ProfileData> ctx_map = e.getValue();
-                for (final ProfileData p : ctx_map.values()) {
-                    if (p.stopped) continue;
-                    cmds.add(profiler.read(p.ctx, new IProfiler.DoneRead() {
-                        @Override
-                        public void doneRead(IToken token, Exception error, Map<String,Object>[] data) {
-                            cmds.remove(token);
-                            if (error != null) {
-                                p.error = error;
-                            }
-                            else if (!disposed && data != null) {
-                                p.unsupported = data.length == 0;
-                                if (data.length > 0) {
-                                    for (Map<String,Object> m : data) addSamples(p, m);
-                                }
-                            }
-                            if (cmds.size() == 0) {
-                                Protocol.invokeLater(UPDATE_DELAY, read_data);
-                                updateView();
-                            }
-                        }
-                    }));
-                }
-            }
-            if (cmds.size() == 0) {
-                Protocol.invokeLater(UPDATE_DELAY, this);
-                updateView();
-            }
         }
     };
 
@@ -280,8 +236,6 @@ public class ProfilerView extends ViewPart {
         final TCFNodeExecContext node;
         final ProfileData prof_data;
         final TCFModel model;
-        final ISymbols symbols;
-        final ILineNumbers line_numbers;
         final boolean aggrerate;
         final int generation;
         TCFNodeExecContext mem_node;
@@ -294,23 +248,19 @@ public class ProfilerView extends ViewPart {
             sorting = ProfilerView.this.sorting;
             ProfileData p = null;
             if (selection != null) {
-                Map<String,ProfileData> m = data.get(selection.getModel());
-                if (m != null) p = m.get(selection.getID());
+                ProfileModel m = models.get(selection.getModel());
+                if (m != null) p = m.data.get(selection.getID());
             }
             prof_data = p;
             if (p == null) {
                 node = null;
                 model = null;
-                symbols = null;
-                line_numbers = null;
                 generation = 0;
                 aggrerate = false;
             }
             else {
                 node = (TCFNodeExecContext)selection;
                 model = selection.getModel();
-                symbols = node.getChannel().getRemoteService(ISymbols.class);
-                line_numbers = node.getChannel().getRemoteService(ILineNumbers.class);
                 generation = p.generation_inp;
                 Boolean b = (Boolean)p.params.get(PARAM_AGGREGATE);
                 aggrerate = b != null && b.booleanValue();
@@ -319,7 +269,6 @@ public class ProfilerView extends ViewPart {
         }
 
         private String getFuncID(BigInteger addr) {
-            if (symbols == null) return "";
             String func_id = addr_to_func_id.get(addr);
             if (func_id == null) {
                 func_id = "";
@@ -379,7 +328,6 @@ public class ProfilerView extends ViewPart {
         }
 
         private boolean getLineInfo(ProfileEntry pe) {
-            if (line_numbers == null) return true;
             TCFDataCache<TCFSourceRef> line_cache = mem_node.getLineInfo(pe.addr);
             if (line_cache == null) return true;
             if (!line_cache.validate()) {
@@ -645,7 +593,7 @@ public class ProfilerView extends ViewPart {
             Map<String,Object> conf = new TCFTask<Map<String,Object>>() {
                 @Override
                 public void run() {
-                    done(getConfiguration(node.getID()));
+                    done(getConfiguration(node));
                 }
             }.getE();
             ProfilerSettingsDlg dlg = new ProfilerSettingsDlg(getSite().getShell(), conf);
@@ -655,6 +603,8 @@ public class ProfilerView extends ViewPart {
                     @Override
                     public void run() {
                         configuration.put(node.getID(), params);
+                        Integer n = (Integer)params.get(PARAM_VIEW_UPDATE_PERIOD);
+                        if (n != null) node.getModel().setProfilerReadDelay(n.intValue());
                         if (selection != node) return;
                         start(selection);
                     }
@@ -677,7 +627,6 @@ public class ProfilerView extends ViewPart {
     };
 
     private boolean disposed;
-    private boolean launch_listener_ok;
     private TCFNode selection;
     private int sorting;
     private Update last_update;
@@ -708,11 +657,12 @@ public class ProfilerView extends ViewPart {
         60
     };
 
-    private final Map<String,Map<String,Object>> configuration =
-            new HashMap<String,Map<String,Object>>();
+    private final Map<String,Map<String,Object>> configuration = new HashMap<String,Map<String,Object>>();
+    private final Map<TCFModel,ProfileModel> models = new HashMap<TCFModel,ProfileModel>();
 
     @Override
     public void createPartControl(Composite parent) {
+        assert !disposed;
         this.parent = parent;
 
         Font font = parent.getFont();
@@ -768,12 +718,18 @@ public class ProfilerView extends ViewPart {
         tool_bar.add(action_start);
         tool_bar.add(action_stop);
 
+        Protocol.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                TCFModelManager.getModelManager().addListener(launch_listener);
+            }
+        });
+
         IWorkbenchWindow window = getSite().getWorkbenchWindow();
         IDebugContextService dcs = DebugUITools.getDebugContextManager().getContextService(window);
         dcs.addDebugContextListener(selection_listener);
         ISelection active_context = dcs.getActiveContext();
-        selection_listener.selectionChanged(active_context);
-        Protocol.invokeLater(read_data);
+        selectionChanged(active_context);
     }
 
     public Composite createTable(Composite parent) {
@@ -1024,6 +980,24 @@ public class ProfilerView extends ViewPart {
         }
     }
 
+    private void selectionChanged(ISelection s) {
+        if (s instanceof IStructuredSelection) {
+            final Object obj = ((IStructuredSelection)s).getFirstElement();
+            Protocol.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    if (obj instanceof TCFNode) {
+                        selection = (TCFNode)obj;
+                    }
+                    else {
+                        selection = null;
+                    }
+                    updateView();
+                }
+            });
+        }
+    }
+
     private void setSelection(List<ProfileEntry> l, boolean reveal) {
         viewer_main.setSelection(new StructuredSelection(l), reveal);
         if (l.size() == 0) {
@@ -1067,24 +1041,21 @@ public class ProfilerView extends ViewPart {
         }
     }
 
-    private Map<String,Object> getConfiguration(String ctx) {
+    private Map<String,Object> getConfiguration(TCFNode node) {
+        String ctx = node.getID();
         Map<String,Object> params = configuration.get(ctx);
         if (params == null) {
             params = new HashMap<String,Object>();
             params.put(IProfiler.PARAM_FRAME_CNT, FRAME_COUNT);
-            params.put(PARAM_VIEW_UPDATE_PERIOD, 4);
             configuration.put(ctx,  params);
         }
+        params.put(PARAM_VIEW_UPDATE_PERIOD, node.getModel().getProfilerReadDelay());
         return params;
     }
 
     private void start(TCFNode node) {
         assert Protocol.isDispatchThread();
-        if (!launch_listener_ok) {
-            TCFModelManager.getModelManager().addListener(launch_listener);
-            launch_listener_ok = true;
-        }
-        configure(node, getConfiguration(node.getID()));
+        configure(node, getConfiguration(node));
     }
 
     private void stop(TCFNode node) {
@@ -1094,38 +1065,25 @@ public class ProfilerView extends ViewPart {
     }
 
     private void configure(final TCFNode node, final Map<String,Object> params) {
-        IProfiler profiler = node.getChannel().getRemoteService(IProfiler.class);
-        if (profiler != null) {
-            profiler.configure(node.getID(), params, new IProfiler.DoneConfigure() {
-                @Override
-                public void doneConfigure(IToken token, final Exception error) {
-                    if (error == null) {
-                        Map<String,ProfileData> m = data.get(node.getModel());
-                        if (params.size() == 0) {
-                            ProfileData d = null;
-                            if (m != null) d = m.get(node.getID());
-                            if (d != null) d.stopped = true;
-                        }
-                        else {
-                            ProfileData d = new ProfileData(node.getID(), params);
-                            if (m == null) data.put(node.getModel(), m = new HashMap<String,ProfileData>());
-                            m.put(d.ctx, d);
-                        }
-                        if (selection == node) updateView();
-                    }
-                    else {
-                        asyncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                MessageBox mb = new MessageBox(parent.getShell(), SWT.ICON_ERROR | SWT.OK);
-                                mb.setText("Cannot start profiling");
-                                mb.setMessage(TCFModel.getErrorMessage(error, true));
-                                mb.open();
-                            }
-                        });
-                    }
-                }
-            });
+        TCFModel model = node.getModel();
+        Map<String,Object> prf_cfg = model.getProfilerConfiguration(node.getID());
+        Object frame_cnt = params.get(IProfiler.PARAM_FRAME_CNT);
+        if (frame_cnt != null) prf_cfg.put(IProfiler.PARAM_FRAME_CNT, frame_cnt);
+        else prf_cfg.remove(IProfiler.PARAM_FRAME_CNT);
+        model.sendProfilerConfiguration(node.getID());
+        ProfileModel prf_model = models.get(model);
+        if (frame_cnt == null) {
+            ProfileData prf_data = null;
+            if (prf_model != null) prf_data = prf_model.data.get(node.getID());
+            if (prf_data != null) prf_data.stopped = true;
+        }
+        else {
+            ProfileData d = new ProfileData(node.getID(), params);
+            if (prf_model == null) {
+                models.put(node.getModel(), prf_model = new ProfileModel());
+                model.addProfilerDataListener(prf_model);
+            }
+            prf_model.data.put(d.ctx, d);
         }
         updateView();
     }
@@ -1133,17 +1091,12 @@ public class ProfilerView extends ViewPart {
     private void addSamples(ProfileData p, Map<String,Object> props) {
         int size = 4;
         boolean big_endian = false;
-        byte[] data = null;
-        if (props != null) {
-            String format = (String)props.get(IProfiler.PROP_FORMAT);
-            if (format == null || !format.equals("StackTraces")) return;
-            Number n = (Number)props.get(IProfiler.PROP_ADDR_SIZE);
-            if (n != null) size = n.intValue();
-            Boolean b = (Boolean)props.get(IProfiler.PROP_BIG_ENDIAN);
-            if (b != null) big_endian = b.booleanValue();
-            data = JSON.toByteArray(props.get(IProfiler.PROP_DATA));
-        }
-        if (data == null) return;
+        Number n = (Number)props.get(IProfiler.PROP_ADDR_SIZE);
+        if (n != null) size = n.intValue();
+        Boolean b = (Boolean)props.get(IProfiler.PROP_BIG_ENDIAN);
+        if (b != null) big_endian = b.booleanValue();
+        byte[] data = JSON.toByteArray(props.get(IProfiler.PROP_DATA));
+        if (data == null || data.length == 0) return;
         int pos = 0;
         byte[] buf = new byte[size + 1];
         BigInteger[] trace = new BigInteger[p.map.length];
@@ -1174,6 +1127,7 @@ public class ProfilerView extends ViewPart {
             if (l < 0) break;
             if (i > 0) addSample(p, trace, i, c);
         }
+        updateView();
     }
 
     private void addSample(ProfileData p, BigInteger[] trace, int len, int cnt) {
@@ -1223,7 +1177,8 @@ public class ProfilerView extends ViewPart {
         Protocol.invokeAndWait(new Runnable() {
             @Override
             public void run() {
-                TCFModelManager.getModelManager().addListener(launch_listener);
+                TCFModelManager.getModelManager().removeListener(launch_listener);
+                models.clear();
             }
         });
         IWorkbenchWindow window = getSite().getWorkbenchWindow();

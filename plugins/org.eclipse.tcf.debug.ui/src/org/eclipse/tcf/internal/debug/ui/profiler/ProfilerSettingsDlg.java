@@ -122,7 +122,7 @@ class ProfilerSettingsDlg extends Dialog {
         Label view_update_label = new Label(composite, SWT.WRAP);
         view_update_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
         view_update_label.setFont(font);
-        view_update_label.setText("View update interval (sec):");
+        view_update_label.setText("View update interval (msec):");
 
         view_update_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         view_update_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
