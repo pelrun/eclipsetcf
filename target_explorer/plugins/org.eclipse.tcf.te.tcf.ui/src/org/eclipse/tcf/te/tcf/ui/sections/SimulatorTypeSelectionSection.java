@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.sections;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
@@ -31,6 +32,8 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.controls.SimulatorTypeSelectionControl;
 import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
@@ -163,6 +166,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeer) {
 						IPeer oldPeer = selectedPeer;
 						selectedPeer = (IPeer)((IStructuredSelection)selection).getFirstElement();
+						dataChanged(null);
 						onPeerChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeer, selectedPeer);
 					}
 				}
@@ -291,6 +295,20 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 		if (target != null) {
 			target.setLabelControlSelection(!data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED));
+			final String peerId = data.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
+			final AtomicReference<IPeer> peer = new AtomicReference<IPeer>();
+			if (peerId != null) {
+				final ILocatorModelLookupService service = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
+				if (service != null) {
+					Protocol.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							peer.set(service.lkupPeerById(peerId));
+						}
+					});
+				}
+			}
+			selectedPeer = peer.get();
 		}
 
 		onSelectionChanged(data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED) ? SELECTION_SIM : SELECTION_REAL);
@@ -352,6 +370,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				odc.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED));
 				odc.setProperty(IPeerNodeProperties.PROP_SIM_PROPERTIES, node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_PROPERTIES));
 				odc.setProperty(IPeerNodeProperties.PROP_SIM_TYPE, node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_TYPE));
+				odc.setProperty(IPeerNodeProperties.PROP_PEER_ID, node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_PEER_ID));
 				// Initially, the working copy is a duplicate of the original data copy
 				wc.setProperties(odc.getProperties());
 			}
@@ -383,9 +402,9 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 		// Extract the widget data into the working copy
 		if (target != null) {
-			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, false);
-			data.setProperty(IPeerNodeProperties.PROP_TARGET, target.getEditFieldControlText());
+			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, target.isLabelControlSelected());
 		}
+		data.setProperty(IPeerNodeProperties.PROP_PEER_ID, selectedPeer != null ? selectedPeer.getID() : null);
 
 		if (simulator != null) {
 			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, simulator.isLabelControlSelected());
@@ -434,6 +453,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					attributes.put(IPeerNodeProperties.PROP_SIM_ENABLED, Boolean.toString(isSimEnabled));
 				} else {
 					attributes.remove(IPeerNodeProperties.PROP_SIM_ENABLED);
+					attributes.put(IPeerNodeProperties.PROP_PEER_ID, selectedPeer != null ? selectedPeer.getID() : null);
 				}
 				if (configs != null) {
 					attributes.put(IPeerNodeProperties.PROP_SIM_PROPERTIES, configs);
@@ -517,10 +537,20 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		boolean isDirty = false;
 
 		// Compare the data
-		if (simulator != null) {
-			boolean oldEnabled = odc.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED);
-			isDirty |= (oldEnabled != simulator.isLabelControlSelected());
+		if (target != null) {
+			boolean oldEnabled = !odc.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED);
+			isDirty |= (oldEnabled != target.isLabelControlSelected());
+		}
 
+		String oldPeerId = odc.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
+		String newPeerId = selectedPeer != null ? selectedPeer.getID() : null;
+		if (newPeerId == null || "".equals(newPeerId)) { //$NON-NLS-1$
+			isDirty |= oldPeerId != null && !"".equals(oldPeerId); //$NON-NLS-1$
+		} else {
+			isDirty |= !newPeerId.equals(oldPeerId);
+		}
+
+		if (simulator != null) {
 			if (simulator.isLabelControlSelected()) {
 				String newType = simulator.getSelectedSimulatorId();
 				String oldType = odc.getStringProperty(IPeerNodeProperties.PROP_SIM_TYPE);
@@ -568,10 +598,12 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		boolean enabled = od == null || od.getConnectState() == IConnectable.STATE_DISCONNECTED;
 
 		if (target != null) {
+			SWTControlUtil.setEnabled(target.getLabelControl(), enabled);
 			SWTControlUtil.setEnabled(target.getEditFieldControl(), target.isLabelControlSelected() && enabled);
 			SWTControlUtil.setEnabled(target.getButtonControl(), target.isLabelControlSelected() && enabled);
 		}
 		if (simulator != null) {
+			SWTControlUtil.setEnabled(simulator.getLabelControl(), enabled);
 			SWTControlUtil.setEnabled(simulator.getEditFieldControl(), simulator.isLabelControlSelected() && enabled);
 		}
 	}

@@ -49,9 +49,9 @@ public interface IPeerNodeProperties {
 	public static String PROP_CHANNEL_REF_COUNTER = "channelRefCounter.silent"; //$NON-NLS-1$
 
 	/**
-	 * Property: Discovered target for a static peer
+	 * Property: Peer ID of selected real target.
 	 */
-	public static final String PROP_TARGET = "Target"; //$NON-NLS-1$
+	public static final String PROP_PEER_ID = "PeerId"; //$NON-NLS-1$
 
 	/**
 	 * Property: Exclude from scanner process. If set to <code>true</code>, the node will not be scanned
