@@ -66,6 +66,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	protected static final int SELECTION_REAL = 0;
 	protected static final int SELECTION_SIM = 1;
 
+	protected String selectedPeerId = null;
 	protected IPeer selectedPeer = null;
 
 	/**
@@ -166,6 +167,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeer) {
 						IPeer oldPeer = selectedPeer;
 						selectedPeer = (IPeer)((IStructuredSelection)selection).getFirstElement();
+						selectedPeerId = selectedPeer != null ? selectedPeer.getID() : null;
 						dataChanged(null);
 						onPeerChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeer, selectedPeer);
 					}
@@ -308,6 +310,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					});
 				}
 			}
+			selectedPeerId = peerId;
 			selectedPeer = peer.get();
 		}
 
@@ -404,7 +407,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		if (target != null) {
 			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, target.isLabelControlSelected());
 		}
-		data.setProperty(IPeerNodeProperties.PROP_PEER_ID, selectedPeer != null ? selectedPeer.getID() : null);
+		data.setProperty(IPeerNodeProperties.PROP_PEER_ID, selectedPeer != null ? selectedPeer.getID() : selectedPeerId);
 
 		if (simulator != null) {
 			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, simulator.isLabelControlSelected());
@@ -543,7 +546,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		}
 
 		String oldPeerId = odc.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
-		String newPeerId = selectedPeer != null ? selectedPeer.getID() : null;
+		String newPeerId = selectedPeer != null ? selectedPeer.getID() : selectedPeerId;
 		if (newPeerId == null || "".equals(newPeerId)) { //$NON-NLS-1$
 			isDirty |= oldPeerId != null && !"".equals(oldPeerId); //$NON-NLS-1$
 		} else {
