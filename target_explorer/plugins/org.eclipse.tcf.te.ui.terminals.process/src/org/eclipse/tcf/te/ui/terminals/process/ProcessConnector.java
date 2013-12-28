@@ -100,9 +100,9 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			// No process -> create PTY on supported platforms and execute
 			// process image.
 			if (process == null) {
-				if (PTY.isSupported()) {
+				if (PTY.isSupported(PTY.Mode.TERMINAL)) {
 					try {
-						pty = new PTY(false);
+						pty = new PTY(PTY.Mode.TERMINAL);
 					} catch (IOException e) {
 						// PTY not supported
 					}

@@ -23,7 +23,6 @@
    </url>
 
    <requires>
-      <import plugin="com.google.gson" version="2.2.4" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.runtime" version="3.8.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.expressions" version="3.4.400" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.runtime" version="1.2.0" match="greaterOrEqual"/>
@@ -31,8 +30,6 @@
       <import plugin="org.eclipse.tcf.te.runtime.services" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.runtime.persistence" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.runtime.model" version="1.2.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.cdt.core" version="5.4.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.cdt.debug.core" version="7.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.debug.core" version="3.7.100" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.core.cdt" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.runtime.concurrent" version="1.2.0" match="greaterOrEqual"/>
@@ -50,6 +47,7 @@
       <import plugin="org.eclipse.tcf.te.ui.views" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.ui" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.core" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="com.google.gson" version="2.2.4" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.variables" version="3.2.600" match="greaterOrEqual"/>
       <import plugin="org.eclipse.help" version="3.6.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.tcf.locator" version="1.2.0" match="greaterOrEqual"/>
@@ -64,6 +62,8 @@
       <import feature="org.eclipse.tm.terminal.serial" version="2.1.300" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.ssh" version="2.1.300" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.telnet" version="2.1.300" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.core" version="5.6.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.debug.core" version="7.4.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

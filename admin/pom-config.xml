@@ -53,14 +53,17 @@
 
 		<!-- P2 repository URL's -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
+		<!--
 		<cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
+		-->
+		<cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
 		<!--
 		<tm-site>http://download.eclipse.org/tm/updates/3.5/</tm-site>
 		<tm-site>http://download.eclipse.org/tm/builds/kepler/nightly/</tm-site>
 		-->
 		<tm-site>http://download.eclipse.org/tm/updates/3.5milestones/</tm-site>
 		<rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/I20131203074849/repository/</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20131206110810/repository</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/snapshots</swtbot-site>
   	</properties>
 
