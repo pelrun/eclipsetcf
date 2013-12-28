@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -81,6 +81,62 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
         }
     }
 
+    private void testClosedHandle(IFileHandle handle) {
+        int n = rnd.nextInt(3) + 1;
+        for (int i = 0; i < n; i++) {
+            switch (rnd.nextInt(7)) {
+            case 0:
+                files.close(handle, new IFileSystem.DoneClose() {
+                    @Override
+                    public void doneClose(IToken token, FileSystemException error) {
+                        if (error == null) exit(new Error("Error expected"));
+                    }
+                });
+                break;
+            case 1:
+                files.fsetstat(handle, null, new IFileSystem.DoneSetStat() {
+                    @Override
+                    public void doneSetStat(IToken token, FileSystemException error) {
+                        if (error == null) exit(new Error("Error expected"));
+                    }
+                });
+                break;
+            case 2:
+                files.fstat(handle, new IFileSystem.DoneStat() {
+                    @Override
+                    public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
+                        if (error == null) exit(new Error("Error expected"));
+                    }
+                });
+                break;
+            case 3:
+                files.read(handle, rnd.nextBoolean() ? 0 : -1, 1, new IFileSystem.DoneRead() {
+                    @Override
+                    public void doneRead(IToken token, FileSystemException error, byte[] data, boolean eof) {
+                        if (error == null) exit(new Error("Error expected"));
+                    }
+                });
+                break;
+            case 4:
+                files.readdir(handle, new IFileSystem.DoneReadDir() {
+                    @Override
+                    public void doneReadDir(IToken token, FileSystemException error, DirEntry[] entries, boolean eof) {
+                        if (error == null) exit(new Error("Error expected"));
+                    }
+                });
+                break;
+            case 5:
+                files.write(handle, rnd.nextBoolean() ? 0 : -1, new byte[1], 0, 1, new IFileSystem.DoneWrite() {
+                    @Override
+                    public void doneWrite(IToken token, FileSystemException error) {
+                        if (error == null) exit(new Error("Error expected"));
+                    }
+                });
+                break;
+            }
+        }
+    }
+
     public void doneRoots(IToken token, FileSystemException error, DirEntry[] entries) {
         assert state == STATE_PRE;
         if (error != null) {
@@ -124,6 +180,7 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
                     return;
                 }
                 files.close(handle, this);
+                testClosedHandle(handle);
             }
             else {
                 files.readdir(handle, this);
@@ -139,6 +196,7 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
             }
             if (eof) {
                 files.close(handle, this);
+                testClosedHandle(handle);
             }
             else {
                 files.readdir(handle, this);
@@ -159,6 +217,7 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
             }
             else {
                 files.close(handle, this);
+                testClosedHandle(handle);
             }
         }
         else if (state == STATE_WRITE) {
@@ -220,7 +279,10 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
                     }
                 }
                 async_close = rnd.nextBoolean();
-                if (async_close) files.close(handle, this);
+                if (async_close) {
+                    files.close(handle, this);
+                    testClosedHandle(handle);
+                }
             }
             else if (state == STATE_WRITE) {
                 data = new byte[rnd.nextInt(0x1000) + 1];
@@ -237,7 +299,10 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
                     }
                 }
                 async_close = rnd.nextBoolean();
-                if (async_close) files.close(handle, this);
+                if (async_close) {
+                    files.close(handle, this);
+                    testClosedHandle(handle);
+                }
             }
             else if (state == STATE_INP) {
                 Thread thread = new Thread() {
@@ -367,6 +432,7 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
         }
         else if (cmds.size() == 0 && !async_close) {
             files.close(handle, this);
+            testClosedHandle(handle);
         }
     }
 
