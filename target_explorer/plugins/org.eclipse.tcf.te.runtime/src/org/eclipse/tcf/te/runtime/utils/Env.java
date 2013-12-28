@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,31 +51,67 @@ public class Env {
 	 * @return The merged environment.
 	 */
 	public static String[] getEnvironment(String[] envp, boolean terminal) {
-		Map<String, String> env = getNativeEnvironmentCasePreserved();
-
+		// Get the cached native environment
+		Map<String, String> nativeEnv = getNativeEnvironmentCasePreserved();
+		// Make a copy of the native environment so it can be manipulated without changing
+		// the cached environment
+		Map<String, String> env = new LinkedHashMap<String, String>(nativeEnv);
+		// Set the TERM environment variable if in terminal mode
 		if (terminal) env.put("TERM", "ansi"); //$NON-NLS-1$ //$NON-NLS-2$
 
-		Iterator<Map.Entry<String, String>> iter = env.entrySet().iterator();
-		List<String> strings = new ArrayList<String>(env.size());
-		StringBuffer buffer = null;
-		while (iter.hasNext()) {
-			Map.Entry<String, String> entry = iter.next();
-			buffer = new StringBuffer(entry.getKey());
-			buffer.append('=').append(entry.getValue());
-			strings.add(buffer.toString());
+		// On Windows, the environment variable names are not case-sensitive. However,
+		// we desire to preserve the original case. Build up a translation map between
+		// an all lowercase name and the original environment name
+		Map<String, String> k2n = null;
+		if (Host.isWindowsHost()) {
+			k2n = new HashMap<String, String>();
+			for (String name : env.keySet()) {
+				k2n.put(name.toLowerCase(), name);
+			}
 		}
 
-		// if "local" environment is provided - append
+		// If a "local" environment is provided, merge it with the native
+		// environment.
 		if (envp != null) {
-			// add provided
 			for (int i = 0; i < envp.length; i++) {
+				// The full provided variable in form "name=value"
 				String envpPart = envp[i];
-				// don't override TERM
+				// Split the variable
 				String[] parts = envpPart.split("=");//$NON-NLS-1$
-				if (!terminal || !parts[0].trim().equals("TERM")) {//$NON-NLS-1$
-					strings.add(envpPart);
+				String name = parts[0].trim();
+				// Map the variable name to the real environment name (Windows only)
+				if (Host.isWindowsHost()) {
+					if (k2n.containsKey(name.toLowerCase())) {
+						String candidate = k2n.get(name.toLowerCase());
+						Assert.isNotNull(candidate);
+						name = candidate;
+					}
+				}
+				String value = parts[1].trim();
+				// Don't overwrite the TERM variable if in terminal mode
+				if (terminal && "TERM".equals(name)) continue; //$NON-NLS-1$
+				// If a variable with the name does not exist, just append it
+				if (!env.containsKey(name)) {
+					env.put(name, value);
+				} else {
+					// A variable with the name already exist, check if the value is different
+					String oldValue = env.get(name);
+					if (oldValue != null && !oldValue.equals(value) || oldValue == null && value != null) {
+						env.put(name, value);
+					}
 				}
 			}
+		}
+
+		// Convert into an array of strings
+		Iterator<Map.Entry<String, String>> iter = env.entrySet().iterator();
+		List<String> strings = new ArrayList<String>(env.size());
+		StringBuilder buffer = null;
+		while (iter.hasNext()) {
+			Map.Entry<String, String> entry = iter.next();
+			buffer = new StringBuilder(entry.getKey());
+			buffer.append('=').append(entry.getValue());
+			strings.add(buffer.toString());
 		}
 
 		return strings.toArray(new String[strings.size()]);
@@ -88,7 +125,7 @@ public class Env {
 	private static Map<String, String> getNativeEnvironmentCasePreserved() {
 		synchronized (ENV_GET_MONITOR) {
 			if (nativeEnvironmentCasePreserved == null) {
-				nativeEnvironmentCasePreserved= new HashMap<String, String>();
+				nativeEnvironmentCasePreserved = new LinkedHashMap<String, String>();
 				cacheNativeEnvironment(nativeEnvironmentCasePreserved);
 			}
 			return new HashMap<String, String>(nativeEnvironmentCasePreserved);
