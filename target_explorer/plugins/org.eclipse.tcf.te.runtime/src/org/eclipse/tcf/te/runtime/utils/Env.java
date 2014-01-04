@@ -87,7 +87,7 @@ public class Env {
 						name = candidate;
 					}
 				}
-				String value = parts[1].trim();
+				String value = parts.length > 1 ? parts[1].trim() : ""; //$NON-NLS-1$
 				// Don't overwrite the TERM variable if in terminal mode
 				if (terminal && "TERM".equals(name)) continue; //$NON-NLS-1$
 				// If a variable with the name does not exist, just append it
