@@ -34,7 +34,7 @@ public class TriggerCommandEventListener extends AbstractEventListener {
 	 */
 	@Override
 	public void eventFired(EventObject event) {
-		// Handling only WRTriggerCommandEvent's
+		// Handling only TriggerCommandEvent's
 		if (!(event instanceof TriggerCommandEvent)) return;
 
 		TriggerCommandEvent commandEvent = (TriggerCommandEvent)event;
