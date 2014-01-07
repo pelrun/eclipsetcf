@@ -33,6 +33,7 @@ import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
+import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
 /**
  * WaitForReadyStep
@@ -62,13 +63,16 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 		if (peerNode != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
 			Protocol.invokeLater(new Runnable() {
 				final Runnable thisRunnable = this;
-				int refreshCount = 0;
+				// set repeat count to 1 if real target is used
+				int totalWork = getTotalWork(context, data);
+				SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(getActivePeerModelContext(context, data, fullQualifiedId));
+				int refreshCount = result != null ? 0 : totalWork-1;
 				@Override
 				public void run() {
 					if (ProgressHelper.isCancel(WaitForReadyStep.this, monitor, callback)) {
 						return;
 					}
-					else if (refreshCount >= getTotalWork(context, data)) {
+					else if (refreshCount >= totalWork) {
 						@SuppressWarnings("synthetic-access")
                         String message = NLS.bind(Messages.WaitForReadyStep_error_timeout, getActivePeerContext(context, data, fullQualifiedId).getName());
 						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new TimeoutException(message)), null);
@@ -88,18 +92,12 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 									status = Status.OK_STATUS;
 								}
 
-								// Close the channel right away
-//								if (channel != null) Tcf.getChannelManager().closeChannel(channel);
-
 								// If we have an OK status, we are done
 								if (status != null && status.isOK()) {
 									// Get the local service
 									List<String> localServices = new ArrayList<String>(channel.getLocalServices());
 									// Get the remote services
 									List<String> remoteServices = new ArrayList<String>(channel.getRemoteServices());
-
-									// Close the channel
-									Tcf.getChannelManager().closeChannel(channel);
 
 									// Sort the service lists
 									Collections.sort(localServices);
@@ -108,6 +106,8 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 									// Update the services
 									IPeerModelUpdateService updateService = peerNode.getModel().getService(IPeerModelUpdateService.class);
 									updateService.updatePeerServices(peerNode, localServices, remoteServices);
+
+									channel.addChannelListener(peerNode);
 
 									callback(data, fullQualifiedId, callback, status, null);
 									return;

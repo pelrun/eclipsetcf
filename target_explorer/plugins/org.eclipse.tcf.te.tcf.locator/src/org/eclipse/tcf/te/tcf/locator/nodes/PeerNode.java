@@ -426,4 +426,28 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
         }
     	return false;
     }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelOpened()
+	 */
+    @Override
+    public void onChannelOpened() {
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelClosed(java.lang.Throwable)
+	 */
+    @Override
+    public void onChannelClosed(Throwable error) {
+    	if (isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
+    		changeConnectState(IConnectable.ACTION_DISCONNECT, null, null);
+    	}
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#congestionLevel(int)
+	 */
+    @Override
+    public void congestionLevel(int level) {
+    }
 }

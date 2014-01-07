@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 
+import org.eclipse.tcf.protocol.IChannel.IChannelListener;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.interfaces.IDecoratable;
@@ -21,7 +22,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
  * <p>
  * <b>Note:</b> Read and write access to the peer model must happen within the TCF dispatch thread.
  */
-public interface IPeerNode extends IContainerModelNode, IDecoratable, IConnectable {
+public interface IPeerNode extends IContainerModelNode, IDecoratable, IConnectable, IChannelListener {
 
 	/**
 	 * Returns the parent locator model instance.
