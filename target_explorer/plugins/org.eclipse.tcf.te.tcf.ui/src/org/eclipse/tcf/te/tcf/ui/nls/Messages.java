@@ -201,7 +201,6 @@ public class Messages extends NLS {
 	public static String ToolbarAction_selectPeer;
 	public static String ToolbarAction_selectionDialog_title;
 	public static String ToolbarAction_selectionDialog_description;
-	public static String ToolbarAction_selectionDialog_button_showOnlyReachable;
 
 	public static String LoggingPreferencePage_label;
 	public static String LoggingPreferencePage_enabled_label;

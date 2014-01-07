@@ -367,6 +367,15 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	 */
 	@Override
 	public void setupData(IPropertiesContainer data) {
+
+		if (data.containsKey(IPeer.ATTR_NAME) && peerNameControl != null) {
+			peerNameControl.setEditFieldControlText(data.getStringProperty(IPeer.ATTR_NAME));
+		}
+
+		IWizardConfigurationPanel panel = transportTypePanelControl != null ? transportTypePanelControl.getActiveConfigurationPanel() : null;
+		if (panel instanceof IDataExchangeNode) {
+			((IDataExchangeNode)panel).setupData(data);
+		}
 	}
 
 	/**

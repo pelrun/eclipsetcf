@@ -11,8 +11,12 @@ package org.eclipse.tcf.te.ui.wizards;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
 
@@ -74,6 +78,32 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	 */
 	protected String getWizardSectionName() {
 		return getClass().getName();
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.wizard.Wizard#createPageControls(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	public void createPageControls(Composite pageContainer) {
+	    super.createPageControls(pageContainer);
+
+	    IPropertiesContainer data = getInitialData();
+	    if (data != null && !data.isEmpty()) {
+	    	for (IWizardPage page : getPages()) {
+	    		if (page instanceof IDataExchangeNode) {
+	    			((IDataExchangeNode)page).setupData(data);
+	    		}
+	    	}
+	    }
+	}
+
+	/**
+	 * Get the data to initialize wizard pages.
+	 * @return The initial data for all wizard pages or <code>null</code>.
+	 */
+	protected IPropertiesContainer getInitialData() {
+		return null;
 	}
 
 	/* (non-Javadoc)

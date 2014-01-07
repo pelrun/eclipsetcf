@@ -32,6 +32,8 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
@@ -71,6 +73,39 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 	@Override
 	public void addPages() {
 		addPage(new NewTargetWizardPage());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.wizards.AbstractWizard#getInitialData()
+	 */
+	@Override
+	protected IPropertiesContainer getInitialData() {
+		IStructuredSelection selection = getSelection();
+		if (selection != null) {
+			IPeer peer = null;
+			if (selection.getFirstElement() instanceof IPeer) {
+				peer = (IPeer)selection.getFirstElement();
+			}
+			if (selection.getFirstElement() instanceof IPeerNode) {
+				peer = ((IPeerNode)selection.getFirstElement()).getPeer();
+			}
+
+			if (peer != null) {
+				IPropertiesContainer data = new PropertiesContainer();
+				IPropertiesAccessService service = ServiceManager.getInstance().getService(peer, IPropertiesAccessService.class);
+				Map<String,String> attrs = service.getTargetAddress(peer);
+				String peerName = attrs.get(IPropertiesAccessServiceConstants.PROP_NAME);
+				String peerHost = attrs.get(IPropertiesAccessServiceConstants.PROP_ADDRESS);
+				String peerPort = attrs.get(IPropertiesAccessServiceConstants.PROP_PORT);
+
+				data.setProperty(IPeer.ATTR_NAME, peerName);
+				data.setProperty(IPeer.ATTR_IP_HOST, peerHost);
+				data.setProperty(IPeer.ATTR_IP_PORT, peerPort);
+
+				return data;
+			}
+		}
+		return super.getInitialData();
 	}
 
 	/**

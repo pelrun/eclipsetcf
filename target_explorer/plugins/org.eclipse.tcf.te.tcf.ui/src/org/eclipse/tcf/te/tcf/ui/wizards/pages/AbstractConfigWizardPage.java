@@ -406,13 +406,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
-	 */
-	@Override
-	public void setupData(IPropertiesContainer data) {
-	}
-
 	/**
 	 * Updates the given attributes properties container with the current control content.
 	 *
@@ -464,6 +457,19 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		Assert.isNotNull(data);
 		// Update with the current control content
 		updatePeerAttributes(data);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+	@Override
+	public void setupData(IPropertiesContainer data) {
+		if (selectorSection instanceof IDataExchangeNode) {
+			((IDataExchangeNode)selectorSection).setupData(data);
+		}
+		if (detailsSection instanceof IDataExchangeNode) {
+			((IDataExchangeNode)detailsSection).setupData(data);
+		}
 	}
 
 	/* (non-Javadoc)
