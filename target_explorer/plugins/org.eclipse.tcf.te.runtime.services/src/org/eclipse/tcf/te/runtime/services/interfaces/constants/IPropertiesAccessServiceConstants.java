@@ -25,6 +25,11 @@ public interface IPropertiesAccessServiceConstants {
 	public static String PROP_NAME = "name"; //$NON-NLS-1$
 
 	/**
+	 * Target transport name.
+	 */
+	public static String PROP_TRANSPORT_NAME = "transportName"; //$NON-NLS-1$
+
+	/**
 	 * Target agent address.
 	 * <p>
 	 * <i>The value is typically the address an agent running at the target.</i>

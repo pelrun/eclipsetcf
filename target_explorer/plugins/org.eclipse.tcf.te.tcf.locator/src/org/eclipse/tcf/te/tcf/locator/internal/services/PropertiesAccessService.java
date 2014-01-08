@@ -60,6 +60,11 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 					if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 						result.put(IPropertiesAccessServiceConstants.PROP_PORT, value);
 					}
+
+					value = attributes.get(IPeer.ATTR_TRANSPORT_NAME);
+					if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
+						result.put(IPropertiesAccessServiceConstants.PROP_TRANSPORT_NAME, value);
+					}
 				}
 			});
 		}

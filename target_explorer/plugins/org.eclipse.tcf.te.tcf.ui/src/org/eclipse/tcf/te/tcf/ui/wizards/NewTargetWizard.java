@@ -97,10 +97,12 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 				String peerName = attrs.get(IPropertiesAccessServiceConstants.PROP_NAME);
 				String peerHost = attrs.get(IPropertiesAccessServiceConstants.PROP_ADDRESS);
 				String peerPort = attrs.get(IPropertiesAccessServiceConstants.PROP_PORT);
+				String transport = attrs.get(IPropertiesAccessServiceConstants.PROP_TRANSPORT_NAME);
 
 				data.setProperty(IPeer.ATTR_NAME, peerName);
 				data.setProperty(IPeer.ATTR_IP_HOST, peerHost);
 				data.setProperty(IPeer.ATTR_IP_PORT, peerPort);
+				data.setProperty(IPeer.ATTR_TRANSPORT_NAME, transport);
 
 				return data;
 			}

@@ -20,7 +20,7 @@ import java.util.Map;
 public interface IPropertiesAccessService extends IService {
 
 	/**
-	 * Returns a unmodifiable map containing the target addresses and ports for the given context,
+	 * Returns a unmodifiable map containing the target address and port for the given context,
 	 * if it can be determined.
 	 * <p>
 	 * A context may return multiple target addresses and ports if the context can be reached using

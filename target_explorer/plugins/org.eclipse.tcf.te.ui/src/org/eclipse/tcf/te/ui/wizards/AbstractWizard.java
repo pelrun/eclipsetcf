@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
+import org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
 
@@ -93,6 +94,9 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	    	for (IWizardPage page : getPages()) {
 	    		if (page instanceof IDataExchangeNode) {
 	    			((IDataExchangeNode)page).setupData(data);
+	    			if (page instanceof AbstractValidatingWizardPage) {
+	    				((AbstractValidatingWizardPage)page).validate();
+	    			}
 	    		}
 	    	}
 	    }
