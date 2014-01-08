@@ -495,9 +495,11 @@
          <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"/>
       </menuContribution>
 
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage">
-         <separator visible="true" name="group.delete"/>
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.delete">
          <command commandId="org.eclipse.ui.edit.delete"/>
+      </menuContribution>
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.additions">
+         <command commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"/>
       </menuContribution>
 
    <!-- Status line trim area -->
