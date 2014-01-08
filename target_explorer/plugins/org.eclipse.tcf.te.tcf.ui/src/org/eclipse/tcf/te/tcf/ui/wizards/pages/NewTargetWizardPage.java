@@ -369,7 +369,13 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	public void setupData(IPropertiesContainer data) {
 
 		if (data.containsKey(IPeer.ATTR_NAME) && peerNameControl != null) {
-			peerNameControl.setEditFieldControlText(data.getStringProperty(IPeer.ATTR_NAME));
+			String name = data.getStringProperty(IPeer.ATTR_NAME);
+			int i = 1;
+			while (usedNames.contains(name.toUpperCase())) {
+				name = data.getStringProperty(IPeer.ATTR_NAME) + " (" + i + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+				i++;
+			}
+			peerNameControl.setEditFieldControlText(name);
 		}
 
 		String transportType = data.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
