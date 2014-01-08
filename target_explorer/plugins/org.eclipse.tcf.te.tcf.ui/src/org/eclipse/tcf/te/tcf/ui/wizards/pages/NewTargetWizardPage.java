@@ -372,12 +372,19 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 			peerNameControl.setEditFieldControlText(data.getStringProperty(IPeer.ATTR_NAME));
 		}
 
-		if (data.containsKey(IPeer.ATTR_TRANSPORT_NAME) && transportTypeControl != null) {
-			transportTypeControl.setSelectedTransportType(data.getStringProperty(IPeer.ATTR_TRANSPORT_NAME));
-		}
-		IWizardConfigurationPanel panel = transportTypePanelControl != null ? transportTypePanelControl.getActiveConfigurationPanel() : null;
-		if (panel instanceof IDataExchangeNode) {
-			((IDataExchangeNode)panel).setupData(data);
+		String transportType = data.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
+		if (transportType != null) {
+			if (transportTypeControl != null) {
+				transportTypeControl.setSelectedTransportType(transportType);
+				if (!transportTypeControl.getSelectedTransportType().equals(transportType)) {
+					transportTypeControl.setSelectedTransportType(ITransportTypes.TRANSPORT_TYPE_CUSTOM);
+				}
+				transportTypePanelControl.showConfigurationPanel(transportTypeControl.getSelectedTransportType());
+			}
+			IWizardConfigurationPanel panel = transportTypePanelControl != null ? transportTypePanelControl.getActiveConfigurationPanel() : null;
+			if (panel instanceof IDataExchangeNode) {
+				((IDataExchangeNode)panel).setupData(data);
+			}
 		}
 	}
 

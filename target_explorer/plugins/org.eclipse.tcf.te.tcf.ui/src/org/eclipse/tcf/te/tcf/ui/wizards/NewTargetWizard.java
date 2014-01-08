@@ -32,8 +32,6 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
@@ -82,27 +80,27 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 	protected IPropertiesContainer getInitialData() {
 		IStructuredSelection selection = getSelection();
 		if (selection != null) {
-			IPeer peer = null;
+			final IPeer peer;
 			if (selection.getFirstElement() instanceof IPeer) {
 				peer = (IPeer)selection.getFirstElement();
 			}
-			if (selection.getFirstElement() instanceof IPeerNode) {
+			else if (selection.getFirstElement() instanceof IPeerNode) {
 				peer = ((IPeerNode)selection.getFirstElement()).getPeer();
+			}
+			else {
+				peer = null;
 			}
 
 			if (peer != null) {
-				IPropertiesContainer data = new PropertiesContainer();
-				IPropertiesAccessService service = ServiceManager.getInstance().getService(peer, IPropertiesAccessService.class);
-				Map<String,String> attrs = service.getTargetAddress(peer);
-				String peerName = attrs.get(IPropertiesAccessServiceConstants.PROP_NAME);
-				String peerHost = attrs.get(IPropertiesAccessServiceConstants.PROP_ADDRESS);
-				String peerPort = attrs.get(IPropertiesAccessServiceConstants.PROP_PORT);
-				String transport = attrs.get(IPropertiesAccessServiceConstants.PROP_TRANSPORT_NAME);
-
-				data.setProperty(IPeer.ATTR_NAME, peerName);
-				data.setProperty(IPeer.ATTR_IP_HOST, peerHost);
-				data.setProperty(IPeer.ATTR_IP_PORT, peerPort);
-				data.setProperty(IPeer.ATTR_TRANSPORT_NAME, transport);
+				final IPropertiesContainer data = new PropertiesContainer();
+				Protocol.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						for (Entry<String, String> attribute : peer.getAttributes().entrySet()) {
+	                        data.setProperty(attribute.getKey(), attribute.getValue());
+                        }
+					}
+				});
 
 				return data;
 			}

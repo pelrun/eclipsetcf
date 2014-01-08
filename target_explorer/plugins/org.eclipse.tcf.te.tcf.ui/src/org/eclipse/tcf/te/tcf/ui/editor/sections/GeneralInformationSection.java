@@ -18,15 +18,12 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
@@ -59,9 +56,6 @@ import org.eclipse.ui.forms.widgets.Section;
 public class GeneralInformationSection extends AbstractSection {
 	// The section sub controls
 	private InfoSectionPeerNameControl nameControl = null;
-
-	private Text linkState = null;
-	private Label linkStateImage = null;
 
 	// Reference to the original data object
 	/* default */ IPeerNode od;
@@ -155,33 +149,6 @@ public class GeneralInformationSection extends AbstractSection {
 		nameControl.setFormToolkit(toolkit);
 		nameControl.setParentControlIsInnerPanel(true);
 		nameControl.setupPanel(client);
-
-		// Create the peer link state control
-		Label label = new Label(client, SWT.HORIZONTAL);
-		label.setText(Messages.GeneralInformationSection_state);
-		GridData layoutData = new GridData(SWT.LEFT, SWT.TOP, false, false);
-		layoutData.verticalIndent = 4;
-		label.setLayoutData(layoutData);
-
-		Composite panel = new Composite(client, SWT.NONE);
-		GridLayout layout = new GridLayout(2, false);
-		layout.marginHeight = 0; layout.marginWidth = 0; layout.horizontalSpacing = 0;
-		panel.setLayout(new GridLayout(2, false));
-		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		if (nameControl.getControlDecoration() != null) {
-			layoutData.horizontalIndent = FieldDecorationRegistry.getDefault().getMaximumDecorationWidth() / 2;
-		}
-		panel.setLayoutData(layoutData);
-
-		linkStateImage = new Label(panel, SWT.HORIZONTAL);
-		layoutData = new GridData(SWT.CENTER, SWT.TOP, false, false);
-		layoutData.verticalIndent = 1; layoutData.widthHint = 10;
-		linkStateImage.setLayoutData(layoutData);
-
-		linkState = new Text(panel, SWT.READ_ONLY | SWT.WRAP | SWT.MULTI);
-		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		layoutData.heightHint = SWTControlUtil.convertHeightInCharsToPixels(linkState, 2);
-		linkState.setLayoutData(layoutData);
 
 		// Adjust the control enablement
 		updateEnablement();

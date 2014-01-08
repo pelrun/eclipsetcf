@@ -262,6 +262,10 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 			String transportType = data.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
 			if (transportType != null && !"".equals(transportType)) { //$NON-NLS-1$
 				transportTypeControl.setSelectedTransportType(transportType);
+				if (!transportTypeControl.getSelectedTransportType().equals(transportType)) {
+					transportType = ITransportTypes.TRANSPORT_TYPE_CUSTOM;
+					transportTypeControl.setSelectedTransportType(transportType);
+				}
 
 				if (transportTypePanelControl != null) {
 					transportTypePanelControl.showConfigurationPanel(transportType);
@@ -543,12 +547,14 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 
 		if (transportTypeControl != null) {
 			String transportType = transportTypeControl.getSelectedTransportType();
-			if ("".equals(transportType)) { //$NON-NLS-1$
-				String value = odc.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
-				isDirty |= value != null && !"".equals(value.trim()); //$NON-NLS-1$
-			}
-			else {
-				isDirty |= !odc.isProperty(IPeer.ATTR_TRANSPORT_NAME, transportType);
+			if (!ITransportTypes.TRANSPORT_TYPE_CUSTOM.equals(transportType)) {
+				if ("".equals(transportType)) { //$NON-NLS-1$
+					String value = odc.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
+					isDirty |= value != null && !"".equals(value.trim()); //$NON-NLS-1$
+				}
+				else {
+					isDirty |= !odc.isProperty(IPeer.ATTR_TRANSPORT_NAME, transportType);
+				}
 			}
 
 			if (transportTypePanelControl != null) {

@@ -57,14 +57,6 @@ public class Messages extends NLS {
 	public static String GeneralInformationSection_title;
 	public static String GeneralInformationSection_description;
 	public static String GeneralInformationSection_error_nameInUse;
-
-	public static String GeneralInformationSection_state;
-	public static String GeneralInformationSection_state__1;
-	public static String GeneralInformationSection_state_0;
-	public static String GeneralInformationSection_state_1;
-	public static String GeneralInformationSection_state_2;
-	public static String GeneralInformationSection_state_3;
-	public static String GeneralInformationSection_state_4;
 	public static String GeneralInformationSection_error_delete;
 	public static String GeneralInformationSection_error_emptyName;
 
