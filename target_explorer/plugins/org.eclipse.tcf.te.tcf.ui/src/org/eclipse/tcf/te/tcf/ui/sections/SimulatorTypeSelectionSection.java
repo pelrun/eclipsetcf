@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.tcf.ui.sections;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
@@ -32,8 +31,6 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.controls.SimulatorTypeSelectionControl;
 import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
@@ -67,7 +64,6 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	protected static final int SELECTION_SIM = 1;
 
 	protected String selectedPeerId = null;
-	protected IPeer selectedPeer = null;
 
 	/**
 	 * Constructor.
@@ -152,7 +148,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				if (target.isLabelControlSelected()) {
 					onSelectionChanged(SELECTION_REAL);
 					if (!isUpdating()) {
-						onPeerChanged(false, true, selectedPeer, selectedPeer);
+						onPeerChanged(false, true, selectedPeerId, selectedPeerId);
 					}
 				}
 			}
@@ -165,11 +161,11 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					// Get the selected proxy from the dialog
 					ISelection selection = dialog.getSelection();
 					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeer) {
-						IPeer oldPeer = selectedPeer;
-						selectedPeer = (IPeer)((IStructuredSelection)selection).getFirstElement();
+						String oldPeerId = selectedPeerId;
+						IPeer selectedPeer = (IPeer)((IStructuredSelection)selection).getFirstElement();
 						selectedPeerId = selectedPeer != null ? selectedPeer.getID() : null;
 						dataChanged(null);
-						onPeerChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeer, selectedPeer);
+						onPeerChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeerId, selectedPeerId);
 					}
 				}
 
@@ -250,10 +246,10 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	 *
 	 * @param oldEnabled The old target enabled action.
 	 * @param newEnabled The new target enabled action.
-	 * @param oldPeer The new selected peer.
-	 * @param newPeer The old selected peer.
+	 * @param oldPeerId The old selected peer id.
+	 * @param newPeerId The new selected peer id.
 	 */
-	protected void onPeerChanged(boolean oldEnabled, boolean newEnabled, IPeer oldPeer, IPeer newPeer) {
+	protected void onPeerChanged(boolean oldEnabled, boolean newEnabled, String	oldPeerId, String newPeerId) {
 	}
 
 	/**
@@ -297,21 +293,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 		if (target != null) {
 			target.setLabelControlSelection(!data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED));
-			final String peerId = data.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
-			final AtomicReference<IPeer> peer = new AtomicReference<IPeer>();
-			if (peerId != null) {
-				final ILocatorModelLookupService service = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
-				if (service != null) {
-					Protocol.invokeAndWait(new Runnable() {
-						@Override
-						public void run() {
-							peer.set(service.lkupPeerById(peerId));
-						}
-					});
-				}
-			}
-			selectedPeerId = peerId;
-			selectedPeer = peer.get();
+			selectedPeerId = data.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
 		}
 
 		onSelectionChanged(data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED) ? SELECTION_SIM : SELECTION_REAL);
@@ -407,7 +389,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		if (target != null) {
 			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, target.isLabelControlSelected());
 		}
-		data.setProperty(IPeerNodeProperties.PROP_PEER_ID, selectedPeer != null ? selectedPeer.getID() : selectedPeerId);
+		data.setProperty(IPeerNodeProperties.PROP_PEER_ID, selectedPeerId);
 
 		if (simulator != null) {
 			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, simulator.isLabelControlSelected());
@@ -456,7 +438,13 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					attributes.put(IPeerNodeProperties.PROP_SIM_ENABLED, Boolean.toString(isSimEnabled));
 				} else {
 					attributes.remove(IPeerNodeProperties.PROP_SIM_ENABLED);
-					attributes.put(IPeerNodeProperties.PROP_PEER_ID, selectedPeer != null ? selectedPeer.getID() : null);
+					attributes.put(IPeerNodeProperties.PROP_PEER_ID, selectedPeerId);
+				}
+				if (selectedPeerId != null) {
+					attributes.put(IPeerNodeProperties.PROP_PEER_ID, selectedPeerId);
+				}
+				else {
+					attributes.remove(IPeerNodeProperties.PROP_PEER_ID);
 				}
 				if (configs != null) {
 					attributes.put(IPeerNodeProperties.PROP_SIM_PROPERTIES, configs);
@@ -546,7 +534,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		}
 
 		String oldPeerId = odc.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
-		String newPeerId = selectedPeer != null ? selectedPeer.getID() : selectedPeerId;
+		String newPeerId = selectedPeerId;
 		if (newPeerId == null || "".equals(newPeerId)) { //$NON-NLS-1$
 			isDirty |= oldPeerId != null && !"".equals(oldPeerId); //$NON-NLS-1$
 		} else {
