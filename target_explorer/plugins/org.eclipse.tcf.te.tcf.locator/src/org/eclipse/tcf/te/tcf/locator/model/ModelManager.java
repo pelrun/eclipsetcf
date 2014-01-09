@@ -24,10 +24,10 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerModel;
  */
 public final class ModelManager {
 	// Reference to the peer model
-	/* default */ static volatile IPeerModel peerModel;
+	/* default */ static volatile IPeerModel peerModel = null;
 
 	// Reference to the locator model
-	/* default */ static volatile ILocatorModel locatorModel;
+	/* default */ static volatile ILocatorModel locatorModel = null;
 
 	/**
 	 * Returns the shared peer model instance.
@@ -115,19 +115,23 @@ public final class ModelManager {
 		// called twice. Return immediately in this case.
 		if (peerModel == null) {
 			// Create the model instance
-			peerModel = new PeerModel();
+			IPeerModel model = new PeerModel();
 			// Refresh the model right away
-			peerModel.getService(IPeerModelRefreshService.class).refresh(null);
+			model.getService(IPeerModelRefreshService.class).refresh(null);
+			// Apply to the global variable
+			peerModel = model;
 		}
 
 		// If locator model is set in the mean while, initialize got
 		// called twice. Return immediately in this case.
 		if (locatorModel == null) {
 			// Create the model instance
-			locatorModel = new LocatorModel();
+			ILocatorModel model = new LocatorModel();
 			// Refresh the model right away
-			locatorModel.getService(ILocatorModelRefreshService.class).refresh(null);
-			((LocatorModel)locatorModel).checkLocatorListener();
+			model.getService(ILocatorModelRefreshService.class).refresh(null);
+			((LocatorModel)model).checkLocatorListener();
+			// Apply to the global variable
+			locatorModel = model;
 		}
 	}
 
