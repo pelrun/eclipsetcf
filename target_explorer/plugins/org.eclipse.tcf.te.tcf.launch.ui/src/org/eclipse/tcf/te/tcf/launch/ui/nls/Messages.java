@@ -98,6 +98,7 @@ public class Messages extends NLS {
 	public static String PathMapEditorPage_name;
 	public static String PathMapEditorPage_error_apply;
 	public static String PathMapEditorPage_error_title;
+	public static String PathMapEditorPage_showAll_label;
 
 	public static String SourceLookupEditorPage_name;
 

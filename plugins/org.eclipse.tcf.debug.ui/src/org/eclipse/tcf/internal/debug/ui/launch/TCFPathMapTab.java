@@ -212,9 +212,19 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 1, 1));
         createTable(composite);
+        createCustomControls(composite);
         setControl(composite);
     }
 
+    /**
+     * Hook to add custom controls below the path map rules table.
+     * 
+     * @param parent The parent composite. Must not be <code>null</code>.
+     */
+    protected void createCustomControls(Composite parent) {
+        // Nothing to do
+    }
+    
     private void createTable(Composite parent) {
         Font font = parent.getFont();
         Label map_label = new Label(parent, SWT.WRAP);
@@ -255,11 +265,22 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             }
         });
 
+        configureTableViewer(viewer);
+        
         table.pack(true);
 
         createTableButtons(composite);
     }
 
+    /**
+     * Hook to configure the checkbox table viewer.
+     * 
+     * @param viewer The checkbox table viewer. Must not be <code>null</code>.
+     */
+    protected void configureTableViewer(CheckboxTableViewer viewer) {
+        // Nothing to do
+    }
+    
     protected void configureTable(final Table table) {
         GridData data = new GridData(GridData.FILL_BOTH | GridData.VERTICAL_ALIGN_BEGINNING);
         data.widthHint = SIZING_TABLE_WIDTH;
