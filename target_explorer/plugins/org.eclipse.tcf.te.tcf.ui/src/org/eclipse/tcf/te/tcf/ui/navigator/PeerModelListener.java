@@ -63,7 +63,7 @@ public class PeerModelListener extends ModelAdapter {
 					@Override
 					public void run() {
 						if (viewer.getTree() != null && !viewer.getTree().isDisposed()) {
-							viewer.refresh();
+							viewer.refresh(true);
 						}
 					}
 				});

@@ -308,7 +308,7 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 			}
 
 			// Process the read peers
-			if (!peers.isEmpty()) {
+			if (!oldChildren.isEmpty() || !peers.isEmpty()) {
 				processPeers(peers, oldChildren, model);
 			}
 		}

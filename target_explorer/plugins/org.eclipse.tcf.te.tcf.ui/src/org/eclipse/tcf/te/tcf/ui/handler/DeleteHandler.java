@@ -47,13 +47,10 @@ import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.interfaces.handler.IDeleteHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
-import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategoryManager;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -179,13 +176,6 @@ public class DeleteHandler extends AbstractHandler {
 					ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, new StructuredSelection(parentCategory));
 				}
 
-				// Close the configuration editor if open
-				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				IEditorPart editor = page.findEditor(new EditorInput(node));
-				if (editor != null) {
-					page.closeEditor(editor, false);
-				}
-
 				// Check if there is a delete handler delegate for the element
 				IUIService uiService = ServiceManager.getInstance().getService(node, IUIService.class);
 				IDeleteHandlerDelegate delegate = uiService != null ? uiService.getDelegate(node, IDeleteHandlerDelegate.class) : null;
@@ -307,46 +297,18 @@ public class DeleteHandler extends AbstractHandler {
 			Object element = treePath.getLastSegment();
 			Assert.isTrue(element instanceof IPeerNode);
 			IPeerNode node = (IPeerNode)element;
-
 			ICategory category = treePath.getFirstSegment() instanceof ICategory ? (ICategory)treePath.getFirstSegment() : null;
 
-			if (category == null) {
-				Operation op = new Operation();
-				op.node = node;
-				op.type = Operation.TYPE.Remove;
-				operations.add(op);
+			Operation op = new Operation();
+			if (category != null && IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
+				op.type = Operation.TYPE.Unlink;
 			}
 			else {
-				// If the parent category is "Favorites", it is always
-				// an "unlink" operation
-				if (IUIConstants.ID_CAT_FAVORITES.equals(category.getId())) {
-					Operation op = new Operation();
-					op.node = node;
-					op.type = Operation.TYPE.Unlink;
-					op.parentCategory = category;
-					operations.add(op);
-				}
-				// If the parent category is "My Targets", is is an
-				// "remove" operation for static peers and "unlink" for
-				// dynamic peers
-				else if (IUIConstants.ID_CAT_MY_TARGETS.equals(category.getId())) {
-					Operation op = new Operation();
-					op.node = node;
-
-					op.type = Operation.TYPE.Remove;
-					op.parentCategory = category;
-
-					operations.add(op);
-				}
-				else {
-					Operation op = new Operation();
-					op.node = node;
-					op.type = Operation.TYPE.Remove;
-					op.parentCategory = category;
-
-					operations.add(op);
-				}
+				op.type = Operation.TYPE.Remove;
 			}
+			op.node = node;
+			op.parentCategory = category;
+			operations.add(op);
 		}
 
 		return operations.toArray(new Operation[operations.size()]);

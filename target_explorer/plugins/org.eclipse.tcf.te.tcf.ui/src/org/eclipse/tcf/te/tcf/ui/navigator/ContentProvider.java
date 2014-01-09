@@ -374,6 +374,9 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		if (children != null && children.length > 0 && navFilterService != null) {
 			for (ViewerFilter filter : navFilterService.getVisibleFilters(true)) {
 				children = filter.filter(null, element, children);
+				if (children == null || children.length == 0) {
+					break;
+				}
 			}
 		}
 
