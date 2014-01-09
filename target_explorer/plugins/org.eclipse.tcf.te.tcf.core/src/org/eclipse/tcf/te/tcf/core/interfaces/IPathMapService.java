@@ -20,6 +20,10 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
  * for a given context.
  */
 public interface IPathMapService extends IService {
+	/**
+	 * Protocol used to mark path map rules to be used to map host paths to target paths.
+	 */
+	public final static String PATHMAP_PROTOCOL_HOST_TO_TARGET = "Host2Target"; //$NON-NLS-1$
 
 	/**
 	 * Return the configured (object) path mappings for the given context.

@@ -39,24 +39,6 @@ public interface IPathMapResolverService extends IService {
 	public String map(IPathMap.PathMapRule rule, String fnm);
 
 	/**
-	 * Resolves the given file name by checking if the given path map rule is a match.
-	 * <p>
-	 * The path map rule matches, if the path map rule destination attribute is
-	 * equal to the given file name or if the path map rule destination attribute
-	 * is a prefix of the given file name.
-	 * <p>
-	 * If the path map rule is a match, the corresponding fraction of the
-	 * given file name is replaced with the path map rule source attribute.
-	 * <p>
-	 * If the path map rule is not a match, <code>null</code> is returned.
-	 *
-	 * @param rule The path map rule. Must not be <code>null</code>.
-	 * @param fnm The file name. Must not be <code>null</code>.
-	 * @return The mapped path or <code>null</code<.
-	 */
-	public String mapReverse(IPathMap.PathMapRule rule, String fnm);
-
-	/**
 	 * Find a matching target path for the given host path.
 	 * <p>
 	 * Walks the configured (object) path map for the given context and search

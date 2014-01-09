@@ -342,7 +342,10 @@ public class PathMapService extends AbstractService implements IPathMapService {
 											}
 										}
 
-										rules.addAll(Arrays.asList(configuredMap));
+										for (PathMapRule rule : configuredMap) {
+											if (IPathMapService.PATHMAP_PROTOCOL_HOST_TO_TARGET.equals(rule.getProtocol())) continue;
+											rules.add(rule);
+										}
 
 										// Determine if the map has changed
 										boolean changed = map != null ? map.length != rules.size() : !rules.isEmpty();

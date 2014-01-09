@@ -49,36 +49,6 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapResolverService#mapReverse(org.eclipse.tcf.services.IPathMap.PathMapRule, java.lang.String)
-	 */
-	@Override
-	public String mapReverse(IPathMap.PathMapRule rule, String fnm) {
-		Assert.isNotNull(rule);
-		Assert.isNotNull(fnm);
-
-		// Note: For reverse mapping the path map rule, rules having an
-		// absolute path in the destination field but not in the source
-		// field are ignored.
-
-		String dst = rule.getDestination();
-		if (dst == null) return null;
-		if (!(new Path(dst).isPrefixOf(new Path(fnm)))) return null;
-		String host = rule.getHost();
-		if (host != null && host.length() > 0) {
-			if (!IPAddressUtil.getInstance().isLocalHost(host)) return null;
-		}
-		String src = rule.getSource();
-		if (src == null || src.length() == 0) return null;
-		if (new Path(dst).isAbsolute() && !src.startsWith("/") //$NON-NLS-1$
-					&& (src.indexOf(':') == -1 || src.indexOf(':') > src.indexOf('/'))) {
-			return null;
-		}
-		int l = dst.length();
-		if (src.endsWith("/") && l < fnm.length() && fnm.charAt(l) == '/') l++; //$NON-NLS-1$
-		return new Path(src + fnm.substring(l)).toString();
-	}
-
-	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapResolverService#findTargetPath(java.lang.Object, java.lang.String)
 	 */
 	@Override
@@ -92,9 +62,10 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 			IPathMap.PathMapRule[] rules = svc.getPathMap(context);
 			if (rules != null && rules.length > 0) {
 				for (IPathMap.PathMapRule rule : rules) {
+					if (!IPathMapService.PATHMAP_PROTOCOL_HOST_TO_TARGET.equals(rule.getProtocol())) continue;
 	                String query = rule.getContextQuery();
 	                if (query != null && query.length() > 0 && !query.equals("*")) continue; //$NON-NLS-1$
-					String targetPath = mapReverse(rule, hostPath);
+					String targetPath = map(rule, hostPath);
 					if (targetPath != null) {
 						return targetPath;
 					}
@@ -119,9 +90,10 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 			IPathMap.PathMapRule[] rules = svc.getPathMap(context);
 			if (rules != null && rules.length > 0) {
 				for (IPathMap.PathMapRule rule : rules) {
+					if (IPathMapService.PATHMAP_PROTOCOL_HOST_TO_TARGET.equals(rule.getProtocol())) continue;
 	                String query = rule.getContextQuery();
 	                if (query != null && query.length() > 0 && !query.equals("*")) continue; //$NON-NLS-1$
-					String hostPath = mapReverse(rule, targetPath);
+					String hostPath = map(rule, targetPath);
 					if (hostPath != null) {
 			            if (hostPath.startsWith("/cygdrive/")) { //$NON-NLS-1$
 			            	hostPath = hostPath.substring(10, 11) + ":" + hostPath.substring(11); //$NON-NLS-1$

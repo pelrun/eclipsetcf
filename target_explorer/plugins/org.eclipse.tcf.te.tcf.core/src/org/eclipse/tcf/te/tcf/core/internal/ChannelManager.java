@@ -10,7 +10,6 @@
 package org.eclipse.tcf.te.tcf.core.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +112,11 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 													}
 												}
 
-												rules.addAll(Arrays.asList(configuredMap.get()));
+												for (PathMapRule rule : configuredMap.get()) {
+													if (IPathMapService.PATHMAP_PROTOCOL_HOST_TO_TARGET.equals(rule.getProtocol())) continue;
+													rules.add(rule);
+												}
+
 												if (!rules.isEmpty()) {
 													svc.set(rules.toArray(new PathMapRule[rules.size()]), new IPathMap.DoneSet() {
 														@Override
