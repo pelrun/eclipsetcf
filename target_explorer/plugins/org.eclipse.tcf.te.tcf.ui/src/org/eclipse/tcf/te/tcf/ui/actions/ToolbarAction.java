@@ -85,7 +85,7 @@ public class ToolbarAction extends AbstractPeerTypeToolbarAction {
 	 */
 	@Override
 	protected ImageDescriptor getNewActionImageDescriptor() {
-	    return UIPlugin.getImageDescriptor(ImageConsts.NEW_PEER);
+	    return UIPlugin.getImageDescriptor(ImageConsts.NEW_PEER_NODE);
 	}
 
 	/* (non-Javadoc)
@@ -93,6 +93,6 @@ public class ToolbarAction extends AbstractPeerTypeToolbarAction {
 	 */
 	@Override
 	protected ImageDescriptor getSelectExistingActionImageDescriptor() {
-	    return UIPlugin.getImageDescriptor(ImageConsts.PEER);
+	    return UIPlugin.getImageDescriptor(ImageConsts.PEER_NODE);
 	}
 }

@@ -118,7 +118,7 @@
          <enablement>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
-                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
+                  <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
                </adapt>
             </with>
          </enablement>
@@ -142,7 +142,10 @@
          <enablement>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
-                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="PathMap"/>
+                  <and>
+                     <test property="org.eclipse.tcf.te.core.canAdaptTo" value="org.eclipse.debug.core.ILaunchConfiguration" args="forceAdapterLoad"/>
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="PathMap"/>
+                  </and>
                </adapt>
             </with>
          </enablement>
@@ -154,7 +157,10 @@
          <enablement>
             <with variable="activeEditorInput">
                <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
-                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="MemoryMap"/>
+                  <and>
+                     <test property="org.eclipse.tcf.te.core.canAdaptTo" value="org.eclipse.debug.core.ILaunchConfiguration" args="forceAdapterLoad"/>
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="MemoryMap"/>
+                  </and>
                </adapt>
             </with>
          </enablement>

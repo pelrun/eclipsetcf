@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.views.navigator;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.tcf.te.ui.trees.TreeViewerSorterCaseInsensitive;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
+import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 
 /**
  * Category viewer sorter implementation.
@@ -30,6 +31,13 @@ public class ViewerSorter extends TreeViewerSorterCaseInsensitive {
 			if (rank1 != -1 && rank2 != -1 && rank1 != rank2) {
 				return (rank1 - rank2) * inverter;
 			}
+		}
+
+		if (node1 instanceof NewWizardNode && !(node2 instanceof NewWizardNode)) {
+			return -1;
+		}
+		if (node2 instanceof NewWizardNode && !(node1 instanceof NewWizardNode)) {
+			return 1;
 		}
 
 	    return super.doCompare(viewer, node1, node2, sortColumn, index, inverter);

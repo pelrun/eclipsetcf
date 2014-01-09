@@ -10,20 +10,28 @@
 package org.eclipse.tcf.te.tcf.ui.editor;
 
 import java.io.IOException;
+import java.util.EventObject;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.AttributesSection;
 import org.eclipse.tcf.te.tcf.ui.editor.sections.GeneralInformationSection;
@@ -34,6 +42,8 @@ import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage;
+import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
@@ -47,11 +57,44 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	private ServicesSection servicesSection;
 	private AttributesSection attributesSection;
 
+	private IEventListener listener = null;
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInput(org.eclipse.ui.IEditorInput)
+	 */
+	@Override
+	protected void setInput(IEditorInput input) {
+		IEditorInput oldInput = getEditorInput();
+		// do nothing when input did not change
+		if (oldInput != null && oldInput.equals(input)) {
+			return;
+		}
+		super.setInput(input);
+	    if (listener == null) {
+	    	listener = new IEventListener() {
+                @Override
+				public void eventFired(EventObject event) {
+					ChangeEvent changeEvent = (ChangeEvent)event;
+					if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) && event.getSource() == getEditorInputNode()) {
+						ExecutorsUtil.executeInUI(new Runnable() {
+							@Override
+							public void run() {
+								getManagedForm().getForm().setImage(getFormImage());
+							}
+						});
+					}
+				}
+			};
+	    	EventManager.getInstance().addEventListener(listener, ChangeEvent.class);
+	    }
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#dispose()
 	 */
 	@Override
 	public void dispose() {
+		if (listener != null) { EventManager.getInstance().removeEventListener(listener); listener = null; }
 		if (infoSection != null) { infoSection.dispose(); infoSection = null; }
 		if (transportSection != null) { transportSection.dispose(); transportSection = null; }
 		if (servicesSection != null) { servicesSection.dispose(); servicesSection = null; }
@@ -80,7 +123,17 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 	 */
 	@Override
 	protected Image getFormImage() {
-	    return UIPlugin.getImage(ImageConsts.PEER);
+		Image image = null;
+		if (getEditorInputNode() instanceof IPeerNode) {
+			ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(getEditorInputNode(), false);
+			if (delegates != null && delegates.length > 0) {
+				image = delegates[0].getImage(getEditorInputNode());
+				if (image != null && delegates[0] instanceof ILabelDecorator) {
+					image = ((ILabelDecorator)delegates[0]).decorateImage(image, getEditorInputNode());
+				}
+			}
+		}
+		return image != null ? image : UIPlugin.getImage(ImageConsts.PEER_NODE);
 	}
 
 	/* (non-Javadoc)

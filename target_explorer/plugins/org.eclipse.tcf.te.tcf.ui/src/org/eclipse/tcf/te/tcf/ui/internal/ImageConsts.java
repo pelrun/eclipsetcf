@@ -63,7 +63,7 @@ public interface ImageConsts {
     /**
      * The key to access the base peer object image.
      */
-    public static final String PEER = "PeerObject"; //$NON-NLS-1$
+    public static final String PEER_NODE = "PeerObject"; //$NON-NLS-1$
 
     /**
      * The key to access the base peer object image (discovered).
@@ -78,7 +78,7 @@ public interface ImageConsts {
     /**
      * The key to access the new peer wizard image.
      */
-    public static final String NEW_PEER = "NewPeerObject"; //$NON-NLS-1$
+    public static final String NEW_PEER_NODE = "NewPeerObject"; //$NON-NLS-1$
 
     /**
      * The key to access the peer object busy overlay image.

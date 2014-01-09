@@ -36,8 +36,10 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupServic
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
+import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.views.Managers;
 import org.eclipse.tcf.te.ui.views.extensions.CategoriesExtensionPointManager;
@@ -45,6 +47,7 @@ import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IRoot;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
+import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.internal.navigator.NavigatorFilterService;
 import org.eclipse.ui.navigator.CommonViewer;
@@ -67,6 +70,9 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	// The current user filter id
 	private final static String CURRENT_USER_FILTER_ID = "org.eclipse.tcf.te.tcf.ui.navigator.PeersByCurrentUserFilter"; //$NON-NLS-1$
 
+	private final NewWizardNode newConfigNode = new NewWizardNode("org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard", //$NON-NLS-1$
+					Messages.ContentProvider_newNode,
+					UIPlugin.getImage(ImageConsts.NEW_PEER_NODE), this);
 
 	// The peer model listener instance
 	/* default */ IPeerModelListener peerModelListener = null;
@@ -226,6 +232,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 						candidates.add(peerNode);
 					}
 				}
+				candidates.add(0, newConfigNode);
 			}
 			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
 				for (IPeer peer : ModelManager.getLocatorModel().getPeers()) {

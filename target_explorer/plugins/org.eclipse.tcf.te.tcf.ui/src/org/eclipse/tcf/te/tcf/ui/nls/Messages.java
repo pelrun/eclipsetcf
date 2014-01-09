@@ -51,6 +51,8 @@ public class Messages extends NLS {
 
 	public static String PossibleCause;
 
+	public static String ContentProvider_newNode;
+
 	public static String OverviewEditorPage_title;
 	public static String OverviewEditorPage_error_save;
 

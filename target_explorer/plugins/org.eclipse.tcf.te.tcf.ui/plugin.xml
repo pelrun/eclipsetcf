@@ -136,7 +136,7 @@
                </or>               
             </possibleChildren>
             <commonSorter
-                  class="org.eclipse.tcf.te.ui.trees.TreeViewerSorterCaseInsensitive"
+                  class="org.eclipse.tcf.te.ui.views.navigator.ViewerSorter"
                   id="org.eclipse.tcf.te.tcf.ui.navigator.sorter"/>
             <commonWizard
                   type="new"

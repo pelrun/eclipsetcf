@@ -10,18 +10,24 @@
 package org.eclipse.tcf.te.tcf.ui.editor;
 
 import java.io.IOException;
+import java.util.EventObject;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
@@ -39,6 +45,8 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	// Section to select real or simulator
 	/* default */ SimulatorTypeSelectionSection simulatorTypeSelectionSection = null;
 
+	private IEventListener listener = null;
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInput(org.eclipse.ui.IEditorInput)
 	 */
@@ -50,6 +58,24 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 			return;
 		}
 		super.setInput(input);
+	    if (listener == null) {
+	    	listener = new IEventListener() {
+				@SuppressWarnings("synthetic-access")
+                @Override
+				public void eventFired(EventObject event) {
+					ChangeEvent changeEvent = (ChangeEvent)event;
+					if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) && event.getSource() == getEditorInputNode()) {
+						ExecutorsUtil.executeInUI(new Runnable() {
+							@Override
+							public void run() {
+								getManagedForm().getForm().setImage(getFormImage());
+							}
+						});
+					}
+				}
+			};
+	    	EventManager.getInstance().addEventListener(listener, ChangeEvent.class);
+	    }
 	}
 
 	/**
@@ -86,6 +112,7 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	@Override
 	public void dispose() {
 		if (simulatorTypeSelectionSection != null) { simulatorTypeSelectionSection.dispose(); simulatorTypeSelectionSection = null; }
+		if (listener != null) { EventManager.getInstance().removeEventListener(listener); listener = null; }
 		super.dispose();
 	}
 
