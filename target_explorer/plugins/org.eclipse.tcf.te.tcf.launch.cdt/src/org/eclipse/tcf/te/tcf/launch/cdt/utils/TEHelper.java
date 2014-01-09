@@ -48,9 +48,9 @@ import org.eclipse.tcf.te.tcf.filesystem.core.services.FileTransferService;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 
@@ -71,14 +71,14 @@ public class TEHelper {
 		ExecutorsUtil.waitAndExecute(0, callback.getDoneConditionTester(null));
 	}
 
-	public static IPeerModel getPeer(final String peerId) {
+	public static IPeerNode getPeerNode(final String peerId) {
 		if (peerId != null) {
-			final AtomicReference<IPeerModel> parent = new AtomicReference<IPeerModel>();
+			final AtomicReference<IPeerNode> parent = new AtomicReference<IPeerNode>();
 			final Runnable runnable = new Runnable() {
 				@Override
                 public void run() {
-					parent.set(Model.getModel()
-							.getService(ILocatorModelLookupService.class)
+					parent.set(ModelManager.getPeerModel()
+							.getService(IPeerModelLookupService.class)
 							.lkupPeerModelById(peerId));
 				}
 			};
@@ -88,11 +88,11 @@ public class TEHelper {
 		return null;
 	}
 
-	public static IPeerModel getCurrentConnection(ILaunchConfiguration config)
+	public static IPeerNode getCurrentConnection(ILaunchConfiguration config)
 			throws CoreException {
 		String peerId = config.getAttribute(
 				IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, ""); //$NON-NLS-1$
-		IPeerModel connection = getPeer(peerId);
+		IPeerNode connection = getPeerNode(peerId);
 		if (connection == null) {
 			abort(Messages.RemoteRunLaunchDelegate_13, null,
 					ICDTLaunchConfigurationConstants.ERR_INTERNAL_ERROR);

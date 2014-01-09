@@ -20,14 +20,14 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 import org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 
 public class TCFPeerSelector {
 
 	protected Combo combo;
 	protected Label label;
-	protected IPeerModel[] peers = null;
+	protected IPeerNode[] peers = null;
 
 	private Composite composite;
 
@@ -84,9 +84,9 @@ public class TCFPeerSelector {
 	/**
 	 * Get the selected peer.
 	 */
-	public IPeerModel getPeer() {
+	public IPeerNode getPeerNode() {
 		final String peerId = getPeerId();
-		return TEHelper.getPeer(peerId);
+		return TEHelper.getPeerNode(peerId);
 	}
 
 	/**
@@ -102,11 +102,11 @@ public class TCFPeerSelector {
 		return null;
 	}
 
-	public void updateSelectionFrom(IPeerModel peer) {
+	public void updateSelectionFrom(IPeerNode peerNode) {
 		int newSelectedIndex = -1;
 		String[] peerIds = combo.getItems();
 		for (int i = 0; i < peerIds.length; i++) {
-			if (peerIds[i].equals(peer.getPeerId())) {
+			if (peerIds[i].equals(peerNode.getPeerId())) {
 				newSelectedIndex = i;
 				break;
 			}
@@ -132,7 +132,7 @@ public class TCFPeerSelector {
 
 	protected void refreshCombo() {
 		Activator.getDefault().initializeTE();
-		peers = Model.getModel().getPeers();
+		peers = ModelManager.getPeerModel().getPeerNodes();
 		int newSelectedIndex = 0;
 		for (int i = 0; i < peers.length; i++) {
 			combo.add(peers[i].getPeerId());

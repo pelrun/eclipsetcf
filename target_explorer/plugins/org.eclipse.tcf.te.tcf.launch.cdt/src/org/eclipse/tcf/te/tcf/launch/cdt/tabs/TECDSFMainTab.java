@@ -48,7 +48,7 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.dialogs.FSOpenFileDialog;
 import org.eclipse.tcf.te.tcf.launch.cdt.controls.TCFPeerSelector;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 @SuppressWarnings("restriction")
 public class TECDSFMainTab extends CMainTab {
@@ -232,7 +232,7 @@ public class TECDSFMainTab extends CMainTab {
 	}
 
 	protected void handleRemoteBrowseSelected() {
-		IPeerModel connection = peerSelector.getPeer();
+		IPeerNode connection = peerSelector.getPeerNode();
 		if (connection != null) {
 			FSOpenFileDialog dialog = new FSOpenFileDialog(getShell());
 			dialog.setInput(connection);

@@ -9,8 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.activator;
 
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
-import org.eclipse.tcf.te.tcf.locator.model.Model;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -62,7 +62,7 @@ public class Activator extends AbstractUIPlugin {
 
 	public void initializeTE() {
 		if(!isTEInitialized ){
-		IPeerModel[] peers = Model.getModel().getPeers();
+		IPeerNode[] peers = ModelManager.getPeerModel().getPeerNodes();
 		if (peers.length == 0) {
 			// Sleep shortly
 			try {
