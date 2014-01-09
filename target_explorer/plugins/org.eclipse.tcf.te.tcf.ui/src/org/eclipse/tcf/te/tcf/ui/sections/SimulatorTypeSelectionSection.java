@@ -168,7 +168,6 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 						onPeerChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeerId, selectedPeerId);
 					}
 				}
-
 			}
 		};
 		target.setLabelIsButton(true);

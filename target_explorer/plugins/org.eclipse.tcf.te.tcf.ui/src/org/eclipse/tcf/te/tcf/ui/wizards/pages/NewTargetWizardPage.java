@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.wizards.pages;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.eclipse.core.runtime.Assert;
@@ -18,6 +19,9 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -37,9 +41,12 @@ import org.eclipse.tcf.te.tcf.ui.controls.PipeTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.TcpTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.TransportTypeControl;
 import org.eclipse.tcf.te.tcf.ui.controls.TransportTypePanelControl;
+import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
+import org.eclipse.tcf.te.ui.controls.validator.TextValidator;
+import org.eclipse.tcf.te.ui.controls.validator.Validator;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -215,7 +222,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 		// Create the client composite
 		Composite client = toolkit.createComposite(parent);
-		client.setLayout(FormLayoutFactory.createSectionClientGridLayout(false, 2));
+		client.setLayout(FormLayoutFactory.createSectionClientGridLayout(false, 3));
 		client.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		client.setBackground(parent.getBackground());
 
@@ -246,9 +253,38 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 				return valid ? super.isValid() : false;
 			}
+			@Override
+			protected void onButtonControlSelected() {
+				PeerSelectionDialog dialog = new PeerSelectionDialog(null);
+
+				// Open the dialog
+				if (dialog.open() == Window.OK) {
+					// Get the selected proxy from the dialog
+					ISelection selection = dialog.getSelection();
+					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeer) {
+						final IPeer peer = (IPeer)((IStructuredSelection)selection).getFirstElement();
+						final IPropertiesContainer data = new PropertiesContainer();
+						Protocol.invokeAndWait(new Runnable() {
+							@Override
+							public void run() {
+								for (Entry<String, String> attribute : peer.getAttributes().entrySet()) {
+			                        data.setProperty(attribute.getKey(), attribute.getValue());
+		                        }
+							}
+						});
+						setupData(data);
+					}
+				}
+			}
+			@Override
+            protected void configureEditFieldValidator(Validator validator) {
+				if (validator == null) return;
+				validator.setMessageText(TextValidator.INFO_MISSING_NAME, Messages.NewTargetWizardPage_description);
+			}
 		};
 		peerNameControl.setFormToolkit(toolkit);
-		peerNameControl.setParentControlIsInnerPanel(true);
+		peerNameControl.setParentControlIsInnerPanel(false);
+		peerNameControl.setHideBrowseButton(false);
 		peerNameControl.setupPanel(client);
 		peerNameControl.getEditFieldControl().setFocus();
 
