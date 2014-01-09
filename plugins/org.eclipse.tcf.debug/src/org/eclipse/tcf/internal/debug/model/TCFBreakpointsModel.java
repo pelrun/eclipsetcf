@@ -36,6 +36,7 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.tcf.internal.debug.Activator;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IBreakpoints;
 
@@ -492,23 +493,37 @@ public class TCFBreakpointsModel {
             if (key.equals(IBreakpoints.PROP_CONDITION)) continue;
             if (key.equals(IBreakpoints.PROP_EVENT_TYPE)) continue;
             if (key.equals(IBreakpoints.PROP_EVENT_ARGS)) continue;
-            if (val instanceof String[]) {
-                StringBuffer bf = new StringBuffer();
-                for (String s : (String[])val) {
-                    if (bf.length() > 0) bf.append(',');
-                    bf.append(s);
+            if (IBreakpoints.PROP_CONTEXT_IDS.equals(key) ||
+                    IBreakpoints.PROP_CONTEXT_NAMES.equals(key) ||
+                    IBreakpoints.PROP_STOP_GROUP.equals(key) ||
+                    IBreakpoints.PROP_EXECUTABLE_PATHS.equals(key)) {
+                if (val instanceof String[]) {
+                    StringBuffer bf = new StringBuffer();
+                    for (String s : (String[])val) {
+                        if (bf.length() > 0) bf.append(',');
+                        bf.append(s);
+                    }
+                    if (bf.length() == 0) continue;
+                    val = bf.toString();
                 }
-                if (bf.length() == 0) continue;
-                val = bf.toString();
+                else if (val instanceof Collection) {
+                    StringBuffer bf = new StringBuffer();
+                    for (String s : (Collection<String>)val) {
+                        if (bf.length() > 0) bf.append(',');
+                        bf.append(s);
+                    }
+                    if (bf.length() == 0) continue;
+                    val = bf.toString();
+                }
             }
-            else if (val instanceof Collection) {
-                StringBuffer bf = new StringBuffer();
-                for (String s : (Collection<String>)val) {
-                    if (bf.length() > 0) bf.append(',');
-                    bf.append(s);
+            if (!(val instanceof String) && !(val instanceof Boolean) && !(val instanceof Integer)) {
+                // class of the value is not supported by Marker, convert to JSON string
+                try {
+                    val = "JSON:" + JSON.toJSON(val);
                 }
-                if (bf.length() == 0) continue;
-                val = bf.toString();
+                catch (IOException x) {
+                    continue;
+                }
             }
             m.put(ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + key, val);
         }
@@ -625,18 +640,28 @@ public class TCFBreakpointsModel {
             if (key.equals(ATTR_TCF_STAMP)) continue;
             if (key.startsWith(ITCFConstants.ID_TCF_DEBUG_MODEL)) {
                 String tcf_key = key.substring(ITCFConstants.ID_TCF_DEBUG_MODEL.length() + 1);
-                if (IBreakpoints.PROP_CONTEXT_IDS.equals(tcf_key)) {
-                    String stringVal = (String)val;
-                    if (stringVal.length() == 0) continue;
-                    val = filterContextIds(channel, stringVal.split(",\\s*"));
-                }
-                else if (IBreakpoints.PROP_CONTEXT_QUERY.equals(tcf_key)) {
-                    if (((String)val).length() == 0) continue;
-                }
-                else if (IBreakpoints.PROP_CONTEXT_NAMES.equals(tcf_key) ||
-                        IBreakpoints.PROP_STOP_GROUP.equals(tcf_key) ||
-                        IBreakpoints.PROP_EXECUTABLE_PATHS.equals(tcf_key)) {
-                    val = ((String)val).split(",\\s*");
+                if (val instanceof String) {
+                    String str = (String)val;
+                    if (IBreakpoints.PROP_CONTEXT_IDS.equals(tcf_key)) {
+                        if (str.length() == 0) continue;
+                        val = filterContextIds(channel, str.split(",\\s*"));
+                    }
+                    else if (IBreakpoints.PROP_CONTEXT_QUERY.equals(tcf_key)) {
+                        if (str.length() == 0) continue;
+                    }
+                    else if (IBreakpoints.PROP_CONTEXT_NAMES.equals(tcf_key) ||
+                            IBreakpoints.PROP_STOP_GROUP.equals(tcf_key) ||
+                            IBreakpoints.PROP_EXECUTABLE_PATHS.equals(tcf_key)) {
+                        val = str.split(",\\s*");
+                    }
+                    else if (str.startsWith("JSON:")) {
+                        try {
+                            val = JSON.parseOne(str.substring(5).getBytes("UTF-8"));
+                        }
+                        catch (Exception x) {
+                            // Not JSON, keep value as String
+                        }
+                    }
                 }
                 m.put(tcf_key, val);
             }
