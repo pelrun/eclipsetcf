@@ -16,10 +16,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
@@ -440,7 +442,21 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     @Override
     public void onChannelClosed(Throwable error) {
     	if (isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
-    		changeConnectState(IConnectable.ACTION_DISCONNECT, null, null);
+    		changeConnectState(IConnectable.ACTION_DISCONNECT, new Callback() {
+    			/* (non-Javadoc)
+    			 * @see org.eclipse.tcf.te.runtime.callback.Callback#internalDone(java.lang.Object, org.eclipse.core.runtime.IStatus)
+    			 */
+    			@Override
+    			protected void internalDone(Object caller, IStatus status) {
+    				setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, null);
+    				setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, null);
+    			}
+    		},
+    		null);
+    	}
+    	else {
+			setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, null);
+			setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, null);
     	}
     }
 
