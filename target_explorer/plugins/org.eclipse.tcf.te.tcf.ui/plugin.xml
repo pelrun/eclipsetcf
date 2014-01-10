@@ -62,6 +62,17 @@
 <!-- Service contributions -->
    <extension point="org.eclipse.tcf.te.runtime.services.services">
       <service
+            class="org.eclipse.tcf.te.tcf.ui.internal.services.MenuService"
+            id="org.eclipse.tcf.te.tcf.ui.services.MenuService">
+         <serviceType
+               bundleId="org.eclipse.tcf.te.runtime.services"
+               class="org.eclipse.tcf.te.runtime.services.interfaces.IMenuService"/>
+         <enablement>
+            <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+         </enablement>
+      </service>
+
+      <service
             class="org.eclipse.tcf.te.tcf.ui.internal.services.DefaultContextService"
             id="org.eclipse.tcf.te.tcf.ui.services.DefaultContextService">
          <serviceType
@@ -150,7 +161,10 @@
                      </and>
                      <and>
                         <instanceof value="org.eclipse.tcf.te.ui.views.interfaces.ICategory"/>
-                        <test property="org.eclipse.tcf.te.ui.views.isCategoryID" value="org.eclipse.tcf.te.ui.views.category.mytargets"/>
+                        <or>
+                           <test property="org.eclipse.tcf.te.ui.views.isCategoryID" value="org.eclipse.tcf.te.ui.views.category.neighborhood"/>
+                           <test property="org.eclipse.tcf.te.ui.views.isCategoryID" value="org.eclipse.tcf.te.ui.views.category.mytargets"/>
+                        </or>
                      </and>
                   </or>
                </enablement>
