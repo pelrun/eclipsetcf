@@ -9,16 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.handler;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -39,18 +38,20 @@ public class ConnectableCommandHandler extends AbstractEditorCommandHandler {
 	public Object internalExecute(ExecutionEvent event) throws ExecutionException {
 		Assert.isTrue(action >= 0);
 
-		ISelection selection = HandlerUtil.getCurrentSelection(event);
-
-		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-			Iterator<Object> iterator = ((IStructuredSelection)selection).iterator();
-			while (iterator.hasNext()) {
-				Object element = iterator.next();
-				if (element instanceof IConnectable) {
-					IConnectable connectable = (IConnectable)element;
-					if (connectable.isConnectStateChangeAllowed(action)) {
-						connectable.changeConnectState(action, null, null);
-					}
-				}
+		Object element = HandlerUtil.getActiveEditorInput(event);
+		IConnectable connectable = null;
+		if (element instanceof IConnectable) {
+			connectable = (IConnectable)element;
+		}
+		else if (element instanceof IAdaptable) {
+			connectable = (IConnectable)((IAdaptable)element).getAdapter(IConnectable.class);
+		}
+		if (connectable == null) {
+			connectable = (IConnectable)Platform.getAdapterManager().getAdapter(element, IConnectable.class);
+		}
+		if (connectable != null) {
+			if (connectable.isConnectStateChangeAllowed(action)) {
+				connectable.changeConnectState(action, null, null);
 			}
 		}
 

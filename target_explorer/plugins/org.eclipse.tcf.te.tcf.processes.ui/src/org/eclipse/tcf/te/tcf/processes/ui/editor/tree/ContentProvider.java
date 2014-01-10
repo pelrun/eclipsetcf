@@ -58,15 +58,15 @@ public class ContentProvider extends org.eclipse.tcf.te.tcf.processes.ui.navigat
     }
 
     /* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#getChildren(java.lang.Object)
-	 */
-	@Override
-	public Object[] getChildren(Object parentElement) {
+     * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#getElements(java.lang.Object)
+     */
+    @Override
+    public Object[] getElements(Object inputElement) {
 		if (peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
-			return super.getChildren(parentElement);
+	        return super.getElements(inputElement);
 		}
 		return new Object[]{new MessageModelNode(Messages.ContentProvider_notConnected, IStatus.INFO, false)};
-	}
+    }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#isRuntimeModelNodeVisible()
