@@ -88,7 +88,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_cpp_test_class_extension_var",
         "tcf_cpp_test_class_extension_ptr",
         "tcf_cpp_test_class_extension_member_ptr",
-        "tcf_cpp_test_anonymous_union_var"
+        "tcf_cpp_test_anonymous_union_var",
+        "tcf_test_array_field"
     };
 
     private static final String[] test_expressions = {
@@ -150,7 +151,12 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_cpp_test_class_extension_var.f_int == 345",
         "tcf_cpp_test_class_extension_ptr == &tcf_cpp_test_class_extension_var",
         "tcf_cpp_test_class_extension_var.*tcf_cpp_test_class_extension_member_ptr == tcf_cpp_test_class_extension_var.f_int",
-        "tcf_cpp_test_class_extension_ptr->*tcf_cpp_test_class_extension_member_ptr == tcf_cpp_test_class_extension_var.f_int"
+        "tcf_cpp_test_class_extension_ptr->*tcf_cpp_test_class_extension_member_ptr == tcf_cpp_test_class_extension_var.f_int",
+        "sizeof(tcf_test_array_field.buf) == 15",
+        "sizeof(tcf_test_array_field.buf[0]) == 5",
+        "sizeof(tcf_test_array_field.buf[0][0]) == 1",
+        "sizeof(tcf_test_array_field.buf[2][4]) == 1",
+        "tcf_test_array_field.buf[1][3] == 8"
     };
 
     private static final String[] test_dprintfs = {
@@ -532,12 +538,13 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                         public void doneFind(IToken token, Exception error, String symbol_id) {
                             cmds.remove(token);
                             if (error != null) {
-                                if (nm.startsWith("tcf_cpp_") && error instanceof IErrorReport &&
+                                if (error instanceof IErrorReport &&
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_SYM_NOT_FOUND) {
-
-                                    global_var_ids.put(nm, null);
-                                    runTest();
-                                    return;
+                                    if (nm.startsWith("tcf_cpp_") || nm.equals("tcf_test_array_field")) {
+                                        global_var_ids.put(nm, null);
+                                        runTest();
+                                        return;
+                                    }
                                 }
                                 exit(error);
                             }
