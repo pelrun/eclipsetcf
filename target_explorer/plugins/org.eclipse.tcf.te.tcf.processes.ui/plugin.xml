@@ -320,6 +320,10 @@
             <visibleWhen checkEnabled="true"/>
          </menu>
          <separator
+               name="group.launch"
+               visible="true">
+         </separator>
+         <separator
                name="group.launch.rundebug"
                visible="true">
          </separator>
