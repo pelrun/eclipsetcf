@@ -41,27 +41,4 @@ public interface IPeerModelQueryService extends IPeerModelService {
 	 * @param done The client callback. Must not be <code>null</code>.
 	 */
 	public String queryRemoteServices(IPeerNode node);
-
-	/**
-	 * Client call back interface for queryServicesAsync(...).
-	 */
-	public interface DoneQueryServices {
-		/**
-		 * Called when the services query completed.
-		 *
-		 * @param error The error description if operation failed, <code>null</code> if succeeded.
-		 */
-		void doneQueryServices(Throwable error);
-	}
-
-	/**
-	 * Asynchronously query the services for the given peer node.
-	 * <p>
-	 * <b>Note:</b> This method must be called from within the TCF dispatch thread.
-	 *
-	 * @param node The peer node. Must not be <code>null</code>.
-	 * @param done The client callback. Must not be <code>null</code>.
-	 */
-	public void queryServicesAsync(IPeerNode node, DoneQueryServices done);
-
 }

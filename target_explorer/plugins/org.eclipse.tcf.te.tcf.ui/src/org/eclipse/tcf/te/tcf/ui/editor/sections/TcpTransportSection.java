@@ -35,7 +35,6 @@ import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.net.RemoteHostAddressControl;
@@ -527,9 +526,6 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 				node.setProperty("dns.name.transient", null); //$NON-NLS-1$
 				node.setProperty("dns.lastIP.transient", null); //$NON-NLS-1$
 				node.setProperty("dns.skip.transient", null); //$NON-NLS-1$
-
-				IPeerModelUpdateService service = node.getModel().getService(IPeerModelUpdateService.class);
-				service.updatePeerServices(node, null, null);
 
 				if (changed) {
 					node.setChangeEventsEnabled(true);
