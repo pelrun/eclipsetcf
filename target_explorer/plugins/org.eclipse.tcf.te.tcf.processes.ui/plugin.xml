@@ -169,6 +169,10 @@
 
    <!-- System Managegement View context menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.launch.rundebug">
+         <separator
+               name="group.launch.rundebug.commands"
+               visible="true">
+         </separator>
          <command
                commandId="org.eclipse.tcf.te.launch.command.attach"
                disabledIcon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/dlcl16/attach.gif"
