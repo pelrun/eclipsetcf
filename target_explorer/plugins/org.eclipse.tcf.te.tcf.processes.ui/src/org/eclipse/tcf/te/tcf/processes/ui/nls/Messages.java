@@ -57,6 +57,8 @@ public class Messages extends NLS {
 
 	public static String ProcessLabelProvider_NullNameNodeLabel;
 
+	public static String ContentProvider_notConnected;
+
 	public static String ProcessPreferencePage_BiggerThanZero;
 	public static String ProcessPreferencePage_DefineMoreThanOne;
 

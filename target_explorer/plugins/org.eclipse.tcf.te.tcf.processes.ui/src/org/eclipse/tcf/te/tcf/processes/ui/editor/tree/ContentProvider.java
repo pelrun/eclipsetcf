@@ -9,10 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.editor.tree;
 
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.runtime.model.MessageModelNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 
 /**
  * Process tree control content provider implementation.
@@ -41,9 +46,26 @@ public class ContentProvider extends org.eclipse.tcf.te.tcf.processes.ui.navigat
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		super.inputChanged(viewer, oldInput, newInput);
-		if (newInput instanceof IPeerNode) {
-			peerNode = (IPeerNode) newInput;
+		peerNode = getPeerNode(newInput);
+	}
+
+    protected IPeerNode getPeerNode(Object input) {
+		IPeerNode peerNode = input instanceof IPeerNode ? (IPeerNode)input : null;
+		if (peerNode == null && input instanceof IAdaptable) {
+			peerNode = (IPeerNode)((IAdaptable)input).getAdapter(IPeerNode.class);
 		}
+		return peerNode;
+    }
+
+    /* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.ContentProvider#getChildren(java.lang.Object)
+	 */
+	@Override
+	public Object[] getChildren(Object parentElement) {
+		if (peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+			return super.getChildren(parentElement);
+		}
+		return new Object[]{new MessageModelNode(Messages.ContentProvider_notConnected, IStatus.INFO, false)};
 	}
 
 	/* (non-Javadoc)

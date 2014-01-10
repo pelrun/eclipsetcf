@@ -185,10 +185,11 @@ public class ContainerModelNode extends ModelNode implements IContainerModelNode
 		boolean removed = false;
 
 		boolean changed = setChangeEventsEnabled(false);
+		IModelNode[] children = null;
 
 		try {
 			childListLock.lock();
-			IModelNode[] children = internalGetChildren();
+			children = internalGetChildren();
 			for (IModelNode element : children) {
 				removed |= remove(element, true);
 			}
@@ -197,6 +198,10 @@ public class ContainerModelNode extends ModelNode implements IContainerModelNode
 		}
 
 		if (changed) setChangeEventsEnabled(true);
+
+		if (removed) {
+			fireChangeEvent(NOTIFY_REMOVED, children, null);
+		}
 
 		return removed;
 	}

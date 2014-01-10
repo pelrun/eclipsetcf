@@ -63,6 +63,6 @@ public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 			return newId != null ? newId : id;
 		}
 
-		return super.getText(element);
+        return ""; //$NON-NLS-1$
 	}
 }
