@@ -109,16 +109,13 @@
    <extension point="org.eclipse.tcf.te.ui.views.editorPageBindings">
       <editorPageBinding
             id="org.eclipse.tcf.te.tcf.filesystem.binding.FSExplorerEditorPage"
-            pageId="org.eclipse.tcf.te.tcf.filesystem.FSExplorerEditorPage">
+            pageId="org.eclipse.tcf.te.tcf.filesystem.FSExplorerEditorPage"
+            insertBefore="org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage,org.eclipse.tcf.te.tcf.launch.ui.PathMapEditorPage,org.eclipse.tcf.te.launch.ui.SourceLookupEditorPage,org.eclipse.tcf.te.launch.ui.LaunchEditorPage">
          <enablement>
             <with variable="activeEditorInput">
-               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
-               <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="FileSystem"/>
-               <test
-                     property="org.eclipse.tcf.te.runtime.preference"
-                     args="bundleId=org.eclipse.tcf.te.tcf.filesystem.ui,key=te.tcf.filesystem.core.feature.editor.content.enable"
-                     value="true">
-               </test>
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                  <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="FileSystem"/>
+               </adapt>
             </with>
          </enablement>
       </editorPageBinding>
