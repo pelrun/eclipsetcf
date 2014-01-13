@@ -56,6 +56,7 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
@@ -101,6 +102,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 	// The active token.
 	IToken activeToken = null;
+
+	public static final String PROCESS_LAUNCH_FAILED_MESSAGE = "processLaunchFailedMessage"; //$NON-NLS-1$
 
 	/**
 	 * Constructor.
@@ -235,7 +238,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		// If the terminate of the remote process context failed, give a warning to the user
 		if (error != null) {
 			String message = NLS.bind(Messages.ProcessLauncher_error_processTerminateFailed, context.getName());
-			message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, error.getLocalizedMessage());
+			message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, StatusHelper.unwrapErrorReport(error.getLocalizedMessage()));
 
 			IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(), message, error);
 			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
@@ -282,7 +285,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		// If the terminate of the remote process context failed, give a warning to the user
 		if (error != null) {
 			String message = NLS.bind(Messages.ProcessLauncher_error_processSendSignalFailed, "SIGHUP(15)", context.getName()); //$NON-NLS-1$
-			message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, error.getLocalizedMessage());
+			message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, StatusHelper.unwrapErrorReport(error.getLocalizedMessage()));
 
 			IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(), message, error);
 			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
@@ -307,7 +310,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 							public void doneCommand(IToken token, Exception error) {
 								if (error != null) {
 									String message = NLS.bind(Messages.ProcessLauncher_error_processSendSignalFailed, "SIGKILL(15)", finContext.getName()); //$NON-NLS-1$
-									message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, error.getLocalizedMessage());
+									message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, StatusHelper.unwrapErrorReport(error.getLocalizedMessage()));
 
 									IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(), message, error);
 									Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
@@ -492,7 +495,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 						// the error to the user and stop the launch
 						if (error != null) {
 							// Construct the error message to show to the user
-							String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
+							String message = NLS.bind(getProcessLaunchFailedMessageTemplate(),
 											properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH),
 											makeString((String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS)));
 							message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, Messages.ProcessLauncher_cause_subscribeFailed);
@@ -624,11 +627,11 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				}
 			} catch (IOException e) {
 				// Construct the error message to show to the user
-				String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
+				String message = NLS.bind(getProcessLaunchFailedMessageTemplate(),
 								properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH),
 								makeString((String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS)));
 				message += NLS.bind(Messages.ProcessLauncher_error_possibleCause,
-								e.getLocalizedMessage() != null ? e.getLocalizedMessage() : Messages.ProcessLauncher_cause_ioexception);
+								e.getLocalizedMessage() != null ? StatusHelper.unwrapErrorReport(e.getLocalizedMessage()) : Messages.ProcessLauncher_cause_ioexception);
 
 				// Construct the status object
 				IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, e);
@@ -639,6 +642,13 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 		// Mark the collector initialization as done
 		collector.initDone();
+	}
+
+	protected String getProcessLaunchFailedMessageTemplate() {
+		if (properties != null && properties.containsKey(PROCESS_LAUNCH_FAILED_MESSAGE)) {
+			return properties.getStringProperty(PROCESS_LAUNCH_FAILED_MESSAGE);
+		}
+		return Messages.ProcessLauncher_error_processLaunchFailed;
 	}
 
 	/**
@@ -790,7 +800,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					// Construct the error message to show to the user
 					String message = Messages.ProcessLauncher_error_getEnvironmentFailed;
 					message += NLS.bind(Messages.ProcessLauncher_error_possibleCause,
-									error.getLocalizedMessage() != null ? error.getLocalizedMessage() : Messages.ProcessLauncher_cause_startFailed);
+									error.getLocalizedMessage() != null ? StatusHelper.unwrapErrorReport(error.getLocalizedMessage()) : Messages.ProcessLauncher_cause_startFailed);
 
 					// Construct the status object
 					IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, error);
@@ -899,11 +909,11 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					activeToken = null;
 					if (error != null) {
 						// Construct the error message to show to the user
-						String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
+						String message = NLS.bind(getProcessLaunchFailedMessageTemplate(),
 												  properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH),
 												  makeString((String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS)));
 						message += NLS.bind(Messages.ProcessLauncher_error_possibleCause,
-										error.getLocalizedMessage() != null ? error.getLocalizedMessage() : Messages.ProcessLauncher_cause_startFailed);
+										error.getLocalizedMessage() != null ? StatusHelper.unwrapErrorReport(error.getLocalizedMessage()) : Messages.ProcessLauncher_cause_startFailed);
 
 						// Construct the status object
 						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, error);
@@ -921,11 +931,11 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					activeToken = null;
 					if (error != null) {
 						// Construct the error message to show to the user
-						String message = NLS.bind(Messages.ProcessLauncher_error_processLaunchFailed,
+						String message = NLS.bind(getProcessLaunchFailedMessageTemplate(),
 												  properties.getStringProperty(IProcessLauncher.PROP_PROCESS_PATH),
 												  makeString((String[])properties.getProperty(IProcessLauncher.PROP_PROCESS_ARGS)));
 						message += NLS.bind(Messages.ProcessLauncher_error_possibleCause,
-										error.getLocalizedMessage() != null ? error.getLocalizedMessage() : Messages.ProcessLauncher_cause_startFailed);
+										error.getLocalizedMessage() != null ? StatusHelper.unwrapErrorReport(error.getLocalizedMessage()) : Messages.ProcessLauncher_cause_startFailed);
 
 						// Construct the status object
 						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), message, error);
