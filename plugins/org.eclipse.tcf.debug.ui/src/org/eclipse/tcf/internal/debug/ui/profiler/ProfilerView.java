@@ -134,14 +134,23 @@ public class ProfilerView extends ViewPart {
         int line;
         int count;
         float total;
-        ProfileEntry[] up;
-        ProfileEntry[] dw;
+        ProfileEntryRef[] up;
+        ProfileEntryRef[] dw;
 
         boolean src_info_valid;
         boolean mark;
 
         ProfileEntry(BigInteger addr) {
             this.addr = addr;
+        }
+    }
+
+    private static class ProfileEntryRef {
+        final ProfileEntry pe;
+        float total;
+
+        ProfileEntryRef(ProfileEntry pe) {
+            this.pe = pe;
         }
     }
 
@@ -189,9 +198,9 @@ public class ProfilerView extends ViewPart {
         }
     };
 
-    private class SampleComparator implements Comparator<ProfileEntry> {
+    private static class ProfileEntryComparator implements Comparator<ProfileEntry> {
         final int sorting;
-        SampleComparator(int sorting) {
+        ProfileEntryComparator(int sorting) {
             this.sorting = sorting;
         }
         @Override
@@ -226,6 +235,15 @@ public class ProfilerView extends ViewPart {
             return x.addr.compareTo(y.addr);
         }
     };
+
+    private static class ProfileEntryRefComparator implements Comparator<ProfileEntryRef> {
+        @Override
+        public int compare(ProfileEntryRef x, ProfileEntryRef y) {
+            if (x.total > y.total) return -1;
+            if (x.total < y.total) return +1;
+            return x.pe.addr.compareTo(y.pe.addr);
+        }
+    }
 
     private class Update implements Runnable {
         final int sorting;
@@ -377,23 +395,38 @@ public class ProfilerView extends ViewPart {
                     }
                 }
             }
-            if (set_up.size() > 0) pe.up = set_up.toArray(new ProfileEntry[set_up.size()]);
-            if (set_dw.size() > 0) pe.dw = set_dw.toArray(new ProfileEntry[set_dw.size()]);
+            if (set_up.size() > 0) {
+                int n = 0;
+                pe.up = new ProfileEntryRef[set_up.size()];
+                for (ProfileEntry p : set_up) pe.up[n++] = new ProfileEntryRef(p);
+            }
+            if (set_dw.size() > 0) {
+                int n = 0;
+                pe.dw = new ProfileEntryRef[set_dw.size()];
+                for (ProfileEntry p : set_dw) pe.dw[n++] = new ProfileEntryRef(p);
+            }
         }
 
         private void addUpTotal(ProfileEntry pe, float cnt) {
-            if (cnt <= 0.1 || pe.up == null) return;
+            if (cnt <= 0.01f || pe.up == null) return;
             pe.mark = true;
             int n = 0;
-            for (ProfileEntry up : pe.up) {
-                if (!up.mark) n++;
+            for (ProfileEntryRef up : pe.up) {
+                if (!up.pe.mark) n++;
             }
             if (n != 0) {
                 float m = cnt / n;
-                for (ProfileEntry up : pe.up) {
-                    if (up.mark) continue;
-                    addUpTotal(up, m);
+                for (ProfileEntryRef up : pe.up) {
+                    if (up.pe.mark) continue;
+                    addUpTotal(up.pe, m * 1.0001f);
+                    up.pe.total += m;
                     up.total += m;
+                    for (ProfileEntryRef dw : up.pe.dw) {
+                        if (dw.pe == pe) {
+                            dw.total += m;
+                            break;
+                        }
+                    }
                 }
             }
             pe.mark = false;
@@ -450,19 +483,43 @@ public class ProfilerView extends ViewPart {
                     for (List<ProfileSample> lps : prof_data.map[0].values()) {
                         for (ProfileSample ps : lps) {
                             int n = 0;
+                            ProfileEntry dw_pe = null;
+                            ProfileEntry pe = null;
+                            ProfileEntry up_pe = null;
                             assert(ps.trace.length <= prof_data.map.length);
                             while (n < ps.trace.length) {
-                                BigInteger func_addr = getFuncAddress(ps.trace[n]);
-                                ProfileEntry pe = entries.get(func_addr);
-                                if (n == ps.trace.length - 1) addUpTotal(pe, ps.cnt);
-                                pe.total += ps.cnt;
+                                float cnt = ps.cnt * (1.0f + n / 10000f);
+                                if (pe == null) pe = entries.get(getFuncAddress(ps.trace[n]));
+                                if (dw_pe != null) {
+                                    for (ProfileEntryRef r : pe.dw) {
+                                        if (r.pe == dw_pe) {
+                                            r.total += cnt;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (n < ps.trace.length - 1) {
+                                    up_pe = entries.get(getFuncAddress(ps.trace[n + 1]));
+                                    for (ProfileEntryRef r : pe.up) {
+                                        if (r.pe == up_pe) {
+                                            r.total += cnt;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    addUpTotal(pe, cnt);
+                                }
+                                pe.total += cnt;
+                                dw_pe = pe;
+                                pe = up_pe;
                                 n++;
                             }
                         }
                     }
                     for (ProfileEntry pe : entries.values()) {
-                        if (pe.up != null) Arrays.sort(pe.up, new SampleComparator(2));
-                        if (pe.dw != null) Arrays.sort(pe.dw, new SampleComparator(2));
+                        if (pe.up != null) Arrays.sort(pe.up, new ProfileEntryRefComparator());
+                        if (pe.dw != null) Arrays.sort(pe.dw, new ProfileEntryRefComparator());
                     }
                 }
                 prof_data.generation_out = generation;
@@ -470,7 +527,7 @@ public class ProfilerView extends ViewPart {
                 assert pending == null;
             }
             if (prof_data != null && prof_data.entries != null) {
-                Arrays.sort(prof_data.entries, new SampleComparator(sorting));
+                Arrays.sort(prof_data.entries, new ProfileEntryComparator(sorting));
             }
             done = true;
             final boolean enable_start =
@@ -549,7 +606,7 @@ public class ProfilerView extends ViewPart {
         }
     }
 
-    private class ProfileLabelProvider extends LabelProvider implements ITableLabelProvider {
+    private class ProfileEntryLabelProvider extends LabelProvider implements ITableLabelProvider {
 
         public Image getColumnImage(Object element, int column) {
             return null;
@@ -567,22 +624,42 @@ public class ProfilerView extends ViewPart {
             }
             return null;
         }
+    }
 
-        private String toHex(BigInteger n) {
-            String s = n.toString(16);
-            if (s.length() >= 8) return s;
-            return "00000000".substring(s.length()) + s;
+    private class ProfileEntryRefLabelProvider extends LabelProvider implements ITableLabelProvider {
+
+        public Image getColumnImage(Object element, int column) {
+            return null;
         }
 
-        private String toPercent(float x) {
-            float f = x * 100 / sample_count;
-            if (f >= 100) return "100";
-            if (f >= 10) return String.format("%.1f", f);
-            if (f >= 1) return String.format("%.2f", f);
-            String s = String.format("%.3f", f);
-            if (s.charAt(0) == '0') s = s.substring(1);
-            return s;
+        public String getColumnText(Object element, int column) {
+            ProfileEntryRef e = (ProfileEntryRef)element;
+            switch (column) {
+            case 0: return toHex(e.pe.addr);
+            case 1: return "";
+            case 2: return toPercent(e.total);
+            case 3: return e.pe.name;
+            case 4: return e.pe.file_base;
+            case 5: return e.pe.line == 0 ? null : Integer.toString(e.pe.line);
+            }
+            return null;
         }
+    }
+
+    private String toHex(BigInteger n) {
+        String s = n.toString(16);
+        if (s.length() >= 8) return s;
+        return "00000000".substring(s.length()) + s;
+    }
+
+    private String toPercent(float x) {
+        float f = x * 100 / sample_count;
+        if (f >= 100) return "100";
+        if (f >= 10) return String.format("%.1f", f);
+        if (f >= 1) return String.format("%.2f", f);
+        String s = String.format("%.3f", f);
+        if (s.charAt(0) == '0') s = s.substring(1);
+        return s;
     }
 
     private final Action action_start = new Action("Start", ImageCache.getImageDescriptor(ImageCache.IMG_THREAD_RUNNNIG)) {
@@ -797,7 +874,7 @@ public class ProfilerView extends ViewPart {
         table.setLinesVisible(true);
         table.setFont(font);
         viewer_main.setContentProvider(new ProfileContentProvider());
-        viewer_main.setLabelProvider(new ProfileLabelProvider());
+        viewer_main.setLabelProvider(new ProfileEntryLabelProvider());
         viewer_main.setColumnProperties(column_ids);
 
         for (int i = 0; i < column_ids.length; i++) {
@@ -835,19 +912,19 @@ public class ProfilerView extends ViewPart {
         table_up.setLinesVisible(true);
         table_up.setFont(font);
         viewer_up.setContentProvider(new ProfileContentProvider());
-        viewer_up.setLabelProvider(new ProfileLabelProvider());
+        viewer_up.setLabelProvider(new ProfileEntryRefLabelProvider());
         viewer_up.setColumnProperties(column_ids);
 
         table_up.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (e.item == null) return;
-                displaySource((ProfileEntry)viewer_up.getElementAt(table_up.indexOf((TableItem)e.item)));
+                displaySource(((ProfileEntryRef)viewer_up.getElementAt(table_up.indexOf((TableItem)e.item))).pe);
             }
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
                 if (e.item == null) return;
-                displayEntry((ProfileEntry)viewer_up.getElementAt(table_up.indexOf((TableItem)e.item)));
+                displayEntry(((ProfileEntryRef)viewer_up.getElementAt(table_up.indexOf((TableItem)e.item))).pe);
             }
         });
 
@@ -864,19 +941,19 @@ public class ProfilerView extends ViewPart {
         table_dw.setLinesVisible(true);
         table_dw.setFont(font);
         viewer_dw.setContentProvider(new ProfileContentProvider());
-        viewer_dw.setLabelProvider(new ProfileLabelProvider());
+        viewer_dw.setLabelProvider(new ProfileEntryRefLabelProvider());
         viewer_dw.setColumnProperties(column_ids);
 
         table_dw.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (e.item == null) return;
-                displaySource((ProfileEntry)viewer_dw.getElementAt(table_dw.indexOf((TableItem)e.item)));
+                displaySource(((ProfileEntryRef)viewer_dw.getElementAt(table_dw.indexOf((TableItem)e.item))).pe);
             }
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
                 if (e.item == null) return;
-                displayEntry((ProfileEntry)viewer_dw.getElementAt(table_dw.indexOf((TableItem)e.item)));
+                displayEntry(((ProfileEntryRef)viewer_dw.getElementAt(table_dw.indexOf((TableItem)e.item))).pe);
             }
         });
 
