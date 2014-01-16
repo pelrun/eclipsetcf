@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -38,7 +39,13 @@ public class ConnectableCommandHandler extends AbstractEditorCommandHandler {
 	public Object internalExecute(ExecutionEvent event) throws ExecutionException {
 		Assert.isTrue(action >= 0);
 
-		Object element = HandlerUtil.getActiveEditorInput(event);
+		Object element = null;
+		if ("org.eclipse.tcf.te.ui.views.Editor".equals(HandlerUtil.getActiveEditorId(event))) { //$NON-NLS-1$
+			element = HandlerUtil.getActiveEditorInput(event);
+		} else {
+			element = HandlerUtil.getCurrentSelection(event);
+			if (element instanceof IStructuredSelection) element = ((IStructuredSelection)element).getFirstElement();
+		}
 		IConnectable connectable = null;
 		if (element instanceof IConnectable) {
 			connectable = (IConnectable)element;
