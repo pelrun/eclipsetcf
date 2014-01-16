@@ -51,6 +51,7 @@ import org.eclipse.tcf.services.IRegisters;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
+import org.eclipse.ui.IWorkbenchPart;
 
 public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastToType,
         IWatchInExpressions, IDetailsProvider, ITCFExpression {
@@ -840,6 +841,12 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (state == null || !state.is_suspended) return true;
         }
         return false;
+    }
+
+    @Override
+    public void refresh(IWorkbenchPart part) {
+        prev_value = null;
+        super.refresh(part);
     }
 
     @SuppressWarnings("incomplete-switch")
