@@ -51,7 +51,6 @@ import org.eclipse.tcf.services.IRegisters;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
-import org.eclipse.ui.IWorkbenchPart;
 
 public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastToType,
         IWatchInExpressions, IDetailsProvider, ITCFExpression {
@@ -844,9 +843,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     @Override
-    public void refresh(IWorkbenchPart part) {
+    void flushAllCaches() {
         prev_value = null;
-        super.refresh(part);
+        super.flushAllCaches();
     }
 
     @SuppressWarnings("incomplete-switch")
