@@ -71,6 +71,14 @@
       </command>
 
       <command
+            id="org.eclipse.tcf.te.ui.toolbar.command.connect"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.ui.command_Connect"
+            description="%command.connect.toolbar.description"
+            name="%command.connect.name">
+      </command>
+
+      <command
             id="org.eclipse.tcf.te.ui.command.disconnect"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             helpContextId="org.eclipse.tcf.te.ui.command_Disconnect"
@@ -83,6 +91,14 @@
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             helpContextId="org.eclipse.tcf.te.ui.command_Disconnect"
             description="%command.disconnect.description"
+            name="%command.disconnect.name">
+      </command>
+
+      <command 
+            id="org.eclipse.tcf.te.ui.toolbar.command.disconnect"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.ui.command_Disconnect"
+            description="%command.disconnect.toolbar.description"
             name="%command.disconnect.name">
       </command>
    </extension>
@@ -100,12 +116,22 @@
             icon="icons/elcl16/connect.gif">
       </image>
       <image
+            commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"
+            disabledIcon="icons/dlcl16/connect.gif"
+            icon="icons/elcl16/connect.gif">
+      </image>
+      <image
             commandId="org.eclipse.tcf.te.ui.command.disconnect"
             disabledIcon="icons/dlcl16/disconnect.gif"
             icon="icons/elcl16/disconnect.gif">
       </image>
       <image
             commandId="org.eclipse.tcf.te.ui.editor.command.disconnect"
+            disabledIcon="icons/dlcl16/disconnect.gif"
+            icon="icons/elcl16/disconnect.gif">
+      </image>
+      <image
+            commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"
             disabledIcon="icons/dlcl16/disconnect.gif"
             icon="icons/elcl16/disconnect.gif">
       </image>

@@ -192,9 +192,9 @@ public class Messages extends NLS {
 	public static String AbstractConfigWizardPage_connect_label;
 	public static String AbstractConfigWizardPage_advancedButton_label;
 
-	public static String ToolbarAction_selectPeer;
-	public static String ToolbarAction_selectionDialog_title;
-	public static String ToolbarAction_selectionDialog_description;
+	public static String ContextSelectorToolbarContribution_tooltip_new;
+	public static String ContextSelectorToolbarContribution_label_new;
+	public static String ContextSelectorToolbarContribution_tooltip_button;
 
 	public static String LoggingPreferencePage_label;
 	public static String LoggingPreferencePage_enabled_label;
@@ -239,9 +239,6 @@ public class Messages extends NLS {
 	public static String PeerImportWizardPage_overwrite_button;
 	public static String PeerImportWizardPage_overwriteDialog_message;
 	public static String PeerImportWizardPage_overwriteDialogToggle_message;
-
-	public static String DefaultContextStatusTrimControl_label;
-	public static String DefaultContextStatusTrimControl_tooltip;
 
 	public static String AbstractMapPropertiesSection_name_label;
 	public static String AbstractMapPropertiesSection_value_label;

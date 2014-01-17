@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.internal;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler;
@@ -33,6 +34,10 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 		if (receiver instanceof IStructuredSelection) {
 			// Analyze the selection
 			return testSelection((IStructuredSelection)receiver, property, args, expectedValue);
+		}
+
+		if ("canDelete".equals(property)) { //$NON-NLS-1$
+			return testSelection(new StructuredSelection(receiver), property, args, expectedValue);
 		}
 
 		if ("isWizardId".equals(property) && receiver instanceof NewWizardNode) { //$NON-NLS-1$

@@ -16,9 +16,9 @@ import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -41,7 +41,7 @@ import org.eclipse.ui.part.EditorPart;
 /**
  * Stepper command handler implementation.
  */
-public abstract class AbstractStepperCommandHandler extends AbstractEditorCommandHandler {
+public abstract class AbstractStepperCommandHandler extends AbstractCommandHandler implements IExecutableExtension {
 
 	protected String operation = null;
 	protected String adaptTo = null;
@@ -52,12 +52,10 @@ public abstract class AbstractStepperCommandHandler extends AbstractEditorComman
 	public static final String PART_ID_PROJECT_VIEW = "org.eclipse.ui.navigator.ProjectExplorer"; //$NON-NLS-1$
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.handler.AbstractEditorCommandHandler#internalExecute(org.eclipse.core.commands.ExecutionEvent)
+	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
 	@Override
-	protected Object internalExecute(ExecutionEvent event) throws ExecutionException {
-		Assert.isNotNull(operation);
-
+	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IPropertiesContainer data = getData(event);
 		if (data == null) {
 			return null;
@@ -109,7 +107,8 @@ public abstract class AbstractStepperCommandHandler extends AbstractEditorComman
 	 * @param event The event.
 	 * @return The selection.
 	 */
-	protected IStructuredSelection getSelection(ExecutionEvent event) {
+	@Override
+    protected IStructuredSelection getSelection(ExecutionEvent event) {
 		// Get the current selection
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 
@@ -164,7 +163,6 @@ public abstract class AbstractStepperCommandHandler extends AbstractEditorComman
 	 */
 	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
-		super.setInitializationData(config, propertyName, data);
 		if (data instanceof Map) {
 			Map<?,?> dataMap = (Map<?,?>)data;
 			if (dataMap.get("operation") instanceof String) { //$NON-NLS-1$

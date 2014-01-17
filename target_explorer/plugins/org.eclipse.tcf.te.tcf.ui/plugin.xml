@@ -26,6 +26,13 @@
       </factory>
    </extension>   
 
+<!-- Source provider contributions -->
+   <extension point="org.eclipse.ui.services">
+      <sourceProvider provider="org.eclipse.tcf.te.tcf.ui.internal.DefaultContextSourceProvider">
+         <variable name="defaultContextSelection" priorityLevel="workbench"/>
+      </sourceProvider>
+   </extension>
+
 <!-- Element factory contributions -->   
    <extension point="org.eclipse.ui.elementFactories">
       <factory
@@ -54,7 +61,7 @@
             class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
             id="org.eclipse.tcf.te.tcf.ui.propertyTester.simulator"
             namespace="org.eclipse.tcf.te.tcf.ui"
-            properties="isValidSimulatorConfig"
+            properties="isValidSimulatorConfig,canDelete"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
    </extension>
@@ -233,7 +240,7 @@
       <wizard
             canFinishEarly="true"
             category="org.eclipse.tcf.te.tcf.ui.newWizards.category"
-            class="org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard"
+            class="org.eclipse.tcf.te.tcf.ui.wizards.NewConfigWizard"
             hasPages="true"
             icon="icons/elcl16/newTarget_wiz.gif"
             id="org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard"
@@ -279,24 +286,6 @@
             %ExportWizards.PeerDescription
          </description>
       </wizard>
-   </extension>
-
-<!-- actionSet contributions -->
-   <extension point="org.eclipse.ui.actionSets">
-      <actionSet
-            id="org.eclipse.tcf.te.tcf.ui.launch.gettingStartedActionSet"
-            label="Getting Started Action Set (Target Explorer)"
-            visible="false">
-         <action
-               class="org.eclipse.tcf.te.tcf.ui.actions.ToolbarAction"
-               helpContextId="org.eclipse.tcf.te.tcf.ui.command_ToolbarAction"
-               icon="icons/obj16/peer.gif"
-               id="org.eclipse.tcf.te.tcf.ui.ToolbarAction"
-               label="%ToolbarAction.label"
-               style="pulldown"
-               toolbarPath="org.eclipse.debug.ui.launchActionSet/emptyLaunchGroup">
-         </action>
-      </actionSet>
    </extension>
 
 <!-- Perspective contributions -->
@@ -512,38 +501,54 @@
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.delete">
          <command commandId="org.eclipse.ui.edit.delete"/>
       </menuContribution>
+
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.additions">
          <command commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"/>
       </menuContribution>
 
-   <!-- Status line trim area -->
-      <menuContribution locationURI="toolbar:org.eclipse.ui.trim.status">
-         <toolbar id="org.eclipse.tcf.te.tcf.ui.trim.status.activeconnection">
+   <!-- Main toolbar contribution -->
+      <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?before=additions">
+         <toolbar id="org.eclipse.tcf.te.tcf.ui.toolbar">
+            <separator name="group.selector" visible="false"/>
             <control
-                  class="org.eclipse.tcf.te.tcf.ui.controls.DefaultContextStatusTrimControl"
-                  id="org.eclipse.tcf.te.tcf.ui.trim.status.DefaultContextStatusTrimControl">
-               <visibleWhen checkEnabled="false">
-                  <or>
-                     <test
-                           property="org.eclipse.tcf.te.runtime.preference"
-                           args="bundleId=org.eclipse.tcf.te.tcf.ui,key=te.tcf.ui.feature.statusbar.trim.defaultcontext.enable"
-                           value="true">
-                     </test>
-                     <test
-                           property="org.eclipse.tcf.te.core.hasEnvVar"
-                           args="trim.defaultcontext.enable"
-                           value="true">
-                     </test>
-                  </or>
-               </visibleWhen>
-            </control>
+                  class="org.eclipse.tcf.te.tcf.ui.handler.ContextSelectorToolbarContribution"
+                  id="org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution"/>
+            <separator name="group.connect" visible="false"/>
+            <command commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"/>
+            <command commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"/>
+            <separator name="group.additions" visible="true"/>
          </toolbar>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.new">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"/>
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
+         <command commandId="org.eclipse.tcf.te.ui.command.newWizards"
+               label="%command.new.label"/>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"/>
       </menuContribution>
 
    </extension>
 
 <!-- Command contributions -->
    <extension point="org.eclipse.ui.commands">
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Open"
+            name="%command.open.label"
+            description="%command.open.toolbar.tooltip">
+      </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Delete"
+            name="%command.delete.label"
+            description="%command.delete.toolbar.tooltip">
+      </command>
       <command
             id="org.eclipse.tcf.te.tcf.ui.command.debug"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
@@ -558,16 +563,31 @@
             name="%command.debug.label"
             description="%command.debug.tooltip">
       </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Debug"
+            name="%command.debug.label"
+            description="%command.debug.tooltip">
+      </command>
    </extension>
 
 <!-- Command image contributions -->
    <extension point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
+            icon="icons/etool16/delete.gif">
+      </image>
       <image
             commandId="org.eclipse.tcf.te.tcf.ui.command.debug"
             icon="icons/etool16/debug_exc.gif">
       </image>
       <image
             commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"
+            icon="icons/etool16/debug_exc.gif">
+      </image>
+      <image
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"
             icon="icons/etool16/debug_exc.gif">
       </image>
    </extension>
@@ -637,24 +657,24 @@
             commandId="org.eclipse.tcf.te.tcf.ui.command.debug"
             class="org.eclipse.tcf.te.tcf.ui.handler.StartDebugCommandHandler">
          <activeWhen>
-            <with variable="systemManagerViewSelection">
+            <with variable="selection">
                <iterate operator="and" ifEmpty="false">
                   <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                </iterate>
             </with>
          </activeWhen>
          <enabledWhen>
-            <with variable="systemManagerViewSelection">
-               <count value="1"/>
+            <with variable="selection">
                <iterate operator="and" ifEmpty="false">
                   <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
                      <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
                      <test property="org.eclipse.tcf.te.launch.core.isLaunched" value="false"/>
                   </adapt>
-                </iterate>
+               </iterate>
             </with>
          </enabledWhen>
       </handler>
+
       <handler
             commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"
             class="org.eclipse.tcf.te.tcf.ui.handler.StartDebugCommandHandler">
@@ -671,6 +691,94 @@
                   </adapt>
                </with>
             </enabledWhen>
+      </handler>
+
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"
+            class="org.eclipse.tcf.te.tcf.ui.handler.OpenEditorToolbarCommandHandler">
+            <activeWhen>
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </activeWhen>
+            <enabledWhen>
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </enabledWhen>
+      </handler>
+
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
+            class="org.eclipse.tcf.te.tcf.ui.handler.DeleteToolbarCommandHandler">
+            <activeWhen>
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </activeWhen>
+            <enabledWhen>
+               <with variable="defaultContextSelection">
+                  <test property="org.eclipse.tcf.te.tcf.ui.canDelete" value="true"/>
+               </with>
+            </enabledWhen>
+      </handler>
+
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"
+            class="org.eclipse.tcf.te.tcf.ui.handler.StartDebugToolbarCommandHandler">
+            <activeWhen>
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </activeWhen>
+            <enabledWhen>
+               <with variable="defaultContextSelection">
+                  <and>
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                     <test property="org.eclipse.tcf.te.launch.core.isLaunched" value="false"/>
+                  </and>
+               </with>
+            </enabledWhen>
+      </handler>
+
+      <handler commandId="org.eclipse.tcf.te.ui.toolbar.command.connect">
+         <class class="org.eclipse.tcf.te.tcf.ui.handler.ConnectableToolbarCommandHandler">
+            <parameter name="action" value="connect"/>
+         </class>
+         <activeWhen>
+            <with variable="defaultContextSelection">
+               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="defaultContextSelection">
+               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.core.isConnectStateChangeActionAllowed"
+                        value="connect"/>
+               </adapt>
+            </with>
+         </enabledWhen>
+      </handler>
+
+      <handler commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect">
+         <class class="org.eclipse.tcf.te.tcf.ui.handler.ConnectableToolbarCommandHandler">
+            <parameter name="action" value="disconnect"/>
+         </class>
+         <activeWhen>
+            <with variable="defaultContextSelection">
+               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
+            </with>
+         </activeWhen> 
+         <enabledWhen>
+            <with variable="defaultContextSelection">
+               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+                  <test forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.core.isConnectStateChangeActionAllowed"
+                        value="disconnect"/>
+               </adapt>
+            </with>
+         </enabledWhen>
       </handler>
    </extension>
    
@@ -700,4 +808,5 @@
                tab="org.eclipse.tcf.te.ui.views.propertyTab.locator.general"/>
       </propertySections>
    </extension>
+
 </plugin>

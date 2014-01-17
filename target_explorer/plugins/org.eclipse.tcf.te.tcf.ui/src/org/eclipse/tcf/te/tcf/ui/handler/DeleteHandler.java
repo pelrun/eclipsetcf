@@ -69,7 +69,7 @@ public class DeleteHandler extends AbstractHandler {
 		// Get the shell
 		shell = HandlerUtil.getActiveShell(event);
 		// Get the current selection
-		ISelection selection = HandlerUtil.getCurrentSelection(event);
+		ISelection selection = getSelection(event);
 		// Delete the selection
 		if (selection != null) {
 			delete(selection, new Callback() {
@@ -84,6 +84,10 @@ public class DeleteHandler extends AbstractHandler {
 		shell = null;
 
 		return null;
+	}
+
+	protected ISelection getSelection(ExecutionEvent event) {
+		return HandlerUtil.getCurrentSelection(event);
 	}
 
 	/**

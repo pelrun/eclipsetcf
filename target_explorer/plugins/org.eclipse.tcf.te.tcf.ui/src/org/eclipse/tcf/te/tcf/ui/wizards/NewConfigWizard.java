@@ -43,15 +43,13 @@ import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
-import org.eclipse.tcf.te.ui.wizards.AbstractWizard;
 import org.eclipse.tcf.te.ui.wizards.pages.AbstractWizardPage;
-import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
 /**
  * New peer wizard implementation.
  */
-public class NewTargetWizard extends AbstractWizard implements INewWizard {
+public class NewConfigWizard extends AbstractNewConfigWizard {
 	// Session wide new peer counter
 	private final static AtomicInteger counter = new AtomicInteger();
 
@@ -61,8 +59,6 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
-		// Set the window title
-		setWindowTitle(Messages.NewTargetWizard_windowTitle);
 	}
 
 	/* (non-Javadoc)
@@ -203,25 +199,11 @@ public class NewTargetWizard extends AbstractWizard implements INewWizard {
 		return true;
 	}
 
-	/**
-	 * Returns if or if not the wizard should open the editor
-	 * on "Finish". The default is <code>true</code>.
-	 *
-	 * @return <code>True</code> to open the editor, <code>false</code> otherwise.
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.wizards.AbstractNewConfigWizard#getWizardTitle()
 	 */
-	protected boolean isOpenEditorOnPerformFinish() {
-		return true;
-	}
-
-	/**
-	 * Called from {@link #performFinish()} after the configuration got created.
-	 * <p>
-	 * <b>Note:</b> The method is called from within the UI thread.
-	 *
-	 * @param peerNode The peer model node. Must not be <code>null</code>.
-	 */
-	protected void postPerformFinish(IPeerNode peerNode) {
-		// Do nothing
-	}
-
+    @Override
+    protected String getWizardTitle() {
+	    return Messages.NewTargetWizard_windowTitle;
+    }
 }

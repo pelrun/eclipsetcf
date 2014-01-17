@@ -24,15 +24,17 @@ import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.ui.wizards.pages.AbstractConfigWizardPage;
+import org.eclipse.tcf.te.ui.wizards.AbstractWizard;
+import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
 /**
  * Abstract new configuration wizard implementation.
  */
-public abstract class AbstractConfigWizard extends NewTargetWizard {
+public abstract class AbstractNewConfigWizard extends AbstractWizard implements INewWizard {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench, org.eclipse.jface.viewers.IStructuredSelection)
@@ -54,18 +56,20 @@ public abstract class AbstractConfigWizard extends NewTargetWizard {
 	protected abstract String getWizardTitle();
 
 	/**
-	 * Returns the new configuration wizard page.
+	 * Returns if or if not the wizard should open the editor
+	 * on "Finish". The default is <code>true</code>.
 	 *
-	 * @return The new configuration wizard page or <code>null</code>:
+	 * @return <code>True</code> to open the editor, <code>false</code> otherwise.
 	 */
-	protected abstract AbstractConfigWizardPage getConfigWizardPage();
+	protected boolean isOpenEditorOnPerformFinish() {
+		return true;
+	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard#postPerformFinish(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
-	 */
-	@Override
 	protected void postPerformFinish(final IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
+
+		// set new peer node as default context
+		ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(peerNode);
 
 		// Determine if or if not to auto-connect the created connection.
 		boolean autoConnect = true;

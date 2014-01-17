@@ -24,10 +24,9 @@ import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
-import org.eclipse.tcf.te.tcf.core.interfaces.IPeerType;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -37,7 +36,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Default context service implementation.
  */
-public class DefaultContextService extends AbstractService implements IDefaultContextService {
+public class DefaultContextService extends AbstractService implements IDefaultContextService, IPeerModelListener {
 
 	/**
 	 * Part id: System Management view
@@ -48,6 +47,7 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 	 * Constructor.
 	 */
 	public DefaultContextService() {
+		ModelManager.getPeerModel().addListener(this);
 	}
 
 	/* (non-Javadoc)
@@ -82,19 +82,6 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 		if (peerNode != null) {
 			HistoryManager.getInstance().add(getClass().getName(), peerNode.getPeerId());
 			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_ADDED, peerNode, peerNode));
-
-			final AtomicReference<String> type = new AtomicReference<String>();
-			Protocol.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					type.set(peerNode.getPeer().getAttributes().get((IPeerNodeProperties.PROP_TYPE)));
-				}
-			});
-			HistoryManager.getInstance().add(type.get() != null ? type.get() : IPeerType.TYPE_GENERIC, peerNode.getPeerId());
-		}
-		else {
-			HistoryManager.getInstance().clear(getClass().getName());
-			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_REMOVED, null, null));
 		}
 	}
 
@@ -200,5 +187,24 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 			}
 		}
 		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
+	 */
+	@Override
+	public void modelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
+		if (!added) {
+			IPeerNode defaultContext = getDefaultContext(null);
+			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_CHANGED, defaultContext, defaultContext));
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelDisposed(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
+	 */
+	@Override
+	public void modelDisposed(IPeerModel model) {
+		model.removeListener(this);
 	}
 }

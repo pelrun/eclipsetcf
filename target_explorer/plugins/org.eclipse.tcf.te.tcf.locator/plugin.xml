@@ -176,10 +176,6 @@
             id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"
             class="org.eclipse.tcf.te.tcf.locator.steps.WaitForReadyStep"
             label="%WaitForReadyStep.name"/>
-      <step
-            id="org.eclipse.tcf.te.tcf.locator.setAsDefaultContextStep"
-            class="org.eclipse.tcf.te.tcf.locator.steps.SetAsDefaultContextStep"
-            label="%SetAsDefaultContextStep.name"/>
    </extension>
 
 <!-- Step group contributions -->
@@ -202,7 +198,6 @@
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.locator.startSimulatorStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup"/>
-            <reference id="org.eclipse.tcf.te.tcf.locator.setAsDefaultContextStep"/>
             <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
             	<parameter name="state" value="connected" />
             </reference>
