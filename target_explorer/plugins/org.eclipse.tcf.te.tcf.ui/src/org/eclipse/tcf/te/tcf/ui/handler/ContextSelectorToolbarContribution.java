@@ -44,6 +44,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
@@ -74,6 +76,12 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		menuMgr.markDirty();
 	}
 
+	public ContextSelectorToolbarContribution(String id) {
+		super(id);
+
+		menuMgr = new MenuManager();
+		menuMgr.markDirty();
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.action.ControlContribution#createControl(org.eclipse.swt.widgets.Composite)
@@ -183,6 +191,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	 */
 	@Override
 	public void update() {
+		menuMgr.markDirty();
 		if (image != null && text != null) {
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 			if (peerNode != null) {
@@ -194,15 +203,17 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 					name = name.substring(0, 22) + "..."; //$NON-NLS-1$
 				}
 				text.setText(name);
+
 				image.setToolTipText(!fullName.equals(name) ? fullName : Messages.ContextSelectorToolbarContribution_tooltip_button);
 				text.setToolTipText(!fullName.equals(name) ? fullName : Messages.ContextSelectorToolbarContribution_tooltip_button);
 				button.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_button);
 			}
 			else {
-				image.setImage(null);
+				image.setImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG));
 				text.setText(Messages.ContextSelectorToolbarContribution_label_new);
+
 				image.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_new);
-				text.setToolTipText(null);
+				text.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_new);
 				button.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_new);
 			}
 		}
@@ -247,7 +258,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 					@Override
 	                public void run() {
 						ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(node);
-						getParent().update(true);
+						update();
 					}
 				};
 			    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
@@ -257,7 +268,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 				menuMgr.add(action);
 		    }
 			final IMenuService service = (IMenuService) getWorkbenchWindow().getPartService().getActivePart().getSite().getService(IMenuService.class);
-			service.populateContributionManager(menuMgr, "menu:" + ContextSelectorToolbarContribution.this.getId()); //$NON-NLS-1$
+			service.populateContributionManager(menuMgr, "menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution"); //$NON-NLS-1$
 		}
 		menu = menuMgr.createContextMenu(panel);
 	}
@@ -291,7 +302,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
     			ExecutorsUtil.executeInUI(new Runnable() {
     				@Override
     				public void run() {
-    					getParent().update(true);
+    					update();
     				}
     			});
     		}
@@ -308,7 +319,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		ExecutorsUtil.executeInUI(new Runnable() {
 			@Override
 			public void run() {
-				getParent().update(true);
+				update();
 			}
 		});
     }

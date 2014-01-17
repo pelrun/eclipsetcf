@@ -81,6 +81,11 @@ public interface ImageConsts {
     public static final String NEW_PEER_NODE = "NewPeerObject"; //$NON-NLS-1$
 
     /**
+     * The key to access the new config action image.
+     */
+    public static final String NEW_CONFIG = "NewConfig"; //$NON-NLS-1$
+
+    /**
      * The key to access the peer object busy overlay image.
      */
     public static final String BUSY_OVR = "BusyOverlay"; //$NON-NLS-1$
@@ -109,16 +114,6 @@ public interface ImageConsts {
      * The key to access the peer object red X overlay image.
      */
     public static final String RED_X_OVR = "RedXOverlay"; //$NON-NLS-1$
-
-    /**
-     * The key to access the base run action image.
-     */
-    public static final String RUN_ENABLED = "RunEnabled"; //$NON-NLS-1$
-
-    /**
-     * The key to access the base run action image.
-     */
-    public static final String RUN_DISABLED = "RunDisabled"; //$NON-NLS-1$
 
     /**
      * The key to access the peer object link overlay image.
