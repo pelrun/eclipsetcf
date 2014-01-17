@@ -13,6 +13,7 @@ import java.util.EventObject;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
@@ -244,9 +245,13 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	protected void createContextMenu(Composite panel) {
 		if (menuMgr.isDirty()) {
 			menuMgr.removeAll();
+		    menuMgr.add(new Separator("group.top")); //$NON-NLS-1$
 		    menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
 		    menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
-		    menuMgr.add(new Separator("group.new")); //$NON-NLS-1$
+		    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
+		    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
+		    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
+			menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
 			menuMgr.add(new Separator("group.configurations")); //$NON-NLS-1$
     		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 		    for (final IPeerNode peerNode : ModelManager.getPeerModel().getPeerNodes()) {

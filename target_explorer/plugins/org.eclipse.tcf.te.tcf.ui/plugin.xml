@@ -520,16 +520,20 @@
          </toolbar>
       </menuContribution>
 
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.new">
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"/>
+      </menuContribution>
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.open">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"/>
+      </menuContribution>
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.delete">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
+      </menuContribution>
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.new">
          <command commandId="org.eclipse.tcf.te.ui.command.newWizards"
                label="%command.new.label"/>
       </menuContribution>
 
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"/>
-      </menuContribution>
 
    </extension>
 
