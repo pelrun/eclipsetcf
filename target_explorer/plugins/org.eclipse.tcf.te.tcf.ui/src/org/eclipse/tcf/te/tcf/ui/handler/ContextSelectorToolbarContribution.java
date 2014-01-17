@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -59,7 +59,7 @@ import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
  */
 public class ContextSelectorToolbarContribution extends WorkbenchWindowControlContribution implements IEventListener, IPeerModelListener {
 
-	final MenuManager menuMgr;
+	private MenuManager menuMgr = null;
 	private Menu menu = null;
 	private Composite panel = null;
 	private Composite mainPanel = null;
@@ -67,21 +67,14 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	private Label text = null;
 	private Button button = null;
 
-	/**
-	 * Constructor.
-	 */
+	private boolean clickRunning = false;
+
 	public ContextSelectorToolbarContribution() {
 		super();
-
-		menuMgr = new MenuManager();
-		menuMgr.markDirty();
 	}
 
 	public ContextSelectorToolbarContribution(String id) {
 		super(id);
-
-		menuMgr = new MenuManager();
-		menuMgr.markDirty();
 	}
 
 	/* (non-Javadoc)
@@ -114,15 +107,11 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		image.setBackground(panel.getBackground());
 		image.addMouseListener(new MouseAdapter() {
 			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+			}
+			@Override
 			public void mouseUp(MouseEvent e) {
-				IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-				if (peerNode == null) {
-					TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-					EventManager.getInstance().fireEvent(event);
-				}
-				else {
-					onButtonClick();
-				}
+				onButtonClick();
 			}
 		});
 		text = new Label(panel, SWT.NONE);
@@ -132,15 +121,11 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		text.setLayoutData(layoutData);
 		text.addMouseListener(new MouseAdapter() {
 			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+			}
+			@Override
 			public void mouseUp(MouseEvent e) {
-				IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-				if (peerNode == null) {
-					TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-					EventManager.getInstance().fireEvent(event);
-				}
-				else {
-					onButtonClick();
-				}
+				onButtonClick();
 			}
 		});
 
@@ -150,14 +135,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-				if (peerNode == null) {
-					TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-					EventManager.getInstance().fireEvent(event);
-				}
-				else {
-					onButtonClick();
-				}
+				onButtonClick();
 			}
 		});
 
@@ -181,7 +159,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 
 	    image.dispose();
 	    text.dispose();
-	    menuMgr.dispose();
+	    if (menuMgr != null) menuMgr.dispose();
 
 	    image = null;
 	    text = null;
@@ -192,7 +170,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	 */
 	@Override
 	public void update() {
-		menuMgr.markDirty();
+		if (menuMgr != null) menuMgr.markDirty();
 		if (image != null && text != null) {
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 			if (peerNode != null) {
@@ -221,16 +199,20 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	}
 
 	protected void onButtonClick() {
-		IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-		if (peerNode == null) {
-			TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-			EventManager.getInstance().fireEvent(event);
-		}
-		else {
-			createContextMenu(mainPanel);
-			Point point = mainPanel.toDisplay(mainPanel.getLocation());
-			menu.setLocation(point.x, point.y + mainPanel.getBounds().height);
-			menu.setVisible(true);
+		if (!clickRunning) {
+			clickRunning = true;
+			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+			if (peerNode == null) {
+				TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
+				EventManager.getInstance().fireEvent(event);
+			}
+			else {
+				createContextMenu(mainPanel);
+				Point point = mainPanel.toDisplay(mainPanel.getLocation());
+				menu.setLocation(point.x, point.y + mainPanel.getBounds().height);
+				menu.setVisible(true);
+			}
+			clickRunning = false;
 		}
 	}
 
@@ -243,8 +225,9 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	}
 
 	protected void createContextMenu(Composite panel) {
-		if (menuMgr.isDirty()) {
-			menuMgr.removeAll();
+		if (menuMgr == null || menuMgr.isDirty()) {
+			if (menuMgr != null) menuMgr.dispose();
+			menuMgr = new MenuManager();
 		    menuMgr.add(new Separator("group.top")); //$NON-NLS-1$
 		    menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
 		    menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
@@ -274,8 +257,8 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		    }
 			final IMenuService service = (IMenuService) getWorkbenchWindow().getPartService().getActivePart().getSite().getService(IMenuService.class);
 			service.populateContributionManager(menuMgr, "menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution"); //$NON-NLS-1$
+			menu = menuMgr.createContextMenu(panel);
 		}
-		menu = menuMgr.createContextMenu(panel);
 	}
 
 	/**
@@ -303,7 +286,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
     		if (changeEvent.getSource() instanceof IDefaultContextService ||
     						(changeEvent.getSource() == peerNode &&
     						(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) || "properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
-    			menuMgr.markDirty();
+    			if (menuMgr != null) menuMgr.markDirty();
     			ExecutorsUtil.executeInUI(new Runnable() {
     				@Override
     				public void run() {
@@ -320,7 +303,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	 */
     @Override
     public void modelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
-		menuMgr.markDirty();
+    	if (menuMgr != null) menuMgr.markDirty();
 		ExecutorsUtil.executeInUI(new Runnable() {
 			@Override
 			public void run() {
