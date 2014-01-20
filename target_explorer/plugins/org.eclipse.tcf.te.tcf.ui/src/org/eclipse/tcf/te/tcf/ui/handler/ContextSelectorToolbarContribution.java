@@ -270,46 +270,52 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 
 	protected void createContextMenu(Composite panel) {
 		if (menuMgr == null || menuMgr.isDirty()) {
-			if (menuMgr != null) menuMgr.dispose();
-			menuMgr = new MenuManager();
-		    menuMgr.add(new Separator("group.top")); //$NON-NLS-1$
-		    menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
-		    menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
-		    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
-		    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
-		    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
-			IAction newAction = new Action(Messages.ContextSelectorToolbarContribution_label_new,
-							ImageDescriptor.createFromImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG))) {
-				@Override
-                public void run() {
-					openNewWizard();
-				}
-			};
-			menuMgr.add(newAction);
-			menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
-			menuMgr.add(new Separator("group.configurations")); //$NON-NLS-1$
-    		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-		    for (final IPeerNode peerNode : ModelManager.getPeerModel().getPeerNodes()) {
-		    	if (peerNode == defaultContext) {
-		    		continue;
-		    	}
-				IAction action = new Action() {
-					private IPeerNode node = peerNode;
+			try {
+				if (menuMgr != null) menuMgr.dispose();
+				menuMgr = new MenuManager();
+			    menuMgr.add(new Separator("group.top")); //$NON-NLS-1$
+			    menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
+			    menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
+			    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
+			    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
+			    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
+				IAction newAction = new Action(Messages.ContextSelectorToolbarContribution_label_new,
+								ImageDescriptor.createFromImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG))) {
 					@Override
 	                public void run() {
-						ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(node);
-						update();
+						openNewWizard();
 					}
 				};
-			    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
-				action.setText(labelProvider.getText(peerNode));
-				Image image = labelProvider.decorateImage(labelProvider.getImage(peerNode), peerNode);
-				action.setImageDescriptor(ImageDescriptor.createFromImage(image));
-				menuMgr.add(action);
-		    }
-			final IMenuService service = (IMenuService) getWorkbenchWindow().getPartService().getActivePart().getSite().getService(IMenuService.class);
-			service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
-			menu = menuMgr.createContextMenu(panel);
+				menuMgr.add(newAction);
+				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
+				menuMgr.add(new Separator("group.configurations")); //$NON-NLS-1$
+	    		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+			    for (final IPeerNode peerNode : ModelManager.getPeerModel().getPeerNodes()) {
+			    	if (peerNode == defaultContext) {
+			    		continue;
+			    	}
+					IAction action = new Action() {
+						private IPeerNode node = peerNode;
+						@Override
+		                public void run() {
+							ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(node);
+							update();
+						}
+					};
+				    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
+					action.setText(labelProvider.getText(peerNode));
+					Image image = labelProvider.decorateImage(labelProvider.getImage(peerNode), peerNode);
+					action.setImageDescriptor(ImageDescriptor.createFromImage(image));
+					menuMgr.add(action);
+			    }
+				final IMenuService service = (IMenuService) getWorkbenchWindow().getPartService().getActivePart().getSite().getService(IMenuService.class);
+				service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
+				menu = menuMgr.createContextMenu(panel);
+			}
+			catch (Exception e) {
+				menuMgr = null;
+				menu = null;
+			}
 		}
 	}
 
