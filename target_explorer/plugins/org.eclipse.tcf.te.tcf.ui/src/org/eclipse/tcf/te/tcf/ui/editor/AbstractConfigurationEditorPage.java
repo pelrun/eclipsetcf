@@ -68,7 +68,9 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 						ExecutorsUtil.executeInUI(new Runnable() {
 							@Override
 							public void run() {
-								getManagedForm().getForm().setImage(getFormImage());
+								if (!getManagedForm().getForm().isDisposed()) {
+									getManagedForm().getForm().setImage(getFormImage());
+								}
 							}
 						});
 					}

@@ -9,7 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.handler;
 
+import java.util.ArrayList;
 import java.util.EventObject;
+import java.util.List;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
@@ -39,6 +41,8 @@ import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -46,35 +50,61 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IContextSelectorToolbarDelegate;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
+import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
+import org.eclipse.ui.wizards.IWizardDescriptor;
 
 /**
  * Configurations control implementation.
  */
 public class ContextSelectorToolbarContribution extends WorkbenchWindowControlContribution implements IEventListener, IPeerModelListener {
 
-	private MenuManager menuMgr = null;
-	private Menu menu = null;
 	private Composite panel = null;
 	private Composite mainPanel = null;
 	private Label image = null;
 	private Label text = null;
 	private Button button = null;
 
+	private final String[] wizardIds;
+
+	private MenuManager menuMgr = null;
+	private Menu menu = null;
+
 	private boolean clickRunning = false;
 
 	public ContextSelectorToolbarContribution() {
-		super();
+		this("org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution"); //$NON-NLS-1$
 	}
 
 	public ContextSelectorToolbarContribution(String id) {
 		super(id);
+
+		IPeerModel peerModel = ModelManager.getPeerModel();
+		IService[] services = ServiceManager.getInstance().getServices(peerModel, IUIService.class, false);
+		List<String> ids = new ArrayList<String>();
+		for (IService service : services) {
+	        if (service instanceof IUIService) {
+	        	IContextSelectorToolbarDelegate delegate = ((IUIService)service).getDelegate(peerModel, IContextSelectorToolbarDelegate.class);
+	        	if (delegate != null) {
+	        		String[] newIds = delegate.getToolbarNewConfigWizardIds(peerModel);
+	        		if (newIds != null) {
+	        			for (String newId : newIds) {
+	        				if (!ids.contains(newId)) ids.add(newId);
+                        }
+	        		}
+	        	}
+	        }
+        }
+
+		wizardIds = ids.toArray(new String[ids.size()]);
 	}
 
 	/* (non-Javadoc)
@@ -203,8 +233,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 			clickRunning = true;
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 			if (peerNode == null) {
-				TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-				EventManager.getInstance().fireEvent(event);
+				openNewWizard();
 			}
 			else {
 				createContextMenu(mainPanel);
@@ -213,6 +242,21 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 				menu.setVisible(true);
 			}
 			clickRunning = false;
+		}
+	}
+
+	@SuppressWarnings("restriction")
+    protected void openNewWizard() {
+		if (wizardIds.length == 1) {
+			IWizardDescriptor wizardDesc = NewWizardRegistry.getInstance().findWizard(wizardIds[0]);
+			if (wizardDesc == null) return;
+
+	    	IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+	    	new org.eclipse.ui.internal.actions.NewWizardShortcutAction(window, wizardDesc).run();
+		}
+		else {
+			TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
+			EventManager.getInstance().fireEvent(event);
 		}
 	}
 
@@ -234,6 +278,14 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
 		    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
 		    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
+			IAction newAction = new Action(Messages.ContextSelectorToolbarContribution_label_new,
+							ImageDescriptor.createFromImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG))) {
+				@Override
+                public void run() {
+					openNewWizard();
+				}
+			};
+			menuMgr.add(newAction);
 			menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
 			menuMgr.add(new Separator("group.configurations")); //$NON-NLS-1$
     		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
@@ -256,7 +308,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 				menuMgr.add(action);
 		    }
 			final IMenuService service = (IMenuService) getWorkbenchWindow().getPartService().getActivePart().getSite().getService(IMenuService.class);
-			service.populateContributionManager(menuMgr, "menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution"); //$NON-NLS-1$
+			service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
 			menu = menuMgr.createContextMenu(panel);
 		}
 	}
