@@ -116,6 +116,14 @@
       </eventListener>
    </extension>
 
+<!-- New target wizard contributions -->
+   <extension point="org.eclipse.tcf.te.ui.newWizards">
+      <category
+            id="org.eclipse.tcf.te.tcf.ui.newWizards.category.configurations"
+            name="%NewWizards.category.configurations.name">
+      </category>
+   </extension>
+
 <!-- Common navigator contributions -->
    <extension point="org.eclipse.ui.navigator.viewer">
       <viewerContentBinding viewerId="org.eclipse.tcf.te.ui.views.View">
@@ -239,7 +247,7 @@
       </category>
       <wizard
             canFinishEarly="true"
-            category="org.eclipse.tcf.te.tcf.ui.newWizards.category"
+            category="org.eclipse.tcf.te.tcf.ui.newWizards.category.configurations"
             class="org.eclipse.tcf.te.tcf.ui.wizards.NewConfigWizard"
             hasPages="true"
             icon="icons/elcl16/newTarget_wiz.gif"

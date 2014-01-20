@@ -1725,11 +1725,19 @@
       </cellEditor>
    </extension>
 
+<!-- New target wizard contributions -->
+   <extension point="org.eclipse.tcf.te.ui.newWizards">
+      <category
+            id="org.eclipse.tcf.te.tcf.filesystem.ui.newWizards.category"
+            name="%NewWizards.category.filesystem.name">
+      </category>
+   </extension>
+
 <!-- New wizard contributions -->   
    <extension point="org.eclipse.tcf.te.ui.newWizards">
       <wizard
             canFinishEarly="false"
-            category="org.eclipse.tcf.te.tcf.ui.newWizards.category"
+            category="org.eclipse.tcf.te.tcf.filesystem.ui.newWizards.category"
             class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.wizards.NewFileWizard"
             hasPages="true"
             icon="icons/obj16/newfile_wiz.gif"
@@ -1741,7 +1749,7 @@
       </wizard>
       <wizard
             canFinishEarly="false"
-            category="org.eclipse.tcf.te.tcf.ui.newWizards.category"
+            category="org.eclipse.tcf.te.tcf.filesystem.ui.newWizards.category"
             class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.wizards.NewFolderWizard"
             hasPages="true"
             icon="icons/obj16/newfolder_wiz.gif"
