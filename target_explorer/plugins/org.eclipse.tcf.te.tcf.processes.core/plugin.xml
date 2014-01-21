@@ -39,7 +39,7 @@
       </propertyTester>
    </extension>
 
-<!-- Launch Step contributions -->
+<!-- Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step
             id="org.eclipse.tcf.te.tcf.processes.core.launchProcessStep"
@@ -52,6 +52,23 @@
          <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
          <requires id="org.eclipse.tcf.te.tcf.processes.core.launchProcessStep"/>
       </step>
+      
+      <step
+            class="org.eclipse.tcf.te.tcf.processes.core.steps.DisposeModelStep"
+            id="org.eclipse.tcf.te.tcf.processes.core.disposeModelStep"
+            label="%DisposeModelStep.name">
+      </step>
    </extension>
 
+<!-- Step group contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.stepGroups">
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.disconnectStepGroup">
+         <references>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.processes.core.disposeModelStep"
+                  insertAfter="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
+         </references>
+      </stepGroup>
+   </extension>
 </plugin>
