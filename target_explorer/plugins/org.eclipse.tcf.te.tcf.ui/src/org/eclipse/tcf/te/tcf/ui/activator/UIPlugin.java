@@ -29,10 +29,12 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.ui.editor.EditorPeerModelListener;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.IWorkbench;
@@ -52,6 +54,8 @@ public class UIPlugin extends AbstractUIPlugin {
 	private IWorkbenchListener listener;
 	// Reference to the workbench listener
 	/* default */ final ListenerList listeners = new ListenerList();
+	// The peer model listener instance
+	/* default */ IPeerModelListener peerModelListener = null;
 
 	/**
 	 * Constructor.
@@ -183,6 +187,13 @@ public class UIPlugin extends AbstractUIPlugin {
 			}
 		};
 		PlatformUI.getWorkbench().addWorkbenchListener(listener);
+		peerModelListener = new EditorPeerModelListener();
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				ModelManager.getPeerModel().addListener(peerModelListener);
+			}
+		});
 	}
 
 	/* (non-Javadoc)
@@ -190,7 +201,19 @@ public class UIPlugin extends AbstractUIPlugin {
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		if (listener != null) { PlatformUI.getWorkbench().removeWorkbenchListener(listener); listener = null; }
+		if (listener != null) {
+			PlatformUI.getWorkbench().removeWorkbenchListener(listener);
+			listener = null;
+		}
+		if (peerModelListener != null) {
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					ModelManager.getPeerModel().removeListener(peerModelListener);
+				}
+			});
+			peerModelListener = null;
+		}
 
 		plugin = null;
 		super.stop(context);
