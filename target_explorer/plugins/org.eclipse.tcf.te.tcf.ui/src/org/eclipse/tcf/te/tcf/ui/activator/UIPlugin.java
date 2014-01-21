@@ -206,12 +206,7 @@ public class UIPlugin extends AbstractUIPlugin {
 			listener = null;
 		}
 		if (peerModelListener != null) {
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					ModelManager.getPeerModel().removeListener(peerModelListener);
-				}
-			});
+			ModelManager.getPeerModel().removeListener(peerModelListener);
 			peerModelListener = null;
 		}
 
