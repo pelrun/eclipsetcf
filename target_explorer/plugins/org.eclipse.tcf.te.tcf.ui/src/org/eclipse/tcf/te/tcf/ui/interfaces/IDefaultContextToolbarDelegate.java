@@ -10,12 +10,12 @@
 
 package org.eclipse.tcf.te.tcf.ui.interfaces;
 
-import org.eclipse.tcf.te.tcf.ui.handler.ContextSelectorToolbarContribution;
+import org.eclipse.tcf.te.tcf.ui.handler.DefaultContextSelectorToolbarContribution;
 
 /**
- * Provides dynamic information for the {@link ContextSelectorToolbarContribution}
+ * Provides dynamic information for the {@link DefaultContextSelectorToolbarContribution}
  */
-public interface IContextSelectorToolbarDelegate {
+public interface IDefaultContextToolbarDelegate {
 
 	/**
 	 * Returns a list of new configuration wizard ids to show

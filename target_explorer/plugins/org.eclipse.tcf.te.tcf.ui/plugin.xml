@@ -509,23 +509,27 @@
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?before=additions">
          <toolbar id="org.eclipse.tcf.te.tcf.ui.toolbar">
             <separator name="group.selector" visible="false"/>
-            <control
-                  class="org.eclipse.tcf.te.tcf.ui.handler.ContextSelectorToolbarContribution"
-                  id="org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution"/>
             <separator name="group.connect" visible="false"/>
-            <command commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"/>
-            <command commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"/>
+            <separator name="group.actions" visible="true"/>
             <separator name="group.additions" visible="true"/>
          </toolbar>
       </menuContribution>
 
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"/>
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.toolbar?after=group.selector">
+         <control
+               class="org.eclipse.tcf.te.tcf.ui.handler.DefaultContextSelectorToolbarContribution"
+               id="org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution"/>
       </menuContribution>
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.open">
+
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.toolbar?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"/>
+         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"/>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.open">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"/>
       </menuContribution>
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution?after=group.delete">
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.delete">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
       </menuContribution>
 

@@ -50,7 +50,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.ui.interfaces.IContextSelectorToolbarDelegate;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -59,13 +59,15 @@ import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.IMenuService;
+import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
+import org.eclipse.ui.services.IServiceLocator;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 
 /**
  * Configurations control implementation.
  */
-public class ContextSelectorToolbarContribution extends WorkbenchWindowControlContribution implements IEventListener, IPeerModelListener {
+public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
 	private Composite panel = null;
 	private Composite mainPanel = null;
@@ -75,16 +77,26 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 
 	private final String[] wizardIds;
 
+	IServiceLocator serviceLocator = null;
+
 	private MenuManager menuMgr = null;
 	private Menu menu = null;
 
 	private boolean clickRunning = false;
 
-	public ContextSelectorToolbarContribution() {
-		this("org.eclipse.tcf.te.tcf.ui.ContextSelectorToolbarContribution"); //$NON-NLS-1$
+	/**
+	 * Constructor.
+	 */
+	public DefaultContextSelectorToolbarContribution() {
+		this("org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution"); //$NON-NLS-1$
 	}
 
-	public ContextSelectorToolbarContribution(String id) {
+	/**
+	 * Constructor.
+	 *
+	 * @param id
+	 */
+	public DefaultContextSelectorToolbarContribution(String id) {
 		super(id);
 
 		IPeerModel peerModel = ModelManager.getPeerModel();
@@ -92,7 +104,7 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 		List<String> ids = new ArrayList<String>();
 		for (IService service : services) {
 	        if (service instanceof IUIService) {
-	        	IContextSelectorToolbarDelegate delegate = ((IUIService)service).getDelegate(peerModel, IContextSelectorToolbarDelegate.class);
+	        	IDefaultContextToolbarDelegate delegate = ((IUIService)service).getDelegate(peerModel, IDefaultContextToolbarDelegate.class);
 	        	if (delegate != null) {
 	        		String[] newIds = delegate.getToolbarNewConfigWizardIds(peerModel);
 	        		if (newIds != null) {
@@ -106,6 +118,14 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 
 		wizardIds = ids.toArray(new String[ids.size()]);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.menus.IWorkbenchContribution#initialize(org.eclipse.ui.services.IServiceLocator)
+	 */
+    @Override
+    public void initialize(IServiceLocator serviceLocator) {
+    	this.serviceLocator = serviceLocator;
+    }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.action.ControlContribution#createControl(org.eclipse.swt.widgets.Composite)
@@ -213,17 +233,17 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 				}
 				text.setText(name);
 
-				image.setToolTipText(!fullName.equals(name) ? fullName : Messages.ContextSelectorToolbarContribution_tooltip_button);
-				text.setToolTipText(!fullName.equals(name) ? fullName : Messages.ContextSelectorToolbarContribution_tooltip_button);
-				button.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_button);
+				image.setToolTipText(!fullName.equals(name) ? fullName : Messages.DefaultContextSelectorToolbarContribution_tooltip_button);
+				text.setToolTipText(!fullName.equals(name) ? fullName : Messages.DefaultContextSelectorToolbarContribution_tooltip_button);
+				button.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_button);
 			}
 			else {
 				image.setImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG));
-				text.setText(Messages.ContextSelectorToolbarContribution_label_new);
+				text.setText(Messages.DefaultContextSelectorToolbarContribution_label_new);
 
-				image.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_new);
-				text.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_new);
-				button.setToolTipText(Messages.ContextSelectorToolbarContribution_tooltip_new);
+				image.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
+				text.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
+				button.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
 			}
 		}
 	}
@@ -269,26 +289,11 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 	}
 
 	protected void createContextMenu(Composite panel) {
-		if (menuMgr == null || menuMgr.isDirty()) {
+		if (menu == null || menuMgr == null || menuMgr.isDirty()) {
 			try {
 				if (menuMgr != null) menuMgr.dispose();
 				menuMgr = new MenuManager();
-			    menuMgr.add(new Separator("group.top")); //$NON-NLS-1$
-			    menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
-			    menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
-			    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
-			    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
-			    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
-				IAction newAction = new Action(Messages.ContextSelectorToolbarContribution_label_new,
-								ImageDescriptor.createFromImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG))) {
-					@Override
-	                public void run() {
-						openNewWizard();
-					}
-				};
-				menuMgr.add(newAction);
-				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
-				menuMgr.add(new Separator("group.configurations")); //$NON-NLS-1$
+				menuMgr.add(new GroupMarker("group.configurations")); //$NON-NLS-1$
 	    		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 			    for (final IPeerNode peerNode : ModelManager.getPeerModel().getPeerNodes()) {
 			    	if (peerNode == defaultContext) {
@@ -308,7 +313,19 @@ public class ContextSelectorToolbarContribution extends WorkbenchWindowControlCo
 					action.setImageDescriptor(ImageDescriptor.createFromImage(image));
 					menuMgr.add(action);
 			    }
-				final IMenuService service = (IMenuService) getWorkbenchWindow().getPartService().getActivePart().getSite().getService(IMenuService.class);
+			    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
+			    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
+			    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
+				IAction newAction = new Action(Messages.DefaultContextSelectorToolbarContribution_label_new,
+								ImageDescriptor.createFromImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG))) {
+					@Override
+	                public void run() {
+						openNewWizard();
+					}
+				};
+				menuMgr.add(newAction);
+				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
+				final IMenuService service = (IMenuService)serviceLocator.getService(IMenuService.class);
 				service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
 				menu = menuMgr.createContextMenu(panel);
 			}
