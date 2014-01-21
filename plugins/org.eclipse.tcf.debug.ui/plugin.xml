@@ -732,4 +732,87 @@
          </menu>
       </menuContribution>
    </extension>
+   
+<!-- Activity contributions -->
+   <extension point="org.eclipse.ui.activities">
+      <category
+            description="%activities.category.debugger.description"
+            id="org.eclipse.tcf.debug.ui.category.debugger"
+            name="%activities.category.debugger.name">
+      </category>
+      <category
+            description="%activities.category.profiler.description"
+            id="org.eclipse.tcf.debug.ui.category.profiler"
+            name="%activities.category.profiler.name">
+      </category>
+
+      <activity
+            description="%activities.activity.debugger.launch.description"
+            id="org.eclipse.tcf.debug.ui.activity.debugger.launch"
+            name="%activities.activity.debugger.launch.name">
+      </activity>
+      <activity
+            description="%activities.activity.debugger.views.description"
+            id="org.eclipse.tcf.debug.ui.activity.debugger.views"
+            name="%activities.activity.debugger.views.name">
+      </activity>
+      <activity
+            description="%activities.activity.profiler.views.description"
+            id="org.eclipse.tcf.debug.ui.activity.profiler.views"
+            name="%activities.activity.profiler.views.name">
+      </activity>
+
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.views"
+            pattern="org\.eclipse\.tcf\.debug\.ui/.*\.TraceView">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.launch"
+            pattern="org\.eclipse\.tcf\.debug/.*\.LaunchConfigurationType">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.launch"
+            pattern="org\.eclipse\.tcf\.debug\.ui/.*\.TCFShortCut">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.launch"
+            pattern="org\.eclipse\.tcf\.debug\.ui/.*\.LaunchConfiguration.+">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.launch"
+            pattern="org\.eclipse\.tcf\.debug\.ui/.*\.TCFShortCut">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.views"
+            pattern="org\.eclipse\.tcf\.debug\.ui/.*\.TraceView">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.profiler.views"
+            pattern="org\.eclipse\.tcf\.debug\.ui/.*\.ProfilerView">
+      </activityPatternBinding>
+
+      <categoryActivityBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.launch"
+            categoryId="org.eclipse.tcf.debug.ui.category.debugger">
+      </categoryActivityBinding>
+      <categoryActivityBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.debugger.views"
+            categoryId="org.eclipse.tcf.debug.ui.category.debugger">
+      </categoryActivityBinding>
+      <categoryActivityBinding
+            activityId="org.eclipse.tcf.debug.ui.activity.profiler.views"
+            categoryId="org.eclipse.tcf.debug.ui.category.profiler">
+      </categoryActivityBinding>
+   
+      <defaultEnablement
+            id="org.eclipse.tcf.debug.ui.activity.debugger.launch">
+      </defaultEnablement>
+      <defaultEnablement
+            id="org.eclipse.tcf.debug.ui.activity.debugger.views">
+      </defaultEnablement>
+      <defaultEnablement
+            id="org.eclipse.tcf.debug.ui.activity.profiler.views">
+      </defaultEnablement>
+   </extension>
+   
 </plugin>

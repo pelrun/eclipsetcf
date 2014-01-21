@@ -207,4 +207,33 @@
             file="contexts.xml">
       </contexts>
    </extension>
+
+<!-- Activity contributions -->
+   <extension point="org.eclipse.ui.activities">
+      <category
+            description="%activities.category.terminals.description"
+            id="com.windriver.te.tcf.ui.category.terminals"
+            name="%activities.category.terminals.name">
+      </category>
+      
+      <activity
+            description="%activities.activity.terminals.views.description"
+            id="com.windriver.te.tcf.ui.activity.terminals.views"
+            name="%activities.activity.terminals.views.name">
+      </activity>
+
+      <activityPatternBinding
+            activityId="com.windriver.te.tcf.ui.activity.terminals.views"
+            pattern="org\.eclipse\.tcf\.te\.ui\.terminals/org\.eclipse\.tcf\.te\.ui\.terminals\.TerminalsView">
+      </activityPatternBinding>
+      
+      <categoryActivityBinding
+            activityId="com.windriver.te.tcf.ui.activity.terminals.views"
+            categoryId="com.windriver.te.tcf.ui.category.terminals">
+      </categoryActivityBinding>
+      
+      <defaultEnablement
+            id="com.windriver.te.tcf.ui.activity.terminals.views">
+      </defaultEnablement>
+   </extension>
 </plugin>

@@ -441,4 +441,39 @@
                tab="org.eclipse.tcf.te.launch.ui.project.propertytab.general"/>
       </propertySections>
    </extension>
+
+<!-- Activity contributions -->
+   <extension point="org.eclipse.ui.activities">
+      <activity
+            description="%activities.activity.systemmanagement.applaunch.description"
+            id="org.eclipse.tcf.te.tcf.launch.ui.activity.systemmanagement.applaunch"
+            name="%activities.activity.systemmanagement.applaunch.name">
+      </activity>
+
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.tcf.launch.ui.activity.systemmanagement.applaunch"
+            pattern="org\.eclipse\.tcf\.te\.tcf\.launch\.core/.*\.launch\.type\.remote\.app">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.tcf.launch.ui.activity.systemmanagement.applaunch"
+            pattern="org\.eclipse\.tcf\.te\.tcf\.launch\.core/.*\.launch\.type\.remote\.app\..*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.tcf.launch.ui.activity.systemmanagement.applaunch"
+            pattern="org\.eclipse\.tcf\.te\.tcf\.launch\.ui/.*\.launch\.type\.remote\.app\..*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.tcf.launch.ui.activity.systemmanagement.applaunch"
+            pattern="org\.eclipse\.tcf\.te\.tcf\.launch\.ui/.*\.launchshortcut\.remote\.app\..*">
+      </activityPatternBinding>
+      
+      <categoryActivityBinding
+            activityId="org.eclipse.tcf.te.tcf.launch.ui.activity.systemmanagement.applaunch"
+            categoryId="org.eclipse.tcf.te.ui.views.category.systemmanagement">
+      </categoryActivityBinding>
+      
+      <defaultEnablement
+            id="org.eclipse.tcf.te.tcf.launch.ui.activity.systemmanagement.applaunch">
+      </defaultEnablement>
+   </extension>
 </plugin>

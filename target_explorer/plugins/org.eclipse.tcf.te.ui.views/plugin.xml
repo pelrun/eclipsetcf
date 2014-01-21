@@ -962,5 +962,54 @@
          </variable>
       </sourceProvider>
    </extension>
+
+<!-- Activity contributions -->
+   <extension point="org.eclipse.ui.activities">
+      <category
+            description="%activities.category.systemmanagement.description"
+            id="org.eclipse.tcf.te.ui.views.category.systemmanagement"
+            name="%activities.category.systemmanagement.name">
+      </category>
+      
+      <activity
+            description="%activities.activity.systemmanagement.perspective.description"
+            id="org.eclipse.tcf.te.ui.views.activity.systemmanagement.perspective"
+            name="%activities.activity.systemmanagement.perspective.name">
+      </activity>
+      <activity
+            description="%activities.activity.systemmanagement.views.description"
+            id="org.eclipse.tcf.te.ui.views.activity.systemmanagement.views"
+            name="%activities.activity.systemmanagement.views.name">
+      </activity>
+
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.ui.views.activity.systemmanagement.perspective"
+            pattern="org\.eclipse\.tcf\.te\.ui\.views/.*\.perspective">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.ui.views.activity.systemmanagement.views"
+            pattern="org\.eclipse\.tcf\.te\.ui\.views/org\.eclipse\.tcf\.te\.ui\.views\.View">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.ui.views.activity.systemmanagement.views"
+            pattern="org\.eclipse\.tcf\.te\.ui\.views/org\.eclipse\.tcf\.te\.ui\.views\.Editor">
+      </activityPatternBinding>
+      
+      <categoryActivityBinding
+            activityId="org.eclipse.tcf.te.ui.views.activity.systemmanagement.perspective"
+            categoryId="org.eclipse.tcf.te.ui.views.category.systemmanagement">
+      </categoryActivityBinding>
+      <categoryActivityBinding
+            activityId="org.eclipse.tcf.te.ui.views.activity.systemmanagement.views"
+            categoryId="org.eclipse.tcf.te.ui.views.category.systemmanagement">
+      </categoryActivityBinding>
+      
+      <defaultEnablement
+            id="org.eclipse.tcf.te.ui.views.activity.systemmanagement.perspective">
+      </defaultEnablement>
+      <defaultEnablement
+            id="org.eclipse.tcf.te.ui.views.activity.systemmanagement.views">
+      </defaultEnablement>
+   </extension>
    
 </plugin>
