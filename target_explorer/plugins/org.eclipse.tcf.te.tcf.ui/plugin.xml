@@ -511,7 +511,7 @@
             <separator name="group.selector" visible="false"/>
             <separator name="group.connect" visible="false"/>
             <separator name="group.actions" visible="true"/>
-            <separator name="group.additions" visible="true"/>
+            <separator name="group.additions" visible="false"/>
          </toolbar>
       </menuContribution>
 
