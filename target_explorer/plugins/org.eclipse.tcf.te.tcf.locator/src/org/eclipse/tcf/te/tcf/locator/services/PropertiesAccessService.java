@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.locator.internal.services;
+package org.eclipse.tcf.te.tcf.locator.services;
 
 import java.util.Collections;
 import java.util.HashMap;

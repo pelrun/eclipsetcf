@@ -31,10 +31,10 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
-import org.eclipse.tcf.te.tcf.locator.internal.services.PeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.internal.services.PeerModelQueryService;
-import org.eclipse.tcf.te.tcf.locator.internal.services.PeerModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.internal.services.PeerModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.services.PeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.services.PeerModelQueryService;
+import org.eclipse.tcf.te.tcf.locator.services.PeerModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.services.PeerModelUpdateService;
 
 
 /**

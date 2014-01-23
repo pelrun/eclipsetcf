@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.locator.internal.services;
+package org.eclipse.tcf.te.tcf.locator.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,6 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.services.AbstractLocatorModelService;
 
 
 /**

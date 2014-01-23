@@ -21,6 +21,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-Localization: plugin
 Export-Package: org.eclipse.tcf.te.tcf.locator.activator;x-internal:=true,
+ org.eclipse.tcf.te.tcf.locator.delegates,
  org.eclipse.tcf.te.tcf.locator.help,
  org.eclipse.tcf.te.tcf.locator.interfaces,
  org.eclipse.tcf.te.tcf.locator.interfaces.nodes,
@@ -28,9 +29,7 @@ Export-Package: org.eclipse.tcf.te.tcf.locator.activator;x-internal:=true,
  org.eclipse.tcf.te.tcf.locator.interfaces.services,
  org.eclipse.tcf.te.tcf.locator.internal;x-internal:=true,
  org.eclipse.tcf.te.tcf.locator.internal.adapters;x-internal:=true,
- org.eclipse.tcf.te.tcf.locator.internal.delegates,
  org.eclipse.tcf.te.tcf.locator.internal.preferences,
- org.eclipse.tcf.te.tcf.locator.internal.services;x-internal:=true,
  org.eclipse.tcf.te.tcf.locator.iterators,
  org.eclipse.tcf.te.tcf.locator.listener,
  org.eclipse.tcf.te.tcf.locator.model,

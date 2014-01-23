@@ -8,12 +8,12 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.tcf.locator.internal.services;
+package org.eclipse.tcf.te.tcf.locator.services;
 
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
+import org.eclipse.tcf.te.tcf.locator.delegates.PeerNodeValidationDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeValidationDelegate;
-import org.eclipse.tcf.te.tcf.locator.internal.delegates.PeerNodeValidationDelegate;
 
 /**
  * PeerNodeDelegateService

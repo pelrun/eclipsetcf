@@ -121,7 +121,7 @@
 <!-- Service contributions -->
    <extension point="org.eclipse.tcf.te.runtime.services.services">
       <service
-            class="org.eclipse.tcf.te.tcf.locator.internal.services.PropertiesAccessService"
+            class="org.eclipse.tcf.te.tcf.locator.services.PropertiesAccessService"
             id="org.eclipse.tcf.te.runtime.services.tcf.propertiesAccess">
          <serviceType
                bundleId="org.eclipse.tcf.te.runtime.services"
@@ -134,7 +134,7 @@
          </enablement>
       </service>
       <service
-            class="org.eclipse.tcf.te.tcf.locator.internal.services.StepperOperationService"
+            class="org.eclipse.tcf.te.tcf.locator.services.StepperOperationService"
             id="org.eclipse.tcf.te.tcf.locator.services.stepperOperation">
          <serviceType
                bundleId="org.eclipse.tcf.te.runtime.stepper"

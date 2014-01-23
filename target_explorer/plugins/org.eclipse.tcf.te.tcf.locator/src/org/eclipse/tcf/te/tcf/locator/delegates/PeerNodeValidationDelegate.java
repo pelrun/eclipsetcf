@@ -8,7 +8,7 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.tcf.locator.internal.delegates;
+package org.eclipse.tcf.te.tcf.locator.delegates;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
