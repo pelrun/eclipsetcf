@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.ui.handler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EventObject;
 import java.util.List;
 
@@ -215,6 +216,14 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 	    text = null;
 	}
 
+	private IPeerNode[] getPeerNodesSorted() {
+		IPeerNode[] peerNodes = ModelManager.getPeerModel().getPeerNodes();
+
+		Arrays.sort(peerNodes);
+
+		return peerNodes;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.action.ContributionItem#update()
 	 */
@@ -223,6 +232,15 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 		if (menuMgr != null) menuMgr.markDirty();
 		if (image != null && text != null) {
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+			if (peerNode == null) {
+				IPeerNode[] peerNodes = getPeerNodesSorted();
+				if (peerNodes != null && peerNodes.length > 0) {
+					peerNode = peerNodes[0];
+					ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(peerNode);
+					return;
+				}
+			}
+
 			if (peerNode != null) {
 			    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
 				image.setImage(labelProvider.decorateImage(labelProvider.getImage(peerNode), peerNode));
@@ -295,7 +313,7 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 				menuMgr = new MenuManager();
 				menuMgr.add(new GroupMarker("group.configurations")); //$NON-NLS-1$
 	    		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-			    for (final IPeerNode peerNode : ModelManager.getPeerModel().getPeerNodes()) {
+			    for (final IPeerNode peerNode : getPeerNodesSorted()) {
 			    	if (peerNode == defaultContext) {
 			    		continue;
 			    	}
@@ -304,7 +322,6 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 						@Override
 		                public void run() {
 							ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(node);
-							update();
 						}
 					};
 				    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();

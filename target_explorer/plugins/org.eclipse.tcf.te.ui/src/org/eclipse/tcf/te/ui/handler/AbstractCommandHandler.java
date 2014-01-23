@@ -32,4 +32,12 @@ public abstract class AbstractCommandHandler extends AbstractHandler {
 		}
 		return null;
 	}
+
+	/**
+	 * Name of dialog settings section.
+	 * @return
+	 */
+	protected String getDialogSettingsSectionName() {
+		return getClass().getName();
+	}
 }

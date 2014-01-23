@@ -23,7 +23,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
@@ -150,17 +149,20 @@ public class DefaultContextActionsToolbarContribution extends WorkbenchWindowCon
 	public void update() {
 		if (item != null && !item.isDisposed()) {
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-			item.setEnabled(peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED);
+//			item.setEnabled(peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED);
 
 			if (peerNode == null) {
 				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button_noContext);
 			}
-			else if (item.isEnabled()) {
+			else {
 				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button);
 			}
-			else {
-				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button_disabled);
-			}
+//			else if (item.isEnabled()) {
+//				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button);
+//			}
+//			else {
+//				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button_disabled);
+//			}
 		}
 	}
 
