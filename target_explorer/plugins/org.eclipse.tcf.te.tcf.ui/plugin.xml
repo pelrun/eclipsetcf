@@ -533,6 +533,23 @@
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
       </menuContribution>
 
+      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.toolbar?after=group.actions">
+         <control
+               class="org.eclipse.tcf.te.tcf.ui.handler.DefaultContextActionsToolbarContribution"
+               id="org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution">
+         </control>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
+            <visibleWhen checkEnabled="false">
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
    </extension>
 
 <!-- Command contributions -->

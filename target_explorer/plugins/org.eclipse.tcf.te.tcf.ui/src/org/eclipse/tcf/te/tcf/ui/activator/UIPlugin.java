@@ -249,6 +249,8 @@ public class UIPlugin extends AbstractUIPlugin {
 		registry.put(ImageConsts.PEER_DISCOVERED, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "discovery_root.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.DISCOVERY_ROOT, ImageDescriptor.createFromURL(url));
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "targets_view.gif"); //$NON-NLS-1$
+		registry.put(ImageConsts.SYSTEM_MGNT_VIEW, ImageDescriptor.createFromURL(url));
 
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_ELCL + "newTarget_wiz.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.NEW_PEER_NODE, ImageDescriptor.createFromURL(url));

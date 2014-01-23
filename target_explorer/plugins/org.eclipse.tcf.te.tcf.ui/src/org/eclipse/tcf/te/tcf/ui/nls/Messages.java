@@ -196,6 +196,10 @@ public class Messages extends NLS {
 	public static String DefaultContextSelectorToolbarContribution_label_new;
 	public static String DefaultContextSelectorToolbarContribution_tooltip_button;
 
+	public static String DefaultContextActionsToolbarContribution_tooltip_button;
+	public static String DefaultContextActionsToolbarContribution_tooltip_button_disabled;
+	public static String DefaultContextActionsToolbarContribution_tooltip_button_noContext;
+
 	public static String LoggingPreferencePage_label;
 	public static String LoggingPreferencePage_enabled_label;
 	public static String LoggingPreferencePage_monitorEnabled_label;

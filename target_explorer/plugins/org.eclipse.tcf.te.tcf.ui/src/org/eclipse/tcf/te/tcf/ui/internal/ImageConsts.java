@@ -85,6 +85,11 @@ public interface ImageConsts {
      */
     public static final String NEW_CONFIG = "NewConfig"; //$NON-NLS-1$
 
+	/**
+	 * The key to access the windriver image.
+	 */
+	public static final String SYSTEM_MGNT_VIEW = "SystemMgmtView"; //$NON-NLS-1$
+
     /**
      * The key to access the peer object busy overlay image.
      */
