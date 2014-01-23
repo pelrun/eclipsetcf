@@ -23,7 +23,7 @@ import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 /**
  * Peer model node image descriptor implementation.
  */
-public class PeerImageDescriptor extends AbstractImageDescriptor {
+public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 	// the base image to decorate with overlays
 	private Image baseImage;
 	// the image size
@@ -32,10 +32,14 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	// Flags representing the connect states to decorate
 	private int connectState;
 
+	// Flags representing the valid state to decorate
+	private boolean valid;
+
+
 	/**
 	 * Constructor.
 	 */
-	public PeerImageDescriptor(final ImageRegistry registry, final Image baseImage, final IPeerNode node) {
+	public PeerNodeImageDescriptor(final ImageRegistry registry, final Image baseImage, final IPeerNode node) {
 		super(registry);
 
 		this.baseImage = baseImage;
@@ -67,6 +71,7 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 		Assert.isTrue(Protocol.isDispatchThread());
 
 		connectState = node.getConnectState();
+		valid = node.isValid();
 	}
 
 	/**
@@ -75,9 +80,10 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	 * @param hashCode The hash code of the base image.
 	 */
 	protected void defineKey(int hashCode) {
-		String key = "PMID:" +  //$NON-NLS-1$
+		String key = "PNID:" +  //$NON-NLS-1$
 			hashCode + ":" + //$NON-NLS-1$
-			connectState;
+			connectState  + ":" + //$NON-NLS-1$
+			valid;
 
 		setDecriptorKey(key);
 	}
@@ -89,15 +95,20 @@ public class PeerImageDescriptor extends AbstractImageDescriptor {
 	protected void drawCompositeImage(int width, int height) {
 		drawCentered(baseImage, width, height);
 
-		if (connectState < 0) {
-			drawTopRight(ImageConsts.BUSY_OVR);
+		if (!valid) {
+			drawBottomRight(ImageConsts.RED_X_OVR);
 		}
+		else {
+			if (connectState < 0) {
+				drawTopRight(ImageConsts.BUSY_OVR);
+			}
 
-		if (connectState == IConnectable.STATE_CONNECTED) {
-			drawBottomRight(ImageConsts.GREEN_OVR);
-		}
-		else if (connectState == IConnectable.STATE_CONNECTING || connectState == IConnectable.STATE_DISCONNECTING) {
-			drawBottomRight(ImageConsts.GREY_OVR);
+			if (connectState == IConnectable.STATE_CONNECTED) {
+				drawBottomRight(ImageConsts.GREEN_OVR);
+			}
+			else if (connectState == IConnectable.STATE_CONNECTING || connectState == IConnectable.STATE_DISCONNECTING) {
+				drawBottomRight(ImageConsts.GREY_OVR);
+			}
 		}
 	}
 

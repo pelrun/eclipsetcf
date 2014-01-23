@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.locator.services;
+package org.eclipse.tcf.te.tcf.locator.internal.services;
 
 import java.util.Collection;
 import java.util.Map;
@@ -19,6 +19,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.services.AbstractPeerModelService;
 
 
 /**

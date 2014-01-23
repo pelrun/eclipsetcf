@@ -26,7 +26,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupServic
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
-import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerImageDescriptor;
+import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerNodeImageDescriptor;
 import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
@@ -161,7 +161,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 		Image decoratedImage = image;
 
 		if (image != null && element instanceof IPeerNode) {
-			AbstractImageDescriptor descriptor = new PeerImageDescriptor(
+			AbstractImageDescriptor descriptor = new PeerNodeImageDescriptor(
 							UIPlugin.getDefault().getImageRegistry(),
 							image,
 							(IPeerNode)element);

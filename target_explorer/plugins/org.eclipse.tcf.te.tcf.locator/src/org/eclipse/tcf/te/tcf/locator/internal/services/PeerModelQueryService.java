@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.locator.services;
+package org.eclipse.tcf.te.tcf.locator.internal.services;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -17,6 +17,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
+import org.eclipse.tcf.te.tcf.locator.services.AbstractPeerModelService;
 
 /**
  * Default peer model peer node query service implementation.

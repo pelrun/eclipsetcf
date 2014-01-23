@@ -8,7 +8,7 @@
  * of this software may be licensed only pursuant to the terms
  * of an applicable Wind River license agreement.
  */
-package org.eclipse.tcf.te.tcf.locator.services;
+package org.eclipse.tcf.te.tcf.locator.internal.services;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;

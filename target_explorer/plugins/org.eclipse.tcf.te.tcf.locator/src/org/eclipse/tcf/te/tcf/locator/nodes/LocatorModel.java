@@ -30,10 +30,10 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupSer
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.internal.services.LocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.internal.services.LocatorModelRefreshService;
+import org.eclipse.tcf.te.tcf.locator.internal.services.LocatorModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.listener.LocatorListener;
-import org.eclipse.tcf.te.tcf.locator.services.LocatorModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.services.LocatorModelRefreshService;
-import org.eclipse.tcf.te.tcf.locator.services.LocatorModelUpdateService;
 
 
 /**

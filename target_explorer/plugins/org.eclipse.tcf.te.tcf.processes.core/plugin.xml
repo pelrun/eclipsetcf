@@ -50,7 +50,6 @@
             class="org.eclipse.tcf.te.tcf.processes.core.steps.ResumeProcessStep"
             label="%ResumeProcessStep.name">
          <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
-         <requires id="org.eclipse.tcf.te.tcf.processes.core.launchProcessStep"/>
       </step>
       
       <step

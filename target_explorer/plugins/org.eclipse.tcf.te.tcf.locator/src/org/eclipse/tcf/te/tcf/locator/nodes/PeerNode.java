@@ -24,6 +24,9 @@ import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
@@ -31,6 +34,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeValidationDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 
 
@@ -126,31 +130,23 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode#isComplete()
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode#isValid()
 	 */
 	@Override
-	public boolean isComplete() {
-		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
+	public boolean isValid() {
+		IService[] services = ServiceManager.getInstance().getServices(this, IDelegateService.class, false);
+		for (IService service : services) {
+	        if (service instanceof IDelegateService) {
+	        	IPeerNodeValidationDelegate delegate = ((IDelegateService)service).getDelegate(this, IPeerNodeValidationDelegate.class);
+	        	if (delegate != null) {
+	        		if (!delegate.isValid(this)) {
+	        			return false;
+	        		}
+	        	}
+	        }
+        }
 
-		boolean complete = true;
-
-		// Determine the transport method
-		String transport = getPeer().getTransportName();
-		// If the transport is not set, the peer attributes are incomplete
-		if (transport == null) {
-			complete = false;
-		} else {
-			// For TCP or SSL transport, ATTR_IP_HOST must not be null.
-			String ip = getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
-			String port = getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
-			if (("TCP".equals(transport) || "SSL".equals(transport)) && (ip == null || port == null)) { //$NON-NLS-1$ //$NON-NLS-2$
-				complete = false;
-			}
-
-			// Pipe and Loop transport does not require additional attributes
-		}
-
-		return complete;
+		return true;
 	}
 
 	/* (non-Javadoc)
@@ -390,7 +386,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 			case STATE_CONNECTING:
 				return isAllowedState(action, ACTION_DISCONNECT);
 			case STATE_DISCONNECTED:
-				return isAllowedState(action, ACTION_CONNECT);
+				return isValid() && isAllowedState(action, ACTION_CONNECT);
     	}
     	return false;
     }

@@ -108,6 +108,13 @@ public class PeerModelPropertyTester extends PropertyTester {
 			}
 		}
 
+		if ("isValid".equals(property)) { //$NON-NLS-1$
+			boolean isValid = peerNode.isValid();
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isValid;
+			}
+		}
+
 		if ("isValueAdd".equals(property)) { //$NON-NLS-1$
 			String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
 			boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$

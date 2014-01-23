@@ -85,14 +85,4 @@ public interface ISimulatorService extends IService {
 	 * @return <code>true</code> if the configuration is valid.
 	 */
 	public boolean isValidConfig(Object context, String config);
-
-	/**
-	 * Validate a simulator context
-	 * .
-	 * @param context The context. Must not be <code>null</code>.
-	 * @param config The configuration to validate.
-	 *
-	 * @return <code>true</code> if the context is valid.
-	 */
-	public boolean isValidContext(Object context, String config);
 }

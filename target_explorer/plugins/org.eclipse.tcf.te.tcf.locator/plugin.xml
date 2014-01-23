@@ -53,7 +53,7 @@
             class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester"
             namespace="org.eclipse.tcf.te.tcf.locator"
-            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isRedirected,isProxy,isValueAdd,isOfType"
+            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isRedirected,isProxy,isValid,isValueAdd,isOfType"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
 
@@ -134,7 +134,7 @@
          </enablement>
       </service>
       <service
-            class="org.eclipse.tcf.te.tcf.locator.services.StepperOperationService"
+            class="org.eclipse.tcf.te.tcf.locator.internal.services.StepperOperationService"
             id="org.eclipse.tcf.te.tcf.locator.services.stepperOperation">
          <serviceType
                bundleId="org.eclipse.tcf.te.runtime.stepper"

@@ -65,5 +65,5 @@ public interface IPeerNode extends IContainerModelNode, IDecoratable, IConnectab
 	 *
 	 * @return <code>True</code> if the peer attributes are complete, <code>false</code> otherwise.
 	 */
-	public boolean isComplete();
+	public boolean isValid();
 }
