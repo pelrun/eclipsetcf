@@ -47,13 +47,12 @@ public final class LocatorListener implements ILocator.LocatorListener {
 	 */
 	private boolean isFiltered(IPeer peer) {
 		boolean filtered = peer == null;
-		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
 
 		if (!filtered) {
 			String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
 			boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
 
-			filtered |= isValueAdd && hideValueAdds;
+			filtered |= isValueAdd;
 
 			filtered |= peer.getName() != null
 							&& (peer.getName().endsWith("Command Server") || peer.getName().endsWith("CLI Server")); //$NON-NLS-1$ //$NON-NLS-2$

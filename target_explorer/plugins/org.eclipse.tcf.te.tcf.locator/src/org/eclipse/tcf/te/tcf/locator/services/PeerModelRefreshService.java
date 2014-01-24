@@ -32,11 +32,9 @@ import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
-import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
@@ -322,20 +320,6 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 	protected File[] getStaticPeerLookupDirectories() {
 		// The list defining the root locations
 		List<File> rootLocations = new ArrayList<File>();
-
-		// Check on the peers root locations preference setting
-		String roots = CoreBundleActivator.getScopedPreferences().getString(IPreferenceKeys.PREF_STATIC_PEERS_ROOT_LOCATIONS);
-		// If set, split it in its single components
-		if (roots != null) {
-			String[] candidates = roots.split(File.pathSeparator);
-			// Check on each candidate to denote an existing directory
-			for (String candidate : candidates) {
-				File file = new File(candidate);
-				if (file.canRead() && file.isDirectory() && !rootLocations.contains(file)) {
-					rootLocations.add(file);
-				}
-			}
-		}
 
 		// always add default root location
 		IPath defaultPath = ModelLocationUtil.getStaticPeersRootLocation();

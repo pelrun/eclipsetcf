@@ -25,7 +25,6 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
-import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
@@ -148,9 +147,8 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		Assert.isNotNull(peer);
 
 		boolean filtered = false;
-		boolean hideValueAdds = CoreBundleActivator.getScopedPreferences().getBoolean(org.eclipse.tcf.te.tcf.locator.interfaces.preferences.IPreferenceKeys.PREF_HIDE_VALUEADDS);
 
-		filtered |= isValueAdd(peer) && hideValueAdds;
+		filtered |= isValueAdd(peer);
 
 		filtered |= peer.getName() != null
 						&& (peer.getName().endsWith("Command Server") || peer.getName().endsWith("CLI Server")); //$NON-NLS-1$ //$NON-NLS-2$
