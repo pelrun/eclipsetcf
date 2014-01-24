@@ -732,7 +732,7 @@
          </menu>
       </menuContribution>
    </extension>
-   
+
 <!-- Activity contributions -->
    <extension point="org.eclipse.ui.activities">
       <category
@@ -803,7 +803,7 @@
             activityId="org.eclipse.tcf.debug.ui.activity.profiler.views"
             categoryId="org.eclipse.tcf.debug.ui.category.profiler">
       </categoryActivityBinding>
-   
+
       <defaultEnablement
             id="org.eclipse.tcf.debug.ui.activity.debugger.launch">
       </defaultEnablement>
@@ -814,5 +814,5 @@
             id="org.eclipse.tcf.debug.ui.activity.profiler.views">
       </defaultEnablement>
    </extension>
-   
+
 </plugin>

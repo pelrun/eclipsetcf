@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -60,7 +60,7 @@ public class TCFTestSuite {
         this.listener = listener;
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Echo Test...", ++count_done, count_total);
+                listener.progress("Running Echo Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestEcho(TCFTestSuite.this, channel), channel);
                 }
@@ -68,7 +68,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Echo FP Test...", ++count_done, count_total);
+                listener.progress("Running Echo FP Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestEchoFP(TCFTestSuite.this, channel), channel);
                 }
@@ -76,7 +76,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Echo ERR Test...", ++count_done, count_total);
+                listener.progress("Running Echo ERR Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestEchoERR(TCFTestSuite.this, channel), channel);
                 }
@@ -84,7 +84,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Path Map Test...", ++count_done, count_total);
+                listener.progress("Running Path Map Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestPathMap(TCFTestSuite.this, channel, path_map), channel);
                 }
@@ -92,7 +92,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Debugger Attach/Terminate Test...", ++count_done, count_total);
+                listener.progress("Running Debugger Attach/Terminate Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestAttachTerminate(TCFTestSuite.this, run_controls.get(channel), channel), channel);
                 }
@@ -100,7 +100,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Expressions Test...", ++count_done, count_total);
+                listener.progress("Running Expressions Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestExpressions(TCFTestSuite.this, run_controls.get(channel), channel), channel);
                 }
@@ -108,7 +108,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Streams Test...", ++count_done, count_total);
+                listener.progress("Running Streams Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestStreams(TCFTestSuite.this, channel), channel);
                 }
@@ -116,7 +116,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Sys monitor Test...", ++count_done, count_total);
+                listener.progress("Running Sys monitor Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestSysMonitor(TCFTestSuite.this, channel), channel);
                 }
@@ -124,7 +124,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Terminals Test...", ++count_done, count_total);
+                listener.progress("Running Terminals Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestTerminals(TCFTestSuite.this, channel), channel);
                 }
@@ -133,7 +133,7 @@ public class TCFTestSuite {
         pending_tests.add(new Runnable() {
             public void run() {
                 int i = 0;
-                listener.progress("Running Run Control Test...", ++count_done, count_total);
+                listener.progress("Running Run Control Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestRCBP1(TCFTestSuite.this, run_controls.get(channel),
                             channel, i++, path_map, mem_map), channel);
@@ -143,7 +143,7 @@ public class TCFTestSuite {
         pending_tests.add(new Runnable() {
             public void run() {
                 int i = 0;
-                listener.progress("Running File System Test...", ++count_done, count_total);
+                listener.progress("Running File System Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestFileSystem(TCFTestSuite.this, channel, i++), channel);
                 }
@@ -151,7 +151,7 @@ public class TCFTestSuite {
         });
         pending_tests.add(new Runnable() {
             public void run() {
-                listener.progress("Running Interability Test...", ++count_done, count_total);
+                listener.progress("Running Interability Test...", count_done++, count_total);
                 Random rnd = new Random();
                 for (int i = 0; i < channels.length; i++) {
                     IChannel channel = channels[i];
@@ -173,7 +173,7 @@ public class TCFTestSuite {
                 }
             }
         });
-        count_total = pending_tests.size() * 2;
+        count_total = pending_tests.size() * (NUM_CHANNELS + 1);
         channels = new IChannel[NUM_CHANNELS];
         Protocol.invokeLater(new Runnable() {
             public void run() {
@@ -296,6 +296,7 @@ public class TCFTestSuite {
         assert active_tests.get(test) != null;
         if (error != null && !canceled) errors.add(error);
         active_tests.remove(test);
+        listener.progress(null, count_done++, count_total);
         if (active_tests.isEmpty()) runNextTest();
     }
 
@@ -310,7 +311,6 @@ public class TCFTestSuite {
                 }
                 return;
             }
-            listener.progress(null, ++count_done, count_total);
             pending_tests.removeFirst().run();
             ITCFTest[] lst = active_tests.keySet().toArray(new ITCFTest[active_tests.size()]);
             for (ITCFTest test : lst) test.start();
