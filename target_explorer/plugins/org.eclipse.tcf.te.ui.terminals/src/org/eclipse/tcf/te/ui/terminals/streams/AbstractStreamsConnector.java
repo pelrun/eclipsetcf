@@ -14,6 +14,7 @@ import java.io.OutputStream;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
+import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.provider.TerminalConnectorImpl;
 
@@ -30,16 +31,16 @@ public abstract class AbstractStreamsConnector extends TerminalConnectorImpl {
     private OutputStreamMonitor stdErrMonitor;
 
     // Reference to the list of stdout output listeners
-    private OutputStreamMonitor.Listener[] stdoutListeners = null;
+    private ITerminalServiceOutputStreamMonitorListener[] stdoutListeners = null;
     // Reference to the list of stderr output listeners
-    private OutputStreamMonitor.Listener[] stderrListeners = null;
+    private ITerminalServiceOutputStreamMonitorListener[] stderrListeners = null;
 
     /**
      * Set the list of stdout listeners.
      *
      * @param listeners The list of stdout listeners or <code>null</code>.
      */
-    protected final void setStdoutListeners(OutputStreamMonitor.Listener[] listeners) {
+    protected final void setStdoutListeners(ITerminalServiceOutputStreamMonitorListener[] listeners) {
     	this.stdoutListeners = listeners;
     }
 
@@ -48,7 +49,7 @@ public abstract class AbstractStreamsConnector extends TerminalConnectorImpl {
      *
      * @param listeners The list of stderr listeners or <code>null</code>.
      */
-    protected final void setStderrListeners(OutputStreamMonitor.Listener[] listeners) {
+    protected final void setStderrListeners(ITerminalServiceOutputStreamMonitorListener[] listeners) {
     	this.stderrListeners = listeners;
     }
 
@@ -82,7 +83,7 @@ public abstract class AbstractStreamsConnector extends TerminalConnectorImpl {
     		if (this instanceof IDisposable) stdOutMonitor.addDisposable((IDisposable)this);
     		// Register the listeners
     		if (stdoutListeners != null) {
-    			for (OutputStreamMonitor.Listener l : stdoutListeners) {
+    			for (ITerminalServiceOutputStreamMonitorListener l : stdoutListeners) {
     				stdOutMonitor.addListener(l);
     			}
     		}
@@ -97,7 +98,7 @@ public abstract class AbstractStreamsConnector extends TerminalConnectorImpl {
     		if (stdout == null && this instanceof IDisposable) stdErrMonitor.addDisposable((IDisposable)this);
     		// Register the listeners
     		if (stderrListeners != null) {
-    			for (OutputStreamMonitor.Listener l : stderrListeners) {
+    			for (ITerminalServiceOutputStreamMonitorListener l : stderrListeners) {
     				stdErrMonitor.addListener(l);
     			}
     		}

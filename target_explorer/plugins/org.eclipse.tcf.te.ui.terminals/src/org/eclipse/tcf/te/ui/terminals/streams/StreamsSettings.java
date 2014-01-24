@@ -14,6 +14,7 @@ import java.io.OutputStream;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 
 /**
@@ -32,9 +33,9 @@ public class StreamsSettings {
 	// The line separator setting
 	private String lineSeparator = null;
     // The list of stdout output listeners
-    private OutputStreamMonitor.Listener[] stdoutListeners = null;
+    private ITerminalServiceOutputStreamMonitorListener[] stdoutListeners = null;
     // The list of stderr output listeners
-    private OutputStreamMonitor.Listener[] stderrListeners = null;
+    private ITerminalServiceOutputStreamMonitorListener[] stderrListeners = null;
 
 	/**
 	 * Sets the stdin stream instance.
@@ -132,7 +133,7 @@ public class StreamsSettings {
 	 *
 	 * @param listeners The list of stdout listeners or <code>null</code>.
 	 */
-	public void setStdOutListeners(OutputStreamMonitor.Listener[] listeners) {
+	public void setStdOutListeners(ITerminalServiceOutputStreamMonitorListener[] listeners) {
 		this.stdoutListeners = listeners;
 	}
 
@@ -141,7 +142,7 @@ public class StreamsSettings {
 	 *
 	 * @return The list of stdout listeners or <code>null</code>.
 	 */
-	public OutputStreamMonitor.Listener[] getStdOutListeners() {
+	public ITerminalServiceOutputStreamMonitorListener[] getStdOutListeners() {
 		return stdoutListeners;
 	}
 
@@ -150,7 +151,7 @@ public class StreamsSettings {
 	 *
 	 * @param listeners The list of stderr listeners or <code>null</code>.
 	 */
-	public void setStdErrListeners(OutputStreamMonitor.Listener[] listeners) {
+	public void setStdErrListeners(ITerminalServiceOutputStreamMonitorListener[] listeners) {
 		this.stderrListeners = listeners;
 	}
 
@@ -159,7 +160,7 @@ public class StreamsSettings {
 	 *
 	 * @return The list of stderr listeners or <code>null</code>.
 	 */
-	public OutputStreamMonitor.Listener[] getStdErrListeners() {
+	public ITerminalServiceOutputStreamMonitorListener[] getStdErrListeners() {
 		return stderrListeners;
 	}
 
@@ -176,8 +177,8 @@ public class StreamsSettings {
 			stdin = (OutputStream)((IPropertiesContainer)store).getProperty("stdin"); //$NON-NLS-1$
 			stdout = (InputStream)((IPropertiesContainer)store).getProperty("stdout"); //$NON-NLS-1$
 			stderr = (InputStream)((IPropertiesContainer)store).getProperty("stderr"); //$NON-NLS-1$
-			stdoutListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdOutListeners"); //$NON-NLS-1$
-			stderrListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdErrListeners"); //$NON-NLS-1$
+			stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])((IPropertiesContainer)store).getProperty("StdOutListeners"); //$NON-NLS-1$
+			stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])((IPropertiesContainer)store).getProperty("StdErrListeners"); //$NON-NLS-1$
 		}
 	}
 

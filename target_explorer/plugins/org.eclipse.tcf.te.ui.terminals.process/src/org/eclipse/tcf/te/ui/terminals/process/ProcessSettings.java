@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.ui.terminals.process;
 import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.ui.terminals.streams.OutputStreamMonitor;
+import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 
 /**
@@ -34,9 +34,9 @@ public class ProcessSettings {
 	// The line separator setting
 	private String lineSeparator = null;
 	// The list of stdout output listeners
-	private OutputStreamMonitor.Listener[] stdoutListeners = null;
+	private ITerminalServiceOutputStreamMonitorListener[] stdoutListeners = null;
 	// The list of stderr output listeners
-	private OutputStreamMonitor.Listener[] stderrListeners = null;
+	private ITerminalServiceOutputStreamMonitorListener[] stderrListeners = null;
 	// working directory for process
 	private String workingDir;
 	// environment
@@ -162,7 +162,7 @@ public class ProcessSettings {
 	 *
 	 * @param listeners The list of stdout listeners or <code>null</code>.
 	 */
-	public void setStdOutListeners(OutputStreamMonitor.Listener[] listeners) {
+	public void setStdOutListeners(ITerminalServiceOutputStreamMonitorListener[] listeners) {
 		this.stdoutListeners = listeners;
 	}
 
@@ -171,7 +171,7 @@ public class ProcessSettings {
 	 *
 	 * @return The list of stdout listeners or <code>null</code>.
 	 */
-	public OutputStreamMonitor.Listener[] getStdOutListeners() {
+	public ITerminalServiceOutputStreamMonitorListener[] getStdOutListeners() {
 		return stdoutListeners;
 	}
 
@@ -180,7 +180,7 @@ public class ProcessSettings {
 	 *
 	 * @param listeners The list of stderr listeners or <code>null</code>.
 	 */
-	public void setStdErrListeners(OutputStreamMonitor.Listener[] listeners) {
+	public void setStdErrListeners(ITerminalServiceOutputStreamMonitorListener[] listeners) {
 		this.stderrListeners = listeners;
 	}
 
@@ -189,7 +189,7 @@ public class ProcessSettings {
 	 *
 	 * @return The list of stderr listeners or <code>null</code>.
 	 */
-	public OutputStreamMonitor.Listener[] getStdErrListeners() {
+	public ITerminalServiceOutputStreamMonitorListener[] getStdErrListeners() {
 		return stderrListeners;
 	}
 
@@ -244,8 +244,8 @@ public class ProcessSettings {
 		if (store instanceof IPropertiesContainer) {
 			process = (Process)((IPropertiesContainer)store).getProperty("Process"); //$NON-NLS-1$
 			pty = (PTY)((IPropertiesContainer)store).getProperty("PTY"); //$NON-NLS-1$
-			stdoutListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdOutListeners"); //$NON-NLS-1$
-			stderrListeners = (OutputStreamMonitor.Listener[])((IPropertiesContainer)store).getProperty("StdErrListeners"); //$NON-NLS-1$
+			stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])((IPropertiesContainer)store).getProperty("StdOutListeners"); //$NON-NLS-1$
+			stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])((IPropertiesContainer)store).getProperty("StdErrListeners"); //$NON-NLS-1$
 			environment = (String[])((IPropertiesContainer)store).getProperty("Environment"); //$NON-NLS-1$
 		}
 	}

@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
+import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.tracing.ITraceIds;
@@ -61,23 +62,6 @@ public class OutputStreamMonitor implements IDisposable {
 	// The list of registered listener
 	private final ListenerList listeners;
 
-	/**
-	 * An interface to be implemented by listeners who want to listen
-	 * to the streams data without interfering with the original data receiver.
-	 * <p>
-	 * Listeners are invoked within the monitor processing thread.
-	 */
-	public static interface Listener {
-
-		/**
-		 * Signals that some content has been read from the monitored stream.
-		 *
-		 * @param byteBuffer The byte stream. Must not be <code>null</code>.
-		 * @param bytesRead The number of bytes that were read into the read buffer.
-		 */
-		public void onContentReadFromStream(byte[] byteBuffer, int bytesRead);
-	}
-
     /**
      * Constructor.
      *
@@ -103,7 +87,7 @@ public class OutputStreamMonitor implements IDisposable {
 	 *
 	 * @param listener The listener. Must not be <code>null</code>.
 	 */
-	public final void addListener(Listener listener) {
+	public final void addListener(ITerminalServiceOutputStreamMonitorListener listener) {
 		Assert.isNotNull(listener);
 		listeners.add(listener);
 	}
@@ -113,7 +97,7 @@ public class OutputStreamMonitor implements IDisposable {
 	 *
 	 * @param listener The listener. Must not be <code>null</code>.
 	 */
-	public final void removeListener(Listener listener) {
+	public final void removeListener(ITerminalServiceOutputStreamMonitorListener listener) {
 		Assert.isNotNull(listener);
 		listeners.remove(listener);
 	}
@@ -305,8 +289,8 @@ public class OutputStreamMonitor implements IDisposable {
     	// If listeners are registered, invoke the listeners now.
     	if (listeners.size() > 0) {
     		for (Object candidate : listeners.getListeners()) {
-    			if (!(candidate instanceof Listener)) continue;
-    			((Listener)candidate).onContentReadFromStream(byteBuffer, bytesRead);
+    			if (!(candidate instanceof ITerminalServiceOutputStreamMonitorListener)) continue;
+    			((ITerminalServiceOutputStreamMonitorListener)candidate).onContentReadFromStream(byteBuffer, bytesRead);
     		}
     	}
 
