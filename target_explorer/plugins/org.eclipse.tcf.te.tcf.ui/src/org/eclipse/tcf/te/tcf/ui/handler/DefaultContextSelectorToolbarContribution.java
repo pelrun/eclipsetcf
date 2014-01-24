@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
 
@@ -219,7 +220,12 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 	private IPeerNode[] getPeerNodesSorted() {
 		IPeerNode[] peerNodes = ModelManager.getPeerModel().getPeerNodes();
 
-		Arrays.sort(peerNodes);
+		Arrays.sort(peerNodes, new Comparator<IPeerNode>() {
+			@Override
+			public int compare(IPeerNode o1, IPeerNode o2) {
+			    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
+			}
+		});
 
 		return peerNodes;
 	}
@@ -275,9 +281,11 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 			}
 			else {
 				createContextMenu(mainPanel);
-				Point point = mainPanel.toDisplay(mainPanel.getLocation());
-				menu.setLocation(point.x, point.y + mainPanel.getBounds().height);
-				menu.setVisible(true);
+				if (menu != null) {
+					Point point = mainPanel.toDisplay(mainPanel.getLocation());
+					menu.setLocation(point.x, point.y + mainPanel.getBounds().height);
+					menu.setVisible(true);
+				}
 			}
 			clickRunning = false;
 		}
