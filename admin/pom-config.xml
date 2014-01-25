@@ -54,8 +54,8 @@
 		<!-- P2 repository URL's -->
 		<!-- Default: Eclipse 4.2.x/3.8.x (Juno) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
-        <cdt-site>http://download.eclipse.org/tools/cdt/releases/juno</cdt-site>
-		<tm-site>http://download.eclipse.org/tm/updates/3.4</tm-site>
+        <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
+		<tm-site>http://download.eclipse.org/tm/updates/3.5</tm-site>
 		<rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site>
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20140116105218/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
@@ -118,8 +118,6 @@
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.3</platform-site>
-		        <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
-		        <tm-site>http://download.eclipse.org/tm/updates/3.5/</tm-site>
             </properties>
 		</profile>
 
@@ -129,7 +127,6 @@
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4milestones</platform-site>
-		        <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
 		        <tm-site>http://download.eclipse.org/tm/updates/3.6milestones</tm-site>
             </properties>
 			
