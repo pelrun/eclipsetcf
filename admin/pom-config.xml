@@ -119,6 +119,7 @@
 		        <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
 		        <tm-site>http://download.eclipse.org/tm/updates/3.5/</tm-site>
             </properties>
+		</profile>
 
 	    <profile>
 		    <id>eclipse-4.4-luna</id>
