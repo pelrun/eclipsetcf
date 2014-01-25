@@ -36,8 +36,8 @@
 		<gmaven-version>1.5</gmaven-version>
 		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
-		<jacoco-version>0.6.3.201306030806</jacoco-version>
-		<eclipse-jarsigner-version>1.0.4</eclipse-jarsigner-version>
+		<jacoco-version>0.6.4.201312101107</jacoco-version>
+		<eclipse-jarsigner-version>1.0.5</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
@@ -53,18 +53,11 @@
 
 		<!-- P2 repository URL's -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
-		<!--
-		<cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
-		-->
-		<cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
-		<!--
-		<tm-site>http://download.eclipse.org/tm/updates/3.5/</tm-site>
-		<tm-site>http://download.eclipse.org/tm/builds/kepler/nightly/</tm-site>
-		-->
-		<tm-site>http://download.eclipse.org/tm/updates/3.5milestones/</tm-site>
+        <cdt-site>http://download.eclipse.org/tools/cdt/releases/juno</cdt-site>
+		<tm-site>http://download.eclipse.org/tm/updates/3.4</tm-site>
 		<rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20131206110810/repository</orbit-site>
-		<swtbot-site>http://download.eclipse.org/technology/swtbot/snapshots</swtbot-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20140116105218/repository/</orbit-site>
+		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
 
 	<repositories>
@@ -117,6 +110,28 @@
 		</pluginRepository>
 	</pluginRepositories>
 
+	<profiles>
+	    <profile>
+		    <id>eclipse-4.3-kepler</id>
+			
+			<properties>
+		        <platform-site>http://download.eclipse.org/eclipse/updates/4.3</platform-site>
+		        <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
+		        <tm-site>http://download.eclipse.org/tm/updates/3.5/</tm-site>
+            </properties>
+
+	    <profile>
+		    <id>eclipse-4.4-luna</id>
+			
+			<properties>
+		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4milestones</platform-site>
+		        <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
+		        <tm-site>http://download.eclipse.org/tm/updates/3.6milestones</tm-site>
+            </properties>
+			
+		</profile>
+    </profiles>
+	
 	<build>
 		<plugins>
 			<plugin>

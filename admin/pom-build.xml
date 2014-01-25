@@ -38,10 +38,6 @@
 		<profile>
 			<id>sign</id>
 			<!-- Uses the new jarsigner from the CBI platform     -->
-			<!-- Not deployed to nexus yet. Must be build locally -->
-			<!-- before running this profile.                     -->
-			<!-- See http://wiki.eclipse.org/Platform-releng/Platform_Build#Building for details -->
-			<!-- -->
 			<!-- Works only if the build runs at a Eclipse build server -->
 			
 			<build>
