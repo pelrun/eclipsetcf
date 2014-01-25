@@ -845,7 +845,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                         }
                     }));
                     for (int n = 0; n < test_dprintfs.length; n += 2) {
-                        String txt = test_dprintfs[n];
+                        final String txt = test_dprintfs[n];
                         final String res = test_dprintfs[n + 1];
                         cmds.add(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
                             public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
@@ -854,7 +854,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                     if (res != null) exit(error);
                                 }
                                 else {
-                                    if (res == null) exit(new Exception("Expressions service was expected to return error"));
+                                    if (res == null) exit(new Exception("Expressions service was expected to return error: " + txt));
                                     expr_to_dispose.add(ctx.getID());
                                     cmds.add(srv_expr.evaluate(ctx.getID(), new IExpressions.DoneEvaluate() {
                                         @Override
