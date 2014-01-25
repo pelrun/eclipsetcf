@@ -123,6 +123,17 @@ class TCFConsole extends AbstractConsole {
                                 rtt.write(ch);
                             }
                         }
+                        else if (type == TYPE_DPRINTF) {
+                            int i = 0;
+                            for (int j = 0; j < m.data.length; j++) {
+                                if (m.data[j] == '\n') {
+                                    rtt.write(m.data, i, j - i);
+                                    rtt.write('\r');
+                                    i = j;
+                                }
+                            }
+                            rtt.write(m.data, i, m.data.length - i);
+                        }
                         else {
                             rtt.write(m.data);
                         }
