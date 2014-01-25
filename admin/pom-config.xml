@@ -52,6 +52,7 @@
 		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git</tycho.scmUrl>
 
 		<!-- P2 repository URL's -->
+		<!-- Default: Eclipse 4.2.x/3.8.x (Juno) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
         <cdt-site>http://download.eclipse.org/tools/cdt/releases/juno</cdt-site>
 		<tm-site>http://download.eclipse.org/tm/updates/3.4</tm-site>
@@ -112,7 +113,8 @@
 
 	<profiles>
 	    <profile>
-		    <id>eclipse-4.3-kepler</id>
+		    <!-- Eclipse 4.3.x (Kepler) -->
+		    <id>kepler</id>
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.3</platform-site>
@@ -122,7 +124,8 @@
 		</profile>
 
 	    <profile>
-		    <id>eclipse-4.4-luna</id>
+		    <!-- Eclipse 4.4 (Luna) -->
+		    <id>luna</id>
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4milestones</platform-site>
