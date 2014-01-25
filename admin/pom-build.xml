@@ -102,7 +102,7 @@
 					<plugin>
 						<groupId>com.windriver.tycho-ext</groupId>
 						<artifactId>manifest-validation-plugin</artifactId>
-						<version>1.0.2</version>
+						<version>1.0.3</version>
 						<executions>
 							<execution>
 								<id>clean</id>

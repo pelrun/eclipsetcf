@@ -24,7 +24,7 @@
 	<!-- Packaging and signing -->
 	<profiles>
 		<profile>
-			<id>sign</id>
+			<id>deploy</id>
 			<build>
 				<plugins>
 					<plugin>
