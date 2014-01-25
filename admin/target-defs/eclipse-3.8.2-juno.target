@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 3.8.x (Juno)" sequenceNumber="25">
+<?pde version="3.8"?><target name="Eclipse 3.8.x (Juno)" sequenceNumber="30">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson.source" version="2.2.4.v201311231704"/>
@@ -28,20 +28,21 @@
 <repository location="http://szg-bld-wb.wrs.com/wb-sd/4.0.0/rxtx"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.cdt.sdk.feature.group" version="8.3.0.201312181109"/>
+<repository location="http://download.eclipse.org/tools/cdt/builds/luna/milestones"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.rcp.feature.group" version="3.8.2.v20130118-180157-96BuGOZFxwOAeG8Ofmqicz0tPK"/>
 <unit id="org.eclipse.equinox.p2.user.ui.source.feature.group" version="2.2.0.v20121212-204731-62DG9JXTlTj-UXcQ2y3NLn6U4Z3H"/>
 <unit id="org.eclipse.platform.source.feature.group" version="3.8.1.v20130118-180812-9jF7oIBFG8eU2pim-VbIlTuQjY0RWWK3x-bv4I"/>
 <unit id="org.eclipse.platform.feature.group" version="3.8.1.v20130118-180812-9jF7oIBFG8eU2pim-VbIlTuQjY0RWWK3x-bv4I"/>
 <unit id="org.eclipse.platform.sdk" version="3.8.2.M20130131-0800"/>
 <unit id="org.eclipse.rcp.source.feature.group" version="3.8.2.v20130118-180157-96BuGOZFxwOAeG8Ofmqicz0tPK"/>
+<unit id="org.eclipse.test.feature.group" version="3.5.100.v20120528-1717-7R7dBhBgLiCViQnG8ITHM73701A1"/>
 <unit id="org.eclipse.equinox.p2.extras.feature.feature.group" version="1.1.0.v20121211-153934-7A6FEcDiVOTg2RYDuZuFz-L2z00w"/>
 <unit id="org.eclipse.platform.ide" version="3.8.2.M20130131-0800"/>
 <unit id="org.eclipse.help.feature.group" version="1.4.1.v20120912-145617-8R7xFOXFLWUl7PpMEeZNIGkb4"/>
 <repository location="http://download.eclipse.org/eclipse/updates/3.8"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.cdt.sdk.feature.group" version="8.3.0.201312181109"/>
-<repository location="http://download.eclipse.org/tools/cdt/builds/luna/milestones"/>
 </location>
 </locations>
 </target>
