@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
@@ -37,14 +38,21 @@ public class InitializeModelStep extends AbstractPeerNodeStep {
 		IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
 		if (peerNode != null) {
 			IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
-			IModelChannelService service = model != null ? model.getService(IModelChannelService.class) : null;
+			final IModelChannelService service = model != null ? model.getService(IModelChannelService.class) : null;
 			if (service != null) {
-				service.openChannel(new IModelChannelService.DoneOpenChannel() {
+				Runnable runnable = new Runnable() {
 					@Override
-					public void doneOpenChannel(Throwable error, IChannel channel) {
-						callback.done(InitializeModelStep.this, StatusHelper.getStatus(error));
+					public void run() {
+						service.openChannel(new IModelChannelService.DoneOpenChannel() {
+							@Override
+							public void doneOpenChannel(Throwable error, IChannel channel) {
+								callback.done(InitializeModelStep.this, StatusHelper.getStatus(error));
+							}
+						});
 					}
-				});
+				};
+
+				Protocol.invokeLater(runnable);
 			} else {
 				callback.done(InitializeModelStep.this, Status.OK_STATUS);
 			}
