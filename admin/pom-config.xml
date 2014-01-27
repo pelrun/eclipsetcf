@@ -57,6 +57,7 @@
         <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
 		<tm-site>http://download.eclipse.org/tm/updates/3.5</tm-site>
 		<rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site>
+		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20140116105218/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
@@ -83,13 +84,18 @@
 			<layout>p2</layout>
 		</repository>
 		<repository>
+			<id>swtbot</id>
+			<url>${swtbot-site}</url>
+			<layout>p2</layout>
+		</repository>
+		<repository>
 			<id>rxtx</id>
 			<url>${rxtx-site}</url>
 			<layout>p2</layout>
 		</repository>
 		<repository>
-			<id>swtbot</id>
-			<url>${swtbot-site}</url>
+			<id>rxtx-backup</id>
+			<url>${rxtx-backup-site}</url>
 			<layout>p2</layout>
 		</repository>
 	</repositories>
