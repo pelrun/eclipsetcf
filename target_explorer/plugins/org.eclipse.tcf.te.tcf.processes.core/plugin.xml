@@ -53,6 +53,11 @@
       </step>
       
       <step
+            class="org.eclipse.tcf.te.tcf.processes.core.steps.InitializeModelStep"
+            id="org.eclipse.tcf.te.tcf.processes.core.initializeModelStep"
+            label="%InitializeModelStep.name">
+      </step>
+      <step
             class="org.eclipse.tcf.te.tcf.processes.core.steps.DisposeModelStep"
             id="org.eclipse.tcf.te.tcf.processes.core.disposeModelStep"
             label="%DisposeModelStep.name">
@@ -61,6 +66,14 @@
 
 <!-- Step group contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.stepGroups">
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.connectStepGroup">
+         <references>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.processes.core.initializeModelStep"
+                  insertAfter="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup"/>
+         </references>
+      </stepGroup>
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.disconnectStepGroup">
          <references>
