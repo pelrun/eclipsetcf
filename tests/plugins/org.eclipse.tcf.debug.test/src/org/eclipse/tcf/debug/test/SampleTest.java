@@ -10,18 +10,14 @@
 package org.eclipse.tcf.debug.test;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.VirtualItem;
 import org.eclipse.tcf.debug.test.services.RunControlCM.ContextState;
-import org.eclipse.tcf.debug.test.util.ICache;
-import org.eclipse.tcf.debug.test.util.RangeCache;
 import org.eclipse.tcf.debug.test.util.Transaction;
 import org.eclipse.tcf.services.ILineNumbers.CodeArea;
 import org.eclipse.tcf.services.IRunControl;
-import org.eclipse.tcf.services.IStackTrace.StackTraceContext;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.services.ISymbols.Symbol;
 import org.eclipse.test.performance.Performance;
@@ -165,7 +161,7 @@ public class SampleTest extends AbstractTcfUITest {
                 BigInteger pcNumber = new BigInteger(pc);
                 BigInteger pcNumberPlusOne = pcNumber.add(BigInteger.valueOf(1));
                 CodeArea[] areas = validate(fLineNumbersCM.mapToSource(processInfo.fThreadId, pcNumber, pcNumberPlusOne));
-                if (areas.length >= 1) {
+                if (areas != null && areas.length >= 1) {
                     return areas[0];
                 }
                 return null;
