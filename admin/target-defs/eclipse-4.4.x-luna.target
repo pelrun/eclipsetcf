@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.4.x (Luna)" sequenceNumber="32">
+<?pde version="3.8"?><target name="Eclipse 4.4.x (Luna)" sequenceNumber="33">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson.source" version="2.2.4.v201311231704"/>
 <unit id="com.google.gson" version="2.2.4.v201311231704"/>
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/S20140116105218/repository"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="gnu.io.rxtx.sdk.feature.group" version="2.1.7.4_v20071016-417C7DP1Bh_eEaQJBrHBHg"/>
-<repository location="http://szg-bld-wb.wrs.com/wb-sd/4.0.0/rxtx"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.apache.log4j.source" version="1.2.15.v201012070815"/>
@@ -35,6 +31,11 @@
 <unit id="org.eclipse.test.feature.group" version="3.6.0.v20131025-1404"/>
 <unit id="org.eclipse.platform.sdk" version="4.4.0.I20140123-1600"/>
 <repository location="http://download.eclipse.org/eclipse/updates/4.4milestones"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="gnu.io.rxtx.sdk.feature.group" version="2.1.7.4_v20071016-417C7DP1Bh_eEaQJBrHBHg"/>
+<unit id="gnu.io.rxtx.feature.group" version="2.1.7.4_v20071016-7B57e7UAXMAAqGAGf"/>
+<repository location="http://archive.eclipse.org/tm/updates/rxtx"/>
 </location>
 </locations>
 </target>
