@@ -4,12 +4,12 @@
     xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.eclipse.tcf.te</groupId>
-		<artifactId>te-tests.maven-master</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
-		<relativePath>../../pom-tests.xml</relativePath>
-	</parent>
+  <parent>
+    <groupId>org.eclipse.tcf</groupId>
+    <artifactId>tcf-parent</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
 
 	<version>1.2.0.qualifier</version>
 	<artifactId>org.eclipse.tcf.te.tests</artifactId>
