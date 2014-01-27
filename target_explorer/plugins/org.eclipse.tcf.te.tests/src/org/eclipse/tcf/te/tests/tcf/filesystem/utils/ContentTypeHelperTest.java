@@ -40,10 +40,10 @@ public class ContentTypeHelperTest extends UtilsTestBase {
 		content.append("<root></root>\n"); //$NON-NLS-1$
 		writeFileContent(content.toString());
     }
-	
+
     private void uploadAgent() throws Exception {
-	    IPath path = getWin32Agent();
-	    assertNotNull("Cannot find Windows agent!", path); //$NON-NLS-1$
+	    IPath path = getLinuxAgent();
+	    assertNotNull("Cannot find Linux agent!", path); //$NON-NLS-1$
 		assertTrue("Invalid agent location: " + path.toString(), path.toFile().isFile()); //$NON-NLS-1$
 	    File agentFile = path.toFile();
 	    String agentPath = getTestRoot() + getPathSep() + agentFile.getName();
@@ -57,15 +57,14 @@ public class ContentTypeHelperTest extends UtilsTestBase {
 			assertNotNull(agentNode);
 		}
     }
-    
-    private IPath getWin32Agent() {
+
+    private IPath getLinuxAgent() {
 		Bundle bundle = UIPlugin.getDefault().getBundle();
 		if (bundle != null) {
 			IPath relative = new Path ("data").append("agent"); //$NON-NLS-1$ //$NON-NLS-2$
-			relative = relative.append("win32"); //$NON-NLS-1$
-			relative = relative.append("x86"); //$NON-NLS-1$
+			relative = relative.append("linux"); //$NON-NLS-1$
+			relative = relative.append("x86_64"); //$NON-NLS-1$
 			relative = relative.append("agent"); //$NON-NLS-1$
-			relative = relative.addFileExtension("exe"); //$NON-NLS-1$
 
 			URL url = FileLocator.find(bundle, relative, null);
 			if (url != null) {
@@ -76,7 +75,7 @@ public class ContentTypeHelperTest extends UtilsTestBase {
 		}
 		return null;
     }
-	
+
 	public void testBinaryFile() {
 		printMessage("The agent's location is: "+agentNode.getLocation()); //$NON-NLS-1$
 		IContentType contentType = ContentTypeHelper.getContentType(agentNode);
@@ -98,7 +97,7 @@ public class ContentTypeHelperTest extends UtilsTestBase {
 			printMessage("The content type of the agent node is null!"); //$NON-NLS-1$
 		}
 	}
-	
+
 	public void testContentType() {
 		IContentType contentType = ContentTypeHelper.getContentType(testFile);
 		assertEquals("Text", contentType.getName()); //$NON-NLS-1$
