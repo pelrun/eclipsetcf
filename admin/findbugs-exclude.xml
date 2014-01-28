@@ -234,6 +234,7 @@
 		<Or>
 			<Class name="org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FileExtBasedImageUpdater"/>
 			<Class name="~org\.eclipse\.tcf\.te\.tcf\.filesystem\.ui\.internal\.handlers\.OpenFileHandler.*"/>
+			<Package name="~org\.eclipse\.tcf\.te\.tests\..*"/>
 		</Or>
 	</Match>
 

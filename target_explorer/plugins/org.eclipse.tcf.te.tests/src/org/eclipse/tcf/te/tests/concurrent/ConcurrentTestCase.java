@@ -281,7 +281,10 @@ public class ConcurrentTestCase extends CoreTestCase {
 		assertNotNull("Failed to instanciate and to initialize the test executor service implementation!", service); //$NON-NLS-1$
 
 		// Invoke each method now
-		service.execute(null);
+		service.execute(new Runnable() {
+			@Override
+			public void run() {}
+		});
 		service.submit((Callable<?>)null);
 		service.submit((Runnable)null);
 		service.submit(null, null);
