@@ -72,7 +72,7 @@ public class VariablesVirtualTreeModelViewer extends VirtualTreeModelViewer impl
     }
     
     public void debugContextChanged(DebugContextEvent event) {
-        if (fActive && (event.getFlags() | DebugContextEvent.ACTIVATED) != 0) {
+        if (fActive && (event.getFlags() & DebugContextEvent.ACTIVATED) != 0) {
             setActiveContext(event.getContext());
         }
     }    
