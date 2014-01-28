@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -48,6 +49,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.tcf.te.core.interfaces.IViewerInput;
 import org.eclipse.tcf.te.ui.WorkbenchPartControl;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
+import org.eclipse.tcf.te.ui.interfaces.ITreeControlInputChangedListener;
 import org.eclipse.ui.IDecoratorManager;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -75,6 +77,8 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	private ConfigFilterAction configFilterAction;
 	// The menu manager
 	private MenuManager manager;
+	// Tree control input changed listener list
+	private final ListenerList inputChangedListeners = new ListenerList();
 
 	/**
 	 * Constructor.
@@ -109,6 +113,9 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 		// Dispose the descriptors
 		disposeDescriptors();
 
+		// clear out the input changed listeners
+		inputChangedListeners.clear();
+
 		super.dispose();
 	}
 
@@ -124,6 +131,9 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 				}
 				if (column.getLabelProvider() != null) {
 					column.getLabelProvider().dispose();
+				}
+				if (column.getTreeColumn() != null) {
+					column.getTreeColumn().dispose();
 				}
 			}
 			columnDescriptors = null;
@@ -195,7 +205,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 					Object newInput = args[2];
 
 					if ((oldInput == null && newInput != null) || (oldInput != null && newInput == null) || (oldInput != null && !oldInput.equals(newInput))) {
-						onInputChanged(args[1], args[2]);
+						onInputChanged(oldInput, newInput);
 					}
 				}
 				return method.invoke(contentProvider, args);
@@ -246,6 +256,13 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 			updateFilters();
 			createHeaderMenu(this).create();
 			if (configFilterAction != null) configFilterAction.updateEnablement();
+		}
+
+		// Invoke the registered tree control input changed listeners
+		Object[] listeners = inputChangedListeners.getListeners();
+		for (Object candidate : listeners) {
+			if (!(candidate instanceof ITreeControlInputChangedListener)) continue;
+			((ITreeControlInputChangedListener)candidate).inputChanged(this, oldInput, newInput);
 		}
 	}
 
@@ -722,5 +739,23 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 */
 	@Override
     public void widgetDefaultSelected(SelectionEvent e) {
+	}
+
+	/**
+	 * Adds the given tree control input changed listener.
+	 *
+	 * @param listener The tree control input changed listener.
+	 */
+	public final void addInputChangedListener(ITreeControlInputChangedListener listener) {
+		if (listener != null) inputChangedListeners.add(listener);
+	}
+
+	/**
+	 * Removes the given tree control input changed listener.
+	 *
+	 * @param listener The tree control input changed listener.
+	 */
+	public final void removeInputChangedListener(ITreeControlInputChangedListener listener) {
+		if (listener != null) inputChangedListeners.remove(listener);
 	}
 }

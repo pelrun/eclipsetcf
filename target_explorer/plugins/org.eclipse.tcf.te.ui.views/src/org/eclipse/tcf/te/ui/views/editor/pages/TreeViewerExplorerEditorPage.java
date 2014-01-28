@@ -50,6 +50,8 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
+import org.eclipse.tcf.te.ui.interfaces.ITreeControlInputChangedListener;
+import org.eclipse.tcf.te.ui.trees.AbstractTreeControl;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
 import org.eclipse.tcf.te.ui.utils.TreeViewerUtil;
 import org.eclipse.ui.ISources;
@@ -123,6 +125,20 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 	    	}
 	    }
 		treeControl = doCreateTreeControl();
+		Assert.isNotNull(treeControl);
+		treeControl.addInputChangedListener(new ITreeControlInputChangedListener() {
+			@Override
+			public void inputChanged(AbstractTreeControl control, Object oldInput, Object newInput) {
+				Assert.isNotNull(control);
+
+				if (getTreeControl() != control) return;
+				// Adjust the table column width after an input element change
+				if (control.getViewer() instanceof TreeViewer && ((TreeViewer)control.getViewer()).getTree() != null) {
+					Tree tree = ((TreeViewer)control.getViewer()).getTree();
+					if (!tree.isDisposed()) adjustTreeColumnWidth(tree);
+				}
+			}
+		});
     }
 
 	/*
@@ -187,39 +203,7 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 
 			@Override
 			public void controlResized(ControlEvent e) {
-				int sumColumnWidth = 0;
-				int treeWidth = tree.getSize().x - tree.getVerticalBar().getSize().x;
-
-				TreeColumn[] columns = tree.getColumns();
-
-				// Summarize the tree column width
-				for (TreeColumn column : columns) {
-					Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
-					sumColumnWidth += widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
-				}
-
-				// Calculate the new width for each column
-				int sumColumnWidth2 = 0;
-				TreeColumn maxColumn = null;
-				for (TreeColumn column : columns) {
-					Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
-					int width = widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
-					int weight = (width * 100) / sumColumnWidth;
-					int newWidth = (weight * treeWidth) / 100;
-					sumColumnWidth2 += newWidth;
-					column.setWidth(newWidth);
-					if (maxColumn == null || maxColumn.getWidth() < column.getWidth()) {
-						maxColumn = column;
-					}
-				}
-
-				// If we end up with a slighter larger width of all columns than
-				// the tree widget is, reduce the size of the largest column
-				if (sumColumnWidth2 > treeWidth && maxColumn != null) {
-					int delta = sumColumnWidth2 - treeWidth + 2;
-					maxColumn.setWidth(maxColumn.getWidth() - delta);
-				}
-
+				adjustTreeColumnWidth(tree);
 				tree.removeControlListener(this);
 			}
 
@@ -227,6 +211,49 @@ public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToo
 			public void controlMoved(ControlEvent e) {
 			}
 		});
+	}
+
+	/**
+	 * Adjust the width of the tree columns of the given tree to fill in the
+	 * available screen area.
+	 *
+	 * @param tree The tree. Must not be <code>null</code>.
+	 */
+	protected void adjustTreeColumnWidth(Tree tree) {
+		Assert.isNotNull(tree);
+
+		int sumColumnWidth = 0;
+		int treeWidth = tree.getSize().x - tree.getVerticalBar().getSize().x;
+
+		TreeColumn[] columns = tree.getColumns();
+
+		// Summarize the tree column width
+		for (TreeColumn column : columns) {
+			Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
+			sumColumnWidth += widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
+		}
+
+		// Calculate the new width for each column
+		int sumColumnWidth2 = 0;
+		TreeColumn maxColumn = null;
+		for (TreeColumn column : columns) {
+			Object widthHint = column.getData("widthHint"); //$NON-NLS-1$
+			int width = widthHint instanceof Integer ? ((Integer)widthHint).intValue() : column.getWidth();
+			int weight = (width * 100) / sumColumnWidth;
+			int newWidth = (weight * treeWidth) / 100;
+			sumColumnWidth2 += newWidth;
+			column.setWidth(newWidth);
+			if (maxColumn == null || maxColumn.getWidth() < column.getWidth()) {
+				maxColumn = column;
+			}
+		}
+
+		// If we end up with a slighter larger width of all columns than
+		// the tree widget is, reduce the size of the largest column
+		if (sumColumnWidth2 > treeWidth && maxColumn != null) {
+			int delta = sumColumnWidth2 - treeWidth + 2;
+			maxColumn.setWidth(maxColumn.getWidth() - delta);
+		}
 	}
 
 	/**

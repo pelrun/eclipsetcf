@@ -73,10 +73,17 @@ public class ProcessMonitorEventListener extends AbstractEventListener {
 				else if (source instanceof IPeerNode && source == getPeerNode()) {
 					if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) &&
 									changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_CONNECTED))) {
+						// Get the new runtime model
+						final IRuntimeModel model = ModelManager.getRuntimeModel(getPeerNode());
+						// Update the tree viewer input element
+						if (treeControl.getViewer().getInput() != model) {
+							treeControl.getViewer().setInput(model);
+						}
+						// Refresh the model
 						Protocol.invokeLater(new Runnable() {
 							@Override
 							public void run() {
-								ModelManager.getRuntimeModel(getPeerNode()).getService(IRuntimeModelRefreshService.class).refresh(null);
+								model.getService(IRuntimeModelRefreshService.class).refresh(null);
 							}
 						});
 					}
