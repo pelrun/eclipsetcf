@@ -38,10 +38,15 @@ public class LocalConnectorType extends AbstractConnectorType {
 	 * @return The default shell to launch.
 	 */
 	private final File defaultShell() {
-		String shell = System.getenv("SHELL"); //$NON-NLS-1$
+		String shell = Host.isWindowsHost() ? "cmd.exe" : null; //$NON-NLS-1$
 		if (shell == null) {
-			shell = Host.isWindowsHost() ? "cmd.exe" : "/bin/sh"; //$NON-NLS-1$ //$NON-NLS-2$
+			if (System.getenv("SHELL") != null && !"".equals(System.getenv("SHELL").trim())) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				shell = System.getenv("SHELL").trim(); //$NON-NLS-1$
+			} else {
+				shell = "/bin/sh"; //$NON-NLS-1$
+			}
 		}
+
 		return new File(shell);
 	}
 
