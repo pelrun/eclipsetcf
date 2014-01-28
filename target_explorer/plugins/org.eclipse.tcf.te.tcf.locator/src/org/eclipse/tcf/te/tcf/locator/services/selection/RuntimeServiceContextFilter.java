@@ -57,7 +57,6 @@ public class RuntimeServiceContextFilter implements IDefaultContextService.ICont
 	public boolean select(final IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
 
-		final IPeer peer = peerNode.getPeer();
 		final AtomicBoolean result = new AtomicBoolean(false);
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
@@ -78,6 +77,7 @@ public class RuntimeServiceContextFilter implements IDefaultContextService.ICont
 				}
 
 				if (useDisconnectedContexts) {
+					final IPeer peer = peerNode.getPeer();
 					services = peer.getAttributes().get(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
 					list = services != null ? Arrays.asList(services.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 					boolean containsAll = true;

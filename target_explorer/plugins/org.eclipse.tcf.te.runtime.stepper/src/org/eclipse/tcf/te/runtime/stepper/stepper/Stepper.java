@@ -733,16 +733,16 @@ public class Stepper implements IStepper {
 			coreException = null;
 		}
 		else if (status.getSeverity() == IStatus.ERROR) {
-			// Error -> If the warnings container not empty, create
-			// a new MultiStatus.
-			if (!statusContainer.isEmpty()) {
-				MultiStatus multiStatus = new MultiStatus(status.getPlugin(), status.getCode(), NLS.bind(Messages.Stepper_multiStatus_finishedWithErrors, getLabel()), null);
-				for (IStatus stat : statusContainer) {
-					multiStatus.merge(stat);
-				}
-				// Re-throw via a new CoreException
-				coreException = new CoreException(multiStatus);
-			}
+//			// Error -> If the warnings container not empty, create
+//			// a new MultiStatus.
+//			if (!statusContainer.isEmpty()) {
+//				MultiStatus multiStatus = new MultiStatus(status.getPlugin(), status.getCode(), NLS.bind(Messages.Stepper_multiStatus_finishedWithErrors, getLabel()), null);
+//				for (IStatus stat : statusContainer) {
+//					multiStatus.merge(stat);
+//				}
+//				// Re-throw via a new CoreException
+//				coreException = new CoreException(multiStatus);
+//			}
 		}
 
 		return coreException;
