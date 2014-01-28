@@ -182,5 +182,25 @@
                 </plugins>
             </build>
         </profile>
+
+	    <profile>
+		    <!-- Eclipse 4.3.x (Kepler) -->
+		    <id>kepler</id>
+			
+			<properties>
+                <sdk-version>4.3.1</sdk-version>
+            </properties>
+		</profile>
+
+	    <profile>
+		    <!-- Eclipse 4.4 (Luna) -->
+		    <id>luna</id>
+			
+			<properties>
+                <sdk-version>4.4.0</sdk-version>
+            </properties>
+			
+		</profile>
+		
     </profiles>
 </project>
