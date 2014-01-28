@@ -44,6 +44,7 @@
 							-->
 							<product>org.eclipse.platform.ide</product>
 							<argLine>${tycho.testArgLine} ${ui.test.vmargs}</argLine>
+							<testFailureIgnore>true</testFailureIgnore>
 							<application>org.eclipse.ui.ide.workbench</application>
 							<dependencies>
 								<dependency>
