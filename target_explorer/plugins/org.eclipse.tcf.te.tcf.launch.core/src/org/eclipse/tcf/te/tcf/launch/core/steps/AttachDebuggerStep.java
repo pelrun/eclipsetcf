@@ -10,7 +10,6 @@
 package org.eclipse.tcf.te.tcf.launch.core.steps;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -36,30 +35,20 @@ public class AttachDebuggerStep extends AbstractTcfLaunchStep {
 	 */
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
-		if (Protocol.isDispatchThread()) {
-			internalExecute(context, data, fullQualifiedId, monitor, callback);
-		}
-		else {
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					internalExecute(context, data, fullQualifiedId, monitor, callback);
+		final ILaunch launch = getLaunch(context);
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if (launch instanceof Launch) {
+					Launch tcfLaunch = (Launch)launch;
+					try {
+						tcfLaunch.attachDebugger(getActivePeerModelContext(context, data, fullQualifiedId), callback);
+					}
+					catch (Exception e) {
+						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(e), null);
+					}
 				}
-			});
-		}
-	}
-
-	protected void internalExecute(IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
-		ILaunch launch = getLaunch(context);
-		if (launch instanceof Launch) {
-			Launch tcfLaunch = (Launch)launch;
-			try {
-				tcfLaunch.attachDebugger(getActivePeerModelContext(context, data, fullQualifiedId));
-				callback.done(this, Status.OK_STATUS);
 			}
-			catch (Exception e) {
-				callback.done(this, StatusHelper.getStatus(e));
-			}
-		}
+		});
 	}
 }

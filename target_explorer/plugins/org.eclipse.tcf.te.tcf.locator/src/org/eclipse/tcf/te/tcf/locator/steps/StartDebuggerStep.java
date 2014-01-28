@@ -77,7 +77,7 @@ public class StartDebuggerStep extends AbstractPeerNodeStep {
 		final boolean autoAttachAll = value != null ? Boolean.parseBoolean(value) : false;
 
 		if (StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data)) {
-			Runnable runnable = new Runnable() {
+			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
 					// Don't attach the debugger if no run control is provided by the target
@@ -131,10 +131,8 @@ public class StartDebuggerStep extends AbstractPeerNodeStep {
 					} else {
 						callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 					}
-			}
-			};
-
-			Protocol.invokeLater(runnable);
+				}
+			});
 		}
 		else {
 			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);

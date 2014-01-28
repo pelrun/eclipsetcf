@@ -186,6 +186,7 @@ public class LaunchConfigurationDelegate extends org.eclipse.debug.core.model.La
 
 			// Set the launch completed here. Doesn't matter if the launch might completed with error or not.
 			launch.setAttribute(ICommonLaunchAttributes.ILAUNCH_ATTRIBUTE_LAUNCH_SEQUENCE_COMPLETED, Boolean.TRUE.toString());
+			onLaunchFinished(launch, status != null ? status : Status.OK_STATUS);
 
 			long endTime = System.currentTimeMillis();
 			CoreBundleActivator.getTraceHandler().trace("LaunchConfigurationDelegate#launch: *** DONE" //$NON-NLS-1$
@@ -305,5 +306,9 @@ public class LaunchConfigurationDelegate extends org.eclipse.debug.core.model.La
 	@Override
 	public IBreakpoint[] getBreakpoints(ILaunchConfiguration configuration) {
 		return super.getBreakpoints(configuration);
+	}
+
+	protected void onLaunchFinished(ILaunch launch, IStatus status) {
+
 	}
 }

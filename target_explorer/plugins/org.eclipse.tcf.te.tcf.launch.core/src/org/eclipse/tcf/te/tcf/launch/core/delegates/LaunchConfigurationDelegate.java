@@ -57,4 +57,17 @@ public class LaunchConfigurationDelegate extends org.eclipse.tcf.te.launch.core.
 			}
 		}.getE();
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.launch.core.delegates.LaunchConfigurationDelegate#onLaunchFinished(org.eclipse.debug.core.ILaunch, org.eclipse.core.runtime.IStatus)
+	 */
+	@Override
+	protected void onLaunchFinished(ILaunch launch, IStatus status) {
+		super.onLaunchFinished(launch, status);
+	    if (launch instanceof Launch) {
+	    	if (((Launch)launch).getCallback() != null) {
+	    		((Launch)launch).getCallback().done(launch, status);
+	    	}
+	    }
+	}
 }

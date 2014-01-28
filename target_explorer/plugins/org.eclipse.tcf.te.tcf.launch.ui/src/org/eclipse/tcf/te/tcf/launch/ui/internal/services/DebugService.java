@@ -37,6 +37,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.launch.core.delegates.Launch;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 
@@ -127,7 +128,12 @@ public class DebugService extends AbstractService implements IDebugService {
 									if (launch != null && finConfig.equals(launch.getLaunchConfiguration())) {
 										DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
 										callback.setProperty("launch", launch); //$NON-NLS-1$
-										callback.done(this, Status.OK_STATUS);
+										if (launch instanceof Launch) {
+											((Launch)launch).setCallback(callback);
+										}
+										else {
+											callback.done(this, Status.OK_STATUS);
+										}
 									}
 								}
 

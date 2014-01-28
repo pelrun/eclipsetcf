@@ -18,6 +18,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
@@ -26,9 +27,11 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IPathMap.DoneSet;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapGeneratorService;
@@ -41,6 +44,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
  * between the launch steps.
  */
 public final class Launch extends TCFLaunch {
+
+	private ICallback callback = null;
 
 	/**
 	 * Non-notifying properties container used for data exchange between the steps.
@@ -65,13 +70,22 @@ public final class Launch extends TCFLaunch {
 		super(configuration, mode);
 	}
 
+	public void setCallback(ICallback callback) {
+		this.callback = callback;
+	}
+
+	public ICallback getCallback() {
+		return callback;
+	}
+
 	/**
 	 * Attach the tcf debugger to the given peer model node.
 	 *
 	 * @param node The peer model node. Must not be <code>null</code>.
 	 */
-	public void attachDebugger(IPeerNode node) {
+	public void attachDebugger(IPeerNode node, final ICallback callback) {
 		Assert.isNotNull(node);
+		Assert.isNotNull(callback);
 
 		final String name = node.getPeer().getName();
 
@@ -83,7 +97,32 @@ public final class Launch extends TCFLaunch {
 			@Override
 			public void doneOpenChannel(Throwable error, IChannel channel) {
 				if (error == null && channel != null) {
+					LaunchListener listener = new LaunchListener() {
+						@Override
+						public void onProcessStreamError(TCFLaunch launch, String process_id, int stream_id, Exception error, int lost_size) {
+						}
+						@Override
+						public void onProcessOutput(TCFLaunch launch, String process_id, int stream_id, byte[] data) {
+						}
+						@Override
+						public void onDisconnected(TCFLaunch launch) {
+							callback.done(Launch.this, StatusHelper.getStatus(Launch.this.getError()));
+							removeListener(this);
+						}
+						@Override
+						public void onCreated(TCFLaunch launch) {
+						}
+						@Override
+						public void onConnected(TCFLaunch launch) {
+							callback.done(Launch.this, Status.OK_STATUS);
+							removeListener(this);
+						}
+					};
+					addListener(listener);
 					launchTCF(getLaunchMode(), name, channel);
+				}
+				else {
+					callback.done(Launch.this, StatusHelper.getStatus(error));
 				}
 			}
 		});
