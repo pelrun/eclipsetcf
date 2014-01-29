@@ -21,6 +21,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -180,7 +181,14 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			detailsSection.getSection().setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
 		}
 
-		connect = new Button(parent, SWT.CHECK);
+		Composite panel = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout(1, true);
+		layout.marginHeight = 0; layout.marginWidth = 0;
+		panel.setLayout(layout);
+		panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		panel.setBackground(parent.getBackground());
+
+		connect = new Button(panel, SWT.CHECK);
 		connect.setText(Messages.AbstractConfigWizardPage_connect_label);
 		connect.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		connect.setSelection(autoConnect);
@@ -191,7 +199,17 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			}
 		});
 
-		launchDbg = new Button(parent, SWT.CHECK);
+		Composite innerPanel = panel;
+		if (hasAdvancedButton()) {
+			innerPanel = new Composite(panel, SWT.NONE);
+			layout = new GridLayout(2, false);
+			layout.marginHeight = 0; layout.marginWidth = 0;
+			innerPanel.setLayout(layout);
+			innerPanel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			innerPanel.setBackground(parent.getBackground());
+		}
+
+		launchDbg = new Button(innerPanel, SWT.CHECK);
 		launchDbg.setText(Messages.AbstractConfigWizardPage_launchDbg_label);
 		launchDbg.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		launchDbg.setSelection(autoLaunchDbg);
@@ -203,7 +221,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		});
 
 		if (hasAdvancedButton()) {
-			advancedButton = new Button(parent, SWT.PUSH);
+			advancedButton = new Button(innerPanel, SWT.PUSH);
 			advancedButton.setText("  " + Messages.AbstractConfigWizardPage_advancedButton_label + "  "); //$NON-NLS-1$ //$NON-NLS-2$
 			advancedButton.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
 			advancedButton.addSelectionListener(new SelectionAdapter() {
