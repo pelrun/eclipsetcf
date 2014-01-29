@@ -35,8 +35,8 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		// Get the bundles scoped preferences store
 		ScopedEclipsePreferences prefs = CoreBundleActivator.getScopedPreferences();
 		if (prefs != null) {
-			// Enable back-end communication logging: default on
-			prefs.putDefaultBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED, true);
+			// Enable back-end communication logging: default off
+			prefs.putDefaultBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED, false);
 			// Enable back-end communication monitor: default off
 			prefs.putDefaultBoolean(IPreferenceKeys.PREF_MONITOR_ENABLED, false);
 			// Heat beat events: default off
