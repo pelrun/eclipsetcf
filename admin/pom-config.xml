@@ -52,9 +52,9 @@
 		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git</tycho.scmUrl>
 
 		<!-- P2 repository URL's -->
-		<!-- Default: Eclipse 4.2.x/3.8.x (Juno) -->
+		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.5 (Kepler) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
-        <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
+        <cdt-site>http://download.eclipse.org/tools/cdt/builds/kepler/milestones</cdt-site>
 		<tm-site>http://download.eclipse.org/tm/updates/3.5</tm-site>
 		<rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site>
 		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
@@ -128,11 +128,12 @@
 		</profile>
 
 	    <profile>
-		    <!-- Eclipse 4.4 (Luna) -->
+		    <!-- Eclipse 4.4 (Luna), CDT 8.4.0 (Luna), TM 3.6 (Luna) -->
 		    <id>luna</id>
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4milestones</platform-site>
+                <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
 		        <tm-site>http://download.eclipse.org/tm/updates/3.6milestones</tm-site>
             </properties>
 			
