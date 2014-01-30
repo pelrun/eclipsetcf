@@ -247,7 +247,7 @@
          </menu>
       </menuContribution>
 
-      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage?after=group.launch.rundebug">
+      <!--menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.launch.ui.MemoryMapEditorPage?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug">
             <visibleWhen checkEnabled="false">
                <reference definitionId="te.expressions.editor.hasRunControl"/>
@@ -308,7 +308,7 @@
                <reference definitionId="te.expressions.editor.IConnectable"/>
             </visibleWhen>
          </command>
-      </menuContribution>
+      </menuContribution-->
 
    </extension>
 

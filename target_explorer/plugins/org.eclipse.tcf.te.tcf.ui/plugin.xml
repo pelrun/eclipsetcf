@@ -481,7 +481,7 @@
       </menuContribution>
 
    <!-- Editor page toolbar contributions -->
-      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.connect">
+      <!--menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.connect">
          <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
             <visibleWhen checkEnabled="false">
                <reference definitionId="te.expressions.editor.IConnectable"/>
@@ -504,7 +504,7 @@
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.additions">
          <command commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"/>
-      </menuContribution>
+      </menuContribution-->
 
    <!-- Main toolbar contribution -->
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?before=additions">

@@ -69,7 +69,7 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	// The current user filter id
 	private final static String CURRENT_USER_FILTER_ID = "org.eclipse.tcf.te.tcf.ui.navigator.PeersByCurrentUserFilter"; //$NON-NLS-1$
 
-	private final NewWizardNode newConfigNode = new NewWizardNode("org.eclipse.tcf.te.tcf.ui.wizards.NewConfigWizard", //$NON-NLS-1$
+	private final NewWizardNode newConfigNode = new NewWizardNode("org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard", //$NON-NLS-1$
 					Messages.ContentProvider_newNode,
 					UIPlugin.getImage(ImageConsts.NEW_PEER_NODE), this);
 

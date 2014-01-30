@@ -258,7 +258,7 @@
       </menuContribution>
 
    <!-- Editor page toolbar contributions -->
-      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.connect">
+      <!--menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.connect">
          <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
             <visibleWhen checkEnabled="false">
                <reference definitionId="te.expressions.editor.IConnectable"/>
@@ -272,7 +272,7 @@
       </menuContribution>
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"/>
-      </menuContribution>
+      </menuContribution-->
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.additions">
          <command
                commandId="org.eclipse.tcf.te.tcf.processes.ui.command.refreshViewer"
@@ -298,9 +298,9 @@
       </menuContribution>
 
    <!-- Editor page toolbar menu contributions -->
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.additions">
+      <!--menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.additions">
          <command commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"/>
-      </menuContribution>
+      </menuContribution-->
       
    <!-- Editor page context menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=additions">
