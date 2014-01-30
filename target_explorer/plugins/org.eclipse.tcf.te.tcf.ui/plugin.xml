@@ -247,7 +247,7 @@
             name="%NewWizards.category.name">
       </category>
       <wizard
-            canFinishEarly="true"
+            canFinishEarly="false"
             category="org.eclipse.tcf.te.tcf.ui.newWizards.category.configurations"
             class="org.eclipse.tcf.te.tcf.ui.wizards.NewConfigWizard"
             hasPages="true"
