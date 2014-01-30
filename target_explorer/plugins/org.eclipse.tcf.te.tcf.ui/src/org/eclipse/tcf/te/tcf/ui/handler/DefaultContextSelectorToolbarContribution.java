@@ -72,7 +72,6 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
 public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
 	private Composite panel = null;
-	private Composite mainPanel = null;
 	private Label image = null;
 	private Label text = null;
 	private Button button = null;
@@ -134,29 +133,28 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 	 */
 	@Override
 	protected Control createControl(final Composite parent) {
-		mainPanel = new Composite(parent, SWT.NONE);
+		panel = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		layout.marginRight = 2;
-		mainPanel.setLayout(layout);
+		layout.marginHeight = 1;
+		layout.marginWidth = 1;
+		panel.setLayout(layout);
 
-		panel = new Composite(mainPanel, SWT.BORDER);
-		GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
-		panel.setLayoutData(layoutData);
-		panel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
+		Composite labelPanel = new Composite(panel, SWT.BORDER);
+		labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
+		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+		labelPanel.setLayoutData(layoutData);
 		layout = new GridLayout(3, false);
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.marginLeft = 2;
-		layout.horizontalSpacing = 5;
-		layout.verticalSpacing = 0;
-		panel.setLayout(layout);
+		layout.horizontalSpacing = 0;
+		labelPanel.setLayout(layout);
 
-		image = new Label(panel, SWT.NONE);
+		image = new Label(labelPanel, SWT.NONE);
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+		layoutData.horizontalIndent = 1;
+		layoutData.minimumWidth=20;
+		layoutData.widthHint=20;
 		image.setLayoutData(layoutData);
-		image.setBackground(panel.getBackground());
 		image.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
@@ -166,8 +164,7 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 				onButtonClick();
 			}
 		});
-		text = new Label(panel, SWT.NONE);
-		text.setBackground(panel.getBackground());
+		text = new Label(labelPanel, SWT.NONE);
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
 		layoutData.minimumWidth = SWTControlUtil.convertWidthInCharsToPixels(text, 25);
 		text.setLayoutData(layoutData);
@@ -181,8 +178,9 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 			}
 		});
 
-		button = new Button(panel, SWT.ARROW | SWT.DOWN | SWT.FLAT);
-		layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		button = new Button(labelPanel, SWT.ARROW | SWT.DOWN | SWT.FLAT | SWT.NO_FOCUS);
+		layoutData = new GridData(SWT.RIGHT, SWT.FILL, true, true);
+		layoutData.widthHint = 20;
 		button.setLayoutData(layoutData);
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -196,7 +194,7 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 
 	    update();
 
-		return mainPanel;
+		return panel;
 	}
 
 	/* (non-Javadoc)
@@ -280,10 +278,10 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 				openNewWizard();
 			}
 			else {
-				createContextMenu(mainPanel);
+				createContextMenu(panel);
 				if (menu != null) {
-					Point point = mainPanel.toDisplay(mainPanel.getLocation());
-					menu.setLocation(point.x, point.y + mainPanel.getBounds().height);
+					Point point = panel.toDisplay(panel.getLocation());
+					menu.setLocation(point.x, point.y + panel.getBounds().height);
 					menu.setVisible(true);
 				}
 			}
