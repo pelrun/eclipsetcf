@@ -764,6 +764,7 @@
       <handler commandId="org.eclipse.tcf.te.ui.toolbar.command.connect">
          <class class="org.eclipse.tcf.te.tcf.ui.handler.ConnectableToolbarCommandHandler">
             <parameter name="action" value="connect"/>
+            <parameter name="handleDirty" value="true"/>
          </class>
          <activeWhen>
             <with variable="defaultContextSelection">

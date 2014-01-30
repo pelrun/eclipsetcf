@@ -157,6 +157,7 @@
       <handler commandId="org.eclipse.tcf.te.ui.command.connect">
          <class class="org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler">
             <parameter name="action" value="connect"/>
+            <parameter name="handleDirty" value="true"/>
          </class>
          <activeWhen>
             <with variable="systemManagerViewSelection">
