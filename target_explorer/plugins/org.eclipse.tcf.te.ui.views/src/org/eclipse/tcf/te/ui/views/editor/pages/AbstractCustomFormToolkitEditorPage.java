@@ -17,6 +17,7 @@ import org.eclipse.jface.action.ContributionManager;
 import org.eclipse.jface.action.ControlContribution;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
@@ -240,6 +241,8 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		manager.add(new Separator("group.additions")); //$NON-NLS-1$
 		manager.add(new Separator("group.additions.control")); //$NON-NLS-1$
 		manager.add(new Separator("group.help")); //$NON-NLS-1$
+		IContributionItem linkContribution = doCreateLinkContribution(manager);
+		if (linkContribution != null) manager.add(linkContribution);
 		// If the page is associated with a context help id, add a default
 		// help action button into the toolbar
 		if (getContextHelpId() != null) {
@@ -293,6 +296,10 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	protected Action doCreateHelpAction(String contextHelpId) {
 		Assert.isNotNull(contextHelpId);
 		return new HelpAction(contextHelpId);
+	}
+
+	protected IContributionItem doCreateLinkContribution(IToolBarManager tbManager) {
+		return null;
 	}
 
 	/**
