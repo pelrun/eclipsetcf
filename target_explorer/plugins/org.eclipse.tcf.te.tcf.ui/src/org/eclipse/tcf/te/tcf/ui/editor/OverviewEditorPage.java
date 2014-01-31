@@ -307,8 +307,13 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 							ChangeEvent changeEvent = (ChangeEvent)event;
 							if (changeEvent.getSource() instanceof IDefaultContextService) {
 								IPeerNode defaultNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-								setVisible(defaultNode == null || defaultNode != getEditorInputNode());
-								tbManager.update(true);
+								setVisible(defaultNode == null || getEditorInputNode() == null || defaultNode != getEditorInputNode());
+								ExecutorsUtil.executeInUI(new Runnable() {
+									@Override
+									public void run() {
+										tbManager.update(true);
+									}
+								});
 							}
 						}
 					}
