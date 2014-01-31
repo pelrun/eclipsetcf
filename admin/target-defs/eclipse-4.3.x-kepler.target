@@ -6,8 +6,8 @@
 <repository location="http://download.eclipse.org/tm/updates/3.5"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.cdt.sdk.feature.group" version="8.3.0.201312181109"/>
-<repository location="http://download.eclipse.org/tools/cdt/builds/luna/milestones"/>
+<unit id="org.eclipse.cdt.sdk.feature.group" version="8.3.0.201401210350"/>
+<repository location="http://download.eclipse.org/tools/cdt/builds/kepler/milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson.source" version="2.2.4.v201311231704"/>
