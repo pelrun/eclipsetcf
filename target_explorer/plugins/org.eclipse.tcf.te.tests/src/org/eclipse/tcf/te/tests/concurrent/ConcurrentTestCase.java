@@ -280,23 +280,36 @@ public class ConcurrentTestCase extends CoreTestCase {
 		service.initializeExecutorServiceDelegate();
 		assertNotNull("Failed to instanciate and to initialize the test executor service implementation!", service); //$NON-NLS-1$
 
-		// Invoke each method now
-		service.execute(new Runnable() {
+		Runnable runnable = new Runnable() {
 			@Override
-			public void run() {}
-		});
-		service.submit((Callable<?>)null);
-		service.submit((Runnable)null);
-		service.submit(null, null);
+			public void run() {
+			}
+		};
+
+		Callable<Object> callable = new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+			    return null;
+			}
+		};
+
+		List<Callable<Object>> callables = new ArrayList<Callable<Object>>();
+		callables.add(callable);
+
+		// Invoke each method now
+		service.execute(runnable);
+		service.submit(callable);
+		service.submit(runnable);
+		service.submit(runnable, new Object());
 		service.shutdown();
 		service.shutdownNow();
 		service.isShutdown();
 		service.isTerminated();
 		try {
-			service.invokeAny(null);
-			service.invokeAny(null, 0, TimeUnit.MICROSECONDS);
-			service.invokeAll(null);
-			service.invokeAll(null, 0, TimeUnit.MICROSECONDS);
+			service.invokeAny(callables);
+			service.invokeAny(callables, 0, TimeUnit.MICROSECONDS);
+			service.invokeAll(callables);
+			service.invokeAll(callables, 0, TimeUnit.MICROSECONDS);
 			service.awaitTermination(0, TimeUnit.MICROSECONDS);
 		} catch (Exception e) {}
 
