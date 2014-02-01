@@ -90,7 +90,7 @@ public class TcfLaunchTests extends TcfTestCase {
 		}
 		assertFalse("Cannot delete process image " + tempHelloWorld.toOSString(), tempHelloWorld.toFile().exists()); //$NON-NLS-1$
 
-		IPath outFile = tempDir.append("/HelloWorld.out"); //$NON-NLS-1$
+		IPath outFile = tempDir.append("/helloWorld.out"); //$NON-NLS-1$
 		if (outFile.toFile().exists()) {
 			outFile.toFile().delete();
 		}
@@ -133,7 +133,7 @@ public class TcfLaunchTests extends TcfTestCase {
 	private IPath getHelloWorldLocation() {
 		IPath path = getDataLocation("helloWorld", true, true); //$NON-NLS-1$
 		if (path != null) {
-			path = path.append("HelloWorld"); //$NON-NLS-1$
+			path = path.append("helloWorld"); //$NON-NLS-1$
 			if (Host.isWindowsHost()) {
 				path = path.addFileExtension("exe"); //$NON-NLS-1$
 			}

@@ -86,7 +86,7 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 
 		// Read the output from the reader
 		String output = proxy.getOutputReader() != null ? proxy.getOutputReader().getOutput() : null;
-		assertEquals("Unexpected output from HelloWorld test application.", "Hello World", output != null ? output.trim() : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		assertEquals("Unexpected output from helloWorls test application.", "Hello World", output != null ? output.trim() : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// Dispose the launcher at the end
 		launcher.dispose();
@@ -97,7 +97,7 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 	private IPath getHelloWorldLocation() {
 		IPath path = getDataLocation("helloWorld", true, true); //$NON-NLS-1$
 		if (path != null) {
-			path = path.append("HelloWorld"); //$NON-NLS-1$
+			path = path.append("helloWorld"); //$NON-NLS-1$
 			if (Host.isWindowsHost()) {
 				path = path.addFileExtension("exe"); //$NON-NLS-1$
 			}
