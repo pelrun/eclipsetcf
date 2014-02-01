@@ -152,7 +152,7 @@ public class ConcurrentTestCase extends CoreTestCase {
 
 		// Give it a little bit time to run
 		counter = new AtomicInteger();
-		while (Boolean.FALSE.equals(result[0]) && counter.getAndIncrement() < 20) {
+		while (Boolean.FALSE.equals(result[0]) && counter.getAndIncrement() < 40) {
 			try { Thread.sleep(100); } catch (InterruptedException e) { /* ignored on purpose */ }
 		}
 		assertTrue("Runnable not executed within the executor thread!", result[0].booleanValue()); //$NON-NLS-1$
