@@ -32,3 +32,12 @@ How to setup a Target Explorer development environment
 6. Git setup the repo as per
         - http://wiki.eclipse.org/Platform-releng/Git_Workflows#Configuring_the_repo
 
+7. Set up the target platform
+	- Import the target platform definitions
+		- File > Import > General > Existing Projects into Workspace
+		- Import admin/target-defs
+	- Open the target platform definition file matching your desired target environment
+		- If unsure, open the target platform definition providing the most recent Eclipse
+		- If you see error about some features not found, press the "Update" button
+		- Click on "Set as target platform" in the toolbar to activate the target platform
+
