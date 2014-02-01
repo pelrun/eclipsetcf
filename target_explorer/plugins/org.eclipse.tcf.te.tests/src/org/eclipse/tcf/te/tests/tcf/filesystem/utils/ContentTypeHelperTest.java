@@ -42,8 +42,8 @@ public class ContentTypeHelperTest extends UtilsTestBase {
     }
 
     private void uploadAgent() throws Exception {
-	    IPath path = getLinuxAgent();
-	    assertNotNull("Cannot find Linux agent!", path); //$NON-NLS-1$
+	    IPath path = getWindowsAgent();
+	    assertNotNull("Cannot find (Windows) agent location!", path); //$NON-NLS-1$
 		assertTrue("Invalid agent location: " + path.toString(), path.toFile().isFile()); //$NON-NLS-1$
 	    File agentFile = path.toFile();
 	    String agentPath = getTestRoot() + getPathSep() + agentFile.getName();
@@ -58,13 +58,14 @@ public class ContentTypeHelperTest extends UtilsTestBase {
 		}
     }
 
-    private IPath getLinuxAgent() {
+    private IPath getWindowsAgent() {
 		Bundle bundle = UIPlugin.getDefault().getBundle();
 		if (bundle != null) {
 			IPath relative = new Path ("data").append("agent"); //$NON-NLS-1$ //$NON-NLS-2$
-			relative = relative.append("linux"); //$NON-NLS-1$
+			relative = relative.append("win32"); //$NON-NLS-1$
 			relative = relative.append("x86_64"); //$NON-NLS-1$
 			relative = relative.append("agent"); //$NON-NLS-1$
+			relative.addFileExtension("exe"); //$NON-NLS-1$
 
 			URL url = FileLocator.find(bundle, relative, null);
 			if (url != null) {

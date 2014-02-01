@@ -63,6 +63,7 @@ public class TcfStepperTests extends TcfTestCase {
 					stepper.execute();
 				}
 				catch (Exception e) {
+					e.printStackTrace();
 					assertNull("Unexpected exception when executing step group", e); //$NON-NLS-1$
 				}
 			}

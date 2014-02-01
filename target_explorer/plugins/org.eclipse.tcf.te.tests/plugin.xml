@@ -200,13 +200,13 @@
             locked="true">
          <references>
             <reference
-                  id="org.eclipse.tcf.te.tcf.stepper.OpenChannelStep">
+                  id="org.eclipse.tcf.te.tcf.core.openChannelStep">
             </reference>
             <reference
                   id="org.eclipse.tcf.te.tests.channelStepTests.validate">
             </reference>
             <reference
-                  id="org.eclipse.tcf.te.tcf.stepper.CloseChannelStep">
+                  id="org.eclipse.tcf.te.tcf.core.closeChannelStep">
             </reference>
          </references>
       </stepGroup>
