@@ -54,7 +54,6 @@ public class IPAddressUtil {
 
 	private final Map<String, Integer> fLocalHostAddresses = new HashMap<String, Integer>();
 	private final Set<String> fNonLocalHostAddresses = new HashSet<String>();
-	private String fCanonicalAddress = null;
 
 	private boolean initialized = false;
 
@@ -91,8 +90,6 @@ public class IPAddressUtil {
 			// finally, add the "localhost" special host name since it might not be covered
 			// by the methods above (we cannot get all names for a given address, only the other way round).
 			addHostName("localhost"); //$NON-NLS-1$
-			// and initialize the "canonical hostname" cache.
-			getCanonicalAddress();
 			// mark as initialized
 			initialized = true;
 		}
@@ -311,22 +308,48 @@ public class IPAddressUtil {
 	 * @return String IP address of the local host as it should be reachable from the outside.
 	 */
 	public synchronized String getCanonicalAddress() {
-		if (fCanonicalAddress == null) {
-			Iterator<Entry<String, Integer>> it = fLocalHostAddresses.entrySet().iterator();
-			String bestAddress = null;
-			int bestAddrType = 0;
-			while (it.hasNext()) {
-				Entry<String, Integer> curEntry = it.next();
-				int curAddrType = curEntry.getValue().intValue();
-				if (curAddrType > bestAddrType) {
-					bestAddress = curEntry.getKey();
-					bestAddrType = curAddrType;
-				}
+		String canonical = null;
+
+		Iterator<Entry<String, Integer>> it = fLocalHostAddresses.entrySet().iterator();
+		String bestAddress = null;
+		int bestAddrType = 0;
+		while (it.hasNext()) {
+			Entry<String, Integer> curEntry = it.next();
+			int curAddrType = curEntry.getValue().intValue();
+			if (curAddrType > bestAddrType) {
+				bestAddress = curEntry.getKey();
+				bestAddrType = curAddrType;
 			}
-			// fCanonicalAddress = InetAddress.getByName(bestAddress);
-			fCanonicalAddress = bestAddress;
 		}
-		return fCanonicalAddress;
+		canonical = bestAddress;
+
+		return canonical;
+	}
+
+	/**
+	 * Returns the canonical IPv4 name or address of this host. A "best effort" is made to return the address
+	 * that is assumed to be "most canonical". A global IP address is considered better than a host name, since
+	 * name service configuration might not be global.
+	 *
+	 * @return String IPv4 address of the local host as it should be reachable from the outside.
+	 */
+	public synchronized String getIPv4CanonicalAddress() {
+		String canonical = null;
+
+		int typemask = HOSTMAP_ADDR | HOSTMAP_NAME | HOSTMAP_IPV4 | HOSTMAP_ANY_UNICAST;
+		String[] candidates = getLocalHostAddresses(typemask);
+		String bestAddress = null;
+		int bestAddrType = 0;
+		for (String candidate : candidates) {
+			Integer value = fLocalHostAddresses.get(candidate);
+			if (value != null && value.intValue() > bestAddrType) {
+				bestAddress = candidate;
+				bestAddrType = value.intValue();
+			}
+		}
+		canonical = bestAddress;
+
+		return canonical;
 	}
 
 	/**
@@ -337,10 +360,10 @@ public class IPAddressUtil {
 	 */
 	public synchronized String[] getCanonicalHostNames() {
 		int typeMask = IPAddressUtil.HOSTMAP_CANONICALNAME | IPAddressUtil.HOSTMAP_GLOBAL | IPAddressUtil.HOSTMAP_IPV4;
-		String canonicalNames[] = IPAddressUtil.getInstance().getLocalHostAddresses(typeMask);
+		String canonicalNames[] = getLocalHostAddresses(typeMask);
 		if (canonicalNames.length == 0) {
 			typeMask |= IPAddressUtil.HOSTMAP_NAME;
-			canonicalNames = IPAddressUtil.getInstance().getLocalHostAddresses(typeMask);
+			canonicalNames = getLocalHostAddresses(typeMask);
 		}
 		return canonicalNames;
 	}

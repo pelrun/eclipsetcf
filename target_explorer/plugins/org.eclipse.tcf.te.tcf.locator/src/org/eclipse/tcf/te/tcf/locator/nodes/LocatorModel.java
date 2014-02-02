@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -22,6 +23,8 @@ import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
+import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
+import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
@@ -249,6 +252,88 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 	public <V extends ILocatorModelService> V getService(Class<V> serviceInterface) {
 		Assert.isNotNull(serviceInterface);
 		return (V)getAdapter(serviceInterface);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel#validatePeer(org.eclipse.tcf.protocol.IPeer)
+	 */
+	@Override
+	public IPeer validatePeer(IPeer peer) {
+		Assert.isNotNull(peer);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Skip validation if the transport type is not TCP or SSL
+		String transport = peer.getTransportName();
+		if (transport == null || !ITransportTypes.TRANSPORT_TYPE_TCP.equals(transport) && !ITransportTypes.TRANSPORT_TYPE_SSL.equals(transport)) {
+			return peer;
+		}
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeer( " + peer.getID() + " )", ITracing.ID_TRACE_LOCATOR_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		IPeer result = peer;
+
+		// Get the loopback address
+		String loopback = IPAddressUtil.getInstance().getIPv4LoopbackAddress();
+		// Get the canonical address
+		String canonical = IPAddressUtil.getInstance().getIPv4CanonicalAddress();
+		// Get the peer IP
+		String peerIP = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+
+		// If the new peer IP is not a local host address, we are done checking
+		if (!IPAddressUtil.getInstance().isLocalHost(peerIP)) return result;
+
+		// The list of peers to remove from the model
+		final List<String> toRemove = new ArrayList<String>();
+
+		// Loop the discovered peers and find previous local host nodes
+		for (Entry<String, IPeer> entry : peers.entrySet()) {
+			// Get the IP address from peers with transport type TCP or SSL
+			IPeer candidate = entry.getValue();
+			if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(candidate.getTransportName()) || ITransportTypes.TRANSPORT_TYPE_SSL.equals(candidate.getTransportName())) {
+				String ip = candidate.getAttributes().get(IPeer.ATTR_IP_HOST);
+				Assert.isNotNull(ip);
+
+				// If the IP is for localhost, we have to do additional checking
+				if (IPAddressUtil.getInstance().isLocalHost(ip)) {
+					// If the IP of the peer already in the model is the loopback address,
+					// ignore all other.
+					if (ip.equals(loopback)) { result = null; break; }
+
+					// If the IP of the new peer IP is the loopback address, remove this peer
+					if (peerIP.equals(loopback)) { toRemove.add(entry.getKey()); continue; }
+
+					// None of the IP's are matching the loopback address, keep the one which is the canonical address
+					if (ip.equals(canonical)) { result = null; break; }
+					if (peerIP.equals(canonical)) { toRemove.add(entry.getKey()); continue; }
+
+					// None of the IP's are matching the loopback nor the canonical address,
+					// keep the one already in the model
+					result = null; break;
+				}
+			}
+		}
+
+		// Remove any node identified to get removed. Do it via the update
+		// service to make sure the notifications are send out.
+		for (String candidate : toRemove) {
+			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+				CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeer( " + peer.getID() + " ): Remove old peer with id " + candidate, //$NON-NLS-1$ //$NON-NLS-2$
+															ITracing.ID_TRACE_LOCATOR_MODEL, this);
+			}
+
+			IPeer p = peers.get(candidate);
+			if (p != null) getService(ILocatorModelUpdateService.class).remove(p);
+		}
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_LOCATOR_MODEL)) {
+			CoreBundleActivator.getTraceHandler().trace("LocatorModel.validatePeer( " + peer.getID() + " ): result = " + (result != null ? result.getID() : "null"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_LOCATOR_MODEL, this);
+		}
+
+		// Return the result
+	    return result;
 	}
 
 	/**

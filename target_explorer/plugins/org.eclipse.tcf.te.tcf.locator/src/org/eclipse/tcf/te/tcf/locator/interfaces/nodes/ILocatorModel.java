@@ -100,4 +100,16 @@ public interface ILocatorModel extends IAdaptable {
 	 * @return The service instance implementing the specified service interface, or <code>null</code>.
 	 */
 	public <V extends ILocatorModelService> V getService(Class<V> serviceInterface);
+
+	/**
+	 * Validate the given peer.
+	 * <p>
+	 * If the peer is for local host, the peer is valid only if there is
+	 * no other local host peer known to the model using the loopback or
+	 * the canonical host address.
+	 *
+	 * @param peer The peer. Must not be <code>null</code>.
+	 * @return The peer if the peer is valid, or <code>null</code> if not.
+	 */
+	public IPeer validatePeer(IPeer peer);
 }

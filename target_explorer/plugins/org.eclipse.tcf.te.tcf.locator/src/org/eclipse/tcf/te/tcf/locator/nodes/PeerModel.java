@@ -18,9 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
-import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
@@ -217,39 +215,5 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	public <V extends IPeerModelService> V getService(Class<V> serviceInterface) {
 		Assert.isNotNull(serviceInterface);
 		return (V)getAdapter(serviceInterface);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel#validatePeer(org.eclipse.tcf.protocol.IPeer)
-	 */
-	@Override
-	public IPeer validatePeer(IPeer peer) {
-		Assert.isNotNull(peer);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PEER_MODEL)) {
-			CoreBundleActivator.getTraceHandler().trace("PeerModel.validatePeer( " + peer.getID() + " )", ITracing.ID_TRACE_PEER_MODEL, this); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-
-		IPeer result = peer;
-
-		// Get the loopback address
-		String loopback = IPAddressUtil.getInstance().getIPv4LoopbackAddress();
-		// Get the peer IP
-		String peerIP = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
-
-		// If the peer node is for local host, we ignore all peers not being
-		// associated with the loopback address.
-		if (IPAddressUtil.getInstance().isLocalHost(peerIP) && !loopback.equals(peerIP)) {
-			// Not loopback address -> drop the peer
-			result = null;
-
-			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PEER_MODEL)) {
-				CoreBundleActivator.getTraceHandler().trace("PeerModel.validatePeer: local host peer but not loopback address -> peer node dropped" //$NON-NLS-1$
-															, ITracing.ID_TRACE_PEER_MODEL, this);
-			}
-		}
-
-	    return result;
 	}
 }

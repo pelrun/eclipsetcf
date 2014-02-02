@@ -84,7 +84,9 @@ public final class LocatorListener implements ILocator.LocatorListener {
 				}
 			}
 			if (lkupPeer == null) {
-				model.getService(ILocatorModelUpdateService.class).add(peer);
+				// Validate peer before adding
+				lkupPeer = model.validatePeer(peer);
+				if (lkupPeer != null) model.getService(ILocatorModelUpdateService.class).add(lkupPeer);
 			}
 		}
 	}

@@ -87,6 +87,11 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		// Refresh the static peer definitions
 		processPeers(Protocol.getLocator().getPeers(), oldChildren, model);
 
+		// If there are remaining old children, remove them from the model (non-recursive)
+		for (IPeer oldChild : oldChildren) {
+			model.getService(ILocatorModelUpdateService.class).remove(oldChild);
+		}
+
 		// Invoke the callback
 		invokeCallback(callback);
 	}
@@ -99,6 +104,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 	 * @param model The locator model. Must not be <code>null</code>.
 	 */
 	protected void processPeers(Map<String, IPeer> peers, List<IPeer> oldChildren, ILocatorModel model) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(peers);
 		Assert.isNotNull(oldChildren);
 		Assert.isNotNull(model);
@@ -106,23 +112,19 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		for (Entry<String, IPeer> entry : peers.entrySet()) {
 			// Get the peer instance for the current peer id
 			IPeer peer = entry.getValue();
-
+			// Check if the peer is filtered
 			if (isFiltered(peer)) continue;
 			// Try to find an existing peer node first
 			IPeer lkupPeer = model.getService(ILocatorModelLookupService.class).lkupPeerById(entry.getKey());
 			// And create a new one if we cannot find it
 			if (lkupPeer == null) {
-				model.getService(ILocatorModelUpdateService.class).add(peer);
+				// Validate peer before adding
+				lkupPeer = model.validatePeer(peer);
+				if (lkupPeer != null) model.getService(ILocatorModelUpdateService.class).add(lkupPeer);
 			}
 			else {
 				oldChildren.remove(peer);
 			}
-		}
-
-		if (!oldChildren.isEmpty()) {
-			for (IPeer oldPeer : oldChildren) {
-				model.getService(ILocatorModelUpdateService.class).remove(oldPeer);
-            }
 		}
 	}
 

@@ -10,7 +10,6 @@
 package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelService;
@@ -82,15 +81,4 @@ public interface IPeerModel extends IAdaptable {
 	 * @return The service instance implementing the specified service interface, or <code>null</code>.
 	 */
 	public <V extends IPeerModelService> V getService(Class<V> serviceInterface);
-
-	/**
-	 * Validate the given peer.
-	 * <p>
-	 * If the peer is for local host, than only the peer using the loopback address is valid.
-	 *
-	 * @param peer The peer. Must not be <code>null</code>.
-	 * @return The peer if the peer is valid, or <code>null</code> if not.
-	 */
-	public IPeer validatePeer(IPeer peer);
-
 }
