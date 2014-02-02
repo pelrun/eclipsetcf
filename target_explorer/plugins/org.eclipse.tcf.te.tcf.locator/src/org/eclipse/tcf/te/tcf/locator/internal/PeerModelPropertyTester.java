@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.tcf.internal.core.RemotePeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -26,6 +27,7 @@ import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 /**
  * Locator model property tester.
  */
+@SuppressWarnings("restriction")
 public class PeerModelPropertyTester extends PropertyTester {
 
 	/* (non-Javadoc)
@@ -135,6 +137,13 @@ public class PeerModelPropertyTester extends PropertyTester {
 			boolean hasAttribute = name != null && !"".equals(name) ? peer.getAttributes().containsKey(name) : false; //$NON-NLS-1$
 			if (expectedValue instanceof Boolean) {
 				return ((Boolean) expectedValue).booleanValue() == hasAttribute;
+			}
+		}
+
+		if ("isRemotePeer".equals(property)) { //$NON-NLS-1$
+            boolean isRemotePeer = peer instanceof RemotePeer;
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isRemotePeer;
 			}
 		}
 

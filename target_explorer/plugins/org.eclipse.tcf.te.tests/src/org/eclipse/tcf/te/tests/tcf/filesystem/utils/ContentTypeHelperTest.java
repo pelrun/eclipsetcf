@@ -61,12 +61,7 @@ public class ContentTypeHelperTest extends UtilsTestBase {
     private IPath getWindowsAgent() {
 		Bundle bundle = UIPlugin.getDefault().getBundle();
 		if (bundle != null) {
-			IPath relative = new Path ("data").append("agent"); //$NON-NLS-1$ //$NON-NLS-2$
-			relative = relative.append("win32"); //$NON-NLS-1$
-			relative = relative.append("x86_64"); //$NON-NLS-1$
-			relative = relative.append("agent"); //$NON-NLS-1$
-			relative.addFileExtension("exe"); //$NON-NLS-1$
-
+			IPath relative = new Path ("data/agent/win32/x86_64/agent.exe"); //$NON-NLS-1$
 			URL url = FileLocator.find(bundle, relative, null);
 			if (url != null) {
 				try {

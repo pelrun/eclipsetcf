@@ -192,6 +192,7 @@ public class TcfTestCase extends CoreTestCase {
 		if (node.get() == null) {
 			attrs.put(IPeer.ATTR_ID, id);
 			attrs.put(IPeer.ATTR_IP_HOST, ip);
+			attrs.put("SkipValueAdds", "true"); //$NON-NLS-1$ //$NON-NLS-2$
 			peer = new TransientPeer(attrs);
 			peerNode = Factory.getInstance().newInstance(IPeerNode.class, new Object[] { model, peer });
 		} else {
