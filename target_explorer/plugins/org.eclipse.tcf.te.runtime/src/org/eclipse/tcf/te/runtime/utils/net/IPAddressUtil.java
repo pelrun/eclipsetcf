@@ -184,6 +184,27 @@ public class IPAddressUtil {
 			addLocalAddress(addr);
 		}
 
+		// Is it a new local host network interface (VPN)?
+		if (!fLocalHostAddresses.containsKey(hostAddr)) {
+			boolean added = false;
+			Enumeration<NetworkInterface> interfaces = null;
+			try {
+				interfaces = NetworkInterface.getNetworkInterfaces();
+			} catch (SocketException e) { /* ignored on purpose */ }
+			while (interfaces != null && interfaces.hasMoreElements() && !added) {
+				NetworkInterface iface = interfaces.nextElement();
+				Enumeration<InetAddress> addresses = iface.getInetAddresses();
+				while (addresses.hasMoreElements()) {
+					InetAddress candidate = addresses.nextElement();
+					if (candidate.equals(addr) && !fLocalHostAddresses.containsKey(hostAddr)) {
+						addLocalAddress(addr);
+						added = true;
+						break;
+					}
+				}
+			}
+		}
+
 		Integer entryType = fLocalHostAddresses.get(hostAddr);
 		if (entryType != null) {
 			// found a new name for a known local address ?
