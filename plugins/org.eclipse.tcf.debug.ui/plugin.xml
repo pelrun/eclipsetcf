@@ -709,7 +709,17 @@
             class="org.eclipse.tcf.internal.debug.ui.preferences.TCFDebugPreferencePage"
             id="org.eclipse.tcf.internal.debug.ui.preferences"
             name="%preferencePage.name">
+         <keywordReference
+               id="org.eclipse.tcf.debug.ui.preference.keywords">
+         </keywordReference>
       </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.keywords">
+      <keyword
+            id="org.eclipse.tcf.debug.ui.preference.keywords"
+            label="tcf debug stack performance">
+      </keyword>
    </extension>
 
    <extension point="org.eclipse.core.runtime.preferences">
@@ -730,6 +740,25 @@
                id="org.eclipse.tcf.debug.ui.DebugView.menu.sorters"
                label="%debugview.menu.sorters">
          </menu>
+         <!-- Menu item to open TCF preferences -->
+         <separator name="group.prefs" visible="false"/>
+         <command
+               commandId="org.eclipse.ui.window.preferences"
+               label="%command.preferences.label"
+               style="push">
+            <parameter
+                  name="preferencePageId"
+                  value="org.eclipse.tcf.internal.debug.ui.preferences">
+            </parameter>
+            <visibleWhen
+                  checkEnabled="false">
+               <with variable="activeContexts">
+                  <iterate ifEmpty="false" operator="or">
+                     <equals value="org.eclipse.tcf.debug.ui.debugging"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
    </extension>
 
