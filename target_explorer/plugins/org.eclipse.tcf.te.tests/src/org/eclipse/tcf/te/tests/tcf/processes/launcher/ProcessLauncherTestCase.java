@@ -9,19 +9,22 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tests.tcf.processes.launcher;
 
+import java.io.IOException;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
+import org.eclipse.tcf.te.tests.tcf.launch.TcfLaunchTests;
 
 /**
  * Process launcher test cases.
@@ -51,9 +54,45 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 		assertNotNull("Test peer missing.", peer); //$NON-NLS-1$
 
 		// Determine the location of the "HelloWorld" executable
-		IPath path = getHelloWorldLocation();
+		IPath helloWorldLocation = getHelloWorldLocation();
 		assertTrue("Missing hello world example for current OS and Arch:" + Platform.getOS() + "/" + Platform.getOSArch(), //$NON-NLS-1$ //$NON-NLS-2$
-						path != null && path.toFile().exists() && path.toFile().canRead());
+						helloWorldLocation != null &&
+						helloWorldLocation.toFile().exists() &&
+						helloWorldLocation.toFile().canRead());
+
+		String temp = System.getProperty("java.io.tmpdir"); //$NON-NLS-1$
+		IPath tempDir = temp != null ? new Path(temp) : null;
+		assertNotNull("Missing java temp directory", tempDir); //$NON-NLS-1$
+
+		// If the temporary directory is not writable for whatever reason to us,
+		// fallback to the users home directory
+		if (!tempDir.toFile().canWrite()) {
+			temp = System.getProperty("user.home"); //$NON-NLS-1$
+			tempDir = temp != null ? new Path(temp) : null;
+			assertNotNull("Missing user home directory", tempDir); //$NON-NLS-1$
+		}
+
+		tempDir = tempDir.append(TcfLaunchTests.class.getSimpleName());
+		assertNotNull("Cannot append test case specific temp directory", tempDir); //$NON-NLS-1$
+		if (!tempDir.toFile().exists()) {
+			assertTrue("Failed to create path " + tempDir.toString(), tempDir.toFile().mkdirs()); //$NON-NLS-1$
+		}
+		assertTrue("Temporary file location is not writable (" + tempDir.toOSString() + ")", tempDir.toFile().canWrite()); //$NON-NLS-1$ //$NON-NLS-2$
+
+		IPath tempHelloWorld = tempDir.append(helloWorldLocation.lastSegment());
+		if (tempHelloWorld.toFile().exists()) {
+			tempHelloWorld.toFile().setWritable(true, false);
+			tempHelloWorld.toFile().delete();
+		}
+		assertFalse("Cannot delete process image " + tempHelloWorld.toOSString(), tempHelloWorld.toFile().exists()); //$NON-NLS-1$
+
+		// Copy the file manually. Using file transfer leads to an assertion in the agent
+		try {
+			copyFile(helloWorldLocation.toFile(), tempHelloWorld.toFile());
+			tempHelloWorld.toFile().setExecutable(true);
+		} catch (IOException e) {
+			assertNull("Failed to copy file from " + helloWorldLocation.toOSString() + " to " + tempHelloWorld.toOSString() + ": " + e, e); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		}
 
 		// Create the process streams proxy
 		ProcessStreamsProxy proxy = new ProcessStreamsProxy();
@@ -62,7 +101,7 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 
 		// Create the launch properties
 		IPropertiesContainer properties = new PropertiesContainer();
-		properties.setProperty(IProcessLauncher.PROP_PROCESS_PATH, path.toString());
+		properties.setProperty(IProcessLauncher.PROP_PROCESS_PATH, tempHelloWorld.toString());
 		properties.setProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE, true);
 
 		// Launch the process
@@ -94,15 +133,4 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 
 	//***** END SECTION: Single test methods *****
 
-	private IPath getHelloWorldLocation() {
-		IPath path = getDataLocation("helloWorld", true, true); //$NON-NLS-1$
-		if (path != null) {
-			path = path.append("helloWorld"); //$NON-NLS-1$
-			if (Host.isWindowsHost()) {
-				path = path.addFileExtension("exe"); //$NON-NLS-1$
-			}
-		}
-
-		return path;
-	}
 }

@@ -9,11 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tests.tcf.launch;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -31,7 +27,6 @@ import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
 import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
@@ -56,6 +51,9 @@ public class TcfLaunchTests extends TcfTestCase {
 		return testSuite;
 	}
 
+	//***** BEGIN SECTION: Single test methods *****
+	//NOTE: All method which represents a single test case must
+	//      start with 'test'!
 
 	public void testRemoteAppLaunch() {
 		final ILaunchSpecification spec = new LaunchSpecification(ILaunchTypes.REMOTE_APPLICATION, ILaunchManager.RUN_MODE);
@@ -141,30 +139,6 @@ public class TcfLaunchTests extends TcfTestCase {
 		assertTrue("Missing console output file (" + outFile.toOSString() + ")", exist); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-	private IPath getHelloWorldLocation() {
-		IPath path = getDataLocation("helloWorld", true, true); //$NON-NLS-1$
-		if (path != null) {
-			path = path.append("helloWorld"); //$NON-NLS-1$
-			if (Host.isWindowsHost()) {
-				path = path.addFileExtension("exe"); //$NON-NLS-1$
-			}
-		}
-
-		return path;
-	}
-
-	private void copyFile(File source, File dest) throws IOException {
-		FileChannel inputChannel = null;
-		FileChannel outputChannel = null;
-
-		try {
-			inputChannel = new FileInputStream(source).getChannel();
-			outputChannel = new FileOutputStream(dest).getChannel();
-			outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-		} finally {
-			if (inputChannel != null) inputChannel.close();
-			if (outputChannel != null) outputChannel.close();
-		}
-	}
+	//***** END SECTION: Single test methods *****
 
 }

@@ -9,7 +9,11 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tests.tcf;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -261,4 +265,47 @@ public class TcfTestCase extends CoreTestCase {
 
 		return object.get();
 	}
+
+	/**
+	 * Returns the location of the helloWorld binary.
+	 *
+	 * @return The location of the helloWorld binary or <code>null/code>.
+	 */
+	protected IPath getHelloWorldLocation() {
+		IPath path = getDataLocation("helloWorld", true, true); //$NON-NLS-1$
+		if (path != null) {
+			path = path.append("helloWorld"); //$NON-NLS-1$
+			if (Host.isWindowsHost()) {
+				path = path.addFileExtension("exe"); //$NON-NLS-1$
+			}
+		}
+
+		return path;
+	}
+
+	/**
+	 * Copy a file from source to destination.
+	 *
+	 * @param source The source file. Must not be <code>null</code>.
+	 * @param dest The destination file. Must not be <code>null</code>.
+	 *
+	 * @throws IOException In case the copy fails.
+	 */
+	protected void copyFile(File source, File dest) throws IOException {
+		assertNotNull(source);
+		assertNotNull(dest);
+
+		FileChannel inputChannel = null;
+		FileChannel outputChannel = null;
+
+		try {
+			inputChannel = new FileInputStream(source).getChannel();
+			outputChannel = new FileOutputStream(dest).getChannel();
+			outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+		} finally {
+			if (inputChannel != null) inputChannel.close();
+			if (outputChannel != null) outputChannel.close();
+		}
+	}
+
 }
