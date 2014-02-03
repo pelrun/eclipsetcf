@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -18,6 +18,7 @@ import org.eclipse.tcf.te.tests.model.ModelTestCase;
 import org.eclipse.tcf.te.tests.statushandler.StatusHandlerTestCase;
 import org.eclipse.tcf.te.tests.stepper.StepperTests;
 import org.eclipse.tcf.te.tests.tcf.launch.TcfLaunchTests;
+import org.eclipse.tcf.te.tests.tcf.locator.LocatorModelTestCase;
 import org.eclipse.tcf.te.tests.tcf.processes.launcher.ProcessLauncherTestCase;
 import org.eclipse.tcf.te.tests.tcf.processes.model.ProcessModelTestCase;
 import org.eclipse.tcf.te.tests.tcf.tests.TcfCoreTests;
@@ -63,15 +64,17 @@ public class AllTests {
 	public static void addTests(TestSuite suite) {
 		Assert.isNotNull(suite);
 
+		suite.addTest(ModelTestCase.getTestSuite());
+		suite.addTest(org.eclipse.tcf.te.tests.tcf.model.ModelTestCase.getTestSuite());
+		suite.addTest(UtilityTestCase.getTestSuite());
+		suite.addTest(ConcurrentTestCase.getTestSuite());
 		suite.addTest(StatusHandlerTestCase.getTestSuite());
+		suite.addTest(LocatorModelTestCase.getTestSuite());
+
 		suite.addTest(StepperTests.getTestSuite());
 		suite.addTest(TcfCoreTests.getTestSuite());
 		suite.addTest(TcfStepperTests.getTestSuite());
 		suite.addTest(TcfLaunchTests.getTestSuite());
-		suite.addTest(ConcurrentTestCase.getTestSuite());
-		suite.addTest(ModelTestCase.getTestSuite());
-		suite.addTest(UtilityTestCase.getTestSuite());
-		suite.addTest(org.eclipse.tcf.te.tests.tcf.model.ModelTestCase.getTestSuite());
 		suite.addTest(ProcessModelTestCase.getTestSuite());
 		suite.addTest(ProcessLauncherTestCase.getTestSuite());
 
