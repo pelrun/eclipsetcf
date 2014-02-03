@@ -102,6 +102,7 @@ public class TcfLaunchTests extends TcfTestCase {
 		// Copy the file manually. Using file transfer leads to an assertion in the agent
 		try {
 			copyFile(helloWorldLocation.toFile(), tempHelloWorld.toFile());
+			tempHelloWorld.toFile().setExecutable(true);
 		} catch (IOException e) {
 			assertNull("Failed to copy file from " + helloWorldLocation.toOSString() + " to " + tempHelloWorld.toOSString() + ": " + e, e); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
