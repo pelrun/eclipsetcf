@@ -178,7 +178,7 @@ public class ConsoleManager {
 				IViewPart part = ref.getView(true);
 				if (part instanceof ITerminalsView) {
 					String secId = ((IViewSite) part.getSite()).getSecondaryId();
-					if (secId != null && secId.equals(secondaryId)) {
+					if (secId != null && secId.equals(secondaryId) || secId == null && secondaryId == null) {
 						return part;
 					}
 				}
