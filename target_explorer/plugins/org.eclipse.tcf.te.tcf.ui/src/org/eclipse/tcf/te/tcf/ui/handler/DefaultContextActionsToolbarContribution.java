@@ -28,12 +28,9 @@ import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
-import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -45,7 +42,8 @@ import org.eclipse.ui.services.IServiceLocator;
 /**
  * DefaultContextActionsToolbarContribution
  */
-public class DefaultContextActionsToolbarContribution extends WorkbenchWindowControlContribution implements IWorkbenchContribution, IEventListener, IPeerModelListener {
+public class DefaultContextActionsToolbarContribution extends WorkbenchWindowControlContribution
+implements IWorkbenchContribution, IEventListener {
 
 	ToolBar toolbar = null;
 	ToolItem item = null;
@@ -106,7 +104,6 @@ public class DefaultContextActionsToolbarContribution extends WorkbenchWindowCon
 
 
 		EventManager.getInstance().addEventListener(this, ChangeEvent.class);
-		ModelManager.getPeerModel().addListener(this);
 
 		update();
 
@@ -121,7 +118,6 @@ public class DefaultContextActionsToolbarContribution extends WorkbenchWindowCon
 		super.dispose();
 
 		EventManager.getInstance().removeEventListener(this);
-		ModelManager.getPeerModel().removeListener(this);
 
 		item.dispose();
 		toolbar.dispose();
@@ -135,9 +131,11 @@ public class DefaultContextActionsToolbarContribution extends WorkbenchWindowCon
 		if (!clickRunning) {
 			clickRunning = true;
 			createContextMenu(toolbar);
-			Point point = toolbar.toDisplay(toolbar.getLocation());
-			menu.setLocation(point.x, point.y + toolbar.getBounds().height);
-			menu.setVisible(true);
+			if (menu != null) {
+				Point point = toolbar.toDisplay(toolbar.getLocation());
+				menu.setLocation(point.x, point.y + toolbar.getBounds().height);
+				menu.setVisible(true);
+			}
 			clickRunning = false;
 		}
 	}
@@ -147,15 +145,18 @@ public class DefaultContextActionsToolbarContribution extends WorkbenchWindowCon
 	 */
 	@Override
 	public void update() {
+		if (menuMgr != null) menuMgr.markDirty();
 		if (item != null && !item.isDisposed()) {
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 //			item.setEnabled(peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED);
 
 			if (peerNode == null) {
 				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button_noContext);
+				item.setEnabled(false);
 			}
 			else {
 				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button);
+				item.setEnabled(true);
 			}
 //			else if (item.isEnabled()) {
 //				item.setToolTipText(Messages.DefaultContextActionsToolbarContribution_tooltip_button);
@@ -169,27 +170,22 @@ public class DefaultContextActionsToolbarContribution extends WorkbenchWindowCon
 	protected void createContextMenu(Composite panel) {
 		if (menu == null || menuMgr == null || menuMgr.isDirty()) {
 			try {
-				if (menuMgr == null) {
-					menuMgr = new MenuManager();
-					menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
-					menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
-					menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
-					final IMenuService service = (IMenuService) serviceLocator.getService(IMenuService.class);
-					service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
-				}
-				if (menu != null) {
+				if (menuMgr != null) menuMgr.dispose();
+				menuMgr = new MenuManager();
+				menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
+				menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
+				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
+				final IMenuService service = (IMenuService) serviceLocator.getService(IMenuService.class);
+				service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
+
+				if (menu != null && !menu.isDisposed()) {
 					menu.setVisible(false);
 					menu.dispose();
 				}
 				menu = menuMgr.createContextMenu(panel);
 			}
 			catch (Exception e) {
-				if (menuMgr != null) {
-					menuMgr.markDirty();
-				}
-				if (menu != null) {
-					menu.dispose();
-				}
+				menuMgr = null;
 				menu = null;
 			}
 		}
@@ -217,30 +213,5 @@ public class DefaultContextActionsToolbarContribution extends WorkbenchWindowCon
 				});
 			}
 		}
-	}
-
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
-	 */
-	@Override
-	public void modelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
-		if (menuMgr != null) {
-			menuMgr.markDirty();
-		}
-		ExecutorsUtil.executeInUI(new Runnable() {
-			@Override
-			public void run() {
-				update();
-			}
-		});
-	}
-
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelDisposed(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel)
-	 */
-	@Override
-	public void modelDisposed(IPeerModel model) {
 	}
 }

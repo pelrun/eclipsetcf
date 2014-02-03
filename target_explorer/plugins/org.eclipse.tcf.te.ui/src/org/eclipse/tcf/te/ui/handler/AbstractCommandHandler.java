@@ -13,6 +13,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -30,7 +31,7 @@ public abstract class AbstractCommandHandler extends AbstractHandler {
 		if (sel instanceof IStructuredSelection) {
 			return (IStructuredSelection)sel;
 		}
-		return null;
+		return new StructuredSelection();
 	}
 
 	/**

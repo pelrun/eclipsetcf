@@ -149,6 +149,9 @@ public class NewWizardSelectionPage extends WizardPage {
 							// The selection passed to the expression is the "System Management" view tree selection
 							ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 							ISelection selection = selectionService != null ? selectionService.getSelection("org.eclipse.tcf.te.ui.views.View") : StructuredSelection.EMPTY; //$NON-NLS-1$
+							if (selection == null) {
+								return false;
+							}
 							IEvaluationContext currentState = ((IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class)).getCurrentState();
 							EvaluationContext evalContext = new EvaluationContext(currentState, selection);
 							evalContext.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);

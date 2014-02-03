@@ -10,18 +10,24 @@
 package org.eclipse.tcf.te.tcf.ui.navigator;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.listener.ModelAdapter;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.activities.ActivityManagerEvent;
+import org.eclipse.ui.activities.IActivityManagerListener;
 import org.eclipse.ui.navigator.CommonViewer;
 
 
 /**
  * Peer model listener implementation.
  */
-public class PeerModelListener extends ModelAdapter {
+public class PeerModelListener extends ModelAdapter implements IActivityManagerListener {
 	private final IPeerModel parentModel;
 	/* default */ final CommonViewer viewer;
 
@@ -59,5 +65,53 @@ public class PeerModelListener extends ModelAdapter {
 				});
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.activities.IActivityManagerListener#activityManagerChanged(org.eclipse.ui.activities.ActivityManagerEvent)
+	 */
+    @Override
+    public void activityManagerChanged(ActivityManagerEvent activityManagerEvent) {
+    	if (activityManagerEvent.haveEnabledActivityIdsChanged()) {
+			Tree tree = viewer.getTree();
+			if (tree != null && !tree.isDisposed()) {
+				Display display = tree.getDisplay();
+				display.asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						if (viewer.getTree() != null && !viewer.getTree().isDisposed()) {
+							viewer.refresh(true);
+						}
+					}
+				});
+			}
+
+			for (IEditorReference ref : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()) {
+				try {
+					IPeerNode peerNode = getPeerNode(ref.getEditorInput());
+					if (peerNode != null && !peerNode.isVisible()) {
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().closeEditors(new IEditorReference[]{ref}, true);
+					}
+				}
+				catch (Exception e) {
+				}
+            }
+
+    	}
+    }
+
+	protected IPeerNode getPeerNode(Object element) {
+		IPeerNode peerNode = null;
+		if (element instanceof IPeerNode) {
+			peerNode = (IPeerNode)element;
+		}
+		else if (element instanceof IAdaptable) {
+			peerNode = (IPeerNode)((IAdaptable)element).getAdapter(IPeerNode.class);
+		}
+		if (peerNode == null) {
+			peerNode = (IPeerNode)Platform.getAdapterManager().getAdapter(element, IPeerNode.class);
+		}
+
+		return peerNode;
 	}
 }

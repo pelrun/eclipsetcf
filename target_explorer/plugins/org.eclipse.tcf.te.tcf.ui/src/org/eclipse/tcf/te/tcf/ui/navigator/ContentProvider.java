@@ -25,8 +25,6 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
-import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -48,6 +46,8 @@ import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.tcf.te.ui.views.interfaces.categories.ICategorizable;
 import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.activities.IActivityManager;
 import org.eclipse.ui.internal.navigator.NavigatorFilterService;
 import org.eclipse.ui.navigator.CommonViewer;
 import org.eclipse.ui.navigator.ICommonContentExtensionSite;
@@ -74,12 +74,16 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 					UIPlugin.getImage(ImageConsts.NEW_PEER_NODE), this);
 
 	// The peer model listener instance
-	/* default */ IPeerModelListener peerModelListener = null;
+	/* default */ PeerModelListener peerModelListener = null;
 	// The locator model listener instance
-	/* default */ ILocatorModelListener locatorModelListener = null;
+	/* default */ LocatorModelListener locatorModelListener = null;
 
 	// Internal map of PeerRedirectorGroupNodes per peer id
 	private final Map<String, PeerRedirectorGroupNode> roots = new HashMap<String, PeerRedirectorGroupNode>();
+
+	// Flag to remember if invisible nodes are to be included in the list of
+	// returned children.
+	private final boolean showInvisible;
 
 	INavigatorFilterService navFilterService = null;
 
@@ -87,7 +91,69 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 * Constructor.
 	 */
 	public ContentProvider() {
+		this(false);
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param showInvisible If <code>true</code>, {@link #getChildren(Object)} will include invisible nodes too.
+	 */
+	public ContentProvider(boolean showInvisible) {
 		super();
+		this.showInvisible = showInvisible;
+	}
+
+	/**
+	 * Determines if the given peer model node is a value-add.
+	 *
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
+	 * @return <code>True</code> if the peer model node is a value-add, <code>false</code> otherwise.
+	 */
+	/* default */ final boolean isValueAdd(IPeer peer) {
+		Assert.isNotNull(peer);
+
+		String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
+		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+
+		return isValueAdd;
+	}
+
+	/**
+	 * Determines if the given peer model node is filtered from the view completely.
+	 *
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
+	 * @return <code>True</code> if filtered, <code>false</code> otherwise.
+	 */
+	/* default */ final boolean isFiltered(IPeerNode peerNode) {
+		Assert.isNotNull(peerNode);
+
+		boolean filtered = false;
+
+		if (!showInvisible) {
+			filtered |= !peerNode.isVisible();
+		}
+
+		return filtered;
+	}
+
+	/**
+	 * Determines if the given peer node is filtered from the view completely.
+	 *
+	 * @param peerNode The peer node. Must not be <code>null</code>.
+	 * @return <code>True</code> if filtered, <code>false</code> otherwise.
+	 */
+	/* default */ final boolean isFiltered(IPeer peer) {
+		Assert.isNotNull(peer);
+
+		boolean filtered = false;
+
+		filtered |= isValueAdd(peer);
+
+		filtered |= peer.getName() != null
+						&& (peer.getName().endsWith("Command Server") || peer.getName().endsWith("CLI Server")); //$NON-NLS-1$ //$NON-NLS-2$
+
+		return filtered;
 	}
 
 	/* (non-Javadoc)
@@ -129,6 +195,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 
 			if (IUIConstants.ID_CAT_FAVORITES.equals(catID)) {
 				for (IPeerNode peerNode : peerNodes) {
+					if (isFiltered(peerNode)) {
+						continue;
+					}
+
 					ICategorizable categorizable = (ICategorizable)peerNode.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peerNode, ICategorizable.class);
@@ -143,6 +213,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 			else if (IUIConstants.ID_CAT_MY_TARGETS.equals(catID)) {
 				for (IPeerNode peerNode : peerNodes) {
+					if (isFiltered(peerNode)) {
+						continue;
+					}
+
 					ICategorizable categorizable = (ICategorizable)peerNode.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peerNode, ICategorizable.class);
@@ -163,6 +237,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
 				for (IPeer peer : ModelManager.getLocatorModel().getPeers()) {
+					if (isFiltered(peer)) {
+						continue;
+					}
+
 					if (!candidates.contains(peer)) {
 						candidates.add(peer);
 					}
@@ -170,6 +248,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 			else if (catID != null) {
 				for (IPeerNode peerNode : peerNodes) {
+					if (isFiltered(peerNode)) {
+						continue;
+					}
+
 					ICategorizable categorizable = (ICategorizable)peerNode.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peerNode, ICategorizable.class);
@@ -185,6 +267,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 			else {
 				for (IPeerNode peerNode : peerNodes) {
+					if (isFiltered(peerNode)) {
+						continue;
+					}
+
 					if (!candidates.contains(peerNode)) {
 						candidates.add(peerNode);
 					}
@@ -339,6 +425,8 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			};
 			if (Protocol.isDispatchThread()) runnable.run();
 			else Protocol.invokeAndWait(runnable);
+			IActivityManager manager = PlatformUI.getWorkbench().getActivitySupport().getActivityManager();
+			manager.removeActivityManagerListener(peerModelListener);
 			peerModelListener = null;
 		}
 		if (locatorModelListener != null) {
@@ -373,6 +461,8 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 					peerModel.addListener(peerModelListener);
 				}
 			});
+			IActivityManager manager = PlatformUI.getWorkbench().getActivitySupport().getActivityManager();
+			manager.addActivityManagerListener(peerModelListener);
 		}
 		// Create and attach the model listener if not yet done
 		if (locatorModelListener == null && locatorModel != null && viewer instanceof CommonViewer) {

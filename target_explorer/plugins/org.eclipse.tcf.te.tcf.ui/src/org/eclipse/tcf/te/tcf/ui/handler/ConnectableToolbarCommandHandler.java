@@ -14,6 +14,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler;
 
@@ -27,6 +28,7 @@ public class ConnectableToolbarCommandHandler extends ConnectableCommandHandler 
 	 */
 	@Override
 	protected IStructuredSelection getSelection(ExecutionEvent event) {
-	    return new StructuredSelection(ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null));
+		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+	    return defaultContext != null ? new StructuredSelection(defaultContext) : new StructuredSelection();
 	}
 }

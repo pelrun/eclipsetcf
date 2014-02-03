@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.tcf.ui.handler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
@@ -69,14 +69,15 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
 /**
  * Configurations control implementation.
  */
-public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution implements IWorkbenchContribution, IEventListener, IPeerModelListener {
+public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution
+implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
 	private Composite panel = null;
 	private Label image = null;
 	private Label text = null;
 	private Button button = null;
 
-	private final String[] wizardIds;
+	private String[] wizardIds;
 
 	IServiceLocator serviceLocator = null;
 
@@ -100,6 +101,10 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 	public DefaultContextSelectorToolbarContribution(String id) {
 		super(id);
 
+		init();
+	}
+
+	protected void init() {
 		IPeerModel peerModel = ModelManager.getPeerModel();
 		IService[] services = ServiceManager.getInstance().getServices(peerModel, IUIService.class, false);
 		List<String> ids = new ArrayList<String>();
@@ -217,15 +222,21 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 
 	private IPeerNode[] getPeerNodesSorted() {
 		IPeerNode[] peerNodes = ModelManager.getPeerModel().getPeerNodes();
+		List<IPeerNode> visiblePeerNodes = new ArrayList<IPeerNode>();
+		for (IPeerNode peerNode : peerNodes) {
+			if (peerNode.isVisible()) {
+				visiblePeerNodes.add(peerNode);
+			}
+        }
 
-		Arrays.sort(peerNodes, new Comparator<IPeerNode>() {
+		Collections.sort(visiblePeerNodes, new Comparator<IPeerNode>() {
 			@Override
 			public int compare(IPeerNode o1, IPeerNode o2) {
 			    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
 			}
 		});
 
-		return peerNodes;
+		return visiblePeerNodes.toArray(new IPeerNode[visiblePeerNodes.size()]);
 	}
 
 	/* (non-Javadoc)
@@ -320,7 +331,7 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 				menuMgr.add(new GroupMarker("group.configurations")); //$NON-NLS-1$
 	    		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 			    for (final IPeerNode peerNode : getPeerNodesSorted()) {
-			    	if (peerNode == defaultContext) {
+			    	if (peerNode == defaultContext || !peerNode.isVisible()) {
 			    		continue;
 			    	}
 					IAction action = new Action() {
@@ -350,6 +361,11 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
 				final IMenuService service = (IMenuService)serviceLocator.getService(IMenuService.class);
 				service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
+
+				if (menu != null && !menu.isDisposed()) {
+					menu.setVisible(false);
+					menu.dispose();
+				}
 				menu = menuMgr.createContextMenu(panel);
 			}
 			catch (Exception e) {

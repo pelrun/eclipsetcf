@@ -56,4 +56,11 @@ public class PeerNodeValidationDelegate implements IPeerNodeValidationDelegate {
 		return valid.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeValidationDelegate#isVisible(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
+	 */
+	@Override
+	public boolean isVisible(IPeerNode peerNode) {
+	    return true;
+	}
 }

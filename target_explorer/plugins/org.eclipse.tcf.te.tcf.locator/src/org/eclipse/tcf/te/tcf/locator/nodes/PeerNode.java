@@ -287,8 +287,18 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	@Override
 	public boolean isVisible() {
 		IPeer peer = getPeer();
-		return peer != null && peer.getAttributes().containsKey(IPeerNodeProperties.PROP_VISIBLE)
+		boolean visible = peer != null && peer.getAttributes().containsKey(IPeerNodeProperties.PROP_VISIBLE)
 						? Boolean.valueOf(peer.getAttributes().get(IPeerNodeProperties.PROP_VISIBLE)).booleanValue() : true;
+		if (visible) {
+			IDelegateService service = ServiceManager.getInstance().getService(this, IDelegateService.class);
+			if (service != null) {
+				IPeerNodeValidationDelegate delegate = service.getDelegate(this, IPeerNodeValidationDelegate.class);
+				if (delegate != null) {
+					return delegate.isVisible(this);
+				}
+			}
+		}
+		return visible;
 	}
 
 	/* (non-Javadoc)

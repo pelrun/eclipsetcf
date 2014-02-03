@@ -22,4 +22,11 @@ public interface IPeerNodeValidationDelegate {
 	 */
 	public boolean isValid(IPeerNode peerNode);
 
+
+	/**
+	 * Check the visibility of this peer node.
+	 * @param peerNode The peer node.
+	 * @return <code>true</code> if the peer node is visible.
+	 */
+	public boolean isVisible(IPeerNode peerNode);
 }

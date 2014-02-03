@@ -67,7 +67,7 @@ public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog implem
     protected Object[] getInput() {
 		List<IPeerNode> peerNodes = new ArrayList<IPeerNode>();
 	    for (final IPeerNode peerNode : ModelManager.getPeerModel().getPeerNodes()) {
-	    	if (getType() == null || getType().equals(peerNode.getPeerType())) {
+	    	if (peerNode.isVisible() && (getType() == null || getType().equals(peerNode.getPeerType()))) {
 	    		if (services != null && services.length > 0) {
 	    			final AtomicBoolean hasServices = new AtomicBoolean();
 	    			Protocol.invokeAndWait(new Runnable() {

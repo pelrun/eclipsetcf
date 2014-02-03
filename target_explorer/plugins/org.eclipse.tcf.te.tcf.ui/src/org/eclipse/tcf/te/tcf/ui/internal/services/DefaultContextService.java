@@ -32,11 +32,14 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupServic
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.activities.ActivityManagerEvent;
+import org.eclipse.ui.activities.IActivityManager;
+import org.eclipse.ui.activities.IActivityManagerListener;
 
 /**
  * Default context service implementation.
  */
-public class DefaultContextService extends AbstractService implements IDefaultContextService, IPeerModelListener {
+public class DefaultContextService extends AbstractService implements IDefaultContextService, IPeerModelListener, IActivityManagerListener {
 
 	/**
 	 * Part id: System Management view
@@ -48,6 +51,8 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 	 */
 	public DefaultContextService() {
 		ModelManager.getPeerModel().addListener(this);
+		IActivityManager manager = PlatformUI.getWorkbench().getActivitySupport().getActivityManager();
+		manager.addActivityManagerListener(this);
 	}
 
 	/* (non-Javadoc)
@@ -102,7 +107,7 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 
 
 	private IPeerNode addCandidate(IPeerNode peerNode, IContextFilter filter, List<IPeerNode> candidates) {
-		if (peerNode != null && (filter == null || filter.select(peerNode))) {
+		if (peerNode != null && peerNode.isVisible() && (filter == null || filter.select(peerNode))) {
 			if (candidates != null && !candidates.contains(peerNode)) {
 				candidates.add(peerNode);
 			}
@@ -205,6 +210,16 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 	 */
 	@Override
 	public void modelDisposed(IPeerModel model) {
-		model.removeListener(this);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.activities.IActivityManagerListener#activityManagerChanged(org.eclipse.ui.activities.ActivityManagerEvent)
+	 */
+    @Override
+    public void activityManagerChanged(ActivityManagerEvent activityManagerEvent) {
+    	if (activityManagerEvent.haveEnabledActivityIdsChanged()) {
+			IPeerNode defaultContext = getDefaultContext(null);
+			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_CHANGED, defaultContext, defaultContext));
+    	}
+    }
 }
