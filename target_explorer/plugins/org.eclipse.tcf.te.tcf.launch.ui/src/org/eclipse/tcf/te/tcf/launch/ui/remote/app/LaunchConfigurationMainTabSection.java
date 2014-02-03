@@ -113,6 +113,10 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 				super.modifyText(e);
 				getManagedForm().dirtyStateChanged();
 			}
+			@Override
+			protected boolean isAdjustEditFieldControlWidthHint() {
+			    return true;
+			}
 		};
 		processImage.setEditFieldLabel(Messages.LaunchConfigurationMainTabSection_processImage_label);
 		processImage.setIsGroup(false);
@@ -128,6 +132,10 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 			public void modifyText(ModifyEvent e) {
 				super.modifyText(e);
 				getManagedForm().dirtyStateChanged();
+			}
+			@Override
+			protected boolean isAdjustEditFieldControlWidthHint() {
+			    return true;
 			}
 		};
 		processArguments.setEditFieldLabel(Messages.LaunchConfigurationMainTabSection_processArguments_label);

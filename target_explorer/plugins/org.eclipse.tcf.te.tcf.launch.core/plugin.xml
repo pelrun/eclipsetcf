@@ -77,11 +77,9 @@
                      <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.cdt.core.cnature"/>
                   </adapt>
                   <and>
+                     <!-- binds to generic connections only -->
                      <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
-                     <or>
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
-                     </or>
+                     <test property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
                   </and>
                </or>
             </with>
@@ -101,15 +99,9 @@
                      <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.cdt.core.cnature"/>
                   </adapt>
                   <and>
+                     <!-- binds to generic connections only -->
                      <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
-                     <or>
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
-                     </or>
-                     <or>
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
-                     </or>
+                     <test property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
                   </and>
                </or>
             </with>
@@ -147,6 +139,7 @@
             label="%LaunchStepGroup.Remote.App.name"
             iterator="org.eclipse.tcf.te.launch.core.steps.iterators.LaunchContextIterator">
          <references>
+            <reference id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.fileTransferStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.launch.core.launchProcessStepGroup"/>
@@ -157,7 +150,6 @@
                   </with>
                </enablement>
             </reference>
-            <reference id="org.eclipse.tcf.te.tcf.core.closeChannelStep"/>
             <reference id="org.eclipse.tcf.te.launch.core.removeLaunchStep">
                <enablement>
                   <not>

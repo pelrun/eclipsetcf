@@ -81,79 +81,13 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	// Internal map of PeerRedirectorGroupNodes per peer id
 	private final Map<String, PeerRedirectorGroupNode> roots = new HashMap<String, PeerRedirectorGroupNode>();
 
-	// Flag to remember if invisible nodes are to be included in the list of
-	// returned children.
-	private final boolean showInvisible;
-
 	INavigatorFilterService navFilterService = null;
 
 	/**
 	 * Constructor.
 	 */
 	public ContentProvider() {
-		this(false);
-	}
-
-	/**
-	 * Constructor.
-	 *
-	 * @param showInvisible If <code>true</code>, {@link #getChildren(Object)} will include invisible nodes too.
-	 */
-	public ContentProvider(boolean showInvisible) {
 		super();
-		this.showInvisible = showInvisible;
-	}
-
-	/**
-	 * Determines if the given peer model node is a value-add.
-	 *
-	 * @param peerNode The peer model node. Must not be <code>null</code>.
-	 * @return <code>True</code> if the peer model node is a value-add, <code>false</code> otherwise.
-	 */
-	/* default */ final boolean isValueAdd(IPeer peer) {
-		Assert.isNotNull(peer);
-
-		String value = peer.getAttributes().get("ValueAdd"); //$NON-NLS-1$
-		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
-
-		return isValueAdd;
-	}
-
-	/**
-	 * Determines if the given peer model node is filtered from the view completely.
-	 *
-	 * @param peerNode The peer model node. Must not be <code>null</code>.
-	 * @return <code>True</code> if filtered, <code>false</code> otherwise.
-	 */
-	/* default */ final boolean isFiltered(IPeerNode peerNode) {
-		Assert.isNotNull(peerNode);
-
-		boolean filtered = false;
-
-		if (!showInvisible) {
-			filtered |= !peerNode.isVisible();
-		}
-
-		return filtered;
-	}
-
-	/**
-	 * Determines if the given peer node is filtered from the view completely.
-	 *
-	 * @param peerNode The peer node. Must not be <code>null</code>.
-	 * @return <code>True</code> if filtered, <code>false</code> otherwise.
-	 */
-	/* default */ final boolean isFiltered(IPeer peer) {
-		Assert.isNotNull(peer);
-
-		boolean filtered = false;
-
-		filtered |= isValueAdd(peer);
-
-		filtered |= peer.getName() != null
-						&& (peer.getName().endsWith("Command Server") || peer.getName().endsWith("CLI Server")); //$NON-NLS-1$ //$NON-NLS-2$
-
-		return filtered;
 	}
 
 	/* (non-Javadoc)
@@ -209,11 +143,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 			else if (IUIConstants.ID_CAT_MY_TARGETS.equals(catID)) {
 				for (IPeerNode peerNode : peerNodes) {
-					// Check for filtered nodes (Value-add's and Proxies)
-					if (isFiltered(peerNode)) {
-						continue;
-					}
-
 					ICategorizable categorizable = (ICategorizable)peerNode.getAdapter(ICategorizable.class);
 					if (categorizable == null) {
 						categorizable = (ICategorizable)Platform.getAdapterManager().getAdapter(peerNode, ICategorizable.class);
@@ -234,11 +163,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
 				for (IPeer peer : ModelManager.getLocatorModel().getPeers()) {
-					// Check for filtered nodes (Value-add's and Proxies)
-					if (isFiltered(peer)) {
-						continue;
-					}
-
 					if (!candidates.contains(peer)) {
 						candidates.add(peer);
 					}
@@ -261,10 +185,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 			else {
 				for (IPeerNode peerNode : peerNodes) {
-					// Check for filtered nodes (Value-add's and Proxies)
-					if (isFiltered(peerNode)) {
-						continue;
-					}
 					if (!candidates.contains(peerNode)) {
 						candidates.add(peerNode);
 					}
