@@ -35,7 +35,7 @@ public class StateManagerTest extends UtilsTestBase {
 		assertEquals(CacheState.consistent, cacheState);
 		Thread.sleep(5000L);
 	}
-	
+
 	public void testCacheStateModified() throws Exception {
 		cleanUp();
 		writeFileContent("hello,world!"); //$NON-NLS-1$
@@ -62,7 +62,7 @@ public class StateManagerTest extends UtilsTestBase {
 		});
 		rendezvous.waiting(10000);
     }
-	
+
 	private void refreshCacheState() throws TimeoutException {
 		final Rendezvous rendezvous = new Rendezvous();
 		testFile.refresh(new Callback(){
@@ -73,8 +73,8 @@ public class StateManagerTest extends UtilsTestBase {
 		});
 		rendezvous.waiting(10000);
 	}
-	 
-	
+
+
 	public void testCacheStateOutdated() throws Exception {
 		cleanUp();
 		writeFileContent("hello,world!"); //$NON-NLS-1$
@@ -86,7 +86,7 @@ public class StateManagerTest extends UtilsTestBase {
 		assertEquals(CacheState.outdated, cacheState);
 		Thread.sleep(5000L);
 	}
-	
+
 	private void cleanUp() {
 		File cacheFile = CacheManager.getCacheFile(testFile);
 		if(cacheFile.exists()) {
@@ -94,7 +94,7 @@ public class StateManagerTest extends UtilsTestBase {
 		}
 		PersistenceManager.getInstance().removeFileDigest(testFile.getLocationURI());
 	}
-	
+
 	public void testCacheStateConflict() throws Exception {
 		cleanUp();
 		writeFileContent("hello,world!"); //$NON-NLS-1$
@@ -102,6 +102,7 @@ public class StateManagerTest extends UtilsTestBase {
 	    update.run(new NullProgressMonitor());
 		writeFileContent("hello,test!"); //$NON-NLS-1$
 		refreshCacheState();
+		Thread.sleep(2000L);
 	    File file = CacheManager.getCacheFile(testFile);
 	    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
 	    writer.write("hello, earth!"); //$NON-NLS-1$
