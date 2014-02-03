@@ -25,6 +25,7 @@ import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tests.CoreTestCase;
 
@@ -56,6 +57,15 @@ public class TcfTestCase extends CoreTestCase {
 	@Override
 	protected void tearDown() throws Exception {
 		if (launcher != null) launcher.dispose();
+		if (peerNode != null) {
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					ModelManager.getPeerModel().getService(IPeerModelUpdateService.class).remove(peerNode);
+				}
+			};
+			Protocol.invokeAndWait(runnable);
+		}
 		peer = null;
 		peerNode = null;
 	    super.tearDown();
@@ -195,6 +205,14 @@ public class TcfTestCase extends CoreTestCase {
 			attrs.put("SkipValueAdds", "true"); //$NON-NLS-1$ //$NON-NLS-2$
 			peer = new TransientPeer(attrs);
 			peerNode = Factory.getInstance().newInstance(IPeerNode.class, new Object[] { model, peer });
+
+			runnable = new Runnable() {
+				@Override
+				public void run() {
+					model.getService(IPeerModelUpdateService.class).add(peerNode);
+				}
+			};
+			Protocol.invokeAndWait(runnable);
 		} else {
 			peerNode = node.get();
 			peer = peerNode.getPeer();

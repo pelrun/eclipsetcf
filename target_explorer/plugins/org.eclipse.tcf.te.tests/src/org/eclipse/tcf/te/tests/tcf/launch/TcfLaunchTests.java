@@ -9,6 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tests.tcf.launch;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -23,11 +29,8 @@ import org.eclipse.tcf.te.launch.core.lm.LaunchManager;
 import org.eclipse.tcf.te.launch.core.lm.LaunchSpecification;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ILaunchSpecification;
 import org.eclipse.tcf.te.launch.core.persistence.DefaultPersistenceDelegate;
-import org.eclipse.tcf.te.launch.core.persistence.filetransfer.FileTransfersPersistenceDelegate;
 import org.eclipse.tcf.te.launch.core.persistence.launchcontext.LaunchContextsPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
-import org.eclipse.tcf.te.runtime.services.filetransfer.FileTransferItem;
-import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
@@ -96,7 +99,14 @@ public class TcfLaunchTests extends TcfTestCase {
 		}
 		assertFalse("Cannot delete console output file " + outFile.toOSString(), outFile.toFile().exists()); //$NON-NLS-1$
 
-		FileTransfersPersistenceDelegate.setFileTransfers(spec, new IFileTransferItem[]{new FileTransferItem(helloWorldLocation, tempDir)});
+		// Copy the file manually. Using file transfer leads to an assertion in the agent
+		try {
+			copyFile(helloWorldLocation.toFile(), tempHelloWorld.toFile());
+		} catch (IOException e) {
+			assertNull("Failed to copy file from " + helloWorldLocation.toOSString() + " to " + tempHelloWorld.toOSString() + ": " + e, e); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		}
+
+//		FileTransfersPersistenceDelegate.setFileTransfers(spec, new IFileTransferItem[]{new FileTransferItem(helloWorldLocation, tempDir)});
 		spec.addAttribute(IProcessesStepAttributes.ATTR_PROCESS_IMAGE, tempHelloWorld.toOSString());
 
 		ILaunchConfiguration config = null;
@@ -141,4 +151,19 @@ public class TcfLaunchTests extends TcfTestCase {
 
 		return path;
 	}
+
+	private void copyFile(File source, File dest) throws IOException {
+		FileChannel inputChannel = null;
+		FileChannel outputChannel = null;
+
+		try {
+			inputChannel = new FileInputStream(source).getChannel();
+			outputChannel = new FileOutputStream(dest).getChannel();
+			outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+		} finally {
+			inputChannel.close();
+			outputChannel.close();
+		}
+	}
+
 }
