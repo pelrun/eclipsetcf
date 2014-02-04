@@ -67,6 +67,9 @@ public class Messages extends NLS {
 
 	// **** Declare externalized string id's down here *****
 
+	public static String AttachMainTab_title;
+	public static String AttachMainTab_label;
+
 	public static String LaunchConfigurationMainTabSection_title;
 	public static String LaunchConfigurationMainTabSection_processArguments_label;
 	public static String LaunchConfigurationMainTabSection_processImage_label;

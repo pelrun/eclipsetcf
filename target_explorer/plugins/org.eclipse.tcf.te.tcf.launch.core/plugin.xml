@@ -53,7 +53,6 @@
             name="%LaunchType.Remote.App.name"/>
       <launchConfigurationType
             id="org.eclipse.tcf.te.tcf.launch.type.attach"
-            public="false"
             sourceLocatorId="org.eclipse.tcf.debug.SourceLocator"
             sourcePathComputerId="org.eclipse.tcf.te.launch.core.sourcePathComputer"
             delegate="org.eclipse.tcf.te.tcf.launch.core.delegates.LaunchConfigurationDelegate"

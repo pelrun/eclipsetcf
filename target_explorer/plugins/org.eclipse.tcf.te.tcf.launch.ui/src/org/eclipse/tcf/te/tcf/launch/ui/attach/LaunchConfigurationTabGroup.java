@@ -14,10 +14,7 @@ import java.util.List;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
 import org.eclipse.tcf.te.launch.ui.tabs.AbstractLaunchConfigurationTabGroup;
-import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.MemoryMapTab;
-import org.eclipse.tcf.te.tcf.launch.ui.editor.tabs.PathMapTab;
 
 /**
  * Remote application launch configuration tab group implementation.
@@ -40,10 +37,6 @@ public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabG
 	 */
 	@Override
 	public void createAdditionalTabs(ILaunchConfigurationDialog dialog, List<ILaunchConfigurationTab> tabs, String mode) {
-
-		tabs.add(new MemoryMapTab(null));
-		tabs.add(new PathMapTab(null));
-		tabs.add(new SourceLookupTab());
-		//		tabs.add(new CommonTab());
+		tabs.add(new LaunchConfigurationMainTab());
 	}
 }
