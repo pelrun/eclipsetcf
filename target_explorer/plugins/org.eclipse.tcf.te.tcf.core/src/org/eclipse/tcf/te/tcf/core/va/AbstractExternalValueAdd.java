@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -262,8 +262,8 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					counter--;
 				}
 				if (output == null && error == null) {
-					String stderr = !"".equals(launcher.getErrorReader().getOutput()) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, formatErrorOutput(launcher.getErrorReader().getOutput())) : ""; //$NON-NLS-1$ //$NON-NLS-2$
-					error = new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_failedToReadOutput, stderr));
+					String stderr = !"".equals(launcher.getErrorReader().getOutput()) ? NLS.bind(Messages.AbstractExternalValueAdd_error_output, getLabel(), formatErrorOutput(launcher.getErrorReader().getOutput())) : ""; //$NON-NLS-1$ //$NON-NLS-2$
+					error = new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_failedToReadOutput, getLabel(), stderr));
 				}
 			}
 
@@ -317,7 +317,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 					entry.peer = new Peer(attrs);
 				} else {
-					error = new IOException(Messages.AbstractExternalValueAdd_error_invalidPeerAttributes);
+					error = new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidPeerAttributes, getLabel()));
 				}
 			}
 
@@ -340,7 +340,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 			// On error, dispose the entry
 			if (error != null) entry.dispose();
 		} else {
-			error = new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, this.getId()));
+			error = new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, getLabel(), (path != null ? path.toOSString() : "n/a"))); //$NON-NLS-1$
 		}
 
 		IStatus status = Status.OK_STATUS;
@@ -373,7 +373,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		String output = launcher.getErrorReader() != null ? launcher.getErrorReader().getOutput() : null;
 		String cause = output != null && !"".equals(output) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, formatErrorOutput(output)) : null; //$NON-NLS-1$
 		// Create the exception
-		String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, Integer.valueOf(exitCode));
+		String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, getLabel(), Integer.valueOf(exitCode));
 		return new IOException(cause != null ? message + cause : message);
 	}
 
