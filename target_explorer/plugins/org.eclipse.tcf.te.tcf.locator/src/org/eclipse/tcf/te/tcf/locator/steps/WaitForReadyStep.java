@@ -10,6 +10,7 @@
 
 package org.eclipse.tcf.te.tcf.locator.steps;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -114,13 +115,9 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 								}
 
 								// License errors are reported to the user and breaks the wait immediately
-								if (error != null) {
-									String message = error.getLocalizedMessage();
-									if (message != null && (message.contains("LMAPI error occured:") //$NON-NLS-1$
-												|| message.contains("Failed to read output from value-add"))) { //$NON-NLS-1$
-										callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
-										return;
-									}
+								if (error instanceof IOException) {
+									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
+									return;
 								}
 
 								// Try again until timed out

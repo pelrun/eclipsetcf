@@ -262,7 +262,8 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					counter--;
 				}
 				if (output == null && error == null) {
-					error = new IOException(Messages.AbstractExternalValueAdd_error_failedToReadOutput);
+					String stderr = !"".equals(launcher.getErrorReader().getOutput()) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, formatErrorOutput(launcher.getErrorReader().getOutput())) : ""; //$NON-NLS-1$ //$NON-NLS-2$
+					error = new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_failedToReadOutput, stderr));
 				}
 			}
 
@@ -370,10 +371,23 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 		// Read the error output if there is any
 		String output = launcher.getErrorReader() != null ? launcher.getErrorReader().getOutput() : null;
-		String cause = output != null && !"".equals(output) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, output) : null; //$NON-NLS-1$
+		String cause = output != null && !"".equals(output) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, formatErrorOutput(output)) : null; //$NON-NLS-1$
 		// Create the exception
 		String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, Integer.valueOf(exitCode));
 		return new IOException(cause != null ? message + cause : message);
+	}
+
+	/**
+	 * Formats the error output to possible beautify it for the user.
+	 * <p>
+	 * The default implementation returns the passed in output unmodified.
+	 *
+	 * @param output The output. Must not be <code>null</code>.
+	 * @return The beautified output.
+	 */
+	protected String formatErrorOutput(String output) {
+		Assert.isNotNull(output);
+		return output;
 	}
 
 	/**
