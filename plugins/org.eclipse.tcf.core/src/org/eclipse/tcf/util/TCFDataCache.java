@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -65,7 +65,7 @@ public abstract class TCFDataCache<V> implements Runnable {
         this.channel = channel;
     }
 
-    private void post() {
+    public void post() {
         if (posted) return;
         if (waiting_cnt == 0) return;
         Protocol.invokeLater(this);
@@ -115,7 +115,7 @@ public abstract class TCFDataCache<V> implements Runnable {
     /**
      * Notify waiting clients about cache state change and remove them from wait list.
      * It is responsibility of clients to check if the state change was one they are waiting for.
-     * Clients are not intended to call this method.
+     * Clients are not intended to call this method, they can call post() if necessary.
      */
     public final void run() {
         assert Protocol.isDispatchThread();

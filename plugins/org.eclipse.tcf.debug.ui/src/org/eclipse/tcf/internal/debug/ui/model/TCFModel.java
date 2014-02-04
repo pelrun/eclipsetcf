@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1416,7 +1416,10 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             assert res != this;
             context_map.put(id, res);
             for (Runnable r : waiting_list) {
-                if (createNode(id, r)) r.run();
+                if (createNode(id, r)) {
+                    if (r instanceof TCFDataCache<?>) ((TCFDataCache<?>)r).post();
+                    else r.run();
+                }
             }
         }
 
