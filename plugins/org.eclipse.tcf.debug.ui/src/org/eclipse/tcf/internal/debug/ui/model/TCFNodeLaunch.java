@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +32,7 @@ public class TCFNodeLaunch extends TCFNode implements ISymbolOwner {
     private final TCFChildren filtered_children;
     private final TCFChildrenContextQuery children_query;
     private final Map<String,TCFNodeSymbol> symbols = new HashMap<String,TCFNodeSymbol>();
+    private final Set<String> auto_filter = new HashSet<String>();
 
     TCFNodeLaunch(final TCFModel model) {
         super(model);
@@ -45,16 +47,17 @@ public class TCFNodeLaunch extends TCFNode implements ISymbolOwner {
                     set(null, children.getError(), children.getData());
                     return true;
                 }
+                Runnable done = new Runnable() {
+                    @Override
+                    public void run() {
+                        filtered_children.post();
+                    }
+                };
                 Map<String,TCFNode> nodes = new HashMap<String,TCFNode>();
                 for (String id : filter) {
-                    if (!model.createNode(id, this)) return false;
-                    if (isValid()) {
-                        // Ignore invalid IDs
-                        reset();
-                    }
-                    else {
-                        nodes.put(id, model.getNode(id));
-                    }
+                    if (!model.createNode(id, done)) return false;
+                    TCFNode node = model.getNode(id);
+                    if (node != null) nodes.put(id, node);
                 }
                 set(null, null, nodes);
                 return true;
@@ -130,6 +133,7 @@ public class TCFNodeLaunch extends TCFNode implements ISymbolOwner {
             String c = context.getCreatorID();
             while (c != null) {
                 if (filter.contains(c)) {
+                    auto_filter.add(context.getID());
                     filter.add(context.getID());
                     break;
                 }
@@ -148,6 +152,13 @@ public class TCFNodeLaunch extends TCFNode implements ISymbolOwner {
 
     void onContextAdded(IMemory.MemoryContext context) {
         children.onContextAdded(context);
+    }
+
+    void onContextRemoved(String id) {
+        if (auto_filter.remove(id)) {
+            Set<String> filter = launch.getContextFilter();
+            if (filter != null) filter.remove(id);
+        }
     }
 
     void onAnyContextSuspendedOrChanged() {

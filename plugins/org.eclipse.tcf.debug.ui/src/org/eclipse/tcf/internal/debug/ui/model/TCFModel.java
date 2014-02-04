@@ -1023,6 +1023,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private void onContextRemoved(String[] context_ids) {
         HashSet<String> set = new HashSet<String>();
         for (String id : context_ids) {
+            launch_node.onContextRemoved(id);
             TCFNode node = getNode(id);
             if (node instanceof TCFNodeExecContext) {
                 ((TCFNodeExecContext)node).onContextRemoved();
