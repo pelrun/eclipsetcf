@@ -16,12 +16,11 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeValidationDelegate;
 
 /**
  * PeerNodeValidationDelegate
  */
-public class PeerNodeValidationDelegate implements IPeerNodeValidationDelegate {
+public class PeerNodeValidationDelegate implements IPeerNode.IDelegate {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeValidationDelegate#isValid(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)

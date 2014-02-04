@@ -34,7 +34,6 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeValidationDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 
 
@@ -137,7 +136,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 		IService[] services = ServiceManager.getInstance().getServices(this, IDelegateService.class, false);
 		for (IService service : services) {
 	        if (service instanceof IDelegateService) {
-	        	IPeerNodeValidationDelegate delegate = ((IDelegateService)service).getDelegate(this, IPeerNodeValidationDelegate.class);
+	        	IPeerNode.IDelegate delegate = ((IDelegateService)service).getDelegate(this, IPeerNode.IDelegate.class);
 	        	if (delegate != null) {
 	        		if (!delegate.isValid(this)) {
 	        			return false;
@@ -292,7 +291,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 		if (visible) {
 			IDelegateService service = ServiceManager.getInstance().getService(this, IDelegateService.class);
 			if (service != null) {
-				IPeerNodeValidationDelegate delegate = service.getDelegate(this, IPeerNodeValidationDelegate.class);
+				IPeerNode.IDelegate delegate = service.getDelegate(this, IPeerNode.IDelegate.class);
 				if (delegate != null) {
 					return delegate.isVisible(this);
 				}

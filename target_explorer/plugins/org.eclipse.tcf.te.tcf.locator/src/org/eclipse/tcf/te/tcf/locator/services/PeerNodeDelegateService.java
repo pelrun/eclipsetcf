@@ -13,25 +13,25 @@ package org.eclipse.tcf.te.tcf.locator.services;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.tcf.locator.delegates.PeerNodeValidationDelegate;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeValidationDelegate;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * PeerNodeDelegateService
  */
 public class PeerNodeDelegateService extends AbstractService implements IDelegateService {
 
-	private IPeerNodeValidationDelegate validationDelegate = new PeerNodeValidationDelegate();
+	private IPeerNode.IDelegate validationDelegate = new PeerNodeValidationDelegate();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService#getDelegate(java.lang.Object, java.lang.Class)
 	 */
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     @Override
-	public <V> V getDelegate(Object context, Class<? extends V> clazz) {
-		if (IPeerNodeValidationDelegate.class.isAssignableFrom(clazz)) {
+    public <V extends Object> V getDelegate(Object context, Class<? extends V> clazz) {
+		if (IPeerNode.IDelegate.class.isAssignableFrom(clazz)) {
 			return (V) validationDelegate;
 		}
 		return null;
-	}
+    }
 
 }

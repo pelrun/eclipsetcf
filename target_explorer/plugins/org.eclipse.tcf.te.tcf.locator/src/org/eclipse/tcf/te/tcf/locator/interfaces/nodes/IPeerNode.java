@@ -25,6 +25,27 @@ import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 public interface IPeerNode extends IContainerModelNode, IDecoratable, IConnectable, IChannelListener {
 
 	/**
+	 * Delegate for
+	 */
+	public interface IDelegate {
+
+		/**
+		 * Validate the peer node attributes.
+		 * @param peerNode The peer node.
+		 * @return <code>true</code> if the peer node is valid.
+		 */
+		public boolean isValid(IPeerNode peerNode);
+
+
+		/**
+		 * Check the visibility of this peer node.
+		 * @param peerNode The peer node.
+		 * @return <code>true</code> if the peer node is visible.
+		 */
+		public boolean isVisible(IPeerNode peerNode);
+	}
+
+	/**
 	 * Returns the parent locator model instance.
 	 * <p>
 	 * This method may be called from any thread.
