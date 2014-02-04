@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.3.x (Kepler)" sequenceNumber="29">
+<?pde version="3.8"?><target name="Eclipse 4.3.x (Kepler)" sequenceNumber="30">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.100.201305201712"/>
@@ -36,6 +36,10 @@
 <unit id="gnu.io.rxtx.sdk.feature.group" version="2.1.7.4_v20071016-417C7DP1Bh_eEaQJBrHBHg"/>
 <unit id="gnu.io.rxtx.feature.group" version="2.1.7.4_v20071016-7B57e7UAXMAAqGAGf"/>
 <repository location="http://archive.eclipse.org/tm/updates/rxtx"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.emf.sdk.feature.group" version="2.9.1.v20130902-0605"/>
+<repository location="http://download.eclipse.org/releases/kepler"/>
 </location>
 </locations>
 </target>
