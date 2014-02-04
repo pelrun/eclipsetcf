@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -38,7 +38,14 @@ public class LocalConnectorType extends AbstractConnectorType {
 	 * @return The default shell to launch.
 	 */
 	private final File defaultShell() {
-		String shell = Host.isWindowsHost() ? "cmd.exe" : null; //$NON-NLS-1$
+		String shell = null;
+		if (Host.isWindowsHost()) {
+			if (System.getenv("ComSpec") != null && !"".equals(System.getenv("ComSpec").trim())) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				shell = System.getenv("ComSpec").trim(); //$NON-NLS-1$
+			} else {
+				shell = "cmd.exe"; //$NON-NLS-1$
+			}
+		}
 		if (shell == null) {
 			if (System.getenv("SHELL") != null && !"".equals(System.getenv("SHELL").trim())) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				shell = System.getenv("SHELL").trim(); //$NON-NLS-1$
