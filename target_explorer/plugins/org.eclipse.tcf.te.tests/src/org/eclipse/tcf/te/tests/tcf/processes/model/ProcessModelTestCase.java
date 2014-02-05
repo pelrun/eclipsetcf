@@ -100,7 +100,17 @@ public class ProcessModelTestCase extends TcfTestCase {
 							List<IProcessContextNode> processes = model.getChildren(IProcessContextNode.class);
 							for (IProcessContextNode process : processes) {
 								final ICallback c2 = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
-								model.getService(IModelRefreshService.class).refresh(process, c2);
+								model.getService(IModelRefreshService.class).refresh(process, new Callback() {
+									@Override
+                                    protected void internalDone(Object caller, IStatus status) {
+										// Ignore "No such process" errors as it may happen that a process
+										// is gone again while refreshing.
+										if (status.getSeverity() == IStatus.ERROR && "No such process".equals(status.getMessage())) { //$NON-NLS-1$
+											status = Status.OK_STATUS;
+										}
+										c2.done(caller, status);
+									}
+								});
 							}
 						}
 						c1.done(caller, status);
