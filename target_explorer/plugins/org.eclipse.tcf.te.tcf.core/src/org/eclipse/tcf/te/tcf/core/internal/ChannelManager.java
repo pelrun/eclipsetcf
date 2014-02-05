@@ -19,9 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PlatformObject;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IChannel;
@@ -848,18 +846,12 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							}
 
 							// If we got an error and the value-add is optional,
-							// log the error as warning and drop the value-add
+							// ignore the error and drop the value-add from the chain.
 							if (error != null && valueAdd.isOptional()) {
-								status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(),
-												NLS.bind(Messages.ChannelManager_valueAdd_launchFailed, valueAdd.getLabel(), error.getLocalizedMessage()),
-												error);
-								Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-
-								// Reset the error
 								error = null;
+							} else if (error == null) {
+								available.add(valueAdd);
 							}
-
-							if (error == null) available.add(valueAdd);
 
 							// If the value-add failed to launch, no other value-add's are launched
 							if (error != null) {
