@@ -335,7 +335,7 @@
                id="properties"
                label="%command.open.label"
                mnemonic="%command.open.mnemonic"
-               tooltip="%command.openroperties.tooltip">
+               tooltip="%command.open.tooltip">
             <visibleWhen>
                <with variable="selection">
                   <count value="1"/>
