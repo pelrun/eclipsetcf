@@ -443,7 +443,28 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                     }
                     int index = -1;
                     int children = -1;
-                    if (selection != null || (flags & IModelDelta.INSERTED) != 0 || (flags & IModelDelta.EXPAND) != 0) {
+                    if ((flags & IModelDelta.ADDED) != 0) {
+                        index = getNodeIndex(node, parent);
+                        if (index < 0) return null;
+                        int up_children = up.getChildCount();
+                        if (up_children < 0) {
+                            up_children = getNodeChildren(parent).length;
+                            up.setChildCount(up_children);
+                        }
+                        if (index != up_children - 1) {
+                            // ADDED works as expected only if adding to the end of the list.
+                            if (!content) {
+                                up.setFlags(up.getFlags() | IModelDelta.CONTENT);
+                                content_deltas.add(up);
+                                content = true;
+                            }
+                            flags &= ~(IModelDelta.ADDED | IModelDelta.REMOVED |
+                                    IModelDelta.REPLACED | IModelDelta.INSERTED |
+                                    IModelDelta.CONTENT | IModelDelta.STATE);
+                            if (flags == 0) return null;
+                        }
+                    }
+                    else if (selection != null || (flags & IModelDelta.INSERTED) != 0 || (flags & IModelDelta.EXPAND) != 0) {
                         index = getNodeIndex(node, parent);
                         if (index < 0) return null;
                     }
