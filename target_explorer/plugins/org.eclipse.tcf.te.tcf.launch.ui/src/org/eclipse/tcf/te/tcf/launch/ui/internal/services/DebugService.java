@@ -77,7 +77,8 @@ public class DebugService extends AbstractService implements IDebugService {
 		}
 	}
 
-	protected void internalAttach(final Object context, final IPropertiesContainer data, final IProgressMonitor monitor, final ICallback callback) {
+	@SuppressWarnings("restriction")
+    protected void internalAttach(final Object context, final IPropertiesContainer data, final IProgressMonitor monitor, final ICallback callback) {
 		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		Assert.isNotNull(context);
@@ -103,15 +104,17 @@ public class DebugService extends AbstractService implements IDebugService {
 						ILaunchConfiguration config = launchConfigs != null && launchConfigs.length > 0 ? launchConfigs[0] : null;
 
 						boolean skip = false;
+						ILaunch activeLaunch = null;
 						if (config != null) {
-
 							ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
 							for (ILaunch launch : launches) {
 								if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && !launch.isTerminated()) {
 									IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
 									if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
 										callback.setProperty("launch", launch); //$NON-NLS-1$
+										activeLaunch = launch;
 										skip = true;
+										break;
 									}
 								}
 							}
@@ -154,6 +157,7 @@ public class DebugService extends AbstractService implements IDebugService {
 								}
 							});
 						} else {
+							org.eclipse.debug.internal.ui.DebugUIPlugin.getDefault().getPerspectiveManager().launchAdded(activeLaunch);
 							callback.done(this, Status.OK_STATUS);
 						}
 					}
