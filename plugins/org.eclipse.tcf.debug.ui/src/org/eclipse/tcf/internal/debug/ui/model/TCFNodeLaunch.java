@@ -41,9 +41,10 @@ public class TCFNodeLaunch extends TCFNode implements ISymbolOwner {
         filtered_children = new TCFChildren(this) {
             @Override
             protected boolean startDataRetrieval() {
+                // First, validate children to make sure mem_seq_no and exe_seq_no are set
+                if (!children.validate(this)) return false;
                 Set<String> filter = launch.getContextFilter();
                 if (filter == null) {
-                    if (!children.validate(this)) return false;
                     set(null, children.getError(), children.getData());
                     return true;
                 }
