@@ -335,6 +335,20 @@
 <!-- Menu contributions -->
    <extension point="org.eclipse.ui.menus">
 
+   <!-- Main menu contributions -->
+      <menuContribution locationURI="menu:org.eclipse.ui.main.menu">
+         <menu label="%menu.system.label" 
+               id="org.eclipse.tcf.te.tcf.ui.main.menu.system">
+	         <separator name="group.connect" visible="false"/>
+	         <separator name="group.launch" visible="true"/>
+	         <separator name="group.launch.rundebug" visible="true"/>
+	         <separator name="group.open" visible="true"/>
+	         <separator name="group.delete" visible="false"/>
+	         <separator name="group.new" visible="false"/>
+	         <separator name="group.additions" visible="true"/>
+         </menu>
+      </menuContribution>
+
    <!-- View context menu contributions -->
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.delete">
          <command
@@ -533,6 +547,9 @@
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.delete">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
       </menuContribution>
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.new">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"/>
+      </menuContribution>
 
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.toolbar?after=group.actions">
          <control
@@ -551,10 +568,45 @@
          </command>
       </menuContribution>
 
+   <!-- System menu contribution -->
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.connect">
+         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"/>
+         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"/>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
+            <visibleWhen checkEnabled="false">
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.open">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"/>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.delete">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.new">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"/>
+      </menuContribution>
+
    </extension>
 
 <!-- Command contributions -->
    <extension point="org.eclipse.ui.commands">
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_New"
+            name="%command.new.label"
+            description="%command.new.toolbar.tooltip">
+      </command>
       <command
             id="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
@@ -594,6 +646,10 @@
 
 <!-- Command image contributions -->
    <extension point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
+            icon="icons/etool16/newConfig.gif">
+      </image>
       <image
             commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
             icon="icons/etool16/delete.gif">
@@ -711,6 +767,11 @@
                   </adapt>
                </with>
             </enabledWhen>
+      </handler>
+
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
+            class="org.eclipse.tcf.te.tcf.ui.handler.NewToolbarCommandHandler">
       </handler>
 
       <handler

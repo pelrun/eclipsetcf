@@ -17,19 +17,19 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
+import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.eclipse.ui.internal.actions.NewWizardShortcutAction;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 
 
 /**
  * New configuration wizard handler implementation.
  */
-@SuppressWarnings("restriction")
 public class NewWizardHandler extends AbstractHandler {
 
 	/* (non-Javadoc)
@@ -48,7 +48,13 @@ public class NewWizardHandler extends AbstractHandler {
 			        // In Eclipse 4.x, the HandlerUtil.getActiveWorkbenchWindow(event) may return null
 			        IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
 			        if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-					new NewWizardShortcutAction(window, wizardDesc).run();
+			    	try {
+			    		WizardDialog wd = new WizardDialog(window.getShell(), wizardDesc.createWizard());
+			    		wd.setTitle(Messages.NewWizardHandler_title);
+			    		wd.open();
+			    	}
+			    	catch (Exception e) {
+			    	}
 				}
 			}
 		}

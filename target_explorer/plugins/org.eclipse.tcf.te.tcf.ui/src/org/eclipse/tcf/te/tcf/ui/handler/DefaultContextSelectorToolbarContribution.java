@@ -23,6 +23,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -100,8 +101,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	 */
 	public DefaultContextSelectorToolbarContribution(String id) {
 		super(id);
-
-		init();
 	}
 
 	protected void init() {
@@ -300,14 +299,19 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 		}
 	}
 
-	@SuppressWarnings("restriction")
     protected void openNewWizard() {
+		init();
 		if (wizardIds.length == 1) {
 			IWizardDescriptor wizardDesc = NewWizardRegistry.getInstance().findWizard(wizardIds[0]);
 			if (wizardDesc == null) return;
-
 	    	IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-	    	new org.eclipse.ui.internal.actions.NewWizardShortcutAction(window, wizardDesc).run();
+	    	try {
+	    		WizardDialog wd = new WizardDialog(window.getShell(), wizardDesc.createWizard());
+	    		wd.setTitle(Messages.NewTargetWizard_windowTitle);
+	    		wd.open();
+	    	}
+	    	catch (Exception e) {
+	    	}
 		}
 		else {
 			TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
@@ -350,14 +354,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 			    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
 			    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
 			    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
-				IAction newAction = new Action(Messages.DefaultContextSelectorToolbarContribution_label_new,
-								ImageDescriptor.createFromImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG))) {
-					@Override
-	                public void run() {
-						openNewWizard();
-					}
-				};
-				menuMgr.add(newAction);
 				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
 				final IMenuService service = (IMenuService)serviceLocator.getService(IMenuService.class);
 				service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
