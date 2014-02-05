@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -972,10 +972,11 @@ public class TCFLaunch extends Launch {
             final boolean stop_at_entry = cfg.getAttribute(TCFLaunchDelegate.ATTR_STOP_AT_ENTRY, true);
             final boolean stop_at_main = cfg.getAttribute(TCFLaunchDelegate.ATTR_STOP_AT_MAIN, true);
             final boolean use_terminal = cfg.getAttribute(TCFLaunchDelegate.ATTR_USE_TERMINAL, true);
-            String dont_stop = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, "");
-            String dont_pass = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, "");
+            final String dont_stop = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, "");
+            final String dont_pass = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, "");
             final int no_stop = dont_stop.length() > 0 ? Integer.parseInt(dont_stop, 16) : 0;
             final int no_pass = dont_pass.length() > 0 ? Integer.parseInt(dont_pass, 16) : 0;
+            final IProcessesV1 ps_v1 = channel.getRemoteService(IProcessesV1.class);
             // Start the process
             new LaunchStep() {
                 @Override
@@ -1011,7 +1012,6 @@ public class TCFLaunch extends Launch {
                     };
                     if (launch_monitor != null) launch_monitor.subTask("Starting: " + file);
                     String[] args_arr = toArgsArray(file, args);
-                    IProcessesV1 ps_v1 = channel.getRemoteService(IProcessesV1.class);
                     if (ps_v1 != null) {
                         Map<String,Object> params = new HashMap<String,Object>();
                         if (mode.equals(ILaunchManager.DEBUG_MODE)) {
@@ -1019,8 +1019,8 @@ public class TCFLaunch extends Launch {
                             params.put(IProcessesV1.START_ATTACH_CHILDREN, attach_children);
                             params.put(IProcessesV1.START_STOP_AT_ENTRY, stop_at_entry);
                             params.put(IProcessesV1.START_STOP_AT_MAIN, stop_at_main);
-                            params.put(IProcessesV1.START_SIG_DONT_STOP, no_stop);
-                            params.put(IProcessesV1.START_SIG_DONT_PASS, no_pass);
+                            if (dont_stop.length() > 0) params.put(IProcessesV1.START_SIG_DONT_STOP, no_stop);
+                            if (dont_pass.length() > 0) params.put(IProcessesV1.START_SIG_DONT_PASS, no_pass);
                         }
                         if (use_terminal) params.put(IProcessesV1.START_USE_TERMINAL, true);
                         process_start_command = ps_v1.start(dir, file, args_arr, process_env, params, done);
@@ -1046,7 +1046,7 @@ public class TCFLaunch extends Launch {
                     }
                 };
                 // Set process signal masks
-                if (no_stop != 0 || no_pass != 0) {
+                if (ps_v1 == null && (no_stop != 0 || no_pass != 0)) {
                     new LaunchStep() {
                         @Override
                         void start() {
