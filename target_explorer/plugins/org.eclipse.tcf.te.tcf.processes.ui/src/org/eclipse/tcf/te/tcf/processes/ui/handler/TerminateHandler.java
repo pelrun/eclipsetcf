@@ -26,6 +26,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
+import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
@@ -70,10 +71,18 @@ public class TerminateHandler extends AbstractHandler implements IElementUpdater
 										Assert.isNotNull(model);
 										model.getService(IModelUpdateService.class).remove(process);
 									} else {
-										// Build up the message template
-										String template = NLS.bind(Messages.TerminateHandler_terminateFailed, process.getName(), Messages.PossibleCause);
-										// Handle the status
-										StatusHandlerUtil.handleStatus(status, process, template, null, IContextHelpIds.MESSAGE_TERMINATE_FAILED, TerminateHandler.this, null);
+										// Even on error, refresh the process node. Some children might be gone.
+										IModel model = process.getParent(IModel.class);
+										Assert.isNotNull(model);
+										model.getService(IModelRefreshService.class).refresh(process, new Callback() {
+											@Override
+                                            protected void internalDone(Object caller, IStatus status) {
+												// Build up the message template
+												String template = NLS.bind(Messages.TerminateHandler_terminateFailed, process.getName(), Messages.PossibleCause);
+												// Handle the status
+												StatusHandlerUtil.handleStatus(status, process, template, null, IContextHelpIds.MESSAGE_TERMINATE_FAILED, TerminateHandler.this, null);
+											}
+										});
 									}
 								}
 							});
