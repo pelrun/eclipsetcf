@@ -48,6 +48,7 @@ import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 
@@ -204,7 +205,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 	 * @param parent The parent composite. Must not be <code>null</code>.
 	 */
 	public TcpTransportSection(IManagedForm form, Composite parent) {
-		super(form, parent, Section.DESCRIPTION);
+		super(form, parent, ExpandableComposite.EXPANDED);
 		createClient(getSection(), form.getToolkit());
 	}
 
@@ -242,7 +243,6 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 
 		// Configure the section
 		section.setText(Messages.TcpTransportSection_title);
-		section.setDescription(Messages.TcpTransportSection_description);
 
 		if (section.getParent().getLayout() instanceof GridLayout) {
 			section.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
