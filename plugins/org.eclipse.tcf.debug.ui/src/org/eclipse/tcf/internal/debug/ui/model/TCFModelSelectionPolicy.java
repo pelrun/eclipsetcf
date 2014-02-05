@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
+import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
@@ -35,7 +36,10 @@ class TCFModelSelectionPolicy implements IModelSelectionPolicy {
             Object e = ss.getFirstElement();
             if (e instanceof TCFNode) {
                 TCFNode n = (TCFNode)e;
-                return !n.isDisposed() && n.model == model;
+                return n.model == model;
+            }
+            if (e instanceof TCFLaunch) {
+                return model.getLaunch() == e;
             }
         }
         return false;

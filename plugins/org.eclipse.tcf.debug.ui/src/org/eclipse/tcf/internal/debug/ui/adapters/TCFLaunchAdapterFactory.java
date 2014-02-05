@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import org.eclipse.debug.core.model.IDebugModelProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementContentProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementLabelProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelProxyFactory;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelSelectionPolicyFactory;
 import org.eclipse.debug.ui.contexts.ISuspendTrigger;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
@@ -26,6 +27,7 @@ public class TCFLaunchAdapterFactory implements IAdapterFactory {
     private static final Class<?>[] adapter_list = {
         IElementLabelProvider.class,
         IElementContentProvider.class,
+        IModelSelectionPolicyFactory.class,
         IModelProxyFactory.class,
         ISuspendTrigger.class,
         IPropertySource.class,
@@ -43,6 +45,7 @@ public class TCFLaunchAdapterFactory implements IAdapterFactory {
                 if (to.isInstance(model)) return model;
                 if (to == IPropertySource.class) return new TCFNodePropertySource(model.getRootNode());
                 if (to == IDebugModelProvider.class) return model.getAdapter(to, model.getRootNode());
+                if (to == IModelSelectionPolicyFactory.class) return model.getAdapter(to, model.getRootNode());
             }
             return null;
         }
