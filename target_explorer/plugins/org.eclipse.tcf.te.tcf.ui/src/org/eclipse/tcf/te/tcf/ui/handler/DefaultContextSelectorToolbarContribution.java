@@ -23,7 +23,6 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -61,6 +60,7 @@ import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.internal.actions.NewWizardShortcutAction;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
@@ -70,6 +70,7 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
 /**
  * Configurations control implementation.
  */
+@SuppressWarnings("restriction")
 public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution
 implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
@@ -305,13 +306,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 			IWizardDescriptor wizardDesc = NewWizardRegistry.getInstance().findWizard(wizardIds[0]);
 			if (wizardDesc == null) return;
 	    	IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-	    	try {
-	    		WizardDialog wd = new WizardDialog(window.getShell(), wizardDesc.createWizard());
-	    		wd.setTitle(Messages.NewTargetWizard_windowTitle);
-	    		wd.open();
-	    	}
-	    	catch (Exception e) {
-	    	}
+			new NewWizardShortcutAction(window, wizardDesc).run();
 		}
 		else {
 			TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$

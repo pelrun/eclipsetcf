@@ -16,7 +16,6 @@ import java.util.List;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -25,15 +24,17 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
-import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.internal.actions.NewWizardShortcutAction;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 
 /**
  * NewToolbarCommandHandler
  */
+@SuppressWarnings("restriction")
 public class NewToolbarCommandHandler extends AbstractHandler {
 
 	private String[] wizardIds;
@@ -71,28 +72,22 @@ public class NewToolbarCommandHandler extends AbstractHandler {
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		openNewWizard();
+		openNewWizard(event);
 	    return null;
 	}
 
-    private void openNewWizard() {
+    private void openNewWizard(ExecutionEvent event) {
     	init();
 		if (wizardIds.length == 1) {
 			IWizardDescriptor wizardDesc = NewWizardRegistry.getInstance().findWizard(wizardIds[0]);
 			if (wizardDesc == null) return;
-	    	IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-
-	    	try {
-	    		WizardDialog wd = new WizardDialog(window.getShell(), wizardDesc.createWizard());
-	    		wd.setTitle(Messages.NewTargetWizard_windowTitle);
-	    		wd.open();
-	    	}
-	    	catch (Exception e) {
-	    	}
+	    	IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+	        if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+			new NewWizardShortcutAction(window, wizardDesc).run();
 		}
 		else {
-			TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-			EventManager.getInstance().fireEvent(event);
+			TriggerCommandEvent e = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
+			EventManager.getInstance().fireEvent(e);
 		}
 	}
 }
