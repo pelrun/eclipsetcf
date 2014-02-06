@@ -137,13 +137,7 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		}
 
 		restoreWidgetValues();
-		if (data != null && sections != null) {
-			for (AbstractSection section : sections) {
-				if (section instanceof IDataExchangeNode) {
-					((IDataExchangeNode)section).setupData(data);
-				}
-			}
-		}
+		setupData(data);
 
 		applyDialogFont(scrolledForm.getBody());
 	}
