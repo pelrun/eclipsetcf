@@ -315,8 +315,51 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 				if (status.isOK()) {
 					// Process the new context node and merge it with the original context node
 					model.getService(IRuntimeModelUpdateService.class).update(node, container);
-					// Invoke the callbacks
-					invokeCallbacks(node, RuntimeModelRefreshService.this, status);
+
+					// Walk the tree on check the children at level 2 to determine if there are
+					// nodes which got expanded by the user and must be refreshed therefore too.
+					final List<IProcessContextNode> children = new ArrayList<IProcessContextNode>();
+					// Get the first level children from the model
+					List<IProcessContextNode> candidates = ((IProcessContextNode)node).getChildren(IProcessContextNode.class);
+					for (IProcessContextNode candidate : candidates) {
+						// If the child list got not queried for the candidate, skip it
+						IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)candidate.getAdapter(IAsyncRefreshableCtx.class);
+						Assert.isNotNull(refreshable);
+						if (refreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.DONE) continue;
+						// Get the second level children and find those candidates where
+						// the child list query is marked done. Add those candidates to
+						// the list of children to refresh too.
+						List<IProcessContextNode> candidates2 = candidate.getChildren(IProcessContextNode.class);
+						for (IProcessContextNode candidate2 : candidates2) {
+							// Get the asynchronous refreshable for the candidate
+							refreshable = (IAsyncRefreshableCtx)candidate2.getAdapter(IAsyncRefreshableCtx.class);
+							Assert.isNotNull(refreshable);
+							if (refreshable.getQueryState(QueryType.CHILD_LIST) != QueryState.DONE) continue;
+							// This child needs an additional refresh
+							children.add(candidate2);
+						}
+					}
+
+					// Run the auto-refresh logic for all children we have found
+					final ICallback callback = new Callback() {
+						@Override
+						protected void internalDone(Object caller, IStatus status) {
+							// Invoke the callbacks
+							invokeCallbacks(model, RuntimeModelRefreshService.this, status);
+						}
+					};
+
+					// Create the callback collector to fire once all refresh operations are completed
+					final AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
+
+					// Get the first level of children and check if they are need to be refreshed
+					if (children.size() > 0) {
+						// Initiate the refresh of the children
+						doAutoRefresh(model, children.toArray(new IProcessContextNode[children.size()]), 0, collector);
+					}
+
+					// Mark the collector initialization done
+					collector.initDone();
 				} else {
 					// Invoke the callbacks
 					invokeCallbacks(node, RuntimeModelRefreshService.this, status);
@@ -343,9 +386,33 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 
 		// Determine if there is already a model refresh running.
 		// A model refresh can be initiated via refresh(...) or autoRefresh(...).
+		final boolean isRefreshAlreadyRunning = ctx2cb.containsKey(model);
+
+		// Queue the callback to invoke once the refresh is done
+		List<ICallback> callbacks = ctx2cb.get(model);
+		if (callbacks == null) {
+			callbacks = new ArrayList<ICallback>();
+			ctx2cb.put(model, callbacks);
+		}
+		Assert.isNotNull(callbacks);
+		// Add the current callback to the list of callbacks
+		if (callback != null) callbacks.add(callback);
+
+		// If a refresh is already running, drop out. The callback is already
+		// queued and will be invoked once the refresh operation is done.
+		if (isRefreshAlreadyRunning) return;
+
+		// Create the inner callback which will invoke all queued callbacks
+		final ICallback innerCallback = new Callback() {
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				// Invoke the callbacks
+				invokeCallbacks(model, RuntimeModelRefreshService.this, status);
+			}
+		};
 
 		// Create the callback collector to fire once all refresh operations are completed
-		final AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
+		final AsyncCallbackCollector collector = new AsyncCallbackCollector(innerCallback, new CallbackInvocationDelegate());
 
 		// Get the first level of children and check if they are need to be refreshed
 		List<IProcessContextNode> children = model.getChildren(IProcessContextNode.class);
