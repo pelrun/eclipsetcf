@@ -305,7 +305,7 @@ public final class LogManager implements IProtocolStateChangeListener {
 		Assert.isNotNull(name);
 
 		String result = name.replaceAll("\\s", "_"); //$NON-NLS-1$ //$NON-NLS-2$
-		result = result.replaceAll("[:/\\;,]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+		result = result.replaceAll("[:/\\;,\\[\\]\\(\\)]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
 
 		return result;
 	}
