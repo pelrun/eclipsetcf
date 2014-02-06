@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.ui.handler;
 
 import java.util.EventObject;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.SWT;
@@ -28,6 +29,7 @@ import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
@@ -122,14 +124,21 @@ implements IWorkbenchContribution, IEventListener {
 		item.dispose();
 		toolbar.dispose();
 
+		if (menu != null && !menu.isDisposed()) {
+			menu.setVisible(false);
+			menu.dispose();
+			menu = null;
+		}
 		if (menuMgr != null) {
 			menuMgr.dispose();
+			menuMgr = null;
 		}
 	}
 
 	protected void onButtonClick() {
 		if (!clickRunning) {
 			clickRunning = true;
+			update();
 			createContextMenu(toolbar);
 			if (menu != null) {
 				Point point = toolbar.toDisplay(toolbar.getLocation());
@@ -145,7 +154,15 @@ implements IWorkbenchContribution, IEventListener {
 	 */
 	@Override
 	public void update() {
-		if (menuMgr != null) menuMgr.markDirty();
+		if (menu != null && !menu.isDisposed()) {
+			menu.setVisible(false);
+			menu.dispose();
+			menu = null;
+		}
+		if (menuMgr != null) {
+			menuMgr.dispose();
+		}
+
 		if (item != null && !item.isDisposed()) {
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 //			item.setEnabled(peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED);
@@ -168,26 +185,22 @@ implements IWorkbenchContribution, IEventListener {
 	}
 
 	protected void createContextMenu(Composite panel) {
-		if (menu == null || menuMgr == null || menuMgr.isDirty()) {
-			try {
-				if (menuMgr != null) menuMgr.dispose();
-				menuMgr = new MenuManager();
-				menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
-				menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
-				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
-				final IMenuService service = (IMenuService) serviceLocator.getService(IMenuService.class);
-				service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
-
-				if (menu != null && !menu.isDisposed()) {
-					menu.setVisible(false);
-					menu.dispose();
-				}
-				menu = menuMgr.createContextMenu(panel);
+		try {
+			menuMgr = new MenuManager();
+			menuMgr.add(new Separator("group.connect")); //$NON-NLS-1$
+			menuMgr.add(new Separator("group.launch")); //$NON-NLS-1$
+			menuMgr.add(new Separator("group.launch.rundebug")); //$NON-NLS-1$
+			menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
+			final IMenuService service = (IMenuService) serviceLocator.getService(IMenuService.class);
+			service.populateContributionManager(menuMgr, "menu:" + getId()); //$NON-NLS-1$
+			menu = menuMgr.createContextMenu(panel);
+		}
+		catch (Exception e) {
+			if (Platform.inDebugMode()) {
+				Platform.getLog(UIPlugin.getDefault().getBundle()).log(StatusHelper.getStatus(e));
 			}
-			catch (Exception e) {
-				menuMgr = null;
-				menu = null;
-			}
+			menuMgr = null;
+			menu = null;
 		}
 	}
 
@@ -200,11 +213,8 @@ implements IWorkbenchContribution, IEventListener {
 			ChangeEvent changeEvent = (ChangeEvent)event;
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 			if (changeEvent.getSource() instanceof IDefaultContextService ||
-							(changeEvent.getSource() == peerNode &&
-							(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) || "properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
-				if (menuMgr != null) {
-					menuMgr.markDirty();
-				}
+				(changeEvent.getSource() == peerNode &&
+				(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) || "properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
 				ExecutorsUtil.executeInUI(new Runnable() {
 					@Override
 					public void run() {

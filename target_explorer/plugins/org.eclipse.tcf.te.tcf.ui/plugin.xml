@@ -30,7 +30,6 @@
    <extension point="org.eclipse.ui.services">
       <sourceProvider provider="org.eclipse.tcf.te.tcf.ui.internal.SourceProvider">
          <variable name="defaultContextSelection" priorityLevel="workbench"/>
-         <variable name="peerNodes" priorityLevel="workbench"/>
       </sourceProvider>
    </extension>
 
