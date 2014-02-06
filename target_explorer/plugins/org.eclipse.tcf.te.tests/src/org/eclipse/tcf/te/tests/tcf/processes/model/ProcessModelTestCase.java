@@ -113,6 +113,11 @@ public class ProcessModelTestCase extends TcfTestCase {
 								});
 							}
 						}
+						// Ignore "No such process" errors as it may happen that a process
+						// is gone again while refreshing.
+						if (status.getSeverity() == IStatus.ERROR && "No such process".equals(status.getMessage())) { //$NON-NLS-1$
+							status = Status.OK_STATUS;
+						}
 						c1.done(caller, status);
 					}
 				});
