@@ -22,30 +22,11 @@ import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 public interface IModelRefreshService extends IModelService {
 
 	/**
-	 * Flag representing "no bits are set".
-	 */
-	public static final int NONE = 0x0;
-
-	/**
-	 * Flag to specify that only a refresh needs to be performed. No other operation besides the
-	 * refresh, like activating a node, should be performed.
-	 */
-	public static final int REFRESH_ONLY = 0x1;
-
-	/**
 	 * Refresh the content of the model from the top.
 	 *
 	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
 	 */
 	public void refresh(ICallback callback);
-
-	/**
-	 * Refresh the content of the model from the top using the specified flags.
-	 *
-	 * @param flags The flags. See the defined constants for details.
-	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
-	 */
-	public void refresh(int flags, ICallback callback);
 
 	/**
 	 * Full refresh the given node.
@@ -54,13 +35,4 @@ public interface IModelRefreshService extends IModelService {
 	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
 	 */
 	public void refresh(IModelNode node, ICallback callback);
-
-	/**
-	 * Refresh the given node using the specified flags.
-	 *
-	 * @param node The node. Must not be <code>null</code>.
-	 * @param flags The flags. See the defined constants for details.
-	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
-	 */
-	public void refresh(IModelNode node, int flags, ICallback callback);
 }

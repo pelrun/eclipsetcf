@@ -152,15 +152,6 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	@Override
 	public void refresh(final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		refresh(NONE, callback);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService#refresh(int, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
-	 */
-	@Override
-	public void refresh(final int flags, final ICallback callback) {
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the parent model
 		final IRuntimeModel model = getModel();
@@ -264,16 +255,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService#refresh(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void refresh(IModelNode node, ICallback callback) {
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		refresh(node, NONE, callback);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService#refresh(org.eclipse.tcf.te.runtime.model.interfaces.IModelNode, int, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
-	 */
-	@Override
-	public void refresh(final IModelNode node, final int flags, final ICallback callback) {
+	public void refresh(final IModelNode node, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(node);
 
