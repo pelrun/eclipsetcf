@@ -50,10 +50,34 @@ public class TreeViewerListener implements ITreeViewerListener {
     	if (element instanceof IProcessContextNode) {
     		final IProcessContextNode node = (IProcessContextNode)element;
 
+    		// Flag that tells if the node shall be refreshed
+    		boolean needsRefresh = false;
+
     		// Get the asynchronous refresh context adapter
     		final IAsyncRefreshableCtx refreshable = (IAsyncRefreshableCtx)node.getAdapter(IAsyncRefreshableCtx.class);
-    		// Trigger a refresh of the expanded node if the child list query is still pending
-    		if (refreshable != null && refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.PENDING)) {
+    		Assert.isNotNull(refreshable);
+    		// The node needs to be refreshed if the child list query is not done
+    		if (refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.PENDING)) {
+    			needsRefresh = true;
+    		}
+    		else if (refreshable.getQueryState(QueryType.CHILD_LIST).equals(QueryState.DONE)) {
+    			// Our policy is that the current node and it's level 1 children are always
+    			// fully refreshed. The child list query for the current node is not pending,
+    			// so check the children nodes if they need a refresh
+    			for (final IProcessContextNode candidate : node.getChildren(IProcessContextNode.class)) {
+    	    		// Get the asynchronous refresh context adapter
+    	    		final IAsyncRefreshableCtx r = (IAsyncRefreshableCtx)candidate.getAdapter(IAsyncRefreshableCtx.class);
+    	    		Assert.isNotNull(r);
+    				// If the child list query state is still pending, set the flag and break out of the loop
+    	    		if (r.getQueryState(QueryType.CHILD_LIST).equals(QueryState.PENDING)) {
+    	    			needsRefresh = true;
+    	    			break;
+    	    		}
+    			}
+    		}
+
+    		// If the node needs to be refreshed, refresh it now.
+    		if (needsRefresh) {
     			// Mark the refresh as in progress
     			refreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
     			// Create a new pending operation node and associate it with the refreshable
