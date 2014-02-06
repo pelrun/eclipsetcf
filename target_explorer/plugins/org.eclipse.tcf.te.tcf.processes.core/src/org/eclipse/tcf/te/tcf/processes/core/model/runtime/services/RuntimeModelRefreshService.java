@@ -345,7 +345,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							// Invoke the callbacks
-							invokeCallbacks(model, RuntimeModelRefreshService.this, status);
+							invokeCallbacks(node, RuntimeModelRefreshService.this, status);
 						}
 					};
 
