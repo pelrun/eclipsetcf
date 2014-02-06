@@ -46,6 +46,8 @@ class TCFModelSelectionPolicy implements IModelSelectionPolicy {
     }
 
     public boolean isSticky(ISelection selection, IPresentationContext context) {
+        // Selection candidate is from another model,
+        // return true if it is OK to give up selection.
         if (selection instanceof IStructuredSelection) {
             IStructuredSelection ss = (IStructuredSelection)selection;
             Object e = ss.getFirstElement();
@@ -81,6 +83,8 @@ class TCFModelSelectionPolicy implements IModelSelectionPolicy {
     }
 
     public boolean overrides(ISelection existing, ISelection candidate, IPresentationContext context) {
+        // Both existing and candidate selection belong to this model.
+        // Return true if it is OK to move selection.
         if (IDebugUIConstants.ID_DEBUG_VIEW.equals(context.getId())) {
             if (existing instanceof IStructuredSelection && candidate instanceof IStructuredSelection) {
                 Object el_existing = ((IStructuredSelection)existing).getFirstElement();
