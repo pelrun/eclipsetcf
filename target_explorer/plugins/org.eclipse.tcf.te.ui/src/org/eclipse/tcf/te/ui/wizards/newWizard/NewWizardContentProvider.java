@@ -11,10 +11,12 @@ package org.eclipse.tcf.te.ui.wizards.newWizard;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.activities.WorkbenchActivityHelper;
 import org.eclipse.ui.wizards.IWizardCategory;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.eclipse.ui.wizards.IWizardRegistry;
@@ -79,6 +81,13 @@ public class NewWizardContentProvider implements ITreeContentProvider {
 				}
 			}
 			children.addAll(Arrays.asList(((IWizardCategory)parentElement).getWizards()));
+
+			Iterator<Object> it = children.iterator();
+			while (it.hasNext()) {
+				if (WorkbenchActivityHelper.filterItem(it.next())) {
+					it.remove();
+				}
+			}
 
 			return children.toArray();
 		}
