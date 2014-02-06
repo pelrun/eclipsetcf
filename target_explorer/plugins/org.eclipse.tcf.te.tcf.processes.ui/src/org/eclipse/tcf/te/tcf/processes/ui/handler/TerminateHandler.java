@@ -30,6 +30,7 @@ import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshServic
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.steps.TerminateStep;
 import org.eclipse.tcf.te.tcf.processes.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
@@ -72,15 +73,21 @@ public class TerminateHandler extends AbstractHandler implements IElementUpdater
 										model.getService(IModelUpdateService.class).remove(process);
 									} else {
 										// Even on error, refresh the process node. Some children might be gone.
+										// But the error message must be for the original status object
+										final IStatus realStatus = status;
 										IModel model = process.getParent(IModel.class);
 										Assert.isNotNull(model);
 										model.getService(IModelRefreshService.class).refresh(process, new Callback() {
 											@Override
                                             protected void internalDone(Object caller, IStatus status) {
+												IPeerNode node = process.getParent(IRuntimeModel.class).getPeerNode();
+												IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
+												IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
+												String text = delegate != null ? delegate.getMessage("TerminateHandler_terminateFailed") : null; //$NON-NLS-1$
 												// Build up the message template
-												String template = NLS.bind(Messages.TerminateHandler_terminateFailed, process.getName(), Messages.PossibleCause);
+												String template = NLS.bind(text != null ? text : Messages.TerminateHandler_terminateFailed, process.getName(), Messages.PossibleCause);
 												// Handle the status
-												StatusHandlerUtil.handleStatus(status, process, template, null, IContextHelpIds.MESSAGE_TERMINATE_FAILED, TerminateHandler.this, null);
+												StatusHandlerUtil.handleStatus(realStatus, process, template, null, IContextHelpIds.MESSAGE_TERMINATE_FAILED, TerminateHandler.this, null);
 											}
 										});
 									}
