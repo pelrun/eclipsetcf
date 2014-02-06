@@ -58,6 +58,9 @@ public class NewWizardContentProvider implements ITreeContentProvider {
 				children.addAll(Arrays.asList(getChildren(category)));
 			}
 		}
+		else if (inputElement instanceof IWizardCategory) {
+			return getChildren(inputElement);
+		}
 
 		return children.toArray();
 	}

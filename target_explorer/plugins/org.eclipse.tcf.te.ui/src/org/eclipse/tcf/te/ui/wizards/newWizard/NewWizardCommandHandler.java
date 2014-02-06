@@ -23,7 +23,7 @@ public class NewWizardCommandHandler extends AbstractWizardCommandHandler {
      */
     @Override
     protected IWizard createWizard() {
-		return new NewWizard();
+		return new NewWizard(null);
 	}
 
     /* (non-Javadoc)

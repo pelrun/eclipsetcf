@@ -664,7 +664,7 @@
       
       <handler
             commandId="org.eclipse.ui.navigator.Open"
-            class="org.eclipse.tcf.te.ui.views.handler.NewWizardHandler">
+            class="org.eclipse.tcf.te.ui.views.handler.NewWizardNodeHandler">
          <activeWhen>
             <and>
                <with variable="activePartId">

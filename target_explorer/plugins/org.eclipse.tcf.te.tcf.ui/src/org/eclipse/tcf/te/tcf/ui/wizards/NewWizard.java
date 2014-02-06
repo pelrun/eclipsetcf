@@ -49,7 +49,7 @@ import org.eclipse.ui.IWorkbench;
 /**
  * New peer wizard implementation.
  */
-public class NewConfigWizard extends AbstractNewConfigWizard {
+public class NewWizard extends AbstractNewConfigWizard {
 	// Session wide new peer counter
 	private final static AtomicInteger counter = new AtomicInteger();
 

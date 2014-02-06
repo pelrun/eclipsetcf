@@ -19,6 +19,7 @@ import org.eclipse.tcf.te.ui.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.nls.Messages;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.wizards.IWizardCategory;
 
 /**
  * The New Target wizard implementation.
@@ -34,7 +35,7 @@ public final class NewWizard extends Wizard implements INewWizard {
 	/**
 	 * Constructor.
 	 */
-	public NewWizard() {
+	public NewWizard(String categoryId) {
 		super();
 		setWindowTitle(Messages.NewWizard_dialog_title);
 		setForcePreviousAndNextButtons(true);
@@ -47,7 +48,8 @@ public final class NewWizard extends Wizard implements INewWizard {
 		setDialogSettings(settings.getSection(sectionName));
 
 		wizardRegistry = NewWizardRegistry.getInstance();
-		mainPage = new NewWizardSelectionPage(wizardRegistry);
+		IWizardCategory category = categoryId != null ? wizardRegistry.findCategory(categoryId): null;
+		mainPage = new NewWizardSelectionPage(wizardRegistry, category);
 	}
 
 	/* (non-Javadoc)

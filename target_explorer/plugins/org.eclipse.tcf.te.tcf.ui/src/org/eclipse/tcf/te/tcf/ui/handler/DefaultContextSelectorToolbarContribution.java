@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
 
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -40,11 +41,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -52,25 +50,19 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
-import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.actions.NewWizardShortcutAction;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 import org.eclipse.ui.services.IServiceLocator;
-import org.eclipse.ui.wizards.IWizardDescriptor;
 
 /**
  * Configurations control implementation.
  */
-@SuppressWarnings("restriction")
 public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution
 implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
@@ -78,8 +70,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	private Label image = null;
 	private Label text = null;
 	private Button button = null;
-
-	private String[] wizardIds;
 
 	IServiceLocator serviceLocator = null;
 
@@ -102,27 +92,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	 */
 	public DefaultContextSelectorToolbarContribution(String id) {
 		super(id);
-	}
-
-	protected void init() {
-		IPeerModel peerModel = ModelManager.getPeerModel();
-		IService[] services = ServiceManager.getInstance().getServices(peerModel, IUIService.class, false);
-		List<String> ids = new ArrayList<String>();
-		for (IService service : services) {
-	        if (service instanceof IUIService) {
-	        	IDefaultContextToolbarDelegate delegate = ((IUIService)service).getDelegate(peerModel, IDefaultContextToolbarDelegate.class);
-	        	if (delegate != null) {
-	        		String[] newIds = delegate.getToolbarNewConfigWizardIds(peerModel);
-	        		if (newIds != null) {
-	        			for (String newId : newIds) {
-	        				if (!ids.contains(newId)) ids.add(newId);
-                        }
-	        		}
-	        	}
-	        }
-        }
-
-		wizardIds = ids.toArray(new String[ids.size()]);
 	}
 
 	/* (non-Javadoc)
@@ -301,17 +270,11 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	}
 
     protected void openNewWizard() {
-		init();
-		if (wizardIds.length == 1) {
-			IWizardDescriptor wizardDesc = NewWizardRegistry.getInstance().findWizard(wizardIds[0]);
-			if (wizardDesc == null) return;
-	    	IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-			new NewWizardShortcutAction(window, wizardDesc).run();
-		}
-		else {
-			TriggerCommandEvent event = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-			EventManager.getInstance().fireEvent(event);
-		}
+    	try {
+    		new NewToolbarWizardHandler().execute(new ExecutionEvent());
+    	}
+    	catch (Exception e) {
+    	}
 	}
 
 	/* (non-Javadoc)

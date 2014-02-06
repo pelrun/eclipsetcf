@@ -86,6 +86,7 @@ public class NewWizardSelectionPage extends WizardPage {
 
 	// The new target wizard registry
 	private NewWizardRegistry wizardRegistry;
+	private IWizardCategory category;
 
 	// References to the page subcontrol's
 	private FilteredTree filteredTree;
@@ -179,7 +180,7 @@ public class NewWizardSelectionPage extends WizardPage {
 	 *
 	 * @param wizardRegistry The new target wizard registry. Must not be <code>null</code>.
 	 */
-	public NewWizardSelectionPage(NewWizardRegistry wizardRegistry) {
+	public NewWizardSelectionPage(NewWizardRegistry wizardRegistry, IWizardCategory category) {
 		super(NewWizardSelectionPage.class.getSimpleName());
 
 		setTitle(getDefaultTitle());
@@ -187,6 +188,7 @@ public class NewWizardSelectionPage extends WizardPage {
 
 		Assert.isNotNull(wizardRegistry);
 		this.wizardRegistry = wizardRegistry;
+		this.category = category;
 	}
 
 	/**
@@ -264,7 +266,7 @@ public class NewWizardSelectionPage extends WizardPage {
 			}
 		});
 
-		treeViewer.setInput(wizardRegistry);
+		treeViewer.setInput(category != null ? category : wizardRegistry);
 
 		// apply the standard dialog font
 		Dialog.applyDialogFont(composite);
@@ -434,25 +436,27 @@ public class NewWizardSelectionPage extends WizardPage {
 	public void restoreWidgetValues() {
 		IDialogSettings settings = getDialogSettings();
 		if (settings != null) {
-			String[] expandedCategories = settings.getArray(EXPANDED_CATEGORIES_SETTINGS_ID);
-			// by default we expand always the "General" category.
-			if (expandedCategories == null) {
-				expandedCategories = DEFAULT_EXPANDED_CATEGORY_IDS;
-			}
-			if (expandedCategories != null) {
-				List<IWizardCategory> expanded = new ArrayList<IWizardCategory>();
-				for (String expandedCategorie : expandedCategories) {
-					String categoryId = expandedCategorie;
-					if (categoryId != null && !"".equals(categoryId.trim())) { //$NON-NLS-1$
-						IWizardCategory category = wizardRegistry.findCategory(categoryId);
-						if (category != null && !expanded.contains(category)) {
-							expanded.add(category);
+			if (category == null) {
+				String[] expandedCategories = settings.getArray(EXPANDED_CATEGORIES_SETTINGS_ID);
+				// by default we expand always the "General" category.
+				if (expandedCategories == null) {
+					expandedCategories = DEFAULT_EXPANDED_CATEGORY_IDS;
+				}
+				if (expandedCategories != null) {
+					List<IWizardCategory> expanded = new ArrayList<IWizardCategory>();
+					for (String expandedCategorie : expandedCategories) {
+						String categoryId = expandedCategorie;
+						if (categoryId != null && !"".equals(categoryId.trim())) { //$NON-NLS-1$
+							IWizardCategory category = wizardRegistry.findCategory(categoryId);
+							if (category != null && !expanded.contains(category) && category.getWizards().length > 0) {
+								expanded.add(category);
+							}
 						}
 					}
-				}
 
-				if (expanded.size() > 0) {
-					filteredTree.getViewer().setExpandedElements(expanded.toArray());
+					if (expanded.size() > 0) {
+						filteredTree.getViewer().setExpandedElements(expanded.toArray());
+					}
 				}
 			}
 

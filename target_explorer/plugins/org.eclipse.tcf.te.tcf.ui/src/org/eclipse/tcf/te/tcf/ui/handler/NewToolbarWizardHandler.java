@@ -13,40 +13,43 @@ package org.eclipse.tcf.te.tcf.ui.handler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
-import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardRegistry;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.handlers.HandlerUtil;
-import org.eclipse.ui.internal.actions.NewWizardShortcutAction;
-import org.eclipse.ui.wizards.IWizardDescriptor;
+import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.wizards.newWizard.AbstractNewSingleWizardHandler;
+import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizard;
 
 /**
- * NewToolbarCommandHandler
+ * AbstractNewSingleWizardHandler
  */
-@SuppressWarnings("restriction")
-public class NewToolbarCommandHandler extends AbstractHandler {
-
-	private String[] wizardIds;
+public class NewToolbarWizardHandler extends AbstractNewSingleWizardHandler {
 
 	/**
      * Constructor.
      */
-    public NewToolbarCommandHandler() {
+    public NewToolbarWizardHandler() {
     	super();
     }
 
-	private void init() {
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.wizards.newWizard.NewWizardCommandHandler#createWizard()
+     */
+    @Override
+    protected IWizard createWizard() {
+    	NewWizard wizard = new NewWizard("org.eclipse.tcf.te.tcf.ui.newWizards.category.configurations"); //$NON-NLS-1$
+    	wizard.setWindowTitle(Messages.NewTargetWizardPage_title);
+        return wizard;
+    }
+
+	@Override
+    protected String getWizardId(ExecutionEvent event) {
 		IPeerModel peerModel = ModelManager.getPeerModel();
 		IService[] services = ServiceManager.getInstance().getServices(peerModel, IUIService.class, false);
 		List<String> ids = new ArrayList<String>();
@@ -64,30 +67,6 @@ public class NewToolbarCommandHandler extends AbstractHandler {
 	        }
         }
 
-		wizardIds = ids.toArray(new String[ids.size()]);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
-	 */
-	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		openNewWizard(event);
-	    return null;
-	}
-
-    private void openNewWizard(ExecutionEvent event) {
-    	init();
-		if (wizardIds.length == 1) {
-			IWizardDescriptor wizardDesc = NewWizardRegistry.getInstance().findWizard(wizardIds[0]);
-			if (wizardDesc == null) return;
-	    	IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-	        if (window == null) window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-			new NewWizardShortcutAction(window, wizardDesc).run();
-		}
-		else {
-			TriggerCommandEvent e = new TriggerCommandEvent(this, "org.eclipse.tcf.te.ui.command.newWizards"); //$NON-NLS-1$
-			EventManager.getInstance().fireEvent(e);
-		}
+		return ids.size() == 1 ? ids.get(0) : null;
 	}
 }

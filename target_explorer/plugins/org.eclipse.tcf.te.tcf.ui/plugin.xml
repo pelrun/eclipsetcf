@@ -248,7 +248,7 @@
       <wizard
             canFinishEarly="false"
             category="org.eclipse.tcf.te.tcf.ui.newWizards.category.configurations"
-            class="org.eclipse.tcf.te.tcf.ui.wizards.NewConfigWizard"
+            class="org.eclipse.tcf.te.tcf.ui.wizards.NewWizard"
             hasPages="true"
             icon="icons/elcl16/newTarget_wiz.gif"
             id="org.eclipse.tcf.te.tcf.ui.wizards.NewTargetWizard"
@@ -770,7 +770,7 @@
 
       <handler
             commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
-            class="org.eclipse.tcf.te.tcf.ui.handler.NewToolbarCommandHandler">
+            class="org.eclipse.tcf.te.tcf.ui.handler.NewToolbarWizardHandler">
       </handler>
 
       <handler
