@@ -477,8 +477,13 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
                 files.realpath(tmp_path, this);
             }
             else if (state == STATE_WRITE) {
-                state = STATE_READ;
-                files.open(file_name, IFileSystem.TCF_O_READ, null, this);
+                testSetStat(new Runnable() {
+                    @Override
+                    public void run() {
+                        state = STATE_READ;
+                        files.open(file_name, IFileSystem.TCF_O_READ, null, TestFileSystem.this);
+                    }
+                });
             }
             else if (state == STATE_READ) {
                 state = STATE_OUT;
@@ -539,6 +544,74 @@ class TestFileSystem implements ITCFTest, IFileSystem.DoneStat,
         else {
             assert false;
         }
+    }
+
+    private void testSetStat(final Runnable done) {
+        files.stat(file_name, new IFileSystem.DoneStat() {
+            @Override
+            public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
+                if (error != null) {
+                    exit(error);
+                    return;
+                }
+                FileAttrs new_attrs = new FileAttrs(
+                        IFileSystem.ATTR_SIZE | IFileSystem.ATTR_ACMODTIME,
+                        attrs.size, 0, 0, 0, attrs.atime, attrs.mtime, null);
+                files.setstat(file_name, new_attrs, new IFileSystem.DoneSetStat() {
+                    @Override
+                    public void doneSetStat(IToken token, FileSystemException error) {
+                        if (error != null) {
+                            exit(error);
+                            return;
+                        }
+                        testFSetStat(done);
+                    }
+                });
+            }
+        });
+    }
+
+    private void testFSetStat(final Runnable done) {
+        files.open(file_name, IFileSystem.TCF_O_WRITE, null, new IFileSystem.DoneOpen() {
+            @Override
+            public void doneOpen(IToken token, FileSystemException error, final IFileHandle handle) {
+                if (error != null) {
+                    exit(error);
+                    return;
+                }
+                files.fstat(handle, new IFileSystem.DoneStat() {
+                    @Override
+                    public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
+                        if (error != null) {
+                            exit(error);
+                            return;
+                        }
+                        FileAttrs new_attrs = new FileAttrs(
+                                IFileSystem.ATTR_SIZE | IFileSystem.ATTR_ACMODTIME,
+                                attrs.size, 0, 0, 0, attrs.atime, attrs.mtime, null);
+                        files.fsetstat(handle, new_attrs, new IFileSystem.DoneSetStat() {
+                            @Override
+                            public void doneSetStat(IToken token, FileSystemException error) {
+                                if (error != null) {
+                                    exit(error);
+                                    return;
+                                }
+                                files.close(handle, new IFileSystem.DoneClose() {
+                                    @Override
+                                    public void doneClose(IToken token, FileSystemException error) {
+                                        if (error != null) {
+                                            exit(error);
+                                            return;
+                                        }
+                                        done.run();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     private void exit(Throwable x) {
