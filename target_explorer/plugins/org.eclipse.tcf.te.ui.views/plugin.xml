@@ -621,13 +621,13 @@
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter"
             contextId="org.eclipse.tcf.te.ui.views.View"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+T">
+            sequence="M1+Q">
       </key>
       <key
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter"
             contextId="org.eclipse.tcf.te.ui.views.Editor"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+T">
+            sequence="M1+Q">
       </key>
       <key
             commandId="org.eclipse.tcf.te.ui.views.command.resetfilter"
