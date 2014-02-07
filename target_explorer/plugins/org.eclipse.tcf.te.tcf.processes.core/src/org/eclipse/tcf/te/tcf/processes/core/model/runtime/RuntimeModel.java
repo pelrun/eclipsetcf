@@ -24,12 +24,14 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryState;
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.runtime.model.interfaces.factory.IFactory;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelLookupService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelLookupService;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
@@ -87,6 +89,12 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 
 		// No initial context query required
 		refreshableCtxAdapter.setQueryState(QueryType.CONTEXT, QueryState.DONE);
+
+		// Restore the auto refresh interval
+		ScopedEclipsePreferences prefs = CoreBundleActivator.getScopedPreferences();
+		if (prefs.containsKey(peerNode.getPeerId() + ".autoRefreshInterval")) { //$NON-NLS-1$
+			setAutoRefreshInterval(prefs.getInt(peerNode.getPeerId() + ".autoRefreshInterval")); //$NON-NLS-1$
+		}
 	}
 
 	/* (non-Javadoc)
@@ -201,6 +209,10 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 		this.interval = interval;
 		// If the interval has changed, start/stop the auto-refresh and send a change notification
 		if (oldInterval != interval) {
+			// Save the current auto refresh interval to the plugin preferences
+			ScopedEclipsePreferences prefs = CoreBundleActivator.getScopedPreferences();
+			prefs.putInt(peerNode.getPeerId() + ".autoRefreshInterval", interval); //$NON-NLS-1$
+
 			// Get the auto-refresh started if not yet scheduled
 			if (interval != 0 && timer == null) {
 				// Create the timer task to schedule

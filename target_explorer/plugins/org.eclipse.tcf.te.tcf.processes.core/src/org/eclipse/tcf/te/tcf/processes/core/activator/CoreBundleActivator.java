@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.processes.core.activator;
 
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -24,6 +25,8 @@ import org.osgi.framework.BundleContext;
 public class CoreBundleActivator extends Plugin {
 	// The bundle context
 	private static BundleContext context;
+	// The scoped preferences instance
+	private static volatile ScopedEclipsePreferences scopedPreferences;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
 	// The locator model listener instance
@@ -58,6 +61,16 @@ public class CoreBundleActivator extends Plugin {
 			return getContext().getBundle().getSymbolicName();
 		}
 		return "org.eclipse.tcf.te.tcf.processes.core"; //$NON-NLS-1$
+	}
+
+	/**
+	 * Return the scoped preferences for this plugin.
+	 */
+	public static ScopedEclipsePreferences getScopedPreferences() {
+		if (scopedPreferences == null) {
+			scopedPreferences = new ScopedEclipsePreferences(getUniqueIdentifier());
+		}
+		return scopedPreferences;
 	}
 
 	/**
@@ -102,6 +115,8 @@ public class CoreBundleActivator extends Plugin {
 	public void stop(BundleContext bundleContext) throws Exception {
 		CoreBundleActivator.context = null;
 		plugin = null;
+		scopedPreferences = null;
+		traceHandler = null;
 
 		// Remove the model listener from the locator model
 		if (listener != null) {
