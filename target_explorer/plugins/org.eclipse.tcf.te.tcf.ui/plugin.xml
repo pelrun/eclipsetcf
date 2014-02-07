@@ -339,7 +339,7 @@
          <menu
                id="org.eclipse.tcf.te.tcf.ui.main.menu.system"
                label="%menu.system.label"
-               mnemonic="y">
+               mnemonic="%menu.system.mnemonic">
 	         <separator name="group.connect" visible="false"/>
 	         <separator name="group.launch" visible="true"/>
 	         <separator name="group.launch.rundebug" visible="true"/>
@@ -549,7 +549,9 @@
 
    <!-- Main toolbar contribution -->
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?before=additions">
-         <toolbar id="org.eclipse.tcf.te.tcf.ui.toolbar">
+         <toolbar
+               id="org.eclipse.tcf.te.tcf.ui.toolbar"
+               label="%toolbar.label">
             <separator name="group.selector" visible="false"/>
             <separator name="group.connect" visible="false"/>
             <separator name="group.actions" visible="true"/>
