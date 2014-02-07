@@ -66,4 +66,12 @@ public interface IProcessMonitorUIDelegate {
 	 * @return The list of searchables to use or <code>null</code>.
 	 */
 	public ISearchable[] getSearchables(IPeerNode node);
+
+	/**
+	 * Returns the number of levels to auto expand.
+	 * If the method returns <code>0</code>, no auto expansion will happen
+	 *
+	 * @return The number of levels to auto expand or <code>0</code>.
+	 */
+	public int getAutoExpandLevel();
 }

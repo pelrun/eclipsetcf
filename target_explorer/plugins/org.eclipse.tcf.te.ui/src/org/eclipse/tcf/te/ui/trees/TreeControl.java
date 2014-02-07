@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbenchPart;
 
 /**
- * A declarative tree control implementation that extends AbstractTreeControl. 
+ * A declarative tree control implementation that extends AbstractTreeControl.
  */
 public class TreeControl extends AbstractTreeControl {
 	// The tree viewer's id.
@@ -30,10 +30,10 @@ public class TreeControl extends AbstractTreeControl {
 	private TreeViewerExtension viewerExtension;
 	// The viewer descriptor parsed from the viewer extensions
 	private ViewerDescriptor viewerDescriptor;
-	
+
 	/**
 	 * Create an instance of TreeControl with a viewerId.
-	 * 
+	 *
 	 * @param viewerId The viewer id.
 	 */
 	public TreeControl(String viewerId) {
@@ -44,7 +44,7 @@ public class TreeControl extends AbstractTreeControl {
 
 	/**
 	 * Create an instance of TreeControl with a viewerId in a workbench part.
-	 * 
+	 *
 	 * @param viewerId The viewer id.
 	 * @param parentPart the workbench part in which the tree control is created.
 	 */

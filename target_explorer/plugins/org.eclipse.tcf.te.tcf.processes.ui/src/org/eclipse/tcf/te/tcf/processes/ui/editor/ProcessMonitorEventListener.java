@@ -13,9 +13,11 @@ import java.util.EventObject;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -24,6 +26,7 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNod
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
 import org.eclipse.tcf.te.ui.events.AbstractEventListener;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
 
 /**
@@ -31,7 +34,7 @@ import org.eclipse.tcf.te.ui.trees.TreeControl;
  */
 public class ProcessMonitorEventListener extends AbstractEventListener {
 	// Reference to the parent tree control
-	private final TreeControl treeControl;
+	/* default */ final TreeControl treeControl;
 
 	/**
      * Constructor.
@@ -71,21 +74,42 @@ public class ProcessMonitorEventListener extends AbstractEventListener {
 				}
 
 				else if (source instanceof IPeerNode && source == getPeerNode()) {
-					if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) &&
-									changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_CONNECTED))) {
-						// Get the new runtime model
-						final IRuntimeModel model = ModelManager.getRuntimeModel(getPeerNode());
-						// Update the tree viewer input element
-						if (treeControl.getViewer().getInput() != model) {
-							treeControl.getViewer().setInput(model);
-						}
-						// Refresh the model
-						Protocol.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								model.getService(IRuntimeModelRefreshService.class).refresh(null);
+					if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId())) {
+						// Peer node connect state changed to connected
+						if (changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_CONNECTED))) {
+							// Get the new runtime model
+							final IRuntimeModel model = ModelManager.getRuntimeModel(getPeerNode());
+							// Update the tree viewer input element
+							if (treeControl.getViewer().getInput() != model) {
+								treeControl.getViewer().setInput(model);
 							}
-						});
+							// Refresh the model
+							Protocol.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									model.getService(IRuntimeModelRefreshService.class).refresh(new Callback() {
+										@Override
+										protected void internalDone(Object caller, IStatus status) {
+											// Apply the auto expand level to the tree
+											final TreeViewer treeViewer = (TreeViewer)treeControl.getViewer();
+											DisplayUtil.safeAsyncExec(new Runnable() {
+												@Override
+												public void run() {
+													treeViewer.expandToLevel(treeViewer.getAutoExpandLevel());
+												}
+											});
+										}
+									});
+								}
+							});
+						}
+						// Peer node connect state changed to disconnected or disconnecting
+						else if (changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_DISCONNECT_SCHEDULED))
+									|| changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_DISCONNECTING))
+									|| changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_DISCONNECTED))) {
+							// Trigger a refresh on the whole viewer to show the "Please connect ..." text
+							treeControl.getViewer().refresh();
+						}
 					}
 				}
 			}

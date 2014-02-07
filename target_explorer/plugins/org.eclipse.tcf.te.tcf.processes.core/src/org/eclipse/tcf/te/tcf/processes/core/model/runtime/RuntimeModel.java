@@ -9,19 +9,14 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.core.model.runtime;
 
-import java.util.EventObject;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.runtime.events.ChangeEvent;
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.contexts.AsyncRefreshableCtxAdapter;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
@@ -35,7 +30,6 @@ import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshServic
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelLookupService;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
@@ -76,8 +70,6 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	// The auto-refresh timer
 	/* default */ Timer timer = null;
 
-	private IEventListener listener = null;
-
 	/**
 	 * Constructor.
 	 *
@@ -92,28 +84,6 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 
 		Assert.isNotNull(peerNode);
 		this.peerNode = peerNode;
-
-		if (listener == null) {
-			listener = new IEventListener() {
-				@Override
-				public void eventFired(EventObject event) {
-					if (event instanceof ChangeEvent) {
-						final ChangeEvent changeEvent = (ChangeEvent)event;
-						Protocol.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								if (getPeerNode() == changeEvent.getSource() && IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId())) {
-									if (!changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_CONNECTED))) {
-										clear();
-									}
-								}
-							}
-						});
-					}
-				}
-			};
-			EventManager.getInstance().addEventListener(listener, ChangeEvent.class);
-		}
 
 		// No initial context query required
 		refreshableCtxAdapter.setQueryState(QueryType.CONTEXT, QueryState.DONE);
@@ -134,10 +104,6 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	public void dispose() {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
 		disposed = true;
-
-		if (listener != null) {
-			EventManager.getInstance().removeEventListener(listener);
-		}
 
 		// Close the active channel (if any)
 		channelService.closeChannel();
