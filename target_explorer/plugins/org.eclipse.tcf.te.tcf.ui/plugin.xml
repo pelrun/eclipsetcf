@@ -336,8 +336,10 @@
 
    <!-- Main menu contributions -->
       <menuContribution locationURI="menu:org.eclipse.ui.main.menu">
-         <menu label="%menu.system.label" 
-               id="org.eclipse.tcf.te.tcf.ui.main.menu.system">
+         <menu
+               id="org.eclipse.tcf.te.tcf.ui.main.menu.system"
+               label="%menu.system.label"
+               mnemonic="y">
 	         <separator name="group.connect" visible="false"/>
 	         <separator name="group.launch" visible="true"/>
 	         <separator name="group.launch.rundebug" visible="true"/>
