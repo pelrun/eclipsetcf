@@ -234,19 +234,12 @@ public class StepExecutor implements IStepExecutor {
 		}
 
 		// Format the core message
-		String formattedMessage = NLS.bind(template,
-						new String[] {
-							stepper.getLabel(),
-							status.getMessage(),
-							(step.getLabel() != null && step.getLabel().trim().length() > 0 ? step.getLabel() : step.getId()),
-							context.getName()
-						});
+		String formattedMessage = NLS.bind(template, new String[] { stepper.getLabel(), status.getMessage(), step.getLabel() != null && step.getLabel().trim().length() > 0 ? step.getLabel() : step.getId() });
 
 		// In debug mode, there is even more information to add
 		if (Platform.inDebugMode()) {
 			String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
-
-			formattedMessage += NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, id.toString().replaceAll("/>", "/>\n"), date); //$NON-NLS-1$ //$NON-NLS-2$
+			formattedMessage += NLS.bind(Messages.StepExecutor_stepFailed_debugInfo, new String[] { context.getName(), id.toString().replaceAll("/>", "/>\n"), date }); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		return formattedMessage;
