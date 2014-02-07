@@ -108,12 +108,12 @@ public class TCFThreadFilterEditor {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof Context && fId.equals(((Context)obj).fId);
+            return obj instanceof Context && fScopeId.equals(((Context)obj).fScopeId);
         }
 
         @Override
         public int hashCode() {
-            return fId.hashCode();
+            return fScopeId.hashCode();
         }
     }
 
@@ -137,9 +137,9 @@ public class TCFThreadFilterEditor {
         private void checkLaunch(ILaunch launch, boolean checked) {
             getThreadViewer().setChecked(launch, checked);
             getThreadViewer().setGrayed(launch, false);
-            Context[] threads = syncGetContainers((TCFLaunch) launch);
+            Object[] threads = fContentProvider.getChildren(launch);
             for (int i = 0; i < threads.length; i++) {
-                checkContext(threads[i], checked);
+                checkContext((Context) threads[i], checked);
             }
         }
 
@@ -150,9 +150,9 @@ public class TCFThreadFilterEditor {
          */
         private void checkContext(Context ctx, boolean checked) {
             if (ctx.fIsContainer) {
-                Context[] threads = syncGetThreads(ctx);
+                Object[] threads = fContentProvider.getChildren(ctx);
                 for (int i = 0; i < threads.length; i++) {
-                    checkContext(threads[i], checked);
+                    checkContext((Context) threads[i], checked);
                 }
             }
             checkThread(ctx, checked);
@@ -167,16 +167,13 @@ public class TCFThreadFilterEditor {
         }
 
         private void updateParentCheckState(Context thread) {
-            Context[] threads;
+            Object[] threads;
             Object parent = getContainer(thread);
             if (parent == null) {
                 parent = getLaunch(thread);
                 if (parent == null) return;
-                threads = syncGetContainers((TCFLaunch) parent);
             }
-            else {
-                threads = syncGetThreads((Context) parent);
-            }
+            threads = fContentProvider.getChildren(parent);
             int checkedNumber = 0;
             int grayedNumber = 0;
             for (int i = 0; i < threads.length; i++) {
@@ -479,7 +476,9 @@ public class TCFThreadFilterEditor {
                 if (fThreadViewer != null) {
                     fThreadViewer.refresh();
                     fFilteredContexts.clear();
-                    setInitialCheckedState();
+                    for (Context ctx : fContexts) {
+                    	fCheckHandler.updateParentCheckState(ctx);
+                    }
                 }
             }
         }
