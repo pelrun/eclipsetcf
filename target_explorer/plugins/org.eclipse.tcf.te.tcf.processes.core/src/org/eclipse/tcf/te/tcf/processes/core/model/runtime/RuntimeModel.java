@@ -98,12 +98,17 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 				@Override
 				public void eventFired(EventObject event) {
 					if (event instanceof ChangeEvent) {
-						ChangeEvent changeEvent = (ChangeEvent)event;
-						if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId())) {
-							if (!changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_CONNECTED))) {
-								clear();
+						final ChangeEvent changeEvent = (ChangeEvent)event;
+						Protocol.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								if (getPeerNode() == changeEvent.getSource() && IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId())) {
+									if (!changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_CONNECTED))) {
+										clear();
+									}
+								}
 							}
-						}
+						});
 					}
 				}
 			};
