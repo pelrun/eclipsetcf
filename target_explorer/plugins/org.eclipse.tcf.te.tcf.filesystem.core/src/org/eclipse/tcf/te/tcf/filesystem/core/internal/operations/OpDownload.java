@@ -29,18 +29,18 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
- * Download multiple files from local system to a remote system.  
+ * Download multiple files from local system to a remote system.
  */
 public class OpDownload extends OpStreamOp {
 	// The destination files to be downloaded to.
 	protected File[] dstFiles;
 	// The source nodes to be downloaded from.
 	protected FSTreeNode[] srcNodes;
-	
+
 	/**
 	 * Create a download operation to download a file node
 	 * to a local file.
-	 *  
+	 *
 	 * @param dstFile The local file to be downloaded to.
 	 * @param srcNode The source node to be downloaded from.
 	 */
@@ -51,7 +51,7 @@ public class OpDownload extends OpStreamOp {
 	/**
 	 * Create a download operation to download file nodes
 	 * to local files.
-	 *  
+	 *
 	 * @param dstFiles The local files to be downloaded to.
 	 * @param srcNodes The source nodes to be downloaded from.
 	 */
@@ -59,11 +59,11 @@ public class OpDownload extends OpStreamOp {
 		this.dstFiles = dstFiles;
 		this.srcNodes = srcNodes;
 	}
-	
+
 	/**
 	 * Create a download operation to download specified nodes
 	 * to its local cache files.
-	 * 
+	 *
 	 * @param srcNodes The source file nodes to be downloaded.
 	 */
 	public OpDownload(FSTreeNode... srcNodes) {
@@ -85,18 +85,18 @@ public class OpDownload extends OpStreamOp {
 			downloadFiles(dstFiles, srcNodes);
 			if(monitor.isCanceled()) throw new InterruptedException();
 		} catch (MalformedURLException e) {
-			throw new InvocationTargetException(e);
+			throw new InvocationTargetException(e, e.getLocalizedMessage());
 		} catch (IOException e) {
-			throw new InvocationTargetException(e);
+			throw new InvocationTargetException(e, e.getLocalizedMessage());
 		} finally {
 			monitor.done();
 		}
     }
-	
+
 	/**
-	 * Download the specified file list to the specified locations, reporting the progress 
+	 * Download the specified file list to the specified locations, reporting the progress
 	 * using the specified monitor.
-	 * 
+	 *
 	 * @param dstFiles The file list to be downloaded to.
 	 * @param srcNodes The node list to be downloaded from.
 	 * @param monitor The monitor that reports progress.
@@ -174,7 +174,7 @@ public class OpDownload extends OpStreamOp {
 
 	/**
 	 * Update the node's digest using the digest data.
-	 * 
+	 *
 	 * @param node The node whose digest should updated.
 	 * @param digest The digest data.
 	 */
