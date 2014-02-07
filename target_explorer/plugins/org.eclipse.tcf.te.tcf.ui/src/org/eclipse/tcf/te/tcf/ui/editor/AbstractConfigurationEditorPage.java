@@ -31,7 +31,6 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
-import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.forms.IManagedForm;
@@ -168,7 +167,7 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 						uRIPersistenceService.write(((IPeerNode)input).getPeer(), null);
 
 						// Reopen the editor on the current page
-						ViewsUtil.reopenEditor(getEditor(), getEditor().getActivePageInstance().getId(), false);
+//						ViewsUtil.reopenEditor(getEditor(), getEditor().getActivePageInstance().getId(), false);
 					} catch (IOException e) {
 						// Build up the message template
 						String template = NLS.bind(Messages.AbstractConfigurationEditorPage_error_save, ((IPeerNode)input).getName(), Messages.AbstractConfigurationEditorPage_error_possibleCause);
