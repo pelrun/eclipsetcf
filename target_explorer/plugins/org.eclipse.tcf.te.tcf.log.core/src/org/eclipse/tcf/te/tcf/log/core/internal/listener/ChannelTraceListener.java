@@ -44,6 +44,8 @@ public class ChannelTraceListener implements TraceListener {
 	// Reference to the channel
 	private final IChannel channel;
 
+	private final boolean reverseReceived;
+
 	/**
 	 * Constructor.
 	 *
@@ -52,6 +54,8 @@ public class ChannelTraceListener implements TraceListener {
 	public ChannelTraceListener(IChannel channel) {
 		Assert.isNotNull(channel);
 		this.channel = channel;
+
+		reverseReceived = channel.getRemotePeer().getName().endsWith("Command Server"); //$NON-NLS-1$
 	}
 
 	/**
@@ -98,7 +102,7 @@ public class ChannelTraceListener implements TraceListener {
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
 
-		doLogMessage(type, token, service, name, data, true);
+		doLogMessage(type, token, service, name, data, reverseReceived ? false : true);
 	}
 
 	/* (non-Javadoc)
@@ -112,7 +116,7 @@ public class ChannelTraceListener implements TraceListener {
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
 
-		doLogMessage(type, token, service, name, data, false);
+		doLogMessage(type, token, service, name, data, reverseReceived ? true : false);
 	}
 
 	/**
