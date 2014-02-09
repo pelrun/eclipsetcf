@@ -50,7 +50,7 @@ public class Console extends AbstractConsole {
 		if (Protocol.isDispatchThread()) runnable.run();
 		else Protocol.invokeAndWait(runnable);
 
-		setName(NLS.bind(Messages.Monitor_Console_name_with_peer, name.get(), id.get()));
+		setName(NLS.bind(Messages.Monitor_Console_name_with_peer, name.get()));
     }
 
 	/* (non-Javadoc)

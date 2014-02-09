@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -22,8 +22,8 @@ import org.eclipse.ui.console.IConsoleManager;
  * Communication monitor console factory implementation.
  */
 public class Factory {
-	// Map of active consoles per peer
-	private static final Map<IPeer, Console> CONSOLES = new HashMap<IPeer, Console>();
+	// Map of active consoles per agent or peer id
+	private static final Map<String, Console> CONSOLES = new HashMap<String, Console>();
 
 	/**
 	 * Show the console. Called by {@link Console}.
@@ -79,13 +79,16 @@ public class Factory {
 	 */
 	public static Console getConsole(IPeer peer, boolean createNew) {
 		Assert.isNotNull(peer);
+		// One console per agent or peer id
+		String id = peer.getAgentID();
+		if (id == null) id = peer.getID();
 		// Lookup the peer specific console
-		Console console = CONSOLES.get(peer);
+		Console console = CONSOLES.get(id);
 		if (console == null && createNew) {
 			// Create a new console instance
 			console = new Console(peer);
 			// And store the new console in the map
-			CONSOLES.put(peer, console);
+			CONSOLES.put(id, console);
 		}
 
 		// Add the console to the manager if not yet done

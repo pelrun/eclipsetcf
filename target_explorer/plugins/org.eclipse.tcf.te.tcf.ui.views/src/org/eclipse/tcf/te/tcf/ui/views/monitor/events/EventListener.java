@@ -42,9 +42,9 @@ public class EventListener extends AbstractEventListener {
 						// Get the console
 						Console console = Factory.getConsole((IPeer)monitorEvent.getSource(), true);
 						Assert.isNotNull(console);
-						// Message simulator 'R' is an unknown simulator and will lead to print the
+						// Message type 'X' is an unknown type and will lead to print the
 						// message text using the error color.
-						console.appendMessage('R', message.text);
+						console.appendMessage('X', message.text);
 					}
 					break;
 				case ACTIVITY:
