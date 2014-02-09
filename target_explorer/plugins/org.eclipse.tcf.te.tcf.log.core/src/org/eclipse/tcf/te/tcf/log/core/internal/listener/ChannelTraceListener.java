@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -123,6 +123,11 @@ public class ChannelTraceListener implements TraceListener {
 	 * Helper method to output the message to the logger.
 	 */
 	private void doLogMessage(final char type, String token, String service, String name, byte[] data, boolean received) {
+		// Filter out the locator service messages
+		boolean locatorEvents =  CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS);
+		if (!locatorEvents && service != null && service.toLowerCase().equals("locator")) { //$NON-NLS-1$
+			return;
+		}
 		// Filter out the heart beat messages if not overwritten by the preferences
 		boolean showHeartbeats = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_SHOW_HEARTBEATS);
 		if (!showHeartbeats && name != null && name.toLowerCase().contains("heartbeat")) { //$NON-NLS-1$

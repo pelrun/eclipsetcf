@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -29,6 +29,11 @@ public interface IPreferenceKeys {
 	 * to allow following the back-end communication within the UI.
 	 */
 	public final String PREF_MONITOR_ENABLED = PREFIX + "monitor.enabled"; //$NON-NLS-1$
+
+	/**
+	 * If set to <code>true</code>, locator events are logged.
+	 */
+	public final String PREF_SHOW_LOCATOR_EVENTS = PREFIX + "show.locatorEvents"; //$NON-NLS-1$
 
 	/**
 	 * If set to <code>true</code>, locator heart beat events are logged.

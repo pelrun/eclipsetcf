@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -40,6 +40,7 @@ public class LoggingPreferencePage extends FieldEditorPreferencePage implements 
 	// References to the field editors
     private BooleanFieldEditor enabled;
 	private BooleanFieldEditor monitorEnabled;
+	private BooleanFieldEditor showLocatorEvents;
 	private BooleanFieldEditor showHeartbeats;
 	private BooleanFieldEditor showFrameworkEvents;
 	private StringFieldEditor logfileSize;
@@ -145,6 +146,10 @@ public class LoggingPreferencePage extends FieldEditorPreferencePage implements 
 		Composite filterPanel = new Composite(filterGroup, SWT.NONE);
 		filterPanel.setLayout(new GridLayout());
 		filterPanel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+		showLocatorEvents = new BooleanFieldEditor(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS,
+ 				 								   Messages.LoggingPreferencePage_showLocatorEvents_label, filterPanel);
+		addField(showLocatorEvents);
 
 		showHeartbeats = new BooleanFieldEditor(IPreferenceKeys.PREF_SHOW_HEARTBEATS,
 						 				 		Messages.LoggingPreferencePage_showHeartbeats_label, filterPanel);

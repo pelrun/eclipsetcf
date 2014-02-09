@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -39,6 +39,8 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 			prefs.putDefaultBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED, false);
 			// Enable back-end communication monitor: default off
 			prefs.putDefaultBoolean(IPreferenceKeys.PREF_MONITOR_ENABLED, false);
+			// Locator events: default off
+			prefs.putDefaultBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS, false);
 			// Heat beat events: default off
 			prefs.putDefaultBoolean(IPreferenceKeys.PREF_SHOW_HEARTBEATS, false);
 			// Framework events: default off
