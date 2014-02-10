@@ -55,7 +55,7 @@ public class ChannelTraceListener implements TraceListener {
 		Assert.isNotNull(channel);
 		this.channel = channel;
 
-		reverseReceived = channel.getRemotePeer().getName().endsWith("Command Server"); //$NON-NLS-1$
+		reverseReceived = channel.getRemotePeer().getName() != null && channel.getRemotePeer().getName().endsWith("Command Server"); //$NON-NLS-1$
 	}
 
 	/**

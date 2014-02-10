@@ -21,6 +21,7 @@ import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchListener;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.ILaunchesListener;
+import org.eclipse.debug.core.model.IDisconnect;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.launch.core.lm.LaunchManager;
@@ -185,10 +186,10 @@ public class DebugService extends AbstractService implements IDebugService {
 			ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
 			for (ILaunch launch : launches) {
 				try {
-					if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && !launch.isTerminated()) {
+					if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && launch instanceof IDisconnect && !((IDisconnect)launch).isDisconnected()) {
 						IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
 						if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
-							launch.terminate();
+							((IDisconnect)launch).disconnect();
 						}
 					}
 				} catch (Exception e) {
