@@ -90,8 +90,6 @@ public class Env {
 					if ("".equals(name.trim()) || name.contains("=") || name.contains(":")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						continue;
 					}
-					// If the variable has no value, ignore the variable
-					if (parts.length < 2) continue;
 				}
 				// Get the variable value
 				String value = parts.length > 1 ? parts[1].trim() : ""; //$NON-NLS-1$
