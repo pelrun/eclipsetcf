@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.commands;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -20,8 +21,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -54,6 +57,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -70,7 +74,6 @@ import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
-import org.eclipse.tcf.internal.debug.ui.launch.PathMapRuleDialog;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildren;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
@@ -95,11 +98,11 @@ public class MemoryMapWidget {
         SIZING_TABLE_HEIGHT = 300;
 
     private static final String[] column_names = {
-        "File",
-        "Address",
-        "Size",
-        "Flags",
-        "File offset/section",
+        "File", //$NON-NLS-1$
+        "Address", //$NON-NLS-1$
+        "Size", //$NON-NLS-1$
+        "Flags", //$NON-NLS-1$
+        "File offset/section", //$NON-NLS-1$
     };
 
     private TCFModel model;
@@ -129,7 +132,7 @@ public class MemoryMapWidget {
 
         public Object[] getElements(Object input) {
             ArrayList<IMemoryMap.MemoryRegion> res = new ArrayList<IMemoryMap.MemoryRegion>();
-            ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get((String)input);
+            ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(input);
             if (lst != null) res.addAll(lst);
             res.addAll(target_map);
             return res.toArray();
@@ -157,14 +160,14 @@ public class MemoryMapWidget {
             case 2:
                 {
                     BigInteger x = column == 1 ? r.addr : r.size;
-                    if (x == null) return "";
+                    if (x == null) return ""; //$NON-NLS-1$
                     String s = x.toString(16);
                     int sz = 0;
                     if (mem_ctx != null) sz = mem_ctx.getAddressSize() * 2;
                     int l = sz - s.length();
                     if (l < 0) l = 0;
                     if (l > 16) l = 16;
-                    return "0x0000000000000000".substring(0, 2 + l) + s;
+                    return "0x0000000000000000".substring(0, 2 + l) + s; //$NON-NLS-1$
                 }
             case 3:
                 {
@@ -184,14 +187,14 @@ public class MemoryMapWidget {
                         int l = 16 - s.length();
                         if (l < 0) l = 0;
                         if (l > 16) l = 16;
-                        return "0x0000000000000000".substring(0, 2 + l) + s;
+                        return "0x0000000000000000".substring(0, 2 + l) + s; //$NON-NLS-1$
                     }
                     String s = r.getSectionName();
                     if (s != null) return s;
-                    return "";
+                    return ""; //$NON-NLS-1$
                 }
             }
-            return "";
+            return ""; //$NON-NLS-1$
         }
 
         public Color getBackground(Object element, int columnIndex) {
@@ -216,7 +219,7 @@ public class MemoryMapWidget {
                     item.setData("_TOOLTIP", symbolFileInfo); //$NON-NLS-1$
                 }
             }
-            if (symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:") && cError != null) {
+            if (symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:") && cError != null) { //$NON-NLS-1$
                 return cError;
             }
 
@@ -369,7 +372,7 @@ public class MemoryMapWidget {
         Label props_label = new Label(composite, SWT.WRAP);
         props_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         props_label.setFont(font);
-        props_label.setText("&Debug context:");
+        props_label.setText("&Debug context:"); //$NON-NLS-1$
 
         ctx_text = new Combo(composite, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
         ctx_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -514,7 +517,7 @@ public class MemoryMapWidget {
         // See http://git.eclipse.org/c/platform/eclipse.platform.swt.git/tree/examples/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet125.java.
 
         // Disable native tooltip
-        table.setToolTipText ("");
+        table.setToolTipText (""); //$NON-NLS-1$
 
         // Implement a "fake" tooltip
         final Listener labelListener = new Listener () {
@@ -524,7 +527,7 @@ public class MemoryMapWidget {
                 switch (event.type) {
                 case SWT.MouseDown:
                     Event e = new Event ();
-                    e.item = (TableItem) label.getData ("_TABLEITEM");
+                    e.item = (TableItem) label.getData ("_TABLEITEM"); //$NON-NLS-1$
                     // Assuming table is single select, set the selection as if
                     // the mouse down event went through to the table
                     table.setSelection (new TableItem [] {(TableItem) e.item});
@@ -555,7 +558,7 @@ public class MemoryMapWidget {
                 }
                 case SWT.MouseHover: {
                     TableItem item = table.getItem (new Point (event.x, event.y));
-                    if (item != null && item.getData("_TOOLTIP") instanceof String) {
+                    if (item != null && item.getData("_TOOLTIP") instanceof String) { //$NON-NLS-1$
                         if (tip != null  && !tip.isDisposed ()) tip.dispose ();
                         tip = new Shell (table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
                         tip.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
@@ -565,8 +568,8 @@ public class MemoryMapWidget {
                         label = new Label (tip, SWT.NONE);
                         label.setForeground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_FOREGROUND));
                         label.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
-                        label.setData ("_TABLEITEM", item);
-                        label.setText ((String)item.getData("_TOOLTIP"));
+                        label.setData ("_TABLEITEM", item); //$NON-NLS-1$
+                        label.setText ((String)item.getData("_TOOLTIP")); //$NON-NLS-1$
                         label.addListener (SWT.MouseExit, labelListener);
                         label.addListener (SWT.MouseDown, labelListener);
                         Point size = tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
@@ -605,7 +608,7 @@ public class MemoryMapWidget {
         SelectionAdapter sel_adapter = null;
 
         final Button button_add = new Button(composite, SWT.PUSH);
-        button_add.setText(" &Add... ");
+        button_add.setText(" &Add... "); //$NON-NLS-1$
         GridData gd = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
         PixelConverter converter= new PixelConverter(button_add);
         gd.widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
@@ -628,12 +631,12 @@ public class MemoryMapWidget {
             }
         });
         final MenuItem item_add = new MenuItem(menu, SWT.PUSH);
-        item_add.setText("&Add...");
+        item_add.setText("&Add..."); //$NON-NLS-1$
         item_add.addSelectionListener(sel_adapter);
         item_add.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ADD));
 
         final Button button_edit = new Button(composite, SWT.PUSH);
-        button_edit.setText(" E&dit... ");
+        button_edit.setText(" E&dit... "); //$NON-NLS-1$
         button_edit.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         button_edit.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
@@ -644,11 +647,11 @@ public class MemoryMapWidget {
             }
         });
         final MenuItem item_edit = new MenuItem(menu, SWT.PUSH);
-        item_edit.setText("E&dit...");
+        item_edit.setText("E&dit..."); //$NON-NLS-1$
         item_edit.addSelectionListener(sel_adapter);
 
         final Button button_remove = new Button(composite, SWT.PUSH);
-        button_remove.setText(" &Remove ");
+        button_remove.setText(" &Remove "); //$NON-NLS-1$
         button_remove.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         button_remove.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
@@ -663,12 +666,12 @@ public class MemoryMapWidget {
             }
         });
         final MenuItem item_remove = new MenuItem(menu, SWT.PUSH);
-        item_remove.setText("&Remove");
+        item_remove.setText("&Remove"); //$NON-NLS-1$
         item_remove.addSelectionListener(sel_adapter);
         item_remove.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_DELETE));
 
         final Button button_locate = new Button(composite, SWT.PUSH | SWT.WRAP);
-        button_locate.setText(" Locate Symbol File... ");
+        button_locate.setText(" Locate Symbol File... "); //$NON-NLS-1$
         GridData layoutData = new GridData(GridData.FILL_HORIZONTAL);
         layoutData.widthHint = 50;
         button_locate.setLayoutData(layoutData);
@@ -684,7 +687,7 @@ public class MemoryMapWidget {
         });
         new MenuItem(menu, SWT.SEPARATOR);
         final MenuItem item_locate = new MenuItem(menu, SWT.PUSH);
-        item_locate.setText("Locate Symbol File...");
+        item_locate.setText("Locate Symbol File..."); //$NON-NLS-1$
         item_locate.addSelectionListener(sel_adapter);
 
         map_table.setMenu(menu);
@@ -700,8 +703,8 @@ public class MemoryMapWidget {
                 item_edit.setEnabled(r != null);
                 item_remove.setEnabled(manual);
                 String symbolFileInfo = getSymbolFileInfo(r);
-                boolean enabled = symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:")
-                                        && r.getFileName() != null && r.getFileName().lastIndexOf('/') != -1;
+                boolean enabled = symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:") //$NON-NLS-1$
+                                        && r.getFileName() != null;
                 button_locate.setEnabled(enabled);
                 item_locate.setEnabled(enabled);
             }
@@ -734,41 +737,40 @@ public class MemoryMapWidget {
         Assert.isNotNull(r);
 
         Map<String,Object> props = new HashMap<String,Object>(r.getProperties());
-        Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
 
-        // Create the new path map rule
-        Map<String, Object> properties = new LinkedHashMap<String, Object>();
-        String fileName = (String)props.get(IMemoryMap.PROP_FILE_NAME);
-        if (fileName == null || fileName.lastIndexOf('/') == -1) return;
-        properties.put(IPathMap.PROP_SOURCE, fileName.lastIndexOf('/') + 1 == fileName.length() ? fileName : fileName.substring(0, fileName.lastIndexOf('/') + 1));
-        PathMapRule rule = new PathMapRule(properties);
+        FileDialog dialog = new FileDialog(map_table.getShell(), SWT.OPEN);
+        IPath workSpacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+        dialog.setFilterPath(workSpacePath.toString());
+        dialog.setText("Locate Symbol File"); //$NON-NLS-1$
+        String symbolFile = dialog.open();
+        if (symbolFile != null && new File(symbolFile).exists()) {
+            // Create the new path map rule
+            Map<String, Object> properties = new LinkedHashMap<String, Object>();
+            properties.put(IPathMap.PROP_SOURCE, props.get(IMemoryMap.PROP_FILE_NAME));
+            properties.put(IPathMap.PROP_DESTINATION, symbolFile);
+            PathMapRule rule = new PathMapRule(properties);
 
-        if (new PathMapRuleDialog(map_table.getShell(), image, rule, true, false).open() == Window.OK) {
-            String source = rule.getSource();
-            String destination = rule.getDestination();
-            if (source != null && source.trim().length() > 0 && destination != null && destination.trim().length() > 0) {
-                if (cfg != null) {
-                    try {
-                        ILaunchConfigurationWorkingCopy wc = cfg instanceof ILaunchConfigurationWorkingCopy ? (ILaunchConfigurationWorkingCopy)cfg : cfg.getWorkingCopy();
+            if (cfg != null) {
+                try {
+                    ILaunchConfigurationWorkingCopy wc = cfg instanceof ILaunchConfigurationWorkingCopy ? (ILaunchConfigurationWorkingCopy)cfg : cfg.getWorkingCopy();
 
-                        String s = wc.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
-                        List<PathMapRule> map = TCFLaunchDelegate.parsePathMapAttribute(s);
+                    String s = wc.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
+                    List<PathMapRule> map = TCFLaunchDelegate.parsePathMapAttribute(s);
 
-                        map.add(0, rule);
+                    map.add(0, rule);
 
-                        StringBuilder bf = new StringBuilder();
-                        for (IPathMap.PathMapRule m : map) {
-                            bf.append(m.toString());
-                        }
-                        if (bf.length() == 0)
-                            wc.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
-                        else
-                            wc.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
-
-                        if (wc.isDirty()) wc.doSave();
-                    } catch (CoreException e) {
-                        Activator.getDefault().getLog().log(e.getStatus());
+                    StringBuilder bf = new StringBuilder();
+                    for (IPathMap.PathMapRule m : map) {
+                        bf.append(m.toString());
                     }
+                    if (bf.length() == 0)
+                        wc.removeAttribute(TCFLaunchDelegate.ATTR_PATH_MAP);
+                    else
+                        wc.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
+
+                    if (wc.isDirty()) wc.doSave();
+                } catch (CoreException e) {
+                    Activator.getDefault().getLog().log(e.getStatus());
                 }
             }
         }
@@ -790,7 +792,7 @@ public class MemoryMapWidget {
             }.get();
         }
         catch (Exception x) {
-            Activator.log("Invalid launch cofiguration attribute", x);
+            Activator.log("Invalid launch cofiguration attribute", x); //$NON-NLS-1$
         }
     }
 
@@ -834,7 +836,7 @@ public class MemoryMapWidget {
         ctx_text.removeAll();
         for (String id : arr) ctx_text.add(id);
         if (map_id == null && arr.length > 0) map_id = arr[0];
-        if (map_id == null) map_id = "";
+        if (map_id == null) map_id = ""; //$NON-NLS-1$
         ctx_text.setText(map_id);
     }
 
@@ -845,7 +847,7 @@ public class MemoryMapWidget {
                 public void run() {
                     TCFDataCache<TCFNodeExecContext> mem_cache = model.searchMemoryContext(selection);
                     if (mem_cache == null) {
-                        error(new Exception("Context does not provide memory access"));
+                        error(new Exception("Context does not provide memory access")); //$NON-NLS-1$
                         return;
                     }
                     if (!mem_cache.validate(this)) return;
@@ -894,7 +896,7 @@ public class MemoryMapWidget {
                 public void run() {
                     TCFDataCache<TCFNodeExecContext> mem_cache = model.searchMemoryContext(selected_mem_map_node);
                     if (mem_cache == null) {
-                        error(new Exception("Context does not provide memory access"));
+                        error(new Exception("Context does not provide memory access")); //$NON-NLS-1$
                         return;
                     }
                     if (!mem_cache.validate(this)) return;
@@ -911,18 +913,18 @@ public class MemoryMapWidget {
                             TCFSymFileRef sym_data = sym_cache.getData();
                             if (sym_data != null) {
                                 if (sym_data.props != null) {
-                                    String sym_file_name = (String)sym_data.props.get("FileName");
-                                    if (sym_file_name != null && !sym_file_name.equals(r.getFileName())) symbolFileInfo.append("Symbol file name: ").append(sym_file_name);
+                                    String sym_file_name = (String)sym_data.props.get("FileName"); //$NON-NLS-1$
+                                    if (sym_file_name != null && !sym_file_name.equals(r.getFileName())) symbolFileInfo.append("Symbol file name: ").append(sym_file_name); //$NON-NLS-1$
 
                                     @SuppressWarnings("unchecked")
-                                    Map<String,Object> map = (Map<String,Object>)sym_data.props.get("FileError");
+                                    Map<String,Object> map = (Map<String,Object>)sym_data.props.get("FileError"); //$NON-NLS-1$
                                     if (map != null) {
-                                        if (symbolFileInfo.length() > 0) symbolFileInfo.append("\n");
-                                        symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(new ErrorReport("", map), false));
+                                        if (symbolFileInfo.length() > 0) symbolFileInfo.append("\n"); //$NON-NLS-1$
+                                        symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(new ErrorReport("", map), false)); //$NON-NLS-1$ //$NON-NLS-2$
                                     }
                                 }
                                 if (sym_data.error != null) {
-                                    symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(sym_data.error, false));
+                                    symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(sym_data.error, false)); //$NON-NLS-1$
                                }
                             }
                         }
@@ -933,7 +935,7 @@ public class MemoryMapWidget {
         }
         catch (Exception x) {
             if (channel.getState() != IChannel.STATE_OPEN) return null;
-            Activator.log("Cannot get selected symbol file info", x);
+            Activator.log("Cannot get selected symbol file info", x); //$NON-NLS-1$
             return null;
         }
     }
@@ -985,7 +987,7 @@ public class MemoryMapWidget {
         }
         catch (Exception x) {
             if (channel.getState() != IChannel.STATE_OPEN) return;
-            Activator.log("Cannot load target memory context info", x);
+            Activator.log("Cannot load target memory context info", x); //$NON-NLS-1$
         }
     }
 
@@ -1052,7 +1054,7 @@ public class MemoryMapWidget {
         }
         catch (Exception x) {
             if (channel.getState() != IChannel.STATE_OPEN) return;
-            Activator.log("Cannot load target memory map", x);
+            Activator.log("Cannot load target memory map", x); //$NON-NLS-1$
         }
     }
 
