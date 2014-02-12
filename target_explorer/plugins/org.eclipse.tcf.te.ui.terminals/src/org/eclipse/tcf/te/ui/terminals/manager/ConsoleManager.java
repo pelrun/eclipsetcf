@@ -19,6 +19,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
@@ -29,6 +30,7 @@ import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderManager;
 import org.eclipse.tcf.te.ui.terminals.view.TerminalsView;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IPerspectiveListener;
 import org.eclipse.ui.IViewPart;
@@ -498,6 +500,44 @@ public class ConsoleManager {
 		if (manager == null) return null;
 
 		return manager.findTabItem(title, connector, data);
+	}
+
+	/**
+	 * Lookup a console which is assigned with the given terminal control.
+	 * <p>
+	 * <b>Note:</b> The method must be called within the UI thread.
+	 *
+	 * @param control The terminal control. Must not be <code>null</code>.
+	 * @return The corresponding console tab item or <code>null</code>.
+	 */
+	public CTabItem findConsole(ITerminalControl control) {
+		Assert.isNotNull(control);
+
+		CTabItem item = null;
+
+		IWorkbenchPage page = getActiveWorkbenchPage();
+		if (page != null) {
+			IViewReference[] refs = page.getViewReferences();
+			for (int i = 0; i < refs.length; i++) {
+				IViewReference ref = refs[i];
+				IViewPart part = ref != null ? ref.getView(false) : null;
+				if (part instanceof ITerminalsView) {
+					CTabFolder tabFolder = (CTabFolder) part.getAdapter(CTabFolder.class);
+					if (tabFolder == null) continue;
+					CTabItem[] candidates = tabFolder.getItems();
+					for (CTabItem candidate : candidates) {
+						Object data = candidate.getData();
+						if (data instanceof ITerminalControl && control.equals(data)) {
+							item = candidate;
+							break;
+						}
+					}
+				}
+				if (item != null) break;
+			}
+		}
+
+		return item;
 	}
 
 	/**

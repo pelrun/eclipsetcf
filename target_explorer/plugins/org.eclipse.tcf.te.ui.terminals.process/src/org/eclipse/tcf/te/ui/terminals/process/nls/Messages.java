@@ -29,5 +29,6 @@ public class Messages extends NLS {
 
 	// **** Declare externalized string id's down here *****
 
+	public static String ProcessConnector_error_title;
 	public static String ProcessConnector_error_creatingProcess;
 }

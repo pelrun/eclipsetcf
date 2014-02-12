@@ -22,9 +22,13 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
+import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.Env;
+import org.eclipse.tcf.te.ui.terminals.manager.ConsoleManager;
 import org.eclipse.tcf.te.ui.terminals.process.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.terminals.process.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.terminals.process.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.streams.AbstractStreamsConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
@@ -182,9 +186,21 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			monitor = new ProcessMonitor(this);
 			monitor.startMonitoring();
 		} catch (IOException e) {
-			IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-							NLS.bind(Messages.ProcessConnector_error_creatingProcess, e.getLocalizedMessage()), e);
-			UIPlugin.getDefault().getLog().log(status);
+			// Disconnect right away
+			disconnect();
+			// Lookup the tab item
+			CTabItem item = ConsoleManager.getInstance().findConsole(control);
+			if (item != null) item.dispose();
+			// Get the error message from the exception
+			String msg = e.getLocalizedMessage() != null ? e.getLocalizedMessage() : ""; //$NON-NLS-1$
+			Assert.isNotNull(msg);
+			// Strip away "Exec_tty error:"
+			msg = msg.replace("Exec_tty error:", "").trim(); //$NON-NLS-1$ //$NON-NLS-2$
+			// Repackage into a more user friendly error
+			msg = NLS.bind(Messages.ProcessConnector_error_creatingProcess, settings.getImage(), msg);
+			// Create the status object
+			IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), msg, e);
+			StatusHandlerUtil.handleStatus(status, this, msg, Messages.ProcessConnector_error_title, IContextHelpIds.MESSAGE_CREATE_PROCESS_FAILED, this, null);
 		}
 	}
 
