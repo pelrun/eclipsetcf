@@ -31,14 +31,14 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnPixelData;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableColorProvider;
 import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableLayout;
-import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -63,9 +63,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tcf.core.ErrorReport;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule;
@@ -92,56 +93,124 @@ import org.eclipse.ui.PlatformUI;
 
 public class MemoryMapWidget {
 
+    private static final int SIZING_TABLE_WIDTH = 500, SIZING_TABLE_HEIGHT = 300;
 
-    private static final int
-        SIZING_TABLE_WIDTH = 500,
-        SIZING_TABLE_HEIGHT = 300;
-
-    private static final String[] column_names = {
-        "File", //$NON-NLS-1$
-        "Address", //$NON-NLS-1$
-        "Size", //$NON-NLS-1$
-        "Flags", //$NON-NLS-1$
-        "File offset/section", //$NON-NLS-1$
+    private static final String[] column_names = { "File", //$NON-NLS-1$
+            "Address", //$NON-NLS-1$
+            "Size", //$NON-NLS-1$
+            "Flags", //$NON-NLS-1$
+            "File offset/section", //$NON-NLS-1$
     };
 
     private TCFModel model;
+
     private IChannel channel;
+
     private TCFNode selection;
+
     private final IMemoryMap.MemoryMapListener listener = new MemoryMapListener();
 
     private Combo ctx_text;
-    private Table map_table;
-    private TableViewer table_viewer;
+
+    private Tree map_table;
+
+    private TreeViewer table_viewer;
+
     private Runnable update_map_buttons;
-    private final Map<String,ArrayList<IMemoryMap.MemoryRegion>> org_maps = new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
-    private final Map<String,ArrayList<IMemoryMap.MemoryRegion>> cur_maps = new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
+
+    private final Map<String, ArrayList<IMemoryMap.MemoryRegion>> org_maps = new HashMap<String, ArrayList<IMemoryMap.MemoryRegion>>();
+
+    private final Map<String, ArrayList<IMemoryMap.MemoryRegion>> cur_maps = new HashMap<String, ArrayList<IMemoryMap.MemoryRegion>>();
+
     private final ArrayList<IMemoryMap.MemoryRegion> target_map = new ArrayList<IMemoryMap.MemoryRegion>();
-    private final HashMap<String,TCFNodeExecContext> target_map_nodes = new HashMap<String,TCFNodeExecContext>();
+
+    private final HashMap<String, TCFNodeExecContext> target_map_nodes = new HashMap<String, TCFNodeExecContext>();
+
     private TCFNodeExecContext selected_mem_map_node;
+
     private IMemory.MemoryContext mem_ctx;
+
     private ILaunchConfiguration cfg;
+
     private final HashSet<String> loaded_files = new HashSet<String>();
+
     private String selected_mem_map_id;
+
     private final ArrayList<ModifyListener> modify_listeners = new ArrayList<ModifyListener>();
 
     private Color cError = null;
+
     private boolean disposed = false;
 
-    private final IStructuredContentProvider content_provider = new IStructuredContentProvider() {
+    private final ITreeContentProvider content_provider = new ITreeContentProvider() {
 
-        public Object[] getElements(Object input) {
-            ArrayList<IMemoryMap.MemoryRegion> res = new ArrayList<IMemoryMap.MemoryRegion>();
-            ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(input);
-            if (lst != null) res.addAll(lst);
-            res.addAll(target_map);
-            return res.toArray();
+        @Override
+        public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
         }
 
+        @Override
         public void dispose() {
         }
 
-        public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+        @Override
+        public boolean hasChildren(Object element) {
+            if (element instanceof IMemoryMap.MemoryRegion) {
+                IMemoryMap.MemoryRegion region = (IMemoryMap.MemoryRegion) element;
+                return region.getProperties().containsKey("_CHILDREN"); //$NON-NLS-1$
+            }
+            return false;
+        }
+
+        @Override
+        public Object getParent(Object element) {
+            return null;
+        }
+
+        @Override
+        public Object[] getElements(Object input) {
+            ArrayList<IMemoryMap.MemoryRegion> all = new ArrayList<IMemoryMap.MemoryRegion>();
+            ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(input);
+            if (lst != null) all.addAll(lst);
+            all.addAll(target_map);
+            ArrayList<IMemoryMap.MemoryRegion> roots = new ArrayList<IMemoryMap.MemoryRegion>();
+            ArrayList<IMemoryMap.MemoryRegion> removed = new ArrayList<IMemoryMap.MemoryRegion>();
+            for (int i = 0; i < all.size(); i++) {
+                IMemoryMap.MemoryRegion region1 = all.get(i);
+                boolean multiple = false;
+                ArrayList<IMemoryMap.MemoryRegion> children = new ArrayList<IMemoryMap.MemoryRegion>();
+                for (int j = i + 1; j < all.size(); j++) {
+                    IMemoryMap.MemoryRegion region2 = all.get(j);
+                    if (!region1.equals(region2) && region1.getFileName().equals(region2.getFileName())) {
+                        multiple = true;
+                        children.add(region2);
+                        removed.add(region2);
+                    }
+                }
+                if (!removed.contains(region1)) {
+                    if (multiple) {
+                        children.add(0, region1);
+                        removed.add(region1);
+                        Map<String, Object> props = new HashMap<String, Object>();
+                        props.put(IMemoryMap.PROP_FILE_NAME, region1.getFileName());
+                        props.put("_CHILDREN", children.toArray()); //$NON-NLS-1$
+                        TCFMemoryRegion region = new TCFMemoryRegion(props);
+                        roots.add(region);
+                    }
+                    else {
+                        roots.add(region1);
+                    }
+                }
+            }
+            return roots.toArray();
+        }
+
+        @Override
+        public Object[] getChildren(Object parentElement) {
+            if (parentElement instanceof IMemoryMap.MemoryRegion) {
+                IMemoryMap.MemoryRegion region = (IMemoryMap.MemoryRegion) parentElement;
+                return (Object[]) region.getProperties().get("_CHILDREN"); //$NON-NLS-1$
+            }
+            return null;
         }
     };
 
@@ -152,47 +221,56 @@ public class MemoryMapWidget {
         }
 
         public String getColumnText(Object element, int column) {
-            TCFMemoryRegion r = (TCFMemoryRegion)element;
+            TCFMemoryRegion r = (TCFMemoryRegion) element;
+            if (r.getProperties().containsKey("_CHILDREN") && column != 0) { //$NON-NLS-1$
+                return ""; //$NON-NLS-1$
+            }
             switch (column) {
             case 0:
                 return r.getFileName();
             case 1:
-            case 2:
-                {
-                    BigInteger x = column == 1 ? r.addr : r.size;
-                    if (x == null) return ""; //$NON-NLS-1$
+            case 2: {
+                BigInteger x = column == 1 ? r.addr : r.size;
+                if (x == null) return ""; //$NON-NLS-1$
+                String s = x.toString(16);
+                int sz = 0;
+                if (mem_ctx != null) sz = mem_ctx.getAddressSize() * 2;
+                int l = sz - s.length();
+                if (l < 0) l = 0;
+                if (l > 16) l = 16;
+                return "0x0000000000000000".substring(0, 2 + l) + s; //$NON-NLS-1$
+            }
+            case 3: {
+                int n = r.getFlags();
+                StringBuffer bf = new StringBuffer();
+                if ((n & IMemoryMap.FLAG_READ) != 0)
+                    bf.append('r');
+                else
+                    bf.append('-');
+                if ((n & IMemoryMap.FLAG_WRITE) != 0)
+                    bf.append('w');
+                else
+                    bf.append('-');
+                if ((n & IMemoryMap.FLAG_EXECUTE) != 0)
+                    bf.append('x');
+                else
+                    bf.append('-');
+                return bf.toString();
+            }
+            case 4: {
+                Number n = r.getOffset();
+                if (n != null) {
+                    BigInteger x = JSON.toBigInteger(n);
                     String s = x.toString(16);
-                    int sz = 0;
-                    if (mem_ctx != null) sz = mem_ctx.getAddressSize() * 2;
-                    int l = sz - s.length();
+                    int l = 16 - s.length();
                     if (l < 0) l = 0;
                     if (l > 16) l = 16;
                     return "0x0000000000000000".substring(0, 2 + l) + s; //$NON-NLS-1$
                 }
-            case 3:
-                {
-                    int n = r.getFlags();
-                    StringBuffer bf = new StringBuffer();
-                    if ((n & IMemoryMap.FLAG_READ) != 0) bf.append('r'); else bf.append('-');
-                    if ((n & IMemoryMap.FLAG_WRITE) != 0) bf.append('w'); else bf.append('-');
-                    if ((n & IMemoryMap.FLAG_EXECUTE) != 0) bf.append('x'); else bf.append('-');
-                    return bf.toString();
-                }
-            case 4:
-                {
-                    Number n = r.getOffset();
-                    if (n != null) {
-                        BigInteger x = JSON.toBigInteger(n);
-                        String s = x.toString(16);
-                        int l = 16 - s.length();
-                        if (l < 0) l = 0;
-                        if (l > 16) l = 16;
-                        return "0x0000000000000000".substring(0, 2 + l) + s; //$NON-NLS-1$
-                    }
-                    String s = r.getSectionName();
-                    if (s != null) return s;
-                    return ""; //$NON-NLS-1$
-                }
+                String s = r.getSectionName();
+                if (s != null) return s;
+                return ""; //$NON-NLS-1$
+            }
             }
             return ""; //$NON-NLS-1$
         }
@@ -202,7 +280,7 @@ public class MemoryMapWidget {
         }
 
         public Color getForeground(Object element, int columnIndex) {
-            TCFMemoryRegion r = (TCFMemoryRegion)element;
+            TCFMemoryRegion r = (TCFMemoryRegion) element;
             if (r.getProperties().get(IMemoryMap.PROP_ID) != null) {
                 String fnm = r.getFileName();
                 if (fnm != null && loaded_files.contains(fnm)) {
@@ -213,8 +291,8 @@ public class MemoryMapWidget {
 
             String symbolFileInfo = getSymbolFileInfo(r);
             // Set or reset the symbol file error tooltip marker
-            TableItem[] items = map_table.getItems();
-            for (TableItem item : items) {
+            TreeItem[] items = map_table.getItems();
+            for (TreeItem item : items) {
                 if (item.getData() != null && item.getData().equals(r)) {
                     item.setData("_TOOLTIP", symbolFileInfo); //$NON-NLS-1$
                 }
@@ -226,16 +304,20 @@ public class MemoryMapWidget {
             return map_table.getForeground();
         }
 
-        /* (non-Javadoc)
-         * @see org.eclipse.jface.viewers.ITableFontProvider#getFont(java.lang.Object, int)
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.eclipse.jface.viewers.ITableFontProvider#getFont(java.lang.Object
+         * , int)
          */
         @Override
         public Font getFont(Object element, int columnIndex) {
             switch (columnIndex) {
-                case 1:
-                case 2:
-                case 4:
-                    return JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT);
+            case 1:
+            case 2:
+            case 4:
+                return JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT);
             }
             return null;
         }
@@ -247,12 +329,17 @@ public class MemoryMapWidget {
 
     private class MemoryMapListener implements IMemoryMap.MemoryMapListener {
 
-        /* (non-Javadoc)
-         * @see org.eclipse.tcf.services.IMemoryMap.MemoryMapListener#changed(java.lang.String)
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.eclipse.tcf.services.IMemoryMap.MemoryMapListener#changed(java
+         * .lang.String)
          */
         @Override
         public void changed(String context_id) {
-            // If the widget is already disposed but the listener is still invoked,
+            // If the widget is already disposed but the listener is still
+            // invoked,
             // remove the listener itself from the memory map service.
             if (disposed) {
                 if (channel != null) {
@@ -298,7 +385,8 @@ public class MemoryMapWidget {
 
         // Remove the memory map listener
         if (channel != null) {
-            // Asynchronous execution. Make a copy of the current channel reference.
+            // Asynchronous execution. Make a copy of the current channel
+            // reference.
             final IChannel c = channel;
             Protocol.invokeLater(new Runnable() {
                 @Override
@@ -318,7 +406,8 @@ public class MemoryMapWidget {
         // Remove the memory map listener from the current channel
         // before setting the variable to the new channel
         if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
-            // Asynchronous execution. Make a copy of the current channel reference.
+            // Asynchronous execution. Make a copy of the current channel
+            // reference.
             final IChannel c = channel;
             Protocol.invokeLater(new Runnable() {
                 @Override
@@ -336,7 +425,8 @@ public class MemoryMapWidget {
 
             // Register the memory map listener
             if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
-                // Asynchronous execution. Make a copy of the current channel reference.
+                // Asynchronous execution. Make a copy of the current channel
+                // reference.
                 final IChannel c = channel;
                 Protocol.invokeLater(new Runnable() {
                     @Override
@@ -400,9 +490,7 @@ public class MemoryMapWidget {
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        map_table = new Table(composite,
-                SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION |
-                SWT.H_SCROLL | SWT.V_SCROLL);
+        map_table = new Tree(composite, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
 
         map_table.setFont(font);
         configureTable(map_table);
@@ -410,17 +498,18 @@ public class MemoryMapWidget {
         map_table.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion) ((IStructuredSelection) table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 editRegion(r);
             }
+
             @Override
             public void widgetSelected(SelectionEvent e) {
                 update_map_buttons.run();
             }
         });
 
-        table_viewer = new TableViewer(map_table);
+        table_viewer = new TreeViewer(map_table);
         table_viewer.setUseHashlookup(true);
         table_viewer.setColumnProperties(column_names);
         table_viewer.setContentProvider(content_provider);
@@ -432,42 +521,40 @@ public class MemoryMapWidget {
     }
 
     protected String getColumnText(int column) {
-        if (column < column_names.length && column >= 0)
-            return column_names[column];
+        if (column < column_names.length && column >= 0) return column_names[column];
         return ""; //$NON-NLS-1$
     }
 
-    protected void configureTable(final Table table) {
+    protected void configureTable(final Tree table) {
         GridData data = new GridData(GridData.FILL_BOTH);
         data.widthHint = SIZING_TABLE_WIDTH;
         data.heightHint = SIZING_TABLE_HEIGHT;
         table.setLayoutData(data);
 
-        final TableColumn colFile = new TableColumn(table, 0);
+        final TreeColumn colFile = new TreeColumn(table, 0);
         colFile.setResizable(true);
         colFile.setAlignment(SWT.LEFT);
         colFile.setText(getColumnText(0));
 
-        final TableColumn colAddr = new TableColumn(table, 1);
+        final TreeColumn colAddr = new TreeColumn(table, 1);
         colAddr.setResizable(true);
         colAddr.setAlignment(SWT.LEFT);
         colAddr.setText(getColumnText(1));
 
-        final TableColumn colSize = new TableColumn(table, 2);
+        final TreeColumn colSize = new TreeColumn(table, 2);
         colSize.setResizable(true);
         colSize.setAlignment(SWT.LEFT);
         colSize.setText(getColumnText(2));
 
-        final TableColumn colFlags = new TableColumn(table, 3);
+        final TreeColumn colFlags = new TreeColumn(table, 3);
         colFlags.setResizable(true);
         colFlags.setAlignment(SWT.LEFT);
         colFlags.setText(getColumnText(3));
 
-        final TableColumn colOffset = new TableColumn(table, 4);
+        final TreeColumn colOffset = new TreeColumn(table, 4);
         colOffset.setResizable(true);
         colOffset.setAlignment(SWT.LEFT);
         colOffset.setText(getColumnText(4));
-
 
         TableLayout layout = new TableLayout();
         layout.addColumnData(new ColumnPixelData(150));
@@ -477,29 +564,29 @@ public class MemoryMapWidget {
         layout.addColumnData(new ColumnPixelData(140));
 
         table.addListener(SWT.Resize, new Listener() {
-                @Override
-                public void handleEvent(Event event) {
-                    int width = table.getSize().x - 4 - colAddr.getWidth() - colSize.getWidth() - colFlags.getWidth() - colOffset.getWidth();
-                    colFile.setWidth(Math.max(width, 100));
-                }
+            @Override
+            public void handleEvent(Event event) {
+                int width = table.getSize().x - 4 - colAddr.getWidth() - colSize.getWidth() - colFlags.getWidth() - colOffset.getWidth();
+                colFile.setWidth(Math.max(width, 100));
+            }
         });
 
         colFile.addListener(SWT.Resize, new Listener() {
-                @Override
-                public void handleEvent(Event event) {
-                    int colWidth = colFile.getWidth();
-                    if (colWidth < 100) {
-                        event.doit = false;
-                        colFile.setWidth(100);
-                    }
+            @Override
+            public void handleEvent(Event event) {
+                int colWidth = colFile.getWidth();
+                if (colWidth < 100) {
+                    event.doit = false;
+                    colFile.setWidth(100);
                 }
+            }
         });
 
         Listener listener = new Listener() {
             @Override
             public void handleEvent(Event event) {
                 if (event.widget instanceof TableColumn) {
-                    TableColumn col = (TableColumn)event.widget;
+                    TableColumn col = (TableColumn) event.widget;
                     int colWidth = col.getWidth();
                     if (colWidth < 40) {
                         event.doit = false;
@@ -514,84 +601,87 @@ public class MemoryMapWidget {
         colOffset.addListener(SWT.Resize, listener);
 
         // "Symbol File Errors" are displayed as tooltip on the table item.
-        // See http://git.eclipse.org/c/platform/eclipse.platform.swt.git/tree/examples/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet125.java.
+        // See
+        // http://git.eclipse.org/c/platform/eclipse.platform.swt.git/tree/examples/org.eclipse.swt.snippets/src/org/eclipse/swt/snippets/Snippet125.java.
 
         // Disable native tooltip
-        table.setToolTipText (""); //$NON-NLS-1$
+        table.setToolTipText(""); //$NON-NLS-1$
 
         // Implement a "fake" tooltip
-        final Listener labelListener = new Listener () {
-            public void handleEvent (Event event) {
-                Label label = (Label)event.widget;
-                Shell shell = label.getShell ();
+        final Listener labelListener = new Listener() {
+            public void handleEvent(Event event) {
+                Label label = (Label) event.widget;
+                Shell shell = label.getShell();
                 switch (event.type) {
                 case SWT.MouseDown:
-                    Event e = new Event ();
-                    e.item = (TableItem) label.getData ("_TABLEITEM"); //$NON-NLS-1$
+                    Event e = new Event();
+                    e.item = (TreeItem) label.getData("_TABLEITEM"); //$NON-NLS-1$
                     // Assuming table is single select, set the selection as if
                     // the mouse down event went through to the table
-                    table.setSelection (new TableItem [] {(TableItem) e.item});
-                    table.notifyListeners (SWT.Selection, e);
-                    shell.dispose ();
+                    table.setSelection(new TreeItem[] { (TreeItem) e.item });
+                    table.notifyListeners(SWT.Selection, e);
+                    shell.dispose();
                     table.setFocus();
                     break;
                 case SWT.MouseExit:
-                    shell.dispose ();
+                    shell.dispose();
                     break;
                 }
             }
         };
 
-        Listener tableListener = new Listener () {
+        Listener tableListener = new Listener() {
             Shell tip = null;
+
             Label label = null;
-            public void handleEvent (Event event) {
+
+            public void handleEvent(Event event) {
                 switch (event.type) {
                 case SWT.Dispose:
                 case SWT.KeyDown:
                 case SWT.MouseMove: {
                     if (tip == null) break;
-                    tip.dispose ();
+                    tip.dispose();
                     tip = null;
                     label = null;
                     break;
                 }
                 case SWT.MouseHover: {
-                    TableItem item = table.getItem (new Point (event.x, event.y));
+                    TreeItem item = table.getItem(new Point(event.x, event.y));
                     if (item != null && item.getData("_TOOLTIP") instanceof String) { //$NON-NLS-1$
-                        if (tip != null  && !tip.isDisposed ()) tip.dispose ();
-                        tip = new Shell (table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
-                        tip.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
-                        FillLayout layout = new FillLayout ();
+                        if (tip != null && !tip.isDisposed()) tip.dispose();
+                        tip = new Shell(table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
+                        tip.setBackground(table.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+                        FillLayout layout = new FillLayout();
                         layout.marginWidth = 2;
-                        tip.setLayout (layout);
-                        label = new Label (tip, SWT.NONE);
-                        label.setForeground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_FOREGROUND));
-                        label.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
-                        label.setData ("_TABLEITEM", item); //$NON-NLS-1$
-                        label.setText ((String)item.getData("_TOOLTIP")); //$NON-NLS-1$
-                        label.addListener (SWT.MouseExit, labelListener);
-                        label.addListener (SWT.MouseDown, labelListener);
-                        Point size = tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
-                        Point pt = table.toDisplay (event.x - 20, event.y - size.y);
-                        tip.setBounds (pt.x, pt.y, size.x, size.y);
-                        tip.setVisible (true);
+                        tip.setLayout(layout);
+                        label = new Label(tip, SWT.NONE);
+                        label.setForeground(table.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+                        label.setBackground(table.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+                        label.setData("_TABLEITEM", item); //$NON-NLS-1$
+                        label.setText((String) item.getData("_TOOLTIP")); //$NON-NLS-1$
+                        label.addListener(SWT.MouseExit, labelListener);
+                        label.addListener(SWT.MouseDown, labelListener);
+                        Point size = tip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+                        Point pt = table.toDisplay(event.x - 20, event.y - size.y);
+                        tip.setBounds(pt.x, pt.y, size.x, size.y);
+                        tip.setVisible(true);
                     }
                 }
                 }
             }
         };
-        table.addListener (SWT.Dispose, tableListener);
-        table.addListener (SWT.KeyDown, tableListener);
-        table.addListener (SWT.MouseMove, tableListener);
-        table.addListener (SWT.MouseHover, tableListener);
+        table.addListener(SWT.Dispose, tableListener);
+        table.addListener(SWT.KeyDown, tableListener);
+        table.addListener(SWT.MouseMove, tableListener);
+        table.addListener(SWT.MouseHover, tableListener);
 
         table.setLayout(layout);
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
     }
 
-    protected final TableViewer getViewer() {
+    protected final TreeViewer getViewer() {
         return table_viewer;
     }
 
@@ -610,7 +700,7 @@ public class MemoryMapWidget {
         final Button button_add = new Button(composite, SWT.PUSH);
         button_add.setText(" &Add... "); //$NON-NLS-1$
         GridData gd = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-        PixelConverter converter= new PixelConverter(button_add);
+        PixelConverter converter = new PixelConverter(button_add);
         gd.widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
         button_add.setLayoutData(gd);
         button_add.addSelectionListener(sel_adapter = new SelectionAdapter() {
@@ -618,7 +708,7 @@ public class MemoryMapWidget {
             public void widgetSelected(SelectionEvent e) {
                 String id = ctx_text.getText();
                 if (id == null || id.length() == 0) return;
-                Map<String,Object> props = new HashMap<String,Object>();
+                Map<String, Object> props = new HashMap<String, Object>();
                 Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
                 if (new MemoryMapItemDialog(map_table.getShell(), image, props, true).open() == Window.OK) {
                     props.put(IMemoryMap.PROP_ID, id);
@@ -641,7 +731,7 @@ public class MemoryMapWidget {
         button_edit.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion) ((IStructuredSelection) table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 editRegion(r);
             }
@@ -658,7 +748,7 @@ public class MemoryMapWidget {
             public void widgetSelected(SelectionEvent e) {
                 String id = ctx_text.getText();
                 if (id == null || id.length() == 0) return;
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion) ((IStructuredSelection) table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(id);
                 if (lst != null && lst.remove(r)) table_viewer.refresh();
@@ -680,7 +770,7 @@ public class MemoryMapWidget {
             public void widgetSelected(SelectionEvent e) {
                 String id = ctx_text.getText();
                 if (id == null || id.length() == 0) return;
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion) ((IStructuredSelection) table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 locateSymbolFile(r);
             }
@@ -694,17 +784,17 @@ public class MemoryMapWidget {
 
         update_map_buttons = new Runnable() {
             public void run() {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion) ((IStructuredSelection) table_viewer.getSelection()).getFirstElement();
                 boolean manual = r != null && r.getProperties().get(IMemoryMap.PROP_ID) != null;
                 button_add.setEnabled(selected_mem_map_id != null);
-                button_edit.setEnabled(r != null);
+                button_edit.setEnabled(r != null && !r.getProperties().containsKey("_CHILDREN")); //$NON-NLS-1$
                 button_remove.setEnabled(manual);
                 item_add.setEnabled(selected_mem_map_id != null);
-                item_edit.setEnabled(r != null);
+                item_edit.setEnabled(r != null && !r.getProperties().containsKey("_CHILDREN")); //$NON-NLS-1$
                 item_remove.setEnabled(manual);
                 String symbolFileInfo = getSymbolFileInfo(r);
                 boolean enabled = symbolFileInfo != null && symbolFileInfo.contains("Symbol file error:") //$NON-NLS-1$
-                                        && r.getFileName() != null;
+                        && r.getFileName() != null;
                 button_locate.setEnabled(enabled);
                 item_locate.setEnabled(enabled);
             }
@@ -715,9 +805,9 @@ public class MemoryMapWidget {
     private void editRegion(IMemoryMap.MemoryRegion r) {
         String id = ctx_text.getText();
         if (id == null || id.length() == 0) return;
-        Map<String,Object> props = r.getProperties();
+        Map<String, Object> props = r.getProperties();
         boolean enable_editing = props.get(IMemoryMap.PROP_ID) != null;
-        if (enable_editing) props = new HashMap<String,Object>(props);
+        if (enable_editing) props = new HashMap<String, Object>(props);
         Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
         if (new MemoryMapItemDialog(map_table.getShell(), image, props, enable_editing).open() == Window.OK && enable_editing) {
             ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(id);
@@ -736,7 +826,7 @@ public class MemoryMapWidget {
     private void locateSymbolFile(IMemoryMap.MemoryRegion r) {
         Assert.isNotNull(r);
 
-        Map<String,Object> props = new HashMap<String,Object>(r.getProperties());
+        Map<String, Object> props = new HashMap<String, Object>(r.getProperties());
 
         FileDialog dialog = new FileDialog(map_table.getShell(), SWT.OPEN);
         IPath workSpacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
@@ -752,7 +842,8 @@ public class MemoryMapWidget {
 
             if (cfg != null) {
                 try {
-                    ILaunchConfigurationWorkingCopy wc = cfg instanceof ILaunchConfigurationWorkingCopy ? (ILaunchConfigurationWorkingCopy)cfg : cfg.getWorkingCopy();
+                    ILaunchConfigurationWorkingCopy wc = cfg instanceof ILaunchConfigurationWorkingCopy ? (ILaunchConfigurationWorkingCopy) cfg : cfg
+                            .getWorkingCopy();
 
                     String s = wc.getAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, ""); //$NON-NLS-1$
                     List<PathMapRule> map = TCFLaunchDelegate.parsePathMapAttribute(s);
@@ -769,7 +860,8 @@ public class MemoryMapWidget {
                         wc.setAttribute(TCFLaunchDelegate.ATTR_PATH_MAP, bf.toString());
 
                     if (wc.isDirty()) wc.doSave();
-                } catch (CoreException e) {
+                }
+                catch (CoreException e) {
                     Activator.getDefault().getLog().log(e.getStatus());
                 }
             }
@@ -798,9 +890,10 @@ public class MemoryMapWidget {
 
     private void writeMemoryMapAttribute(ILaunchConfigurationWorkingCopy copy) throws Exception {
         String s = null;
-        final ArrayList<Map<String,Object>> lst = new ArrayList<Map<String,Object>>();
+        final ArrayList<Map<String, Object>> lst = new ArrayList<Map<String, Object>>();
         for (ArrayList<IMemoryMap.MemoryRegion> x : cur_maps.values()) {
-            for (IMemoryMap.MemoryRegion r : x) lst.add(r.getProperties());
+            for (IMemoryMap.MemoryRegion r : x)
+                lst.add(r.getProperties());
         }
         if (lst.size() > 0) {
             s = new TCFTask<String>() {
@@ -834,7 +927,8 @@ public class MemoryMapWidget {
         String[] arr = ids.toArray(new String[ids.size()]);
         Arrays.sort(arr);
         ctx_text.removeAll();
-        for (String id : arr) ctx_text.add(id);
+        for (String id : arr)
+            ctx_text.add(id);
         if (map_id == null && arr.length > 0) map_id = arr[0];
         if (map_id == null) map_id = ""; //$NON-NLS-1$
         ctx_text.setText(map_id);
@@ -883,13 +977,18 @@ public class MemoryMapWidget {
         }
         catch (Exception x) {
             if (channel.getState() != IChannel.STATE_OPEN) return null;
-            // Don't log error. This is expected if the selected node has no containing memory context
+            // Don't log error. This is expected if the selected node has no
+            // containing memory context
             // Activator.log("Cannot get selected memory node", x);
             return null;
         }
     }
 
-    private String getSymbolFileInfo(final IMemoryMap.MemoryRegion r) {
+    private String getSymbolFileInfo(IMemoryMap.MemoryRegion region) {
+        if (region != null && region.getProperties().containsKey("_CHILDREN")) { //$NON-NLS-1$
+            region = (IMemoryMap.MemoryRegion)((Object[])region.getProperties().get("_CHILDREN"))[0]; //$NON-NLS-1$
+        }
+        final IMemoryMap.MemoryRegion r = region;  
         if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null || r.getAddress() == null) return null;
         try {
             return new TCFTask<String>(channel) {
@@ -913,19 +1012,21 @@ public class MemoryMapWidget {
                             TCFSymFileRef sym_data = sym_cache.getData();
                             if (sym_data != null) {
                                 if (sym_data.props != null) {
-                                    String sym_file_name = (String)sym_data.props.get("FileName"); //$NON-NLS-1$
-                                    if (sym_file_name != null && !sym_file_name.equals(r.getFileName())) symbolFileInfo.append("Symbol file name: ").append(sym_file_name); //$NON-NLS-1$
+                                    String sym_file_name = (String) sym_data.props.get("FileName"); //$NON-NLS-1$
+                                    if (sym_file_name != null && !sym_file_name.equals(r.getFileName()))
+                                        symbolFileInfo.append("Symbol file name: ").append(sym_file_name); //$NON-NLS-1$
 
                                     @SuppressWarnings("unchecked")
-                                    Map<String,Object> map = (Map<String,Object>)sym_data.props.get("FileError"); //$NON-NLS-1$
+                                    Map<String, Object> map = (Map<String, Object>) sym_data.props.get("FileError"); //$NON-NLS-1$
                                     if (map != null) {
                                         if (symbolFileInfo.length() > 0) symbolFileInfo.append("\n"); //$NON-NLS-1$
-                                        symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(new ErrorReport("", map), false)); //$NON-NLS-1$ //$NON-NLS-2$
+                                        symbolFileInfo
+                                                .append("Symbol file error: ").append(TCFModel.getErrorMessage(new ErrorReport("", map), false)); //$NON-NLS-1$ //$NON-NLS-2$
                                     }
                                 }
                                 if (sym_data.error != null) {
                                     symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(sym_data.error, false)); //$NON-NLS-1$
-                               }
+                                }
                             }
                         }
                     }
@@ -950,13 +1051,14 @@ public class MemoryMapWidget {
                     if (!collectMemoryNodes(n.getFilteredChildren())) return;
                     done(true);
                 }
+
                 private boolean collectMemoryNodes(TCFChildren children) {
                     if (!children.validate(this)) return false;
-                    Map<String,TCFNode> m = children.getData();
+                    Map<String, TCFNode> m = children.getData();
                     if (m != null) {
                         for (TCFNode n : m.values()) {
                             if (n instanceof TCFNodeExecContext) {
-                                TCFNodeExecContext exe = (TCFNodeExecContext)n;
+                                TCFNodeExecContext exe = (TCFNodeExecContext) n;
                                 if (!collectMemoryNodes(exe.getChildren())) return false;
                                 TCFDataCache<TCFNodeExecContext> syms_cache = exe.getSymbolsNode();
                                 if (!syms_cache.validate(this)) return false;
@@ -1042,7 +1144,10 @@ public class MemoryMapWidget {
                                     if (fnm != null) loaded_files.add(fnm);
                                 }
                                 else {
-                                    /* Foreign entry, added by another client or by the target itself */
+                                    /*
+                                     * Foreign entry, added by another client or
+                                     * by the target itself
+                                     */
                                     target_map.add(new TCFMemoryRegion(m.region.getProperties()));
                                 }
                             }
@@ -1082,6 +1187,7 @@ public class MemoryMapWidget {
     }
 
     private void notifyModifyListeners() {
-        for (ModifyListener l : modify_listeners) l.modifyText(null);
+        for (ModifyListener l : modify_listeners)
+            l.modifyText(null);
     }
 }
