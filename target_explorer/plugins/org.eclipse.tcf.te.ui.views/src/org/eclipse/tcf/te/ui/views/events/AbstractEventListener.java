@@ -51,7 +51,7 @@ public abstract class AbstractEventListener extends org.eclipse.tcf.te.ui.events
 	 * @return The main view or <code>null</code>.
 	 */
 	protected CommonViewer getViewer() {
-		if (viewer == null) {
+		if (viewer == null && PlatformUI.isWorkbenchRunning()) {
 			IWorkbench workbench = PlatformUI.getWorkbench();
 			IWorkbenchWindow window = workbench != null ? workbench.getActiveWorkbenchWindow() : null;
 			IWorkbenchPage page = window != null ? window.getActivePage() : null;
