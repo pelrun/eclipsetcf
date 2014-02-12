@@ -96,7 +96,7 @@ public class PathMapRuleDialog extends TitleAreaDialog {
 
         source_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-        gd.widthHint = 300;
+        gd.widthHint = convertWidthInCharsToPixels(40);
         gd.horizontalSpan = 2;
         source_text.setLayoutData(gd);
         source_text.setFont(font);
@@ -114,7 +114,9 @@ public class PathMapRuleDialog extends TitleAreaDialog {
         destination_label.setText("Destination:"); //$NON-NLS-1$
 
         destination_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        destination_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.widthHint = convertWidthInCharsToPixels(40);
+        destination_text.setLayoutData(gd);
         destination_text.setFont(font);
         destination_text.setEditable(enable_editing);
 
