@@ -25,8 +25,11 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.resource.JFaceResources;
@@ -70,6 +73,8 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tcf.core.ErrorReport;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule;
+import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
+import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.model.TCFMemoryRegion;
 import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
 import org.eclipse.tcf.internal.debug.ui.Activator;
@@ -991,7 +996,7 @@ public class MemoryMapWidget {
         final IMemoryMap.MemoryRegion r = region;  
         if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null || r.getAddress() == null) return null;
         try {
-            return new TCFTask<String>(channel) {
+            String symFileInfo = new TCFTask<String>(channel) {
                 public void run() {
                     TCFDataCache<TCFNodeExecContext> mem_cache = model.searchMemoryContext(selected_mem_map_node);
                     if (mem_cache == null) {
@@ -1004,7 +1009,7 @@ public class MemoryMapWidget {
                         return;
                     }
                     StringBuilder symbolFileInfo = new StringBuilder();
-                    TCFNodeExecContext mem_node = mem_cache.getData();
+                    final TCFNodeExecContext mem_node = mem_cache.getData();
                     if (mem_node != null) {
                         TCFDataCache<TCFSymFileRef> sym_cache = mem_node.getSymFileInfo(JSON.toBigInteger(r.getAddress()));
                         if (sym_cache != null) {
@@ -1024,6 +1029,12 @@ public class MemoryMapWidget {
                                                 .append("Symbol file error: ").append(TCFModel.getErrorMessage(new ErrorReport("", map), false)); //$NON-NLS-1$ //$NON-NLS-2$
                                     }
                                 }
+                                else if (sym_data.error == null) {
+                                    symbolFileInfo.append(r.getFileName());
+                                    symbolFileInfo.append(", "); //$NON-NLS-1$
+                                    symbolFileInfo.append(mem_node.getID());
+                                }
+
                                 if (sym_data.error != null) {
                                     symbolFileInfo.append("Symbol file error: ").append(TCFModel.getErrorMessage(sym_data.error, false)); //$NON-NLS-1$
                                 }
@@ -1033,6 +1044,22 @@ public class MemoryMapWidget {
                     done(symbolFileInfo.length() > 0 ? symbolFileInfo.toString() : null);
                 }
             }.get();
+            
+            if (symFileInfo.startsWith(r.getFileName())) {
+                String id = symFileInfo.split(", ")[1];  //$NON-NLS-1$
+                symFileInfo = null;
+                if (!new File(r.getFileName()).exists()) {
+                    final TCFLaunch launch = findLaunch();
+                    if (launch != null) {
+                        Object mapped = TCFSourceLookupDirector.lookup(launch, id, r.getFileName());
+                        if (!(mapped instanceof LocalFileStorage) || !((LocalFileStorage)mapped).getFile().exists()) {
+                            symFileInfo = "Symbol file error: No such file or directory"; //$NON-NLS-1$
+                        }
+                    }
+                }
+            }
+            
+            return symFileInfo;
         }
         catch (Exception x) {
             if (channel.getState() != IChannel.STATE_OPEN) return null;
@@ -1041,6 +1068,16 @@ public class MemoryMapWidget {
         }
     }
 
+    protected TCFLaunch findLaunch() {
+        for (ILaunch launch : DebugPlugin.getDefault().getLaunchManager().getLaunches()) {
+            if (launch instanceof TCFLaunch && 
+                    launch.getLaunchConfiguration().equals(cfg instanceof ILaunchConfigurationWorkingCopy ? ((ILaunchConfigurationWorkingCopy)cfg).getOriginal() : cfg)) {
+                return (TCFLaunch)launch;
+            }
+        }
+        return null;
+    }
+    
     private void loadTargetMemoryNodes() {
         target_map_nodes.clear();
         if (channel == null || channel.getState() != IChannel.STATE_OPEN) return;
