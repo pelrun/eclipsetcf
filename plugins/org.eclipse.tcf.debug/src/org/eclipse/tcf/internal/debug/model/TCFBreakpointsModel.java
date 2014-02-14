@@ -673,7 +673,7 @@ public class TCFBreakpointsModel {
         String file = (String)p.get(ATTR_REQESTED_FILE);
         if (file == null || file.length() == 0) file = (String)p.get(ATTR_FILE);
         if (file == null || file.length() == 0) file = marker_file;
-        if (file != null && file.length() > 0) {
+        if (file != null && file.trim().length() > 0) {
             String name = file;
             boolean file_mapping = false;
             if (capabilities != null) {
