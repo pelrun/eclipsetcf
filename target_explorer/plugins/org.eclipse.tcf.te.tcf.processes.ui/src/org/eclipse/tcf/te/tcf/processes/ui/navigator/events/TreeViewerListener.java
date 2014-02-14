@@ -84,13 +84,15 @@ public class TreeViewerListener implements ITreeViewerListener {
     			PendingOperationModelNode pendingNode = new PendingOperationNode();
     			pendingNode.setParent(node);
     			refreshable.setPendingOperationNode(pendingNode);
-				// Trigger a refresh of the view content.
-				ChangeEvent ev = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
-				EventManager.getInstance().fireEvent(ev);
 
     			Runnable runnable = new Runnable() {
     				@Override
     				public void run() {
+    					// Trigger a refresh of the view content.
+    					ChangeEvent ev = new ChangeEvent(node, IContainerModelNode.NOTIFY_CHANGED, null, null);
+    					EventManager.getInstance().fireEvent(ev);
+
+    					// Get the parent model of the node
     					IModel model = node.getParent(IModel.class);
     					Assert.isNotNull(model);
 
