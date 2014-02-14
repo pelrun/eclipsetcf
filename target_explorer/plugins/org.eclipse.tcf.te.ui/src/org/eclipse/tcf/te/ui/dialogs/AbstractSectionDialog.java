@@ -219,6 +219,7 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 
 	public void updateSections() {
 		IPropertiesContainer workingData = new PropertiesContainer();
+		workingData.setProperties(data.getProperties());
 		if (sections != null) {
 			// get working data
 			internalExtractData(workingData);
@@ -272,7 +273,6 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		if (data == null) {
 			data = new PropertiesContainer();
 		}
-		data.clearProperties();
 		if (sections != null) {
 			for (AbstractSection section : sections) {
 				if (section instanceof IDataExchangeNode) {
