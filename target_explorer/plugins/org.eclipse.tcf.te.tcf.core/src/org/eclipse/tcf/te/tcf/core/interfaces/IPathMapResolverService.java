@@ -52,7 +52,7 @@ public interface IPathMapResolverService extends IService {
 	 *
 	 * @param context The context. Must not be <code>null</code>.
 	 * @param hostPath The host path. Must not be <code>null</code>
-	 * @return The mapped target path or the given host path.
+	 * @return The mapped target path or <code>null</code>.
 	 */
 	public String findTargetPath(Object context, String hostPath);
 
@@ -70,7 +70,7 @@ public interface IPathMapResolverService extends IService {
 	 *
 	 * @param context The context. Must not be <code>null</code>.
 	 * @param targetPath The target path. Must not be <code>null</code>
-	 * @return The mapped host path or the given target path.
+	 * @return The mapped host path or <code>null</code>.
 	 */
 	public String findHostPath(Object context, String targetPath);
 }
