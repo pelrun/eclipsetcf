@@ -105,6 +105,8 @@ public class NotificationPopup extends AbstractNotificationPopup {
 
 				// Populate the widget content based on the current notification event
 				delegate.populateFormText(toolkit, widget, notification);
+				// Adjust the notification close delay
+				setDelayClose(delegate.getNotificationCloseDelay());
 			} else {
 				int numNotificationsRemain = notifications.size() - count;
 				ScalingHyperlink remainingLink = new ScalingHyperlink(notificationComposite, SWT.NO_FOCUS);

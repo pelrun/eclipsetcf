@@ -565,7 +565,7 @@ public abstract class AbstractNotificationPopup extends Window {
 	}
 
 	public void setDelayClose(long delayClose) {
-		this.delayClose = delayClose;
+		this.delayClose = delayClose >= 0 ? delayClose : DEFAULT_DELAY_CLOSE;
 	}
 
 	private Point fixupDisplayBounds(Point tipSize, Point location) {

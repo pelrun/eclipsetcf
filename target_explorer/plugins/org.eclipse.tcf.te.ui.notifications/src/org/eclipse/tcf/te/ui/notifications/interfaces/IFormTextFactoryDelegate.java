@@ -29,4 +29,11 @@ public interface IFormTextFactoryDelegate {
 	 * @param event The notification event. Must not be <code>null</code>.
 	 */
 	public void populateFormText(FormToolkit toolkit, FormText widget, NotifyEvent event);
+
+	/**
+	 * Returns the delay in milliseconds until to auto-close the notification popup.
+	 *
+	 * @return The delay in milliseconds or <code>-1</code> to apply the default delay.
+	 */
+	public long getNotificationCloseDelay();
 }

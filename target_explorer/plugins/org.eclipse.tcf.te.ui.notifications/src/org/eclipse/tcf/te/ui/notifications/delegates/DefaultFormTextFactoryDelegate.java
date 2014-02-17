@@ -118,4 +118,12 @@ public class DefaultFormTextFactoryDelegate implements IFormTextFactoryDelegate 
 	protected Image getImage(String key) {
 		return UIPlugin.getImage(key);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.notifications.interfaces.IFormTextFactoryDelegate#getNotificationCloseDelay()
+	 */
+	@Override
+	public long getNotificationCloseDelay() {
+	    return -1;
+	}
 }
