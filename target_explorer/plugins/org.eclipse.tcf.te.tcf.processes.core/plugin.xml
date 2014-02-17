@@ -70,20 +70,7 @@
          <references>
             <reference
                   id="org.eclipse.tcf.te.tcf.processes.core.initializeModelStep"
-                  insertAfter="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup">
-               <requires id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup"/>
-               <enablement>
-                  <with variable="context">
-                     <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
-                        <or>
-                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
-                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="ProcessesV1"/>
-                        </or>
-                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="SysMonitor"/>
-                     </adapt>
-                  </with>
-               </enablement>
-            </reference>
+                  insertAfter="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup"/>
          </references>
       </stepGroup>
       
