@@ -14,6 +14,7 @@ import java.net.URL;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.notifications.interfaces.ImageConsts;
 import org.eclipse.ui.PlatformUI;
@@ -27,6 +28,8 @@ import org.osgi.framework.BundleContext;
 public class UIPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static UIPlugin plugin;
+	// The scoped preferences instance
+	private static volatile ScopedEclipsePreferences scopedPreferences;
 	// The trace handler instance
 	private static volatile TraceHandler traceHandler;
 
@@ -56,6 +59,16 @@ public class UIPlugin extends AbstractUIPlugin {
 			return getDefault().getBundle().getSymbolicName();
 		}
 		return "org.eclipse.tcf.te.ui.notifications"; //$NON-NLS-1$
+	}
+
+	/**
+	 * Return the scoped preferences for this plugin.
+	 */
+	public static ScopedEclipsePreferences getScopedPreferences() {
+		if (scopedPreferences == null) {
+			scopedPreferences = new ScopedEclipsePreferences(getUniqueIdentifier());
+		}
+		return scopedPreferences;
 	}
 
 	/**
@@ -101,6 +114,7 @@ public class UIPlugin extends AbstractUIPlugin {
 			formToolkit = null;
 		}
 		plugin = null;
+		scopedPreferences = null;
 		traceHandler = null;
 		super.stop(context);
 	}

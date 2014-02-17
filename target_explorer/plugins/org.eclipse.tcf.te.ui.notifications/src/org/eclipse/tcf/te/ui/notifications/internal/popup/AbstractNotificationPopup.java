@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.ui.notifications.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.notifications.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.ui.notifications.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.notifications.internal.popup.AnimationUtil.FadeJob;
 import org.eclipse.tcf.te.ui.notifications.internal.popup.AnimationUtil.IFadeListener;
@@ -123,7 +124,7 @@ public abstract class AbstractNotificationPopup extends Window {
 
 	/* default */ FadeJob fadeJob;
 
-	private boolean fadingEnabled;
+	private final boolean fadingEnabled;
 
 	public AbstractNotificationPopup(Display display) {
 		this(display, SWT.NO_TRIM | SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
@@ -138,14 +139,9 @@ public abstract class AbstractNotificationPopup extends Window {
 		initResources();
 
 		closeJob.setSystem(true);
-	}
 
-	public boolean isFadingEnabled() {
-		return fadingEnabled;
-	}
-
-	public void setFadingEnabled(boolean fadingEnabled) {
-		this.fadingEnabled = fadingEnabled;
+		// Initialize the fadingEnabled flag
+		fadingEnabled = UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_ENABLE_FADING);
 	}
 
 	/**
@@ -331,7 +327,7 @@ public abstract class AbstractNotificationPopup extends Window {
 		constrainShellSize();
 		shell.setLocation(fixupDisplayBounds(shell.getSize(), shell.getLocation()));
 
-		if (isFadingEnabled()) {
+		if (fadingEnabled) {
 			shell.setAlpha(0);
 		}
 		shell.setVisible(true);

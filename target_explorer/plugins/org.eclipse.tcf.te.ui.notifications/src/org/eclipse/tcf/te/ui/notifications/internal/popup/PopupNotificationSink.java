@@ -26,12 +26,10 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.events.NotifyEvent;
 import org.eclipse.tcf.te.ui.notifications.nls.Messages;
-import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -112,11 +110,6 @@ public class PopupNotificationSink {
 	}
 
 
-	public boolean isAnimationsEnabled() {
-		IPreferenceStore store = PlatformUI.getPreferenceStore();
-		return store.getBoolean(IWorkbenchPreferenceConstants.ENABLE_ANIMATIONS);
-	}
-
 	/**
 	 * Notify the given notification events.
 	 *
@@ -144,7 +137,6 @@ public class PopupNotificationSink {
 
 		Shell shell = new Shell(PlatformUI.getWorkbench().getDisplay());
 		popup = new NotificationPopup(shell);
-		popup.setFadingEnabled(isAnimationsEnabled());
 		List<NotifyEvent> toDisplay = new ArrayList<NotifyEvent>(currentlyNotifying);
 		Collections.sort(toDisplay);
 		popup.setContents(toDisplay);
