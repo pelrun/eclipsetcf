@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2013 QNX Software Systems and others.
+ * Copyright (c) 2004, 2014 QNX Software Systems and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,6 +41,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -78,7 +79,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 
 public class TCFThreadFilterEditor {
 
-    public static final String PLUGIN_ID="org.eclipse.tcf.internal.cdt.ui.breakpoints.TCFThreadFilterEditor";
+    public static final String PLUGIN_ID="org.eclipse.tcf.internal.cdt.ui.breakpoints.TCFThreadFilterEditor"; //$NON-NLS-1$
 
     private static class Context {
         private final String fName;
@@ -102,7 +103,7 @@ public class TCFThreadFilterEditor {
             fParentId = ctx.getParentID();
             fIsContainer = !ctx.hasState();
             fBpGroup = ctx.getBPGroup();
-            fAdditionalInfo = ctx.getProperties().get("AdditionalInfo");
+            fAdditionalInfo = ctx.getProperties().get("AdditionalInfo"); //$NON-NLS-1$
         }
 
 
@@ -308,7 +309,7 @@ public class TCFThreadFilterEditor {
                 ILaunchConfiguration config = ((ILaunch) element).getLaunchConfiguration();
                 if (config != null) return config.getName();
             }
-            return "?";
+            return "?"; //$NON-NLS-1$
         }
     }
 
@@ -400,7 +401,7 @@ public class TCFThreadFilterEditor {
      private String getQueryFilteredContexts (final String query, final Set<String> contextList) {
 
          TCFLaunch launch = (TCFLaunch)getAttributeLaunch();
-         if (launch == null) {
+         if (launch == null || launch.isTerminated()) {
              return Messages.TCFThreadFilterEditorNoOpenChannel;
          }
          final IChannel channel = launch.getChannel();
@@ -434,16 +435,16 @@ public class TCFThreadFilterEditor {
 
         String result = null;
         // Ignore content in double-quotes.
-        Pattern p = Pattern.compile("\"((?:\\\\\\\\|\\\\\"|[^\"])*)\"");
+        Pattern p = Pattern.compile("\"((?:\\\\\\\\|\\\\\"|[^\"])*)\""); //$NON-NLS-1$
         Matcher m = p.matcher(expression);
-        expression = m.replaceAll("temp");
+        expression = m.replaceAll("temp"); //$NON-NLS-1$
 
         // No whitespace
-        if (expression.matches("^(.*?)(\\s)(.*)$"))
+        if (expression.matches("^(.*?)(\\s)(.*)$")) //$NON-NLS-1$
             return Messages.TCFThreadFilterEditorFormatError;
 
         // Check characters around equals.
-        if (expression.matches("^(.*?)[^a-zA-Z0-9_]=[^a-zA-Z0-9_](.*)$"))
+        if (expression.matches("^(.*?)[^a-zA-Z0-9_]=[^a-zA-Z0-9_](.*)$")) //$NON-NLS-1$
             return Messages.TCFThreadFilterEditorUnbalancedParameters;
 
         return result;
@@ -465,6 +466,12 @@ public class TCFThreadFilterEditor {
                 if (error == null ) {
                     scopeExpressionDecoration.hide();
                     fPage.setErrorMessage(null);
+                    fPage.setValid(true);
+                }
+                else if (error == Messages.TCFThreadFilterEditorNoOpenChannel) {
+                    // if no open channel, allow to edit expression nonetheless
+                    scopeExpressionDecoration.hide();
+                    fPage.setErrorMessage(NLS.bind(Messages.TCFThreadFilterEditor_cannotValidate, error));
                     fPage.setValid(true);
                 }
                 else {
@@ -628,7 +635,7 @@ public class TCFThreadFilterEditor {
 
         preferencesLink = new Link(parent, SWT.WRAP);
         preferencesLink.setLayoutData(twoColumnLayout);
-        preferencesLink.setText("<a>Breakpoint Default Scope Preferences</a>");
+        preferencesLink.setText(Messages.TCFThreadFilterEditor_defaultScopePrefsLink);
         preferencesLink.addSelectionListener(new linkSelectAdapter(parent.getShell()));
         parent.layout();
     }

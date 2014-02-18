@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.tcf.internal.cdt.ui.Activator;
 import org.eclipse.tcf.internal.cdt.ui.preferences.PreferenceConstants;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
+import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -79,7 +80,7 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
         Map<String, Object> attributes = new TreeMap<String, Object>();
         if ( part != null ) {
             Object obj = getDebugContext(part).getFirstElement();
-            if ( obj instanceof TCFNode ) {
+            if ( obj instanceof TCFNode || obj instanceof TCFLaunch ) {
                 if ( toggleType.length() != 0) {
                     attributes.clear();
                     if (isDefaultBPContextQueryEnabled() == true) {

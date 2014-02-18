@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.internal.cdt.ui.Activator;
 import org.eclipse.tcf.internal.cdt.ui.preferences.PreferenceConstants;
 import org.eclipse.tcf.internal.debug.model.ITCFConstants;
+import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -108,7 +109,7 @@ public class TCFToggleBreakpointsTargetFactory implements IToggleBreakpointsTarg
             // If the selection has the context data we want, use it.
             if (selection instanceof IStructuredSelection) {
                 Object obj = ((IStructuredSelection)selection).getFirstElement();
-                if (obj instanceof TCFNode) {
+                if (obj instanceof TCFNode || obj instanceof TCFLaunch) {
                     return true;
                 }
             }
@@ -116,7 +117,7 @@ public class TCFToggleBreakpointsTargetFactory implements IToggleBreakpointsTarg
         if (part != null) {
             // Get the debug context from the WorkbenchPart.
             Object obj = getDebugContext(part).getFirstElement();
-            if (obj instanceof TCFNode) {
+            if (obj instanceof TCFNode || obj instanceof TCFLaunch) {
                 return true;
             }
         }
