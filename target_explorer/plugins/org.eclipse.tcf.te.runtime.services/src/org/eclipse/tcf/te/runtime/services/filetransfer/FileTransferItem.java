@@ -102,9 +102,10 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 	public boolean equals(Object obj) {
 		boolean equals = super.equals(obj);
 		if (!equals && obj instanceof IFileTransferItem) {
-			return getHostPath() != null ? getHostPath().equals(((IFileTransferItem)obj).getHostPath()) : ((IFileTransferItem)obj).getHostPath() == null
-						&& getTargetPath() != null ? getTargetPath().equals(((IFileTransferItem)obj).getTargetPath()) : ((IFileTransferItem)obj).getTargetPath() == null
-						&& getDirection() == ((IFileTransferItem)obj).getDirection();
+			boolean hostPathEqual = getHostPath() != null ? getHostPath().equals(((IFileTransferItem)obj).getHostPath()) : ((IFileTransferItem)obj).getHostPath() == null;
+			boolean targetPathEqual = getTargetPath() != null ? getTargetPath().equals(((IFileTransferItem)obj).getTargetPath()) : ((IFileTransferItem)obj).getTargetPath() == null;
+			boolean directionEqual = getDirection() == ((IFileTransferItem)obj).getDirection();
+			return hostPathEqual && targetPathEqual && directionEqual;
 		}
 		return equals;
 	}
