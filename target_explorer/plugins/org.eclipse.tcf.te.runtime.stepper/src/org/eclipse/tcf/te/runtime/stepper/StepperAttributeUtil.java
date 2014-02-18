@@ -156,7 +156,7 @@ public class StepperAttributeUtil {
 		Assert.isNotNull(data);
 
 		if (share && fullQualifiedId != null) {
-			data.setProperty(getFullQualifiedKey(key, fullQualifiedId.getParentId(), data), value);
+			data.setProperty(getFullQualifiedKey(key, null, data), value);
 		}
 		return data.setProperty(getFullQualifiedKey(key, fullQualifiedId, data), value);
 	}
