@@ -10,7 +10,6 @@
 
 package org.eclipse.tcf.te.tcf.locator.steps;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +32,7 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
+import org.eclipse.tcf.te.tcf.core.va.ValueAddException;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
@@ -117,9 +117,9 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 									return;
 								}
 
-								// License errors are reported to the user and breaks the wait immediately
-								if (error instanceof IOException) {
-									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
+								// Value add exceptions are reported to the user and breaks the wait immediately
+								if (error instanceof ValueAddException) {
+									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(((ValueAddException) error).getError()), null);
 									return;
 								}
 

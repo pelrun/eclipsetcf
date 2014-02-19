@@ -105,7 +105,7 @@ public class ValueAddLauncher extends ProcessLauncher {
 	 * @see org.eclipse.tcf.te.runtime.processes.ProcessLauncher#launch()
 	 */
 	@Override
-	public void launch() throws Throwable {
+	public void launch() throws ValueAddException {
 		IPath dir = path.removeLastSegments(1);
 		String cmd = Host.isWindowsHost() ? path.toOSString() : "./" + path.lastSegment(); //$NON-NLS-1$
 
@@ -164,9 +164,9 @@ public class ValueAddLauncher extends ProcessLauncher {
 	 * Add the value-add command line parameters to the command.
 	 *
 	 * @param command The command. Must not be <code>null</code>.
-	 * @throws Throwable In case something failed while adding the command line parameters.
+	 * @throws ValueAddException In case something failed while adding the command line parameters.
 	 */
-	protected void addCommandLineParameters(List<String> command) throws Throwable {
+	protected void addCommandLineParameters(List<String> command) throws ValueAddException {
 		Assert.isNotNull(command);
 
 		// Determine a free port to use by the value-add. We must
@@ -182,9 +182,9 @@ public class ValueAddLauncher extends ProcessLauncher {
 	 * Add the value-add logging command line parameters to the command.
 	 *
 	 * @param command The command. Must not be <code>null</code>.
-	 * @throws Throwable In case something failed while adding the logging command line parameters.
+	 * @throws ValueAddException In case something failed while adding the logging command line parameters.
 	 */
-	protected void addLoggingCommandLineParameters(List<String> command) throws Throwable {
+	protected void addLoggingCommandLineParameters(List<String> command) throws ValueAddException {
 		Assert.isNotNull(command);
 
 		// Enable logging?
@@ -222,9 +222,17 @@ public class ValueAddLauncher extends ProcessLauncher {
 	 * @return The process instance.
 	 * @see Runtime#exec(String[], String[], File)
 	 */
-	protected Process exec(String[] cmdarray, String[] envp, File dir) throws IOException {
+	protected Process exec(String[] cmdarray, String[] envp, File dir) throws ValueAddException {
 		Assert.isNotNull(cmdarray);
-		return Runtime.getRuntime().exec(cmdarray, envp, dir);
+
+		Process process = null;
+		try {
+			process = Runtime.getRuntime().exec(cmdarray, envp, dir);
+		} catch (IOException e) {
+			throw new ValueAddException(e);
+		}
+
+		return process;
 	}
 
 	/**

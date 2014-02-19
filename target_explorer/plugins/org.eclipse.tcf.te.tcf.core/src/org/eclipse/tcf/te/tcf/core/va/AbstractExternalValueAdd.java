@@ -201,7 +201,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		Assert.isNotNull(id);
 		Assert.isNotNull(done);
 
-		Throwable error = null;
+		ValueAddException error = null;
 
 		// Get the location of the executable image
 		IPath path = getLocation();
@@ -209,7 +209,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 			ValueAddLauncher launcher = createLauncher(id, path);
 			try {
 				launcher.launch();
-			} catch (Throwable e) {
+			} catch (ValueAddException e) {
 				error = e;
 			}
 
@@ -263,7 +263,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				}
 				if (output == null && error == null) {
 					String stderr = !"".equals(launcher.getErrorReader().getOutput()) ? NLS.bind(Messages.AbstractExternalValueAdd_error_output, getLabel(), formatErrorOutput(launcher.getErrorReader().getOutput())) : ""; //$NON-NLS-1$ //$NON-NLS-2$
-					error = new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_failedToReadOutput, getLabel(), stderr));
+					error = new ValueAddException(new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_failedToReadOutput, getLabel(), stderr)));
 				}
 			}
 
@@ -298,7 +298,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					object = JSON.parseOne(output.getBytes("UTF-8")); //$NON-NLS-1$
 			        attrs = new HashMap<String, String>((Map<String, String>)object);
 				} catch (IOException e) {
-					error = e;
+					error = new ValueAddException(e);
 				}
 			}
 
@@ -317,7 +317,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 					entry.peer = new Peer(attrs);
 				} else {
-					error = new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidPeerAttributes, getLabel()));
+					error = new ValueAddException(new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidPeerAttributes, getLabel())));
 				}
 			}
 
@@ -340,7 +340,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 			// On error, dispose the entry
 			if (error != null) entry.dispose();
 		} else {
-			error = new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, getLabel(), (path != null ? path.toOSString() : "n/a"))); //$NON-NLS-1$
+			error = new ValueAddException(new FileNotFoundException(NLS.bind(Messages.AbstractExternalValueAdd_error_invalidLocation, getLabel(), (path != null ? path.toOSString() : "n/a")))); //$NON-NLS-1$
 		}
 
 		IStatus status = Status.OK_STATUS;
@@ -366,7 +366,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 	 *
 	 * @return The error to report.
 	 */
-	protected Throwable onProcessDied(ValueAddLauncher launcher, int exitCode) {
+	protected ValueAddException onProcessDied(ValueAddLauncher launcher, int exitCode) {
 		Assert.isNotNull(launcher);
 
 		// Read the error output if there is any
@@ -374,7 +374,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 		String cause = output != null && !"".equals(output) ? NLS.bind(Messages.AbstractExternalValueAdd_error_cause, formatErrorOutput(output)) : null; //$NON-NLS-1$
 		// Create the exception
 		String message = NLS.bind(Messages.AbstractExternalValueAdd_error_processDied, getLabel(), Integer.valueOf(exitCode));
-		return new IOException(cause != null ? message + cause : message);
+		return new ValueAddException(new IOException(cause != null ? message + cause : message));
 	}
 
 	/**
