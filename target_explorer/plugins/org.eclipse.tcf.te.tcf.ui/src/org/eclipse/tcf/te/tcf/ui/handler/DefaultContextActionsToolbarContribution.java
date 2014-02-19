@@ -36,6 +36,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.views.handler.ShowInSystemManagementHandler;
+import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
@@ -100,6 +102,11 @@ implements IWorkbenchContribution, IEventListener {
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+				if (peerNode != null && (e.stateMask & SWT.MODIFIER_MASK) != 0 && (e.stateMask & SWT.CTRL) == SWT.CTRL && (e.stateMask & SWT.SHIFT) == SWT.SHIFT) {
+					ShowInSystemManagementHandler.setAndCheckSelection(IUIConstants.ID_EXPLORER, peerNode);
+					return;
+				}
 				onButtonClick();
 			}
 		});

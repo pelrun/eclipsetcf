@@ -57,7 +57,7 @@ public class ShowInSystemManagementHandler extends AbstractHandler {
 		return null;
 	}
 
-	private void setAndCheckSelection(final String id, final Object element) {
+	public static void setAndCheckSelection(final String id, final Object element) {
 		Assert.isNotNull(id);
 
 		final AtomicReference<IViewPart> viewPart = new AtomicReference<IViewPart>();

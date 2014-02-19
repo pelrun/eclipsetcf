@@ -24,6 +24,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -53,6 +54,7 @@ import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.tcf.te.ui.views.handler.OpenEditorHandler;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.IMenuService;
@@ -148,6 +150,11 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 			}
 			@Override
 			public void mouseUp(MouseEvent e) {
+				IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+				if (peerNode != null && (e.stateMask & SWT.MODIFIER_MASK) != 0 && (e.stateMask & SWT.CTRL) == SWT.CTRL && (e.stateMask & SWT.SHIFT) == SWT.SHIFT) {
+					OpenEditorHandler.openEditorOnSelection(getWorkbenchWindow(), new StructuredSelection(peerNode));
+					return;
+				}
 				onButtonClick();
 			}
 		});
