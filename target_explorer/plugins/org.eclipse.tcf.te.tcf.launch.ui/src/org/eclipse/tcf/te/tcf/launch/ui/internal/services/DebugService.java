@@ -147,8 +147,6 @@ public class DebugService extends AbstractService implements IDebugService {
 
 								@Override
 								public void launchRemoved(ILaunch launch) {
-									DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
-									callback.done(this, Status.CANCEL_STATUS);
 								}
 							};
 
