@@ -17,6 +17,7 @@ import org.eclipse.tcf.te.launch.ui.model.LaunchModel;
 import org.eclipse.tcf.te.launch.ui.model.LaunchNode;
 import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
+import org.eclipse.tcf.te.ui.trees.TreeControl;
 import org.eclipse.tcf.te.ui.views.editor.Editor;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.ui.IEditorInput;
@@ -56,9 +57,13 @@ public class EditorHandlerDelegate implements IEditorHandlerDelegate {
 					IFormPage page = formEditor.setActivePage("org.eclipse.tcf.te.launch.ui.LaunchEditorPage"); //$NON-NLS-1$
 					// If the element is a context node, select the node
 					if (page != null && element instanceof LaunchModel || element instanceof LaunchNode) {
-						Viewer viewer = ((LaunchExplorerEditorPage)page).getTreeControl().getViewer();
-						if (viewer != null) {
-							viewer.setSelection(new StructuredSelection(element), true);
+						TreeControl treeControl = ((LaunchExplorerEditorPage) page)
+						                .getTreeControl();
+						if (treeControl != null) {
+							Viewer viewer = treeControl.getViewer();
+							if (viewer != null) {
+								viewer.setSelection(new StructuredSelection(element), true);
+							}
 						}
 					}
 					else if (page == null && formEditor instanceof Editor) {
