@@ -156,7 +156,12 @@ public class DebugService extends AbstractService implements IDebugService {
 							DisplayUtil.safeAsyncExec(new Runnable() {
 								@Override
 								public void run() {
-									DebugUITools.launch(finConfig, ILaunchManager.DEBUG_MODE);
+									try {
+										DebugUITools.buildAndLaunch(finConfig, ILaunchManager.DEBUG_MODE, monitor);
+									}
+									catch (Exception e) {
+										callback.done(DebugService.this, StatusHelper.getStatus(e));
+									}
 								}
 							});
 						} else {
