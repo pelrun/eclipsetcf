@@ -15,6 +15,7 @@ import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage;
@@ -90,7 +91,8 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	    super.createPageControls(pageContainer);
 
 	    IPropertiesContainer data = getInitialData();
-	    if (data != null && !data.isEmpty()) {
+	    if (data == null) data = new PropertiesContainer();
+//	    if (data != null && !data.isEmpty()) {
 	    	for (IWizardPage page : getPages()) {
 	    		if (page instanceof IDataExchangeNode) {
 	    			((IDataExchangeNode)page).setupData(data);
@@ -99,7 +101,7 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	    			}
 	    		}
 	    	}
-	    }
+//	    }
 	}
 
 	/**

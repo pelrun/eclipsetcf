@@ -45,6 +45,7 @@ import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
+import org.eclipse.tcf.te.ui.controls.validator.RegexValidator;
 import org.eclipse.tcf.te.ui.controls.validator.TextValidator;
 import org.eclipse.tcf.te.ui.controls.validator.Validator;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
@@ -275,6 +276,13 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 						setupData(data);
 					}
 				}
+			}
+			/* (non-Javadoc)
+			 * @see org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl#doCreateEditFieldValidator()
+			 */
+			@Override
+			protected Validator doCreateEditFieldValidator() {
+				return new RegexValidator(Validator.ATTR_MANDATORY, "[0-9a-zA-Z. _()-]+"); //$NON-NLS-1$
 			}
 			@Override
             protected void configureEditFieldValidator(Validator validator) {

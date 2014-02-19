@@ -327,12 +327,15 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		boolean isAutoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
 
 		if (addressControl != null) {
-			addressControl.setEditFieldControlText(data.getStringProperty(IPeer.ATTR_IP_HOST));
+			String ip = data.getStringProperty(IPeer.ATTR_IP_HOST);
+			if (ip != null)
+				addressControl.setEditFieldControlText(ip);
 		}
 
 		if (portControl != null) {
 			String port = data.getStringProperty(IPeer.ATTR_IP_PORT);
-			portControl.setEditFieldControlText(port != null ? port : ""); //$NON-NLS-1$
+			if (port != null)
+				portControl.setEditFieldControlText(port);
 		}
 
 		setIsAutoPort(isAutoPort);
@@ -612,13 +615,14 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 			}
 		}
 
-		if (portControl != null) {
+		boolean autoPort = odc.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+
+		if (!autoPort && portControl != null) {
 			String port = portControl.getEditFieldControlText();
 			String oldPort = odc.getStringProperty(IPeer.ATTR_IP_PORT);
 			isDirty |= !port.equals(oldPort != null ? oldPort : ""); //$NON-NLS-1$
 		}
 
-		boolean autoPort = odc.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
 		isDirty |= isAutoPort() != autoPort;
 
 		// If dirty, mark the form part dirty.

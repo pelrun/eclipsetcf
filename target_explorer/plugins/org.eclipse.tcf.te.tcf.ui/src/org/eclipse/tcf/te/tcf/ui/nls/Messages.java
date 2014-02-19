@@ -167,6 +167,7 @@ public class Messages extends NLS {
 	public static String RenameHandler_dialog_title;
 	public static String RenameHandler_dialog_message;
 	public static String RenameHandler_dialog_error_nameExist;
+	public static String RenameHandler_dialog_error_nameFormat;
 	public static String RenameHandler_dialog_promptNewName;
 
 	public static String TargetSelectorSection_title;

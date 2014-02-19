@@ -80,7 +80,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		 */
 		@Override
 		protected Validator doCreateEditFieldValidator() {
-			return new RegexValidator(Validator.ATTR_MANDATORY, ".*"); //$NON-NLS-1$
+			return new RegexValidator(Validator.ATTR_MANDATORY, "[0-9a-zA-Z. _()-]+"); //$NON-NLS-1$
 		}
 
 		/* (non-Javadoc)

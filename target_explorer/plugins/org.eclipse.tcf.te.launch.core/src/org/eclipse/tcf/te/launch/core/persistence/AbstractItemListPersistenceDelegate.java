@@ -216,7 +216,7 @@ public abstract class AbstractItemListPersistenceDelegate<ItemType> {
 									"Launch framework internal error: " + e.getLocalizedMessage(), e); //$NON-NLS-1$
 					Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
 				}
-				items = null;
+				items.clear();
 			}
 		}
 

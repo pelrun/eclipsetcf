@@ -238,9 +238,10 @@ public class RenameHandler extends AbstractHandler {
 		String title = NLS.bind(Messages.RenameHandler_dialog_title, name.get());
 		String prompt = Messages.RenameHandler_dialog_message;
 		String usedError = Messages.RenameHandler_dialog_error_nameExist;
+		String formatError = Messages.RenameHandler_dialog_error_nameFormat;
 		String label = Messages.RenameHandler_dialog_promptNewName;
 
-		return new RenameDialog(shell, null, title, prompt, usedError, null, label, name.get(), null, usedNames.toArray(new String[usedNames.size()]), null);
+		return new RenameDialog(shell, null, title, prompt, usedError, formatError, label, name.get(), "[0-9a-zA-Z. _()-]+", usedNames.toArray(new String[usedNames.size()]), null); //$NON-NLS-1$
 	}
 
 }
