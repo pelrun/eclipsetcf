@@ -47,6 +47,13 @@
             class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
             id="org.eclipse.tcf.te.tcf.ui.propertyTester"
             namespace="org.eclipse.tcf.te.tcf.ui"
+            properties="canChangeDefaultContext"
+            type="java.lang.Object">
+      </propertyTester>
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
+            id="org.eclipse.tcf.te.tcf.ui.propertyTester"
+            namespace="org.eclipse.tcf.te.tcf.ui"
             properties="canDelete"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
@@ -622,6 +629,8 @@
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.new">
+         <separator name="group.connections" visible="true"/>
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.select"/>
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"/>
       </menuContribution>
 
@@ -629,6 +638,13 @@
 
 <!-- Command contributions -->
    <extension point="org.eclipse.ui.commands">
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.select"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Select"
+            name="%command.select.label"
+            description="%command.select.toolbar.tooltip">
+      </command>
       <command
             id="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
@@ -671,6 +687,14 @@
             name="%command.debug.label"
             description="%command.debug.tooltip">
       </command>
+   </extension>
+
+<!-- Command shortcuts -->
+   <extension point="org.eclipse.ui.bindings">
+      <key  commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.select"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+C"/>
    </extension>
 
 <!-- Command image contributions -->
@@ -801,6 +825,14 @@
       <handler
             commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
             class="org.eclipse.tcf.te.tcf.ui.handler.NewToolbarWizardHandler">
+      </handler>
+
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.select"
+            class="org.eclipse.tcf.te.tcf.ui.handler.SelectDefaultContextHandler">
+            <enabledWhen>
+               <test property="org.eclipse.tcf.te.tcf.ui.canChangeDefaultContext"/>
+            </enabledWhen>
       </handler>
 
       <handler

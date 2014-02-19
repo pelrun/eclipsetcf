@@ -130,6 +130,9 @@ public class Messages extends NLS {
 	public static String PeerAttributesTablePart_edit_title;
 	public static String PeerAttributesTablePart_edit_message;
 
+	public static String SelectDefaultContextHandler_dialog_title;
+	public static String SelectDefaultContextHandler_dialog_message;
+
 	public static String DeleteHandler_error_title;
 	public static String DeleteHandler_error_deleteFailed;
 

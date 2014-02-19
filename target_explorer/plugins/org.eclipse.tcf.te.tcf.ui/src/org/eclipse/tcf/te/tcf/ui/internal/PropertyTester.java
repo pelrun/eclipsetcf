@@ -9,10 +9,16 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.internal;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler;
 import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
@@ -49,6 +55,16 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 			boolean valid = simulator != null && simulator.service.isValidConfig(receiver, simulator.settings);
 			return ((Boolean)expectedValue).booleanValue() == valid;
 		}
+
+		if ("canChangeDefaultContext".equals(property)) { //$NON-NLS-1$
+			IPeerNode defaultPeer = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+			List<IPeerNode> peerNodes = Arrays.asList(ModelManager.getPeerModel().getPeerNodes());
+			if (defaultPeer != null && peerNodes.contains(defaultPeer)) {
+				return peerNodes.size() > 1;
+			}
+			return peerNodes.size() > 0;
+		}
+
 
 		return false;
 	}
