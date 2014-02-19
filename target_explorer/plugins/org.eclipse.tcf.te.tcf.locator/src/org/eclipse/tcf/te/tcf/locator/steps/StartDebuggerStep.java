@@ -106,7 +106,7 @@ public class StartDebuggerStep extends AbstractPeerNodeStep {
 									dbgService.attach(node, props, monitor, new Callback() {
 										@Override
                                         protected void internalDone(Object caller, IStatus status) {
-											if (autoAttachAll) {
+											if ((status == null || status.isOK()) && autoAttachAll) {
 												// Check if there is a delegate registered
 												IDelegateService service = ServiceManager.getInstance().getService(node, IDelegateService.class, false);
 												IDelegate delegate = service != null ? service.getDelegate(node, IDelegate.class) : null;

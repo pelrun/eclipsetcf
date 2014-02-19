@@ -126,7 +126,7 @@ public class DebugService extends AbstractService implements IDebugService {
 
 							delegate.validate(ILaunchManager.DEBUG_MODE, finConfig);
 
-							DebugPlugin.getDefault().getLaunchManager().addLaunchListener(new ILaunchListener() {
+							final ILaunchListener listener = new ILaunchListener() {
 								@Override
 								public void launchAdded(ILaunch launch) {
 									if (launch != null && finConfig.equals(launch.getLaunchConfiguration())) {
@@ -147,8 +147,12 @@ public class DebugService extends AbstractService implements IDebugService {
 
 								@Override
 								public void launchRemoved(ILaunch launch) {
+									DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
+									callback.done(this, Status.CANCEL_STATUS);
 								}
-							});
+							};
+
+							DebugPlugin.getDefault().getLaunchManager().addLaunchListener(listener);
 
 							// DebugUITools.launch(...) must be called from within the UI thread.
 							DisplayUtil.safeAsyncExec(new Runnable() {
