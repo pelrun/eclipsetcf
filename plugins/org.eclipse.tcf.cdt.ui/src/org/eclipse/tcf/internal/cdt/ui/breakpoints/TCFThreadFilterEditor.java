@@ -367,14 +367,14 @@ public class TCFThreadFilterEditor {
     private String[] getAvailableAttributes() {
         String[] result = null;
         TCFLaunch launch = (TCFLaunch)getAttributeLaunch();
-        if (launch == null) {
+        if (launch == null || launch.isTerminated()) {
             return result;
         }
         final IChannel channel = launch.getChannel();
         if (channel == null) {
             return result;
         }
-        result = new TCFTask<String[]>() {
+        result = new TCFTask<String[]>(channel) {
             public void run() {
                 IContextQuery service = channel.getRemoteService(IContextQuery.class);
                 service.getAttrNames(new IContextQuery.DoneGetAttrNames() {
@@ -501,14 +501,22 @@ public class TCFThreadFilterEditor {
 
         public void handleEvent(Event event) {
             String[] attrsList = getAvailableAttributes();
-            String result = null;
-            TCFContextQueryExpressionDialog dlg = new TCFContextQueryExpressionDialog(parentShell, attrsList, scopeExprCombo.getText());
-
-            if (dlg.open() == Window.OK) {
-                result = dlg.getExpression();
+            if (attrsList == null) {
+                fPage.setErrorMessage(NLS.bind(Messages.TCFThreadFilterEditor_cannotRetrieveAttrs, Messages.TCFThreadFilterEditorNoOpenChannel));
             }
-            if (result != null) {
-                scopeExprCombo.setText(result);
+            else if (attrsList.length == 0) {
+                fPage.setErrorMessage(Messages.TCFThreadFilterEditor_cannotEditExpr);
+            }
+            else {
+                String result = null;
+                TCFContextQueryExpressionDialog dlg = new TCFContextQueryExpressionDialog(parentShell, attrsList, scopeExprCombo.getText());
+    
+                if (dlg.open() == Window.OK) {
+                    result = dlg.getExpression();
+                }
+                if (result != null) {
+                    scopeExprCombo.setText(result);
+                }
             }
         }
     }

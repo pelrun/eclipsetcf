@@ -23,6 +23,10 @@ public class Messages extends NLS {
     public static String TCFThreadFilterQueryButtonEdit;
     public static String TCFThreadFilterQueryAdvancedLabel;
     public static String TCFThreadFilterQueryTreeViewLabel;
+    public static String TCFThreadFilterEditor_cannotEditExpr;
+
+    public static String TCFThreadFilterEditor_cannotRetrieveAttrs;
+
     public static String TCFThreadFilterEditor_cannotValidate;
 
     public static String TCFThreadFilterEditor_defaultScopePrefsLink;
