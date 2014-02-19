@@ -57,8 +57,7 @@ public class EditorHandlerDelegate implements IEditorHandlerDelegate {
 					IFormPage page = formEditor.setActivePage("org.eclipse.tcf.te.launch.ui.LaunchEditorPage"); //$NON-NLS-1$
 					// If the element is a context node, select the node
 					if (page != null && element instanceof LaunchModel || element instanceof LaunchNode) {
-						TreeControl treeControl = ((LaunchExplorerEditorPage) page)
-						                .getTreeControl();
+						TreeControl treeControl = ((LaunchExplorerEditorPage) page).getTreeControl();
 						if (treeControl != null) {
 							Viewer viewer = treeControl.getViewer();
 							if (viewer != null) {
