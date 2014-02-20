@@ -22,6 +22,7 @@ import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -50,6 +51,8 @@ import org.osgi.framework.BundleContext;
 public class UIPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static UIPlugin plugin;
+	// The scoped preferences instance
+	private static volatile ScopedEclipsePreferences scopedPreferences;
 	// The workbench listener instance
 	private IWorkbenchListener listener;
 	// Reference to the workbench listener
@@ -80,6 +83,16 @@ public class UIPlugin extends AbstractUIPlugin {
 			return getDefault().getBundle().getSymbolicName();
 		}
 		return "org.eclipse.tcf.te.tcf.ui"; //$NON-NLS-1$
+	}
+
+	/**
+	 * Return the scoped preferences for this plugin.
+	 */
+	public static ScopedEclipsePreferences getScopedPreferences() {
+		if (scopedPreferences == null) {
+			scopedPreferences = new ScopedEclipsePreferences(getUniqueIdentifier());
+		}
+		return scopedPreferences;
 	}
 
 	/* (non-Javadoc)
@@ -211,6 +224,7 @@ public class UIPlugin extends AbstractUIPlugin {
 		}
 
 		plugin = null;
+		scopedPreferences = null;
 		super.stop(context);
 	}
 

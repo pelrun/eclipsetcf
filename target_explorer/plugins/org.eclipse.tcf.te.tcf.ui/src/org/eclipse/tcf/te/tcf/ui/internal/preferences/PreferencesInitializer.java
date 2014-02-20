@@ -35,7 +35,5 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(IPreferenceKeys.PREF_HIDE_DYNAMIC_TARGET_DISCOVERY_EXTENSION, true);
 		// [Hidden] Activate current user filter: default off
 		store.setDefault(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER, false);
-		// [Hidden] Enable default context status bar trim area: default off
-		store.setDefault(IPreferenceKeys.PREF_DEFAULT_CONTEXT_TRIM_AREA_ENABLE, false);
 	}
 }

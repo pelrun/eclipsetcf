@@ -52,8 +52,10 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
+import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.handler.OpenEditorHandler;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.PlatformUI;
@@ -358,6 +360,11 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
     	if (event instanceof ChangeEvent) {
     		ChangeEvent changeEvent = (ChangeEvent)event;
     		IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+    		boolean openEditorOnChange = UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_OPEN_EDITOR_ON_DEFAULT_CONTEXT_CHANGE);
+    		if (openEditorOnChange && peerNode != null && changeEvent.getSource() instanceof IDefaultContextService) {
+    			ViewsUtil.openEditor(new StructuredSelection(peerNode));
+    		}
+
     		if (changeEvent.getSource() instanceof IDefaultContextService ||
     						(changeEvent.getSource() == peerNode &&
     						(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) || "properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
