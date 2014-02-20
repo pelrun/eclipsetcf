@@ -2,7 +2,7 @@
  * EditorHandlerDelegate.java
  * Created on Jan 25, 2012
  *
- * Copyright (c) 2012, 2013 Wind River Systems, Inc.
+ * Copyright (c) 2012, 2014 Wind River Systems, Inc.
  *
  * The right to copy, distribute, modify, or otherwise make use
  * of this software may be licensed only pursuant to the terms
