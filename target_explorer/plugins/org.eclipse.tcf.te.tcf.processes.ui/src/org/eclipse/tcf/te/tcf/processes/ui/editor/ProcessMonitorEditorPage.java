@@ -27,16 +27,16 @@ import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
+import org.eclipse.tcf.te.tcf.ui.editor.AbstractTreeViewerExplorerEditorPage;
 import org.eclipse.tcf.te.ui.trees.AbstractTreeControl;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
 import org.eclipse.tcf.te.ui.trees.TreeViewerHeaderMenu;
-import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
 import org.eclipse.ui.IEditorInput;
 
 /**
  * The editor page for Process Monitor.
  */
-public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
+public class ProcessMonitorEditorPage extends AbstractTreeViewerExplorerEditorPage {
 	// The decorator used to decorate the title bar.
 	private ILabelDecorator decorator = new ProcessMonitorTitleDecorator();
 	// The event listener instance
@@ -45,7 +45,7 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	/* default */ ITreeViewerListener treeListener = null;
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#dispose()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#dispose()
 	 */
 	@Override
 	public void dispose() {
@@ -57,7 +57,7 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#getViewerId()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#getViewerId()
 	 */
 	@Override
 	protected String getViewerId() {
@@ -99,7 +99,7 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#getTitleBarDecorator()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#getTitleBarDecorator()
 	 */
 	@Override
     protected ILabelDecorator getTitleBarDecorator() {
@@ -107,7 +107,7 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
     }
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#doCreateTreeControl()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#doCreateTreeControl()
 	 */
 	@Override
 	protected TreeControl doCreateTreeControl() {
@@ -190,7 +190,7 @@ public class ProcessMonitorEditorPage extends TreeViewerExplorerEditorPage {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#getViewerInput()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#getViewerInput()
 	 */
 	@Override
     protected Object getViewerInput() {

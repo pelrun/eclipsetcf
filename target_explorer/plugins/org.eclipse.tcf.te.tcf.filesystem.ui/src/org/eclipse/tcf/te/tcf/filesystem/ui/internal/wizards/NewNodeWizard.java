@@ -22,7 +22,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreate;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
+import org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage;
 import org.eclipse.tcf.te.ui.wizards.AbstractWizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
@@ -184,8 +184,8 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 				if (part instanceof FormEditor) {
 					FormEditor formEditor = (FormEditor) part;
 					IFormPage formPage = formEditor.getActivePageInstance();
-					if (formPage instanceof TreeViewerExplorerEditorPage) {
-						TreeViewerExplorerEditorPage viewerPage = (TreeViewerExplorerEditorPage) formPage;
+					if (formPage instanceof AbstractTreeViewerExplorerEditorPage) {
+						AbstractTreeViewerExplorerEditorPage viewerPage = (AbstractTreeViewerExplorerEditorPage) formPage;
 						return (TreeViewer) viewerPage.getTreeControl().getViewer();
 					}
 				} else if (part instanceof CommonNavigator) {

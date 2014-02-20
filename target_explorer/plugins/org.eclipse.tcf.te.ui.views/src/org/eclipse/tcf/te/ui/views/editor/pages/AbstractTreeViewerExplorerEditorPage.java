@@ -66,7 +66,7 @@ import org.osgi.framework.Bundle;
 /**
  * Tree viewer based editor page implementation.
  */
-public abstract class TreeViewerExplorerEditorPage extends AbstractCustomFormToolkitEditorPage implements IDoubleClickListener {
+public abstract class AbstractTreeViewerExplorerEditorPage extends AbstractCustomFormToolkitEditorPage implements IDoubleClickListener {
 	// The references to the pages subcontrol's (needed for disposal)
 	private TreeControl treeControl;
 	private IToolBarManager toolbarMgr;

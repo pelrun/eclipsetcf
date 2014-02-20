@@ -55,7 +55,8 @@ public class Messages extends NLS {
 
 	public static String OverviewEditorPage_title;
 	public static String OverviewEditorPage_error_save;
-	public static String OverviewEditorPage_setAsDefault_link;
+
+	public static String AbstractCustomFormToolkitEditorPage_setAsDefault_link;
 
 	public static String GeneralInformationSection_title;
 	public static String GeneralInformationSection_description;

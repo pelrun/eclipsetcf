@@ -13,15 +13,15 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
+import org.eclipse.tcf.te.tcf.ui.editor.AbstractTreeViewerExplorerEditorPage;
 /**
  * The editor page for the file system explorer.
  */
-public class FSExplorerEditorPage extends TreeViewerExplorerEditorPage {
+public class FSExplorerEditorPage extends AbstractTreeViewerExplorerEditorPage {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#getDoubleClickCommandId()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#getDoubleClickCommandId()
 	 */
 	@Override
 	protected String getDoubleClickCommandId() {
@@ -30,7 +30,7 @@ public class FSExplorerEditorPage extends TreeViewerExplorerEditorPage {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#getViewerId()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#getViewerId()
 	 */
 	@Override
 	protected String getViewerId() {
@@ -57,7 +57,7 @@ public class FSExplorerEditorPage extends TreeViewerExplorerEditorPage {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage#getViewerInput()
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#getViewerInput()
 	 */
 	@Override
     protected Object getViewerInput() {

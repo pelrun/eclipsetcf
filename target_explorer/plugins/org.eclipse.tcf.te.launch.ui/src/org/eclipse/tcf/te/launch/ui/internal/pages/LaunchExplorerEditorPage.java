@@ -10,12 +10,12 @@
 package org.eclipse.tcf.te.launch.ui.internal.pages;
 
 import org.eclipse.tcf.te.launch.ui.nls.Messages;
-import org.eclipse.tcf.te.ui.views.editor.pages.TreeViewerExplorerEditorPage;
+import org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage;
 
 /**
  * The editor page to explore the launches.
  */
-public class LaunchExplorerEditorPage extends TreeViewerExplorerEditorPage {
+public class LaunchExplorerEditorPage extends AbstractTreeViewerExplorerEditorPage {
 
 	/*
 	 * (non-Javadoc)

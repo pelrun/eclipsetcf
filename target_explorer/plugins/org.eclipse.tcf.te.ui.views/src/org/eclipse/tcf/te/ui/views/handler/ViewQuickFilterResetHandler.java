@@ -14,32 +14,28 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.te.ui.utils.TreeViewerUtil;
-import org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage;
+import org.eclipse.tcf.te.ui.views.internal.View;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.forms.editor.FormEditor;
-import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
- * The search handler to search elements in the tree of the properties editor.
+ * The handler to reset the tree viewer from the quick filter.
  */
-public class EditorSearchHandler extends AbstractHandler {
+public class ViewQuickFilterResetHandler extends AbstractHandler {
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IWorkbenchPart part = HandlerUtil.getActiveEditorChecked(event);
-		if (part instanceof FormEditor) {
-			FormEditor editor = (FormEditor) part;
-			IFormPage formPage = editor.getActivePageInstance();
-			if (formPage instanceof AbstractTreeViewerExplorerEditorPage) {
-				AbstractTreeViewerExplorerEditorPage page = (AbstractTreeViewerExplorerEditorPage) formPage;
-				TreeViewer viewer = (TreeViewer) page.getTreeControl().getViewer();
-				TreeViewerUtil.doSearch(viewer);
-			}
+		IWorkbenchPart part = HandlerUtil.getActivePartChecked(event);
+		if(part instanceof View) {
+			View view = (View)part;
+			TreeViewer viewer = view.getCommonViewer();
+			TreeViewerUtil.doReset(viewer);
 		}
 		return null;
 	}
+
 }

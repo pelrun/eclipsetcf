@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.editor;
 
+import java.util.EventObject;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
@@ -16,14 +18,28 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationListener;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.jface.action.ControlContribution;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.te.launch.ui.editor.AbstractLaunchTabContainerEditorPage;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
 import org.eclipse.tcf.te.tcf.launch.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
+import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.events.IHyperlinkListener;
+import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
 /**
  * TCF launch configuration tab container page implementation.
@@ -247,5 +263,68 @@ public abstract class AbstractTcfLaunchTabContainerEditorPage extends AbstractLa
 				});
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#doCreateLinkContribution(org.eclipse.jface.action.IToolBarManager)
+	 */
+	@Override
+	protected IContributionItem doCreateLinkContribution(final IToolBarManager tbManager) {
+		return new ControlContribution("SetAsDefaultContextLink") { //$NON-NLS-1$
+			IEventListener eventListener = null;
+			@Override
+			public void dispose() {
+				super.dispose();
+				if (eventListener == null) {
+					EventManager.getInstance().removeEventListener(eventListener);
+				}
+			}
+			@Override
+			protected Control createControl(Composite parent) {
+				final ImageHyperlink hyperlink = new ImageHyperlink(parent, SWT.NONE);
+				hyperlink.setText(Messages.AbstractCustomFormToolkitEditorPage_setAsDefault_link);
+				hyperlink.setUnderlined(true);
+				hyperlink.setForeground(getManagedForm().getToolkit().getHyperlinkGroup().getForeground());
+				IPeerNode defaultNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+				setVisible(defaultNode == null || defaultNode != getEditorInputNode());
+				hyperlink.addHyperlinkListener(new IHyperlinkListener() {
+					@Override
+					public void linkActivated(HyperlinkEvent e) {
+						ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext((IPeerNode)getEditorInputNode());
+					}
+					@Override
+					public void linkEntered(HyperlinkEvent e) {
+						hyperlink.setForeground(getManagedForm().getToolkit().getHyperlinkGroup().getActiveForeground());
+					}
+					@Override
+					public void linkExited(HyperlinkEvent e) {
+						hyperlink.setForeground(getManagedForm().getToolkit().getHyperlinkGroup().getForeground());
+					}
+				});
+	
+				eventListener = new IEventListener() {
+					@Override
+					public void eventFired(EventObject event) {
+						if (event instanceof ChangeEvent) {
+							ChangeEvent changeEvent = (ChangeEvent)event;
+							if (changeEvent.getSource() instanceof IDefaultContextService) {
+								IPeerNode defaultNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+								setVisible(defaultNode == null || getEditorInputNode() == null || defaultNode != getEditorInputNode());
+								ExecutorsUtil.executeInUI(new Runnable() {
+									@Override
+									public void run() {
+										tbManager.update(true);
+									}
+								});
+							}
+						}
+					}
+				};
+	
+				EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);
+	
+				return hyperlink;
+			}
+		};
 	}
 }

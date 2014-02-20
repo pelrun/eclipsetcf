@@ -21,9 +21,10 @@ import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
- * The search handler to search elements in the tree of the properties editor.
+ * The quick filter handler for the properties editor.
  */
-public class EditorSearchHandler extends AbstractHandler {
+public class EditorQuickFilterHandler extends AbstractHandler {
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -31,13 +32,13 @@ public class EditorSearchHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IWorkbenchPart part = HandlerUtil.getActiveEditorChecked(event);
-		if (part instanceof FormEditor) {
-			FormEditor editor = (FormEditor) part;
+		if(part instanceof FormEditor) {
+			FormEditor editor = (FormEditor)part;
 			IFormPage formPage = editor.getActivePageInstance();
-			if (formPage instanceof AbstractTreeViewerExplorerEditorPage) {
+			if(formPage instanceof AbstractTreeViewerExplorerEditorPage) {
 				AbstractTreeViewerExplorerEditorPage page = (AbstractTreeViewerExplorerEditorPage) formPage;
 				TreeViewer viewer = (TreeViewer) page.getTreeControl().getViewer();
-				TreeViewerUtil.doSearch(viewer);
+				TreeViewerUtil.doEditorFilter(viewer);
 			}
 		}
 		return null;

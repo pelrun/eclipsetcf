@@ -751,7 +751,7 @@
       </handler>
       
       <handler
-            class="org.eclipse.tcf.te.ui.views.handler.ViewQuickFilterHanlder"
+            class="org.eclipse.tcf.te.ui.views.handler.ViewQuickFilterHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter">
          <activeWhen>
             <with variable="activePartId">
@@ -768,7 +768,7 @@
       </handler>
       
       <handler
-            class="org.eclipse.tcf.te.ui.views.handler.ViewQuickFilterResetHanlder"
+            class="org.eclipse.tcf.te.ui.views.handler.ViewQuickFilterResetHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.resetfilter">
          <activeWhen>
             <with variable="activePartId">
@@ -785,7 +785,7 @@
       </handler>
       
       <handler
-            class="org.eclipse.tcf.te.ui.views.handler.EditorQuickFilterHanlder"
+            class="org.eclipse.tcf.te.ui.views.handler.EditorQuickFilterHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter">
          <activeWhen>
             <with variable="activePartId">
@@ -800,7 +800,7 @@
       </handler>
       
       <handler
-            class="org.eclipse.tcf.te.ui.views.handler.EditorQuickFilterResetHanlder"
+            class="org.eclipse.tcf.te.ui.views.handler.EditorQuickFilterResetHandler"
             commandId="org.eclipse.tcf.te.ui.views.command.resetfilter">
          <activeWhen>
             <with variable="activePartId">
