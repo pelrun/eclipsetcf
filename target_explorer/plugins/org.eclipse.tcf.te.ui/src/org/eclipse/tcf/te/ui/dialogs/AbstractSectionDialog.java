@@ -214,6 +214,7 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 									"Section "+section.getClass().getName()+" does not implement IDataExchangeNode!")); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
+			updateSections();
 		}
 	}
 
