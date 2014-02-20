@@ -59,6 +59,7 @@ import org.eclipse.tcf.te.ui.views.ViewsUtil;
 import org.eclipse.tcf.te.ui.views.handler.OpenEditorHandler;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
@@ -361,8 +362,13 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
     		ChangeEvent changeEvent = (ChangeEvent)event;
     		IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
     		boolean openEditorOnChange = UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_OPEN_EDITOR_ON_DEFAULT_CONTEXT_CHANGE);
-    		if (openEditorOnChange && peerNode != null && changeEvent.getSource() instanceof IDefaultContextService) {
-    			ViewsUtil.openEditor(new StructuredSelection(peerNode));
+    		if (peerNode != null && changeEvent.getSource() instanceof IDefaultContextService) {
+    			ICommandService service = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
+    			service.refreshElements("org.eclipse.tcf.te.ui.toolbar.command.connect", null); //$NON-NLS-1$
+    			service.refreshElements("org.eclipse.tcf.te.ui.toolbar.command.disconnect", null); //$NON-NLS-1$
+    			if (openEditorOnChange) {
+    				ViewsUtil.openEditor(new StructuredSelection(peerNode));
+    			}
     		}
 
     		if (changeEvent.getSource() instanceof IDefaultContextService ||

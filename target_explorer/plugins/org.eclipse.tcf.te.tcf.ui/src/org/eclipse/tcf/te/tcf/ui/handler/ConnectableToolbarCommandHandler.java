@@ -10,18 +10,25 @@
 
 package org.eclipse.tcf.te.tcf.ui.handler;
 
+import java.util.Map;
+
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.osgi.util.NLS;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
+import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.handler.ConnectableCommandHandler;
+import org.eclipse.ui.commands.IElementUpdater;
+import org.eclipse.ui.menus.UIElement;
 
 /**
  * ConnectableToolbarCommandHandler
  */
-public class ConnectableToolbarCommandHandler extends ConnectableCommandHandler {
+public class ConnectableToolbarCommandHandler extends ConnectableCommandHandler implements IElementUpdater {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.handler.AbstractCommandHandler#getSelection(org.eclipse.core.commands.ExecutionEvent)
@@ -31,4 +38,24 @@ public class ConnectableToolbarCommandHandler extends ConnectableCommandHandler 
 		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 	    return defaultContext != null ? new StructuredSelection(defaultContext) : new StructuredSelection();
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.commands.IElementUpdater#updateElement(org.eclipse.ui.menus.UIElement, java.util.Map)
+	 */
+    @Override
+    public void updateElement(UIElement element, Map parameters) {
+		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+	    if (defaultContext != null) {
+	    	if (action == IConnectable.ACTION_CONNECT) {
+		    	element.setTooltip(NLS.bind(Messages.ConnectableToolbarCommandHandler_tooltip_connect, defaultContext.getName()));
+	    	}
+	    	else if (action == IConnectable.ACTION_DISCONNECT) {
+		    	element.setTooltip(NLS.bind(Messages.ConnectableToolbarCommandHandler_tooltip_disconnect, defaultContext.getName()));
+	    	}
+	    	else {
+	    		element.setTooltip(null);
+	    	}
+
+	    }
+    }
 }

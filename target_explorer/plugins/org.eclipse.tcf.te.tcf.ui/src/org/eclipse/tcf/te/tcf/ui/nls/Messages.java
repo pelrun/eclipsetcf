@@ -165,6 +165,9 @@ public class Messages extends NLS {
 
 	public static String CategoryManager_dnd_failed;
 
+	public static String ConnectableToolbarCommandHandler_tooltip_connect;
+	public static String ConnectableToolbarCommandHandler_tooltip_disconnect;
+
 	public static String RenameHandler_error_title;
 	public static String RenameHandler_error_renameFailed;
 	public static String RenameHandler_dialog_title;
