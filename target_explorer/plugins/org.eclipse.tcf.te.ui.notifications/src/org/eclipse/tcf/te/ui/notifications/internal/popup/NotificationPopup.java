@@ -103,6 +103,9 @@ public class NotificationPopup extends AbstractNotificationPopup {
 				widget.setBackground(notificationComposite.getBackground());
 				widget.setWhitespaceNormalized(false);
 
+				// Associate the notification event with the form text widget
+				widget.setData("event", notification); //$NON-NLS-1$
+
 				// Populate the widget content based on the current notification event
 				delegate.populateFormText(toolkit, widget, notification);
 				// Adjust the notification close delay
