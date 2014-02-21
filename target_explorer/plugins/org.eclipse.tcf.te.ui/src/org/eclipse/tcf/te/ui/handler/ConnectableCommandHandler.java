@@ -43,6 +43,10 @@ public class ConnectableCommandHandler extends AbstractCommandHandler implements
 	protected int action = IConnectable.STATE_UNKNOWN;
 	protected boolean handleDirty = false;
 
+	public int getAction() {
+		return action;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.windriver.te.tcf.ui.handler.AbstractAgentCommandHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
