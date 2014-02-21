@@ -46,21 +46,19 @@ public class ConnectableToolbarCommandHandler extends ConnectableCommandHandler 
     @Override
     public void updateElement(final UIElement element, Map parameters) {
 		final IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-	    if (defaultContext != null) {
-	    	PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-				@Override
-				public void run() {
-			    	if (getAction() == IConnectable.ACTION_CONNECT) {
-				    	element.setTooltip(NLS.bind(Messages.ConnectableToolbarCommandHandler_tooltip_connect, defaultContext.getName()));
-			    	}
-			    	else if (getAction() == IConnectable.ACTION_DISCONNECT) {
-				    	element.setTooltip(NLS.bind(Messages.ConnectableToolbarCommandHandler_tooltip_disconnect, defaultContext.getName()));
-			    	}
-			    	else {
-			    		element.setTooltip(null);
-			    	}
-				}
-			});
-	    }
+    	PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+		    	if (defaultContext != null && getAction() == IConnectable.ACTION_CONNECT) {
+			    	element.setTooltip(NLS.bind(Messages.ConnectableToolbarCommandHandler_tooltip_connect, defaultContext.getName()));
+		    	}
+		    	else if (defaultContext != null && getAction() == IConnectable.ACTION_DISCONNECT) {
+			    	element.setTooltip(NLS.bind(Messages.ConnectableToolbarCommandHandler_tooltip_disconnect, defaultContext.getName()));
+		    	}
+		    	else {
+		    		element.setTooltip(null);
+		    	}
+			}
+		});
     }
 }
