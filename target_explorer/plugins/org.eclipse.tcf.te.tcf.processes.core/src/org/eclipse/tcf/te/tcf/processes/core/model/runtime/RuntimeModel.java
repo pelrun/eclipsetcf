@@ -11,10 +11,12 @@ package org.eclipse.tcf.te.tcf.processes.core.model.runtime;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
@@ -164,6 +166,16 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 		}
 		if (IAsyncRefreshableCtx.class.equals(adapter)) {
 			return refreshableCtxAdapter;
+		}
+		if (IPeerNode.class.isAssignableFrom(adapter) || IConnectable.class.isAssignableFrom(adapter)) {
+			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
+			Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					peerNode.set(getPeerNode());
+				}
+			});
+			return peerNode.get();
 		}
 
 		return super.getAdapter(adapter);

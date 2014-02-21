@@ -18,6 +18,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.contexts.AsyncRefreshableCtxAdapter;
@@ -228,7 +229,7 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 			IModel model = getParent(IModel.class);
 			if (model instanceof IPeerNodeProvider) return model;
 		}
-		if (IPeerNode.class.isAssignableFrom(adapter)) {
+		if (IPeerNode.class.isAssignableFrom(adapter) || IConnectable.class.isAssignableFrom(adapter)) {
 			IModel model = getParent(IModel.class);
 			if (model instanceof IPeerNodeProvider) return ((IPeerNodeProvider)model).getPeerNode();
 		}
