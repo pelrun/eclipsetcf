@@ -1181,9 +1181,13 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		Button button = toolkit != null ? toolkit.createButton(parent, null, SWT.PUSH) : new Button(parent, SWT.PUSH);
 		// add a whitespace at the beginning and at the end of the button text to make the
 		// button visibly broader than the label itself.
-		button.setText(" " + getButtonLabel().trim() + " "); //$NON-NLS-1$ //$NON-NLS-2$
+		button.setText(formatButtonLabel(getButtonLabel()));
 
 		return button;
+	}
+
+	protected String formatButtonLabel(String label) {
+		return " " + (label != null ? label.trim() : Messages.BaseEditBrowseTextControl_button_label) + " "; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -1209,7 +1213,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		// If not yet set, assure that the buttons fill in the available space
 		if (button.getLayoutData() == null) {
 			GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, false, false);
-			layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(button, SWTControlUtil.getText(button).length() + 4);
+			layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(button, formatButtonLabel(getButtonLabel()).length());
 			button.setLayoutData(layoutData);
 		}
 	}
