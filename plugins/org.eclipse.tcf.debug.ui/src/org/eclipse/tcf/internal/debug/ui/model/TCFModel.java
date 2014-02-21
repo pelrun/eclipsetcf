@@ -159,6 +159,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     /** Selection reason in the Debug view - context added */
     public static final String SELECT_ADDED = "Added";
+    /** Selection reason in the Debug view - initial selection upon launch */
+    public static final String SELECT_INITIAL = "Launch";
 
     public static final int
         UPDATE_POLICY_AUTOMATIC  = 0,
@@ -652,13 +654,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 ArrayList<TCFNodeExecContext> nodes = new ArrayList<TCFNodeExecContext>();
                 if (!searchSuspendedThreads(launch_node.getFilteredChildren(), nodes)) return;
                 if (nodes.size() == 0) {
-                    setDebugViewSelectionForProxy(proxy, launch_node, "Launch");
+                    setDebugViewSelectionForProxy(proxy, launch_node, SELECT_INITIAL);
                     // No usable selection. Re-run when a context is suspended.
                     return;
                 }
                 else if (nodes.size() == 1) {
                     TCFNodeExecContext n = nodes.get(0);
-                    setDebugViewSelectionForProxy(proxy, n, "Launch");
+                    setDebugViewSelectionForProxy(proxy, n, SELECT_INITIAL);
                 }
                 else {
                     boolean node_selected = false;
@@ -668,7 +670,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     }
                     if (!node_selected) {
                         // bug 420740: No node was selected - select the first one
-                        setDebugViewSelectionForProxy(proxy, nodes.get(0), "Launch");
+                        setDebugViewSelectionForProxy(proxy, nodes.get(0), SELECT_INITIAL);
                     }
                 }
             }
@@ -1742,7 +1744,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             reason.equals(IRunControl.REASON_CONTAINER) ||
             delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
         if (proxy.getAutoExpandNode(node, user_request)) proxy.expand(node);
-        if (reason.equals(IRunControl.REASON_USER_REQUEST)) return false;
+        if (initial_selection != null && !reason.equals(SELECT_INITIAL)) initial_selection = null;
+        if (reason.equals(IRunControl.REASON_USER_REQUEST) || reason.equals(TCFModel.SELECT_ADDED)) return false;
         proxy.setSelection(node);
         return true;
     }
