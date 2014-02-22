@@ -84,6 +84,7 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 						if (lastError.get() != null) {
 							String cause = lastError.get().getLocalizedMessage();
 							if (cause == null || "".equals(cause.trim())) cause = lastError.get().getClass().getName(); //$NON-NLS-1$
+							if (!cause.contains(lastError.get().getClass().getName())) cause += " (" + lastError.get().getClass().getName() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 							message += NLS.bind(Messages.WaitForReadyStep_error_timeout_cause, cause);
 						}
 						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new TimeoutException(message)), null);
