@@ -68,4 +68,5 @@ public class Messages extends NLS {
 	// **** Declare externalized string id's down here *****
 
 	public static String WaitForReadyStep_error_timeout;
+	public static String WaitForReadyStep_error_timeout_cause;
 }

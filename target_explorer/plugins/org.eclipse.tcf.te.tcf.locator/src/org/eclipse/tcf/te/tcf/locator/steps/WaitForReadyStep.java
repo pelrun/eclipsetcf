@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -70,6 +71,8 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 				int totalWork = getTotalWork(context, data);
 				SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(getActivePeerModelContext(context, data, fullQualifiedId));
 				int refreshCount = result != null ? 0 : totalWork-1;
+				final AtomicReference<Throwable> lastError = new AtomicReference<Throwable>();
+
 				@Override
 				public void run() {
 					if (ProgressHelper.isCancel(WaitForReadyStep.this, monitor, callback)) {
@@ -78,6 +81,11 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 					else if (refreshCount >= totalWork) {
 						@SuppressWarnings("synthetic-access")
                         String message = NLS.bind(Messages.WaitForReadyStep_error_timeout, getActivePeerContext(context, data, fullQualifiedId).getName());
+						if (lastError.get() != null) {
+							String cause = lastError.get().getLocalizedMessage();
+							if (cause == null || "".equals(cause.trim())) cause = lastError.get().getClass().getName(); //$NON-NLS-1$
+							message += NLS.bind(Messages.WaitForReadyStep_error_timeout_cause, cause);
+						}
 						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(new TimeoutException(message)), null);
 					}
 					else {
@@ -122,6 +130,9 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 									callback(data, fullQualifiedId, callback, StatusHelper.getStatus(((ValueAddException) error).getError()), null);
 									return;
 								}
+
+								// Remember the last error for use later
+								lastError.set(error);
 
 								// Try again until timed out
 								refreshCount++;
