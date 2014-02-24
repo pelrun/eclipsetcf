@@ -28,7 +28,6 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -50,11 +49,8 @@ import org.eclipse.tcf.te.core.interfaces.IViewerInput;
 import org.eclipse.tcf.te.ui.WorkbenchPartControl;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.interfaces.ITreeControlInputChangedListener;
-import org.eclipse.ui.IDecoratorManager;
-import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PlatformUI;
 
 
 /**
@@ -587,10 +583,13 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 */
 	protected ILabelProvider doCreateTreeViewerLabelProvider(AbstractTreeControl parentTreeControl, TreeViewer viewer) {
 		TreeViewerLabelProvider labelProvider = new TreeViewerLabelProvider(parentTreeControl, viewer);
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IDecoratorManager manager = workbench.getDecoratorManager();
-		ILabelDecorator decorator = manager.getLabelDecorator();
-		return new TreeViewerDecoratingLabelProvider(viewer, labelProvider,decorator);
+		// do not use a decorating label provider to avoid decoration when system management view element is visible
+		// in this case, the decoration is done also on the editor tab element!!
+		//		IWorkbench workbench = PlatformUI.getWorkbench();
+		//		IDecoratorManager manager = workbench.getDecoratorManager();
+		//		ILabelDecorator decorator = manager.getLabelDecorator();
+		//		return new TreeViewerDecoratingLabelProvider(viewer, labelProvider,decorator);
+		return labelProvider;
 	}
 
 	/**
