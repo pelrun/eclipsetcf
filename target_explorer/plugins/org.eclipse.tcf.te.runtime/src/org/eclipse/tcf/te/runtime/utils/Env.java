@@ -96,13 +96,18 @@ public class Env {
 				// Don't overwrite the TERM variable if in terminal mode
 				if (terminal && "TERM".equals(name)) continue; //$NON-NLS-1$
 				// If a variable with the name does not exist, just append it
-				if (!env.containsKey(name)) {
+				if (!env.containsKey(name) && !"<unset>".equals(value)) { //$NON-NLS-1$
 					env.put(name, value);
-				} else {
-					// A variable with the name already exist, check if the value is different
-					String oldValue = env.get(name);
-					if (oldValue != null && !oldValue.equals(value) || oldValue == null && value != null) {
-						env.put(name, value);
+				} else if (env.containsKey(name)) {
+					// If the value contains the special placeholder "<unset>", remove the variable from the environment
+					if ("<unset>".equals(value)) {//$NON-NLS-1$
+						env.remove(name);
+					} else {
+						// A variable with the name already exist, check if the value is different
+						String oldValue = env.get(name);
+						if (oldValue != null && !oldValue.equals(value) || oldValue == null && value != null) {
+							env.put(name, value);
+						}
 					}
 				}
 			}
