@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -138,7 +138,7 @@ public class TCFBreakpointActions {
                             if (a == BreakpointActionAdapter.this) continue;
                             TCFDataCache<IRunControl.RunControlContext> a_ctx_cache = a.node.getRunContext();
                             if (!a_ctx_cache.validate(this)) return;
-                            IRunControl.RunControlContext a_ctx_data = ctx_cache.getData();
+                            IRunControl.RunControlContext a_ctx_data = a_ctx_cache.getData();
                             if (a_ctx_data == null) continue;
                             if (rc_grp.equals(a_ctx_data.getRCGroup())) l.add(a);
                         }
