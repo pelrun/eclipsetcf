@@ -154,7 +154,7 @@ public class ProcessConnector extends AbstractStreamsConnector {
 					process = ProcessFactory.getFactory().exec(argv.toArray(new String[argv.size()]), Env.getEnvironment(envp, true), workingDir, pty);
 				} else {
 					// No PTY -> just execute via the standard Java Runtime implementation.
-					process = Runtime.getRuntime().exec(command.toString(), Env.getEnvironment(envp, false), workingDir);
+					process = Runtime.getRuntime().exec(command.toString(), Env.getEnvironment(envp, true), workingDir);
 				}
 			}
 
