@@ -236,15 +236,16 @@ public class TCFThreadFilterEditor {
                         && context.fBpGroup != null)
                    {
                        filteredList.add(obj);
+                       fFilteredContexts.add(obj);
                    } else if (context.fIsContainer) {
                        Object[] childArray = getChildren(obj);
                        if (childArray != null && childArray.length != 0) {
                            filteredList.add(obj);
+                           fFilteredContexts.add(obj);
                        }
                    }
                 }
             }
-            fFilteredContexts.addAll(filteredList);
             return filteredList.toArray(new Object[filteredList.size()]);
         }
 
@@ -266,7 +267,7 @@ public class TCFThreadFilterEditor {
         }
 
         public Object[] getElements(Object inputElement) {
-            return filterList(getChildren(inputElement));
+            return getChildren(inputElement);
         }
 
         public void dispose() {
