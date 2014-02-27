@@ -80,6 +80,7 @@ public class StateManagerTest extends UtilsTestBase {
 		writeFileContent("hello,world!"); //$NON-NLS-1$
 	    OpCacheUpdate update = new OpCacheUpdate(testFile);
 	    update.run(new NullProgressMonitor());
+		Thread.sleep(2000L);
 		writeFileContent("hello,test!"); //$NON-NLS-1$
 		refreshCacheState();
 		CacheState cacheState = testFile.getCacheState();
