@@ -32,8 +32,8 @@
    </url>
 
    <requires>
-      <import feature="org.eclipse.tcf.sdk.feature" version="1.2.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tcf.cdt.feature" version="1.2.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.sdk.feature" version="1.3.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.cdt.feature" version="1.3.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
