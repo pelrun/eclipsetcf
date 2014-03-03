@@ -9,31 +9,30 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.activator;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.interfaces.IConditionTester;
 import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
-import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
-import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.editor.EditorPeerModelListener;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
@@ -120,66 +119,57 @@ public class UIPlugin extends AbstractUIPlugin {
 				}
 
 				if (proceedShutdown || forced) {
-					// Terminate the scanner
 					final IPeerModel model = ModelManager.getPeerModel(true);
-
-					// Disconnect all connected connections via the stepper service
 					if (model != null) {
-						final AsyncCallbackCollector collector = new AsyncCallbackCollector();
+						final List<IPeerNode> peerNodes = new ArrayList<IPeerNode>();
+						for (IPeerNode peerNode : model.getPeerNodes()) {
+							if (peerNode.isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
+								peerNodes.add(peerNode);
+							}
+						}
 
-						Runnable runnable = new Runnable() {
-							@Override
-							public void run() {
-								// Get all peer model objects
-								IPeerNode[] peers = model.getPeerNodes();
-								// Loop them and check if disconnect is available
-								for (IPeerNode peerNode : peers) {
-									IService[] services = ServiceManager.getInstance().getServices(peerNode, IStepperOperationService.class, false);
-									IStepperOperationService stepperOperationService = null;
-									for (IService service : services) {
-										if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerNode, IStepperServiceOperations.DISCONNECT)) {
-											stepperOperationService = (IStepperOperationService)service;
-											break;
-										}
-							        }
-									if (stepperOperationService != null) {
-										String stepGroupId = stepperOperationService.getStepGroupId(peerNode, IStepperServiceOperations.DISCONNECT);
-										IStepContext stepContext = stepperOperationService.getStepContext(peerNode, IStepperServiceOperations.DISCONNECT);
-										String name = stepperOperationService.getStepGroupName(peerNode, IStepperServiceOperations.DISCONNECT);
-										boolean isEnabled = stepperOperationService.isEnabled(peerNode, IStepperServiceOperations.DISCONNECT);
-										IPropertiesContainer data = stepperOperationService.getStepData(peerNode, IStepperServiceOperations.DISCONNECT);
+						if (!peerNodes.isEmpty()) {
+							IRunnableWithProgress dialogRunnable = new IRunnableWithProgress() {
+								@Override
+								public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+									ProgressHelper.setTaskName(monitor, "Disconnecting Connections..."); //$NON-NLS-1$
 
-										if (isEnabled && stepGroupId != null && stepContext != null) {
-											try {
-												StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-																				stepContext,
-																				data,
-																				stepGroupId,
-																				IStepperServiceOperations.DISCONNECT,
-																				false,
-																				false);
+									final AsyncCallbackCollector collector = new AsyncCallbackCollector();
 
-												ICallback callback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
-												job.setJobCallback(callback);
-
-												job.schedule();
-											} catch (IllegalStateException e) {
-												if (Platform.inDebugMode()) {
-													getLog().log(StatusHelper.getStatus(e));
+									Protocol.invokeAndWait(new Runnable() {
+										@Override
+										public void run() {
+											// Loop them and check if disconnect is available
+											for (IPeerNode peerNode : peerNodes) {
+												if (peerNode.isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
+													peerNode.changeConnectState(IConnectable.ACTION_DISCONNECT, new AsyncCallbackCollector.SimpleCollectorCallback(collector), null);
 												}
 											}
+
+											collector.initDone();
 										}
-									}
+									});
+
+									ExecutorsUtil.waitAndExecute(0, new IConditionTester() {
+										@Override
+										public boolean isConditionFulfilled() {
+											return collector.getConditionTester().isConditionFulfilled() || (monitor != null && monitor.isCanceled());
+										}
+										@Override
+										public void cleanup() {
+										}
+									});
 								}
 
-								collector.initDone();
+							};
+
+							ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbench.getActiveWorkbenchWindow().getShell());
+							try {
+								dialog.run(true, true, dialogRunnable);
 							}
-						};
-
-						Assert.isTrue(!Protocol.isDispatchThread());
-						Protocol.invokeAndWait(runnable);
-
-						ExecutorsUtil.waitAndExecute(0, collector.getConditionTester());
+							catch (Exception e) {
+							}
+						}
 					}
 
 					// Close all channels now
