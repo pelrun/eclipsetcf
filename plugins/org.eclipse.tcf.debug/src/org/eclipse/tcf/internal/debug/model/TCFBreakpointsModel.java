@@ -553,9 +553,6 @@ public class TCFBreakpointsModel {
         m.put(IBreakpoint.REGISTERED, Boolean.TRUE);
         m.put(IBreakpoint.PERSISTED, Boolean.TRUE);
         m.put(IBreakpoint.ID, ITCFConstants.ID_TCF_DEBUG_MODEL);
-        String msg = "";
-        if (location != null) msg += location;
-        m.put(ATTR_MESSAGE, "Breakpoint: " + msg);
         String file = (String)p.get(IBreakpoints.PROP_FILE);
         if (file != null && file.length() > 0) {
             m.put(ATTR_FILE, file);
@@ -596,6 +593,11 @@ public class TCFBreakpointsModel {
             }
             m.put(ATTR_TYPE, cdt_type);
         }
+        String msg = null;
+        if (location != null) msg = location;
+        else if (file != null && line != null) msg = file + ":" + line;
+        else msg = (String)p.get(IBreakpoints.PROP_ID);
+        m.put(ATTR_MESSAGE, "Breakpoint: " + msg);
         m.put(ATTR_TCF_STAMP, Boolean.TRUE.toString());
 
         return m;

@@ -710,8 +710,6 @@ public class TCFAnnotationManager {
                                 String bp_name = "Breakpoint";
                                 IBreakpoint bp = TCFBreakpointsModel.getBreakpointsModel().getBreakpoint(id);
                                 if (bp != null) bp_name = bp.getMarker().getAttribute(TCFBreakpointsModel.ATTR_MESSAGE, bp_name);
-                                int i = bp_name.indexOf(':');
-                                if (i > 0) bp_name = bp_name.substring(0, i);
                                 if (error != null) {
                                     String location = "";
                                     if (addr != null) location = " at 0x" + addr.toString(16);

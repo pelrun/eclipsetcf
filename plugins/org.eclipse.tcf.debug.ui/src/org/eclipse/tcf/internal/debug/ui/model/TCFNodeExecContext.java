@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IHasChildrenUpdate;
@@ -32,6 +35,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.tcf.debug.ui.ITCFDebugUIConstants;
 import org.eclipse.tcf.debug.ui.ITCFExecContext;
+import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
@@ -1169,11 +1173,39 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                                     image_name = ImageCache.IMG_THREAD_SUSPENDED;
                                     String s = null;
                                     String r = model.getContextActionResult(id);
-                                    if (r == null) {
-                                        r = state_data.suspend_reason;
-                                        if (state_data.suspend_params != null) {
-                                            s = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_DESCRIPTION);
-                                            if (s == null) s = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_NAME);
+                                    if (r == null) r = state_data.suspend_reason;
+                                    if (state_data.suspend_params != null) {
+                                        s = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_DESCRIPTION);
+                                        if (s == null) s = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_NAME);
+                                        Object ids = state_data.suspend_params.get(IRunControl.STATE_BREAKPOINT_IDS);
+                                        if (ids != null) {
+                                            @SuppressWarnings("unchecked")
+                                            Collection<String> bp_ids = (Collection<String>)ids;
+                                            TCFBreakpointsModel bp_model = TCFBreakpointsModel.getBreakpointsModel();
+                                            for (String bp_id : bp_ids) {
+                                                IBreakpoint bp = bp_model.getBreakpoint(bp_id);
+                                                if (bp != null) {
+                                                    String bp_name = null;
+                                                    IMarker m = bp.getMarker();
+                                                    if (m != null) {
+                                                        bp_name = m.getAttribute(TCFBreakpointsModel.ATTR_ADDRESS, null);
+                                                        if (bp_name == null) bp_name = m.getAttribute(TCFBreakpointsModel.ATTR_FUNCTION, null);
+                                                        if (bp_name == null) bp_name = m.getAttribute(TCFBreakpointsModel.ATTR_EXPRESSION, null);
+                                                        if (bp_name == null) {
+                                                            String file = m.getAttribute(TCFBreakpointsModel.ATTR_REQESTED_FILE, null);
+                                                            int line = m.getAttribute(TCFBreakpointsModel.ATTR_REQESTED_LINE, 0);
+                                                            if (file == null) file = m.getAttribute(TCFBreakpointsModel.ATTR_FILE, null);
+                                                            if (line == 0) line = m.getAttribute(TCFBreakpointsModel.ATTR_LINE, 0);
+                                                            if (file != null && line > 0) {
+                                                                bp_name = new Path(file).lastSegment() + ":" + line;
+                                                            }
+                                                        }
+                                                    }
+                                                    if (bp_name == null) bp_name = bp_id;
+                                                    if (s == null) s = bp_name;
+                                                    else s = s + ", " + bp_name;
+                                                }
+                                            }
                                         }
                                     }
                                     suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(r);

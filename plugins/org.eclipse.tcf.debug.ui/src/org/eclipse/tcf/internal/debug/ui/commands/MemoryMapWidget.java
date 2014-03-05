@@ -311,7 +311,7 @@ public class MemoryMapWidget {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * org.eclipse.jface.viewers.ITableFontProvider#getFont(java.lang.Object
          * , int)
@@ -336,7 +336,7 @@ public class MemoryMapWidget {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * org.eclipse.tcf.services.IMemoryMap.MemoryMapListener#changed(java
          * .lang.String)
@@ -993,7 +993,7 @@ public class MemoryMapWidget {
         if (region != null && region.getProperties().containsKey("_CHILDREN")) { //$NON-NLS-1$
             region = (IMemoryMap.MemoryRegion)((Object[])region.getProperties().get("_CHILDREN"))[0]; //$NON-NLS-1$
         }
-        final IMemoryMap.MemoryRegion r = region;  
+        final IMemoryMap.MemoryRegion r = region;
         if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null || r.getAddress() == null) return null;
         try {
             String symFileInfo = new TCFTask<String>(channel) {
@@ -1044,7 +1044,7 @@ public class MemoryMapWidget {
                     done(symbolFileInfo.length() > 0 ? symbolFileInfo.toString() : null);
                 }
             }.get();
-            
+
             if (symFileInfo.startsWith(r.getFileName())) {
                 String id = symFileInfo.split(", ")[1];  //$NON-NLS-1$
                 symFileInfo = null;
@@ -1058,7 +1058,7 @@ public class MemoryMapWidget {
                     }
                 }
             }
-            
+
             return symFileInfo;
         }
         catch (Exception x) {
@@ -1070,14 +1070,14 @@ public class MemoryMapWidget {
 
     protected TCFLaunch findLaunch() {
         for (ILaunch launch : DebugPlugin.getDefault().getLaunchManager().getLaunches()) {
-            if (launch instanceof TCFLaunch && 
+            if (launch instanceof TCFLaunch &&
                     launch.getLaunchConfiguration().equals(cfg instanceof ILaunchConfigurationWorkingCopy ? ((ILaunchConfigurationWorkingCopy)cfg).getOriginal() : cfg)) {
                 return (TCFLaunch)launch;
             }
         }
         return null;
     }
-    
+
     private void loadTargetMemoryNodes() {
         target_map_nodes.clear();
         if (channel == null || channel.getState() != IChannel.STATE_OPEN) return;
