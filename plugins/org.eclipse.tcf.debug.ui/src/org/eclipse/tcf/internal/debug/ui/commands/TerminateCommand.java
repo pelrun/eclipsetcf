@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -124,7 +124,7 @@ public class TerminateCommand implements ITerminateHandler {
                             cmds.remove(token);
                             if (error != null) {
                                 monitor.setStatus(new Status(IStatus.ERROR,
-                                        Activator.PLUGIN_ID, IStatus.OK, "Cannot resume: " + error.getLocalizedMessage(), error));
+                                        Activator.PLUGIN_ID, IStatus.OK, "Cannot terminate: " + error.getLocalizedMessage(), error));
                             }
                             if (cmds.isEmpty()) done();
                         }
