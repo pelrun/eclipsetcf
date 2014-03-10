@@ -55,7 +55,8 @@ public abstract class AbstractStepperJobSchedulingRule implements ISchedulingRul
     		return true;
     	}
     	if (rule instanceof AbstractStepperJobSchedulingRule) {
-    		return isConflicting(this, (AbstractStepperJobSchedulingRule)rule);
+    		boolean ctxConflicts = context.equals(((AbstractStepperJobSchedulingRule)rule).getContext());
+    		return ctxConflicts && isConflicting(this, (AbstractStepperJobSchedulingRule)rule);
     	}
     	if (context instanceof ISchedulingRule) {
     		// use the conflicting rule of parent for all other operations.
