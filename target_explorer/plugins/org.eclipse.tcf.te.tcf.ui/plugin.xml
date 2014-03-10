@@ -528,6 +528,20 @@
          </command>
       </menuContribution>      
 
+      <!--
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?before=group.goto">
+         <command commandId="org.eclipse.tcf.te.ui.command.connect">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      -->
+
    <!-- Editor page toolbar contributions -->
       <!--menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.connect">
          <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
@@ -723,6 +737,20 @@
 
 <!-- Handler contributions -->
    <extension point="org.eclipse.ui.handlers">
+      <!--   
+      <handler
+            commandId="org.eclipse.tcf.te.ui.command.connect"
+            class="org.eclipse.tcf.te.tcf.ui.handler.ConnectPeerCommandHandler">
+            <activeWhen>
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+                  </iterate>
+               </with>
+            </activeWhen>
+      </handler>
+      -->
+      
       <handler
             commandId="org.eclipse.ui.edit.delete"
             class="org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler">
