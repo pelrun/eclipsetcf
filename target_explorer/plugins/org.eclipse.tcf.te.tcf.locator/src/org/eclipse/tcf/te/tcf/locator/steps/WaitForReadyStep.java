@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -148,6 +149,21 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 		else {
 			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#rollback(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IStatus, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 */
+	@Override
+	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
+		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				Tcf.getChannelManager().shutdown(peer);
+			}
+		});
+		callback.done(this, Status.OK_STATUS);
 	}
 
 	/* (non-Javadoc)

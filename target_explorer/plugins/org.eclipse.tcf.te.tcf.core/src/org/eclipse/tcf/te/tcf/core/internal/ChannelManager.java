@@ -557,11 +557,11 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			// Close the channel
 			internalCloseChannel(channel);
 
-			// Get the value-add's for the peer to shutdown
-			IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
-			if (valueAdds != null && valueAdds.length > 0) {
-				internalShutdownValueAdds(peer, valueAdds);
-			}
+		}
+		// Get the value-add's for the peer to shutdown
+		IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
+		if (valueAdds != null && valueAdds.length > 0) {
+			internalShutdownValueAdds(peer, valueAdds);
 		}
 	}
 

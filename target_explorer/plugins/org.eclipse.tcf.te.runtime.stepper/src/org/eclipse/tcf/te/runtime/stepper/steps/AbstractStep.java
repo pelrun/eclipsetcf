@@ -183,8 +183,8 @@ public abstract class AbstractStep extends ExecutableExtension implements IStep 
 	 */
 	@Override
 	public int getCancelTimeout() {
-		// default timeout is 1 minute
-	    return 60000;
+		// default timeout is 10 seconds
+	    return 10000;
 	}
 
 	/* (non-Javadoc)
