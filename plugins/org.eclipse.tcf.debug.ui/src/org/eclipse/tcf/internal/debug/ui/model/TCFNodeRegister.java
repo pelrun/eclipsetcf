@@ -286,18 +286,38 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         }
         if (ctx != null) {
             int l = bf.length();
+            int[] bits = ctx.getBitNumbers();
             BigInteger addr = JSON.toBigInteger(ctx.getMemoryAddress());
+            if (bits != null && addr == null && parent instanceof TCFNodeRegister) {
+                if (!((TCFNodeRegister)parent).context.validate(done)) return false;
+                IRegisters.RegistersContext parent_ctx = ((TCFNodeRegister)parent).context.getData();
+                if (parent_ctx != null) addr = JSON.toBigInteger(parent_ctx.getMemoryAddress());
+            }
             if (addr != null) {
                 bf.append("Address: ", SWT.BOLD);
                 bf.append("0x", StyledStringBuffer.MONOSPACED);
                 bf.append(addr.toString(16), StyledStringBuffer.MONOSPACED);
             }
-            BigInteger size = JSON.toBigInteger(ctx.getSize());
-            if (size != null && size.compareTo(BigInteger.ZERO) > 0) {
-                if (l < bf.length()) bf.append(", ");
-                bf.append("Size: ", SWT.BOLD);
-                bf.append(size.toString(10), StyledStringBuffer.MONOSPACED);
-                bf.append(size.compareTo(BigInteger.ONE) == 0 ? " byte" : " bytes");
+            if (bits != null) {
+                if (bits.length > 0) {
+                    if (l < bf.length()) bf.append(", ");
+                    bf.append("Bits: ", SWT.BOLD);
+                    bf.append("[");
+                    for (int i = bits.length; i > 0; i--) {
+                        if (i != bits.length) bf.append(",");
+                        bf.append(bits[i - 1]);
+                    }
+                    bf.append("]");
+                }
+            }
+            else {
+                BigInteger size = JSON.toBigInteger(ctx.getSize());
+                if (size != null && size.compareTo(BigInteger.ZERO) > 0) {
+                    if (l < bf.length()) bf.append(", ");
+                    bf.append("Size: ", SWT.BOLD);
+                    bf.append(size.toString(10), StyledStringBuffer.MONOSPACED);
+                    bf.append(size.compareTo(BigInteger.ONE) == 0 ? " byte" : " bytes");
+                }
             }
             if (ctx.isReadable()) {
                 if (l < bf.length()) bf.append(", ");
@@ -503,10 +523,12 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
     private String toNumberString(int radix) {
         IRegisters.RegistersContext ctx = context.getData();
         byte[] data = value.getData();
+        int[] bits = ctx.getBitNumbers();
         if (ctx == null || data == null) return "N/A";
         if (radix == 2) {
             StringBuffer bf = new StringBuffer();
             int i = data.length * 8;
+            if (bits != null) i = bits.length;
             while (i > 0) {
                 if (i % 4 == 0 && bf.length() > 0) bf.append(',');
                 i--;
@@ -532,7 +554,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             if (!s.startsWith("0")) s = "0" + s;
             break;
         case 16:
-            if (s.length() < data.length * 2) {
+            if (s.length() < (bits == null ? data.length * 2 : (bits.length + 3) / 4)) {
                 StringBuffer bf = new StringBuffer();
                 while (bf.length() + s.length() < data.length * 2) bf.append('0');
                 bf.append(s);
