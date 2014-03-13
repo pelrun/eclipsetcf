@@ -38,7 +38,7 @@ class EventQueue(object):
                     self.__lock.notifyAll()
             self.__thread.join()
         except Exception as e:
-            from . import protocol
+            import protocol  # as protocol import this module too
             protocol.log("Failed to shutdown TCF event dispatch thread", e)
 
     def isShutdown(self):
@@ -46,7 +46,7 @@ class EventQueue(object):
             return self.__is_shutdown
 
     def __error(self, x):
-        from . import protocol
+        import protocol  # as protocol import this module too
         protocol.log("Unhandled exception in TCF event dispatch", x)
 
     def __call__(self):

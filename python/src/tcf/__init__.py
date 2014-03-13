@@ -18,7 +18,7 @@ import types
 from . import protocol, peer, channel
 from .util import task
 
-__all__ = ('connect')
+__all__ = ('connect', 'peers')
 
 
 def connect(params, wait=True):
@@ -66,7 +66,7 @@ def _parse_params(paramStr):
         raise ValueError("Expected format: <transport>:<host>:<port>")
     transp, host, port = args
     return {
-        peer.ATTR_IP_HOST : host,
-        peer.ATTR_IP_PORT : port,
-        peer.ATTR_TRANSPORT_NAME : transp
+        peer.ATTR_IP_HOST: host,
+        peer.ATTR_IP_PORT: port,
+        peer.ATTR_TRANSPORT_NAME: transp
     }

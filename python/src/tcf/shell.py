@@ -42,8 +42,8 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(os.getcwd()))
     import tcf
 
-from tcf.util import sync, event
-from tcf import protocol, channel
+from tcf.util import sync, event  # @UnresolvedImport
+from tcf import protocol, channel  # @UnresolvedImport
 
 
 class print_peers:
@@ -61,8 +61,8 @@ class Shell(code.InteractiveConsole, protocol.ChannelOpenListener,
             channel.ChannelListener):
     def __init__(self):
         locals = {  # @ReservedAssignment
-            "connect" : tcf.connect,
-            "peers" : print_peers()
+            "connect": tcf.connect,
+            "peers": print_peers()
         }
         protocol.startEventQueue()
         protocol.startDiscovery()
