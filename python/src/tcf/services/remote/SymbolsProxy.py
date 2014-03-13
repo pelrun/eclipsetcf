@@ -91,7 +91,7 @@ class SymbolsProxy(symbols.SymbolsService):
                     assert len(args) == 2
                     error = self.toError(args[0])
                     props = args[1]
-                done.doneGetContext(self.token, error, props)
+                done.doneGetLocationInfo(self.token, error, props)
         return GetLocationInfoCommand().token
 
     def getSymFileInfo(self, contextID, address, done):
@@ -119,7 +119,7 @@ class SymbolsProxy(symbols.SymbolsService):
                     assert len(args) == 2
                     error = self.toError(args[0])
                     props = args[1]
-                done.doneGetContext(self.token, error, props)
+                done.doneGetSymFileInfo(self.token, error, props)
         return GetSymFileInfoCommand().token
 
     def find(self, context_id, ip, name, done):
@@ -159,7 +159,7 @@ class SymbolsProxy(symbols.SymbolsService):
                     assert len(args) >= 2
                     error = self.toError(args[0])
                     if not error:
-                        ids = args[1:]
+                        ids = args[1]
                 done.doneFind(self.token, error, ids)
         return FindByNameCommand().token
 
