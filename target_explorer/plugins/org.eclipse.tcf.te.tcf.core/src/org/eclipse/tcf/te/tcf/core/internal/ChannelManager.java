@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.core.internal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,6 +49,8 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 	/* default */ final Map<String, AtomicInteger> refCounters = new HashMap<String, AtomicInteger>();
 	// The map of channels per peer id
 	/* default */ final Map<String, IChannel> channels = new HashMap<String, IChannel>();
+	// The map of channels opened via "forceNew" flag (needed to handle the close channel correctly)
+	/* default */ final List<IChannel> forcedChannels = new ArrayList<IChannel>();
 
 	/**
 	 * Constructor.
@@ -219,6 +222,8 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		// If noValueAdd == true -> forceNew has to be true as well
 		if (noValueAdd) forceNew = true;
 
+		final boolean finForceNew = forceNew;
+
 		// Check if there is already a channel opened to this peer
 		channel = !forceNew ? channels.get(id) : null;
 		if (channel != null && (channel.getState() == IChannel.STATE_OPEN || channel.getState() == IChannel.STATE_OPENING)) {
@@ -254,6 +259,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				if (channel != null) {
 					if (!forceNew) channels.put(id, channel);
 					if (!forceNew) refCounters.put(id, new AtomicInteger(1));
+					if (forceNew) forcedChannels.add(channel);
 
 					// Register the channel listener
 					final IChannel finChannel = channel;
@@ -278,8 +284,9 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							// Remove ourself as listener from the channel
 							finChannel.removeChannelListener(this);
 							// Clean the reference counter and the channel map
-							channels.remove(id);
-							refCounters.remove(id);
+							if (!finForceNew) channels.remove(id);
+							if (!finForceNew) refCounters.remove(id);
+							if (finForceNew) forcedChannels.remove(finChannel);
 
 							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_failed_message, id, error),
@@ -490,17 +497,22 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 														0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
 		}
 
-		// Get the reference counter
-		AtomicInteger counter = refCounters.get(id);
+		// Determine if the given channel is a reference counted channel
+		final boolean isRefCounted = !forcedChannels.contains(channel);
+
+		// Get the reference counter (if the channel is a reference counted channel)
+		AtomicInteger counter = isRefCounted ? refCounters.get(id) : null;
 
 		// If the counter is null or get 0 after the decrement, close the channel
 		if (counter == null || counter.decrementAndGet() == 0) {
 			channel.close();
 
-			// Get the value-add's for the peer to shutdown
-			IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
-			if (valueAdds != null && valueAdds.length > 0) {
-				internalShutdownValueAdds(peer, valueAdds);
+			// Get the value-add's for the peer to shutdown (if the reference counter is 0)
+			if (counter != null && counter.get() == 0) {
+				IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
+				if (valueAdds != null && valueAdds.length > 0) {
+					internalShutdownValueAdds(peer, valueAdds);
+				}
 			}
 
 			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
@@ -509,12 +521,22 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			}
 
 			// Clean the reference counter and the channel map
-			refCounters.remove(id);
-			channels.remove(id);
+			if (isRefCounted) refCounters.remove(id);
+			if (isRefCounted) channels.remove(id);
+			if (!isRefCounted) forcedChannels.remove(channel);
 		} else {
 			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 				CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_closeChannel_inuse_message, id, counter.toString()),
 															0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+			}
+		}
+
+		// Clean up the list of forced channels. Remove all channels already been closed.
+		ListIterator<IChannel> iter = forcedChannels.listIterator();
+		while (iter.hasNext()) {
+			IChannel c = iter.next();
+			if (c.getState() == IChannel.STATE_CLOSED) {
+				iter.remove();
 			}
 		}
 	}
@@ -548,6 +570,16 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		// Get the peer id
 		String id = peer.getID();
 
+		// First, close all channels that are not reference counted
+		ListIterator<IChannel> iter = forcedChannels.listIterator();
+		while (iter.hasNext()) {
+			IChannel c = iter.next();
+			if (id.equals(c.getRemotePeer().getID())) {
+				c.close();
+				iter.remove();
+			}
+		}
+
 		// Get the channel
 		IChannel channel = internalGetChannel(peer);
 		if (channel != null) {
@@ -556,9 +588,9 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 
 			// Close the channel
 			internalCloseChannel(channel);
-
 		}
-		// Get the value-add's for the peer to shutdown
+
+		// Make sure to shutdown all value-add's for the peer
 		IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
 		if (valueAdds != null && valueAdds.length > 0) {
 			internalShutdownValueAdds(peer, valueAdds);
@@ -711,7 +743,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		internalHandleValueAdds(peer, done);
 	}
 
-	/* default */ final Map<IPeer, List<DoneHandleValueAdds>> inProgress = new HashMap<IPeer, List<DoneHandleValueAdds>>();
+	/* default */ final Map<String, List<DoneHandleValueAdds>> inProgress = new HashMap<String, List<DoneHandleValueAdds>>();
 
 	/**
 	 * Check on the value-adds for the given peer. Launch the value-adds
@@ -730,8 +762,8 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 
 		// If a launch for the same value add is in progress already, attach the new done to
 		// the list to call and drop out
-		if (inProgress.containsKey(peer)) {
-			List<DoneHandleValueAdds> dones = inProgress.get(peer);
+		if (inProgress.containsKey(id)) {
+			List<DoneHandleValueAdds> dones = inProgress.get(id);
 			Assert.isNotNull(dones);
 			dones.add(done);
 			return;
@@ -740,7 +772,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		// Add the done callback to a list of waiting callbacks per peer
 		List<DoneHandleValueAdds> dones = new ArrayList<DoneHandleValueAdds>();
 		dones.add(done);
-		inProgress.put(peer, dones);
+		inProgress.put(id, dones);
 
 		// The "myDone" callback is invoking the callbacks from the list
 		// of waiting callbacks.
@@ -749,7 +781,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			@Override
 			public void doneHandleValueAdds(Throwable error, IValueAdd[] valueAdds) {
 				// Get the list of the original done callbacks
-				List<DoneHandleValueAdds> dones = inProgress.remove(peer);
+				List<DoneHandleValueAdds> dones = inProgress.remove(id);
 				for (DoneHandleValueAdds done : dones) {
 					done.doneHandleValueAdds(error, valueAdds);
 				}
@@ -1031,6 +1063,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			if (channel != null) {
 				if (!forceNew) channels.put(id, channel);
 				if (!forceNew) refCounters.put(id, new AtomicInteger(1));
+				if (forceNew) forcedChannels.add(channel);
 
 				// Attach the channel listener to catch open/closed events
 				final IChannel finChannel = channel;
@@ -1097,8 +1130,10 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 						}
 
 						// Clean the reference counter and the channel map
-						channels.remove(id);
-						refCounters.remove(id);
+						if (!forceNew) channels.remove(id);
+						if (!forceNew) refCounters.remove(id);
+						if (forceNew) forcedChannels.remove(finChannel);
+
 						// Channel opening failed -> This will break everything
 						done.doneChainValueAdd(error, finChannel);
 					}
