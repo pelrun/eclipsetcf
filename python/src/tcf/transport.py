@@ -83,10 +83,12 @@ def openChannel(peer):
 def channelOpened(channel):
     assert channel not in _channels
     _channels.append(channel)
-    for l in _listeners:
+    for l in tuple(_listeners):
         try:
             l.onChannelOpen(channel)
         except Exception as x:
+            import sys
+            x.tb = sys.exc_info()[2]
             protocol.log("Exception in channel listener", x)
 
 

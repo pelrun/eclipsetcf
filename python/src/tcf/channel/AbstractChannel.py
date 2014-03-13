@@ -139,13 +139,11 @@ class ReaderThread(threading.Thread):
 class AbstractChannel(object):
     """
     AbstractChannel implements communication link connecting two end points
-    (peers).
-    The channel asynchronously transmits messages: commands, results and
-    events.
+    (peers). The channel asynchronously transmits messages: commands, results
+    and events. Clients can subclass AbstractChannel to support particular
+    transport (wire) protocol.
 
-    Clients can subclass AbstractChannel to support particular transport (wire)
-    protocol.
-    Also, see StreamChannel for stream oriented transport protocols.
+    .. see also: see StreamChannel for stream oriented transport protocols.
     """
 
     def __init__(self, remote_peer, local_peer=None):
@@ -240,6 +238,7 @@ class AbstractChannel(object):
                     tokenID = m.token.getID()
                 l.onMessageSent(m.type, tokenID, m.service, m.name, m.data)
             except Exception as x:
+                x.tb = sys.exc_info()[2]
                 protocol.log("Exception in channel listener", x)
 
     def start(self):
@@ -268,7 +267,7 @@ class AbstractChannel(object):
         Redirect this channel to given peer using this channel remote peer
         locator service as a proxy.
         @param peer_id - peer that will become new remote communication
-        endpoint of this channel
+        endpoint of this channel.
         """
         peerMap = {}
         peerMap[peer.ATTR_ID] = peer_id
@@ -279,7 +278,7 @@ class AbstractChannel(object):
         Redirect this channel to given peer using this channel remote peer
         locator service as a proxy.
         @param peer_attrs - peer that will become new remote communication
-                            endpoint of this channel
+                            endpoint of this channel.
         """
         if isinstance(peer_attrs, str):
             # support for redirect(peerId)
@@ -485,6 +484,7 @@ class AbstractChannel(object):
             try:
                 self.proxy.onChannelClosed(error)
             except Exception as x:
+                x.tb = sys.exc_info()[2]
                 protocol.log("Exception in channel listener", x)
         channel = self
 
@@ -516,15 +516,17 @@ class AbstractChannel(object):
                         try:
                             l.onChannelClosed(error)
                         except Exception as x:
+                            x.tb = sys.exc_info()[2]
                             protocol.log("Exception in channel listener", x)
-                elif error:
-                    protocol.log("TCF channel terminated", error)
                 if channel.trace_listeners:
                     for l in channel.trace_listeners:
                         try:
                             l.onChannelClosed(error)
                         except Exception as x:
+                            x.tb = sys.exc_info()[2]
                             protocol.log("Exception in channel listener", x)
+                if error:
+                    protocol.log("TCF channel terminated", error)
         protocol.invokeLater(Runnable())
 
     def getCongestion(self):
@@ -676,6 +678,7 @@ class AbstractChannel(object):
                 l.onMessageReceived(m.type, messageID, m.service, m.name,
                                     m.data)
             except Exception as x:
+                x.tb = sys.exc_info()[2]
                 protocol.log("Exception in channel listener", x)
 
     def __handleInput(self, msg):
@@ -743,12 +746,13 @@ class AbstractChannel(object):
                         if not self.registered_with_trasport:
                             transport.channelOpened(self)
                             self.registered_with_trasport = True
-                        for l in self.channel_listeners:
+                        for l in tuple(self.channel_listeners):
                             if not l:
                                 break
                             try:
                                 l.onChannelOpened()
                             except Exception as x:
+                                x.tb = sys.exc_info()[2]
                                 protocol.log("Exception in channel listener",
                                              x)
                         self.notifying_channel_opened = False
