@@ -69,8 +69,9 @@ def _toDisassemblyArray(o):
 
 
 def _toDisassemblyLine(m):
+    from ...channel import toByteArray
     addr = m.get("Address")
     size = m.get("Size")
     instruction = m.get("Instruction")
-    opcodeValue = m.get("OpcodeValue")
+    opcodeValue = toByteArray(m.get("OpcodeValue"))
     return disassembly.DisassemblyLine(addr, size, instruction, opcodeValue)
