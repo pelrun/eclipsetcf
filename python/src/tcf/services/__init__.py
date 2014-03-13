@@ -18,8 +18,7 @@ _lock = threading.RLock()
 
 
 class ServiceProvider(object):
-    """
-    Clients can implement this abstract class if they want to provide
+    """Clients can implement this abstract class if they want to provide
     implementation of a local service or remote service proxy.
     """
 
@@ -92,14 +91,31 @@ class GenericCallback(object):
 
 
 class Service(object):
-
+    """TCF service base class."""
     def getName(self):
+        """Abstract method to get the service name.
+
+        :returns: This service name
+        """
         raise NotImplementedError("Abstract method")
 
     def __str__(self):
+        """TCF service string representation.
+
+        :returns: The name of the service.
+        """
         return self.getName()
 
     def _makeCallback(self, done):
+        """Turn *done* into a callable.
+
+        If *done* is already a :class:`collections.Callable`, it is returned
+        as is, else, it is made callable, and returned.
+
+        :param done: The item to make callable.
+
+        :returns: The callable value of *done*
+        """
         if isinstance(done, collections.Callable):
             return GenericCallback(done)
         return done
@@ -111,11 +127,11 @@ class ZeroCopy(Service):
 
 
 class GenericProxy(Service):
-    """
-     * Objects of GenericProxy class represent remote services, which don't
-     * have a proxy class defined for them.
-     * Clients still can use such services, but framework will not provide
-     * service specific utility methods for message formatting and parsing.
+    """Objects of GenericProxy class represent remote services, which don't
+    have a proxy class defined for them.
+
+    Clients still can use such services, but framework will not provide
+    service specific utility methods for message formatting and parsing.
     """
 
     def __init__(self, channel, name):
@@ -130,7 +146,7 @@ class GenericProxy(Service):
 
 
 class DefaultServiceProvider(ServiceProvider):
-    package_base = "tcf.services.remote"
+    package_base = str(__package__) + ".remote"
 
     def getLocalService(self, channel):
         # TODO DiagnosticsService
