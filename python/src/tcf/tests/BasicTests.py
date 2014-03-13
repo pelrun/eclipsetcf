@@ -13,10 +13,10 @@ import sys
 import time
 import threading
 import atexit
-import tcf
+import tcf  # @UnresolvedImport
 
-from tcf import protocol, channel, errors
-from tcf.util import sync
+from tcf import protocol, channel, errors  # @UnresolvedImport
+from tcf.util import sync  # @UnresolvedImport
 
 __TRACE = False
 
@@ -101,7 +101,7 @@ def testTimer():
 
 def testRunControl(c):
     lock = threading.Condition()
-    from tcf.services import runcontrol
+    from tcf.services import runcontrol  # @UnresolvedImport
 
     def getContexts():
         rctrl = c.getRemoteService(runcontrol.NAME)
@@ -201,7 +201,7 @@ def testRunControl(c):
 
 
 def testBreakpoints(c):
-    from tcf.services import breakpoints
+    from tcf.services import breakpoints  # @UnresolvedImport
 
     def testBPQuery():
         bps = c.getRemoteService(breakpoints.NAME)
@@ -261,7 +261,7 @@ def testBreakpoints(c):
 
 
 def testStackTrace(c):
-    from tcf.services import stacktrace
+    from tcf.services import stacktrace  # @UnresolvedImport
 
     def stackTest(ctx_id):
         stack = c.getRemoteService(stacktrace.NAME)
@@ -311,7 +311,7 @@ def testDisassembly(c):
 
 
 def testSymbols(c):
-    from tcf.services import symbols
+    from tcf.services import symbols  # @UnresolvedImport
 
     def symTest(ctx_id):
         syms = c.getRemoteService(symbols.NAME)
@@ -340,7 +340,7 @@ def testSymbols(c):
 def testRegisters(c):
     if not _suspended:
         return
-    from tcf.services import registers
+    from tcf.services import registers  # @UnresolvedImport
     lock = threading.Condition()
 
     def regTest(ctx_id):
@@ -423,7 +423,7 @@ def testRegisters(c):
 def testExpressions(c):
     if not _suspended:
         return
-    from tcf.services import expressions
+    from tcf.services import expressions  # @UnresolvedImport
     ctl = sync.CommandControl(c)
     exprs = ctl.Expressions
     e = exprs.create(_suspended[0], None, "1+2*(3-4/2)").getE()
@@ -436,7 +436,7 @@ def testExpressions(c):
 def testLineNumbers(c):
     if not _suspended:
         return
-    from tcf.services import stacktrace
+    from tcf.services import stacktrace  # @UnresolvedImport
     ctl = sync.CommandControl(c)
     stack = ctl.StackTrace
     lineNumbers = ctl.LineNumbers
@@ -496,8 +496,8 @@ def testSyncCommands(c):
 def testTasks(c):
     if not _suspended:
         return
-    from tcf.services import expressions
-    from tcf.util import task
+    from tcf.services import expressions  # @UnresolvedImport
+    from tcf.util import task  # @UnresolvedImport
 
     def compute(expr, done=None):
         es = c.getRemoteService(expressions.NAME)
@@ -520,7 +520,7 @@ def testTasks(c):
 
 
 def testEvents(c):
-    from tcf.util import event
+    from tcf.util import event  # @UnresolvedImport
     recorder = event.EventRecorder(c)
     recorder.record("RunControl")
     ctl = sync.CommandControl(c)
@@ -541,8 +541,8 @@ def testEvents(c):
 
 
 def testDataCache(c):
-    from tcf.util import cache
-    from tcf.services import runcontrol
+    from tcf.util import cache  # @UnresolvedImport
+    from tcf.services import runcontrol  # @UnresolvedImport
     if not runcontrol.NAME in _services:
         return
 
@@ -577,7 +577,7 @@ def testDataCache(c):
 
 
 def testProcesses(c):
-    from tcf.services import processes, processes_v1
+    from tcf.services import processes, processes_v1  # @UnresolvedImport
     lock = threading.Condition()
 
     def processTest():
@@ -617,7 +617,7 @@ def testFileSystem(c):
 
 def testMemory(c):
     lock = threading.Condition()
-    from tcf.services import memory
+    from tcf.services import memory  # @UnresolvedImport
 
     def getContexts():
         mem = c.getRemoteService(memory.NAME)
@@ -664,7 +664,7 @@ def testMemoryMap(c):
         return
     map_id = _memory[0]
     lock = threading.Condition()
-    from tcf.services import memorymap
+    from tcf.services import memorymap  # @UnresolvedImport
 
     def getMap():
         mm = c.getRemoteService(memorymap.NAME)
@@ -710,7 +710,7 @@ def testPathMap(c):
         # no PathMap service
         return
     lock = threading.Condition()
-    from tcf.services import pathmap
+    from tcf.services import pathmap  # @UnresolvedImport
 
     def getMap():
         pm = c.getRemoteService(pathmap.NAME)
@@ -754,7 +754,7 @@ def testSysMonitor(c):
         # no SysMonotor service
         return
     lock = threading.Condition()
-    from tcf.services import sysmonitor
+    from tcf.services import sysmonitor  # @UnresolvedImport
     processes = []
 
     def getProcesses():
