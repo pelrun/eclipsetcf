@@ -9,107 +9,220 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-"""
-TCF Disassembly service interface.
+"""TCF Disassembly service interface.
+
+Disassembly Properties
+----------------------
+Properties
+^^^^^^^^^^
++------------------+--------------+-------------------------------------------+
+| Name             | Type         | Description                               |
++==================+==============+===========================================+
+| PROP_ISA         | |basestring| | The name of the instruction set           |
+|                  |              | architecture.                             |
++------------------+--------------+-------------------------------------------+
+| PROP_OPCODEVALUE | |bool|       | If **True**, the instruction code byte    |
+|                  |              | values are returned.                      |
++------------------+--------------+-------------------------------------------+
+| PROP_PSEUDO      | |bool|       | If **True**, pseudo-instructions are      |
+|                  |              | requested.                                |
++------------------+--------------+-------------------------------------------+
+| PROP_SIMPLIFIED  | |bool|       | If **True**, simplified mnemonics are     |
+|                  |              | specified.                                |
++------------------+--------------+-------------------------------------------+
+
+Capabilities
+^^^^^^^^^^^^
++------------------------+--------------+-------------------------------------+
+| Name                   | Type         | Description                         |
++========================+==============+=====================================+
+| CAPABILITY_ISA         | |basestring| | The name of the instruction set     |
+|                        |              | architecture.                       |
++------------------------+--------------+-------------------------------------+
+| CAPABILITY_OPCODEVALUE | |bool|       | If **True**, the decoded instruction|
+|                        |              | code bytes are retrievable with the |
+|                        |              | OpcodeValue parameter.              |
++------------------------+--------------+-------------------------------------+
+| CAPABILITY_PSEUDO      | |bool|       | If **True**, pseudo-instructions are|
+|                        |              | supported or requested.             |
++------------------------+--------------+-------------------------------------+
+| CAPABILITY_SIMPLIFIED  | |bool|       | If **True**, simplified mnemonics   |
+|                        |              | are supported or requested.         |
++------------------------+--------------+-------------------------------------+
+
+Fields
+^^^^^^
++---------------------+--------------+----------------------------------------+
+| Name                | Type         | Description                            |
++=====================+==============+========================================+
+| FIELD_ADDRESS_SPACE | |int|        | Context ID of the address space used   |
+|                     |              | with ``FTYPE_ADDRESS`` types.          |
++---------------------+--------------+----------------------------------------+
+| FIELD_TEXT          | |basestring| | Value of the field for ``FTYPE_STRING``|
+|                     |              | and ``FTYPE_REGISTER`` types.          |
++---------------------+--------------+----------------------------------------+
+| FIELD_TYPE          | |basestring| | Instruction field properties. The type |
+|                     |              | of the instruction field. See          |
+|                     |              | `Field Types`_.                        |
++---------------------+--------------+----------------------------------------+
+| FIELD_VALUE         | |int|        | Value of the field for                 |
+|                     |              | ``FTYPE_ADDRESS``,                     |
+|                     |              | ``FTYPE_DISPLACEMENT``, or             |
+|                     |              | ``FTYPE_IMMEDIATE`` types.             |
++---------------------+--------------+----------------------------------------+
+
+Field Types
+^^^^^^^^^^^
++--------------------+--------------------------------------+
+| Name               | Description                          |
++====================+======================================+
+| FTYPE_ADDRESS      | Instruction field type Address.      |
++--------------------+--------------------------------------+
+| FTYPE_DISPLACEMENT | Instruction field type Displacement. |
++--------------------+--------------------------------------+
+| FTYPE_IMMEDIATE    | Instruction field type Immediate.    |
++--------------------+--------------------------------------+
+| FTYPE_REGISTER     | Instruction field type Register.     |
++--------------------+--------------------------------------+
+| FTYPE_STRING       | Instruction field type String.       |
++--------------------+--------------------------------------+
+
+Service Methods
+---------------
+.. autodata:: NAME
+.. autoclass:: DisassemblyService
+
+disassemble
+^^^^^^^^^^^
+.. automethod:: DisassemblyService.disassemble
+
+getCapabilities
+^^^^^^^^^^^^^^^
+.. automethod:: DisassemblyService.getCapabilities
+
+getName
+^^^^^^^
+.. automethod:: DisassemblyService.getName
+
+Callback Classes
+----------------
+DoneDisassemble
+^^^^^^^^^^^^^^^
+.. autoclass:: DoneDisassemble
+    :members:
+
+DoneGetCapabilities
+^^^^^^^^^^^^^^^^^^^
+.. autoclass:: DoneGetCapabilities
+    :members:
+
+Helper Classes
+--------------
+DisassemblyLine
+^^^^^^^^^^^^^^^
+.. autoclass:: DisassemblyLine
+    :members:
 """
 
 from .. import services
 
 NAME = "Disassembly"
+"""Disassembly service name."""
 
-# The name of the instruction set architecture, String
 CAPABILITY_ISA = "ISA"
-
-# If true, simplified mnemonics are supported or requested, Boolean
 CAPABILITY_SIMPLIFIED = "Simplified"
-
-# If true, pseudo-instructions are supported or requested, Boolean
 CAPABILITY_PSEUDO = "Pseudo"
+CAPABILITY_OPCODEVALUE = "OpcodeValue"
 
-
-# Instruction field properties
-# The type of the instruction field. See FTYPE_*, String.
 FIELD_TYPE = "Type"
-
-# Value of the field for "String" and "Register" types, String.
 FIELD_TEXT = "Text"
-
-# Value of the field for "Address," "Displacement," or "Immediate" types,
-# Number.
 FIELD_VALUE = "Value"
-
-# Context ID of the address space used with "Address" types, String.
 FIELD_ADDRESS_SPACE = "AddressSpace"
 
 # Instruction field types
 FTYPE_STRING = "String"
-FTYPE_Register = "Register"
+FTYPE_REGISTER = "Register"
 FTYPE_ADDRESS = "Address"
 FTYPE_DISPLACEMENT = "Displacement"
 FTYPE_IMMEDIATE = "Immediate"
 
+# disassemble parameters
+PROP_ISA = "ISA"
+PROP_SIMPLIFIED = "Simplified"
+PROP_PSEUDO = "PseudoInstructions"
+PROP_OPCODEVALUE = "OpcodeValue"
+
 
 class DisassemblyService(services.Service):
     def getName(self):
+        """Get this service name.
+
+        :returns: The value of string :const:`NAME`
+        """
         return NAME
 
     def getCapabilities(self, context_id, done):
-        """
-        Retrieve disassembly service capabilities a given context-id.
-        @param context_id - a context ID, usually one returned by Run Control
+        """Retrieve disassembly service capabilities a given context-id.
+
+        :param context_id: a context ID, usually one returned by Run Control
                             or Memory services.
-        @param done - command result call back object.
-        @return - pending command handle.
+        :param done: command result call back object.
+        :type done: :class:`DoneGetCapabilities`
+
+        :returns: pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def disassemble(self, context_id, addr, size, params, done):
-        """
-        Disassemble instruction code from a specified range of memory
+        """Disassemble instruction code from a specified range of memory
         addresses, in a specified context.
-        @param context_id - a context ID, usually one returned by Run Control
+
+        :param context_id: a context ID, usually one returned by Run Control
                             or Memory services.
-        @param addr - address of first instruction to disassemble.
-        @param size - size in bytes of the address range.
-        @param params - properties to control the disassembly output, an
-                        element of capabilities array, see getCapabilities.
-        @param done - command result call back object.
-        @return - pending command handle.
+        :param addr: address of first instruction to disassemble.
+        :param size: size in bytes of the address range.
+        :param params: properties to control the disassembly output, an
+                        element of capabilities array, see
+                        :meth:`~DisassemblyService.getCapabilities`
+        :param done: command result call back object.
+        :type done: :class:`DoneDisassemble`
+
+        :returns: pending command handle.
         """
 
 
 class DoneGetCapabilities(object):
-    """
-    Call back interface for 'getCapabilities' command.
-    """
+    """Call back interface for 'getCapabilities' command."""
     def doneGetCapabilities(self, token, error, capabilities):
-        """
-        Called when capabilities retrieval is done.
-        @param token - command handle.
-        @param error - error object or None.
-        @param capabilities - array of capabilities, see CAPABILITY_* for
+        """Called when capabilities retrieval is done.
+
+        :param token: command handle.
+        :param error: error object or None.
+        :param capabilities: array of capabilities, see `Capabilities`_ for
                               contents of each array element.
         """
         pass
 
 
 class DoneDisassemble(object):
-    """
-    Call back interface for 'disassemble' command.
-    """
+    """Call back interface for 'disassemble' command."""
     def doneDisassemble(self, token, error, disassembly):
-        """
-        Called when disassembling is done.
-        @param token - command handle.
-        @param error - error object or None.
-        @param disassembly - array of disassembly lines.
+        """Called when disassembling is done.
+
+        :param token: command handle.
+        :param error: error object or None.
+        :param disassembly: array of disassembly lines.
         """
         pass
 
 
 class DisassemblyLine(object):
-    """
-    Represents a single disassembly line.
+    """Represents a single disassembly line.
+
+    :param addr: Address of the disassembled line.
+    :param size: The size (in bytes) of this disassembled line.
+    :param instuction: Disassembled instruction.
+    :param opcode: Instruction opcode (if any)
     """
     def __init__(self, addr, size, instruction, opcode=None):
         self.addr = addr
@@ -119,29 +232,41 @@ class DisassemblyLine(object):
 
     def getAddress(self):
         """
-        @return instruction address.
+        :returns: Instruction address.
         """
         return self.addr
 
     def getOpcodeValue(self):
         """
-        @return instruction address.
+        :returns: instruction address.
         """
         return self.opcode
 
     def getSize(self):
         """
-        @return instruction size in bytes.
+        :returns: Instruction size in bytes.
         """
         return self.size
 
     def getInstruction(self):
-        """
-        @return array of instruction fields, each field is a collection of
-                field properties, see FIELD_*.
+        """Get disassembled instruction.
+
+        :returns: array of instruction fields, each field is a collection of
+                  field properties, see `Fields`_.
         """
         return self.instruction
 
+    def __repr__(self):
+        res = self.__class__.__name__ + '(' + repr(self.addr) + ', ' + \
+              repr(self.size) + ', ' + repr(self.instruction) + ', ' + \
+              repr(self.opcode) + ')'
+        return res
+
     def __str__(self):
-        instr = "".join(map(str, self.instruction))
-        return "[%s %s %s]" % (self.addr, self.size, instr)
+        op = self.opcode
+        oplen = len(op)
+        res = self.__class__.__name__ + ' [address=' + str(self.addr) + \
+              ', size=' + str(self.size) + ', instruction=' + \
+              str(self.instruction) + ', opcode=' + \
+              ' '.join('%02x' % ord(byte) for byte in op[0:oplen]) + ']'
+        return res

@@ -9,46 +9,129 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-"""
-PathMap service manages file path translation across systems.
+"""PathMap service manages file path translation across systems.
+
+.. |get| replace:: :meth:`~PathMapService.get`
+.. |set| replace:: :meth:`~PathMapService.set`
+.. |DoneGet| replace:: :class:`DoneGet`
+.. |DoneSet| replace:: :class:`DoneSet`
+.. |PathMapRule| replace:: :class:`PathMapRule`
+.. |PathMapListener| replace:: :class:`PathMapListener`
+
+
+Path Mapping Properties
+-----------------------
+Properties
+^^^^^^^^^^
+All properties are of type |basestring|.
+
++--------------------+--------------------------------------------------------+
+| Name               | Description                                            |
++====================+========================================================+
+| PROP_CONTEXT       | Symbols context group ID or name. **deprecated** - use |
+|                    | ``PROP_CONTEXT_QUERY``.                                |
++--------------------+--------------------------------------------------------+
+| PROP_CONTEXT_QUERY | Contexts query.                                        |
++--------------------+--------------------------------------------------------+
+| PROP_DESTINATION   | Destination, or run-time file path.                    |
++--------------------+--------------------------------------------------------+
+| PROP_HOST          | Host name.                                             |
++--------------------+--------------------------------------------------------+
+| PROP_ID            | Rule ID.                                               |
++--------------------+--------------------------------------------------------+
+| PROP_PROTOCOL      | File access protocol, see `Protocols`_, default is     |
+|                    | ``PROTOCOL_FILE``.                                     |
++--------------------+--------------------------------------------------------+
+| PROP_SOURCE        | Source, or compile-time file path.                     |
++--------------------+--------------------------------------------------------+
+
+Protocols
+^^^^^^^^^
+All protocols are of type |basestring|.
+
++-----------------+-----------------------------------------------------------+
+| Name            | Description                                               |
++=================+===========================================================+
+| PROTOCOL_FILE   | Regular file access using system calls.                   |
++-----------------+-----------------------------------------------------------+
+| PROTOCOL_HOST   | File should be accessed using File System service on host.|
++-----------------+-----------------------------------------------------------+
+| PROTOCOL_TARGET | File should be accessed using File System service on.     |
+|                 | target.                                                   |
++-----------------+-----------------------------------------------------------+
+
+Service Methods
+---------------
+.. autodata:: NAME
+.. autoclass:: PathMapService
+
+addListener
+^^^^^^^^^^^
+.. automethod:: PathMapService.addListener
+
+get
+^^^
+.. automethod:: PathMapService.get
+
+getName
+^^^^^^^
+.. automethod:: PathMapService.getName
+
+removeListener
+^^^^^^^^^^^^^^
+.. automethod:: PathMapService.removeListener
+
+set
+^^^
+.. automethod:: PathMapService.set
+
+Callback Classes
+----------------
+DoneGet
+^^^^^^^
+.. autoclass:: DoneGet
+    :members:
+
+DoneSet
+^^^^^^^
+.. autoclass:: DoneSet
+    :members:
+
+Listener
+--------
+PathMapListener
+^^^^^^^^^^^^^^^
+.. autoclass:: PathMapListener
+    :members:
+
+Helper Classes
+--------------
+PathMapRule
+^^^^^^^^^^^
+.. autoclass:: PathMapRule
+    :members:
 """
 
 from .. import services
 
 NAME = "PathMap"
+"""PathMap service name."""
 
 # Path mapping rule property names.
 
-# String, contexts query, see IContextQuery
 PROP_CONTEXT_QUERY = "ContextQuery"
-
-# String, destination, or run-time file path
 PROP_DESTINATION = "Destination"
-
-# String
 PROP_HOST = "Host"
-
-# String, rule ID
 PROP_ID = "ID"
-
-# String, file access protocol, see PROTOCOL_*, default is regular file
 PROP_PROTOCOL = "Protocol"
-
-# String, source, or compile-time file path
 PROP_SOURCE = "Source"
 
-# Deprecated
-# String, symbols context group ID or name, deprecated - use ContextQuery
+# @deprecated
 PROP_CONTEXT = "Context"
 
 # PROP_PROTOCOL values.
-# Regular file access using system calls
 PROTOCOL_FILE = "file"
-
-# File should be accessed using File System service on host
 PROTOCOL_HOST = "host"
-
-# File should be accessed using File System service on target
 PROTOCOL_TARGET = "target"
 
 
@@ -61,123 +144,153 @@ class PathMapListener(object):
 
 
 class PathMapRule(object):
-    """
-    PathMapRule represents a single file path mapping rule.
+    """PathMapRule represents a single file path mapping rule.
+
+    :param props: The properties to initialise this pathmap rule with. See
+                  `Properties`_.
+    :type props: |dict|
     """
     def __init__(self, props):
         self._props = props or {}
 
-    def __str__(self):
-        return str(self._props)
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + str(self._props) + ')'
 
     def __json__(self):
         return self._props
 
     def getContextQuery(self):
-        """Get context query that defines scope of the mapping rule, see
-        also IContextQuery.
-        Same as getProperties().get(PROP_CONTEXT_QUERY)
-        @return context query expression, or None.
+        """Get context query that defines scope of the mapping rule.
+
+        :returns: This PathMap Rule context query expression, or **None**.
         """
         return self._props.get(PROP_CONTEXT_QUERY, None)
 
     def getProperties(self):
-        """
-        Get rule properties. See PROP_* definitions for property names.
+        """Get rule properties.
+
+        See `Properties`_ definitions for property names.
+
         Context properties are read only, clients should not try to modify
         them.
-        @return Map of rule properties.
+
+        :returns: A |dict| class of this rule's properties.
         """
         return self._props
 
     def getID(self):
+        """Get rule unique ID.
+
+        :returns: A |basestring| representing this rule's ID or **None**.
         """
-        Get rule unique ID.
-        Same as getProperties().get(PROP_ID)
-        @return rule ID.
-        """
-        return self._props.get(PROP_ID)
+        return self._props.get(PROP_ID, None)
 
     def getSource(self):
+        """Get compile-time file path.
+
+        :returns: A |basestring| representing compile-time file path or
+                  **None**.
         """
-        Get compile-time file path.
-        Same as getProperties().get(PROP_SOURCE)
-        @return compile-time file path.
-        """
-        return self._props.get(PROP_SOURCE)
+        return self._props.get(PROP_SOURCE, None)
 
     def getDestination(self):
+        """Get run-time file path.
+
+        :returns: A |basestring| representing run-time file path or **None**.
         """
-        Get run-time file path.
-        Same as getProperties().get(PROP_DESTINATION)
-        @return run-time file path.
-        """
-        return self._props.get(PROP_DESTINATION)
+        return self._props.get(PROP_DESTINATION, None)
 
     def getHost(self):
+        """Get host name of this rule.
+
+        :returns: A |basestring| representing the host name this rule applies
+                  to or **None**.
         """
-        Get host name of this rule.
-        Same as getProperties().get(PROP_HOST)
-        @return host name.
-        """
-        return self._props.get(PROP_HOST)
+        return self._props.get(PROP_HOST, None)
 
     def getProtocol(self):
+        """Get file access protocol name.
+
+        See `Protocols`_ for path mapping protocol values.
+
+        :returns: A |basestring| representing protocol name or
+                  ``PROTOCOL_FILE``.
         """
-        Get file access protocol name.
-        Same as getProperties().get(PROP_PROTOCOL)
-        @return protocol name.
-        """
-        return self._props.get(PROP_PROTOCOL)
+        return self._props.get(PROP_PROTOCOL, PROTOCOL_FILE)
 
 
 class PathMapService(services.Service):
+    """TCF PathMap service interface."""
+
+    def addListener(self, listener):
+        """Add a pathmap listener.
+
+        A |PathMapListener| is added to the TCF pathmap service.
+
+        :param listener: Instance of the pathmap listener to add to service.
+        :type listener: |PathMapListener|
+        """
+        return NotImplementedError("Abstract method")
+
     def getName(self):
+        """Get this service name.
+
+        :returns: The value of string :const:`NAME`
+        """
         return NAME
 
     def get(self, done):
-        """
-        Retrieve file path mapping rules.
+        """Retrieve file path mapping rules.
 
-        @param done - call back interface called when operation is completed.
-        @return - pending command handle.
+        :param done: Call back interface called when operation is completed.
+        :type done: |DoneGet|
         """
         return NotImplementedError("Abstract method")
 
     def set(self, pathMap, done):  # @ReservedAssignment
-        """
-        Set file path mapping rules.
+        """Set file path mapping rules.
 
-        @param pathMap - file path mapping rules.
-        @param done - call back interface called when operation is completed.
-        @return - pending command handle.
+        :param pathMap: File path mapping rules.
+        :type pathMap: |PathMapRule|
+        :param done: Call back interface called when operation is completed.
+        :type done: |DoneSet|
+        """
+        return NotImplementedError("Abstract method")
+
+    def removeListener(self, listener):
+        """Remove pathmap event listener.
+
+        The PathMapListener is removed from the TCF pathmap service.
+
+        :param listener: instance of the pathmap listener to remove from
+                         service.
+        :type listener: |PathMapListener|
         """
         return NotImplementedError("Abstract method")
 
 
 class DoneGet(object):
-    """
-    Client call back interface for get().
-    """
+    """Client call back interface for |get|."""
     def doneGet(self, token, error, pathMap):
-        """
-        Called when file path mapping retrieval is done.
-        @param error - error description if operation failed, None if
-                       succeeded.
-        @param pathMap - file path mapping data.
+        """Called when file path mapping retrieval is done.
+
+        :param token: Command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param pathMap: File path mapping data.
+        :type pathMap: |list| of |PathMapRule|
         """
         pass
 
 
 class DoneSet(object):
-    """
-    Client call back interface for set().
-    """
+    """Client call back interface for |set|."""
+
     def doneSet(self, token, error):
-        """
-        Called when file path mapping transmission is done.
-        @param error - error description if operation failed, None if
-                       succeeded.
-        @param map - memory map data.
+        """Called when file path mapping transmission is done.
+
+        :param token: Command handle
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
         """
         pass

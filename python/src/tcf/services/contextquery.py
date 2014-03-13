@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2012, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2012-2013 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,57 +9,109 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-"""
-TCF ContextQuery service interface.
+"""TCF ContextQuery service interface.
+
+.. |getAttrNames| replace:: :meth:`ContextQueryService.getAttrNames`
+.. |query| replace:: :meth:`ContextQueryService.query`
+.. |DoneGetAttrNames| replace:: :class:`DoneGetAttrNames`
+.. |DoneQuery| replace:: :class:`DoneQuery`
+
+Service Methods
+---------------
+.. autodata:: NAME
+.. autoclass:: ContextQueryService
+
+getAttrNames
+^^^^^^^^^^^^
+.. automethod:: ContextQueryService.getAttrNames
+
+getName
+^^^^^^^
+.. automethod:: ContextQueryService.getName
+
+query
+^^^^^
+.. automethod:: ContextQueryService.query
+
+Callback Classes
+----------------
+DoneGetAttrNames
+^^^^^^^^^^^^^^^^
+.. autoclass:: DoneGetAttrNames
+    :members:
+
+DoneQuery
+^^^^^^^^^
+.. autoclass:: DoneQuery
+    :members:
 """
 
 from .. import services
 
-# Service name.
 NAME = "ContextQuery"
+"""ContextQuery service name."""
 
 
 class ContextQueryService(services.Service):
+    """TCF context query service interface."""
+
     def getName(self):
+        """Get this service name.
+
+        :returns: A |basestring| representing this service name, which is the
+                  value of :const:`NAME`
+        """
         return NAME
 
     def query(self, querystr, done):
-        """
-        @param querystr - context query to be executed.
-        @param done - command result call back object.
-        @return - pending command handle.
-        @see DoneQuery
+        """Get the list of contexts matching a given query.
+
+        :param querystr: Context query to be executed.
+        :type querystr: |basestring|
+        :param done: Command result call back object.
+        :type done: |DoneQuery|
+
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def getAttrNames(self, done):
-        """
-        @param done - command result call back object.
-        @return - pending command handle.
-        @see DoneGetAttrNames
+        """Get the list of Attributes registered with the context query
+        service.
+
+        :param done: Command result call back object.
+        :type done: |DoneGetAttrNames|
+
+        :return: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
 
 class DoneQuery(object):
-    "Call back interface for 'query' command."
+    "Call back interface for |query| command."
+
     def doneQuery(self, token, error, ctxList):
-        """
-        Called when 'query' command is done.
-        @param token - command handle.
-        @param error - error object or None.
-        @param ctxList - IDs of contexts matching the query.
+        """Called when |query| command is done.
+
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param ctxList: IDs of contexts matching the query.
+        :type ctxList: |list|
         """
         pass
 
 
 class DoneGetAttrNames(object):
-    "Call back interface for 'getAttrNames' command."
+    "Call back interface for |getAttrNames| command."
+
     def doneGetAttrNames(self, token, error, attrNameList):
-        """
-        Called when 'getAttrNames' command is done.
-        @param token - command handle.
-        @param error - error object or None.
-        @param attrNameList - List of the attributes supported by the agent.
+        """Called when |getAttrNames| command is done.
+
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param attrNameList: List of the attributes supported by the agent.
+        :type attrNamesList: |list|
         """
         pass

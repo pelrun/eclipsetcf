@@ -9,31 +9,71 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-"""
-Line numbers service associates locations in the source files with the
+"""Line numbers service associates locations in the source files with the
 corresponding machine instruction addresses in the executable object.
+
+Service Methods
+---------------
+.. autodata:: NAME
+.. autoclass:: LineNumbersService
+
+getName
+^^^^^^^
+.. automethod:: LineNumbersService.getName
+
+mapToMemory
+^^^^^^^^^^^
+.. automethod:: LineNumbersService.mapToMemory
+
+mapToSource
+^^^^^^^^^^^
+.. automethod:: LineNumbersService.mapToSource
+
+Callback Classes
+----------------
+DoneMapToMemory
+^^^^^^^^^^^^^^^
+.. autoclass:: DoneMapToMemory
+    :members:
+
+DoneMapToSource
+^^^^^^^^^^^^^^^
+.. autoclass:: DoneMapToSource
+    :members:
+
+Helper Classes
+--------------
+CodeArea
+^^^^^^^^
+.. autoclass:: CodeArea
+    :members:
 """
 
 from .. import services
 
 NAME = "LineNumbers"
+"""LineNumbers service name."""
 
 
 class CodeArea(object):
-    """
-    A CodeArea represents a continues area in source text mapped to
+    """A CodeArea represents a continues area in source text mapped to
     continues range of code addresses.
+
     Line and columns are counted starting from 1.
-    File name can be a relative path, in this case the client should
-    use the CodeArea directory name as origin for the path.
+
+    File name can be a relative path, in this case the client should use the
+    CodeArea directory name as origin for the path.
+
     File and directory names are valid on a host where code was compiled.
+
     It is client responsibility to map names to local host file system.
     """
-    def __init__(self, directory, fileName, start_line, start_column,
-                 end_line, end_column, start_address, end_address, isa,
-                 is_statement, basic_block, prologue_end, epilogue_begin):
+    def __init__(self, directory, file, start_line,  # @ReservedAssignment
+                 start_column, end_line, end_column, start_address,
+                 end_address, isa, is_statement, basic_block, prologue_end,
+                 epilogue_begin):
         self.directory = directory
-        self.file = fileName
+        self.file = file
         self.start_line = start_line
         self.start_column = start_column
         self.end_line = end_line
@@ -133,22 +173,73 @@ class CodeArea(object):
 
 
 class LineNumbersService(services.Service):
+    """TCF LineNumbers service interface."""
 
     def getName(self):
+        """Get this service name.
+
+        :returns: The value of string :const:`NAME`
+        """
         return NAME
 
     def mapToSource(self, context_id, start_address, end_address, done):
+        """Get the line numbers source for a context ID and a memory address.
+
+        :param context_id: ID of the context to get source map for.
+        :type context_id: |basestring|
+        :param start_address: Memory start address to get source map for.
+        :type start_address: |int|
+        :param end_address: Memory end address to get source map for.
+        :type end_address: |int|
+        :param done: Call back interface called when operation is completed
+        :type done: :class:`DoneMapToSource`
+        """
         raise NotImplementedError("Abstract method")
 
     def mapToMemory(self, context_id, fileName, line, column, done):
+        """Get the the memory address of a context ID for a given file and line
+        number.
+
+        :param context_id: ID of the context to get source map for.
+        :type context_id: |basestring|
+        :param fileName: Name of the file to map memory for.
+        :type fileName: |basestring|
+        :param line: Source file line to map to a memory address.
+        :type line: |int|
+        :param column: Source file column to map to a memory address.
+        :type column: |int|
+        :param done: Call back interface called when operation is completed.
+        :type done: :class:`DoneMapToMemory`
+        """
         raise NotImplementedError("Abstract method")
 
 
 class DoneMapToSource(object):
+    """
+    Client callback interface for :meth:`~LineNumbersService.mapToSource`.
+    """
+
     def doneMapToSource(self, token, error, areas):
+        """Called when context data retrieval is done.
+
+        :param token: pending command handle
+        :param error: error description if operation failed, **None** if
+                      succeeded.
+        :param areas: A |list| of :class:`CodeArea` objects.
+        """
         pass
 
 
 class DoneMapToMemory(object):
+    """
+    Client callback interface for :meth:`~LineNumbersService.mapToMemory`.
+    """
     def doneMapToMemory(self, token, error, areas):
+        """Called when context data retrieval is done.
+
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param areas: A |list| of :class:`CodeArea` objects.
+        """
         pass

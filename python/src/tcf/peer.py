@@ -9,19 +9,63 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-"""
-Both hosts and targets are represented by objects
-implementing IPeer interface. A peer can act as host or
-target depending on services it implements.
-List of currently known peers can be retrieved by
-calling Locator.getPeers()
+"""Both hosts and targets are represented by objects implementing Peer
+interface.
+
+A peer can act as host or target depending on services it implements. List of
+currently known peers can be retrieved by calling |getPeers|.
 
 A TCF agent houses one or more service managers. A service manager has a one or
 more services to expose to the world. The service manager creates one or more
-peers to represent itself, one for every access path the agent is
-reachable by. For example, in agents accessible via TCP/IP, the
-service manger would create a peer for every subnet it wants to participate in.
-All peers of particular service manager represent identical sets of services.
+peers to represent itself, one for every access path the agent is reachable by.
+
+For example, in agents accessible via TCP/IP, the service manager would create
+a peer for every subnet it wants to participate in. All peers of particular
+service manager represent identical sets of services.
+
+.. |getPeers| replace:: :meth:`tcf.services.locator.LocatorService.getPeers`
+.. |invokeAndWait| replace:: :func:`~tcf.protocol.invokeAndWait`
+.. |AssertionError| replace:: :exc:`~exception.AssertionError`
+
+Properties
+----------
++-------------------------+--------------+------------------------------------+
+| Name                    | Type         | Description                        |
++=========================+==============+====================================+
+| ATTR_ID                 | |basestring| | Peer unique ID.                    |
++-------------------------+--------------+------------------------------------+
+| ATTR_SERVICE_MANAGER_ID | |basestring| | Unique ID of service manager that  |
+|                         |              | is represented by this peer.       |
++-------------------------+--------------+------------------------------------+
+| ATTR_AGENT_ID           | |basestring| | Agent unique ID.                   |
++-------------------------+--------------+------------------------------------+
+| ATTR_NAME               | |basestring| | Peer name.                         |
++-------------------------+--------------+------------------------------------+
+| ATTR_OS_NAME            | |basestring| | Name of the peer operating system. |
++-------------------------+--------------+------------------------------------+
+| ATTR_TRANSPORT_NAME     | |basestring| | Transport name, for example TCP,   |
+|                         |              | SSL ...                            |
++-------------------------+--------------+------------------------------------+
+| ATTR_PROXY              | |bool|       | If present, indicates that the peer|
+|                         |              | can forward traffic to other peers.|
++-------------------------+--------------+------------------------------------+
+| ATTR_IP_HOST            | |basestring| | Host DNS name or IP address.       |
++-------------------------+--------------+------------------------------------+
+| ATTR_IP_ALIASES         | |list|       | Optional list of host aliases.     |
++-------------------------+--------------+------------------------------------+
+| ATTR_IP_ADDRESSES       | |list|       | Optional list of host addresses.   |
++-------------------------+--------------+------------------------------------+
+| ATTR_IP_PORT            | |int|        | IP port number, must be decimal    |
+|                         |              | number.                            |
++-------------------------+--------------+------------------------------------+
+
+
+Classes
+-------
+Peer
+^^^^
+.. autoclass:: Peer
+    :members:
 """
 
 import os
@@ -29,88 +73,174 @@ import time
 from . import protocol, transport, services, channel
 from .services import locator
 
-# Peer unique ID
 ATTR_ID = "ID"
-
-# Unique ID of service manager that is represented by this peer
 ATTR_SERVICE_MANAGER_ID = "ServiceManagerID"
-
-# Agent unique ID
 ATTR_AGENT_ID = "AgentID"
-
-# Peer name
 ATTR_NAME = "Name"
-
-# Name of the peer operating system
 ATTR_OS_NAME = "OSName"
-
-# Transport name, for example TCP, SSL
 ATTR_TRANSPORT_NAME = "TransportName"
-
-# If present, indicates that the peer can forward traffic to other peers
 ATTR_PROXY = "Proxy"
-
-# Host DNS name or IP address
 ATTR_IP_HOST = "Host"
-
-# Optional list of host aliases
 ATTR_IP_ALIASES = "Aliases"
-
-# Optional list of host addresses
 ATTR_IP_ADDRESSES = "Addresses"
-
-# IP port number, must be decimal number
 ATTR_IP_PORT = "Port"
 
 
 class Peer(object):
+    """TCF agent peer.
+
+    :param attrs: Peer attributes to initialise this peer with.
+    :type attrs: |dict|
+    """
     def __init__(self, attrs):
-        self.attrs = attrs
+        self.attrs = attrs or {}
+
+    def __repr__(self):
+        return str(self.__class__.__name__) + '(' + repr(self.attrs) + ')'
+
+    def __str__(self):
+        res = str(self.__class__.__name__) + ' ['
+        res += ATTR_ID + '=' + str(self.attrs.get(ATTR_ID))
+        res += ', ' + ATTR_NAME + '=' + str(self.attrs.get(ATTR_NAME))
+        res += ', ' + ATTR_PROXY + '=' + str(self.attrs.get(ATTR_PROXY))
+        res += ', ' + ATTR_OS_NAME + '=' + str(self.attrs.get(ATTR_OS_NAME))
+        res += ', ' + ATTR_AGENT_ID + '=' + str(self.attrs.get(ATTR_AGENT_ID))
+        res += ', ' + ATTR_IP_ADDRESSES + '=' + \
+               str(self.attrs.get(ATTR_IP_ADDRESSES))
+        res += ', ' + ATTR_IP_ALIASES + '=' + \
+               str(self.attrs.get(ATTR_IP_ALIASES))
+        res += ', ' + ATTR_IP_HOST + '=' + str(self.attrs.get(ATTR_IP_HOST))
+        res += ', ' + ATTR_IP_PORT + '=' + str(self.attrs.get(ATTR_IP_PORT))
+        res += ', ' + ATTR_SERVICE_MANAGER_ID + '=' + \
+               str(self.attrs.get(ATTR_SERVICE_MANAGER_ID))
+        res += ', ' + ATTR_TRANSPORT_NAME + '=' + \
+               str(self.attrs.get(ATTR_TRANSPORT_NAME))
+        res += ']'
+        return res
+
+    def getAddresses(self):
+        """Get this peer IP addresses.
+
+        :returns: A |list| representing this peer possible IP addresses, or an
+                  empty list.
+        """
+        return self.attrs.get(ATTR_IP_ADDRESSES, [])
+
+    def getAgentID(self):
+        """Get this peer agent ID.
+
+        :returns: This peer's agent unique ID or an empty string
+
+        :raises: An |AssertionError| if this method is not called from the
+                 dispatch thread.
+
+        .. seealso:: |invokeAndWait|
+        """
+        assert protocol.isDispatchThread()
+        return self.attrs.get(ATTR_AGENT_ID, '')
+
+    def getAliases(self):
+        """Get this peer host name aliases.
+
+        :returns: A |list| representing this peer possible host name aliases,
+                  or an empty list.
+        """
+        return self.attrs.get(ATTR_IP_ALIASES, [])
 
     def getAttributes(self):
-        """@return map of peer attributes"""
+        """Get this peer attributes.
+
+        :returns: A |dict| of this peer attributes.
+        """
         return self.attrs
 
     def getID(self):
-        """@return peer unique ID, same as getAttributes().get(ATTR_ID)"""
-        return self.attrs.get(ATTR_ID)
+        """Get this peer ID.
 
-    def getServiceManagerID(self):
-        """@return service manager unique ID, same as
-        getAttributes().get(ATTR_SERVICE_MANAGER_ID)"""
-        assert protocol.isDispatchThread()
-        return self.attrs.get(ATTR_SERVICE_MANAGER_ID)
+        :returns: A |basestring| representing this peer unique ID, or an empty
+                  string.
+        """
+        return self.attrs.get(ATTR_ID, '')
 
-    def getAgentID(self):
-        """@return agent unique ID, same as
-        getAttributes().get(ATTR_AGENT_ID)"""
-        assert protocol.isDispatchThread()
-        return self.attrs.get(ATTR_AGENT_ID)
+    def getHost(self):
+        """Get this peer host name.
+
+        :returns: A |basestring| representing this peer host name, or an empty
+                  string.
+        """
+        return self.attrs.get(ATTR_IP_HOST, '')
 
     def getName(self):
-        """@return peer name, same as getAttributes().get(ATTR_NAME)"""
-        return self.attrs.get(ATTR_NAME)
+        """Get this peer name.
+
+        :returns: A |basestring| representing this peer name, or an empty
+                  string.
+        """
+        return self.attrs.get(ATTR_NAME, '')
 
     def getOSName(self):
-        """@return agent OS name, same as getAttributes().get(ATTR_OS_NAME)"""
-        return self.attrs.get(ATTR_OS_NAME)
+        """Get this peer's agent OS name.
+
+        :returns: A |basestring| representing this peer agent OS name or an
+                  empty string.
+        """
+        return self.attrs.get(ATTR_OS_NAME, '')
+
+    def getPort(self):
+        """Get this peer's communication port.
+
+        :returns: A |basestring| representing this peer communication port
+                  number.
+        """
+        return self.attrs.get(ATTR_IP_PORT, '')
+
+    def getServiceManagerID(self):
+        """Get the peer service manager ID.
+
+        :returns: A |basestring| representing this peer's service manager
+                  unique ID, or an empty string.
+
+        :raises: An |AssertionError| if this method is not
+                 called from the dispatch thread.
+        """
+        assert protocol.isDispatchThread()
+        return self.attrs.get(ATTR_SERVICE_MANAGER_ID, '')
 
     def getTransportName(self):
-        """@return transport name, same as
-        getAttributes().get(ATTR_TRANSPORT_NAME)"""
-        return self.attrs.get(ATTR_TRANSPORT_NAME)
+        """Get this peer's transport name.
+
+        :returns: this peer agent transport name or an empty string
+
+        .. seealso:: |invokeAndWait|
+        """
+        return self.attrs.get(ATTR_TRANSPORT_NAME, '')
+
+    def isProxy(self):
+        """Check if this peer is a proxy.
+
+        :returns: A |bool| stating if this peer is a proxy or not.
+        """
+        return self.attrs.get(ATTR_PROXY, False)
 
     def openChannel(self):
         """Open channel to communicate with this peer.
-        Note: the channel is not fully open yet when this method returns.
-        Its state is channel.STATE_OPENING.
-        Protocol.ChannelOpenListener and IChannel.IChannelListener listeners
-        will be called when the channel will change state to open or closed.
-        Clients are supposed to register IChannel.IChannelListener right after
-        calling openChannel(), or, at least, in same dispatch cycle.
+
+        .. note:: The channel is not fully open yet when this method returns.
+                  Its state is channel.STATE_OPENING.
+                  Protocol.ChannelOpenListener and channel.ChannelListener
+                  listeners will be called when the channel will change state
+                  to open or closed. Clients are supposed to register
+                  channel.ChannelListener right after calling openChannel(),
+                  or, at least, in same dispatch cycle.
+
         For example:
-                 channel = peer.openChannel()
-                 channel.addChannelListener(...)
+
+        .. code-block:: python
+
+            import tcf.peer as peer
+
+            channel = peer.openChannel()
+            channel.addChannelListener(...)
         """
         raise RuntimeError("Abstract method")
 
