@@ -11,6 +11,7 @@
 
 import cStringIO
 from .. import protocol, channel
+from .task import Task
 
 
 class DataCache(object):
@@ -121,10 +122,16 @@ class DataCache(object):
         if self.__waiting_list:
             arr = self.__waiting_list
             self.__waiting_list = None
-            for r in arr:
-                if isinstance(r, DataCache) and r._DataCache__posted:
-                    continue
-                r()
+            for r in tuple(arr):
+                if isinstance(r, DataCache):
+                    r.post()
+                elif isinstance(r, Task) and not r.isDone():
+                    r.run()
+                else:
+                    r()
+
+                arr.remove(r)
+
             if self.__waiting_list is None:
                 self.__waiting_list = arr
 
@@ -154,10 +161,7 @@ class DataCache(object):
         """
         if not self.__waiting_list:
             return False
-        for r in self.__waiting_list:
-            if r is cb:
-                return True
-        return False
+        return cb in self.__waiting_list
 
     def __validate(self):
         """
@@ -193,8 +197,7 @@ class DataCache(object):
         @return True if the cache is already valid
         """
         if not self.__validate():
-            if cb:
-                self.wait(cb)
+            self.wait(cb)
             return False
         return True
 
