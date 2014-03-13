@@ -11,59 +11,436 @@
 
 """Breakpoint is represented by unique identifier and set of properties.
 
-Breakpoint identifier (String id) needs to be unique across all hosts and
+.. |add| replace:: :meth:`BreakpointsService.add`
+.. |addListener| replace:: :meth:`BreakpointsService.addListener`
+.. |change| replace:: :meth:`BreakpointsService.change`
+.. |contextAdded| replace:: :meth:`BreakpointsListener.contextAdded`
+.. |contextChanged| replace:: :meth:`BreakpointsListener.contextChanges`
+.. |contextRemoved| replace:: :meth:`BreakpointsListener.contextRemoved`
+.. |disable| replace:: :meth:`BreakpointsService.disable`
+.. |enable| replace:: :meth:`BreakpointsService.enable`
+.. |getCapabilities| replace:: :meth:`BreakpointsService.getCapabilities`
+.. |getIDs| replace:: :meth:`BreakpointsService.getIDs`
+.. |getProperties| replace:: :meth:`BreakpointsService.getProperties`
+.. |getStatus| replace:: :meth:`BreakpointsService.getStatus`
+.. |remove| replace:: :meth:`BreakpointsService.remove`
+.. |removeListener| replace:: :meth:`BreakpointsService.removeListener`
+.. |set| replace:: :meth:`BreakpointsService.set`
+.. |BreakpointInstance| replace:: :class:`BreakpointInstance`
+.. |BreakpointsListener| replace:: :class:`BreakpointsListener`
+.. |BreakpointStatus| replace:: :class:`BreakpointStatus`
+.. |DoneCommand| replace:: :class:`DoneCommand`
+.. |DoneGetCapabilities| replace:: :class:`DoneGetCapabilities`
+.. |DoneGetIDs| replace:: :class:`DoneGetIDs`
+.. |DoneGetProperties| replace:: :class:`DoneGetProperties`
+.. |DoneGetStatus| replace:: :class:`DoneGetStatus`
+
+A breakpoint identifier (String id) needs to be unique across all hosts and
 targets.
 
-Breakpoint properties (Map<String,Object>) is extendible collection of named
-attributes, which define breakpoint location and behavior. This module defines
-some common attribute names (see PROP_*), host tools and target agents may
-support additional attributes.
+Breakpoint properties (|dict|) is extendible dictionary of named attributes,
+which define breakpoint location and behavior. This module defines some common
+attribute names (see `Breakpoint Properties`_), host tools and target agents
+may support additional attributes.
 
 For each breakpoint a target agent maintains another extendible collection of
-named attributes: breakpoint status (Map<String,Object>, see STATUS_*). While
-breakpoint properties are persistent and represent user input, breakpoint
-status reflects dynamic target agent reports about breakpoint current state,
-like actual addresses where breakpoint is planted or planting errors.
+named attributes: breakpoint status (see `Status`_). While breakpoint
+properties are persistent and represent user input, breakpoint status reflects
+dynamic target agent reports about breakpoint current state, like actual
+addresses where breakpoint is planted or planting errors.
+
+Breakpoint Properties
+---------------------
+Properties
+^^^^^^^^^^
++-----------------------+--------------+--------------------------------------+
+| Name                  | Type         | Description                          |
++=======================+==============+======================================+
+| PROP_ACCESS_MODE      | |int|        | The access mode that will trigger    |
+|                       |              | the breakpoint. Access mode can be a |
+|                       |              | bitwise OR of the values defined in  |
+|                       |              | `Access Modes`_.                     |
++-----------------------+--------------+--------------------------------------+
+| PROP_CLIENT_DATA      | |dict|       | Properties set by the client.        |
++-----------------------+--------------+--------------------------------------+
+| PROP_COLUMN           | |int|        | The source code column number of     |
+|                       |              | breakpoint location.                 |
++-----------------------+--------------+--------------------------------------+
+| PROP_CONDITION        | |basestring| | Expression that must evaluate to     |
+|                       |              | true before the breakpoint is        |
+|                       |              | triggered.                           |
++-----------------------+--------------+--------------------------------------+
+| PROP_CONTEXT_IDS      | |list|       | Context identifiers for which this   |
+|                       |              | breakpoint should be installed.      |
++-----------------------+--------------+--------------------------------------+
+| PROP_CONTEXT_NAMES    | |list|       | Contexts names (such as a            |
+|                       |              | process/thread name) for which this  |
+|                       |              | breakpoint should be installed.      |
++-----------------------+--------------+--------------------------------------+
+| PROP_CONTEXT_QUERY    | |basestring| | See :mod:`tcf.services.contextquery` |
++-----------------------+--------------+--------------------------------------+
+| PROP_ENABLED          | |bool|       | If true, the breakpoint is enabled.  |
++-----------------------+--------------+--------------------------------------+
+| PROP_EVENT_ARGS       | |basestring| | Eventpoint arguments.                |
++-----------------------+--------------+--------------------------------------+
+| PROP_EVENT_TYPE       | |basestring| | Breakpoint event type.               |
++-----------------------+--------------+--------------------------------------+
+| PROP_EXECUTABLE_PATHS | |list|       | All the target executable paths for  |
+|                       |              | which this breakpoint should be      |
+|                       |              | installed.                           |
++-----------------------+--------------+--------------------------------------+
+| PROP_FILE             | |basestring| | The source code file name of         |
+|                       |              | breakpoint location.                 |
++-----------------------+--------------+--------------------------------------+
+| PROP_ID               | |basestring| | Breakpoint ID. This is the only      |
+|                       |              | required property.                   |
++-----------------------+--------------+--------------------------------------+
+| PROP_IGNORE_COUNT     | |int|        | Number of times this breakpoint is   |
+|                       |              | to be ignored before it is triggered.|
+|                       |              | The ignore count is tested after all |
+|                       |              | other Location and Condition         |
+|                       |              | properties are validated.            |
++-----------------------+--------------+--------------------------------------+
+| PROP_LINE             | |int|        | The source code line number of       |
+|                       |              | breakpoint location.                 |
++-----------------------+--------------+--------------------------------------+
+| PROP_LOCATION         | |basestring| | Defines location of the breakpoint.  |
+|                       |              | The expression evaluates either to a |
+|                       |              | memory address or a register         |
+|                       |              | location.                            |
++-----------------------+--------------+--------------------------------------+
+| PROP_MASK             | |int|        | A mask which is bitwise ANDed with   |
+|                       |              | the value accessed.                  |
++-----------------------+--------------+--------------------------------------+
+| PROP_PATTERN          | |int|        | A mask value which may be further    |
+|                       |              | refined with a mask.                 |
++-----------------------+--------------+--------------------------------------+
+| PROP_SCALE            | |basestring| | The scale for the time value. See    |
+|                       |              | `Time Scales`_.                      |
++-----------------------+--------------+--------------------------------------+
+| PROP_SIZE             | |int|        | The number of bytes starting at      |
+|                       |              | address given by the location        |
+|                       |              | expression.                          |
++-----------------------+--------------+--------------------------------------+
+| PROP_STOP_GROUP       | |list|       | TCF Context identifiers representing |
+|                       |              | contexts to be stopped when this     |
+|                       |              | breakpoint is triggered. This is an  |
+|                       |              | *Action* property that is used to    |
+|                       |              | stop contexts in addition to the one |
+|                       |              | that triggered the breakpoint.       |
++-----------------------+--------------+--------------------------------------+
+| PROP_TEMPORARY        | |bool|       | If set, results in the breakpoint    |
+|                       |              | being removed after it is triggered  |
+|                       |              | once. The default value for this     |
+|                       |              | property is **False**.               |
++-----------------------+--------------+--------------------------------------+
+| PROP_TIME             | |int|        | The time value in the execution of   |
+|                       |              | the program at which to set the      |
+|                       |              | breakpoint.                          |
++-----------------------+--------------+--------------------------------------+
+| PROP_TYPE             | |basestring| | The breakpoint type. See `Types`_.   |
++-----------------------+--------------+--------------------------------------+
+| PROP_UNITS            | |basestring| | The units for the time value. See    |
+|                       |              | `Time Units`_.                       |
++-----------------------+--------------+--------------------------------------+
+
+Access Modes
+^^^^^^^^^^^^
+According to its **PROP_ACCESS_MODE** property, the breakpoints is triggered
+on one of these access modes:
+
++--------------------+----------+---------------------------------------------+
+| Name               | Value    | Description                                 |
++====================+==========+=============================================+
+| ACCESSMODE_CHANGE  | 0x08     | Breakpoint is triggered by a data change    |
+|                    |          | (not an explicit write) at the breakpoint   |
+|                    |          | location.                                   |
++--------------------+----------+---------------------------------------------+
+| ACCESSMODE_EXECUTE | 0x04     | Breakpoint is triggered by an instruction   |
+|                    |          | execution at the breakpoint location.       |
+|                    |          | Whether the breakpoint is triggered before  |
+|                    |          | or after the instruction execution depends  |
+|                    |          | on the target support for this mode. This is|
+|                    |          | the default for Line and Address            |
+|                    |          | breakpoints.                                |
++--------------------+----------+---------------------------------------------+
+| ACCESSMODE_READ    | 0x01     | Breakpoints is triggered by a read from the |
+|                    |          | breakpoint location.                        |
++--------------------+----------+---------------------------------------------+
+| ACCESSMODE_WRITE   | 0x02     | Breakpoint is triggered by a write to the   |
+|                    |          | breakpoint location.                        |
++--------------------+----------+---------------------------------------------+
+
+Time Scales
+^^^^^^^^^^^
++--------------------+--------------------------------------------------------+
+| Name               | Description                                            |
++====================+========================================================+
+| TIMESCALE_ABSOLUTE | Time value in the absolute time scale.                 |
++--------------------+--------------------------------------------------------+
+| TIMESCALE_RELATIVE | Time value in the relative time scale. This is the     |
+|                    | default value for this property. In the relative time  |
+|                    | scale, the Time property may have a negative value.    |
++--------------------+--------------------------------------------------------+
+
+Time Units
+^^^^^^^^^^
++----------------------------+------------------------------------------------+
+| Name                       | Description                                    |
++============================+================================================+
+| TIMEUNIT_CYCLE_COUNT       | Time value in cycles. This is the default type.|
++----------------------------+------------------------------------------------+
+| TIMEUNIT_INSTRUCTION_COUNT | Time value in instructions.                    |
++----------------------------+------------------------------------------------+
+| TIMEUNIT_NSECS             | Time value in nano seconds.                    |
++----------------------------+------------------------------------------------+
+
+Types
+^^^^^
++---------------+-------------------------------------------------------------+
+| Name          | Description                                                 |
++===============+=============================================================+
+| TYPE_HARDWARE | Hardware breakpoint type.                                   |
++---------------+-------------------------------------------------------------+
+| TYPE_AUTO     | Auto breakpoint type.                                       |
++---------------+-------------------------------------------------------------+
+| TYPE_SOFTWARE | Software breakpoint type.                                   |
++---------------+-------------------------------------------------------------+
+
+
+Status
+^^^^^^
++------------------+--------------+-------------------------------------------+
+| Name             | Type         | Description                               |
++==================+==============+===========================================+
+| STATUS_COLUMN    | |int|        | Breakpoint column.                        |
++------------------+--------------+-------------------------------------------+
+| STATUS_ERROR     | |basestring| | Breakpoint status error.                  |
++------------------+--------------+-------------------------------------------+
+| STATUS_FILE      | |basestring| | Breakpoint file.                          |
++------------------+--------------+-------------------------------------------+
+| STATUS_INSTANCES | |list|       | Breakpoint status instance. See           |
+|                  |              | `Status Instances`_.                      |
++------------------+--------------+-------------------------------------------+
+| STATUS_LINE      | |int|        | Breakpoint line.                          |
++------------------+--------------+-------------------------------------------+
+
+Status Instances
+^^^^^^^^^^^^^^^^
++-------------------------+--------------+------------------------------------+
+| Name                    | Type         | Description                        |
++=========================+==============+====================================+
+| INSTANCE_ADDRESS        | |int|        | Breakpoint address.                |
++-------------------------+--------------+------------------------------------+
+| INSTANCE_CONTEXT        | |basestring| | Breakpoint context.                |
++-------------------------+--------------+------------------------------------+
+| INSTANCE_ERROR          | |basestring| | Breakpoint status instance error.  |
++-------------------------+--------------+------------------------------------+
+| INSTANCE_HIT_COUNT      | |int|        | Breakpoint hit count.              |
++-------------------------+--------------+------------------------------------+
+| INSTANCE_MEMORY_CONTEXT | |basestring| | Breakpoint memory context.         |
++-------------------------+--------------+------------------------------------+
+| INSTANCE_SIZE           | |int|        | Breakpoint size.                   |
++-------------------------+--------------+------------------------------------+
+| INSTANCE_TYPE           | |basestring| | Breakpoint type.                   |
++-------------------------+--------------+------------------------------------+
+
+Service Capabilities
+^^^^^^^^^^^^^^^^^^^^
+All capabilities are of |bool| type, but the **CAPABILITY_CONTEXT_ID** which is
+of |basestring| type.
+
++----------------------------+------------------------------------------------+
++ Name                       | Description                                    |
++============================+================================================+
+| CAPABILITY_ACCESS_MODE     | If **True**, **PROP_ACCESS_MODE** breakpoint   |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_BREAKPOINT_TYPE | If **True**, **PROP_TYPE** breakpoint property |
+|                            | is supported.                                  |
++----------------------------+------------------------------------------------+
+| CAPABILITY_CLIENT_DATA     | If **True**, **PROP_CLIENT_DATA** breakpoint   |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_CONDITION       | If **True**, **PROP_CONDITION** breakpoint     |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_CONTEXT_ID      | ID of a context that was used to query         |
+|                            | capabilities.                                  |
++----------------------------+------------------------------------------------+
+| CAPABILITY_CONTEXT_IDS     | If **True**, **PROP_CONTEXT_IDS** breakpoint   |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_CONTEXT_NAMES   | If **True**, **PROP_CONTEXT_NAMES** breakpoint |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_CONTEXT_QUERY   | If **True**, **PROP_CONTEXT_QUERY** breakpoint |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_FILE_LINE       | If **True**, **PROP_FILE**, **PROP_LINE** and  |
+|                            | **PROP_COLUMN** breakpoint properties are      |
+|                            | supported.                                     |
++----------------------------+------------------------------------------------+
+| CAPABILITY_FILE_MAPPING    | If **True**, **PROP_FILE_MAPPING** breakpoint  |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_HAS_CHILDREN    | If **True**, children of the context can have  |
+|                            | different capabilities.                        |
++----------------------------+------------------------------------------------+
+| CAPABILITY_IGNORE_COUNT    | If **True**, **PROP_IGNORE_COUNT** breakpoint  |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_LOCATION        | If **True**, **PROP_LOCATION** breakpoint      |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_STOP_GROUP      | If **True**, **PROP_STOP_GROUP** breakpoint    |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_TEMPORARY       | If **True**, **PROP_TEMPORARY** breakpoint     |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+
+Service Methods
+---------------
+.. autodata:: NAME
+.. autoclass:: BreakpointsService
+
+add
+^^^
+.. automethod:: BreakpointsService.add
+
+addListener
+^^^^^^^^^^^
+.. automethod:: BreakpointsService.addListener
+
+change
+^^^^^^
+.. automethod:: BreakpointsService.change
+
+disable
+^^^^^^^
+.. automethod:: BreakpointsService.disable
+
+enable
+^^^^^^
+.. automethod:: BreakpointsService.enable
+
+getCapabilities
+^^^^^^^^^^^^^^^
+.. automethod:: BreakpointsService.getCapabilities
+
+getIDs
+^^^^^^
+.. automethod:: BreakpointsService.getIDs
+
+getName
+^^^^^^^
+.. automethod:: BreakpointsService.getName
+
+getProperties
+^^^^^^^^^^^^^
+.. automethod:: BreakpointsService.getProperties
+
+getStatus
+^^^^^^^^^
+.. automethod:: BreakpointsService.getStatus
+
+remove
+^^^^^^
+.. automethod:: BreakpointsService.remove
+
+removeListener
+^^^^^^^^^^^^^^
+.. automethod:: BreakpointsService.removeListener
+
+set
+^^^
+.. automethod:: BreakpointsService.set
+
+Callback Classes
+----------------
+DoneCommand
+^^^^^^^^^^^
+.. autoclass:: DoneCommand
+    :members:
+
+DoneGetCapabilities
+^^^^^^^^^^^^^^^^^^^
+.. autoclass:: DoneGetCapabilities
+    :members:
+
+DoneGetIDs
+^^^^^^^^^^
+.. autoclass:: DoneGetIDs
+    :members:
+
+DoneGetProperties
+^^^^^^^^^^^^^^^^^
+.. autoclass:: DoneGetProperties
+    :members:
+
+DoneGetStatus
+^^^^^^^^^^^^^^^^^^^
+.. autoclass:: DoneGetStatus
+    :members:
+
+Listener
+--------
+.. autoclass:: BreakpointsListener
+    :members:
+
+Helper Classes
+--------------
+BreakpointInstance
+^^^^^^^^^^^^^^^^^^
+.. autoclass:: BreakpointInstance
+    :members:
+
+BreakpointStatus
+^^^^^^^^^^^^^^^^
+.. autoclass:: BreakpointStatus
+    :members:
 """
 
 from .. import services
 
 # Service name.
 NAME = "Breakpoints"
+"""Breakpoints service name."""
 
 # Breakpoint property names.
-PROP_ID = "ID"  # String
-PROP_ENABLED = "Enabled"  # Boolean
-PROP_TYPE = "BreakpointType"  # String
-PROP_CONTEXT_NAMES = "ContextNames"  # Array
-PROP_CONTEXT_IDS = "ContextIds"  # Array
-PROP_EXECUTABLE_PATHS = "ExecPaths"  # Array
-PROP_CONTEXT_QUERY = "ContextQuery"  # String, see IContextQuery
-PROP_LOCATION = "Location"  # String
-PROP_SIZE = "Size"  # Number
-PROP_ACCESS_MODE = "AccessMode"  # Number
-PROP_FILE = "File"  # String
-PROP_LINE = "Line"  # Number
-PROP_COLUMN = "Column"  # Number
-PROP_PATTERN = "MaskValue"  # Number
-PROP_MASK = "Mask"  # Number
-PROP_STOP_GROUP = "StopGroup"  # Array
-PROP_IGNORE_COUNT = "IgnoreCount"  # Number
-PROP_TIME = "Time"  # Number
-PROP_SCALE = "TimeScale"  # String
-PROP_UNITS = "TimeUnits"  # String
-PROP_CONDITION = "Condition"  # String
-PROP_TEMPORARY = "Temporary"  # Boolean
-PROP_EVENT_TYPE = "EventType"  # String
-PROP_EVENT_ARGS = "EventArgs"  # String or Object
-PROP_CLIENT_DATA = "ClientData"  # Object
+PROP_ID = "ID"
+PROP_ENABLED = "Enabled"
+PROP_TYPE = "BreakpointType"
+PROP_CONTEXT_NAMES = "ContextNames"
+PROP_CONTEXT_IDS = "ContextIds"
+PROP_EXECUTABLE_PATHS = "ExecPaths"
+PROP_CONTEXT_QUERY = "ContextQuery"
+PROP_LOCATION = "Location"
+PROP_SIZE = "Size"
+PROP_ACCESS_MODE = "AccessMode"
+PROP_FILE = "File"
+PROP_LINE = "Line"
+PROP_COLUMN = "Column"
+PROP_PATTERN = "MaskValue"
+PROP_MASK = "Mask"
+PROP_STOP_GROUP = "StopGroup"
+PROP_IGNORE_COUNT = "IgnoreCount"
+PROP_TIME = "Time"
+PROP_SCALE = "TimeScale"
+PROP_UNITS = "TimeUnits"
+PROP_CONDITION = "Condition"
+PROP_TEMPORARY = "Temporary"
+PROP_EVENT_TYPE = "EventType"
+PROP_EVENT_ARGS = "EventArgs"
+PROP_CLIENT_DATA = "ClientData"
 
 # Deprecated
-PROP_CONTEXTNAMES = "ContextNames"  # Array
-PROP_CONTEXTIDS = "ContextIds"  # Array
-PROP_EXECUTABLEPATHS = "ExecPaths"  # Array
-PROP_ACCESSMODE = "AccessMode"  # Number
-PROP_IGNORECOUNT = "IgnoreCount"  # Number
+PROP_CONTEXTNAMES = "ContextNames"
+PROP_CONTEXTIDS = "ContextIds"
+PROP_EXECUTABLEPATHS = "ExecPaths"
+PROP_ACCESSMODE = "AccessMode"
+PROP_IGNORECOUNT = "IgnoreCount"
 
 
 # BreakpointType values
@@ -87,40 +464,39 @@ TIMEUNIT_CYCLE_COUNT = "CycleCount"
 TIMEUNIT_INSTRUCTION_COUNT = "InstructionCount"
 
 # Breakpoint status field names.
-STATUS_INSTANCES = "Instances"  # Array of Map<String,Object>
-STATUS_ERROR = "Error"  # String
-STATUS_FILE = "File"  # String
-STATUS_LINE = "Line"  # Number
-STATUS_COLUMN = "Column"  # Number
+STATUS_INSTANCES = "Instances"
+STATUS_ERROR = "Error"
+STATUS_FILE = "File"
+STATUS_LINE = "Line"
+STATUS_COLUMN = "Column"
 
 # Breakpoint instance field names.
-INSTANCE_ERROR = "Error"  # String
-INSTANCE_CONTEXT = "LocationContext"  # String
-INSTANCE_ADDRESS = "Address"  # Number
-INSTANCE_SIZE = "Size"  # Number
-INSTANCE_TYPE = "BreakpointType"  # String
-INSTANCE_MEMORY_CONTEXT = "MemoryContext"  # String
-INSTANCE_HIT_COUNT = "HitCount"  # Number
+INSTANCE_ERROR = "Error"
+INSTANCE_CONTEXT = "LocationContext"
+INSTANCE_ADDRESS = "Address"
+INSTANCE_SIZE = "Size"
+INSTANCE_TYPE = "BreakpointType"
+INSTANCE_MEMORY_CONTEXT = "MemoryContext"
+INSTANCE_HIT_COUNT = "HitCount"
 
 # Breakpoint service capabilities.
-CAPABILITY_CONTEXT_ID = "ID"  # String
-CAPABILITY_HAS_CHILDREN = "HasChildren"  # Boolean
-CAPABILITY_BREAKPOINT_TYPE = "BreakpointType"  # Boolean
-CAPABILITY_LOCATION = "Location"  # Boolean
-CAPABILITY_CONDITION = "Condition"  # Boolean
-CAPABILITY_FILE_LINE = "FileLine"  # Boolean
-CAPABILITY_FILE_MAPPING = "FileMapping"  # Boolean
-CAPABILITY_CONTEXT_IDS = "ContextIds"  # Boolean
-CAPABILITY_CONTEXT_NAMES = "ContextNames"  # Boolean
-CAPABILITY_CONTEXT_QUERY = "ContextQuery"  # Boolean
-CAPABILITY_STOP_GROUP = "StopGroup"  # Boolean
-CAPABILITY_TEMPORARY = "Temporary"  # Boolean
-CAPABILITY_IGNORE_COUNT = "IgnoreCount"  # Boolean
-CAPABILITY_ACCESS_MODE = "AccessMode"  # Number
-CAPABILITY_CLIENT_DATA = "ClientData"  # Boolean
+CAPABILITY_CONTEXT_ID = "ID"
+CAPABILITY_HAS_CHILDREN = "HasChildren"
+CAPABILITY_BREAKPOINT_TYPE = "BreakpointType"
+CAPABILITY_LOCATION = "Location"
+CAPABILITY_CONDITION = "Condition"
+CAPABILITY_FILE_LINE = "FileLine"
+CAPABILITY_FILE_MAPPING = "FileMapping"
+CAPABILITY_CONTEXT_IDS = "ContextIds"
+CAPABILITY_CONTEXT_NAMES = "ContextNames"
+CAPABILITY_CONTEXT_QUERY = "ContextQuery"
+CAPABILITY_STOP_GROUP = "StopGroup"
+CAPABILITY_TEMPORARY = "Temporary"
+CAPABILITY_IGNORE_COUNT = "IgnoreCount"
+CAPABILITY_ACCESS_MODE = "AccessMode"
+CAPABILITY_CLIENT_DATA = "ClientData"
 
 # Deprecated
-
 CAPABILITY_CONTEXTNAMES = "ContextNames"
 CAPABILITY_CONTEXTIDS = "ContextIds"
 CAPABILITY_IGNORECOUNT = "IgnoreCount"
@@ -128,7 +504,14 @@ CAPABILITY_ACCESSMODE = "AccessMode"
 
 
 class BreakpointsService(services.Service):
+    """TCF Breakpoints service interface."""
+
     def getName(self):
+        """Get this service name.
+
+        :returns: A |basestring| representing this service name, which is the
+                  value of :const:`NAME`
+        """
         return NAME
 
     def set(self, properties, done):  # @ReservedAssignment
@@ -137,80 +520,90 @@ class BreakpointsService(services.Service):
         The command is intended to be used only to initialize target
         breakpoints table when communication channel is open. After that, host
         should notify target about (incremental) changes in breakpoint data by
-        sending add, change and remove commands.
+        sending |add|, |change| and |remove| commands.
 
-        @param properties - array of breakpoints.
-        @param done - command result call back object.
+        :param properties: List of breakpoints to set.
+        :type properties: |list|
+        :param done: Command result call back object.
+        :type done: |DoneCommand|
 
-        @return - pending command handle.
-        @see DoneCommand
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def add(self, properties, done):
         """Called when breakpoint is added into breakpoints table.
 
-        @param properties - breakpoint properties.
-        @param done - command result call back object.
+        :param properties: Breakpoint properties. See `Properties`_.
+        :type properties: |dict|
+        :param done: Command result call back object.
+        :type done: |DoneCommand|
 
-        @return - pending command handle.
-        @see DoneCommand
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def change(self, properties, done):
         """Called when breakpoint properties are changed.
 
-        @param properties - breakpoint properties.
-        @param done - command result call back object.
+        :param properties: Breakpoint properties. See `Properties`_.
+        :type properties: |dict|
+        :param done: Command result call back object.
+        :type done: |DoneCommand|
 
-        @return - pending command handle.
-        @see DoneCommand
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def enable(self, ids, done):
-        """Tell target to change (only) PROP_ENABLED breakpoint property to
-        'true'.
+        """Tell target to change (only) **PROP_ENABLED** breakpoint property to
+        **True**.
 
-        @param ids - array of enabled breakpoint identifiers.
-        @param done - command result call back object.
+        See `Properties`_ for **PROP_ENABLED** description.
 
-        @return - pending command handle.
-        @see DoneCommand
+        :param ids: A list of enabled breakpoint identifiers.
+        :type ids: |list| or |tuple| of |basestring|
+        :param done: Command result call back object.
+        :type done: |DoneCommand|
+
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def disable(self, ids, done):
-        """Tell target to change (only) PROP_ENABLED breakpoint property to
-        'false'.
+        """Tell target to change (only) **PROP_ENABLED** breakpoint property to
+        **False**.
 
-        @param ids - array of disabled breakpoint identifiers.
-        @param done - command result call back object.
+        See `Properties`_ for **PROP_ENABLED** description.
 
-        @return - pending command handle.
-        @see DoneCommand
+        :param ids: A list of disabled breakpoint identifiers.
+        :type ids: |list| or |tuple| of |basestring|
+        :param done: Command result call back object.
+        :type done: |DoneCommand|
+
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def remove(self, ids, done):
         """Tell target to remove breakpoints.
 
-        @param id - unique breakpoint identifier.
-        @param done - command result call back object.
+        :param id: unique breakpoint identifier.
+        :type id: |basestring|
+        :param done: Command result call back object.
+        :type done: |DoneCommand|
 
-        @return - pending command handle.
-        @see DoneCommand
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def getIDs(self, done):
         """Upload IDs of breakpoints known to target agent.
 
-        @param done - command result call back object.
+        :param done: Command result call back object.
+        :type done: |DoneGetIDs|
 
-        @return - pending command handle.
-        @see DoneGetIDs
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
@@ -218,21 +611,24 @@ class BreakpointsService(services.Service):
         """Upload properties of given breakpoint from target agent breakpoint
         table.
 
-        @param bpID - unique breakpoint identifier.
-        @param done - command result call back object.
+        :param bpID: Unique breakpoint identifier.
+        :type bpID: |basestring|
+        :param done: Command result call back object.
+        :type done: |DoneGetProperties|
 
-        @see DoneGetProperties
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def getStatus(self, bpID, done):
         """Upload status of given breakpoint from target agent.
 
-        @param bpID - unique breakpoint identifier.
-        @param done - command result call back object.
+        :param bpID: Unique breakpoint identifier.
+        :type bpID: |basestring|
+        :param done: Command result call back object.
+        :type done: |DoneGetStatus|
 
-        @return - pending command handle.
-        @see DoneGetStatus
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
@@ -240,89 +636,293 @@ class BreakpointsService(services.Service):
         """Report breakpoint service capabilities to clients so they can adjust
         to different implementations of the service.
 
-        When called with a None ("") context ID the global capabilities are
+        When called with a **None** context ID the global capabilities are
         returned, otherwise context specific capabilities are returned. A
         special capability property is used to indicate that all child contexts
         have the same capabilities.
 
-        @param id - a context ID or None.
-        @param done - command result call back object.
+        :param bpID: A context ID or **None**.
+        :type bpID: |basestring| or **None**
+        :param done: command result call back object.
+        :type done: |DoneGetCapabilities|
 
-        @return - pending command handle.
-        @see DoneGetCapabilities
+        :returns: Pending command handle.
         """
         raise NotImplementedError("Abstract method")
 
     def addListener(self, listener):
         """Add breakpoints service event listener.
 
-        @param listener - object that implements BreakpointsListener interface.
+        :param listener: Object that implements |BreakpointsListener| interface
+                         to add to the channel.
+        :type listener: |BreakpointsListener|
         """
         raise NotImplementedError("Abstract method")
 
     def removeListener(self, listener):
         """Remove breakpoints service event listener.
 
-        @param listener - object that implements BreakpointsListener interface.
+        :param listener: Listener to remove from this breakpoints service
+                         channel.
+        :type listener: |BreakpointsListener|
         """
         raise NotImplementedError("Abstract method")
 
 
+class BreakpointInstance(object):
+    """A class to represent a breakpoint status instances.
+
+    :param props: The properties to initialise the breakpoint status instance
+                  with. See `Status Instances`_.
+    :type props: |dict|
+    """
+    def __init__(self, props):
+        self._properties = props or {}
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + str(self._properties) + ')'
+
+    def __str__(self):
+        res = self.__class__.__name__ + ' ['
+        res += 'Context=' + self.context
+        res += ', ' + INSTANCE_ADDRESS + '=' + str(self.address)
+        res += ', ' + INSTANCE_HIT_COUNT + '=' + str(self.hitcount)
+        res += ', ' + INSTANCE_TYPE + '=' + str(self.type)
+        res += ', ' + INSTANCE_SIZE + '=' + str(self.size)
+        res += ', ' + INSTANCE_MEMORY_CONTEXT + '=' + str(self.memorycontext)
+        res += ', ' + INSTANCE_ERROR + '=' + str(self.error)
+        res += ']'
+        return res
+
+    @property
+    def address(self):
+        """Breakpoint status instance address.
+
+        :returns: An |int| representing the address this breakpoint status
+                  instance occurred at, or **None** if unknown.
+        """
+        return self._properties.get(INSTANCE_ADDRESS, None)
+
+    @property
+    def context(self):
+        """ID of the context this Breakpoint status instance occurred for.
+
+        :returns: A |basestring| representing the ID of the context this
+                  breakpoint status instance occurred for, or **None**
+                  if unknown.
+        """
+        return self._properties.get(INSTANCE_CONTEXT, None)
+
+    @property
+    def error(self):
+        """Potential error for this Breakpoint status instance.
+
+        :returns: A |basestring| representing the error for this breakpoint
+                  status instance, or **None** if there is no error.
+        """
+        return self._properties.get(INSTANCE_ERROR, None)
+
+    @property
+    def hitcount(self):
+        """Number of breakpoint hit count for this breakpoint status instance.
+
+        :returns: An |int| representing the number of times this breakpoint
+                  status instance has been hit, or **None** if unknown.
+        """
+        return self._properties.get(INSTANCE_HIT_COUNT, None)
+
+    @property
+    def memorycontext(self):
+        """ID of the memory context this Breakpoint status instance occurred
+        for.
+
+        :returns: A |basestring| representing the ID of the memory context this
+                  breakpoint status instance occurred for, or **None**
+                  if unknown.
+        """
+        return self._properties.get(INSTANCE_MEMORY_CONTEXT, None)
+
+    @property
+    def size(self):
+        """The size of this breakpoint.
+
+        :returns: An |int| representing the size of the breakpoint this status
+                  instance occured for, or **None**
+                  if unknown.
+        """
+        return self._properties.get(INSTANCE_SIZE, None)
+
+    @property
+    def type(self):
+        """The type of this breakpoint.
+
+        See `Types`_.
+
+        :returns: A |basestring| representing the type of the breakpoint this
+                  status instance occured for, or **None** if unknown.
+
+        .. seealso:: `Types`_
+        """
+        return self._properties.get(INSTANCE_SIZE, None)
+
+
+class BreakpointStatus(object):
+    """A class to represent a breakpoint status.
+
+    :param props: The properties to initialise the breakpoint status with.
+                  See `Status`_.
+    :type props: |dict|
+    """
+    def __init__(self, props):
+        self._properties = props or {}
+        iprops = self._properties.get(STATUS_INSTANCES, [])
+        self._instances = []
+        for iprop in iprops:
+            self._instances.append(BreakpointInstance(iprop))
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + str(self._properties) + ')'
+
+    def __str__(self):
+        res = self.__class__.__name__ + ' ['
+        res += STATUS_FILE + '=' + str(self.file)
+        res += ', ' + STATUS_LINE + '=' + str(self.line)
+        res += ', ' + STATUS_COLUMN + '=' + str(self.column)
+        res += ', ' + STATUS_ERROR + '=' + str(self.error)
+        res += ', ' + STATUS_INSTANCES + '=['
+        firstInstance = True
+        for instance in self._instances:
+            if not firstInstance:
+                res += ', '
+            res += str(instance)
+            firstInstance = False
+        res += ']'
+        res += ']'
+        return res
+
+    @property
+    def column(self):
+        """Column in *file* the breakpoint is planted at.
+
+        :returns: An |int| representing the column at which this breakpoint
+                  status occurred in *file*, or **None** if unknown.
+        """
+        return self._properties.get(STATUS_COLUMN, None)
+
+    @property
+    def error(self):
+        """Breakpoint status error.
+
+        A breakpoint status may have an error.
+
+        :returns: A |basestring| representing this breakpoint status error, or
+                  **None**.
+        """
+        return self._properties.get(STATUS_ERROR, None)
+
+    @property
+    def file(self):
+        """File the breakpoint is planted in.
+
+        :returns: A |basestring| representing the path of the file the
+                  breakpoint is planted in, or **None** if the file is not
+                  known, or unreachable.
+        """
+        return self._properties.get(STATUS_FILE, None)
+
+    @property
+    def instances(self):
+        """Breakpoint status instances.
+
+        :returns: A |tuple| of |BreakpointInstance| objects representing the
+                  various instances of this breakpoint status.
+        """
+        return self._instances
+
+    @property
+    def line(self):
+        """Line in *file* the breakpoint is planted at.
+
+        :returns: An |int| representing the line at which this breakpoint
+                  status occurred in *file*, or **None** if unknown.
+        """
+        return self._properties.get(STATUS_LINE, None)
+
+
 class DoneCommand(object):
-    """Call back interface for breakpoint service commands."""
+    """Call back interface for breakpoint service commands.
+
+    ..seealso:: |add|, |change|, |disable|, |enable|, |remove|, |set|
+    """
+
     def doneCommand(self, token, error):
         """Called when command is done.
 
-        @param token - command handle.
-        @param error - error object or None.
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
         """
         pass
 
 
 class DoneGetIDs(object):
-    """Call back interface for 'getIDs' command."""
-    def doneGetIDs(self, token, error, ids):
-        """Called when 'getIDs' command is done.
+    """Call back interface for |getIDs| command."""
 
-        @param token - command handle.
-        @param error - error object or None.
-        @param ids - IDs of breakpoints known to target agent.
+    def doneGetIDs(self, token, error, ids):
+        """Called when |getIDs| command is done.
+
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param ids: IDs of breakpoints known to target agent.
+        :type ids: |list| or |tuple| of |basestring|
         """
         pass
 
 
 class DoneGetProperties(object):
-    """Call back interface for 'getProperties' command."""
-    def doneGetProperties(self, token, error, properties):
-        """Called when 'getProperties' command is done.
+    """Call back interface for |getProperties| command."""
 
-        @param token - command handle.
-        @param error - error object or None.
-        @param properties - properties of the breakpoint.
+    def doneGetProperties(self, token, error, properties):
+        """Called when |getProperties| command is done.
+
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param properties: Properties of the breakpoint.
+        :type properties: |dict|
+
+        .. seealso:: `Properties`_
         """
         pass
 
 
 class DoneGetStatus(object):
-    """Call back interface for 'getStatus' command."""
+    """Call back interface for :meth:`~BreakpointsService.getStatus` command.
+    """
     def doneGetStatus(self, token, error, status):
-        """Called when 'getStatus' command is done.
+        """Called when |getStatus| command is done.
 
-        @param token - command handle.
-        @param error - error object or None.
-        @param status - status of the breakpoint.
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param status: Status of the breakpoint.
+        :type status: |BreakpointStatus|
         """
         pass
 
 
 class DoneGetCapabilities(object):
-    """Call back interface for 'getCapabilities' command."""
-    def doneGetCapabilities(self, token, error, capabilities):
-        """Called when 'getCapabilities' command is done.
+    """Call back interface for |getCapabilities| command."""
 
-        @param token - command handle.
-        @param error - error object or None.
-        @param capabilities - breakpoints service capabilities description.
+    def doneGetCapabilities(self, token, error, capabilities):
+        """Called when |getCapabilities| command is done.
+
+        :param token: Pending command handle.
+        :param error: Error description if operation failed, **None** if
+                      succeeded.
+        :param capabilities: Breakpoints service capabilities description.
+        :type capabilities: |dict|
         """
         pass
 
@@ -330,37 +930,43 @@ class DoneGetCapabilities(object):
 class BreakpointsListener(object):
     """Breakpoints service events listener.
 
-    Note that contextAdded, contextChanged and contextRemoved events carry
-    exactly same set of breakpoint properties that was sent by a client to a
-    target. The purpose of these events is to let all clients know about
-    breakpoints that were created by other clients.
+    .. note:: Note that |contextAdded|, |contextChanged| and |contextRemoved|
+              events carry exactly same set of breakpoint properties that was
+              sent by a client to a target. The purpose of these events is to
+              let all clients know about breakpoints that were created by other
+              clients.
     """
 
     def breakpointStatusChanged(self, bpID, status):
         """Called when breakpoint status changes.
 
-        @param bpID - unique breakpoint identifier.
-        @param status - breakpoint status.
+        :param bpID: Unique breakpoint identifier.
+        :type bpID: |basestring|
+        :param status: Breakpoint status.
+        :type status: |dict|
         """
         pass
 
     def contextAdded(self, bps):
-        """Called when a new breakpoints are added.
+        """Called when new breakpoints are added.
 
-        @param bps - array of breakpoints.
+        :param bps: Array of breakpoints.
+        :type bps: |list| or |tuple| of |dict|
         """
         pass
 
     def contextChanged(self, bps):
         """Called when breakpoint properties change.
 
-        @param bps - array of breakpoints.
+        :param bps: Array of breakpoints.
+        :type bps: |list| or |tuple| of |dict|
         """
         pass
 
     def contextRemoved(self, ids):
-        """Called when breakpoints are removed .
+        """Called when breakpoints are removed.
 
-        @param ids - array of breakpoint IDs.
+        :param ids: Array of breakpoint IDs.
+        :type ids: |list| of |basestring|
         """
         pass
