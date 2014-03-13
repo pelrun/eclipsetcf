@@ -478,7 +478,7 @@ class LocatorService(locator.LocatorService):
                           (subnet.address, subnet.broadcast))
             logging.trace(buf.getvalue())
 
-    def __getAllIpAddresses (self) :
+    def __getAllIpAddresses(self):
         import fcntl  # @UnresolvedImport
         import struct
         import array
@@ -486,14 +486,12 @@ class LocatorService(locator.LocatorService):
         nBytes = 8192
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         names = array.array('B', '\0' * nBytes)
-        ifcfg = struct.unpack \
-            (
-            'iL',
-            fcntl.ioctl (s.fileno(), 0x8912,  # @UndefinedVariable
-                         struct.pack ('iL', nBytes, names.buffer_info ()[0]))
-            )[0]
+        ifcfg = struct.unpack('iL',
+                    fcntl.ioctl(s.fileno(), 0x8912,
+                                struct.pack('iL', nBytes,
+                                            names.buffer_info()[0])))[0]
 
-        namestr = names.tostring ()
+        namestr = names.tostring()
         res = []
 
         # the ipconf structure changed at a time, check if there are more than
@@ -503,37 +501,37 @@ class LocatorService(locator.LocatorService):
         sz = 32
         altSz = 40
 
-        if len (namestr) > sz :
+        if len(namestr) > sz:
             # check for name at 32->32+16
-            secondName = str (namestr [sz:sz + 16].split ('\0', 1)[0])
-            secondAltName = str (namestr [altSz:altSz + 16].split ('\0', 1)[0])
+            secondName = str(namestr[sz:sz + 16].split('\0', 1)[0])
+            secondAltName = str(namestr[altSz:altSz + 16].split('\0', 1)[0])
 
-            if (not secondName.isalnum ()) and (secondAltName.isalnum ()) :
+            if (not secondName.isalnum()) and (secondAltName.isalnum()):
                 ifconfSz = 40
 
-        for ix in range (0, ifcfg, ifconfSz):
+        for ix in range(0, ifcfg, ifconfSz):
             ipStartIx = ix + 20
             ipEndIx = ix + 24
-            ip = namestr [ipStartIx : ipEndIx]
-            res.append (str (ord (ip [0])) + '.' + str (ord (ip [1])) + '.' + \
-                        str (ord (ip [2])) + '.' + str (ord (ip [3])))
+            ip = namestr[ipStartIx:ipEndIx]
+            res.append(str(ord(ip[0])) + '.' + str(ord(ip[1])) + '.' + \
+                       str(ord(ip[2])) + '.' + str(ord(ip[3])))
 
         return (res)
 
     def __getSubNetList(self, _set):
         hostname = socket.gethostname()
-        if len (self.addr_list) == 0 :
+        if len(self.addr_list) == 0:
             # Create the list of IP address for this host
-            _, _, self.addr_list = socket.gethostbyname_ex (hostname)
+            _, _, self.addr_list = socket.gethostbyname_ex(hostname)
             if not "127.0.0.1" in self.addr_list:
-                self.addr_list.append ("127.0.0.1")
+                self.addr_list.append("127.0.0.1")
 
             # On unix hosts, use sockets to get the other interfaces IPs
 
-            if (platform.system() != 'Windows') :
-                for ip_addr in self.__getAllIpAddresses () :
-                    if not ip_addr in self.addr_list :
-                        self.addr_list.append (ip_addr)
+            if (platform.system() != 'Windows'):
+                for ip_addr in self.__getAllIpAddresses():
+                    if not ip_addr in self.addr_list:
+                        self.addr_list.append(ip_addr)
 
         for address in self.addr_list:
             rawaddr = socket.inet_aton(address)
