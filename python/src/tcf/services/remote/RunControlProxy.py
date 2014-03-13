@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -18,6 +18,26 @@ class RunContext(runcontrol.RunControlContext):
     def __init__(self, service, props):
         super(RunContext, self).__init__(props)
         self.service = service
+
+    def getISA(self, address, done):
+        service = self.service
+        done = service._makeCallback(done)
+        contextID = self.getID()
+
+        class GetISACommand(Command):
+            def __init__(self):
+                super(GetISACommand, self).__init__(service.channel, service,
+                                                    "getISA",
+                                                    (contextID, address))
+
+            def done(self, error, args):
+                isa = None
+                if not error:
+                    assert len(args) == 2
+                    error = self.toError(args[0])
+                    isa = runcontrol.RunControlISA(args[1])
+                done.doneGetISA(self.token, error, isa)
+        return GetISACommand().token
 
     def getState(self, done):
         service = self.service
@@ -38,15 +58,15 @@ class RunContext(runcontrol.RunControlContext):
                     assert len(args) == 5
                     error = self.toError(args[0])
                     susp = args[1]
-                    if args[2]:
-                        pc = str(args[2])
+                    if args[2] is not None:
+                        pc = int(args[2])
                     reason = args[3]
                     states = args[4]
                 done.doneGetState(self.token, error, susp, pc, reason, states)
         return GetStateCommand().token
 
-#    def resume(self, mode, count, done):
-#        return self._command("resume", [self.getID(), mode, count], done)
+    def detach(self, done):
+        return self._command("detach", (self.getID(),), done)
 
     def resume(self, mode, count, params, done):
         if not params:
@@ -117,6 +137,8 @@ class ChannelEventListener(channel.EventListener):
             else:
                 raise IOError("RunControl service: unknown event: " + name)
         except Exception as x:
+            import sys
+            x.tb = sys.exc_info()[2]
             self.service.channel.terminate(x)
 
 

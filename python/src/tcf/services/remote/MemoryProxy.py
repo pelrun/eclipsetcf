@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -229,10 +229,10 @@ class MemoryCommand(Command):
         cmd = self.getCommandString()
         if len(cmd) > 72:
             cmd = cmd[0:72] + "..."
-        e = MemoryErrorReport("TCF command exception:\nCommand: %s\n" +
-                              "Exception: %s\nError code: %d" %
-                              (cmd, errors.toErrorString(data), code),
-                data, addr, ranges)
+        msg = "TCF command exception:\nCommand: %s\n" % cmd + \
+              "Exception: %s\nError code: %d" % (errors.toErrorString(data),
+                                                 code)
+        e = MemoryErrorReport(msg, data, addr, ranges)
         caused_by = data.get(errors.ERROR_CAUSED_BY)
         if caused_by is not None:
             e.caused_by = self.toError(caused_by, False)
@@ -265,6 +265,8 @@ class ChannelEventListener(channel.EventListener):
             else:
                 raise IOError("Memory service: unknown event: " + name)
         except Exception as x:
+            import sys
+            x.tb = sys.exc_info()[2]
             self.service.channel.terminate(x)
 
 

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -32,6 +32,9 @@ class ChannelEventListener(channel.EventListener):
         self.channel = proxy.channel
 
     def event(self, name, data):
+        if self.proxy.peers is None:
+            return  # peers not synchronized yet
+
         try:
             args = channel.fromJSONSequence(data)
             if name == "peerAdded":
@@ -91,20 +94,42 @@ class ChannelEventListener(channel.EventListener):
             else:
                 raise IOError("Locator service: unknown event: " + name)
         except Exception as x:
+            import sys
+            x.tb = sys.exc_info()[2]
             self.channel.terminate(x)
 
 
 class LocatorProxy(locator.LocatorService):
     def __init__(self, channel):
         self.channel = channel
-        self.peers = {}
+        self.peers = None  # not yet synchronized
         self.listeners = []
         self.get_peers_done = False
         self.event_listener = ChannelEventListener(self)
         channel.addEventListener(self, self.event_listener)
 
+    def getAgentID(self, done):
+        done = self._makeCallback(done)
+        service = self
+
+        class GetAgentIDCommand(Command):
+            def __init__(self):
+                super(GetAgentIDCommand, self).__init__(service.channel,
+                                                        service, "getAgentID",
+                                                        None)
+
+            def done(self, error, args):
+                agentID = None
+                if not error:
+                    assert len(args) == 2
+                    error = self.toError(args[0])
+                    agentID = args[1]
+                done.doneGetAgentID(self.token, error, agentID)
+        return GetAgentIDCommand().token
+
     def getPeers(self):
-        return self.peers
+        assert protocol.isDispatchThread()
+        return self.peers  # None if not synchronized yet
 
     def redirect(self, _peer, done):
         done = self._makeCallback(done)
@@ -119,6 +144,24 @@ class LocatorProxy(locator.LocatorService):
                 if not error:
                     assert len(args) == 1
                     error = self.toError(args[0])
+
+                    if not error and service.peers:
+                        # The redirect was a success. Invalidate all the peers
+                        # already detected.
+
+                        for peerId in list(service.peers.keys()):
+                            del service.peers[peerId]
+                            for l in service.listeners:
+                                try:
+                                    l.peerRemoved(peerId)
+                                except Exception as x:
+                                    protocol.log("Unhandled exception in "\
+                                                 "Locator listener", x)
+
+                        assert len(service.peers) == 0
+                        service.peers = None
+                        service.get_peers_done = False
+
                 done.doneRedirect(self.token, error)
         return RedirectCommand().token
 
@@ -156,6 +199,7 @@ class LocatorProxy(locator.LocatorService):
                         protocol.log("Locator error", error)
                         return
                     c = args[1]
+                    service.peers = {}  # peers list synchronized
                     if c:
                         for m in c:
                             peerID = m.get(peer.ATTR_ID)

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -82,6 +82,8 @@ class ChannelEventListener(channel.EventListener):
             else:
                 raise IOError("MemoryMap service: unknown event: " + name)
         except Exception as x:
+            import sys
+            x.tb = sys.exc_info()[2]
             self.service.channel.terminate(x)
 
 
