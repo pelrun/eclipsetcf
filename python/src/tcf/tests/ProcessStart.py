@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2013-2014 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -24,14 +24,14 @@ import tcf.services.runcontrol as runcontrol  # @UnresolvedImport
 import tcf.services.streams as streams  # @UnresolvedImport
 
 
-class TcfProtocolLogger (object) :
+class TcfProtocolLogger (object):
     """A class to override TCF protocol's default logger.
 
     As we do not want TCF errors to be logged on the console, this logger
     simply does nothing on TCF protocol log messages.
     """
 
-    def log (self, msg, x) :
+    def log(self, msg, x):
         """Logs the given message.
 
         :param msg: log entry text.
@@ -39,7 +39,7 @@ class TcfProtocolLogger (object) :
         """
         pass
 
-    def __del__ (self) :
+    def __del__(self):
         """Sometimes we get some protocol warnings. I would like to remove them
         by flushing the log cache here.
         """
@@ -124,10 +124,10 @@ class StreamsListener(streams.StreamsListener):
                 if data:
                     print data,
                 if not eos:
-                    self._service.read (self._streamID, self._size, self)
+                    self._service.read(self._streamID, self._size, self)
 
-        self._service.read (streamID, 4096, DoneRead(self._service, streamID,
-                                                     4096))
+        self._service.read(streamID, 4096, DoneRead(self._service, streamID,
+                                                    4096))
 
     def disposed(self, streamType, streamID):
         """Called when a stream is disposed.
@@ -219,7 +219,7 @@ def getChildren(service, contextID=None):
                     protocol.log("Error from " + service.getName() + \
                                  ".getContext()", error)
                 else:
-                    val.setValue (ids)
+                    val.setValue(ids)
                 with condition:
                     condition.notify()
 
@@ -241,7 +241,7 @@ def getChildren(service, contextID=None):
 
     # Return the retrieved children IDs, or an empty tuple
 
-    return (tuple (value.getValue() or []))
+    return (tuple(value.getValue() or []))
 
 
 def getContext(service, contextID):
@@ -299,7 +299,7 @@ def getContext(service, contextID):
                     protocol.log("Error from " + service.getName() + \
                                  ".getContext()", error)
                 else:
-                    val.setValue (context)
+                    val.setValue(context)
                 with condition:
                     condition.notify()
 
@@ -360,7 +360,7 @@ def resume(context):
 
         # Resume context with RM_RESUME mode, 1 time. No resume properties.
 
-        context.resume (runcontrol.RM_RESUME, 1, {}, DoneResume())
+        context.resume(runcontrol.RM_RESUME, 1, {}, DoneResume())
 
     # create a condition to wait on
 
@@ -420,17 +420,17 @@ def start(connection, path, *args):
                 if error:
                     protocol.log("Error from Processes.start", error)
                 else:
-                    val.setValue (process)
+                    val.setValue(process)
                 with condition:
                     condition.notify()
 
         # depending on the service, the start method only does 'doAttach', or
         # take a dictionnary of options
 
-        if (proc.getName () == processes_v1.NAME) :
+        if (proc.getName() == processes_v1.NAME):
             opts = {processes_v1.START_ATTACH: True,
                     processes_v1.START_USE_TERMINAL: True}
-        else :
+        else:
             opts = True
 
         # start the process itself
@@ -505,7 +505,7 @@ def state(context):
                 if error:
                     protocol.log("Error from runcontrol.getState()", error)
                 else:
-                    val.setValue ((suspended, pc, reason, params))
+                    val.setValue((suspended, pc, reason, params))
                 with condition:
                     condition.notify()
 
@@ -592,7 +592,7 @@ def subscribe(svc, streamType, listener):
 # TCF initialisation
 
 protocol.startEventQueue()
-protocol.setLogger (TcfProtocolLogger ())
+protocol.setLogger(TcfProtocolLogger())
 atexit.register(protocol.getEventQueue().shutdown)
 
 try:
@@ -605,7 +605,7 @@ except Exception as e:
 
 streamsSvc = getService(c, streams.NAME)
 if streamsSvc:
-    subscribe (streamsSvc, 'ProcessesV1', StreamsListener(streamsSvc))
+    subscribe(streamsSvc, 'ProcessesV1', StreamsListener(streamsSvc))
 
 p = start(c, '/bin/ls', '-l', '-a')
 
@@ -623,7 +623,7 @@ context = getContext(rcSvc, p.getID())
 print 'Runcontrol context is a container:', context.isContainer()
 
 while context and not context.hasState():
-    children = getChildren (rcSvc, context.getID())
+    children = getChildren(rcSvc, context.getID())
     for child in children:
         context = getContext(rcSvc, child)
         if context and context.hasState():
@@ -637,7 +637,7 @@ if context is None:
 # (suspended, pc, reason, params)
 
 ctxState = state(context)
-print 'Context state : ' + str (ctxState)
+print 'Context state : ' + str(ctxState)
 
 while ctxState and ctxState[0]:
     resume(context)
@@ -646,10 +646,10 @@ while ctxState and ctxState[0]:
     try:
         ctxState = state(context)
         if ctxState:
-            print 'Context state : ' + str (ctxState)
+            print 'Context state : ' + str(ctxState)
     except:
         pass
 
 # Let the async calls the time to end ...
 
-time.sleep (2)
+time.sleep(2)
