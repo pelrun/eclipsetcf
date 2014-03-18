@@ -386,6 +386,24 @@ public class ElfLoader implements Runnable {
         return path + '/' + name;
     }
 
+    private boolean should_stop(String id) {
+        /* We should suspend only contexts in same run control group as target context */
+        String target_id = (String)args.get(TCFLaunchDelegate.FILES_CONTEXT_ID);
+        if (target_id == null) return false;
+        IRunControl.RunControlContext ctx = contexts.get(id);
+        if (ctx == null) return false;
+        if (!ctx.hasState()) return false;
+        if (id.equals(target_id)) return true;
+        String group = ctx.getRCGroup();
+        if (group == null) return false;
+        IRunControl.RunControlContext target_ctx = contexts.get(target_id);
+        if (target_ctx == null) return false;
+        String target_group = target_ctx.getRCGroup();
+        if (target_group == null) return false;
+        if (target_group.equals(group)) return true;
+        return false;
+    }
+
     public void run() {
         /* Wait for pending commands */
         if (cmds.size() > 0) return;
@@ -409,25 +427,27 @@ public class ElfLoader implements Runnable {
             return;
         }
 
-        /* Suspend everything */
         if (errors.size() == 0 && running.size() > 0) {
-            if (System.currentTimeMillis() - start_time < 5000) {
-                for (final String id : running) {
-                    IRunControl.RunControlContext ctx = contexts.get(id);
-                    if (ctx != null) {
-                        cmds.add(ctx.suspend(new IRunControl.DoneCommand() {
-                            @Override
-                            public void doneCommand(IToken token, Exception error) {
-                                cmds.remove(token);
-                                if (error != null && running.contains(id)) errors.add(error);
-                                run();
-                            }
-                        }));
-                    }
+            /* Suspend target context */
+            for (final String id : running) {
+                if (!should_stop(id)) continue;
+                if (System.currentTimeMillis() - start_time < 5000) {
+                    cmds.add(contexts.get(id).suspend(new IRunControl.DoneCommand() {
+                        @Override
+                        public void doneCommand(IToken token, Exception error) {
+                            cmds.remove(token);
+                            if (error != null && running.contains(id)) errors.add(error);
+                            run();
+                        }
+                    }));
                 }
-                if (cmds.size() > 0) return;
+                else {
+                    String name = contexts.get(id).getName();
+                    if (name == null) name = id;
+                    errors.add(new Exception("Cannot stop " + name));
+                }
             }
-            errors.add(new Exception("Cannot stop the target"));
+            if (cmds.size() > 0) return;
         }
 
         if (errors.size() == 0 && mem_ctx == null) {
