@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.internal.services;
 
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IMenuService;
 
@@ -22,6 +23,10 @@ public class MenuService extends AbstractService implements IMenuService {
 	 */
 	@Override
 	public boolean isVisible(Object context, String contributionID) {
+
+		if (context instanceof IPeer && contributionID.endsWith("NewActionProvider")) { //$NON-NLS-1$
+			return false;
+		}
 
 		if (contributionID.endsWith("GoIntoActionProvider")) { //$NON-NLS-1$
 			return false;

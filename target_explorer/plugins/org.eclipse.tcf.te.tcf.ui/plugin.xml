@@ -528,7 +528,6 @@
          </command>
       </menuContribution>      
 
-<!--
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?before=group.goto">
          <command commandId="org.eclipse.tcf.te.ui.command.connect">
             <visibleWhen checkEnabled="false">
@@ -540,7 +539,6 @@
             </visibleWhen>
          </command>
       </menuContribution>
--->
 
    <!-- Editor page toolbar contributions -->
       <!--menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.connect">
@@ -737,7 +735,6 @@
 
 <!-- Handler contributions -->
    <extension point="org.eclipse.ui.handlers">
-      <!--
       <handler
             commandId="org.eclipse.tcf.te.ui.command.connect"
             class="org.eclipse.tcf.te.tcf.ui.handler.ConnectPeerCommandHandler">
@@ -750,7 +747,6 @@
                </with>
             </activeWhen>
       </handler>
-      -->
       
       <handler
             commandId="org.eclipse.ui.edit.delete"

@@ -92,7 +92,6 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 
 	    IPropertiesContainer data = getInitialData();
 	    if (data == null) data = new PropertiesContainer();
-//	    if (data != null && !data.isEmpty()) {
 	    	for (IWizardPage page : getPages()) {
 	    		if (page instanceof IDataExchangeNode) {
 	    			((IDataExchangeNode)page).setupData(data);
@@ -101,7 +100,6 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	    			}
 	    		}
 	    	}
-//	    }
 	}
 
 	/**

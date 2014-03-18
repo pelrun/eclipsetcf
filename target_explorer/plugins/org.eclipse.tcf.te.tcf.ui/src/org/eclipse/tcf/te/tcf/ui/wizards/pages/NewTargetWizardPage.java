@@ -23,9 +23,11 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
@@ -66,8 +68,11 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	TransportTypeControl transportTypeControl;
 	TransportTypePanelControl transportTypePanelControl;
 	private PeerAttributesTablePart tablePart;
+	/* default */ Button connect = null;
 
 	private FormToolkit toolkit = null;
+
+	/* default */ boolean autoConnect = false;
 
 	// The UUID of the new peer to create
 	private final UUID uuid = UUID.randomUUID();
@@ -339,6 +344,26 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		// Create the advanced peer properties table
 		createPeerAttributesTableControl(client, toolkit);
 
+		// Create the auto connect button
+		if (hasAutoConnectButton()) {
+			if (System.getProperty("NewWizard_" + org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT) != null) { //$NON-NLS-1$
+				autoConnect = Boolean.getBoolean("NewWizard_" + org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT); //$NON-NLS-1$
+			}
+
+			connect = new Button(client, SWT.CHECK);
+			connect.setText(Messages.AbstractConfigWizardPage_connect_label);
+			layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+			layoutData.horizontalSpan = 2;
+			connect.setLayoutData(layoutData);
+			connect.setSelection(autoConnect);
+			connect.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					autoConnect = SWTControlUtil.getSelection(connect);
+				}
+			});
+		}
+
 		// restore the widget values from the history
 		restoreWidgetValues();
 
@@ -475,6 +500,10 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		if (additionalAttributes != null && !additionalAttributes.isEmpty()) {
 			peerAttributes.addProperties(additionalAttributes);
 		}
+
+		if (isAutoConnect()) {
+			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT, true);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -537,5 +566,23 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 		Assert.isTrue(!Protocol.isDispatchThread());
 		Protocol.invokeAndWait(runnable);
+	}
+
+	/**
+	 * Returns if or if not the wizard page should have an auto connect button.
+	 *
+	 * @return <code>True</code> if the page should have an auto connect button, <code>false</code> otherwise.
+	 */
+	protected boolean hasAutoConnectButton() {
+		return true;
+	}
+
+	/**
+	 * Returns if or if not to connect after the configuration got created.
+	 *
+	 * @return <code>True</code> to connect, <code>false</code> if not.
+	 */
+	public final boolean isAutoConnect() {
+		return autoConnect;
 	}
 }
