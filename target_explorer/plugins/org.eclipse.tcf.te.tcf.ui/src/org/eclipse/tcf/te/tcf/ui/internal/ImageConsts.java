@@ -85,6 +85,11 @@ public interface ImageConsts {
      */
     public static final String NEW_CONFIG = "NewConfig"; //$NON-NLS-1$
 
+    /**
+     * The key to access the base connection object image.
+     */
+    public static final String CONNECTION = "ConnectionObject"; //$NON-NLS-1$
+
 	/**
 	 * The key to access the windriver image.
 	 */

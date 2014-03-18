@@ -141,7 +141,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	@Override
 	public Image getImage(final Object element) {
 		if (element instanceof IPeerNode) {
-			return UIPlugin.getImage(ImageConsts.PEER_NODE);
+			return UIPlugin.getImage(ImageConsts.CONNECTION);
 		}
 		if (element instanceof IPeer) {
 			return UIPlugin.getImage(ImageConsts.PEER_DISCOVERED);

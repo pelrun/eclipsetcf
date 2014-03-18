@@ -132,7 +132,7 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 				}
 			}
 		}
-		return image != null ? image : UIPlugin.getImage(ImageConsts.PEER_NODE);
+		return image != null ? image : UIPlugin.getImage(ImageConsts.CONNECTION);
 	}
 
 	/* (non-Javadoc)
