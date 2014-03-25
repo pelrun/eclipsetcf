@@ -254,7 +254,7 @@ public class FileTransferService {
         final FileAttrs[] attrs = new FileAttrs[1];
 
         // Check the target destination directory
-        
+
         fileSystem.stat(targetPath.toString(), new IFileSystem.DoneStat() {
             @Override
             public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
@@ -401,9 +401,9 @@ public class FileTransferService {
             bytesDone /= 1024;
             done = "MB"; //$NON-NLS-1$
         }
-        if (bytesSpeed > 1024) {
-            bytesSpeed /= 1024;
-            speed = "GB/s"; //$NON-NLS-1$
+        if (bytesDone > 1024) {
+            bytesDone /= 1024;
+            done = "GB"; //$NON-NLS-1$
         }
 
         if (bytesTotal > 1024) {
@@ -427,9 +427,9 @@ public class FileTransferService {
             bytesSpeed /= 1024;
             speed = "MB/s"; //$NON-NLS-1$
         }
-        if (bytesDone > 1024) {
-            bytesDone /= 1024;
-            done = "GB"; //$NON-NLS-1$
+        if (bytesSpeed > 1024) {
+            bytesSpeed /= 1024;
+            speed = "GB/s"; //$NON-NLS-1$
         }
 
         return bytesDone + done + " of " + bytesTotal + total + " at " + bytesSpeed + speed; //$NON-NLS-1$ //$NON-NLS-2$
