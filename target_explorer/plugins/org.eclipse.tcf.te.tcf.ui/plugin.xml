@@ -169,7 +169,7 @@
                </or>               
             </possibleChildren>
             <commonSorter
-                  class="org.eclipse.tcf.te.ui.views.navigator.ViewerSorter"
+                  class="org.eclipse.tcf.te.tcf.ui.navigator.ViewerSorter"
                   id="org.eclipse.tcf.te.tcf.ui.navigator.sorter"/>
             <commonWizard
                   type="new"

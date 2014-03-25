@@ -26,6 +26,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -71,7 +72,8 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 				// set repeat count to 1 if real target is used
 				int totalWork = getTotalWork(context, data);
 				SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(getActivePeerModelContext(context, data, fullQualifiedId));
-				int refreshCount = result != null ? 0 : totalWork-1;
+				final boolean isSimulatorRunning = result != null;
+				int refreshCount = isSimulatorRunning ? 0 : totalWork-1;
 				final AtomicReference<Throwable> lastError = new AtomicReference<Throwable>();
 
 				@Override
@@ -98,6 +100,16 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 								if (ProgressHelper.isCancel(WaitForReadyStep.this, monitor, callback)) {
 									return;
 								}
+
+								if (isSimulatorRunning) {
+									Object simInstance = peerNode.getProperty(ISimulatorService.PROP_SIM_INSTANCE);
+									Object exitError = peerNode.getProperty(ISimulatorService.PROP_EXIT_ERROR);
+									if (simInstance == null && exitError instanceof Throwable) {
+										callback(data, fullQualifiedId, callback, StatusHelper.getStatus((Throwable)exitError), null);
+										return;
+									}
+								}
+
 								IStatus status = null;
 
 								// If the channel open succeeded, we are done

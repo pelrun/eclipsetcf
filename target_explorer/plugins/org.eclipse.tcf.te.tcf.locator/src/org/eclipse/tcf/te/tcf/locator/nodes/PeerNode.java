@@ -133,19 +133,27 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	 */
 	@Override
 	public boolean isValid() {
+		final AtomicBoolean valid = new AtomicBoolean(true);
 		IService[] services = ServiceManager.getInstance().getServices(this, IDelegateService.class, false);
 		for (IService service : services) {
 	        if (service instanceof IDelegateService) {
 	        	IPeerNode.IDelegate delegate = ((IDelegateService)service).getDelegate(this, IPeerNode.IDelegate.class);
 	        	if (delegate != null) {
-	        		if (!delegate.isValid(this)) {
-	        			return false;
+	        		if (delegate.isVisible(this) && !delegate.isValid(this)) {
+	        			valid.set(false);
+	        			break;
 	        		}
 	        	}
 	        }
         }
 
-		return true;
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				setProperty(IPeerNodeProperties.PROP_VALID, valid.get());
+			}
+		});
+		return valid.get();
 	}
 
 	/* (non-Javadoc)

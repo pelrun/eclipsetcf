@@ -128,6 +128,7 @@
             </or>
          </enablement>
       </service>
+
       <service
             class="org.eclipse.tcf.te.tcf.locator.services.StepperOperationService"
             id="org.eclipse.tcf.te.tcf.locator.services.stepperOperation">
@@ -141,6 +142,15 @@
          </enablement>
       </service>
 
+      <service
+            class="org.eclipse.tcf.te.tcf.locator.services.PeerNodeDelegateService"
+            id="org.eclipse.tcf.te.tcf.locator.services.PeerNodeDelegate">
+         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService"/>
+         <enablement>
+            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+            <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
+         </enablement>
+      </service>
    </extension>
 
 <!-- Step contributions -->

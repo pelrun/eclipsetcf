@@ -65,6 +65,11 @@ public interface IPeerNodeProperties {
 	public static String PROP_LAST_SCANNER_ERROR = "lastScannerError"; //$NON-NLS-1$
 
 	/**
+	 * Property: The peer valid state. This is not a property itself, just used to fire change events on valid state change.
+	 */
+	public static final String PROP_VALID = "valid"; //$NON-NLS-1$
+
+	/**
 	 * Property: The peer type.
 	 */
 	public static final String PROP_TYPE = "Type" + IPropertiesContainer.PERSISTENT_PROPERTY; //$NON-NLS-1$

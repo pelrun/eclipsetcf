@@ -655,10 +655,10 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		// Determine the input
 		final Object input = od; // getManagedForm().getInput();
 
-			boolean enabled = !isReadOnly() && (!(input instanceof IPeerNode) || ((IPeerNode)input).getConnectState() == IConnectable.STATE_DISCONNECTED);
-			if (addressControl != null) addressControl.setEnabled(enabled);
-			if (portControl != null) portControl.setEnabled(enabled && !isAutoPort);
-}
+		boolean enabled = !isReadOnly() && (!(input instanceof IPeerNode) || ((IPeerNode)input).getConnectState() == IConnectable.STATE_DISCONNECTED);
+		if (addressControl != null) addressControl.setEnabled(enabled);
+		if (portControl != null) portControl.setEnabled(enabled && !isAutoPort);
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.forms.parts.AbstractSection#saveWidgetValues(org.eclipse.jface.dialogs.IDialogSettings)

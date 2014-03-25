@@ -16,6 +16,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
 /**
  * PeerNodeValidationDelegate
@@ -51,6 +52,13 @@ public class PeerNodeValidationDelegate implements IPeerNode.IDelegate {
 				}
 			}
 		});
+
+		if (valid.get()) {
+			SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(peerNode);
+			if (result != null) {
+				valid.set(result.service.isValidConfig(peerNode, result.settings));
+			}
+		}
 
 		return valid.get();
 	}

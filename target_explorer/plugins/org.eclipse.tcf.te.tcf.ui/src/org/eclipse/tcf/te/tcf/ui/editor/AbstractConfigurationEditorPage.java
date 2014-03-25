@@ -62,7 +62,9 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
                 @Override
 				public void eventFired(EventObject event) {
 					ChangeEvent changeEvent = (ChangeEvent)event;
-					if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) && event.getSource() == getEditorInputNode()) {
+					if ((IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) ||
+									IPeerNodeProperties.PROP_VALID.equals(changeEvent.getEventId())) &&
+									event.getSource() == getEditorInputNode()) {
 						ExecutorsUtil.executeInUI(new Runnable() {
 							@Override
 							public void run() {
@@ -87,8 +89,10 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 		ISimulatorService service = ServiceManager.getInstance().getService(getEditorInputNode(), ISimulatorService.class);
 		if (service != null) {
 			simulatorTypeSelectionSection = doCreateTargetSelectorSection(form, parent);
-			simulatorTypeSelectionSection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP));
-			getManagedForm().addPart(simulatorTypeSelectionSection);
+			if (simulatorTypeSelectionSection != null) {
+				simulatorTypeSelectionSection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP));
+				getManagedForm().addPart(simulatorTypeSelectionSection);
+			}
 		}
 	}
 

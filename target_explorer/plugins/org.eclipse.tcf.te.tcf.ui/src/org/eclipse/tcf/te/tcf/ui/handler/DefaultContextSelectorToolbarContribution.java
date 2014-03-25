@@ -211,7 +211,12 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 		Collections.sort(visiblePeerNodes, new Comparator<IPeerNode>() {
 			@Override
 			public int compare(IPeerNode o1, IPeerNode o2) {
-			    return o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
+				String type1 = o1.getPeerType();
+				type1 = type1 != null ? type1 : ""; //$NON-NLS-1$
+				String type2 = o2.getPeerType();
+				type2 = type2 != null ? type2 : ""; //$NON-NLS-1$
+				int typeCompare = type1.compareTo(type2);
+			    return typeCompare != 0 ? typeCompare : o1.getName().toUpperCase().compareTo(o2.getName().toUpperCase());
 			}
 		});
 
@@ -373,7 +378,9 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
     		if (changeEvent.getSource() instanceof IDefaultContextService ||
     						(changeEvent.getSource() == peerNode &&
-    						(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) || "properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
+    						(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) ||
+    										IPeerNodeProperties.PROP_VALID.equals(changeEvent.getEventId()) ||
+    										"properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
     			if (menuMgr != null) menuMgr.markDirty();
     			ExecutorsUtil.executeInUI(new Runnable() {
     				@Override

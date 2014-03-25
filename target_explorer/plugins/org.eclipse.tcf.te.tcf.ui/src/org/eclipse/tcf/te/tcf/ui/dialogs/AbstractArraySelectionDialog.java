@@ -31,10 +31,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.tcf.ui.navigator.ViewerSorter;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
-import org.eclipse.tcf.te.ui.views.navigator.ViewerSorter;
 
 /**
  * Selection dialog implementation.
