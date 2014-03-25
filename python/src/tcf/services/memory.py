@@ -27,6 +27,9 @@
 
 Memory Properties
 -----------------
+
+.. _Tcf-Memory-Properties:
+
 Properties
 ^^^^^^^^^^
 +-------------------+--------------+------------------------------------------+
@@ -69,6 +72,8 @@ Properties
 |                   |              | valid for the context.                   |
 +-------------------+--------------+------------------------------------------+
 
+.. _Tcf-Memory-Access-Types:
+
 Access Types
 ^^^^^^^^^^^^
 All access types are of type |basestring|.
@@ -98,6 +103,8 @@ All access types are of type |basestring|.
 +--------------------+--------------------------------------------------------+
 | ACCESS_VIRTUAL     | Context uses virtual addresses.                        |
 +--------------------+--------------------------------------------------------+
+
+.. _Tcf-Memory-Command-Modes:
 
 Command Modes
 ^^^^^^^^^^^^^

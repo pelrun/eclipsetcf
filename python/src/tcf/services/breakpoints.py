@@ -26,31 +26,41 @@
 .. |remove| replace:: :meth:`BreakpointsService.remove`
 .. |removeListener| replace:: :meth:`BreakpointsService.removeListener`
 .. |set| replace:: :meth:`BreakpointsService.set`
+.. |Access Modes| replace:: :ref:`Tcf-Breakpoints-Access-Modes`
 .. |BreakpointInstance| replace:: :class:`BreakpointInstance`
 .. |BreakpointsListener| replace:: :class:`BreakpointsListener`
 .. |BreakpointStatus| replace:: :class:`BreakpointStatus`
+.. |Breakpoints Properties| replace:: :ref:`Tcf-Breakpoints-Properties`
 .. |DoneCommand| replace:: :class:`DoneCommand`
 .. |DoneGetCapabilities| replace:: :class:`DoneGetCapabilities`
 .. |DoneGetIDs| replace:: :class:`DoneGetIDs`
 .. |DoneGetProperties| replace:: :class:`DoneGetProperties`
 .. |DoneGetStatus| replace:: :class:`DoneGetStatus`
+.. |Status| replace:: :ref:`Tcf-Breakpoints-Status`
+.. |Status Instances| replace:: :ref:`Tcf-Breakpoints-Status-Instances`
+.. |Time Scales| replace:: :ref:`Tcf-Breakpoints-Time-Scales`
+.. |Time Units| replace:: :ref:`Tcf-Breakpoints-Time-Units`
+.. |Types| replace:: :ref:`Tcf-Breakpoints-Types`
 
 A breakpoint identifier (String id) needs to be unique across all hosts and
 targets.
 
 Breakpoint properties (|dict|) is extendible dictionary of named attributes,
 which define breakpoint location and behavior. This module defines some common
-attribute names (see `Breakpoint Properties`_), host tools and target agents
+attribute names (see |Breakpoints Properties|), host tools and target agents
 may support additional attributes.
 
 For each breakpoint a target agent maintains another extendible collection of
-named attributes: breakpoint status (see `Status`_). While breakpoint
-properties are persistent and represent user input, breakpoint status reflects
-dynamic target agent reports about breakpoint current state, like actual
-addresses where breakpoint is planted or planting errors.
+named attributes: breakpoint status (see |Status|). While breakpoint properties
+are persistent and represent user input, breakpoint status reflects dynamic
+target agent reports about breakpoint current state, like actual addresses
+where breakpoint is planted or planting errors.
 
 Breakpoint Properties
 ---------------------
+
+.. _Tcf-Breakpoints-Properties:
+
 Properties
 ^^^^^^^^^^
 +-----------------------+--------------+--------------------------------------+
@@ -59,7 +69,7 @@ Properties
 | PROP_ACCESS_MODE      | |int|        | The access mode that will trigger    |
 |                       |              | the breakpoint. Access mode can be a |
 |                       |              | bitwise OR of the values defined in  |
-|                       |              | `Access Modes`_.                     |
+|                       |              | |Access Modes|.                      |
 +-----------------------+--------------+--------------------------------------+
 | PROP_CLIENT_DATA      | |dict|       | Properties set by the client.        |
 +-----------------------+--------------+--------------------------------------+
@@ -116,7 +126,7 @@ Properties
 |                       |              | refined with a mask.                 |
 +-----------------------+--------------+--------------------------------------+
 | PROP_SCALE            | |basestring| | The scale for the time value. See    |
-|                       |              | `Time Scales`_.                      |
+|                       |              | |Time Scales|.                       |
 +-----------------------+--------------+--------------------------------------+
 | PROP_SIZE             | |int|        | The number of bytes starting at      |
 |                       |              | address given by the location        |
@@ -138,11 +148,13 @@ Properties
 |                       |              | the program at which to set the      |
 |                       |              | breakpoint.                          |
 +-----------------------+--------------+--------------------------------------+
-| PROP_TYPE             | |basestring| | The breakpoint type. See `Types`_.   |
+| PROP_TYPE             | |basestring| | The breakpoint type. See |Types|.    |
 +-----------------------+--------------+--------------------------------------+
 | PROP_UNITS            | |basestring| | The units for the time value. See    |
-|                       |              | `Time Units`_.                       |
+|                       |              | |Time Units|.                        |
 +-----------------------+--------------+--------------------------------------+
+
+.. _Tcf-Breakpoints-Access-Modes:
 
 Access Modes
 ^^^^^^^^^^^^
@@ -171,6 +183,8 @@ on one of these access modes:
 |                    |          | breakpoint location.                        |
 +--------------------+----------+---------------------------------------------+
 
+.. _Tcf-Breakpoints-Time-Scales:
+
 Time Scales
 ^^^^^^^^^^^
 +--------------------+--------------------------------------------------------+
@@ -182,6 +196,8 @@ Time Scales
 |                    | default value for this property. In the relative time  |
 |                    | scale, the Time property may have a negative value.    |
 +--------------------+--------------------------------------------------------+
+
+.. _Tcf-Breakpoints-Time-Units:
 
 Time Units
 ^^^^^^^^^^
@@ -195,6 +211,8 @@ Time Units
 | TIMEUNIT_NSECS             | Time value in nano seconds.                    |
 +----------------------------+------------------------------------------------+
 
+.. _Tcf-Breakpoints-Types:
+
 Types
 ^^^^^
 +---------------+-------------------------------------------------------------+
@@ -207,6 +225,7 @@ Types
 | TYPE_SOFTWARE | Software breakpoint type.                                   |
 +---------------+-------------------------------------------------------------+
 
+.. _Tcf-Breakpoints-Status:
 
 Status
 ^^^^^^
@@ -220,10 +239,12 @@ Status
 | STATUS_FILE      | |basestring| | Breakpoint file.                          |
 +------------------+--------------+-------------------------------------------+
 | STATUS_INSTANCES | |list|       | Breakpoint status instance. See           |
-|                  |              | `Status Instances`_.                      |
+|                  |              | |Status Instances|.                       |
 +------------------+--------------+-------------------------------------------+
 | STATUS_LINE      | |int|        | Breakpoint line.                          |
 +------------------+--------------+-------------------------------------------+
+
+.. _Tcf-Breakpoints-Status-Instances:
 
 Status Instances
 ^^^^^^^^^^^^^^^^
@@ -248,13 +269,16 @@ Status Instances
 Service Capabilities
 ^^^^^^^^^^^^^^^^^^^^
 All capabilities are of |bool| type, but the **CAPABILITY_CONTEXT_ID** which is
-of |basestring| type.
+of |basestring| type, and **CAPABILITY_ACCESS_MODE** which is of |int| type.
 
 +----------------------------+------------------------------------------------+
 + Name                       | Description                                    |
 +============================+================================================+
-| CAPABILITY_ACCESS_MODE     | If **True**, **PROP_ACCESS_MODE** breakpoint   |
-|                            | property is supported.                         |
+| CAPABILITY_ACCESS_MODE     | An access mode value, which is a bitwise OR of |
+|                            | the values defined in |Access Modes|. A value  |
+|                            | of ``0`` means that the ``PROP_ACCESS_MODE``   |
+|                            | breakpoint property is not supported for the   |
+|                            | given context.                                 |
 +----------------------------+------------------------------------------------+
 | CAPABILITY_BREAKPOINT_TYPE | If **True**, **PROP_TYPE** breakpoint property |
 |                            | is supported.                                  |
@@ -534,7 +558,7 @@ class BreakpointsService(services.Service):
     def add(self, properties, done):
         """Called when breakpoint is added into breakpoints table.
 
-        :param properties: Breakpoint properties. See `Properties`_.
+        :param properties: Breakpoint properties. See |Breakpoints Properties|.
         :type properties: |dict|
         :param done: Command result call back object.
         :type done: |DoneCommand|
@@ -546,7 +570,7 @@ class BreakpointsService(services.Service):
     def change(self, properties, done):
         """Called when breakpoint properties are changed.
 
-        :param properties: Breakpoint properties. See `Properties`_.
+        :param properties: Breakpoint properties. See |Breakpoints Properties|.
         :type properties: |dict|
         :param done: Command result call back object.
         :type done: |DoneCommand|
@@ -559,7 +583,7 @@ class BreakpointsService(services.Service):
         """Tell target to change (only) **PROP_ENABLED** breakpoint property to
         **True**.
 
-        See `Properties`_ for **PROP_ENABLED** description.
+        See |Breakpoints Properties| for **PROP_ENABLED** description.
 
         :param ids: A list of enabled breakpoint identifiers.
         :type ids: |list| or |tuple| of |basestring|
@@ -574,7 +598,7 @@ class BreakpointsService(services.Service):
         """Tell target to change (only) **PROP_ENABLED** breakpoint property to
         **False**.
 
-        See `Properties`_ for **PROP_ENABLED** description.
+        See |Breakpoints Properties| for **PROP_ENABLED** description.
 
         :param ids: A list of disabled breakpoint identifiers.
         :type ids: |list| or |tuple| of |basestring|
@@ -673,7 +697,7 @@ class BreakpointInstance(object):
     """A class to represent a breakpoint status instances.
 
     :param props: The properties to initialise the breakpoint status instance
-                  with. See `Status Instances`_.
+                  with. See |Status Instances|.
     :type props: |dict|
     """
     def __init__(self, props):
@@ -756,12 +780,12 @@ class BreakpointInstance(object):
     def type(self):
         """The type of this breakpoint.
 
-        See `Types`_.
+        See |Types|.
 
         :returns: A |basestring| representing the type of the breakpoint this
                   status instance occured for, or **None** if unknown.
 
-        .. seealso:: `Types`_
+        .. seealso:: |Types|
         """
         return self._properties.get(INSTANCE_SIZE, None)
 
@@ -770,7 +794,7 @@ class BreakpointStatus(object):
     """A class to represent a breakpoint status.
 
     :param props: The properties to initialise the breakpoint status with.
-                  See `Status`_.
+                  See |Status|.
     :type props: |dict|
     """
     def __init__(self, props):
@@ -892,7 +916,7 @@ class DoneGetProperties(object):
         :param properties: Properties of the breakpoint.
         :type properties: |dict|
 
-        .. seealso:: `Properties`_
+        .. seealso:: |Breakpoints Properties|
         """
         pass
 
