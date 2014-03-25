@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -29,7 +30,6 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.resource.JFaceResources;
@@ -1052,7 +1052,7 @@ public class MemoryMapWidget {
                     final TCFLaunch launch = findLaunch();
                     if (launch != null) {
                         Object mapped = TCFSourceLookupDirector.lookup(launch, id, r.getFileName());
-                        if (!(mapped instanceof LocalFileStorage) || !((LocalFileStorage)mapped).getFile().exists()) {
+                        if (!(mapped instanceof IStorage) || !((IStorage)mapped).getFullPath().toFile().exists()) {
                             symFileInfo = "Symbol file error: No such file or directory"; //$NON-NLS-1$
                         }
                     }
