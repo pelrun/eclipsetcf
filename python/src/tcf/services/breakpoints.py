@@ -787,7 +787,7 @@ class BreakpointInstance(object):
 
         .. seealso:: |Types|
         """
-        return self._properties.get(INSTANCE_SIZE, None)
+        return self._properties.get(INSTANCE_TYPE, None)
 
 
 class BreakpointStatus(object):
