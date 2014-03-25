@@ -26,6 +26,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
@@ -61,7 +62,7 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 	@Override
 	public boolean isSaveAsAllowed(IEditorInput input) {
 		IPeerNode peerNode = (IPeerNode)input.getAdapter(IPeerNode.class);
-		if (peerNode != null) return true;
+		if (peerNode != null && peerNode.getConnectState() == IConnectable.STATE_DISCONNECTED) return true;
 
 		return false;
 	}
@@ -71,13 +72,13 @@ public class EditorSaveAsAdapter implements IEditorSaveAsAdapter {
 	 */
 	@Override
 	public Object doSaveAs(IEditorInput input) {
-		IPeerNode model = (IPeerNode)input.getAdapter(IPeerNode.class);
-		if (model != null) {
+		IPeerNode peerNode = (IPeerNode)input.getAdapter(IPeerNode.class);
+		if (peerNode != null) {
 
 			Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
 			// Create the peer attributes
-			final Map<String, String> attrs = new HashMap<String, String>(model.getPeer().getAttributes());
+			final Map<String, String> attrs = new HashMap<String, String>(peerNode.getPeer().getAttributes());
 			attrs.put(IPeer.ATTR_ID, UUID.randomUUID().toString());
 
 			final List<String> usedNames = getUsedNameList();
