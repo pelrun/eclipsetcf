@@ -590,8 +590,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					// Copy the terminal properties
 					props.setProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO));
 					props.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
-
-					props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
+					props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW));
 
 					// The custom data object is the process launcher itself
 					props.setProperty(ITerminalsConnectorConstants.PROP_DATA, this);
