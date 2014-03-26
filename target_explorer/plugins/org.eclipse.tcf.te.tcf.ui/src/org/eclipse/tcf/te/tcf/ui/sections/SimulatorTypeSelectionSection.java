@@ -15,6 +15,8 @@ import java.util.Map;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -154,7 +156,16 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			}
 			@Override
 			protected void onButtonControlSelected() {
-				PeerSelectionDialog dialog = new PeerSelectionDialog(null);
+				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
+					/* (non-Javadoc)
+					 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#configureTableViewer(org.eclipse.jface.viewers.TableViewer)
+					 */
+					@Override
+					protected void configureTableViewer(TableViewer viewer) {
+					    super.configureTableViewer(viewer);
+					    viewer.setFilters(getViewerFilters());
+					}
+				};
 
 				// Open the dialog
 				if (dialog.open() == Window.OK) {
@@ -596,5 +607,13 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			SWTControlUtil.setEnabled(simulator.getLabelControl(), enabled);
 			SWTControlUtil.setEnabled(simulator.getEditFieldControl(), simulator.isLabelControlSelected() && enabled);
 		}
+	}
+
+	/**
+	 * Get the viewer filters for the peer selection dialog.
+	 * @return The viewer filters or an empty array.
+	 */
+	protected ViewerFilter[] getViewerFilters() {
+		return new ViewerFilter[0];
 	}
 }
