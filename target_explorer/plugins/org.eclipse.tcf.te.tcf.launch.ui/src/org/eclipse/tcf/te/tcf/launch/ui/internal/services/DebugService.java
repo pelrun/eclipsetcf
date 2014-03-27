@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.launch.ui.internal.services;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
@@ -157,7 +158,7 @@ public class DebugService extends AbstractService implements IDebugService {
 								@Override
 								public void run() {
 									try {
-										DebugUITools.buildAndLaunch(finConfig, ILaunchManager.DEBUG_MODE, monitor);
+										DebugUITools.buildAndLaunch(finConfig, ILaunchManager.DEBUG_MODE, monitor != null ? monitor : new NullProgressMonitor());
 									}
 									catch (Exception e) {
 										callback.done(DebugService.this, StatusHelper.getStatus(e));
