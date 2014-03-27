@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.events.AbstractEventListener;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
@@ -340,6 +341,12 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 
 			// Create the terminal control
 			ITerminalViewControl terminal = TerminalViewControlFactory.makeControl(doCreateTerminalTabTerminalListener(this, item), composite, new ITerminalConnector[] { connector }, true);
+			if (data instanceof IPropertiesContainer) {
+				boolean noReconnect = ((IPropertiesContainer)data).getBooleanProperty(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT);
+				//TODO: set the flag in the control
+				// terminal.setNoReconnect(noReconnect);
+			}
+
 			// Add the "selection" listener to the terminal control
 			new TerminalControlSelectionListener(terminal);
 			// Configure the terminal encoding

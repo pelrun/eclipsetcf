@@ -83,6 +83,14 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_LOCAL_ECHO = "localEcho"; //$NON-NLS-1$
 
 	/**
+	 * Property: Data flag to tell the terminal to not reconnect when hitting enter
+	 *           in a disconnected terminal.
+	 *           The flag can be set by adding an IPropertiesContainer with the set
+	 *           flag as PROP_DATA.
+	 */
+	public static final String PROP_DATA_NO_RECONNECT = "data.noReconnect"; //$NON-NLS-1$
+
+	/**
 	 * Property: The line separator used by the terminal input.
 	 *           <p>Typical for process and streams terminals.
 	 */
