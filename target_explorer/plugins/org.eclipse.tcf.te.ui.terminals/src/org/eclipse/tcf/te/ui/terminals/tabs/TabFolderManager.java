@@ -344,7 +344,7 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 			if (data instanceof IPropertiesContainer) {
 				boolean noReconnect = ((IPropertiesContainer)data).getBooleanProperty(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT);
 				//TODO: set the flag in the control
-				// terminal.setNoReconnect(noReconnect);
+				// terminal.setConnectOnEnterIfClosed(!noReconnect);
 			}
 
 			// Add the "selection" listener to the terminal control
