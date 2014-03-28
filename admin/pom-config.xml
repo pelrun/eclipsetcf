@@ -55,7 +55,7 @@
 		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.5 (Kepler) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
         <cdt-site>http://download.eclipse.org/tools/cdt/builds/kepler/milestones</cdt-site>
-		<tm-site>http://download.eclipse.org/tm/updates/3.5</tm-site>
+		<tm-site>http://download.eclipse.org/tm/builds/luna/nightly</tm-site>
 		<!-- RXTX is unresponsive. Take it out for now -->
 		<!-- <rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site> -->
 		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
