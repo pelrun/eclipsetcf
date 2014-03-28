@@ -137,7 +137,6 @@
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4milestones</platform-site>
                 <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
-		        <tm-site>http://download.eclipse.org/tm/updates/3.6milestones</tm-site>
             </properties>
 			
 		</profile>
