@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -717,7 +717,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                     p.fValid = false;
                     fCallback.getDocument().addInvalidAddressRange(p);
                 }
-                else if (p == null /* || address.compareTo(endAddress) > 0 */) {
+                else if (p == null) {
                     if (DEBUG) System.out.println("Excess disassembly lines at " + DisassemblyUtils.getAddressText(address)); //$NON-NLS-1$
                     return;
                 }
@@ -784,8 +784,11 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                             address, instrLength, functionOffset.toString(),
                             instr, sourceFile, firstLine);
                 }
-                if (p == null) break;
                 insertedAnyAddress = true;
+            }
+            if (!insertedAnyAddress) {
+            	// Insert error in case of incomplete disassembly
+                fCallback.insertError(startAddress, "cannot disassemble");
             }
         }
         catch (BadLocationException e) {
@@ -794,16 +797,11 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         }
         finally {
             request.done();
-            if (insertedAnyAddress) {
-                fCallback.updateInvalidSource();
-                fCallback.unlockScroller();
-                fCallback.doPending();
-                fCallback.updateVisibleArea();
-                request.ctx.getModel().updateAnnotations(fCallback.getSite().getWorkbenchWindow());
-            }
-            else {
-                fCallback.unlockScroller();
-            }
+            fCallback.updateInvalidSource();
+            fCallback.unlockScroller();
+            fCallback.doPending();
+            fCallback.updateVisibleArea();
+            request.ctx.getModel().updateAnnotations(fCallback.getSite().getWorkbenchWindow());
         }
     }
 
