@@ -484,9 +484,7 @@ public class TCFThreadFilterEditor {
                 if (fThreadViewer != null) {
                     fThreadViewer.refresh();
                     fFilteredContexts.clear();
-                    for (Context ctx : fContexts) {
-                        fCheckHandler.updateParentCheckState(ctx);
-                    }
+                    setInitialCheckedState();
                 }
             }
         }
