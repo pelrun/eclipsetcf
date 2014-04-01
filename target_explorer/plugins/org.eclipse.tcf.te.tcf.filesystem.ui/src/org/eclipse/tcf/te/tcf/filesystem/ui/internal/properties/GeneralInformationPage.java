@@ -92,7 +92,7 @@ public class GeneralInformationPage extends PropertyPage {
 		data.verticalAlignment = SWT.TOP;
 		data.widthHint = 300;
 		data.grabExcessHorizontalSpace = true;
-		data.horizontalAlignment = GridData.FILL;		
+		data.horizontalAlignment = GridData.FILL;
 		txt.setLayoutData(data);
 		txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		txt.setText(value);
@@ -207,7 +207,7 @@ public class GeneralInformationPage extends PropertyPage {
 	protected void createPermissionsSection(Composite parent) {
 		GridLayout gridLayout;
 		Label label = new Label(parent, SWT.NONE);
-		label.setText(Messages.GeneralInformationPage_PermissionText); 
+		label.setText(Messages.GeneralInformationPage_PermissionText);
 		GridData data = new GridData();
 		data.horizontalAlignment = SWT.LEFT;
 		data.verticalAlignment = SWT.TOP;
@@ -271,10 +271,10 @@ public class GeneralInformationPage extends PropertyPage {
 			@Override
             public void widgetSelected(SelectionEvent e) {
 				int bit = 1 << (8 - index);
-				boolean on = (clone.attr.permissions & bit) != 0;
+				boolean on = clone.attr != null && (clone.attr.permissions & bit) != 0;
 				boolean newOn = btnPermissions[index].getSelection();
 				if (newOn != on) {
-					int permissions = clone.attr.permissions;
+					int permissions = clone.attr != null ? clone.attr.permissions : 0;
 					permissions = newOn ? (permissions | bit) : (permissions & ~bit);
 					clone.setPermissions(permissions);
 				}
@@ -288,7 +288,7 @@ public class GeneralInformationPage extends PropertyPage {
 	private void updatePermissions(){
 		for (int i = 0; i < 9; i++) {
 			final int bit = 1 << (8 - i);
-			final boolean on = (clone.attr.permissions & bit) != 0;
+			final boolean on = clone.attr != null && (clone.attr.permissions & bit) != 0;
 			btnPermissions[i].setSelection(on);
 		}
 	}
@@ -324,12 +324,12 @@ public class GeneralInformationPage extends PropertyPage {
 		}
 		return true;
     }
-	
+
 	/**
 	 * Commit the new attributes of the file and
 	 * return a status. This operation will try
 	 * several times before reporting failure.
-	 * 
+	 *
 	 * @return The committing status.
 	 */
 	private IStatus commitAttr() {
@@ -360,7 +360,7 @@ public class GeneralInformationPage extends PropertyPage {
 			return node.getWin32Attrs() != clone.getWin32Attrs();
 		}
 		// If it is not a Windows file, only check its permissions.
-		return node.attr.permissions != clone.attr.permissions;
+		return node.attr != null && clone.attr != null && node.attr.permissions != clone.attr.permissions;
 	}
 
 	/* (non-Javadoc)
@@ -381,18 +381,18 @@ public class GeneralInformationPage extends PropertyPage {
 		// Field "Type"
 		createField(Messages.GeneralInformationPage_Type, clone.getFileType(), page);
 		// Field "Location"
-		String location = clone.isSystemRoot() || clone.isRoot() ? 
+		String location = clone.isSystemRoot() || clone.isRoot() ?
 						Messages.GeneralInformationPage_Computer : clone.getLocation();
 		createField(Messages.GeneralInformationPage_Location, location, page);
 		// Field "Size"
 		if (clone.isFile()) {
-			createField(Messages.GeneralInformationPage_Size, getSizeText(clone.attr.size), page);
+			createField(Messages.GeneralInformationPage_Size, clone.attr != null ? getSizeText(clone.attr.size) : "", page); //$NON-NLS-1$
 		}
 		// Field "Modified"
-		createField(Messages.GeneralInformationPage_Modified, getDateText(clone.attr.mtime), page);
+		createField(Messages.GeneralInformationPage_Modified, clone.attr != null ? getDateText(clone.attr.mtime) : "", page); //$NON-NLS-1$
 		// Field "Accessed"
 		if (clone.isFile()) {
-			createField(Messages.GeneralInformationPage_Accessed, getDateText(clone.attr.atime), page);
+			createField(Messages.GeneralInformationPage_Accessed, clone.attr != null ? getDateText(clone.attr.atime) : "", page); //$NON-NLS-1$
 		}
 		createSeparator(page);
 		if (clone.isWindowsNode()) {

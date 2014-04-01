@@ -79,7 +79,7 @@ public class BasicFolderSection extends BaseTitledSection {
 		SWTControlUtil.setText(typeText, clone != null ? clone.getFileType() : ""); //$NON-NLS-1$
 		String location = clone == null || clone.isRoot() ? Messages.GeneralInformationPage_Computer : clone.getLocation();
 		SWTControlUtil.setText(locationText, location);
-		SWTControlUtil.setText(modifiedText, clone != null ? getDateText(clone.attr.mtime) : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(modifiedText, clone != null && clone.attr != null ? getDateText(clone.attr.mtime) : ""); //$NON-NLS-1$
 		super.refresh();
     }
 
