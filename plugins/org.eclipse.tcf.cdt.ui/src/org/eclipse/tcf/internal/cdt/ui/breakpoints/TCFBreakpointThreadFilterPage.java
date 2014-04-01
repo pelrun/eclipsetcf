@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2012 QNX Software Systems and others.
+ * Copyright (c) 2004, 2014 QNX Software Systems and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@
 package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 
 import org.eclipse.cdt.debug.core.model.ICBreakpoint;
+import org.eclipse.cdt.debug.internal.ui.breakpoints.CBreakpointPreferenceStore;
 import org.eclipse.cdt.debug.ui.breakpoints.ICBreakpointContext;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -25,6 +26,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 /**
  * Property page to define the scope of a breakpoint.
  */
+@SuppressWarnings("restriction")
 public class TCFBreakpointThreadFilterPage extends PropertyPage {
 
     private TCFThreadFilterEditor fThreadFilterEditor;
@@ -90,6 +92,15 @@ public class TCFBreakpointThreadFilterPage extends PropertyPage {
 
     protected TCFThreadFilterEditor getThreadFilterEditor() {
         return fThreadFilterEditor;
+    }
+
+    @Override
+    public boolean performCancel() {
+        IPreferenceStore store = getPreferenceStore();
+        if (store instanceof CBreakpointPreferenceStore) {
+            ((CBreakpointPreferenceStore)store).setCanceled(true);
+        }
+        return super.performCancel();
     }
 
     @Override
