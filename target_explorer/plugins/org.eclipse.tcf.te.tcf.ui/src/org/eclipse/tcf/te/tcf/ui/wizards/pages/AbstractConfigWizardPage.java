@@ -52,8 +52,8 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	/* default */ Button connect = null;
 	private Button advancedButton = null;
 
-	/* default */ boolean autoConnect = false;
-	/* default */ boolean autoLaunchDbg = false;
+	protected boolean autoConnect = false;
+	protected boolean autoLaunchDbg = false;
 
 	// The list of existing configuration names. Used to generate a unique name
 	// and validate the wizard
