@@ -12,7 +12,9 @@ package org.eclipse.tcf.te.tcf.filesystem.core.model;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.core.runtime.PlatformObject;
@@ -20,6 +22,7 @@ import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.core.interfaces.IViewerInput;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUser;
@@ -264,7 +267,9 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	 */
 	public void refresh(ICallback callback) {
 		queryStarted();
-		Tcf.getChannelManager().openChannel(peerNode.getPeer(), null, doCreateRefreshDoneOpenChannel(callback));
+		Map<String, Boolean> flags = new HashMap<String, Boolean>();
+		flags.put(IChannelManager.FLAG_NO_PATH_MAP, Boolean.TRUE);
+		Tcf.getChannelManager().openChannel(peerNode.getPeer(), flags, doCreateRefreshDoneOpenChannel(callback));
 	}
 
 	/**
@@ -286,7 +291,9 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	 */
 	public void queryChildren(ICallback callback) {
 		queryStarted();
-		Tcf.getChannelManager().openChannel(peerNode.getPeer(), null, doCreateQueryDoneOpenChannel(callback));
+        Map<String, Boolean> flags = new HashMap<String, Boolean>();
+        flags.put(IChannelManager.FLAG_NO_PATH_MAP, Boolean.TRUE);
+		Tcf.getChannelManager().openChannel(peerNode.getPeer(), flags, doCreateQueryDoneOpenChannel(callback));
 	}
 
 	/**
