@@ -140,10 +140,9 @@ public class BaseDialogSelectionControl extends BaseEditBrowseTextControl {
 	 * control. Subclasses may override this method to run additional logic just before
 	 * applying the selected element to the control.
 	 *
-	 * @param selectedElement The selected element from that controls associated dialog. Must not be <code>null</code>.
+	 * @param selectedElement The selected element from that controls associated dialog.
 	 */
 	protected void doApplyElementFromDialogControl(String selectedElement) {
-		Assert.isNotNull(selectedElement);
-		setEditFieldControlText(selectedElement);
+		setEditFieldControlText(selectedElement != null ? selectedElement.trim() : ""); //$NON-NLS-1$
 	}
 }
