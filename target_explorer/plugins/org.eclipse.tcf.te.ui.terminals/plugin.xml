@@ -200,6 +200,14 @@
             activityId="com.windriver.te.tcf.ui.activity.terminals.views"
             pattern="org\.eclipse\.tcf\.te\.ui\.terminals/org\.eclipse\.tcf\.te\.ui\.terminals\.TerminalsView">
       </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.windriver.te.tcf.ui.activity.terminals.views"
+            pattern="org\.eclipse\.tcf\.te\.ui\.terminals/org\.eclipse\.tcf\.te\.ui\.terminals\.toolbar">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.windriver.te.tcf.ui.activity.terminals.views"
+            pattern="org\.eclipse\.tcf\.te\.ui\.terminals/org\.eclipse\.tcf\.te\.ui\.terminals\.commands\..*">
+      </activityPatternBinding>
       
       <categoryActivityBinding
             activityId="com.windriver.te.tcf.ui.activity.terminals.views"

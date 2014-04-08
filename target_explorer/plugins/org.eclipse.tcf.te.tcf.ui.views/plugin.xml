@@ -194,4 +194,12 @@
       </eventListener>
    </extension>
 
+<!-- Activity contributions -->
+   <extension point="org.eclipse.ui.activities">
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.ui.views.activity.systemmanagement.views"
+            pattern="org\.eclipse\.tcf\.te\.tcf\.ui\.views/org\.eclipse\.tcf\.te\.tcf\.ui\.views.*">
+      </activityPatternBinding>
+   </extension>
+
 </plugin>

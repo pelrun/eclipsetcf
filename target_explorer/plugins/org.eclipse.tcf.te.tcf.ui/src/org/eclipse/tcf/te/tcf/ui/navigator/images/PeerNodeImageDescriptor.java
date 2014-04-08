@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
@@ -46,16 +45,7 @@ public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 		imageSize = new Point(baseImage.getImageData().width, baseImage.getImageData().height);
 
 		// Determine the current object state to decorate
-		if (Protocol.isDispatchThread()) {
-			initialize(node);
-		} else {
-			Protocol.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					initialize(node);
-				}
-			});
-		}
+		initialize(node);
 
 		// build up the key for the image registry
 		defineKey(baseImage.hashCode());
@@ -68,9 +58,10 @@ public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 	 */
 	protected void initialize(IPeerNode node) {
 		Assert.isNotNull(node);
-		Assert.isTrue(Protocol.isDispatchThread());
-
 		connectState = node.getConnectState();
+		// If invoked in the TCF dispatch thread, node.isValid() may lead to a
+		// deadlock if the initialize(...) where called as a result of an activity
+		// state change event.
 		valid = node.isValid();
 	}
 

@@ -585,8 +585,12 @@
       </menuContribution>
 
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.toolbar?after=group.connect">
-         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"/>
-         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"/>
+         <command
+               commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"
+               id="org.eclipse.tcf.te.tcf.ui.toolbar.commands.connect"/>
+         <command
+               commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"
+               id="org.eclipse.tcf.te.tcf.ui.toolbar.commands.disconnect"/>
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.open">
@@ -975,6 +979,14 @@
                id="org.eclipse.tcf.te.ui.views.propertysections.peer.general"
                tab="org.eclipse.tcf.te.ui.views.propertyTab.locator.general"/>
       </propertySections>
+   </extension>
+
+<!-- Activity contributions -->
+   <extension point="org.eclipse.ui.activities">
+      <activityPatternBinding
+            activityId="org.eclipse.tcf.te.ui.views.activity.systemmanagement.views"
+            pattern="org\.eclipse\.tcf\.te\.tcf\.ui/org\.eclipse\.tcf\.te\.tcf\.ui\..*">
+      </activityPatternBinding>
    </extension>
 
 </plugin>
