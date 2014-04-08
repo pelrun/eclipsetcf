@@ -114,13 +114,12 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	protected Control createControl(final Composite parent) {
 		panel = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
-		layout.marginHeight = 1;
-		layout.marginWidth = 1;
+		layout.marginHeight = 1; layout.marginWidth = 1;
 		panel.setLayout(layout);
 
 		Composite labelPanel = new Composite(panel, SWT.BORDER);
 		labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
-		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		labelPanel.setLayoutData(layoutData);
 		layout = new GridLayout(3, false);
 		layout.marginHeight = 0;
@@ -129,7 +128,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 		labelPanel.setLayout(layout);
 
 		image = new Label(labelPanel, SWT.NONE);
-		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+		layoutData = new GridData(SWT.LEAD, SWT.CENTER, false, true);
 		layoutData.horizontalIndent = 1;
 		layoutData.minimumWidth=20;
 		layoutData.widthHint=20;
@@ -163,7 +162,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 		});
 
 		button = new Button(labelPanel, SWT.ARROW | SWT.DOWN | SWT.FLAT | SWT.NO_FOCUS);
-		layoutData = new GridData(SWT.RIGHT, SWT.FILL, true, true);
+		layoutData = new GridData(SWT.TRAIL, SWT.CENTER, false, true);
+		layoutData.minimumWidth=20;
 		layoutData.widthHint = 20;
 		button.setLayoutData(layoutData);
 		button.addSelectionListener(new SelectionAdapter() {
