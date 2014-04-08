@@ -126,6 +126,10 @@ public class LocalConnectorType extends AbstractConnectorType {
 		processSettings.setWorkingDir(workingDir);
 		processSettings.setEnvironment(envp);
 
+		if (properties.containsKey(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT)) {
+			processSettings.setMergeWithNativeEnvironment(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT));
+		}
+
 		// And save the settings to the store
 		processSettings.save(store);
 

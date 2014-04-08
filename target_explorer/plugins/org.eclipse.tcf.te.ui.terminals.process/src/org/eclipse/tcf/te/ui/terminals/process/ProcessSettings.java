@@ -41,6 +41,10 @@ public class ProcessSettings {
 	private String workingDir;
 	// environment
 	private String[] environment;
+	// Flag to control if the provided environment is
+	// automatically merged with the native process environment.
+	// Defaults to "true".
+	private boolean mergeWithNativeEnvironment = true;
 
 	/**
 	 * Sets the process image.
@@ -194,7 +198,7 @@ public class ProcessSettings {
 	}
 
 	/**
-	 * Returns the working dir
+	 * Returns the working directory
 	 *
 	 * @return
 	 */
@@ -203,16 +207,16 @@ public class ProcessSettings {
 	}
 
 	/**
-	 * Sets the working dir of the process
+	 * Sets the working directory of the process
 	 *
-	 * @param workingDir the absolute path of the working dir
+	 * @param workingDir the absolute path of the working directory
 	 */
 	public void setWorkingDir(String workingDir) {
 		this.workingDir = workingDir;
 	}
 
 	/**
-	 * Get theprocess environment
+	 * Get the process environment
 	 *
 	 * @return
 	 */
@@ -230,6 +234,26 @@ public class ProcessSettings {
 	}
 
 	/**
+	 * Returns if or if not the provided environment is merged with
+	 * the native process environment.
+	 *
+	 * @return <code>True</code> if the provided environment is merged with the native process environment, <code>false</code> otherwise.
+	 */
+	public boolean isMergeWithNativeEnvironment() {
+		return mergeWithNativeEnvironment;
+	}
+
+	/**
+	 * Sets if or if not the provided environment is merged with the
+	 * native process environment.
+	 *
+	 * @param value <code>True</code> if the provided environment is merged with the native process environment, <code>false</code> otherwise.
+	 */
+	public void setMergeWithNativeEnvironment(boolean value) {
+		this.mergeWithNativeEnvironment = value;
+	}
+
+	/**
 	 * Loads the process settings from the given settings store.
 	 *
 	 * @param store The settings store. Must not be <code>null</code>.
@@ -239,6 +263,7 @@ public class ProcessSettings {
 		image = store.get("Path", null);//$NON-NLS-1$
 		arguments = store.get("Arguments", null); //$NON-NLS-1$
 		localEcho = Boolean.parseBoolean(store.get("LocalEcho", Boolean.FALSE.toString())); //$NON-NLS-1$
+		mergeWithNativeEnvironment = Boolean.parseBoolean(store.get("MergeWithNativeEnvironment", Boolean.FALSE.toString())); //$NON-NLS-1$
 		lineSeparator = store.get("LineSeparator", null); //$NON-NLS-1$
 		workingDir = store.get("WorkingDir", null); //$NON-NLS-1$
 		if (store instanceof IPropertiesContainer) {
@@ -260,6 +285,7 @@ public class ProcessSettings {
 		store.put("Path", image);//$NON-NLS-1$
 		store.put("Arguments", arguments); //$NON-NLS-1$
 		store.put("LocalEcho", Boolean.toString(localEcho)); //$NON-NLS-1$
+		store.put("MergeWithNativeEnvironment", Boolean.toString(mergeWithNativeEnvironment)); //$NON-NLS-1$
 		store.put("LineSeparator", lineSeparator); //$NON-NLS-1$
 		store.put("WorkingDir", workingDir); //$NON-NLS-1$
 		if (store instanceof IPropertiesContainer) {

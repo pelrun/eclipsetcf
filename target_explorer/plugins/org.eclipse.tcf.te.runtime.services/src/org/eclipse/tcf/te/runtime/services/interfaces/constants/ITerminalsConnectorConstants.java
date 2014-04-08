@@ -155,6 +155,12 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_PROCESS_ENVIRONMENT = "process.environment"; //$NON-NLS-1$
 
 	/**
+	 * Property: Flag to merge process environment with native environment.
+	 *           <p>Typical for process terminals.
+	 */
+	public static final String PROP_PROCESS_MERGE_ENVIRONMENT = "process.environment.merge"; //$NON-NLS-1$
+
+	/**
 	 * Property: Runtime process instance.
      *           <p>Typical for process terminals.
 	 */
