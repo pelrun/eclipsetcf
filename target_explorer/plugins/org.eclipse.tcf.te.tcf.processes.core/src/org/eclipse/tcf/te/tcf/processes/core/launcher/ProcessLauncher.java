@@ -160,13 +160,15 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 		// Dispose the processes listener if created
 		if (processesListener != null) {
+			// Remove the processes listener from the processes service
+			getSvcProcesses().removeListener(processesListener);
+
 			// Dispose the processes listener
 			if (processesListener instanceof ProcessProcessesListener) {
 				((ProcessProcessesListener)processesListener).dispose(new AsyncCallbackCollector.SimpleCollectorCallback(collector));
 			}
+
 			processesListener = null;
-			// Remove the processes listener from the processes service
-			getSvcProcesses().removeListener(processesListener);
 		}
 
 		// Dispose the streams proxy if created
