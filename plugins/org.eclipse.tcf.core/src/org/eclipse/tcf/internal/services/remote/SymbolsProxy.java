@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -106,6 +106,9 @@ public class SymbolsProxy implements ISymbols {
                 case 2: return SymbolClass.reference;
                 case 3: return SymbolClass.function;
                 case 4: return SymbolClass.type;
+                case 5: return SymbolClass.comp_unit;
+                case 6: return SymbolClass.block;
+                case 7: return SymbolClass.namespace;
                 }
             }
             return SymbolClass.unknown;

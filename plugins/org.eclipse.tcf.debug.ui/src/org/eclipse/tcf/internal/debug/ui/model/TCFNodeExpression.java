@@ -599,12 +599,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     }
                 }
                 StringBuffer bf = new StringBuffer();
-                if (!getTypeName(bf, type, this)) return false;
+                if (!getTypeName(bf, type, model.isShowQualifiedTypeNamesEnabled(), this)) return false;
                 set(null, null, bf.toString());
                 return true;
             }
         };
         children = new TCFChildrenSubExpressions(this, 0, 0, 0);
+    }
+
+    void onPreferencesChanged() {
+        type_name.reset();
+        postAllChangedDelta();
     }
 
     private void disposeRemoteExpression() {
@@ -865,7 +870,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     @SuppressWarnings("incomplete-switch")
-    private boolean getTypeName(StringBuffer bf, TCFDataCache<ISymbols.Symbol> type_cache, Runnable done) {
+    private boolean getTypeName(StringBuffer bf, TCFDataCache<ISymbols.Symbol> type_cache, boolean qualified, Runnable done) {
         String name = null;
         for (;;) {
             String s = null;
@@ -876,6 +881,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 int flags = type_symbol.getFlags();
                 s = type_symbol.getName();
                 if (s != null) {
+                    if (qualified && (flags & (ISymbols.SYM_FLAG_UNION_TYPE|ISymbols.SYM_FLAG_CLASS_TYPE|ISymbols.SYM_FLAG_STRUCT_TYPE|ISymbols.SYM_FLAG_ENUM_TYPE)) != 0) {
+                        String prefix = getQualifiedTypeNamePrefix(type_symbol, done);
+                        if (prefix == null) return false;
+                        s = prefix + s;
+                    }
                     if ((flags & ISymbols.SYM_FLAG_UNION_TYPE) != 0) s = "union " + s;
                     else if ((flags & ISymbols.SYM_FLAG_CLASS_TYPE) != 0) s = "class " + s;
                     else if ((flags & ISymbols.SYM_FLAG_INTERFACE_TYPE) != 0) s = "interface " + s;
@@ -887,7 +897,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     TCFDataCache<ISymbols.Symbol> base_type_cache = model.getSymbolInfoCache(type_symbol.getTypeID());
                     if (base_type_cache != null) {
                         StringBuffer sb = new StringBuffer();
-                        if (!getTypeName(sb, base_type_cache, done)) return false;
+                        if (!getTypeName(sb, base_type_cache, qualified, done)) return false;
                         s = sb.toString();
                     }
                 }
@@ -908,7 +918,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                 ISymbols.Symbol cls_data = cls_cache.getData();
                                 if (cls_data != null) {
                                     String cls_name = cls_data.getName();
-                                    if (cls_name != null) s = cls_name + "::*";
+                                    if (cls_name != null) {
+                                        s = cls_name + "::*";
+                                        if (qualified) {
+                                            String prefix = getQualifiedTypeNamePrefix(cls_data, done);
+                                            if (prefix == null) return false;
+                                            s = prefix + s;
+                                        }
+                                    }
                                 }
                             }
                             if (s == null) s = "::*";
@@ -938,7 +955,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                 args.append('(');
                                 for (String id : children) {
                                     if (id != children[0]) args.append(',');
-                                    if (!getTypeName(args, model.getSymbolInfoCache(id), done)) return false;
+                                    if (!getTypeName(args, model.getSymbolInfoCache(id), qualified, done)) return false;
                                 }
                                 args.append(')');
                                 s = args.toString();
@@ -979,6 +996,25 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         }
         bf.append(name);
         return true;
+    }
+
+    private String getQualifiedTypeNamePrefix(ISymbols.Symbol type_symbol, Runnable done) {
+        String prefix = "";
+        String containerId = type_symbol.getContainerID();
+        while (containerId != null) {
+            TCFDataCache<ISymbols.Symbol> ns_cache = model.getSymbolInfoCache(containerId);
+            if (!ns_cache.validate(done)) return null;
+            containerId = null;
+            ISymbols.Symbol ns_data = ns_cache.getData();
+            if (ns_data != null && ns_data.getSymbolClass() == ISymbols.SymbolClass.namespace || ns_data.getSymbolClass() == ISymbols.SymbolClass.type) {
+                String ns_name = ns_data.getName();
+                if (ns_name != null) {
+                    prefix = ns_name + "::" + prefix;
+                    containerId = ns_data.getContainerID();
+                }
+            }
+        }
+        return prefix;
     }
 
     private String toASCIIString(byte[] data, int offs, int size, char quote_char) {

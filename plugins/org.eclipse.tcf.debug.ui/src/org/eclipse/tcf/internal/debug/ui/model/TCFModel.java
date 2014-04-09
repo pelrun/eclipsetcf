@@ -234,6 +234,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private boolean delay_children_list_updates;
     private boolean auto_children_list_updates;
     private boolean show_full_error_reports;
+    private boolean qualified_type_names_enabled;
 
     private final Map<String,String> action_results = new HashMap<String,String>();
     private final HashMap<String,TCFAction> active_actions = new HashMap<String,TCFAction>();
@@ -717,11 +718,16 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             auto_children_list_updates = prefs_store.getBoolean(TCFPreferences.PREF_AUTO_CHILDREN_LIST_UPDATES);
             delay_children_list_updates = prefs_store.getBoolean(TCFPreferences.PREF_DELAY_CHILDREN_LIST_UPDATES);
             show_full_error_reports = prefs_store.getBoolean(TCFPreferences.PREF_FULL_ERROR_REPORTS);
+            qualified_type_names_enabled = prefs_store.getBoolean(TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES);
+            final boolean affectsExpressionsOnly = event != null && TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES.equals(event.getProperty());
             Protocol.invokeLater(new Runnable() {
                 public void run() {
                     for (TCFNode n : id2node.values()) {
-                        if (n instanceof TCFNodeExecContext) {
+                        if (n instanceof TCFNodeExecContext && !affectsExpressionsOnly) {
                             ((TCFNodeExecContext)n).onPreferencesChanged();
+                        }
+                        else if (n instanceof TCFNodeExpression && affectsExpressionsOnly) {
+                            ((TCFNodeExpression)n).onPreferencesChanged();
                         }
                     }
                 }
@@ -2231,6 +2237,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public boolean isReverseDebugEnabled() {
         return reverse_debug_enabled;
+    }
+
+    /**
+     * @return whether to show qualified type names.
+     */
+    public boolean isShowQualifiedTypeNamesEnabled() {
+        return qualified_type_names_enabled;
     }
 
     /*-------------------- Profiling/tracing interface -------------------------------- */
