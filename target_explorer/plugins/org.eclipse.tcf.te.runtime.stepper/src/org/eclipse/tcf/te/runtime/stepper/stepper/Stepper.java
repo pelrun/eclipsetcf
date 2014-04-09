@@ -28,12 +28,15 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.ISharedConstants;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
+import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
 import org.eclipse.tcf.te.runtime.stepper.FullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.StepperManager;
 import org.eclipse.tcf.te.runtime.stepper.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.runtime.stepper.extensions.StepExecutor;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStep;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepExecutor;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroup;
@@ -45,7 +48,7 @@ import org.eclipse.tcf.te.runtime.stepper.nls.Messages;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 
 /**
- * An abstract stepper implementation.
+ * Stepper implementation.
  */
 public class Stepper implements IStepper {
 
@@ -168,6 +171,13 @@ public class Stepper implements IStepper {
 
 		// but not finished yet
 		this.finished = false;
+
+		if (!data.containsKey(IStepAttributes.ATTR_HISTORY_DATA)) {
+			data.setProperty(IStepAttributes.ATTR_HISTORY_DATA, DataHelper.encodePropertiesContainer(data));
+		}
+		if (!data.containsKey(IStepAttributes.ATTR_HISTORY_ID)) {
+			data.setProperty(IStepAttributes.ATTR_HISTORY_ID, stepGroupId + "@" + context.getId()); //$NON-NLS-1$
+		}
 
 		// call the hook for the subclasses to initialize themselves
 		onInitialize(this.data, fullQualifiedId, this.monitor);
@@ -342,6 +352,19 @@ public class Stepper implements IStepper {
 			// be hold back till the execution completed or stopped with an error.
 			// Severe status objects are errors or cancellation.
 			List<IStatus> statusContainer = new ArrayList<IStatus>();
+
+			// save execution to history
+			String historyId = data.getStringProperty(IStepAttributes.ATTR_HISTORY_ID);
+			String historyData = data.getStringProperty(IStepAttributes.ATTR_HISTORY_DATA);
+			int historyCount = data.getIntProperty(IStepAttributes.ATTR_HISTORY_COUNT);
+			if (historyId != null && historyData != null) {
+				if (historyCount > 0) {
+					HistoryManager.getInstance().add(historyId, historyData, historyCount);
+				}
+				else {
+					HistoryManager.getInstance().add(historyId, historyData);
+				}
+			}
 
 			// start execution
 			internalExecute(statusContainer);

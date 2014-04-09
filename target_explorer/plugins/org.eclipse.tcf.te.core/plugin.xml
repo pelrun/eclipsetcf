@@ -30,6 +30,10 @@
       		label="%SetConnectStateStep.name" 
             class="org.eclipse.tcf.te.core.steps.SetConnectStateStep">
       </step>
+      <step id="org.eclipse.tcf.te.core.saveToHistoryStep"
+      		label="%SaveToHistoryStep.name" 
+            class="org.eclipse.tcf.te.core.steps.SaveToHistoryStep">
+      </step>
    </extension>
 
 <!-- Reusable core expression fragments -->   

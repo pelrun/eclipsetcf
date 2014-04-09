@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.runtime.properties;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -47,7 +46,7 @@ public class PropertiesContainer extends PlatformObject implements IPropertiesCo
 	/**
 	 * The custom properties map. The keys are always strings, the value might be any object.
 	 */
-	private Map<String, Object> properties = new LinkedHashMap<String, Object>();
+	private Map<String, Object> properties = new HashMap<String, Object>();
 
 	/**
 	 * Constructor.

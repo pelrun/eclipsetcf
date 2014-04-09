@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012 - 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -103,23 +103,41 @@ public class HistoryManager {
 	/**
 	 * Get the history for a given history id.
 	 * @param historyId The history id.
-	 * @return The list of ids within the history ids list or an empty list.
+	 * @return The list of entries within the history ids list or an empty list.
 	 */
 	public String[] getHistory(String historyId) {
 		Assert.isNotNull(historyId);
 
-		List<String> ids = history.get(historyId);
-		if (ids == null) {
-			ids = new ArrayList<String>();
+		List<String> entries = history.get(historyId);
+		if (entries == null) {
+			entries = new ArrayList<String>();
 		}
 
-		return ids.toArray(new String[ids.size()]);
+		return entries.toArray(new String[entries.size()]);
+	}
+
+	/**
+	 * Get all history ids matching the given id pattern.
+	 * @param historyIdPattern The history id regex pattern.
+	 * @return The list of history ids matching the given pattern or an empty list.
+	 */
+	public String[] getMatchingHistoryIds(String historyIdPattern) {
+		Assert.isNotNull(historyIdPattern);
+
+		List<String> historyIds = new ArrayList<String>();
+		for (String historyId : history.keySet()) {
+	        if (historyId.matches(historyIdPattern)) {
+	        	historyIds.add(historyId);
+	        }
+        }
+
+		return historyIds.toArray(new String[historyIds.size()]);
 	}
 
 	/**
 	 * Get the fist entry of a history ids list.
 	 * @param historyId The history id.
-	 * @return The first entry of the history ids list or null if no history is available for that id.
+	 * @return The first entry for the given history ids or null if no history is available for that id.
 	 */
 	public String getFirst(String historyId) {
 		String[] history = getHistory(historyId);
@@ -130,26 +148,39 @@ public class HistoryManager {
 	 * Add a new history entry to the top of the history ids list.
 	 * If the list size exceeds the HISTORY_LENGTH, the last element of the list will be removed.
 	 * @param historyId The history id.
-	 * @param id The id to be added to the top of history ids list.
+	 * @param entry The entry to be added to the top of history ids list.
 	 * @return <code>true</code> if the id
 	 */
-	public boolean add(String historyId, String id) {
+	public boolean add(String historyId, String entry) {
+		return add(historyId, entry, HISTORY_LENGTH);
+	}
+
+	/**
+	 * Add a new history entry to the top of the history ids list.
+	 * If the list size exceeds the HISTORY_LENGTH, the last element of the list will be removed.
+	 * @param historyId The history id.
+	 * @param entry The id to be added to the top of history ids list.
+	 * @param historyLength The maximum length of the history.
+	 * @return <code>true</code> if the entry was added
+	 */
+	public boolean add(String historyId, String entry, int historyLength) {
 		Assert.isNotNull(historyId);
-		Assert.isNotNull(id);
+		Assert.isNotNull(entry);
+		Assert.isTrue(historyLength > 0);
 
 		List<String> ids = history.get(historyId);
 		if (ids == null) {
 			ids = new ArrayList<String>();
 			history.put(historyId, ids);
 		}
-		if (ids.contains(id)) {
-			ids.remove(id);
+		if (ids.contains(entry)) {
+			ids.remove(entry);
 		}
 
-		ids.add(0, id);
+		ids.add(0, entry);
 
-		while (ids.size() > HISTORY_LENGTH) {
-			ids.remove(HISTORY_LENGTH);
+		while (ids.size() > historyLength) {
+			ids.remove(historyLength);
 		}
 
 		flush();
@@ -163,18 +194,30 @@ public class HistoryManager {
 	 * Set a new list of history entries to the history ids list.
 	 * If the list size exceeds the HISTORY_LENGTH, the last element of the list will be removed.
 	 * @param historyId The history id.
-	 * @param ids The ids to be set to the history ids list.
-	 * @return <code>true</code> if the id
+	 * @param entries The entries to be set to the history ids list.
+	 * @return <code>true</code> if the entries were added
 	 */
-	public void set(String historyId, String[] ids) {
-		Assert.isNotNull(historyId);
-		Assert.isNotNull(ids);
+	public void set(String historyId, String[] entries) {
+		set(historyId, entries, HISTORY_LENGTH);
+	}
 
-		history.put(historyId, Arrays.asList(ids));
+	/**
+	 * Set a new list of history entries to the history ids list.
+	 * If the list size exceeds the HISTORY_LENGTH, the last element of the list will be removed.
+	 * @param historyId The history id.
+	 * @param entries The entries to be set to the history ids list.
+	 * @param historyLength The maximum length of the history.
+	 * @return <code>true</code> if the entries were set
+	 */
+	public void set(String historyId, String[] entries, int historyLength) {
+		Assert.isNotNull(historyId);
+		Assert.isNotNull(entries);
+
+		history.put(historyId, Arrays.asList(entries));
 		List<String> newIds = history.get(historyId);
 
-		while (newIds.size() > HISTORY_LENGTH) {
-			newIds.remove(HISTORY_LENGTH);
+		while (newIds.size() > historyLength) {
+			newIds.remove(historyLength);
 		}
 
 		flush();
@@ -185,18 +228,18 @@ public class HistoryManager {
 	/**
 	 * Remove a id from the history ids list.
 	 * @param historyId The history id.
-	 * @param id The id to be removed from the history ids list.
-	 * @return <code>true</code> if the id was removed from the history ids list.
+	 * @param entry The entry to be removed from the history ids list.
+	 * @return <code>true</code> if the entry was removed from the history ids list.
 	 */
-	public boolean remove(String historyId, String id) {
+	public boolean remove(String historyId, String entry) {
 		Assert.isNotNull(historyId);
-		Assert.isNotNull(id);
+		Assert.isNotNull(entry);
 
 		boolean removed = false;
 
 		List<String> ids = history.get(historyId);
 		if (ids != null) {
-			removed |= ids.remove(id);
+			removed |= ids.remove(entry);
 			if (ids.isEmpty()) {
 				history.remove(historyId);
 			}
@@ -215,11 +258,15 @@ public class HistoryManager {
 	 * @param historyId The history id.
 	 **/
 	public void clear(String historyId) {
-		Assert.isNotNull(historyId);
+		List<String> entries = null;
+		if (historyId == null) {
+			history.clear();
+		}
+		else {
+			entries = history.remove(historyId);
+		}
 
-		List<String> ids = history.remove(historyId);
-
-		if (ids != null) {
+		if (entries != null || historyId == null) {
 			flush();
 			EventManager.getInstance().fireEvent(new ChangeEvent(this, ChangeEvent.ID_REMOVED, historyId, historyId));
 		}

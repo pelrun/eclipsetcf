@@ -20,8 +20,15 @@ public interface IDefaultContextToolbarDelegate {
 	/**
 	 * Returns a list of new configuration wizard ids to show
 	 * in the context selector toolbar contribution.
-	 * @param context
-	 * @return
+	 * @param context The selected default context.
+	 * @return Array of ids.
 	 */
 	public String[] getToolbarNewConfigWizardIds(Object context);
+
+	/**
+	 * Returns a list if history ids that should be used to diaply the "recently used actions" in the toolbar actions sub menu.
+	 * @param context The selected default context.
+	 * @return Array of ids.
+	 */
+	public String[] getToolbarHistoryIds(Object context);
 }

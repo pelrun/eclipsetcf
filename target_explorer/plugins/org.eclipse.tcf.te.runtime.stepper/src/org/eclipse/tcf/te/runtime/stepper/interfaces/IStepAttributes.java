@@ -33,4 +33,22 @@ public interface IStepAttributes {
 	 * The running job operation.
 	 */
 	public static final String ATTR_STEPPER_JOB_OPERATION = ATTR_PREFIX + ".stepper_job_operation"; //$NON-NLS-1$
+
+	/**
+	 * The id to persist the data of stepper execution to the history.
+	 * If this attribute is not set, it is filled automatically with <stepGroupId>@<stepContextId>
+	 */
+	public static final String ATTR_HISTORY_ID = ATTR_PREFIX + ".history_id"; //$NON-NLS-1$
+
+	/**
+	 * The data to persist to the history.
+	 * If this attribute is not set, it is filled automatically with the given stepper data.
+	 */
+	public static final String ATTR_HISTORY_DATA = ATTR_PREFIX + ".history_data"; //$NON-NLS-1$
+
+	/**
+	 * The number of entries in the history.
+	 * If this attribute is not set, the history manager default is used.
+	 */
+	public static final String ATTR_HISTORY_COUNT = ATTR_PREFIX + ".history_count"; //$NON-NLS-1$
 }

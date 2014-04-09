@@ -30,11 +30,11 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 
 
 /**

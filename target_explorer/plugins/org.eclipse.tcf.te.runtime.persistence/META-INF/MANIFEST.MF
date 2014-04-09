@@ -20,4 +20,5 @@ Export-Package: org.eclipse.tcf.te.runtime.persistence,
  org.eclipse.tcf.te.runtime.persistence.history,
  org.eclipse.tcf.te.runtime.persistence.interfaces,
  org.eclipse.tcf.te.runtime.persistence.internal;x-internal:=true,
- org.eclipse.tcf.te.runtime.persistence.services
+ org.eclipse.tcf.te.runtime.persistence.services,
+ org.eclipse.tcf.te.runtime.persistence.utils

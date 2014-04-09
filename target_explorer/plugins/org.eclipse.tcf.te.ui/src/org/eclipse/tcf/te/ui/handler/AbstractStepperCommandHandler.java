@@ -61,7 +61,7 @@ public abstract class AbstractStepperCommandHandler extends AbstractCommandHandl
 			return null;
 		}
 
-		Object context = getContext(event, data);
+		Object context = getContext(data);
 
 		IStepperOperationService stepperOperationService = getStepperService(context, operation);
 		if (stepperOperationService != null) {
@@ -71,16 +71,36 @@ public abstract class AbstractStepperCommandHandler extends AbstractCommandHandl
 			boolean isCancelable = stepperOperationService.isCancelable(context, operation);
 
 			if (stepGroupId != null && stepContext != null) {
-				scheduleStepperJob(stepContext, data, stepGroupId, name, isCancelable);
+				scheduleStepperJob(stepContext, cleanupData(data), stepGroupId, name, isCancelable);
 			}
 		}
 
 		return null;
 	}
 
+	/**
+	 * Get the data from dialog or history.
+	 * @param event
+	 * @return
+	 */
 	abstract protected IPropertiesContainer getData(ExecutionEvent event);
 
-	abstract protected Object getContext(ExecutionEvent event, IPropertiesContainer data);
+	/**
+	 * Get the context from the data.
+	 * @param data
+	 * @return
+	 */
+	abstract protected Object getContext(IPropertiesContainer data);
+
+	/**
+	 * Cleanup the stepper data.
+	 * I.e. remove temporary properties that are not needed for the stepper and should also not stored in the stepper history.
+	 * @param data
+	 * @return
+	 */
+	protected IPropertiesContainer cleanupData(IPropertiesContainer data) {
+	    return data;
+	}
 
 	/**
 	 * Get the stepper service for the given context and operation.

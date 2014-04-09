@@ -12,8 +12,9 @@ package org.eclipse.tcf.te.tcf.locator.services;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IStepGroupIds;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IStepperServiceOperations;
 
 /**
  * Connect/disconnect stepper operation service implementation.
@@ -43,10 +44,10 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 		Assert.isTrue(context instanceof IPeerNode);
 
 		if (IStepperServiceOperations.CONNECT.equals(operation)) {
-			return "org.eclipse.tcf.te.tcf.locator.connectStepGroup"; //$NON-NLS-1$
+			return IStepGroupIds.CONNECT;
 		}
 		if (IStepperServiceOperations.DISCONNECT.equals(operation)) {
-			return "org.eclipse.tcf.te.tcf.locator.disconnectStepGroup"; //$NON-NLS-1$
+			return IStepGroupIds.DISCONNECT;
 		}
 
 		return null;

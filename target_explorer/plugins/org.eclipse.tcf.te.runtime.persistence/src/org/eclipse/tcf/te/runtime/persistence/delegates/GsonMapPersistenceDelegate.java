@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
@@ -187,7 +188,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 					data.put(VARIABLES, variables);
 				}
 			}
-			return data;
+			Map<String, Object> sorted = new TreeMap<String, Object>(data);
+			return sorted;
 		}
 		catch (Exception e) {
 

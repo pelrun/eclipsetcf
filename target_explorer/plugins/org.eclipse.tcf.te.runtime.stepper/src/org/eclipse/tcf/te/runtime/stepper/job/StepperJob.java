@@ -165,9 +165,6 @@ public final class StepperJob extends Job {
 		Map<String,List<Job>> jobs = getJobs(stepContext.getContextObject());
 		addJob(jobs, this, operation);
 		setJobs(jobs, stepContext.getContextObject());
-
-		data.setProperty(IStepAttributes.ATTR_STEPPER_JOB, this);
-		data.setProperty(IStepAttributes.ATTR_STEPPER_JOB_OPERATION, operation);
 	}
 
     public static Map<String,List<Job>> getJobs(Object context) {
