@@ -55,6 +55,7 @@
 		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.5 (Kepler) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
+		<license-site-staging>http://download.eclipse.org/cbi/staging</license-site-staging>
         <cdt-site>http://download.eclipse.org/tools/cdt/builds/kepler/milestones</cdt-site>
 		<tm-site>http://download.eclipse.org/tm/builds/luna/nightly</tm-site>
 		<!-- RXTX is unresponsive. Take it out for now -->
@@ -68,6 +69,11 @@
         <repository>
             <id>license-feature</id>
             <url>${license-site}</url>
+            <layout>p2</layout>
+        </repository>	
+        <repository>
+            <id>license-feature-staging</id>
+            <url>${license-site-staging}</url>
             <layout>p2</layout>
         </repository>	
 		<repository>
