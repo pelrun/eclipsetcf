@@ -13,7 +13,6 @@ package org.eclipse.tcf.te.runtime.stepper.services;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
@@ -43,10 +42,10 @@ public abstract class AbstractStepperOperationService extends AbstractService im
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#getStepData(java.lang.Object, java.lang.String)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#validateStepData(java.lang.Object, java.lang.String, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
 	 */
 	@Override
-	public IPropertiesContainer getStepData(Object context, String operation) {
-	    return new PropertiesContainer();
+	public boolean validateStepData(Object context, String operation, IPropertiesContainer data) {
+	    return true;
 	}
 }

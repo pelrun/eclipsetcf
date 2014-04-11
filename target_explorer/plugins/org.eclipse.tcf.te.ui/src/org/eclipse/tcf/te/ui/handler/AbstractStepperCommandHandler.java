@@ -19,18 +19,12 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
-import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
-import org.eclipse.tcf.te.runtime.utils.StatusHelper;
-import org.eclipse.tcf.te.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -63,16 +57,9 @@ public abstract class AbstractStepperCommandHandler extends AbstractCommandHandl
 
 		Object context = getContext(data);
 
-		IStepperOperationService stepperOperationService = getStepperService(context, operation);
+		IStepperOperationService stepperOperationService = StepperHelper.getService(context, operation);
 		if (stepperOperationService != null) {
-			IStepContext stepContext = stepperOperationService.getStepContext(context, operation);
-			String stepGroupId = stepperOperationService.getStepGroupId(context, operation);
-			String name = stepperOperationService.getStepGroupName(context, operation);
-			boolean isCancelable = stepperOperationService.isCancelable(context, operation);
-
-			if (stepGroupId != null && stepContext != null) {
-				scheduleStepperJob(stepContext, cleanupData(data), stepGroupId, name, isCancelable);
-			}
+			StepperHelper.scheduleStepperJob(context, operation, stepperOperationService, cleanupData(data), null, null);
 		}
 
 		return null;
@@ -100,25 +87,6 @@ public abstract class AbstractStepperCommandHandler extends AbstractCommandHandl
 	 */
 	protected IPropertiesContainer cleanupData(IPropertiesContainer data) {
 	    return data;
-	}
-
-	/**
-	 * Get the stepper service for the given context and operation.
-	 *
-	 * @param context The context.
-	 * @param operation The operation.
-	 * @return The stepper service or <code>null</code>.
-	 */
-	protected IStepperOperationService getStepperService(Object context, String operation) {
-		IService[] services = ServiceManager.getInstance().getServices(context, IStepperOperationService.class, false);
-		IStepperOperationService stepperOperationService = null;
-		for (IService service : services) {
-			if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(context, operation)) {
-				stepperOperationService = (IStepperOperationService)service;
-				break;
-			}
-        }
-		return stepperOperationService;
 	}
 
 	/**
@@ -151,31 +119,6 @@ public abstract class AbstractStepperCommandHandler extends AbstractCommandHandl
 		selection = elements.isEmpty() ? new StructuredSelection() : new StructuredSelection(elements);
 
 		return (IStructuredSelection)selection;
-	}
-
-	/**
-	 * Schedule the stepper job.
-	 * @param stepContext The step context.
-	 * @param data The execution data.
-	 * @param stepGroupId The step group id to execute.
-	 * @param name The job name.
-	 * @param isCancelable <code>true</code> if the job should be cancelable.
-	 */
-	protected void scheduleStepperJob(IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String name, boolean isCancelable) {
-		try {
-			StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-											stepContext,
-											data,
-											stepGroupId,
-											operation,
-											isCancelable,
-											true);
-			job.schedule();
-		} catch (IllegalStateException e) {
-			if (Platform.inDebugMode()) {
-				UIPlugin.getDefault().getLog().log(StatusHelper.getStatus(e));
-			}
-		}
 	}
 
 	/* (non-Javadoc)

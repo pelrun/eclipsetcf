@@ -57,15 +57,6 @@ public interface IStepperOperationService extends IService {
 	public IStepContext getStepContext(Object context, String operation);
 
 	/**
-	 * Get the step data for the given context and operation.
-	 *
-	 * @param context The context. Must not be <code>null</code>.
-	 * @param operation The operation. Must not be <code>null</code>.
-	 * @return The step data or an empty properties container.
-	 */
-	public IPropertiesContainer getStepData(Object context, String operation);
-
-	/**
 	 * Get the enabled state for the given operation.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
@@ -81,4 +72,13 @@ public interface IStepperOperationService extends IService {
 	 * @return <code>true</code> if the operation can be canceled.
 	 */
 	public boolean isCancelable(Object context, String operation);
+
+	/**
+	 * Validates the step data to be used for the given context and operation.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param operation The operation. Must not be <code>null</code>.
+	 * @param data The step data to be validated.
+	 * @return <code>true</code> if the step data is valid.
+	 */
+	public boolean validateStepData(Object context, String operation, IPropertiesContainer data);
 }

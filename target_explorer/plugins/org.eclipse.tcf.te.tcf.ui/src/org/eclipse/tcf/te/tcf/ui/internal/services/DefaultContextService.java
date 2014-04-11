@@ -96,7 +96,7 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 	@Override
 	public IPeerNode getDefaultContext(IContextFilter filter) {
 		for (String peerId : HistoryManager.getInstance().getHistory(getClass().getName())) {
-			IPeerNode peerNode = addCandidate(getPeerModel(peerId), filter, null);
+			IPeerNode peerNode = addCandidate(getPeerNode(peerId), filter, null);
 			if (peerNode != null) {
 				return peerNode;
 			}
@@ -136,13 +136,13 @@ public class DefaultContextService extends AbstractService implements IDefaultCo
 		List<IPeerNode> candidates = new ArrayList<IPeerNode>();
 
 		for (String peerId : HistoryManager.getInstance().getHistory(getClass().getName())) {
-			addCandidate(getPeerModel(peerId), filter, candidates);
+			addCandidate(getPeerNode(peerId), filter, candidates);
 		}
 
 		return candidates.toArray(new IPeerNode[candidates.size()]);
 	}
 
-	private IPeerNode getPeerModel(final String peerId) {
+	private IPeerNode getPeerNode(final String peerId) {
 		if (peerId != null) {
 			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
 

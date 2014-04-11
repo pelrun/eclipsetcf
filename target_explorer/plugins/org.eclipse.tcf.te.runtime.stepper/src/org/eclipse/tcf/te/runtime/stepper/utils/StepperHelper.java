@@ -36,12 +36,11 @@ public final class StepperHelper {
 		return stepperOperationService;
 	}
 
-	public static final void scheduleStepperJob(Object context, String operation, IStepperOperationService service, ICallback callback, IProgressMonitor monitor) {
+	public static final void scheduleStepperJob(Object context, String operation, IStepperOperationService service, IPropertiesContainer data, ICallback callback, IProgressMonitor monitor) {
 		IStepContext stepContext = service.getStepContext(context, operation);
 		String stepGroupId = service.getStepGroupId(context, operation);
 		String name = service.getStepGroupName(context, operation);
 		boolean isCancelable = service.isCancelable(context, operation);
-		IPropertiesContainer data = service.getStepData(context, operation);
 
 		if (stepGroupId != null && stepContext != null) {
 			StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$

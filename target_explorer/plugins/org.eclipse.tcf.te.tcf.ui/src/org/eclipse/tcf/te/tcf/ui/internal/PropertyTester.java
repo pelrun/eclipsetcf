@@ -15,12 +15,16 @@ import java.util.List;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
 import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 
 
@@ -44,6 +48,28 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 		if ("canDelete".equals(property)) { //$NON-NLS-1$
 			return testSelection(new StructuredSelection(receiver), property, args, expectedValue);
+		}
+
+		if ("hasHistory".equals(property) && receiver instanceof IPeerNode) { //$NON-NLS-1$
+			IPeerNode peerNode = (IPeerNode)receiver;
+			IService[] services = ServiceManager.getInstance().getServices(peerNode, IUIService.class, false);
+			for (IService service : services) {
+		        if (service instanceof IUIService) {
+		        	IDefaultContextToolbarDelegate delegate = ((IUIService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
+		        	if (delegate != null) {
+		        		String[] newIds = delegate.getToolbarHistoryIds(peerNode, new String[0]);
+		        		if (newIds != null) {
+		        			for (String newId : newIds) {
+		        		    	String[] entries = HistoryManager.getInstance().getHistory(newId);
+		        		    	if (entries != null && entries.length > 0) {
+		        		    		return true;
+		        		    	}
+	                        }
+		        		}
+		        	}
+		        }
+	        }
+			return false;
 		}
 
 		if ("isWizardId".equals(property) && receiver instanceof NewWizardNode) { //$NON-NLS-1$

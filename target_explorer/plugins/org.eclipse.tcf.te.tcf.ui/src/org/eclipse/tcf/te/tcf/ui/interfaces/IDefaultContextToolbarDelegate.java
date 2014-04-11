@@ -10,6 +10,8 @@
 
 package org.eclipse.tcf.te.tcf.ui.interfaces;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.handler.DefaultContextSelectorToolbarContribution;
 
 /**
@@ -27,8 +29,37 @@ public interface IDefaultContextToolbarDelegate {
 
 	/**
 	 * Returns a list if history ids that should be used to diaply the "recently used actions" in the toolbar actions sub menu.
-	 * @param context The selected default context.
+	 * @param peerNode The selected default context.
+	 * @param historyIds
 	 * @return Array of ids.
 	 */
-	public String[] getToolbarHistoryIds(Object context);
+	public String[] getToolbarHistoryIds(IPeerNode peerNode, String[] historyIds);
+
+	/**
+	 * Get the label for a history action.
+	 * @param peerNode
+	 * @param historyId
+	 * @param entry
+	 * @return
+	 */
+	public String getLabel(IPeerNode peerNode, String historyId, String entry);
+
+	/**
+	 * Get the image descriptor for a history action.
+	 * @param peerNode
+	 * @param historyId
+	 * @param entry
+	 * @return
+	 */
+	public ImageDescriptor getImageDescriptor(IPeerNode peerNode, String historyId, String entry);
+
+	/**
+	 * Execute a history action.
+	 * Depending on showDialog, a dialog is shown first.
+	 * @param peerNode
+	 * @param historyId
+	 * @param entry
+	 * @param showDialog
+	 */
+	public void execute(IPeerNode peerNode, String historyId, String entry, boolean showDialog);
 }

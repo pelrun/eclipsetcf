@@ -68,7 +68,7 @@
             class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
             id="org.eclipse.tcf.te.tcf.ui.propertyTester.simulator"
             namespace="org.eclipse.tcf.te.tcf.ui"
-            properties="isValidSimulatorConfig,canDelete"
+            properties="isValidSimulatorConfig,canDelete,hasHistory"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
    </extension>
@@ -610,6 +610,20 @@
          </control>
       </menuContribution>
 
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.history">
+         <menu
+               label="%command.history.label"
+               tooltip="%command.history.tooltip">
+            <dynamic
+                  class="org.eclipse.tcf.te.tcf.ui.handler.ActionHistoryToolbarContribution"
+                  id="org.eclipse.tcf.te.tcf.ui.ActionHistoryToolbarContribution"/>
+            <visibleWhen>
+               <with variable="defaultContextSelection">
+                  <test property="org.eclipse.tcf.te.tcf.ui.hasHistory"/>
+               </with>
+            </visibleWhen>
+         </menu>
+      </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
             <visibleWhen checkEnabled="false">

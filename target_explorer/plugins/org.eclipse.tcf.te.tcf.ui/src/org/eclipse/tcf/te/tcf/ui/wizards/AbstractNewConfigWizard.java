@@ -12,17 +12,10 @@ package org.eclipse.tcf.te.tcf.ui.wizards;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
-import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
-import org.eclipse.tcf.te.runtime.utils.StatusHelper;
-import org.eclipse.tcf.te.tcf.locator.interfaces.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
@@ -93,39 +86,7 @@ public abstract class AbstractNewConfigWizard extends AbstractWizard implements 
 		});
 
 		if (connect.get()) {
-			IService[] services = ServiceManager.getInstance().getServices(peerNode, IStepperOperationService.class, false);
-			IStepperOperationService stepperOperationService = null;
-			for (IService service : services) {
-				if (service instanceof IStepperOperationService && ((IStepperOperationService)service).isHandledOperation(peerNode, IStepperServiceOperations.CONNECT)) {
-					stepperOperationService = (IStepperOperationService)service;
-					break;
-				}
-	        }
-			if (stepperOperationService != null) {
-				String stepGroupId = stepperOperationService.getStepGroupId(peerNode, IStepperServiceOperations.CONNECT);
-				IStepContext stepContext = stepperOperationService.getStepContext(peerNode, IStepperServiceOperations.CONNECT);
-				String name = stepperOperationService.getStepGroupName(peerNode, IStepperServiceOperations.CONNECT);
-				IPropertiesContainer data = stepperOperationService.getStepData(peerNode, IStepperServiceOperations.CONNECT);
-				boolean enabled = stepperOperationService.isEnabled(peerNode, IStepperServiceOperations.CONNECT);
-
-				if (enabled && stepGroupId != null && stepContext != null) {
-					try {
-						StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-														stepContext,
-														data,
-														stepGroupId,
-														IStepperServiceOperations.CONNECT,
-														true,
-														true);
-
-						job.schedule();
-					} catch (IllegalStateException e) {
-						if (Platform.inDebugMode()) {
-							UIPlugin.getDefault().getLog().log(StatusHelper.getStatus(e));
-						}
-					}
-				}
-			}
+			peerNode.changeConnectState(IConnectable.ACTION_CONNECT, null, null);
 		}
 	}
 }

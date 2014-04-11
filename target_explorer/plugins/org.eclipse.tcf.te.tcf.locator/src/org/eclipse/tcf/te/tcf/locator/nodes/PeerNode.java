@@ -24,6 +24,7 @@ import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
@@ -387,7 +388,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     	IStepperOperationService service = StepperHelper.getService(this, operation);
     	if (service != null) {
     		setConnectState(intermediateState);
-    		StepperHelper.scheduleStepperJob(this, operation, service, callback, monitor);
+    		StepperHelper.scheduleStepperJob(this, operation, service, new PropertiesContainer(), callback, monitor);
     	}
     	else if (callback != null) {
     		callback.done(this, StatusHelper.getStatus(new NullPointerException("Missing stepper operation service for " + getName() + "."))); //$NON-NLS-1$ //$NON-NLS-2$

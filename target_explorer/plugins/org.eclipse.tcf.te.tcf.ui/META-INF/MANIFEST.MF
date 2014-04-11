@@ -35,6 +35,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-Localization: plugin
 Export-Package: org.eclipse.tcf.te.tcf.ui.activator,
  org.eclipse.tcf.te.tcf.ui.controls,
+ org.eclipse.tcf.te.tcf.ui.delegates,
  org.eclipse.tcf.te.tcf.ui.dialogs,
  org.eclipse.tcf.te.tcf.ui.editor,
  org.eclipse.tcf.te.tcf.ui.editor.controls,
