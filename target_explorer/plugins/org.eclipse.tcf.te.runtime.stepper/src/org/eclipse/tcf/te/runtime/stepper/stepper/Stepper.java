@@ -354,6 +354,7 @@ public class Stepper implements IStepper {
 			// save execution to history
 			String historyData = data.getStringProperty(IStepAttributes.ATTR_HISTORY_DATA);
 			if (historyData != null) {
+				HistoryManager.getInstance().add(stepGroupId + "@" + context.getId(), historyData, 1); //$NON-NLS-1$
 				HistoryManager.getInstance().add(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + context.getId(), historyData, 10); //$NON-NLS-1$
 			}
 
