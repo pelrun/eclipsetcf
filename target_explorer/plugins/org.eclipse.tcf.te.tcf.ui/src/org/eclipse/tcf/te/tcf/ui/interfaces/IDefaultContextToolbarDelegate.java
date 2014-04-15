@@ -10,7 +10,7 @@
 
 package org.eclipse.tcf.te.tcf.ui.interfaces;
 
-import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.handler.DefaultContextSelectorToolbarContribution;
 
@@ -45,13 +45,22 @@ public interface IDefaultContextToolbarDelegate {
 	public String getLabel(IPeerNode peerNode, String historyId, String entry);
 
 	/**
-	 * Get the image descriptor for a history action.
+	 * Get the description for a history action.
 	 * @param peerNode
 	 * @param historyId
 	 * @param entry
 	 * @return
 	 */
-	public ImageDescriptor getImageDescriptor(IPeerNode peerNode, String historyId, String entry);
+	public String getDescription(IPeerNode peerNode, String historyId, String entry);
+
+	/**
+	 * Get the image for a history action.
+	 * @param peerNode
+	 * @param historyId
+	 * @param entry
+	 * @return
+	 */
+	public Image getImage(IPeerNode peerNode, String historyId, String entry);
 
 	/**
 	 * Execute a history action.
@@ -62,4 +71,14 @@ public interface IDefaultContextToolbarDelegate {
 	 * @param showDialog
 	 */
 	public void execute(IPeerNode peerNode, String historyId, String entry, boolean showDialog);
+
+	/**
+	 * Validate the entry.
+	 * @param peerNode
+	 * @param historyId
+	 * @param entry
+	 * @return
+	 */
+	public boolean validate(IPeerNode peerNode, String historyId, String entry);
+
 }

@@ -17,8 +17,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -52,10 +52,10 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 		if ("hasHistory".equals(property) && receiver instanceof IPeerNode) { //$NON-NLS-1$
 			IPeerNode peerNode = (IPeerNode)receiver;
-			IService[] services = ServiceManager.getInstance().getServices(peerNode, IUIService.class, false);
+			IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
 			for (IService service : services) {
-		        if (service instanceof IUIService) {
-		        	IDefaultContextToolbarDelegate delegate = ((IUIService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
+		        if (service instanceof IDelegateService) {
+		        	IDefaultContextToolbarDelegate delegate = ((IDelegateService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
 		        	if (delegate != null) {
 		        		String[] newIds = delegate.getToolbarHistoryIds(peerNode, new String[0]);
 		        		if (newIds != null) {

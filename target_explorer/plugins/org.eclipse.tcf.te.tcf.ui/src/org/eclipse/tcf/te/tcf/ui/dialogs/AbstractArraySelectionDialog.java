@@ -13,9 +13,12 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
+import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -104,6 +107,8 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 		@SuppressWarnings("unused")
         TableColumn column = new TableColumn(table, SWT.LEFT);
 
+		ColumnViewerToolTipSupport.enableFor(viewer);
+
 		TableLayout tableLayout = new TableLayout();
 		tableLayout.addColumnData(new ColumnWeightData(100));
 		table.setLayout(tableLayout);
@@ -111,9 +116,8 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 	    GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 	    table.setLayoutData(layoutData);
 
-	    viewer.setContentProvider(new ArrayContentProvider());
-	    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
-	    viewer.setLabelProvider(new DecoratingLabelProvider(labelProvider, labelProvider));
+	    viewer.setContentProvider(getContentProvider());
+	    viewer.setLabelProvider(getLabelProvider());
 
 	    // Subclasses may customize the viewer before setting the input
 	    configureTableViewer(viewer);
@@ -136,6 +140,15 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 
 	    viewer.refresh();
 		updateEnablement(viewer);
+	}
+
+	protected IContentProvider getContentProvider() {
+		return new ArrayContentProvider();
+	}
+
+	protected IBaseLabelProvider getLabelProvider() {
+	    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
+	    return new DecoratingLabelProvider(labelProvider, labelProvider);
 	}
 
 	protected void refresh() {

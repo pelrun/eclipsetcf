@@ -151,6 +151,12 @@ public class Messages extends NLS {
 	public static String PeerNodeSelectionDialog_title;
 	public static String PeerNodeSelectionDialog_message;
 
+	public static String ActionHistorySelectionDialog_dialogTitle;
+	public static String ActionHistorySelectionDialog_title;
+	public static String ActionHistorySelectionDialog_message;
+	public static String ActionHistorySelectionDialog_button_edit;
+	public static String ActionHistorySelectionDialog_button_execute;
+
 	public static String RedirectHandler_error_title;
 	public static String RedirectHandler_error_redirectFailed;
 

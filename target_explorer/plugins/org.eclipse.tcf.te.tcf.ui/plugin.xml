@@ -350,6 +350,7 @@
 	         <separator name="group.connect" visible="false"/>
 	         <separator name="group.launch" visible="true"/>
 	         <separator name="group.launch.rundebug" visible="true"/>
+	         <separator name="group.history" visible="true"/>
 	         <separator name="group.open" visible="true"/>
 	         <separator name="group.delete" visible="false"/>
 	         <separator name="group.new" visible="false"/>
@@ -611,7 +612,8 @@
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.history">
-         <menu
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"/>
+         <!--menu
                label="%command.history.label"
                tooltip="%command.history.tooltip">
             <dynamic
@@ -622,7 +624,7 @@
                   <test property="org.eclipse.tcf.te.tcf.ui.hasHistory"/>
                </with>
             </visibleWhen>
-         </menu>
+         </menu-->
       </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
@@ -656,6 +658,10 @@
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.delete">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
+      </menuContribution>
+
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.history">
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"/>
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.new">
@@ -717,6 +723,13 @@
             name="%command.debug.label"
             description="%command.debug.tooltip">
       </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_History"
+            name="%command.history.label"
+            description="%command.history.tooltip">
+      </command>
    </extension>
 
 <!-- Command shortcuts -->
@@ -725,6 +738,10 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+M2+C"/>
+      <key  commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+F11"/>
    </extension>
 
 <!-- Command image contributions -->
@@ -963,6 +980,27 @@
                         property="org.eclipse.tcf.te.core.isConnectStateChangeActionAllowed"
                         value="disconnect"/>
                </adapt>
+            </with>
+         </enabledWhen>
+      </handler>
+
+      <handler commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history">
+         <class class="org.eclipse.tcf.te.tcf.ui.handler.ActionHistoryHandler"/>
+         <activeWhen>
+            <with variable="defaultContextSelection">
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+            </with>
+         </activeWhen> 
+         <enabledWhen>
+            <with variable="defaultContextSelection">
+               <and>
+                  <test property="org.eclipse.tcf.te.tcf.ui.hasHistory"/>
+                  <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.core.isConnectState"
+                           value="connect"/>
+                  </adapt>
+               </and>
             </with>
          </enabledWhen>
       </handler>

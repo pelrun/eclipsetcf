@@ -10,7 +10,7 @@
 
 package org.eclipse.tcf.te.tcf.ui.delegates;
 
-import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
 
@@ -44,10 +44,18 @@ public abstract class AbstractDefaultContextToolbarDelegate implements IDefaultC
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getImageDescriptor(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getDescription(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public ImageDescriptor getImageDescriptor(IPeerNode peerNode, String historyId, String entry) {
+	public String getDescription(IPeerNode peerNode, String historyId, String entry) {
+	    return getLabel(peerNode, historyId, entry);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getImage(IPeerNode, String, String)
+	 */
+	@Override
+	public Image getImage(IPeerNode peerNode, String historyId, String entry) {
 	    return null;
 	}
 
@@ -56,5 +64,13 @@ public abstract class AbstractDefaultContextToolbarDelegate implements IDefaultC
 	 */
 	@Override
 	public void execute(IPeerNode peerNode, String historyId, String entry, boolean showDialog) {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#validate(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public boolean validate(IPeerNode peerNode, String historyId, String entry) {
+	    return true;
 	}
 }

@@ -16,8 +16,8 @@ import java.util.List;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
@@ -51,11 +51,11 @@ public class NewToolbarWizardHandler extends AbstractNewSingleWizardHandler {
 	@Override
     protected String getWizardId(ExecutionEvent event) {
 		IPeerModel peerModel = ModelManager.getPeerModel();
-		IService[] services = ServiceManager.getInstance().getServices(peerModel, IUIService.class, false);
+		IService[] services = ServiceManager.getInstance().getServices(peerModel, IDelegateService.class, false);
 		List<String> ids = new ArrayList<String>();
 		for (IService service : services) {
-	        if (service instanceof IUIService) {
-	        	IDefaultContextToolbarDelegate delegate = ((IUIService)service).getDelegate(peerModel, IDefaultContextToolbarDelegate.class);
+	        if (service instanceof IDelegateService) {
+	        	IDefaultContextToolbarDelegate delegate = ((IDelegateService)service).getDelegate(peerModel, IDefaultContextToolbarDelegate.class);
 	        	if (delegate != null) {
 	        		String[] newIds = delegate.getToolbarNewConfigWizardIds(peerModel);
 	        		if (newIds != null) {

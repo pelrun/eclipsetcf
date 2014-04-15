@@ -15,11 +15,14 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
+import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.ui.handler.images.ActionHistoryImageDescriptor;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
+import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.actions.CompoundContributionItem;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
@@ -49,12 +52,12 @@ public class ActionHistoryToolbarContribution extends CompoundContributionItem i
 		final IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 		boolean enabled = (peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED);
 
-		IService[] services = ServiceManager.getInstance().getServices(peerNode, IUIService.class, false);
+		IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
 		Map<String, IDefaultContextToolbarDelegate> historyIds = new LinkedHashMap<String, IDefaultContextToolbarDelegate>();
 		String[] ids = new String[0];
 		for (IService service : services) {
-	        if (service instanceof IUIService) {
-	        	IDefaultContextToolbarDelegate delegate = ((IUIService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
+	        if (service instanceof IDelegateService) {
+	        	IDefaultContextToolbarDelegate delegate = ((IDelegateService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
 	        	if (delegate != null) {
 	        		ids = delegate.getToolbarHistoryIds(peerNode, ids);
         			for (String newId : ids) {
@@ -89,7 +92,13 @@ public class ActionHistoryToolbarContribution extends CompoundContributionItem i
 	    				}
 	    			};
 	    			action.setEnabled(enabled);
-	    			action.setImageDescriptor(delegate.getImageDescriptor(peerNode, historyId, entry));
+	    			AbstractImageDescriptor descriptor = new ActionHistoryImageDescriptor(
+	    							UIPlugin.getDefault().getImageRegistry(),
+	    							delegate.getImage(peerNode, historyId, entry),
+	    							delegate.validate(peerNode, historyId, entry));
+	    			UIPlugin.getSharedImage(descriptor);
+
+	    			action.setImageDescriptor(UIPlugin.getImageDescriptor(descriptor.getDecriptorKey()));
 	    			IContributionItem item = new ActionContributionItem(action);
 	    			items.add(item);
                 }
