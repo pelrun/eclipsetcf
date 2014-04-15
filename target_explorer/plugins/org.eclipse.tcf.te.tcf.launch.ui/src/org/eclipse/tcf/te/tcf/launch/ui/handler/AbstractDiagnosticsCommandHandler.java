@@ -76,9 +76,7 @@ public abstract class AbstractDiagnosticsCommandHandler extends AbstractHandler 
 					final IPeerNode node = (IPeerNode)element;
 
 					IPeerModelQueryService service = node.getModel().getService(IPeerModelQueryService.class);
-					String remoteServices = service != null ? service.queryRemoteServices(node) : null;
-
-					if (remoteServices != null && remoteServices.contains(IDiagnostics.NAME)) {
+					if (service != null && service.hasRemoteService(node, IDiagnostics.NAME)) {
 						runDiagnostics(node, shell);
 					}
 				}

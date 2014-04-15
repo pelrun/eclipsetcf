@@ -14,10 +14,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
@@ -66,12 +64,6 @@ public class PeerNodeFactory implements IElementFactory {
 				};
 
 				Protocol.invokeAndWait(runnable2);
-			}
-
-			if (node.get() != null) {
-				IPeerModel model = node.get().getModel();
-				IPeerModelQueryService queryService = model.getService(IPeerModelQueryService.class);
-				queryService.queryRemoteServices(node.get());
 			}
 		}
 

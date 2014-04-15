@@ -109,43 +109,11 @@ public class PeerModelLookupService extends AbstractPeerModelService implements 
 
 		List<IPeerNode> nodes = new ArrayList<IPeerNode>();
 		for (IPeerNode candidate : model.getPeerNodes()) {
-			String services = queryService.queryLocalServices(candidate);
-
-			boolean matchesExpectations = true;
-
-			// Ignore the local services if no expectations are set
-			if (expectedLocalServices != null && expectedLocalServices.length > 0) {
-				if (services != null) {
-					for (String service : expectedLocalServices) {
-						if (!services.contains(service)) {
-							matchesExpectations = false;
-							break;
-						}
-					}
-				} else {
-					matchesExpectations = false;
-				}
+			if (queryService != null &&
+							(expectedLocalServices == null || queryService.hasLocalService(candidate, expectedLocalServices)) &&
+							(expectedRemoteServices == null || queryService.hasRemoteService(candidate, expectedRemoteServices))) {
+				nodes.add(candidate);
 			}
-
-			if (!matchesExpectations) continue;
-
-			services = queryService.queryRemoteServices(candidate);
-
-			// Ignore the remote services if no expectations are set
-			if (expectedRemoteServices != null && expectedRemoteServices.length > 0) {
-				if (services != null) {
-					for (String service : expectedRemoteServices) {
-						if (!services.contains(service)) {
-							matchesExpectations = false;
-							break;
-						}
-					}
-				} else {
-					matchesExpectations = false;
-				}
-			}
-
-			if (matchesExpectations) nodes.add(candidate);
 		}
 
 		return nodes.toArray(new IPeerNode[nodes.size()]);

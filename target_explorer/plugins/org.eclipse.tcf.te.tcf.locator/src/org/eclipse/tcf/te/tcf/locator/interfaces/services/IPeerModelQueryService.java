@@ -17,28 +17,53 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 public interface IPeerModelQueryService extends IPeerModelService {
 
 	/**
-	 * Query the list of available local services for the given peer node.
-	 * <p>
-	 * <b>Note:</b> The result of the query is cached within the given peer
-	 * node and subsequent calls will return immediately with the cached value.
-	 * <p>
+	 * Returns the list of available local services.
 	 * <b>Note:</b> This method must be called outside the TCF dispatch thread.
 	 *
 	 * @param node The peer node. Must not be <code>null</code>.
-	 * @param done The client callback. Must not be <code>null</code>.
+	 * @return List of local services or null if target is not connected.
 	 */
-	public String queryLocalServices(IPeerNode node);
+	public String[] queryLocalServices(IPeerNode node);
 
 	/**
-	 * Query the list of available remote services for the given peer node.
-	 * <p>
-	 * <b>Note:</b> The result of the query is cached within the given peer
-	 * node and subsequent calls will return immediately with the cached value.
-	 * <p>
+	 * Returns the list of available remote services.
 	 * <b>Note:</b> This method must be called outside the TCF dispatch thread.
 	 *
 	 * @param node The peer node. Must not be <code>null</code>.
-	 * @param done The client callback. Must not be <code>null</code>.
+	 * @return List of remote services or null if target is not connected.
 	 */
-	public String queryRemoteServices(IPeerNode node);
+	public String[] queryRemoteServices(IPeerNode node);
+
+	/**
+	 * Returns the list of offline services.
+	 * <b>Note:</b> This method must be called outside the TCF dispatch thread.
+	 *
+	 * @param node The peer node. Must not be <code>null</code>.
+	 * @return List of offline services or empty list.
+	 */
+	public String[] queryOfflineServices(IPeerNode node);
+
+	/**
+	 * Check if the given local services are available on the given target.
+	 * @param node The peer node. Must not be <code>null</code>.
+	 * @param service List of services.
+	 * @return <code>true</code> if all services are available.
+	 */
+	public boolean hasLocalService(IPeerNode node, String... service);
+
+	/**
+	 * Check if the given remote services are available on the given target.
+	 * @param node The peer node. Must not be <code>null</code>.
+	 * @param service List of services.
+	 * @return <code>true</code> if all services are available.
+	 */
+	public boolean hasRemoteService(IPeerNode node, String... service);
+
+	/**
+	 * Check if the given offline services are available on the given target.
+	 * @param node The peer node. Must not be <code>null</code>.
+	 * @param service List of services.
+	 * @return <code>true</code> if all services are available.
+	 */
+	public boolean hasOfflineService(IPeerNode node, String... service);
 }

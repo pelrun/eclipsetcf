@@ -31,7 +31,6 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelQueryService;
 
 /**
  * Start debugger step implementation.
@@ -81,8 +80,6 @@ public class StartDebuggerStep extends AbstractPeerNodeStep {
 				@Override
 				public void run() {
 					// Don't attach the debugger if no run control is provided by the target
-					final IPeerModelQueryService queryService = node.getModel().getService(IPeerModelQueryService.class);
-					Assert.isNotNull(queryService);
 					String remoteServices = node.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 					Assert.isNotNull(remoteServices);
 					boolean canAttachDbg = false;
