@@ -19,6 +19,7 @@ import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -57,15 +58,10 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 		        if (service instanceof IDelegateService) {
 		        	IDefaultContextToolbarDelegate delegate = ((IDelegateService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
 		        	if (delegate != null) {
-		        		String[] newIds = delegate.getToolbarHistoryIds(peerNode, new String[0]);
-		        		if (newIds != null) {
-		        			for (String newId : newIds) {
-		        		    	String[] entries = HistoryManager.getInstance().getHistory(newId);
-		        		    	if (entries != null && entries.length > 0) {
-		        		    		return true;
-		        		    	}
-	                        }
-		        		}
+        		    	String[] entries = HistoryManager.getInstance().getHistory(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + peerNode.getPeerId()); //$NON-NLS-1$
+        		    	if (entries != null && entries.length > 0) {
+        		    		return true;
+        		    	}
 		        	}
 		        }
 	        }

@@ -63,7 +63,7 @@ public class TEHelper {
 		FileTransferItem item = new FileTransferItem(new Path(localFilePath),
 				new Path(remoteFilePath));
 		item.setProperty(IFileTransferItem.PROPERTY_DIRECTION,
-				IFileTransferItem.HOST_TO_TARGET);
+				""+IFileTransferItem.HOST_TO_TARGET); //$NON-NLS-1$
 		final Callback callback = new Callback();
 		FileTransferService.transfer(peer, null, item, monitor, callback);
 		// Wait till the step finished, an execution occurred or the

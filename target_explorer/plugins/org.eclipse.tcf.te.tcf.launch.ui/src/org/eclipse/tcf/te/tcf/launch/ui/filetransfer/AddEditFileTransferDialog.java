@@ -260,7 +260,7 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 		wc.setProperty(IFileTransferItem.PROPERTY_OPTIONS, options.getEditFieldControlText());
 
 		int direction = toTarget.getSelection() ? IFileTransferItem.HOST_TO_TARGET : IFileTransferItem.TARGET_TO_HOST;
-		wc.setProperty(IFileTransferItem.PROPERTY_DIRECTION, direction);
+		wc.setProperty(IFileTransferItem.PROPERTY_DIRECTION, ""+direction); //$NON-NLS-1$
 	}
 
 	/* (non-Javadoc)

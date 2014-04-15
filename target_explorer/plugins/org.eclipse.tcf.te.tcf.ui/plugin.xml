@@ -612,19 +612,10 @@
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.history">
+         <dynamic
+               class="org.eclipse.tcf.te.tcf.ui.handler.ActionHistoryToolbarContribution"
+               id="org.eclipse.tcf.te.tcf.ui.ActionHistoryToolbarContribution"/>
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"/>
-         <!--menu
-               label="%command.history.label"
-               tooltip="%command.history.tooltip">
-            <dynamic
-                  class="org.eclipse.tcf.te.tcf.ui.handler.ActionHistoryToolbarContribution"
-                  id="org.eclipse.tcf.te.tcf.ui.ActionHistoryToolbarContribution"/>
-            <visibleWhen>
-               <with variable="defaultContextSelection">
-                  <test property="org.eclipse.tcf.te.tcf.ui.hasHistory"/>
-               </with>
-            </visibleWhen>
-         </menu-->
       </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">

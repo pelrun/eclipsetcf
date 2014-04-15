@@ -27,10 +27,13 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
+import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
@@ -46,7 +49,6 @@ import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 
 	protected static class Entry {
-		String historyId;
 		IPeerNode peerNode;
 		IDefaultContextToolbarDelegate delegate;
 		String data;
@@ -66,8 +68,8 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.CLIENT_ID, Messages.ActionHistorySelectionDialog_button_edit,	true);
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL,	true);
+		createButton(parent, IDialogConstants.CLIENT_ID, Messages.ActionHistorySelectionDialog_button_edit,	false);
+		createButton(parent, IDialogConstants.OK_ID, Messages.ActionHistorySelectionDialog_button_execute,	true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
@@ -87,7 +89,9 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	protected void editPressed() {
 		Entry entry = getSelectedEntry();
 		if (entry != null) {
-			entry.delegate.execute(entry.peerNode, entry.historyId, entry.data, true);
+			if (entry.delegate.execute(entry.peerNode, entry.data, true)) {
+				close();
+			}
 		}
 	}
 
@@ -99,7 +103,9 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 		Entry entry = getSelectedEntry();
 	    super.okPressed();
 		if (entry != null) {
-			entry.delegate.execute(entry.peerNode, entry.historyId, entry.data, true);
+			if (entry.delegate.execute(entry.peerNode, entry.data, false)) {
+				close();
+			}
 		}
 	}
 
@@ -119,11 +125,15 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	 */
 	@Override
 	protected void updateEnablement(TableViewer viewer) {
+		if (viewer.getTable().getSelectionCount() == 0) {
+			viewer.getTable().setSelection(0);
+		}
+
 	    Entry entry = getSelectedEntry();
 
 	    // Adjust the OK button enablement
 	    Button okButton = getButton(IDialogConstants.OK_ID);
-	    SWTControlUtil.setEnabled(okButton, entry != null && entry.delegate.validate(entry.peerNode, entry.historyId, entry.data));
+	    SWTControlUtil.setEnabled(okButton, entry != null && entry.delegate.validate(entry.peerNode, entry.data));
 
 	    // Adjust the edit button enablement
 	    Button editButton = getButton(IDialogConstants.CLIENT_ID);
@@ -138,16 +148,14 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 		final IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 
 		IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
-		Map<String, IDefaultContextToolbarDelegate> historyIds = new LinkedHashMap<String, IDefaultContextToolbarDelegate>();
-		String[] ids = new String[0];
+		Map<String, IDefaultContextToolbarDelegate> delegates = new LinkedHashMap<String, IDefaultContextToolbarDelegate>();
 		for (IService service : services) {
 	        if (service instanceof IDelegateService) {
 	        	IDefaultContextToolbarDelegate delegate = ((IDelegateService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
 	        	if (delegate != null) {
-	        		ids = delegate.getToolbarHistoryIds(peerNode, ids);
-        			for (String newId : ids) {
-        				if (!historyIds.containsKey(newId)) {
-        					historyIds.put(newId, delegate);
+        			for (String stepGroupId : delegate.getHandledStepGroupIds(peerNode)) {
+        				if (!delegates.containsKey(stepGroupId)) {
+        					delegates.put(stepGroupId, delegate);
         				}
                     }
 	        	}
@@ -155,21 +163,21 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
         }
 
 		List<Entry> actions = new ArrayList<Entry>();
-	    for (final String historyId : ids) {
-	    	String[] entries = HistoryManager.getInstance().getHistory(historyId);
-	    	final IDefaultContextToolbarDelegate delegate = historyIds.get(historyId);
-	    	if (entries != null && entries.length > 0) {
-	    		for (final String entry : entries) {
-	    			Entry action = new Entry();
-	    			action.peerNode = peerNode;
-	    			action.historyId = historyId;
-	    			action.delegate = delegate;
-	    			action.data = entry;
+    	String[] entries = HistoryManager.getInstance().getHistory(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + peerNode.getPeerId()); //$NON-NLS-1$
+    	if (entries != null && entries.length > 0) {
+    		for (final String entry : entries) {
+    			IPropertiesContainer decoded = DataHelper.decodePropertiesContainer(entry);
+    			String stepGroupId = decoded.getStringProperty(IStepAttributes.ATTR_STEP_GROUP_ID);
+    			if (stepGroupId != null && delegates.containsKey(stepGroupId)) {
+    				Entry action = new Entry();
+    				action.peerNode = peerNode;
+    				action.delegate = delegates.get(stepGroupId);
+    				action.data = entry;
+         			actions.add(action);
+    			}
+    		}
+    	}
 
-	    			actions.add(action);
-                }
-	    	}
-	    }
 		return actions.toArray();
 	}
 
@@ -194,20 +202,20 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	    	@Override
             public String getToolTipText(Object element) {
 	    		Entry entry = (Entry)element;
-    			return entry.delegate.getDescription(entry.peerNode, entry.historyId, entry.data);
+    			return entry.delegate.getDescription(entry.peerNode, entry.data);
 	    	}
 
 	    	public String getText(Object element) {
 	    		Entry entry = (Entry)element;
-    			return entry.delegate.getLabel(entry.peerNode, entry.historyId, entry.data);
+    			return entry.delegate.getLabel(entry.peerNode, entry.data);
 	    	}
 
 	    	public Image getImage(Object element) {
 	    		Entry entry = (Entry)element;
     			AbstractImageDescriptor descriptor = new ActionHistoryImageDescriptor(
     							UIPlugin.getDefault().getImageRegistry(),
-    							entry.delegate.getImage(entry.peerNode, entry.historyId, entry.data),
-    							entry.delegate.validate(entry.peerNode, entry.historyId, entry.data));
+    							entry.delegate.getImage(entry.peerNode, entry.data),
+    							entry.delegate.validate(entry.peerNode, entry.data));
     			return UIPlugin.getSharedImage(descriptor);
 	    	}
 	    };

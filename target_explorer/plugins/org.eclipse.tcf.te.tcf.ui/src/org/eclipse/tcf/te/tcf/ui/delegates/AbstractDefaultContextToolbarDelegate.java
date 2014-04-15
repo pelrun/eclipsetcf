@@ -11,6 +11,9 @@
 package org.eclipse.tcf.te.tcf.ui.delegates;
 
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
 
@@ -28,49 +31,55 @@ public abstract class AbstractDefaultContextToolbarDelegate implements IDefaultC
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getToolbarHistoryIds(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String[])
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getHandledStepGroupIds(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
 	 */
 	@Override
-	public String[] getToolbarHistoryIds(IPeerNode peerNode, String[] historyIds) {
-	    return historyIds;
+	public String[] getHandledStepGroupIds(IPeerNode peerNode) {
+	    return new String[0];
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getLabel(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getLabel(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String)
 	 */
 	@Override
-	public String getLabel(IPeerNode peerNode, String historyId, String entry) {
+	public String getLabel(IPeerNode peerNode, String entry) {
 	    return null;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getDescription(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getImage(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String)
 	 */
 	@Override
-	public String getDescription(IPeerNode peerNode, String historyId, String entry) {
-	    return getLabel(peerNode, historyId, entry);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getImage(IPeerNode, String, String)
-	 */
-	@Override
-	public Image getImage(IPeerNode peerNode, String historyId, String entry) {
+	public Image getImage(IPeerNode peerNode, String entry) {
 	    return null;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#execute(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, java.lang.String, boolean)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#getDescription(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String)
 	 */
 	@Override
-	public void execute(IPeerNode peerNode, String historyId, String entry, boolean showDialog) {
+	public String getDescription(IPeerNode peerNode, String entry) {
+	    return getLabel(peerNode, entry);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#validate(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, java.lang.String)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#validate(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String)
 	 */
 	@Override
-	public boolean validate(IPeerNode peerNode, String historyId, String entry) {
-	    return true;
+	public boolean validate(IPeerNode peerNode, String entry) {
+	    return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#execute(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, boolean)
+	 */
+	@Override
+	public boolean execute(IPeerNode peerNode, String entry, boolean showDialog) {
+		return false;
+	}
+
+	protected String getStepGroupId(String entry) {
+		IPropertiesContainer data = DataHelper.decodePropertiesContainer(entry);
+		return data.getStringProperty(IStepAttributes.ATTR_STEP_GROUP_ID);
 	}
 }

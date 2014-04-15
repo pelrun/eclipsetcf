@@ -139,7 +139,6 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 		});
 
 	    viewer.refresh();
-		updateEnablement(viewer);
 	}
 
 	protected IContentProvider getContentProvider() {
@@ -181,6 +180,10 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 	 */
 	protected void updateEnablement(TableViewer viewer) {
 		Assert.isNotNull(viewer);
+
+		if (viewer.getTable().getSelectionCount() == 0) {
+			viewer.getTable().setSelection(0);
+		}
 
 	    // Adjust the OK button enablement
 	    Button okButton = getButton(IDialogConstants.OK_ID);

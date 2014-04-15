@@ -172,11 +172,9 @@ public class Stepper implements IStepper {
 		// but not finished yet
 		this.finished = false;
 
-		if (!data.containsKey(IStepAttributes.ATTR_HISTORY_DATA)) {
+		if (!data.isEmpty()) {
+			data.setProperty(IStepAttributes.ATTR_STEP_GROUP_ID, stepGroupId);
 			data.setProperty(IStepAttributes.ATTR_HISTORY_DATA, DataHelper.encodePropertiesContainer(data));
-		}
-		if (!data.containsKey(IStepAttributes.ATTR_HISTORY_ID)) {
-			data.setProperty(IStepAttributes.ATTR_HISTORY_ID, stepGroupId + "@" + context.getId()); //$NON-NLS-1$
 		}
 
 		// call the hook for the subclasses to initialize themselves
@@ -354,16 +352,9 @@ public class Stepper implements IStepper {
 			List<IStatus> statusContainer = new ArrayList<IStatus>();
 
 			// save execution to history
-			String historyId = data.getStringProperty(IStepAttributes.ATTR_HISTORY_ID);
 			String historyData = data.getStringProperty(IStepAttributes.ATTR_HISTORY_DATA);
-			int historyCount = data.getIntProperty(IStepAttributes.ATTR_HISTORY_COUNT);
-			if (historyId != null && historyData != null) {
-				if (historyCount > 0) {
-					HistoryManager.getInstance().add(historyId, historyData, historyCount);
-				}
-				else {
-					HistoryManager.getInstance().add(historyId, historyData);
-				}
+			if (historyData != null) {
+				HistoryManager.getInstance().add(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + context.getId(), historyData, 10); //$NON-NLS-1$
 			}
 
 			// start execution

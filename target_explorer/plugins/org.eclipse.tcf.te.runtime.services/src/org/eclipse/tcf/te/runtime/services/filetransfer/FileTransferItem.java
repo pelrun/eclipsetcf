@@ -25,7 +25,7 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 	 */
 	public FileTransferItem() {
 		setProperty(PROPERTY_ENABLED, true);
-		setProperty(PROPERTY_DIRECTION, HOST_TO_TARGET);
+		setProperty(PROPERTY_DIRECTION, ""+HOST_TO_TARGET); //$NON-NLS-1$
 	}
 
 	public FileTransferItem(IPath fromHost, boolean enabled) {

@@ -28,57 +28,51 @@ public interface IDefaultContextToolbarDelegate {
 	public String[] getToolbarNewConfigWizardIds(Object context);
 
 	/**
-	 * Returns a list if history ids that should be used to diaply the "recently used actions" in the toolbar actions sub menu.
+	 * Returns a list of handled step group ids.
 	 * @param peerNode The selected default context.
-	 * @param historyIds
-	 * @return Array of ids.
+	 * @return
 	 */
-	public String[] getToolbarHistoryIds(IPeerNode peerNode, String[] historyIds);
+	public String[] getHandledStepGroupIds(IPeerNode peerNode);
 
 	/**
 	 * Get the label for a history action.
 	 * @param peerNode
-	 * @param historyId
 	 * @param entry
 	 * @return
 	 */
-	public String getLabel(IPeerNode peerNode, String historyId, String entry);
+	public String getLabel(IPeerNode peerNode, String entry);
 
 	/**
 	 * Get the description for a history action.
 	 * @param peerNode
-	 * @param historyId
 	 * @param entry
 	 * @return
 	 */
-	public String getDescription(IPeerNode peerNode, String historyId, String entry);
+	public String getDescription(IPeerNode peerNode,String entry);
 
 	/**
 	 * Get the image for a history action.
 	 * @param peerNode
-	 * @param historyId
 	 * @param entry
 	 * @return
 	 */
-	public Image getImage(IPeerNode peerNode, String historyId, String entry);
+	public Image getImage(IPeerNode peerNode, String entry);
 
 	/**
 	 * Execute a history action.
 	 * Depending on showDialog, a dialog is shown first.
 	 * @param peerNode
-	 * @param historyId
 	 * @param entry
 	 * @param showDialog
 	 */
-	public void execute(IPeerNode peerNode, String historyId, String entry, boolean showDialog);
+	public boolean execute(IPeerNode peerNode, String entry, boolean showDialog);
 
 	/**
 	 * Validate the entry.
 	 * @param peerNode
-	 * @param historyId
 	 * @param entry
 	 * @return
 	 */
-	public boolean validate(IPeerNode peerNode, String historyId, String entry);
+	public boolean validate(IPeerNode peerNode, String entry);
 
 }
