@@ -15,6 +15,7 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
@@ -41,6 +42,10 @@ public final class StepperHelper {
 		String stepGroupId = service.getStepGroupId(context, operation);
 		String name = service.getStepGroupName(context, operation);
 		boolean isCancelable = service.isCancelable(context, operation);
+		boolean addToActionHistory = service.addToActionHistory(context, operation);
+		if (!addToActionHistory) {
+			data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, true);
+		}
 
 		if (stepGroupId != null && stepContext != null) {
 			StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$

@@ -37,6 +37,14 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#addToActionHistory(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public boolean addToActionHistory(Object context, String operation) {
+	    return false;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.services.interfaces.IStepperService#getStepGroupId(java.lang.Object, java.lang.String)
 	 */
 	@Override

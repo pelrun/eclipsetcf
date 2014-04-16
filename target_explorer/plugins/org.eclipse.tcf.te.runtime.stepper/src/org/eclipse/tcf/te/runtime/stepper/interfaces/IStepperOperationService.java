@@ -74,6 +74,14 @@ public interface IStepperOperationService extends IService {
 	public boolean isCancelable(Object context, String operation);
 
 	/**
+	 * Returns <code>true</code> if this stepper run should be added to the action history.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param operation The operation. Must not be <code>null</code>.
+	 * @return <code>true</code> if the stepper run should be added to the action history.
+	 */
+	public boolean addToActionHistory(Object context, String operation);
+
+	/**
 	 * Validates the step data to be used for the given context and operation.
 	 * @param context The context. Must not be <code>null</code>.
 	 * @param operation The operation. Must not be <code>null</code>.

@@ -172,9 +172,12 @@ public class Stepper implements IStepper {
 		// but not finished yet
 		this.finished = false;
 
+		boolean skipLastRunHistory = data.getBooleanProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY);
+		data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, null);
 		if (!data.isEmpty()) {
 			data.setProperty(IStepAttributes.ATTR_STEP_GROUP_ID, stepGroupId);
 			data.setProperty(IStepAttributes.ATTR_HISTORY_DATA, DataHelper.encodePropertiesContainer(data));
+			data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, skipLastRunHistory);
 		}
 
 		// call the hook for the subclasses to initialize themselves
@@ -354,8 +357,13 @@ public class Stepper implements IStepper {
 			// save execution to history
 			String historyData = data.getStringProperty(IStepAttributes.ATTR_HISTORY_DATA);
 			if (historyData != null) {
+				// this is the history for each step group used by action dialogs to prefill the values if no usable selection is available
 				HistoryManager.getInstance().add(stepGroupId + "@" + context.getId(), historyData, 1); //$NON-NLS-1$
-				HistoryManager.getInstance().add(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + context.getId(), historyData, 10); //$NON-NLS-1$
+				if (!data.getBooleanProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY)) {
+					// this is the history used for the list of history actions and the history dialog
+
+					HistoryManager.getInstance().add(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + context.getId(), historyData, 10); //$NON-NLS-1$
+				}
 			}
 
 			// start execution
