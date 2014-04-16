@@ -50,7 +50,7 @@ public class PathVariableDelegate extends AbstractPathVariableDelegate {
 		if (data instanceof Map) {
 			String keys = (String)((Map<?,?>)data).get("keysToHandle"); //$NON-NLS-1$
 			if (keys != null) {
-				keysToHandle = keys.split("\\w*,\\w*"); //$NON-NLS-1$
+				keysToHandle = keys.split("\\W*,\\W*"); //$NON-NLS-1$
 			}
 		}
 	}
