@@ -72,12 +72,13 @@ public class ActionHistoryToolbarContribution extends CompoundContributionItem i
     	if (entries != null && entries.length > 0) {
     		int count = 0;
     		for (final String entry : entries) {
-    			if (++count > 5) {
+    			if (count > 5) {
     				break;
     			}
     			IPropertiesContainer decoded = DataHelper.decodePropertiesContainer(entry);
     			String stepGroupId = decoded.getStringProperty(IStepAttributes.ATTR_STEP_GROUP_ID);
     			if (stepGroupId != null && delegates.containsKey(stepGroupId)) {
+	    			count++;
     				final IDefaultContextToolbarDelegate delegate = delegates.get(stepGroupId);
 	    			IAction action = new Action("&" + count + " " + delegate.getLabel(peerNode, entry)) { //$NON-NLS-1$ //$NON-NLS-2$
 	    				@Override

@@ -192,7 +192,7 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	    	 */
 	    	@Override
 	    	public void update(ViewerCell cell) {
-	    		cell.setText(getText(cell.getElement()));
+	    		cell.setText(" " + getText(cell.getElement())); //$NON-NLS-1$
 	    		cell.setImage(getImage(cell.getElement()));
 	    	}
 
