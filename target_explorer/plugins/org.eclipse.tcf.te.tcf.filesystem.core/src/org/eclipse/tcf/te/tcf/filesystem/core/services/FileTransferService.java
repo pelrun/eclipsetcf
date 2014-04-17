@@ -371,7 +371,7 @@ public class FileTransferService {
             long timestamp = System.currentTimeMillis();
             speed = ((bytesDone) * 1000) / Math.max(timestamp - startTimeStamp, 1);
 
-            ProgressHelper.worked(monitor, (int)((bytesRead/bytesTotal) * 1000));
+            ProgressHelper.worked(monitor, (int)((bytesRead/(bytesTotal > 0 ? bytesTotal : 1000)) * 1000));
             ProgressHelper.setSubTaskName(monitor, getProgressMessage(bytesDone, bytesTotal, speed));
         }
     }
@@ -432,7 +432,7 @@ public class FileTransferService {
             speed = "GB/s"; //$NON-NLS-1$
         }
 
-        return bytesDone + done + " of " + bytesTotal + total + " at " + bytesSpeed + speed; //$NON-NLS-1$ //$NON-NLS-2$
+        return bytesDone + done + " of " + (bytesTotal > 0 ? Long.toString(bytesTotal) : "N/A") + total + " at " + bytesSpeed + speed; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
 }
