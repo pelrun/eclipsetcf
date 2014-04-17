@@ -33,7 +33,9 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	@Override
 	public boolean isHandledOperation(Object context, String operation) {
 		return IStepperServiceOperations.CONNECT.equals(operation) ||
-						IStepperServiceOperations.DISCONNECT.equals(operation);
+						IStepperServiceOperations.DISCONNECT.equals(operation) ||
+						IStepperServiceOperations.CONNECTION_LOST.equals(operation) ||
+						IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation);
 	}
 
 	/* (non-Javadoc)
@@ -57,6 +59,12 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 		if (IStepperServiceOperations.DISCONNECT.equals(operation)) {
 			return IStepGroupIds.DISCONNECT;
 		}
+		if (IStepperServiceOperations.CONNECTION_LOST.equals(operation)) {
+			return IStepGroupIds.CONNECTON_LOST;
+		}
+		if (IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation)) {
+			return IStepGroupIds.CONNECTION_RECOVERING;
+		}
 
 		return null;
 	}
@@ -74,6 +82,12 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 		if (IStepperServiceOperations.DISCONNECT.equals(operation)) {
 			return "Disconnect "+((IPeerNode)context).getName(); //$NON-NLS-1$
 		}
+		if (IStepperServiceOperations.CONNECTION_LOST.equals(operation)) {
+			return "Lost Connection to "+((IPeerNode)context).getName(); //$NON-NLS-1$
+		}
+		if (IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation)) {
+			return "Recovering Connection to "+((IPeerNode)context).getName(); //$NON-NLS-1$
+		}
 
 		return null;
 	}
@@ -90,6 +104,12 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 			if (IStepperServiceOperations.DISCONNECT.equals(operation)) {
 				return ((IConnectable)context).isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT);
 			}
+			if (IStepperServiceOperations.CONNECTION_LOST.equals(operation)) {
+				return ((IConnectable)context).isConnectStateChangeActionAllowed(IConnectable.STATE_CONNECTION_LOST);
+			}
+			if (IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation)) {
+				return ((IConnectable)context).isConnectStateChangeActionAllowed(IConnectable.STATE_CONNECTION_RECOVERING);
+			}
 		}
 
 		return false;
@@ -100,6 +120,6 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	 */
 	@Override
 	public boolean isCancelable(Object context, String operation) {
-		return IStepperServiceOperations.CONNECT.equals(operation);
+		return IStepperServiceOperations.CONNECT.equals(operation) || IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation);
 	}
 }

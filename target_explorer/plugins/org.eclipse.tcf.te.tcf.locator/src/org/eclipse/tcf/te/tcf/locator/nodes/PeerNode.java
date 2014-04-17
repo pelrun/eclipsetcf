@@ -22,12 +22,18 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.events.NotifyEvent;
+import org.eclipse.tcf.te.runtime.interfaces.IConditionTester;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
+import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
@@ -36,6 +42,9 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.nls.Messages;
+import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
 
 /**
@@ -383,6 +392,14 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 			operation = IStepperServiceOperations.DISCONNECT;
 			intermediateState = STATE_DISCONNECT_SCHEDULED;
 			break;
+		case STATE_CONNECTION_LOST:
+			operation = IStepperServiceOperations.CONNECTION_LOST;
+			intermediateState = STATE_CONNECTION_LOST;
+			break;
+		case STATE_CONNECTION_RECOVERING:
+			operation = IStepperServiceOperations.CONNECTION_RECOVERING;
+			intermediateState = STATE_CONNECTION_RECOVERING;
+			break;
 		}
 
     	IStepperOperationService service = StepperHelper.getService(this, operation);
@@ -395,16 +412,23 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     	}
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.core.interfaces.IConnectable#isConnectStateChangeActionAllowed(int)
+     */
     @Override
     public boolean isConnectStateChangeActionAllowed(int action) {
     	int state = getConnectState();
     	switch (state) {
 			case STATE_CONNECTED:
+				return isAllowedStateOrAction(action, ACTION_DISCONNECT, STATE_CONNECTION_LOST);
+			case STATE_CONNECTION_RECOVERING:
 			case STATE_CONNECT_SCHEDULED:
 			case STATE_CONNECTING:
-				return isAllowedState(action, ACTION_DISCONNECT);
+				return isAllowedStateOrAction(action, ACTION_DISCONNECT);
 			case STATE_DISCONNECTED:
-				return isValid() && isAllowedState(action, ACTION_CONNECT);
+				return isValid() && isAllowedStateOrAction(action, ACTION_CONNECT);
+			case STATE_CONNECTION_LOST:
+				return isAllowedStateOrAction(action, STATE_CONNECTION_RECOVERING);
     	}
     	return false;
     }
@@ -416,27 +440,31 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     public boolean isConnectStateChangeAllowed(int newState) {
     	int state = getConnectState();
     	switch (state) {
+    		case STATE_CONNECTION_LOST:
+				return isAllowedStateOrAction(newState, STATE_CONNECTION_RECOVERING);
+    		case STATE_CONNECTION_RECOVERING:
+				return isAllowedStateOrAction(newState, STATE_CONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING, STATE_DISCONNECTED);
 			case STATE_CONNECTED:
-				return isAllowedState(newState, STATE_DISCONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING);
+				return isAllowedStateOrAction(newState, STATE_CONNECTION_LOST, STATE_DISCONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING);
 			case STATE_CONNECT_SCHEDULED:
-				return isAllowedState(newState, STATE_CONNECTING, STATE_CONNECTED, STATE_DISCONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING);
+				return isAllowedStateOrAction(newState, STATE_CONNECTING, STATE_CONNECTED, STATE_DISCONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING);
 			case STATE_CONNECTING:
-				return isAllowedState(newState, STATE_CONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING, STATE_DISCONNECTED);
+				return isAllowedStateOrAction(newState, STATE_CONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING, STATE_DISCONNECTED);
 			case STATE_DISCONNECTED:
-				return isAllowedState(newState, STATE_CONNECTED, STATE_CONNECT_SCHEDULED, STATE_CONNECTING);
+				return isAllowedStateOrAction(newState, STATE_CONNECTED, STATE_CONNECT_SCHEDULED, STATE_CONNECTING);
 			case STATE_DISCONNECT_SCHEDULED:
-				return isAllowedState(newState, STATE_DISCONNECTING, STATE_DISCONNECTED);
+				return isAllowedStateOrAction(newState, STATE_DISCONNECTING, STATE_DISCONNECTED);
 			case STATE_DISCONNECTING:
-				return isAllowedState(newState, STATE_DISCONNECTED);
+				return isAllowedStateOrAction(newState, STATE_DISCONNECTED);
 			case STATE_UNKNOWN:
-				return isAllowedState(newState, STATE_DISCONNECTED);
+				return isAllowedStateOrAction(newState, STATE_DISCONNECTED);
 		}
         return false;
     }
 
-    private boolean isAllowedState(int state, int... allowedStates) {
-    	for (int allowedState : allowedStates) {
-	        if (state == allowedState) {
+    private boolean isAllowedStateOrAction(int stateOrAction, int... allowedStatesOrActions) {
+    	for (int allowedStateOrAction : allowedStatesOrActions) {
+	        if (stateOrAction == allowedStateOrAction) {
 	        	return true;
 	        }
         }
@@ -455,26 +483,127 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	 */
     @Override
     public void onChannelClosed(Throwable error) {
-    	if (isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
-    		changeConnectState(IConnectable.ACTION_DISCONNECT, new Callback() {
-    			/* (non-Javadoc)
-    			 * @see org.eclipse.tcf.te.runtime.callback.Callback#internalDone(java.lang.Object, org.eclipse.core.runtime.IStatus)
-    			 */
+    	final AtomicBoolean connectionLost = new AtomicBoolean(true);
+    	if (SimulatorUtils.getSimulatorService(this) != null) {
+    		ExecutorsUtil.waitAndExecute(1000, new IConditionTester() {
+				@Override
+				public boolean isConditionFulfilled() {
+		    		Protocol.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+				    		Object simProcess = getProperty(ISimulatorService.PROP_SIM_INSTANCE);
+				    		if (simProcess instanceof Process) {
+				    			try {
+				    				((Process)simProcess).exitValue();
+					    			connectionLost.set(false);
+				    			}
+				    			catch (Exception e) {
+				    			}
+				    		}
+			    			else {
+				    			connectionLost.set(false);
+			    			}
+						}
+					});
+		    		return !connectionLost.get();
+				}
+				@Override
+				public void cleanup() {
+				}
+			});
+    	}
+
+
+    	if (connectionLost.get() && isConnectStateChangeActionAllowed(IConnectable.STATE_CONNECTION_LOST)) {
+    		changeConnectState(IConnectable.STATE_CONNECTION_LOST, new Callback() {
     			@Override
     			protected void internalDone(Object caller, IStatus status) {
-    				setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, null);
-    				setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, null);
+    				Protocol.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+		    				IPeerModelUpdateService service = getModel().getService(IPeerModelUpdateService.class);
+		    				service.updatePeerServices(PeerNode.this, null, null);
+						}
+					});
+    				fireNotification(getConnectState());
+    				if (status.isOK() && isConnectStateChangeAllowed(IConnectable.STATE_CONNECTION_RECOVERING)) {
+    					changeConnectState(IConnectable.STATE_CONNECTION_RECOVERING, new Callback() {
+    						@Override
+    						protected void internalDone(Object caller, IStatus status) {
+    							if (status.isOK()) {
+    								fireNotification(IConnectable.STATE_CONNECTION_RECOVERING);
+    							}
+    						}
+    					},
+    	    			null);
+    				}
+    				else {
+    				}
+    			}
+    		},
+    		null);
+    	}
+    	else if (isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
+    		changeConnectState(IConnectable.ACTION_DISCONNECT, new Callback() {
+    			@Override
+    			protected void internalDone(Object caller, IStatus status) {
+    				Protocol.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+		    				IPeerModelUpdateService service = getModel().getService(IPeerModelUpdateService.class);
+		    				service.updatePeerServices(PeerNode.this, null, null);
+		    				fireNotification(IConnectable.ACTION_DISCONNECT);
+						}
+					});
     			}
     		},
     		null);
     	}
     	else {
-			setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, null);
-			setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, null);
+			Protocol.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+    				IPeerModelUpdateService service = getModel().getService(IPeerModelUpdateService.class);
+    				service.updatePeerServices(PeerNode.this, null, null);
+				}
+			});
     	}
     }
 
-	/* (non-Javadoc)
+	/**
+	 * Fire the module notification.
+	 *
+	 * @param node The module context node. Must not be <code>null</code>.
+	 * @param operation The module operation (added, removed, changed). Must not be <code>null</code>.
+	 * @param status The status of the operation (success, failed, ...). Must not be <code>null</code>
+	 */
+	protected void fireNotification(int state) {
+		// Show a notification to the user
+		String message = null;
+		switch (state) {
+		case IConnectable.STATE_CONNECTION_LOST:
+			message = Messages.PeerNode_notification_message_connectionLost;
+			break;
+		case IConnectable.STATE_CONNECTION_RECOVERING:
+			message = Messages.PeerNode_notification_message_connectionRecovered;
+			break;
+		case IConnectable.STATE_DISCONNECTED:
+			message = Messages.PeerNode_notification_message_disconnected;
+			break;
+		}
+
+		if (message != null) {
+			IPropertiesContainer properties = new PropertiesContainer();
+			properties.setProperty(NotifyEvent.PROP_TITLE_TEXT, getName());
+			properties.setProperty(NotifyEvent.PROP_TITLE_IMAGE_ID, getPeerType());
+			properties.setProperty(NotifyEvent.PROP_DESCRIPTION_TEXT, message);
+
+			NotifyEvent event = new NotifyEvent(getModel(), null, properties);
+			EventManager.getInstance().fireEvent(event);
+		}
+	}
+
+    /* (non-Javadoc)
 	 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#congestionLevel(int)
 	 */
     @Override

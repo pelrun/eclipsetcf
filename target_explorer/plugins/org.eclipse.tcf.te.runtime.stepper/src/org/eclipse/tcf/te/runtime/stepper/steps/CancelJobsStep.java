@@ -58,19 +58,20 @@ public class CancelJobsStep extends AbstractStep {
 
 		final AsyncCallbackCollector collector = new AsyncCallbackCollector();
 		Map<String,List<Job>> jobs = StepperJob.getJobs(context.getContextObject());
-		final AtomicInteger numJobsToCancel = new AtomicInteger();
-		final AtomicInteger canceledJobs = new AtomicInteger();
+		final AtomicInteger numJobsToCancel = new AtomicInteger(0);
+		final AtomicInteger canceledJobs = new AtomicInteger(0);
 		for (String op : jobs.keySet()) {
 			for (Job job : jobs.get(op)) {
-	            if (job != thisJob) {
-	            	numJobsToCancel.set(numJobsToCancel.get()+1);
-	            }
+            	if (job != thisJob &&
+            					(!(job instanceof StepperJob) || ((StepperJob)job).isCancelable())) {
+            		numJobsToCancel.set(numJobsToCancel.get()+1);
+            	}
 			}
 		}
 		for (String op : jobs.keySet()) {
 			for (Job job : jobs.get(op)) {
 	            if (job != thisJob) {
-	            	if (job instanceof StepperJob) {
+	            	if (job instanceof StepperJob && ((StepperJob)job).isCancelable()) {
 	            		Callback jobCb = new Callback(((StepperJob)job).getJobCallback()) {
 	            			@Override
 	            			protected void internalDone(Object caller, IStatus status) {
@@ -87,8 +88,11 @@ public class CancelJobsStep extends AbstractStep {
 	            		else {
             				canceledJobs.set(canceledJobs.get()+1);
 	            		}
-	            		job.cancel();
             		}
+	            	else {
+        				canceledJobs.set(canceledJobs.get()+1);
+	            	}
+            		job.cancel();
 	            }
             }
 

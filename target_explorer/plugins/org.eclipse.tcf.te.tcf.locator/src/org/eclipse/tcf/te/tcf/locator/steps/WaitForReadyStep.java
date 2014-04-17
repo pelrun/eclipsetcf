@@ -46,6 +46,8 @@ import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
  */
 public class WaitForReadyStep extends AbstractPeerNodeStep {
 
+	public static final String PARAMETER_NO_TIMEOUT = "noTimeout"; //$NON-NLS-1$
+
 	/**
 	 * Constructor.
 	 */
@@ -65,6 +67,16 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
+		String param = getParameters().get(PARAMETER_NO_TIMEOUT);
+		boolean paramBool = false;
+		if (param != null) {
+			try {
+				paramBool = Boolean.parseBoolean(param);
+			}
+			catch (Exception e) {
+			}
+		}
+		final boolean noTimeout = paramBool;
 
 		if (peerNode != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
 			Protocol.invokeLater(new Runnable() {
@@ -81,7 +93,7 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 					if (ProgressHelper.isCancel(WaitForReadyStep.this, monitor, callback)) {
 						return;
 					}
-					else if (refreshCount >= totalWork) {
+					else if (!noTimeout && refreshCount >= totalWork) {
 						@SuppressWarnings("synthetic-access")
                         String message = NLS.bind(Messages.WaitForReadyStep_error_timeout, getActivePeerContext(context, data, fullQualifiedId).getName());
 						if (lastError.get() != null) {

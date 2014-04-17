@@ -17,4 +17,6 @@ public interface IStepGroupIds {
 
 	public static final String CONNECT = "org.eclipse.tcf.te.tcf.locator.connectStepGroup";  //$NON-NLS-1$
 	public static final String DISCONNECT = "org.eclipse.tcf.te.tcf.locator.disconnectStepGroup";  //$NON-NLS-1$
+	public static final String CONNECTON_LOST = "org.eclipse.tcf.te.tcf.locator.connectionLostStepGroup";  //$NON-NLS-1$
+	public static final String CONNECTION_RECOVERING = "org.eclipse.tcf.te.tcf.locator.connectionRecoveringStepGroup";  //$NON-NLS-1$
 }

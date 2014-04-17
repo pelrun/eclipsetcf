@@ -227,6 +227,39 @@
       </stepGroup>
       
       <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.connectionLostStepGroup">
+         <references>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="connection_lost" />
+            	<parameter name="stateOnError" value="disconnected" />
+            </reference>
+            <reference id="org.eclipse.tcf.te.runtime.stepper.cancelJobsStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="connection_lost" />
+            </reference>
+         </references>
+      </stepGroup>
+      
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.connectionRecoveringStepGroup">
+         <references>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="connection_recovering" />
+            	<parameter name="stateOnCancel" value="disconnected" />
+            	<parameter name="stateOnError" value="disconnected" />
+            </reference>
+            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep">
+            	<parameter name="noTimeout" value="true" />
+            </reference>
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
+            	<parameter name="state" value="connected" />
+            </reference>
+         </references>
+      </stepGroup>
+
+      <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.startSimulatorStepGroup"
             iterator="org.eclipse.tcf.te.tcf.locator.iterators.StartSimulatorIterator">
          <references>

@@ -19,20 +19,26 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 public interface IConnectable {
 
 	// intermediate states are always < 0
-	public static final int STATE_CONNECTING = -12;
-	public static final int STATE_CONNECT_SCHEDULED = -11;
-	public static final int STATE_DISCONNECTING = -2;
 	public static final int STATE_DISCONNECT_SCHEDULED = -1;
+	public static final int STATE_DISCONNECTING = -2;
+
+	public static final int STATE_CONNECT_SCHEDULED = -11;
+	public static final int STATE_CONNECTING = -12;
+
+	public static final int STATE_CONNECTION_RECOVERING = -21;
 
 	// main states
 	public static final int STATE_UNKNOWN = 0;
 	public static final int STATE_DISCONNECTED = 1;
 	public static final int STATE_CONNECTED = 11;
+	public static final int STATE_CONNECTION_LOST = 21;
 
 	// state change actions
 	public static final int ACTION_UNKNOWN = STATE_UNKNOWN;
+
 	public static final int ACTION_DISCONNECT = STATE_DISCONNECTED;
 	public static final int ACTION_CONNECT = STATE_CONNECTED;
+
 	/**
 	 * Get the current connect state.
 	 *

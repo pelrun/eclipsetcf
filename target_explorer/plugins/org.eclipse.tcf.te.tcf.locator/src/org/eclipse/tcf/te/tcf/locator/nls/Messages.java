@@ -69,4 +69,8 @@ public class Messages extends NLS {
 
 	public static String WaitForReadyStep_error_timeout;
 	public static String WaitForReadyStep_error_timeout_cause;
+
+	public static String PeerNode_notification_message_connectionLost;
+	public static String PeerNode_notification_message_connectionRecovered;
+	public static String PeerNode_notification_message_disconnected;
 }

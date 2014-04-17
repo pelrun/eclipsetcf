@@ -97,7 +97,8 @@ public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 			if (connectState == IConnectable.STATE_CONNECTED) {
 				drawBottomRight(ImageConsts.GREEN_OVR);
 			}
-			else if (connectState == IConnectable.STATE_CONNECTING || connectState == IConnectable.STATE_DISCONNECTING) {
+			else if (connectState == IConnectable.STATE_CONNECTING || connectState == IConnectable.STATE_DISCONNECTING ||
+							connectState == IConnectable.STATE_CONNECTION_LOST || connectState == IConnectable.STATE_CONNECTION_RECOVERING) {
 				drawBottomRight(ImageConsts.GREY_OVR);
 			}
 		}
