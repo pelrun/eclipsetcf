@@ -17,7 +17,7 @@ import org.eclipse.tcf.te.ui.views.handler.OpenEditorHandler;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
- * OpenEditorToolbarCommandHandler
+ * ActionHistoryHandler
  */
 public class ActionHistoryHandler extends OpenEditorHandler {
 

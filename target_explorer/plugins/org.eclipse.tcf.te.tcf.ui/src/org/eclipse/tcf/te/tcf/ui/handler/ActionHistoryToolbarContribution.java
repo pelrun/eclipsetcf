@@ -9,6 +9,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -25,6 +26,8 @@ import org.eclipse.tcf.te.tcf.ui.handler.images.ActionHistoryImageDescriptor;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.ui.actions.CompoundContributionItem;
+import org.eclipse.ui.menus.CommandContributionItem;
+import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
 
@@ -80,21 +83,41 @@ public class ActionHistoryToolbarContribution extends CompoundContributionItem i
     			if (stepGroupId != null && delegates.containsKey(stepGroupId)) {
 	    			count++;
     				final IDefaultContextToolbarDelegate delegate = delegates.get(stepGroupId);
-	    			IAction action = new Action("&" + count + " " + delegate.getLabel(peerNode, entry)) { //$NON-NLS-1$ //$NON-NLS-2$
-	    				@Override
-	    				public void runWithEvent(Event event) {
-	    					delegate.execute(peerNode, entry, false);
-	    				}
-	    			};
+    				String label = "&" + count + " " + delegate.getLabel(peerNode, entry); //$NON-NLS-1$ //$NON-NLS-2$
 	    			AbstractImageDescriptor descriptor = new ActionHistoryImageDescriptor(
 	    							UIPlugin.getDefault().getImageRegistry(),
 	    							delegate.getImage(peerNode, entry),
 	    							delegate.validate(peerNode, entry));
 	    			UIPlugin.getSharedImage(descriptor);
-	    			action.setImageDescriptor(UIPlugin.getImageDescriptor(descriptor.getDecriptorKey()));
+    				ImageDescriptor imageDescriptor = UIPlugin.getImageDescriptor(descriptor.getDecriptorKey());
+    				if (count == 1) {
+    	    			IContributionItem item = new CommandContributionItem(
+    	    							new CommandContributionItemParameter(
+    	    											serviceLocator,
+    	    											null,
+    	    											"org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast", //$NON-NLS-1$
+    	    											null,
+    	    											imageDescriptor,
+    	    											null,
+    	    											null,
+    	    											label,
+    	    											null,
+    	    											null,
+    	    											0, null, false));
+    	    			items.add(item);
+    				}
+    				else {
+	    			IAction action = new Action(label) {
+	    				@Override
+	    				public void runWithEvent(Event event) {
+	    					delegate.execute(peerNode, entry, false);
+	    				}
+	    			};
+	    			action.setImageDescriptor(imageDescriptor);
 	    			action.setEnabled(enabled);
 	    			IContributionItem item = new ActionContributionItem(action);
 	    			items.add(item);
+    				}
                 }
 	    	}
 	    }

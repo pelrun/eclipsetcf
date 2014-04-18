@@ -653,6 +653,7 @@
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.history">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"/>
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"/>
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.new">
@@ -721,6 +722,12 @@
             name="%command.history.label"
             description="%command.history.tooltip">
       </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_HistoryLast"
+            name="%command.historyLast.label">
+      </command>
    </extension>
 
 <!-- Command shortcuts -->
@@ -733,6 +740,10 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M2+F11"/>
+      <key  commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+F11"/>
    </extension>
 
 <!-- Command image contributions -->
@@ -977,6 +988,27 @@
 
       <handler commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history">
          <class class="org.eclipse.tcf.te.tcf.ui.handler.ActionHistoryHandler"/>
+         <activeWhen>
+            <with variable="defaultContextSelection">
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+            </with>
+         </activeWhen> 
+         <enabledWhen>
+            <with variable="defaultContextSelection">
+               <and>
+                  <test property="org.eclipse.tcf.te.tcf.ui.hasHistory"/>
+                  <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
+                     <test forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.core.isConnectState"
+                           value="connect"/>
+                  </adapt>
+               </and>
+            </with>
+         </enabledWhen>
+      </handler>
+
+      <handler commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast">
+         <class class="org.eclipse.tcf.te.tcf.ui.handler.ExecuteLastHistoryActionHandler"/>
          <activeWhen>
             <with variable="defaultContextSelection">
                <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
