@@ -261,7 +261,20 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 			}
 			@Override
 			protected void onButtonControlSelected() {
-				PeerSelectionDialog dialog = new PeerSelectionDialog(null);
+				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
+					@Override
+					protected String getDialogTitle() {
+					    return Messages.NewTargetWizardPage_PeerSelectionDialog_dialogTitle;
+					}
+					@Override
+					protected String getTitle() {
+					    return Messages.NewTargetWizardPage_PeerSelectionDialog_title;
+					}
+					@Override
+					protected String getDefaultMessage() {
+					    return Messages.NewTargetWizardPage_PeerSelectionDialog_message;
+					}
+				};
 
 				// Open the dialog
 				if (dialog.open() == Window.OK) {

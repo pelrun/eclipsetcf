@@ -89,6 +89,9 @@ public class Messages extends NLS {
 	public static String NewTargetWizardPage_section_transportType;
 	public static String NewTargetWizardPage_section_attributes;
 	public static String NewTargetWizardPage_error_nameInUse;
+	public static String NewTargetWizardPage_PeerSelectionDialog_dialogTitle;
+	public static String NewTargetWizardPage_PeerSelectionDialog_title;
+	public static String NewTargetWizardPage_PeerSelectionDialog_message;
 
 	public static String RemotePeerDiscoveryRootNode_label;
 

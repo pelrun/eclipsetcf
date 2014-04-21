@@ -157,9 +157,18 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			@Override
 			protected void onButtonControlSelected() {
 				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
-					/* (non-Javadoc)
-					 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#configureTableViewer(org.eclipse.jface.viewers.TableViewer)
-					 */
+					@Override
+					protected String getDialogTitle() {
+					    return Messages.NewTargetWizardPage_PeerSelectionDialog_dialogTitle;
+					}
+					@Override
+					protected String getTitle() {
+					    return Messages.NewTargetWizardPage_PeerSelectionDialog_title;
+					}
+					@Override
+					protected String getDefaultMessage() {
+					    return Messages.NewTargetWizardPage_PeerSelectionDialog_message;
+					}
 					@Override
 					protected void configureTableViewer(TableViewer viewer) {
 					    super.configureTableViewer(viewer);
