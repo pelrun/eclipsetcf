@@ -303,11 +303,12 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 * @param encoding The terminal encoding or <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.
+	 * @param flags The flags controlling how the console is opened or <code>null</code> to use defaults.
 	 *
 	 * @return The created tab item or <code>null</code> if failed.
 	 */
 	@SuppressWarnings("unused")
-	public CTabItem createTabItem(String title, String encoding, ITerminalConnector connector, Object data) {
+	public CTabItem createTabItem(String title, String encoding, ITerminalConnector connector, Object data, Map<String, Boolean> flags) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
 
@@ -354,6 +355,8 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 			item.setData(terminal);
 			// Associated the custom data node with the tab item (if any)
 			if (data != null) item.setData("customData", data); //$NON-NLS-1$
+			// Set the property that marks the item has a disconnect button or not if selected
+			item.setData(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, flags != null && flags.containsKey(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON) ? flags.get(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON) : Boolean.FALSE);
 
 			// Overwrite the text canvas help id
 			String contextHelpId = getParentView().getContextHelpId();

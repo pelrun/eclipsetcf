@@ -411,6 +411,8 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 			props.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION));
 			// Force creation of new terminal tabs if connecting to the same agent again
 			props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
+			// Show the disconnect button
+			props.setProperty(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, true);
 			// Set the terminal tab title
 			String terminalTitle = getTerminalTitle();
 			if (terminalTitle != null) {

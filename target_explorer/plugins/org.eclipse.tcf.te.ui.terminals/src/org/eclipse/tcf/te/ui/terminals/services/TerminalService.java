@@ -9,6 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.services;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.custom.CTabItem;
@@ -177,15 +180,19 @@ public class TerminalService extends AbstractService implements ITerminalService
 		executeServiceOperation(properties, new TerminalServiceRunnable() {
 			@Override
 			public void run(String id, String secondaryId, String title, ITerminalConnector connector, Object data, ICallback callback) {
-				// Determine if a new terminal tab shall be enforced
-				boolean forceNew = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW);
 				// Determine the terminal encoding
 				String encoding = properties.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
+				// Create the flags to pass on to openConsole
+				Map<String, Boolean> flags = new HashMap<String, Boolean>();
+				flags.put("activate", Boolean.TRUE); //$NON-NLS-1$
+				flags.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW)));
+				flags.put(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON)));
 				// Open the new console
-				CTabItem item = ConsoleManager.getInstance().openConsole(id, secondaryId, title, encoding, connector, data, true, forceNew);
+				CTabItem item = ConsoleManager.getInstance().openConsole(id, secondaryId, title, encoding, connector, data, flags);
 				// Associate the original terminal properties with the tab item.
 				// This makes it easier to persist the connection data within the memento handler
 				if (item != null && !item.isDisposed()) item.setData("properties", properties); //$NON-NLS-1$
+
 				// Invoke the callback
 				if (callback != null) callback.done(this, Status.OK_STATUS);
 			}

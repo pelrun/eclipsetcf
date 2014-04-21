@@ -62,6 +62,11 @@ public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 			properties.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 		}
 
+		// Serial terminals do have a disconnect button
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON)) {
+			properties.setProperty(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, true);
+		}
+
 		// Get the terminal service
 		ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
 		// If not available, we cannot fulfill this request

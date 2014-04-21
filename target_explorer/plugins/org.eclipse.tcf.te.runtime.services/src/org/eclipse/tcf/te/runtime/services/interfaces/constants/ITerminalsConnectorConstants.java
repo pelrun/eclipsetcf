@@ -51,6 +51,11 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_FORCE_NEW = "forceNew"; //$NON-NLS-1$
 
 	/**
+	 * Property: Flag to signal if the terminal tab shall have a disconnect button or not.
+	 */
+	public static final String PROP_HAS_DISCONNECT_BUTTON = "hasDisconnectButton"; //$NON-NLS-1$
+
+	/**
 	 * Property: Terminals launcher delegate id.
 	 */
 	public static final String PROP_DELEGATE_ID = "delegateId"; //$NON-NLS-1$

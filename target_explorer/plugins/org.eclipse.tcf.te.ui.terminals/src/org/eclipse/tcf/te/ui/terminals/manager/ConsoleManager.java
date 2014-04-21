@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
@@ -397,11 +398,10 @@ public class ConsoleManager {
 	 * @param encoding The terminal encoding or <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.
-	 * @param activate If <code>true</code> activate the console view.
-	 * @param forceNew If <code>true</code> a new console tab is created even if another one matches the criteria.
+	 * @param flags The flags controlling how the console is opened or <code>null</code> to use defaults.
 	 */
-	public CTabItem openConsole(String id, String title, String encoding, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
-		return openConsole(id, null, title, encoding, connector, data, activate, forceNew);
+	public CTabItem openConsole(String id, String title, String encoding, ITerminalConnector connector, Object data, Map<String, Boolean> flags) {
+		return openConsole(id, null, title, encoding, connector, data, flags);
 	}
 
 	/**
@@ -415,13 +415,16 @@ public class ConsoleManager {
 	 * @param encoding The terminal encoding or <code>null</code>.
 	 * @param connector The terminal connector. Must not be <code>null</code>.
 	 * @param data The custom terminal data node or <code>null</code>.
-	 * @param activate If <code>true</code> activate the console view.
-	 * @param forceNew If <code>true</code> a new console tab is created even if another one matches the criteria.
+	 * @param flags The flags controlling how the console is opened or <code>null</code> to use defaults.
 	 */
-	public CTabItem openConsole(String id, String secondaryId, String title, String encoding, ITerminalConnector connector, Object data, boolean activate, boolean forceNew) {
+	public CTabItem openConsole(String id, String secondaryId, String title, String encoding, ITerminalConnector connector, Object data, Map<String, Boolean> flags) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
 		Assert.isNotNull(Display.findDisplay(Thread.currentThread()));
+
+		// Get the flags handled by the openConsole method itself
+		boolean activate = flags != null && flags.containsKey("activate") ? flags.get("activate").booleanValue() : false; //$NON-NLS-1$ //$NON-NLS-2$
+		boolean forceNew = flags != null && flags.containsKey(ITerminalsConnectorConstants.PROP_FORCE_NEW) ? flags.get(ITerminalsConnectorConstants.PROP_FORCE_NEW).booleanValue() : false;
 
 		// Make the consoles view visible
 		IViewPart part = bringToTop(id, secondaryId, activate);
@@ -457,7 +460,7 @@ public class ConsoleManager {
 			}
 
 			// Create a new tab item
-			item = manager.createTabItem(title, encoding, connector, data);
+			item = manager.createTabItem(title, encoding, connector, data, flags);
 		}
 		// If still null, something went wrong
 		if (item == null) return null;

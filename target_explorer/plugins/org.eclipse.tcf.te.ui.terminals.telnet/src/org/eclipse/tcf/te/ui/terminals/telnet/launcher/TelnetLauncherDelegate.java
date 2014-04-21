@@ -65,8 +65,13 @@ public class TelnetLauncherDelegate extends AbstractLauncherDelegate {
 
 		// For Telnet terminals, force a new terminal tab each time it is launched,
 		// if not set otherwise from outside
-		if (properties.getProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW) == null) {
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_FORCE_NEW)) {
 			properties.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
+		}
+
+		// Telnet terminals do have a disconnect button
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON)) {
+			properties.setProperty(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, true);
 		}
 
 		// Get the terminal service
