@@ -77,6 +77,10 @@ import org.eclipse.tcf.te.tcf.processes.core.nls.Messages;
 public class ProcessLauncher extends PlatformObject implements IProcessLauncher {
 	// The channel instance
 	/* default */ IChannel channel = null;
+	// Flag to signal if the channel needs to be closed on disposed
+	/* default */ boolean closeChannelOnDispose = false;
+	// Flag to signal if the channel is a private or shared channel
+	/* default */ boolean sharedChannel = false;
 	// The process properties instance
 	/* default */ IPropertiesContainer properties;
 
@@ -103,6 +107,9 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	// The active token.
 	IToken activeToken = null;
 
+	/**
+	 * Message ID for error message in case the process launch failed.
+	 */
 	public static final String PROCESS_LAUNCH_FAILED_MESSAGE = "processLaunchFailedMessage"; //$NON-NLS-1$
 
 	/**
@@ -119,7 +126,6 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		super();
 		this.streamsProxy = streamsProxy;
 	}
-
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher#dispose()
@@ -144,7 +150,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			protected void internalDone(Object caller, IStatus status) {
 				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 				// Close the channel as all disposal is done
-				if (finChannel != null) {
+				if (finChannel != null && closeChannelOnDispose) {
 					Tcf.getChannelManager().closeChannel(finChannel);
 				}
 			}
@@ -317,7 +323,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 									IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(), message, error);
 									Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
 
-									// Dispose the launcher directly
+									// Dispose the launcher
 									dispose();
 								}
 							}
@@ -354,9 +360,19 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		// Remember the process properties
 		this.properties = properties;
 
+		// Check if we get the channel to use passed in by the launch properties
+		if (properties.containsKey(IProcessLauncher.PROP_CHANNEL)) {
+			IChannel c = (IChannel) properties.getProperty(IProcessLauncher.PROP_CHANNEL);
+			if (c != null && c.getState() == IChannel.STATE_OPEN) {
+				channel = c;
+				closeChannelOnDispose = false;
+				sharedChannel = true;
+			}
+		}
+
 		// Open a dedicated channel to the given peer
-		Map<String, Boolean> flags = new HashMap<String, Boolean>();
-		flags.put(IChannelManager.FLAG_FORCE_NEW, Boolean.TRUE);
+		final Map<String, Boolean> flags = new HashMap<String, Boolean>();
+		flags.put(IChannelManager.FLAG_FORCE_NEW, properties.containsKey(IChannelManager.FLAG_FORCE_NEW) ? Boolean.valueOf(properties.getBooleanProperty(IChannelManager.FLAG_FORCE_NEW)) : Boolean.TRUE);
 		if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 			Protocol.invokeLater(new Runnable() {
 				@Override
@@ -374,11 +390,14 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				public void doneOpenChannel(Throwable error, IChannel channel) {
 					if (error == null) {
 						ProcessLauncher.this.channel = channel;
+						ProcessLauncher.this.closeChannelOnDispose = true;
+						ProcessLauncher.this.sharedChannel = !flags.get(IChannelManager.FLAG_FORCE_NEW).booleanValue();
+
 						onChannelOpenDone(peer);
 					} else {
 						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-										NLS.bind(Messages.ProcessLauncher_error_channelConnectFailed, peer.getID(), error.getLocalizedMessage()),
-										error);
+													NLS.bind(Messages.ProcessLauncher_error_channelConnectFailed, peer.getID(), error.getLocalizedMessage()),
+													error);
 						invokeCallback(status, null);
 					}
 				}
@@ -490,9 +509,11 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			streamsListener = createStreamsListener();
 			// If available, we need to subscribe to the streams.
 			if (streamsListener != null) {
-				getSvcStreams().subscribe(getSvcProcesses() instanceof IProcessesV1 ? IProcessesV1.NAME : IProcesses.NAME, streamsListener, new IStreams.DoneSubscribe() {
+				// Subscribe the streams service
+				Tcf.getChannelManager().subscribeStream(channel, getSvcProcesses() instanceof IProcessesV1 ? IProcessesV1.NAME : IProcesses.NAME, streamsListener, new IChannelManager.DoneSubscribeStream() {
+
 					@Override
-					public void doneSubscribe(IToken token, Exception error) {
+					public void doneSubscribeStream(Throwable error) {
 						// In case the subscribe to the stream fails, we pass on
 						// the error to the user and stop the launch
 						if (error != null) {
@@ -524,7 +545,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	/**
 	 * Initialize and attach the output console and/or the output file.
 	 * <p>
-	 * Called from {@link IStreams#subscribe(String, org.eclipse.tcf.services.IStreams.StreamsListener, org.eclipse.tcf.services.IStreams.DoneSubscribe)}.
+	 * Called from {@link IChannelManager#subscribeStream(IChannel, String, org.eclipse.tcf.services.IStreams.StreamsListener, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneSubscribeStream)}
 	 */
 	protected void onSubscribeStreamsDone() {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
@@ -647,6 +668,11 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		collector.initDone();
 	}
 
+	/**
+	 * Returns the message template for the process launch failed error message.
+	 *
+	 * @return The message template.
+	 */
 	protected String getProcessLaunchFailedMessageTemplate() {
 		if (properties != null && properties.containsKey(PROCESS_LAUNCH_FAILED_MESSAGE)) {
 			return properties.getStringProperty(PROCESS_LAUNCH_FAILED_MESSAGE);
@@ -1028,6 +1054,15 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 */
 	public final IChannel getChannel() {
 		return channel;
+	}
+
+	/**
+	 * Returns if the channel is a private or shared channel.
+	 *
+	 * @return <code>True</code> if the channel a shared channel, <code>false</code> otherwise.
+	 */
+	public final boolean isSharedChannel() {
+		return sharedChannel;
 	}
 
 	/**

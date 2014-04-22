@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.services.IStreams;
 
 /**
  * TCF channel manager public API declaration.
@@ -29,7 +30,7 @@ public interface IChannelManager extends IAdaptable {
 	 * If not present in the flags map passed in to open channel, the default value is
 	 * <code>false</code>.
 	 */
-	public static final String FLAG_FORCE_NEW = "forceNew"; //$NON-NLS-1$
+	public static final String FLAG_FORCE_NEW = "channel.forceNew"; //$NON-NLS-1$
 
 	/**
 	 * If set to <code>true</code>, a new and not reference counted channel is opened,
@@ -42,7 +43,7 @@ public interface IChannelManager extends IAdaptable {
 	 * If not present in the flags map passed in to open channel, the default value is
 	 * <code>false</code>.
 	 */
-	public static final String FLAG_NO_VALUE_ADD = "noValueAdd"; //$NON-NLS-1$
+	public static final String FLAG_NO_VALUE_ADD = "channel.noValueAdd"; //$NON-NLS-1$
 
 	/**
 	 * If set to <code>true</code>, a new and not reference counted channel is opened,
@@ -54,7 +55,7 @@ public interface IChannelManager extends IAdaptable {
 	 * If not present in the flags map passed in to open channel, the default value is
 	 * <code>false</code>.
 	 */
-	public static final String FLAG_NO_PATH_MAP = "noPathMap"; //$NON-NLS-1$
+	public static final String FLAG_NO_PATH_MAP = "channel.noPathMap"; //$NON-NLS-1$
 
 	/**
 	 * Client call back interface for openChannel(...).
@@ -143,4 +144,48 @@ public interface IChannelManager extends IAdaptable {
 	 *             the method will return immediately.
 	 */
 	public void closeAll(boolean wait);
+
+	/**
+	 * Client call back interface for subscribeStream(...).
+	 */
+	interface DoneSubscribeStream {
+		/**
+		 * Called when subscribing to a stream type is done.
+		 *
+		 * @param error The error description if operation failed, <code>null</code> if succeeded.
+		 */
+		void doneSubscribeStream(Throwable error);
+	}
+
+	/**
+	 * Subscribe to the given stream type if not yet subscribed and register the given streams listener.
+	 *
+	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param streamType The stream source type. Must not be <code>null</code>.
+	 * @param listener The streams listener. Must not be <code>null</code>.
+	 * @param done The client callback. Must not be <code>null</code>.
+	 */
+	public void subscribeStream(IChannel channel, String streamType, IStreams.StreamsListener listener, DoneSubscribeStream done);
+
+	/**
+	 * Client call back interface for unsubscribeStream(...).
+	 */
+	interface DoneUnsubscribeStream {
+		/**
+		 * Called when unsubscribing a stream type is done.
+		 *
+		 * @param error The error description if operation failed, <code>null</code> if succeeded.
+		 */
+		void doneUnsubscribeStream(Throwable error);
+	}
+
+	/**
+	 * Unsubscribe from the given stream type if subscribed and unregister the given streams listener.
+	 *
+	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param streamType The stream source type. Must not be <code>null</code>.
+	 * @param listener The streams listener. Must not be <code>null</code>.
+	 * @param done The client callback. Must not be <code>null</code>.
+	 */
+	public void unsubscribeStream(IChannel channel, String streamType, IStreams.StreamsListener listener, DoneUnsubscribeStream done);
 }

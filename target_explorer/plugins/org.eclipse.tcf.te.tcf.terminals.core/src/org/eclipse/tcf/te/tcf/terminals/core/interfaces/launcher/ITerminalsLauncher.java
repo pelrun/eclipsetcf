@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -57,6 +58,13 @@ public interface ITerminalsLauncher extends IAdaptable {
 	 * The property type is {@link String}.
 	 */
 	public static String PROP_CONNECTION_NAME = "connection.name"; //$NON-NLS-1$
+
+	/**
+	 * Property denoting the communication channel to use.
+	 * <p>
+	 * The property type is {@link IChannel}.
+	 */
+	public static String PROP_CHANNEL = "terminal.channel"; //$NON-NLS-1$
 
 	/**
 	 * Launch a remote terminal defined by the given launch properties at the target specified by the

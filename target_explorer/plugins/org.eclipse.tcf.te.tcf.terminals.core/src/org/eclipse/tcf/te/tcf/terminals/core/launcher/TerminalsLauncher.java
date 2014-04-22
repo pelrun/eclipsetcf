@@ -71,6 +71,10 @@ import org.eclipse.tcf.te.tcf.terminals.core.nls.Messages;
 public class TerminalsLauncher extends PlatformObject implements ITerminalsLauncher {
 	// The channel instance
 	/* default */ IChannel channel;
+	// Flag to signal if the channel needs to be closed on disposed
+	/* default */ boolean closeChannelOnDispose = false;
+	// Flag to signal if the channel is a private or shared channel
+	/* default */ boolean sharedChannel = false;
 	// The terminals properties instance
 	private IPropertiesContainer properties;
 
@@ -121,7 +125,9 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 			protected void internalDone(Object caller, IStatus status) {
 				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 				// Close the channel as all disposal is done
-				if (finChannel != null) Tcf.getChannelManager().closeChannel(finChannel);
+				if (finChannel != null && closeChannelOnDispose) {
+					Tcf.getChannelManager().closeChannel(finChannel);
+				}
 			}
 		}, new CallbackInvocationDelegate());
 
@@ -248,9 +254,19 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 		// Remember the terminal properties
 		this.properties = properties;
 
+		// Check if we get the channel to use passed in by the launch properties
+		if (properties.containsKey(ITerminalsLauncher.PROP_CHANNEL)) {
+			IChannel c = (IChannel) properties.getProperty(ITerminalsLauncher.PROP_CHANNEL);
+			if (c != null && c.getState() == IChannel.STATE_OPEN) {
+				channel = c;
+				closeChannelOnDispose = false;
+				sharedChannel = true;
+			}
+		}
+
 		// Open a dedicated channel to the given peer
-		Map<String, Boolean> flags = new HashMap<String, Boolean>();
-		flags.put(IChannelManager.FLAG_FORCE_NEW, Boolean.TRUE);
+		final Map<String, Boolean> flags = new HashMap<String, Boolean>();
+		flags.put(IChannelManager.FLAG_FORCE_NEW, properties.containsKey(IChannelManager.FLAG_FORCE_NEW) ? Boolean.valueOf(properties.getBooleanProperty(IChannelManager.FLAG_FORCE_NEW)) : Boolean.TRUE);
 		Tcf.getChannelManager().openChannel(peer, flags, new IChannelManager.DoneOpenChannel() {
 			/* (non-Javadoc)
 			 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel#doneOpenChannel(java.lang.Throwable, org.eclipse.tcf.protocol.IChannel)
@@ -259,6 +275,8 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 			public void doneOpenChannel(Throwable error, IChannel channel) {
 				if (error == null) {
 					TerminalsLauncher.this.channel = channel;
+					TerminalsLauncher.this.closeChannelOnDispose = true;
+					TerminalsLauncher.this.sharedChannel = !flags.get(IChannelManager.FLAG_FORCE_NEW).booleanValue();
 
 					// Attach a channel listener so we can dispose ourself if the channel
 					// is closed from the remote side.
@@ -350,15 +368,15 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 		streamsListener = createStreamsListener();
 		// If available, we need to subscribe to the streams.
 		if (streamsListener != null) {
-			getSvcStreams().subscribe(ITerminals.NAME, streamsListener, new IStreams.DoneSubscribe() {
+			Tcf.getChannelManager().subscribeStream(channel, ITerminals.NAME, streamsListener, new IChannelManager.DoneSubscribeStream() {
 				@Override
-				public void doneSubscribe(IToken token, Exception error) {
+				public void doneSubscribeStream(Throwable error) {
 					// In case the subscribe to the stream fails, we pass on
 					// the error to the user and stop the launch
 					if (error != null) {
 						// Construct the error message to show to the user
 						String message = NLS.bind(Messages.TerminalsLauncher_error_terminalLaunchFailed,
-												  properties.getStringProperty(ITerminalsLauncher.PROP_CONNECTION_NAME));
+										properties.getStringProperty(ITerminalsLauncher.PROP_CONNECTION_NAME));
 						message += NLS.bind(Messages.TerminalsLauncher_error_possibleCause, Messages.TerminalsLauncher_cause_subscribeFailed);
 
 						// Construct the status object
@@ -379,7 +397,7 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 	/**
 	 * Initialize and attach the output console and/or the output file.
 	 * <p>
-	 * Called from {@link IStreams#subscribe(String, org.eclipse.tcf.services.IStreams.StreamsListener, org.eclipse.tcf.services.IStreams.DoneSubscribe)}.
+	 * Called from {@link IChannelManager#subscribeStream(IChannel, String, org.eclipse.tcf.services.IStreams.StreamsListener, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneSubscribeStream)}
 	 */
 	protected void onSubscribeStreamsDone() {
 		// Get the properties container
@@ -700,6 +718,15 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 	 */
 	public final IChannel getChannel() {
 		return channel;
+	}
+
+	/**
+	 * Returns if the channel is a private or shared channel.
+	 *
+	 * @return <code>True</code> if the channel a shared channel, <code>false</code> otherwise.
+	 */
+	public final boolean isSharedChannel() {
+		return sharedChannel;
 	}
 
 	/**

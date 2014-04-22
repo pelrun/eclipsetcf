@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.osgi.util.NLS;
@@ -29,7 +30,10 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
+import org.eclipse.tcf.services.IStreams;
+import org.eclipse.tcf.services.IStreams.StreamsListener;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
@@ -51,6 +55,8 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 	/* default */ final Map<String, IChannel> channels = new HashMap<String, IChannel>();
 	// The map of channels opened via "forceNew" flag (needed to handle the close channel correctly)
 	/* default */ final List<IChannel> forcedChannels = new ArrayList<IChannel>();
+	// The map of stream listener proxies per channel
+	/* default */ final Map<IChannel, List<StreamListenerProxy>> streamProxies = new HashMap<IChannel, List<StreamListenerProxy>>();
 
 	/**
 	 * Constructor.
@@ -1161,4 +1167,237 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			done.doneChainValueAdd(e, channel);
 		}
 	}
+
+	/**
+	 * Private stream listener proxy implementation.
+	 */
+	private final class StreamListenerProxy implements IStreams.StreamsListener {
+		// The stream type the proxy is registered for
+		private final String streamType;
+		// The list of proxied stream listeners
+		/* default */ ListenerList listeners = new ListenerList();
+
+		/**
+         * Constructor
+         *
+         * @param The channel. Must not be <code>null</code>.
+         */
+        public StreamListenerProxy(final IChannel channel, final String streamType) {
+        	Assert.isNotNull(channel);
+        	Assert.isNotNull(streamType);
+
+        	channel.addChannelListener(new IChannel.IChannelListener() {
+				@Override
+				public void onChannelOpened() {}
+
+				@Override
+				public void onChannelClosed(Throwable error) {
+					// Channel is closed, remove ourself
+					channel.removeChannelListener(this);
+					// Dispose all registered streams listener
+					Object[] candidates = listeners.getListeners();
+					listeners.clear();
+					for (Object listener : candidates) {
+						if (listener instanceof IDisposable) {
+							((IDisposable)listener).dispose();
+						}
+					}
+				}
+
+				@Override
+				public void congestionLevel(int level) {
+				}
+			});
+
+        	// Remember the stream type
+        	this.streamType = streamType;
+        }
+
+        /**
+         * Returns the stream type the proxy is registered for.
+         *
+         * @return The stream type.
+         */
+        public String getStreamType() {
+        	return streamType;
+        }
+
+        /**
+         * Adds the given streams listener to the list of proxied listeners.
+         *
+         * @param listener The streams listener. Must not be <code>null</code>.
+         */
+        public void addListener(IStreams.StreamsListener listener) {
+        	Assert.isNotNull(listener);
+        	listeners.add(listener);
+        }
+
+        /**
+         * Removes the given streams listener from the list of proxied listeners.
+         *
+         * @param listener The streams listener. Must not be <code>null</code>.
+         */
+        public void removeListener(IStreams.StreamsListener listener) {
+        	Assert.isNotNull(listener);
+        	listeners.remove(listener);
+        }
+
+        /**
+         * Returns if the proxied listeners list is empty or not.
+         *
+         * @return <code>True</code> if the list is empty, <code>false</code> otherwise.
+         */
+        public boolean isEmpty() {
+        	return listeners.isEmpty();
+        }
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.tcf.services.IStreams.StreamsListener#created(java.lang.String, java.lang.String, java.lang.String)
+		 */
+        @Override
+        public void created(String stream_type, String stream_id, String context_id) {
+        	for (Object l : listeners.getListeners()) {
+        		((IStreams.StreamsListener)l).created(stream_type, stream_id, context_id);
+        	}
+        }
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.tcf.services.IStreams.StreamsListener#disposed(java.lang.String, java.lang.String)
+		 */
+        @Override
+        public void disposed(String stream_type, String stream_id) {
+        	for (Object l : listeners.getListeners()) {
+        		((IStreams.StreamsListener)l).disposed(stream_type, stream_id);
+        	}
+        }
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#subscribeStream(org.eclipse.tcf.protocol.IChannel, java.lang.String, org.eclipse.tcf.services.IStreams.StreamsListener, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneSubscribeStream)
+	 */
+    @Override
+    public void subscribeStream(final IChannel channel, final String streamType, final StreamsListener listener, final DoneSubscribeStream done) {
+    	Assert.isNotNull(channel);
+    	Assert.isNotNull(streamType);
+    	Assert.isNotNull(listener);
+    	Assert.isNotNull(done);
+
+    	if (channel.getState() != IChannel.STATE_OPEN) {
+    		done.doneSubscribeStream(new Exception(Messages.ChannelManager_stream_closed_message));
+    		return;
+    	}
+
+    	StreamListenerProxy proxy = null;
+
+    	// Get all the streams listener proxy instance for the given channel
+    	List<StreamListenerProxy> proxies = streamProxies.get(channel);
+    	// Loop the proxies and find the one for the given stream type
+    	if (proxies != null) {
+    		for (StreamListenerProxy candidate : proxies) {
+    			if (streamType.equals(candidate.getStreamType())) {
+    				proxy = candidate;
+    				break;
+    			}
+    		}
+    	}
+
+    	// If the proxy already exist, add the listener to the proxy and return immediately
+    	if (proxy != null) {
+    		proxy.addListener(listener);
+    		done.doneSubscribeStream(null);
+    	} else {
+    		// No proxy yet -> subscribe to the stream type for real and register the proxy
+    		proxy = new StreamListenerProxy(channel, streamType);
+    		if (proxies == null) {
+    			proxies = new ArrayList<StreamListenerProxy>();
+    			streamProxies.put(channel, proxies);
+    		}
+    		proxies.add(proxy);
+    		proxy.addListener(listener);
+
+    		IStreams service = channel.getRemoteService(IStreams.class);
+    		if (service != null) {
+    			final StreamListenerProxy finProxy = proxy;
+    			final List<StreamListenerProxy> finProxies = proxies;
+
+    			// Subscribe to the stream type
+    			service.subscribe(streamType, proxy, new IStreams.DoneSubscribe() {
+					@Override
+					public void doneSubscribe(IToken token, Exception error) {
+						if (error != null) {
+							finProxy.removeListener(listener);
+							if (finProxy.isEmpty()) finProxies.remove(finProxy);
+			    			if (finProxies.isEmpty()) streamProxies.remove(channel);
+						} else {
+							finProxy.addListener(listener);
+						}
+						done.doneSubscribeStream(error);
+					}
+				});
+    		} else {
+    			proxy.removeListener(listener);
+    			if (proxy.isEmpty()) proxies.remove(proxy);
+    			if (proxies.isEmpty()) streamProxies.remove(channel);
+    			done.doneSubscribeStream(new Exception(Messages.ChannelManager_stream_missing_service_message));
+    		}
+    	}
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#unsubscribeStream(org.eclipse.tcf.protocol.IChannel, java.lang.String, org.eclipse.tcf.services.IStreams.StreamsListener, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneUnsubscribeStream)
+     */
+    @Override
+    public void unsubscribeStream(final IChannel channel, final String streamType, final StreamsListener listener, final DoneUnsubscribeStream done) {
+    	Assert.isNotNull(channel);
+    	Assert.isNotNull(streamType);
+    	Assert.isNotNull(listener);
+    	Assert.isNotNull(done);
+
+    	if (channel.getState() != IChannel.STATE_OPEN) {
+    		done.doneUnsubscribeStream(new Exception(Messages.ChannelManager_stream_closed_message));
+    		return;
+    	}
+
+    	StreamListenerProxy proxy = null;
+
+    	// Get all the streams listener proxy instance for the given channel
+    	List<StreamListenerProxy> proxies = streamProxies.get(channel);
+    	// Loop the proxies and find the one for the given stream type
+    	if (proxies != null) {
+    		for (StreamListenerProxy candidate : proxies) {
+    			if (streamType.equals(candidate.getStreamType())) {
+    				proxy = candidate;
+    				break;
+    			}
+    		}
+    	}
+
+    	if (proxy != null) {
+    		// Remove the listener from the proxy
+    		proxy.removeListener(listener);
+    		// Are there remaining proxied listeners for this stream type?
+    		if (proxy.isEmpty()) {
+    			// Unregister the stream type
+        		IStreams service = channel.getRemoteService(IStreams.class);
+        		if (service != null) {
+        			final StreamListenerProxy finProxy = proxy;
+        			final List<StreamListenerProxy> finProxies = proxies;
+
+        			// Unsubscribe
+        			service.unsubscribe(streamType, proxy, new IStreams.DoneUnsubscribe() {
+						@Override
+						public void doneUnsubscribe(IToken token, Exception error) {
+							finProxies.remove(finProxy);
+							if (finProxies.isEmpty()) streamProxies.remove(channel);
+							done.doneUnsubscribeStream(error);
+						}
+					});
+        		} else {
+        			done.doneUnsubscribeStream(new Exception(Messages.ChannelManager_stream_missing_service_message));
+        		}
+    		}
+    	}
+    }
+
+
 }

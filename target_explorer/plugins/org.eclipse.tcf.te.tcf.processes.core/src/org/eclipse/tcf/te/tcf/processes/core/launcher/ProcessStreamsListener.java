@@ -29,8 +29,11 @@ import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataProvider;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
 import org.eclipse.tcf.te.tcf.core.util.ExceptionUtils;
@@ -43,9 +46,11 @@ import org.eclipse.tcf.util.TCFTask;
 /**
  * Remote process streams listener implementation.
  */
-public class ProcessStreamsListener implements IStreams.StreamsListener, IProcessContextAwareListener {
+public class ProcessStreamsListener implements IStreams.StreamsListener, IProcessContextAwareListener, IDisposable {
 	// The channel instance
 	/* default */ IChannel channel;
+	// Flag to signal if the channel is a private or shared channel
+	/* default */ boolean sharedChannel;
 	// The streams service instance
 	/* default */ IStreams svcStreams;
 	// The processes service name
@@ -140,7 +145,7 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 	 */
 	protected class StreamReaderRunnable implements Runnable {
 		// The associated stream id
-		private final String streamId;
+		/* default */ final String streamId;
 		// The associated stream type id
 		private final String streamTypeId;
 		// The list of receivers applicable for the associated stream type id
@@ -236,6 +241,8 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 
 			// Store the callback instance
 			this.callback = callback;
+			// Mark the runnable as stopped
+			stopped = true;
 		}
 
 		/**
@@ -282,7 +289,9 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 							notifyReceiver(new String(streamData.data), receivers);
 						}
 						// If the end of the stream have been reached --> break out
-						if (streamData.eos) break;
+						if (streamData.eos) {
+							break;
+						}
 					}
 				} catch (Exception e) {
 					// An error occurred -> Dump to the error log
@@ -302,18 +311,25 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 
 			// Disconnect from the stream
 			if (svcStreams != null) {
-				svcStreams.disconnect(streamId, new IStreams.DoneDisconnect() {
+				Runnable runnable = new Runnable() {
 					@Override
-                    @SuppressWarnings("synthetic-access")
-					public void doneDisconnect(IToken token, Exception error) {
-						synchronized (this) {
-							// Mark the runnable definitely stopped
-							stopped = true;
-							// Disconnect is done, ignore any error, invoke the callback
-							if (callback != null) callback.done(this, Status.OK_STATUS);
-						}
+					public void run() {
+						svcStreams.disconnect(streamId, new IStreams.DoneDisconnect() {
+							@Override
+		                    @SuppressWarnings("synthetic-access")
+							public void doneDisconnect(IToken token, Exception error) {
+								synchronized (this) {
+									// Mark the runnable definitely stopped
+									stopped = true;
+									// Disconnect is done, ignore any error, invoke the callback
+									if (callback != null) callback.done(this, Status.OK_STATUS);
+								}
+							}
+						});
 					}
-				});
+				};
+
+				Protocol.invokeLater(runnable);
 			} else {
 				synchronized (this) {
 					// Mark the runnable definitely stopped
@@ -405,9 +421,9 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 	 * runnable will be executed within a thread and is responsible to read the
 	 * incoming data from the registered providers and forward them to the associated stream.
 	 */
-	protected class ProcessStreamWriterRunnable implements Runnable {
+	protected class StreamWriterRunnable implements Runnable {
 		// The associated stream id
-		private final String streamId;
+		/* default */ final String streamId;
 		// The associated stream type id
 		private final String streamTypeId;
 		// The data provider applicable for the associated stream type id
@@ -427,7 +443,7 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 		 * @param streamTypeId The associated stream type id. Must not be <code>null</code>.
 		 * @param provider The data provider. Must not be <code>null</code> and must be applicable for the stream type.
 		 */
-		public ProcessStreamWriterRunnable(String streamId, String streamTypeId, StreamsDataProvider provider) {
+		public StreamWriterRunnable(String streamId, String streamTypeId, StreamsDataProvider provider) {
 			Assert.isNotNull(streamId);
 			Assert.isNotNull(streamTypeId);
 			Assert.isNotNull(provider);
@@ -555,18 +571,30 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 
 			// Disconnect from the stream
 			if (svcStreams != null) {
-				svcStreams.disconnect(streamId, new IStreams.DoneDisconnect() {
+				Runnable runnable = new Runnable() {
 					@Override
-                    @SuppressWarnings("synthetic-access")
-					public void doneDisconnect(IToken token, Exception error) {
-						synchronized (this) {
-							// Mark the runnable definitely stopped
-							stopped = true;
-						}
-						// Disconnect is done, ignore any error, invoke the callback
-						if (getCallback() != null) getCallback().done(this, Status.OK_STATUS);
+					public void run() {
+						svcStreams.eos(streamId, new IStreams.DoneEOS() {
+							@Override
+							public void doneEOS(IToken token, Exception error) {
+								svcStreams.disconnect(streamId, new IStreams.DoneDisconnect() {
+									@Override
+				                    @SuppressWarnings("synthetic-access")
+									public void doneDisconnect(IToken token, Exception error) {
+										synchronized (this) {
+											// Mark the runnable definitely stopped
+											stopped = true;
+										}
+										// Disconnect is done, ignore any error, invoke the callback
+										if (getCallback() != null) getCallback().done(this, Status.OK_STATUS);
+									}
+								});
+							}
+						});
 					}
-				});
+				};
+
+				Protocol.invokeLater(runnable);
 			} else {
 				synchronized (this) {
 					// Mark the runnable definitely stopped
@@ -626,8 +654,17 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 	public ProcessStreamsListener(ProcessLauncher parent) {
 		Assert.isNotNull(parent);
 		this.channel = parent.getChannel();
+		this.sharedChannel = parent.isSharedChannel();
 		this.svcStreams = parent.getSvcStreams();
 		this.svcProcessesName = parent.getSvcProcesses() instanceof IProcessesV1 ? IProcessesV1.NAME : IProcesses.NAME;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.interfaces.IDisposable#dispose()
+	 */
+	@Override
+	public void dispose() {
+		dispose(null);
 	}
 
 	/**
@@ -655,9 +692,9 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 			protected void internalDone(final Object caller, final IStatus status) {
 				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 				// Unsubscribe the streams listener from the service
-				svcStreams.unsubscribe(svcProcessesName, finStreamsListener, new IStreams.DoneUnsubscribe() {
+				Tcf.getChannelManager().unsubscribeStream(channel, svcProcessesName, finStreamsListener, new IChannelManager.DoneUnsubscribeStream() {
 					@Override
-                    public void doneUnsubscribe(IToken token, Exception error) {
+					public void doneUnsubscribeStream(Throwable error) {
 						// Loop all registered listeners and close them
 						for (StreamsDataReceiver receiver : finDataReceivers) receiver.dispose();
 						// Call the original outer callback
@@ -672,6 +709,9 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 			for (Runnable runnable : runnables) {
 				if (runnable instanceof StreamReaderRunnable) {
 					((StreamReaderRunnable)runnable).stop(new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+				}
+				if (runnable instanceof StreamWriterRunnable) {
+					((StreamWriterRunnable)runnable).stop(new AsyncCallbackCollector.SimpleCollectorCallback(collector));
 				}
 			}
 			runnables.clear();
@@ -737,14 +777,26 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 			                                            IStatus.INFO, getClass());
 		}
 
-		// Loop all delayed create events and look for the streams for our context
+		// Loop all delayed create events
 		synchronized (delayedCreatedEvents) {
 			Iterator<StreamCreatedEvent> iterator = delayedCreatedEvents.iterator();
 			while (iterator.hasNext()) {
-				StreamCreatedEvent event = iterator.next();
+				final StreamCreatedEvent event = iterator.next();
+				// If the created event matches the process context id, re-dispatch the created event
 				if (context.getID().equals(event.contextId) || event.contextId == null) {
-					// Re-dispatch the event
 					created(event.streamType, event.streamId, event.contextId);
+				} else if (!sharedChannel) {
+					// Disconnect from streams not matching the process context id
+					svcStreams.disconnect(event.streamId, new IStreams.DoneDisconnect() {
+						@Override
+						public void doneDisconnect(IToken token, Exception error) {
+							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
+								CoreBundleActivator.getTraceHandler().trace("Remote process stream disconnected (different context): streamId='" + event.streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
+								                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
+								                                            IStatus.INFO, getClass());
+							}
+						}
+					});
 				}
 			}
 			// Clear all events
@@ -764,7 +816,7 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 	 * @see org.eclipse.tcf.services.IStreams.StreamsListener#created(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-    public void created(String streamType, String streamId, String contextId) {
+    public void created(final String streamType, final String streamId, final String contextId) {
 		// We ignore any other stream type than the associated process service name
 		if (!svcProcessesName.equals(streamType)) return;
 
@@ -790,7 +842,7 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 				// Data provider set?
 				if (dataProvider != null) {
 					// Create the stdin stream writer runnable
-					ProcessStreamWriterRunnable runnable = new ProcessStreamWriterRunnable(streamId, IProcesses.PROP_STDIN_ID, dataProvider);
+					StreamWriterRunnable runnable = new StreamWriterRunnable(streamId, IProcesses.PROP_STDIN_ID, dataProvider);
 					// Add to the list of created runnable's
 					synchronized (runnables) { runnables.add(runnable); }
 					// And create and start the thread
@@ -822,6 +874,19 @@ public class ProcessStreamsListener implements IStreams.StreamsListener, IProces
 					thread.start();
 				}
 			}
+		} else if (context != null && !context.getID().equals(contextId) && !sharedChannel) {
+			// Streams created event received for a context which is not the
+			// one we are interested in. Send a disconnect for those streams.
+			svcStreams.disconnect(streamId, new IStreams.DoneDisconnect() {
+				@Override
+				public void doneDisconnect(IToken token, Exception error) {
+					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
+						CoreBundleActivator.getTraceHandler().trace("Remote process stream disconnected (different context): streamId='" + streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
+						                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
+						                                            IStatus.INFO, getClass());
+					}
+				}
+			});
 		} else if (context == null) {
 			// Context not set yet --> add to the delayed list
 			StreamCreatedEvent event = new StreamCreatedEvent(streamType, streamId, contextId);

@@ -29,7 +29,9 @@ import org.eclipse.tcf.services.ITerminals.TerminalContext;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataProvider;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
 import org.eclipse.tcf.te.tcf.core.util.ExceptionUtils;
@@ -44,7 +46,7 @@ import org.eclipse.tcf.util.TCFTask;
  */
 public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerminalsContextAwareListener {
 	// The parent terminals launcher instance
-	private final TerminalsLauncher parent;
+	/* default */ final TerminalsLauncher parent;
 	// The remote terminal context
 	private ITerminals.TerminalContext context;
 	// The list of registered stream data receivers
@@ -371,9 +373,8 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 		protected final void disconnect(final IStreams service, final String streamId) {
 			Assert.isNotNull(service);
 			Assert.isNotNull(streamId);
-			Assert.isTrue(!Protocol.isDispatchThread());
 
-			Protocol.invokeAndWait(new Runnable() {
+			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
 					service.disconnect(streamId, new IStreams.DoneDisconnect() {
@@ -639,9 +640,8 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 		protected final void disconnect(final IStreams service, final String streamId) {
 			Assert.isNotNull(service);
 			Assert.isNotNull(streamId);
-			Assert.isTrue(!Protocol.isDispatchThread());
 
-			Protocol.invokeAndWait(new Runnable() {
+			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
 					// Write EOS first
@@ -711,12 +711,10 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 			@Override
 			protected void internalDone(final Object caller, final IStatus status) {
 				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-				// Get the service instance from the parent
-				IStreams svcStreams = getParent().getSvcStreams();
 				// Unsubscribe the streams listener from the service
-				svcStreams.unsubscribe(ITerminals.NAME, finStreamsListener, new IStreams.DoneUnsubscribe() {
+				Tcf.getChannelManager().unsubscribeStream(parent.getChannel(), ITerminals.NAME, finStreamsListener, new IChannelManager.DoneUnsubscribeStream() {
 					@Override
-                    public void doneUnsubscribe(IToken token, Exception error) {
+					public void doneUnsubscribeStream(Throwable error) {
 						// Loop all registered listeners and close them
 						for (StreamsDataReceiver receiver : finDataReceivers) receiver.dispose();
 						// Call the original outer callback
@@ -796,14 +794,26 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 			                                            IStatus.INFO, getClass());
 		}
 
-		// Loop all delayed create events and look for the streams for our context
+		// Loop all delayed create events
 		synchronized (delayedCreatedEvents) {
 			Iterator<StreamCreatedEvent> iterator = delayedCreatedEvents.iterator();
 			while (iterator.hasNext()) {
-				StreamCreatedEvent event = iterator.next();
+				final StreamCreatedEvent event = iterator.next();
+				// If the created event matches the process context id, re-dispatch the created event
 				if (context.getID().equals(event.contextId) || context.getProcessID().equals(event.contextId) || event.contextId == null) {
-					// Re-dispatch the event
 					created(event.streamType, event.streamId, event.contextId);
+				} else if (!parent.isSharedChannel()) {
+					// Disconnect from streams not matching the process context id
+					parent.getSvcStreams().disconnect(event.streamId, new IStreams.DoneDisconnect() {
+						@Override
+						public void doneDisconnect(IToken token, Exception error) {
+							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
+								CoreBundleActivator.getTraceHandler().trace("Remote terminals stream disconnected (different context): streamId='" + event.streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
+								                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
+								                                            IStatus.INFO, getClass());
+							}
+						}
+					});
 				}
 			}
 			// Clear all events
@@ -823,7 +833,7 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 	 * @see org.eclipse.tcf.services.IStreams.StreamsListener#created(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-    public void created(String streamType, String streamId, String contextId) {
+    public void created(final String streamType, final String streamId, final String contextId) {
 		// We ignore any other stream type than ITerminals.NAME
 		if (!ITerminals.NAME.equals(streamType)) return;
 
@@ -886,6 +896,19 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 					thread.start();
 				}
 			}
+		} else if (context != null && !context.getID().equals(contextId) && !context.getProcessID().equals(contextId) && !parent.isSharedChannel()) {
+			// Streams created event received for a context which is not the
+			// one we are interested in. Send a disconnect for those streams.
+			parent.getSvcStreams().disconnect(streamId, new IStreams.DoneDisconnect() {
+				@Override
+				public void doneDisconnect(IToken token, Exception error) {
+					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
+						CoreBundleActivator.getTraceHandler().trace("Remote terminals stream disconnected (different context): streamId='" + streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
+						                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
+						                                            IStatus.INFO, getClass());
+					}
+				}
+			});
 		} else if (context == null) {
 			// Context not set yet --> add to the delayed list
 			StreamCreatedEvent event = new StreamCreatedEvent(streamType, streamId, contextId);

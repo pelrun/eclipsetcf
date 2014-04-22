@@ -89,6 +89,8 @@ public class Messages extends NLS {
 	public static String ChannelManager_closeChannel_message;
 	public static String ChannelManager_closeChannel_inuse_message;
 	public static String ChannelManager_closeChannel_closed_message;
+	public static String ChannelManager_stream_closed_message;
+	public static String ChannelManager_stream_missing_service_message;
 
 	public static String AbstractExternalValueAdd_error_invalidLocation;
 	public static String AbstractExternalValueAdd_output;

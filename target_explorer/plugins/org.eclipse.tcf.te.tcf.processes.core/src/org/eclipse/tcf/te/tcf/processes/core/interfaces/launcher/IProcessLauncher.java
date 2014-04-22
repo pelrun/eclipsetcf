@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -121,6 +122,13 @@ public interface IProcessLauncher extends IAdaptable {
 	 * The property type is {@link Map<String,Object>}.
 	 */
 	public static String PROP_PROCESSESV1_PARAMS = "processesV1.params"; //$NON-NLS-1$
+
+	/**
+	 * Property denoting the communication channel to use.
+	 * <p>
+	 * The property type is {@link IChannel}.
+	 */
+	public static String PROP_CHANNEL = "process.channel"; //$NON-NLS-1$
 
 	/**
 	 * Launch a remote process defined by the given launch properties at the target specified by the
