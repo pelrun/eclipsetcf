@@ -11,18 +11,15 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.ITreeNodeModel;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 
 /**
  * File system content provider for the common navigator of Target Explorer.
  */
 public class FSNavigatorContentProvider extends NavigatorContentProvider {
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.trees.TreeContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
@@ -59,15 +56,6 @@ public class FSNavigatorContentProvider extends NavigatorContentProvider {
 			if (node.isFile()) return NO_ELEMENTS;
 		}
 		return super.getChildren(parentElement);
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.ui.controls.NavigatorContentProvider#doGetModel(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode)
-	 */
-	@Override
-    protected ITreeNodeModel doGetModel(IPeerNode peerNode) {
-		return FSModel.getFSModel(peerNode);
 	}
 
 	/* (non-Javadoc)

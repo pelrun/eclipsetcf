@@ -25,8 +25,9 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeContentProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeViewerSorter;
@@ -119,7 +120,7 @@ public class FSOpenFileDialog extends ElementTreeSelectionDialog {
 	    	IPath path = new Path(filterPath);
 	    	if (viewer.getInput() instanceof IPeerNode) {
 	    		Object element = null;
-	    		FSModel model = FSModel.getFSModel((IPeerNode)viewer.getInput());
+				IRuntimeModel model = ModelManager.getRuntimeModel((IPeerNode)viewer.getInput());
 	    		if (model != null) {
 	    			FSTreeNode root = model.getRoot();
 	    			ITreeContentProvider contentProvider = (ITreeContentProvider)viewer.getContentProvider();

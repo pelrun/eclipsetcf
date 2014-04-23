@@ -16,8 +16,9 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.AbstractTreeNode;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.ITreeNodeModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 
@@ -98,7 +99,7 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 
 		if (parentElement instanceof IPeerNode) {
 			final IPeerNode peerNode = (IPeerNode)parentElement;
-			ITreeNodeModel model = doGetModel(peerNode);
+			IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
 			if (isRootNodeVisible()) {
 				AbstractTreeNode root = model.getRoot();
 				if(!root.childrenQueried && !root.childrenQueryRunning) {
@@ -122,14 +123,6 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 		return NO_ELEMENTS;
 	}
 
-	/**
-	 * Get the tree node model for this peer node.
-	 *
-	 * @param peerNode The peer node from where to get the model.
-	 * @return The tree node model.
-	 */
-	protected abstract ITreeNodeModel doGetModel(IPeerNode peerNode);
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
@@ -150,7 +143,7 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 		}
 		else if (element instanceof IPeerNode) {
 			IPeerNode peerNode = (IPeerNode) element;
-			ITreeNodeModel model = doGetModel(peerNode);
+			IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
 			AbstractTreeNode root = model.getRoot();
 			hasChildren = root != null ? hasChildren(root) : true;
 		}

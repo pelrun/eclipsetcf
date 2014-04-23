@@ -121,7 +121,7 @@ public abstract class OpCreate extends Operation {
 	}
 
 	/**
-	 * Add the new node to the folder and its FSModel.
+	 * Add the new node to the folder and its RuntimeModel.
 	 *
 	 * @param service The file system service to be used.
 	 * @throws TCFFileSystemException Thrown when adding.

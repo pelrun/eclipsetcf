@@ -10,7 +10,7 @@
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.pages;
 
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.editor.AbstractTreeViewerExplorerEditorPage;
@@ -66,6 +66,6 @@ public class FSExplorerEditorPage extends AbstractTreeViewerExplorerEditorPage {
 		if (peerNode == null && element instanceof IAdaptable) {
 			peerNode = (IPeerNode)((IAdaptable)element).getAdapter(IPeerNode.class);
 		}
-		return peerNode != null ? FSModel.getFSModel(peerNode).getRoot() : null;
+		return peerNode != null ? ModelManager.getRuntimeModel(peerNode).getRoot() : null;
     }
 }

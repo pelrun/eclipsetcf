@@ -14,7 +14,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -37,7 +36,7 @@ public class FSTreeNodeFactory implements IElementFactory {
 		if(peerNode != null) {
 			String path = memento.getString("path"); //$NON-NLS-1$
 			if(path == null) {
-				return FSModel.getFSModel(peerNode).getRoot();
+				return org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager.getRuntimeModel(peerNode).getRoot();
 			}
 			OpParsePath op = new OpParsePath(peerNode, path);
 			IOpExecutor executor = new NullOpExecutor();

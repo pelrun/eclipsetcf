@@ -67,6 +67,10 @@ public class Messages extends NLS {
 	}
 	public static String FSFolderSelectionDialog_MoveDialogMessage;
 	public static String FSFolderSelectionDialog_MoveDialogTitle;
+	public static String FSFolderSelectionDialog_Refresh_menu;
+	public static String FSFolderSelectionDialog_RefreshAll_menu;
+	public static String FSFolderSelectionDialog_validate_message;
+
 	public static String FSOpenFileDialog_message;
 	public static String FSOpenFileDialog_title;
 	public static String FSDelete_ConfirmDelete;

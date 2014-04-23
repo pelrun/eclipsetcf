@@ -80,4 +80,6 @@ public interface ImageConsts {
 	 * The key to access the error image used in the tool tip popped up during renaming.
 	 */
 	public static final String ERROR_IMAGE = "ErrorImage"; //$NON-NLS-1$
+
+	public static final String REFRESH_IMAGE = "RefreshImage"; //$NON-NLS-1$
 }

@@ -15,7 +15,7 @@ import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DoneMkDir;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFFileSystemException;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.RuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 
 /**
@@ -64,7 +64,7 @@ public class OpCreateFolder extends OpCreate {
 	 */
 	@Override
 	protected FSTreeNode newTreeNode() {
-		FSTreeNode node = FSModel.createFolderNode(name, folder);
+		FSTreeNode node = RuntimeModel.createFolderNode(name, folder);
 		// Newly created folder does not have any children. Mark it as queried.
 		node.queryDone();
 		return node;

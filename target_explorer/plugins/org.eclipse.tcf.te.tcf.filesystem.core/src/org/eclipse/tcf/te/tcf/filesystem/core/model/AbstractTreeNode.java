@@ -266,6 +266,9 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	 * @param callback The callback object, or <code>null</code> when callback is not needed.
 	 */
 	public void refresh(ICallback callback) {
+	    if (childrenQueryRunning) {
+	        return;
+	    }
 		queryStarted();
 		Map<String, Boolean> flags = new HashMap<String, Boolean>();
 		flags.put(IChannelManager.FLAG_NO_PATH_MAP, Boolean.TRUE);

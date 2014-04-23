@@ -31,6 +31,7 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.JobExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopy;
@@ -38,8 +39,8 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpMove;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRefresh;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUpload;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.MoveCopyCallback;
@@ -47,13 +48,13 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.ui.PlatformUI;
 /**
- * Common DnD operations shared by File Explorer and Target Explorer.  
+ * Common DnD operations shared by File Explorer and Target Explorer.
  */
 public class CommonDnD implements IConfirmCallback {
 
 	/**
 	 * If the current selection is draggable.
-	 * 
+	 *
 	 * @param selection The currently selected nodes.
 	 * @return true if it is draggable.
 	 */
@@ -72,7 +73,7 @@ public class CommonDnD implements IConfirmCallback {
 
 	/**
 	 * If the specified object is a draggable element.
-	 * 
+	 *
 	 * @param object The object to be dragged.
 	 * @return true if it is draggable.
 	 */
@@ -86,7 +87,7 @@ public class CommonDnD implements IConfirmCallback {
 
 	/**
 	 * Perform the drop operation over dragged files to the specified target folder.
-	 * 
+	 *
 	 * @param viewer the tree viewer to be refreshed after dragging.
 	 * @param files The files being dropped.
 	 * @param operations the current dnd operations.
@@ -123,7 +124,7 @@ public class CommonDnD implements IConfirmCallback {
 	/**
 	 * Get the callback that refresh and select the files being dragged when the dragging gesture is
 	 * copying.
-	 * 
+	 *
 	 * @param viewer the tree viewer to be refreshed after dragging.
 	 * @param files The files being dragged.
 	 * @param target The target folder to drag the files to.
@@ -144,7 +145,7 @@ public class CommonDnD implements IConfirmCallback {
 	/**
 	 * Get the callback that delete the dragged source files, refresh and select the files being
 	 * dragged when the dragging gesture is moving.
-	 * 
+	 *
 	 * @param viewer the tree viewer to be refreshed after dragging.
 	 * @param files The files being dragged.
 	 * @param target The target folder to drag the files to.
@@ -161,9 +162,9 @@ public class CommonDnD implements IConfirmCallback {
 						successful &= file.delete();
 					}
 					if (successful) {
-						FSTreeNode root = FSModel.getFSModel(target.peerNode).getRoot();
+						IRuntimeModel model = ModelManager.getRuntimeModel(target.peerNode);
 						IOpExecutor executor = new JobExecutor(getSelectionCallback(viewer, files, target));
-						executor.execute(new OpRefresh(root));
+						executor.execute(new OpRefresh(model.getRoot()));
 					}
 				}
 			}
@@ -172,7 +173,7 @@ public class CommonDnD implements IConfirmCallback {
 
 	/**
 	 * Get the callback that refresh the files being dragged after moving or copying.
-	 * 
+	 *
 	 * @param viewer the tree viewer to be refreshed after dragging.
 	 * @param paths The paths of the files being dragged.
 	 * @param target The target folder to drag the files to.
@@ -205,7 +206,7 @@ public class CommonDnD implements IConfirmCallback {
 
 	/**
 	 * Update the tree viewer after DnD and select the nodes that being dropped.
-	 * 
+	 *
 	 * @param viewer The tree viewer in which the DnD takes place.
 	 * @param target The target node that the drop operation happens.
 	 * @param nodes The nodes that are being dropped.
@@ -224,10 +225,10 @@ public class CommonDnD implements IConfirmCallback {
                 }});
 		}
     }
-	
+
 	/**
 	 * Perform the drop operation over dragged selection.
-	 * 
+	 *
 	 * @param aTarget the target Object to be moved to.
 	 * @param operations the current dnd operations.
 	 * @param selection The local selection being dropped.
@@ -265,7 +266,7 @@ public class CommonDnD implements IConfirmCallback {
 	 * node. If the hovered node is a file, then return its parent directory. If the hovered node is
 	 * a directory, then return its self if it is not a node being copied. Return its parent
 	 * directory if it is a node being copied.
-	 * 
+	 *
 	 * @param hovered
 	 * @param nodes
 	 * @return
@@ -286,7 +287,7 @@ public class CommonDnD implements IConfirmCallback {
 
 	/**
 	 * Validate dropping when the elements being dragged are files.
-	 * 
+	 *
 	 * @param target The target object.
 	 * @param operation The DnD operation.
 	 * @param transferType The transfered data simulator.
@@ -309,7 +310,7 @@ public class CommonDnD implements IConfirmCallback {
 
 	/**
 	 * Validate dropping when the elements being dragged are local selection.
-	 * 
+	 *
 	 * @param target The target object.
 	 * @param operation The DnD operation.
 	 * @param transferType The transfered data simulator.
@@ -367,8 +368,8 @@ public class CommonDnD implements IConfirmCallback {
 				String title = Messages.FSUpload_OverwriteTitle;
 				String message = NLS.bind(Messages.FSUpload_OverwriteConfirmation, file.getName());
 				final Image titleImage = UIPlugin.getImage(ImageConsts.DELETE_READONLY_CONFIRM);
-				MessageDialog qDialog = new MessageDialog(parent, title, null, message, 
-								MessageDialog.QUESTION, new String[] {Messages.FSUpload_Yes, 
+				MessageDialog qDialog = new MessageDialog(parent, title, null, message,
+								MessageDialog.QUESTION, new String[] {Messages.FSUpload_Yes,
 								Messages.FSUpload_YesToAll, Messages.FSUpload_No, Messages.FSUpload_Cancel}, 0) {
 					@Override
 					public Image getQuestionImage() {
@@ -380,7 +381,7 @@ public class CommonDnD implements IConfirmCallback {
 		});
 		return results[0];
     }
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.swt.dnd.DragSourceListener#dragSetData(org.eclipse.swt.dnd.DragSourceEvent)
@@ -389,7 +390,7 @@ public class CommonDnD implements IConfirmCallback {
 	    if (LocalSelectionTransfer.getTransfer().isSupportedType(anEvent.dataType)) {
 			anEvent.data = LocalSelectionTransfer.getTransfer().getSelection();
 			return true;
-		} 
+		}
 		else if (FileTransfer.getInstance().isSupportedType(anEvent.dataType)) {
 			IStructuredSelection selection = (IStructuredSelection) LocalSelectionTransfer.getTransfer().getSelection();
 			List<FSTreeNode> nodes = selection.toList();

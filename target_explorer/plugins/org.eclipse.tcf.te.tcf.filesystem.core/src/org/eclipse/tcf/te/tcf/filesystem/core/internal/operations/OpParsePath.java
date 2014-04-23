@@ -24,7 +24,6 @@ import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFException;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.TargetPropertyTester;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
@@ -137,7 +136,7 @@ public class OpParsePath extends Operation {
 	@Override
 	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		if (peer != null && path != null) {
-			final FSTreeNode root = FSModel.getFSModel(peer).getRoot();
+			final FSTreeNode root = org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager.getRuntimeModel(peer).getRoot();
 			if (!root.childrenQueried) {
 				new NullOpExecutor().execute(new OpRefreshRoots(root));
 			}
