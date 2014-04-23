@@ -75,7 +75,7 @@ public class ActionHistoryToolbarContribution extends CompoundContributionItem i
     	if (entries != null && entries.length > 0) {
     		int count = 0;
     		for (final String entry : entries) {
-    			if (count > 5) {
+    			if (count >= 5) {
     				break;
     			}
     			IPropertiesContainer decoded = DataHelper.decodePropertiesContainer(entry);
