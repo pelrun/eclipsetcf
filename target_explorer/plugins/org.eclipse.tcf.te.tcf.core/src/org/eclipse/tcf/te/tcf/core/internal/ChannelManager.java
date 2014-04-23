@@ -113,7 +113,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 
 												if (map != null && map.length > 0) {
 													for (PathMapRule rule : map) {
-														if (rule.getID() == null || !rule.getID().startsWith(service.getClientID())) {
+														if (rule.getID() == null || !(!rule.getID().startsWith(service.getClientID()) && !"Agent".equals(rule.getID()))) { //$NON-NLS-1$
 															rules.add(rule);
 														}
 													}

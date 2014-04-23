@@ -167,7 +167,7 @@ public final class Launch extends TCFLaunch {
 
 						if (oldMap != null && oldMap.length > 0) {
 							for (PathMapRule rule : oldMap) {
-								if (rule.getID() == null || !rule.getID().startsWith(clientID)) {
+								if (rule.getID() == null || (!rule.getID().startsWith(clientID) && !"Agent".equals(rule.getID()))) { //$NON-NLS-1$
 									rules.add(rule);
 								}
 							}

@@ -336,7 +336,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 
 										if (map != null && map.length > 0) {
 											for (PathMapRule rule : map) {
-												if (rule.getID() == null || !rule.getID().startsWith(getClientID())) {
+												if (rule.getID() == null || (!rule.getID().startsWith(getClientID()) && !"Agent".equals(rule.getID()))) { //$NON-NLS-1$
 													rules.add(rule);
 												}
 											}
