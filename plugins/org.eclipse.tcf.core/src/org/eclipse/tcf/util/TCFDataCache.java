@@ -65,6 +65,9 @@ public abstract class TCFDataCache<V> implements Runnable {
         this.channel = channel;
     }
 
+    /**
+     * @since 1.2
+     */
     public void post() {
         if (posted) return;
         if (waiting_cnt == 0) return;
