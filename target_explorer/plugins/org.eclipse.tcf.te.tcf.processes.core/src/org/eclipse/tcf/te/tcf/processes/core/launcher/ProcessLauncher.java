@@ -197,21 +197,21 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				if (processContext != null && processContext.canTerminate()) {
-					// Try to terminate the process the usual way first (sending SIGTERM)
-					processContext.terminate(new IProcesses.DoneCommand() {
-						@Override
-						public void doneCommand(IToken token, Exception error) {
-							onTerminateDone(processContext, error);
-						}
-					});
+				if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
+					if (processContext != null && processContext.canTerminate()) {
+						// Try to terminate the process the usual way first (sending SIGTERM)
+						processContext.terminate(new IProcesses.DoneCommand() {
+							@Override
+							public void doneCommand(IToken token, Exception error) {
+								onTerminateDone(processContext, error);
+							}
+						});
+					}
 				}
-
 			}
 		};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
+		Protocol.invokeLater(runnable);
 	}
 
 	/* (non-Javadoc)
