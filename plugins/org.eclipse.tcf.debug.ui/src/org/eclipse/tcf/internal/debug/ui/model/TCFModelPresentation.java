@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,6 +48,7 @@ import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
@@ -240,7 +241,8 @@ public class TCFModelPresentation implements IDebugModelPresentation {
         if (input != null) {
             IEditorRegistry registry = PlatformUI.getWorkbench().getEditorRegistry();
             IEditorDescriptor descriptor = registry.getDefaultEditor(input.getName());
-            if (descriptor != null) id = descriptor.getId();
+            if (descriptor != null && !descriptor.isOpenExternal()) id = descriptor.getId();
+            else id = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
         }
         return id;
     }
