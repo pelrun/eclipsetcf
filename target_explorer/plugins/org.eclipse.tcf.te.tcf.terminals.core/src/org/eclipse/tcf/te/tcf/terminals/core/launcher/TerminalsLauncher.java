@@ -89,7 +89,7 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 	private ICallback callback;
 
 	// The streams listener instance
-	private IStreams.StreamsListener streamsListener = null;
+	private IChannelManager.IStreamsListener streamsListener = null;
 	// The terminals listener instance
 	private ITerminals.TerminalsListener terminalsListener = null;
 	// The event listener instance
@@ -770,7 +770,7 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 	 *
 	 * @return The streams listener instance or <code>null</code> if none.
 	 */
-	protected IStreams.StreamsListener createStreamsListener() {
+	protected IChannelManager.IStreamsListener createStreamsListener() {
 		return new TerminalsStreamsListener(this);
 	}
 

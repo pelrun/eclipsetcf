@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -146,6 +146,55 @@ public interface IChannelManager extends IAdaptable {
 	public void closeAll(boolean wait);
 
 	/**
+	 * Channel manager specific interface to be implemented by streams listener proxies.
+	 */
+	interface IStreamsListenerProxy {
+
+		/**
+		 * Trigger the processing of all delayed created events.
+		 */
+		void processDelayedCreatedEvents();
+	}
+
+    /**
+     * Channel manager specific extension of the {@link IStreams.StreamsListener} interface
+     * to handle the stream disconnect in a common place.
+     *
+     * @see IStreams.StreamsListener
+     */
+    interface IStreamsListener extends IStreams.StreamsListener {
+
+    	/**
+    	 * Associate the given proxy with the streams listener. The
+    	 * streams listener can call the proxy methods to tell the
+    	 * proxy implementation which created stream should be disconnected.
+    	 *
+    	 * @param proxy The streams listener proxy or <code>null</code>.
+    	 */
+    	void setProxy(IStreamsListenerProxy proxy);
+
+    	/**
+    	 * Returns if or if not the listener has a context set and can
+    	 * decide if a created event is consumed or not.
+    	 *
+    	 * @return <code>True</code> if the listener has a context, <code>false</code> if not.
+    	 */
+    	boolean hasContext();
+
+    	/**
+    	 * Returns if or if not the given created event is consumed by the streams listener
+    	 * or not.
+    	 *
+    	 * @param stream_type The stream type. Must not be <code>null</code>.
+    	 * @param stream_id The stream id. Must not be <code>null</code>.
+    	 * @param context_id The context id or <code>null</code>.
+    	 *
+    	 * @return <code>True</code> if the created event is consumed, <code>false</code> otherwise.
+    	 */
+    	boolean isCreatedConsumed(String stream_type, String stream_id, String context_id);
+    }
+
+	/**
 	 * Client call back interface for subscribeStream(...).
 	 */
 	interface DoneSubscribeStream {
@@ -165,7 +214,7 @@ public interface IChannelManager extends IAdaptable {
 	 * @param listener The streams listener. Must not be <code>null</code>.
 	 * @param done The client callback. Must not be <code>null</code>.
 	 */
-	public void subscribeStream(IChannel channel, String streamType, IStreams.StreamsListener listener, DoneSubscribeStream done);
+	public void subscribeStream(IChannel channel, String streamType, IStreamsListener listener, DoneSubscribeStream done);
 
 	/**
 	 * Client call back interface for unsubscribeStream(...).
@@ -187,5 +236,5 @@ public interface IChannelManager extends IAdaptable {
 	 * @param listener The streams listener. Must not be <code>null</code>.
 	 * @param done The client callback. Must not be <code>null</code>.
 	 */
-	public void unsubscribeStream(IChannel channel, String streamType, IStreams.StreamsListener listener, DoneUnsubscribeStream done);
+	public void unsubscribeStream(IChannel channel, String streamType, IStreamsListener listener, DoneUnsubscribeStream done);
 }

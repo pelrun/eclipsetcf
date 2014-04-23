@@ -23,4 +23,10 @@ public interface ITraceIds {
 	 * If activated, tracing information about the channel manager is printed out.
 	 */
 	public static String TRACE_CHANNEL_MANAGER = "trace/channelManager"; //$NON-NLS-1$
+
+	/**
+	 * If activated, tracing information about the channel manager streams listener proxies are printed out.
+	 */
+	public static final String TRACE_STREAMS_LISTENER_PROXY = "trace/channelManager/streamsListenerProxy"; //$NON-NLS-1$
+
 }

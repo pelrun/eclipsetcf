@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -32,6 +32,7 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.IStreamsListenerProxy;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataProvider;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
 import org.eclipse.tcf.te.tcf.core.util.ExceptionUtils;
@@ -44,7 +45,7 @@ import org.eclipse.tcf.util.TCFTask;
 /**
  * Remote terminal streams listener implementation.
  */
-public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerminalsContextAwareListener {
+public class TerminalsStreamsListener implements IChannelManager.IStreamsListener, ITerminalsContextAwareListener {
 	// The parent terminals launcher instance
 	/* default */ final TerminalsLauncher parent;
 	// The remote terminal context
@@ -53,82 +54,12 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 	private final List<StreamsDataReceiver> dataReceiver = new ArrayList<StreamsDataReceiver>();
 	// The stream data provider
 	private StreamsDataProvider dataProvider;
-	// The list of delayed stream created events
-	private final List<StreamCreatedEvent> delayedCreatedEvents = new ArrayList<StreamCreatedEvent>();
 	// The list of created runnable's
 	private final List<Runnable> runnables = new ArrayList<Runnable>();
-
-	/**
-	 * Immutable stream created event.
-	 */
-	private final static class StreamCreatedEvent {
-		/**
-		 * The stream type.
-		 */
-		public final String streamType;
-		/**
-		 * The stream id.
-		 */
-		public final String streamId;
-		/**
-		 * The context id.
-		 */
-		public final String contextId;
-
-		// As the class is immutable, we do not need to build the toString
-		// value again and again. Build it once in the constructor and reuse it later.
-		private final String toString;
-
-		/**
-		 * Constructor.
-		 *
-		 * @param streamType The stream type.
-		 * @param streamId The stream id.
-		 * @param contextId The context id.
-		 */
-		public StreamCreatedEvent(String streamType, String streamId, String contextId) {
-			this.streamType = streamType;
-			this.streamId = streamId;
-			this.contextId = contextId;
-
-			toString = toString();
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			return obj instanceof StreamCreatedEvent
-					&& toString().equals(((StreamCreatedEvent)obj).toString());
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			return toString().hashCode();
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
-		@Override
-		public String toString() {
-			if (toString != null) return toString;
-
-			StringBuilder builder = new StringBuilder(getClass().getSimpleName());
-			builder.append(": streamType = "); //$NON-NLS-1$
-			builder.append(streamType);
-			builder.append("; streamId = "); //$NON-NLS-1$
-			builder.append(streamId);
-			builder.append("; contextId = "); //$NON-NLS-1$
-			builder.append(contextId);
-
-			return builder.toString();
-		}
-	}
+	// The streams listener proxy instance
+	private IChannelManager.IStreamsListenerProxy proxy = null;
+	// The list of already processed streams created events (simple string in format "<stream type>;<stream id>;<context id>")
+	/* default */ List<String> processedCreatedEvents = new ArrayList<String>();
 
 	/**
 	 * Remote stream reader runnable implementation.
@@ -694,7 +625,7 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 	 */
 	public void dispose(final ICallback callback) {
 		// Store a final reference to the streams listener instance
-		final IStreams.StreamsListener finStreamsListener = this;
+		final IChannelManager.IStreamsListener finStreamsListener = this;
 
 		// Store a final reference to the data receivers list
 		final List<StreamsDataReceiver> finDataReceivers;
@@ -721,6 +652,9 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 						if (callback != null) callback.done(caller, status);
 					}
 				});
+
+				// Clean the list of processed created events
+				processedCreatedEvents.clear();
 			}
 		}, new CallbackInvocationDelegate());
 
@@ -736,6 +670,14 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 
 		// Mark the collector initialization done
 		collector.initDone();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.IStreamsListener#setProxy(org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.IStreamsListenerProxy)
+	 */
+	@Override
+	public void setProxy(IStreamsListenerProxy proxy) {
+		this.proxy = proxy;
 	}
 
 	/**
@@ -794,41 +736,50 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 			                                            IStatus.INFO, getClass());
 		}
 
-		// Loop all delayed create events
-		synchronized (delayedCreatedEvents) {
-			Iterator<StreamCreatedEvent> iterator = delayedCreatedEvents.iterator();
-			while (iterator.hasNext()) {
-				final StreamCreatedEvent event = iterator.next();
-				// If the created event matches the process context id, re-dispatch the created event
-				if (context.getID().equals(event.contextId) || context.getProcessID().equals(event.contextId) || event.contextId == null) {
-					created(event.streamType, event.streamId, event.contextId);
-				} else if (!parent.isSharedChannel()) {
-					// Disconnect from streams not matching the process context id
-					parent.getSvcStreams().disconnect(event.streamId, new IStreams.DoneDisconnect() {
-						@Override
-						public void doneDisconnect(IToken token, Exception error) {
-							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
-								CoreBundleActivator.getTraceHandler().trace("Remote terminals stream disconnected (different context): streamId='" + event.streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
-								                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
-								                                            IStatus.INFO, getClass());
-							}
-						}
-					});
-				}
-			}
-			// Clear all events
-			delayedCreatedEvents.clear();
-		}
+		// Ask the proxy to process all delayed created events
+		if (proxy != null) proxy.processDelayedCreatedEvents();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsContextAwareListener#getTerminalsContext()
 	 */
 	@Override
-	public TerminalContext getTerminalsContext() {
+	public final TerminalContext getTerminalsContext() {
 		return context;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.IStreamsListener#hasContext()
+	 */
+	@Override
+	public final boolean hasContext() {
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
+			CoreBundleActivator.getTraceHandler().trace("Remote terminals stream listener: hasContext = " + (context != null), //$NON-NLS-1$
+			                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
+			                                            IStatus.INFO, getClass());
+		}
+	    return context != null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.IStreamsListener#isCreatedConsumed(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+    public final boolean isCreatedConsumed(String stream_type, String stream_id, String context_id) {
+		// 2011-10-18: Since the unification of terminals and processes service, the
+		//             context id of the streams events is the process context id, not
+		//             the terminal context id as before. So check for both here to support
+		//             both the older and the newer version of the terminals service.
+		boolean consumed = context != null && (context.getID().equals(context_id) || context.getProcessID().equals(context_id));
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
+			CoreBundleActivator.getTraceHandler().trace("Remote terminals stream listener: isCreatedConsumed = " + consumed, //$NON-NLS-1$
+			                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
+			                                            IStatus.INFO, getClass());
+		}
+
+		return consumed;
+	}
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.services.IStreams.StreamsListener#created(java.lang.String, java.lang.String, java.lang.String)
 	 */
@@ -843,16 +794,11 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 			                                            IStatus.INFO, getClass());
 		}
 
-		// If a terminals context is set, check if the created event is for the
-		// monitored terminals context
-		final ITerminals.TerminalContext context = getTerminalsContext();
-		// The contextId is null if used with an older TCF agent not sending the third parameter
-		//
-		// 2011-10-18: Since the unification of terminals and processes service, the
-		//             context id of the streams events is the process context id, not
-		//             the terminal context id as before. So check for both here to support
-		//             both the older and the newer version of the terminals service.
-		if (context != null && (context.getID().equals(contextId) || context.getProcessID().equals(contextId) || contextId == null)) {
+		// Create the internal representation of the created event
+		final String event = streamType + ";" + streamId + ";" + contextId; //$NON-NLS-1$ //$NON-NLS-2$
+
+		// Check if the created event is really consumed by us
+		if (isCreatedConsumed(streamType, streamId, contextId) && !processedCreatedEvents.contains(event)) {
 			// Create a snapshot of the registered data receivers
 			StreamsDataReceiver[] receivers;
 			synchronized (dataReceiver) {
@@ -896,25 +842,10 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 					thread.start();
 				}
 			}
-		} else if (context != null && !context.getID().equals(contextId) && !context.getProcessID().equals(contextId) && !parent.isSharedChannel()) {
-			// Streams created event received for a context which is not the
-			// one we are interested in. Send a disconnect for those streams.
-			parent.getSvcStreams().disconnect(streamId, new IStreams.DoneDisconnect() {
-				@Override
-				public void doneDisconnect(IToken token, Exception error) {
-					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
-						CoreBundleActivator.getTraceHandler().trace("Remote terminals stream disconnected (different context): streamId='" + streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
-						                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
-						                                            IStatus.INFO, getClass());
-					}
-				}
-			});
-		} else if (context == null) {
-			// Context not set yet --> add to the delayed list
-			StreamCreatedEvent event = new StreamCreatedEvent(streamType, streamId, contextId);
-			synchronized (delayedCreatedEvents) {
-				if (!delayedCreatedEvents.contains(event)) delayedCreatedEvents.add(event);
-			}
+
+			// Remember that we have seen this event already in order to avoid to process it again
+			// if the streams listener proxy is iterating through delayed events
+			processedCreatedEvents.add(event);
 		}
 	}
 
@@ -926,25 +857,7 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 		// We ignore any other stream type than ITerminals.NAME
 		if (!ITerminals.NAME.equals(streamType)) return;
 
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
-			CoreBundleActivator.getTraceHandler().trace("Remote terminals stream disposed: streamId='" + streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
-			                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
-			                                            IStatus.INFO, getClass());
-		}
-
-		// If the delayed created events list is not empty, we have
-		// to check if one of the delayed create events got disposed
-		synchronized (delayedCreatedEvents) {
-			Iterator<StreamCreatedEvent> iterator = delayedCreatedEvents.iterator();
-			while (iterator.hasNext()) {
-				StreamCreatedEvent event = iterator.next();
-				if (event.streamType != null && event.streamType.equals(streamType)
-						&& event.streamId != null && event.streamId.equals(streamId)) {
-					// Remove the create event from the list
-					iterator.remove();
-				}
-			}
-		}
+		boolean consumed = false;
 
 		// Stop the thread(s) if the disposed event is for the active
 		// monitored stream id(s).
@@ -959,8 +872,17 @@ public class TerminalsStreamsListener implements IStreams.StreamsListener, ITerm
 						// we cannot wait for a callback here
 						myRunnable.stop(null);
 						iterator.remove();
+						consumed |= true;
 					}
 				}
+			}
+		}
+
+		if (consumed) {
+			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_STREAMS_LISTENER)) {
+				CoreBundleActivator.getTraceHandler().trace("Remote terminals stream disposed: streamId='" + streamId + "'", //$NON-NLS-1$ //$NON-NLS-2$
+				                                            0, ITraceIds.TRACE_STREAMS_LISTENER,
+				                                            IStatus.INFO, getClass());
 			}
 		}
 	}

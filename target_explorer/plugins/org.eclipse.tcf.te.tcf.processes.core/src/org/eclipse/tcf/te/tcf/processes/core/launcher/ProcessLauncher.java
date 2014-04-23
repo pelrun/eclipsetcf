@@ -95,7 +95,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	private ICallback callback;
 
 	// The streams listener instance
-	private IStreams.StreamsListener streamsListener = null;
+	private IChannelManager.IStreamsListener streamsListener = null;
 	// The process listener instance
 	private IProcesses.ProcessesListener processesListener = null;
 	// The event listener instance
@@ -1106,7 +1106,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 *
 	 * @return The streams listener instance or <code>null</code> if none.
 	 */
-	protected IStreams.StreamsListener createStreamsListener() {
+	protected IChannelManager.IStreamsListener createStreamsListener() {
 		return new ProcessStreamsListener(this);
 	}
 
