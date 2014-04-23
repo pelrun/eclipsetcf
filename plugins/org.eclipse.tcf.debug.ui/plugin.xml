@@ -555,7 +555,7 @@
                   commandId="org.eclipse.tcf.debug.ui.commands.toggleQualifiedTypeNames"
                   style="toggle">
             </command>
-            
+
          </menu>
       </menuContribution>
       <!-- Expressions View -->

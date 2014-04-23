@@ -787,7 +787,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 insertedAnyAddress = true;
             }
             if (!insertedAnyAddress) {
-            	// Insert error in case of incomplete disassembly
+                // Insert error in case of incomplete disassembly
                 fCallback.insertError(startAddress, "cannot disassemble");
             }
         }

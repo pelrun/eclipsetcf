@@ -377,7 +377,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         }
     };
 
-    private final IRunControl.RunControlListener run_listener = new IRunControl.RunControlListener() {
+    private final IRunControl.RunControlListener run_listener = new IRunControl.RunControlListenerV1() {
 
         public void containerResumed(String[] context_ids) {
             for (String id : context_ids) {
@@ -489,6 +489,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 TCFNodePropertySource.refresh(node);
             }
             onMemoryChanged(id, false, true, false);
+        }
+
+        public void contextStateChanged(String id) {
+            TCFNode node = getNode(id);
+            if (node instanceof TCFNodeExecContext) {
+                ((TCFNodeExecContext)node).onContextStateChanged();
+            }
         }
     };
 

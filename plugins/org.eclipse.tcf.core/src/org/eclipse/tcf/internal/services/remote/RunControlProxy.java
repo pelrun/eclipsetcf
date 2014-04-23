@@ -128,7 +128,7 @@ public class RunControlProxy implements IRunControl {
                         assert args.length == 5;
                         error = toError(args[0]);
                         susp = ((Boolean)args[1]).booleanValue();
-                        if (args[2] != null) pc =  ((Number)args[2]).toString();
+                        if (args[2] != null) pc = ((Number)args[2]).toString();
                         reason = (String)args[3];
                         map = (Map<String,Object>)args[4];
                     }
@@ -229,6 +229,12 @@ public class RunControlProxy implements IRunControl {
                     else if (name.equals("containerResumed")) {
                         assert args.length == 1;
                         listener.containerResumed(toStringArray(args[0]));
+                    }
+                    else if (name.equals("contextStateChanged")) {
+                        assert args.length == 1;
+                        if (listener instanceof RunControlListenerV1) {
+                            ((RunControlListenerV1)listener).contextStateChanged((String)args[0]);
+                        }
                     }
                     else {
                         throw new IOException("RunControl service: unknown event: " + name);

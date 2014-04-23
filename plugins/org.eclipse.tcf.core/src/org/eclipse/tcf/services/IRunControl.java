@@ -274,6 +274,24 @@ public interface IRunControl extends IService {
      */
     static final String STATE_REVERSING = "Reversing";
 
+    /**
+     * Context state parameter:
+     * String - name of a context that owns this context.
+     */
+    static final String STATE_CONTEXT = "Context";
+
+    /**
+     * Context state parameter:
+     * String - name of CPU that is executing the context.
+     */
+    static final String STATE_CPU = "CPU";
+
+    /**
+     * Context state parameter:
+     * String - name of current state if other than "Running", for example: "Sleeping", "Reset", "No Clock".
+     */
+    static final String STATE_NAME = "StateName";
+
 
     /* Optional parameters of resume command ------------------------------- */
 
@@ -630,5 +648,19 @@ public interface IRunControl extends IService {
          * @param msg - human readable description of the exception.
          */
         void contextException(String context, String msg);
+    }
+
+    /**
+     * Service events listener interface - extended.
+     */
+    interface RunControlListenerV1 extends RunControlListener {
+
+        /**
+         * Called when context state changes and the context is not and was not in suspended state.
+         * Changes to and from suspended state should be reported by other events:
+         * contextSuspended, contextResumed, containerSuspended, containerResumed.
+         * @param context - ID of a context that changed state.
+         */
+        void contextStateChanged(String context);
     }
 }

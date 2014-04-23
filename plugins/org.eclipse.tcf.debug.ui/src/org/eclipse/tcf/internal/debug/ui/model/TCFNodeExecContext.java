@@ -1067,6 +1067,29 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         return true;
     }
 
+    private String addStateName(StringBuffer label, TCFContextState state_data) {
+        String image_name = ImageCache.IMG_THREAD_UNKNOWN_STATE;
+        assert !state_data.is_suspended;
+        if (state_data.suspend_params != null) {
+            String name = (String)state_data.suspend_params.get(IRunControl.STATE_NAME);
+            if (name != null) {
+                label.append(" (");
+                label.append(name);
+                label.append(")");
+                return image_name;
+            }
+        }
+        if (state_data.isReversing()) {
+            image_name = ImageCache.IMG_THREAD_REVERSING;
+            label.append(" (Reversing)");
+        }
+        else {
+            image_name = ImageCache.IMG_THREAD_RUNNNIG;
+            label.append(" (Running)");
+        }
+        return image_name;
+    }
+
     @Override
     protected boolean getData(ILabelUpdate result, Runnable done) {
         if (!run_context.validate(done)) return false;
@@ -1121,14 +1144,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                         image_name = ImageCache.IMG_THREAD_UNKNOWN_STATE;
                         if (state_data != null) {
                             if (!state_data.is_suspended) {
-                                if (state_data.isReversing()) {
-                                    image_name = ImageCache.IMG_THREAD_REVERSING;
-                                    label.append(" (Reversing)");
-                                }
-                                else {
-                                    image_name = ImageCache.IMG_THREAD_RUNNNIG;
-                                    label.append(" (Running)");
-                                }
+                                image_name = addStateName(label, state_data);
                             }
                             else {
                                 suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(state_data.suspend_reason);
@@ -1160,14 +1176,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                             image_name = ImageCache.IMG_THREAD_UNKNOWN_STATE;
                             if (state_data != null) {
                                 if (!state_data.is_suspended) {
-                                    if (state_data.isReversing()) {
-                                        image_name = ImageCache.IMG_THREAD_REVERSING;
-                                        label.append(" (Reversing)");
-                                    }
-                                    else {
-                                        image_name = ImageCache.IMG_THREAD_RUNNNIG;
-                                        label.append(" (Running)");
-                                    }
+                                    image_name = addStateName(label, state_data);
                                 }
                                 else {
                                     image_name = ImageCache.IMG_THREAD_SUSPENDED;
@@ -1214,12 +1223,12 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                                     label.append(" (");
                                     label.append(r);
                                     if (state_data.suspend_params != null) {
-                                        String prs = (String)state_data.suspend_params.get("Context");
+                                        String prs = (String)state_data.suspend_params.get(IRunControl.STATE_CONTEXT);
                                         if (prs != null) {
                                             label.append(", ");
                                             label.append(prs);
                                         }
-                                        String cpu = (String)state_data.suspend_params.get("CPU");
+                                        String cpu = (String)state_data.suspend_params.get(IRunControl.STATE_CPU);
                                         if (cpu != null) {
                                             label.append(", ");
                                             label.append(cpu);
@@ -1546,6 +1555,12 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                 }
             });
         }
+    }
+
+    void onContextStateChanged() {
+        assert !isDisposed();
+        state.reset();
+        postStateChangedDelta();
     }
 
     void onContextActionDone() {
