@@ -73,4 +73,6 @@ public class Messages extends NLS {
 	public static String PeerNode_notification_message_connectionLost;
 	public static String PeerNode_notification_message_connectionRecovered;
 	public static String PeerNode_notification_message_disconnected;
+	public static String PeerNode_info_connectionLost;
+	public static String PeerNode_info_connectionDisconnected;
 }

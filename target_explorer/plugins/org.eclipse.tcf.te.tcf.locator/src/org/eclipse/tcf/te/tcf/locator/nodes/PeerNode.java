@@ -17,6 +17,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
@@ -37,6 +40,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -515,6 +519,9 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 
 
     	if (connectionLost.get() && isConnectStateChangeActionAllowed(IConnectable.STATE_CONNECTION_LOST)) {
+    		Platform.getLog(CoreBundleActivator.getDefault().getBundle()).log(new Status(IStatus.INFO,
+    						CoreBundleActivator.getUniqueIdentifier(),
+    						NLS.bind(Messages.PeerNode_info_connectionLost, getName())));
     		changeConnectState(IConnectable.STATE_CONNECTION_LOST, new Callback() {
     			@Override
     			protected void internalDone(Object caller, IStatus status) {
@@ -544,6 +551,9 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     		null);
     	}
     	else if (isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
+    		Platform.getLog(CoreBundleActivator.getDefault().getBundle()).log(new Status(IStatus.INFO,
+    						CoreBundleActivator.getUniqueIdentifier(),
+    						NLS.bind(Messages.PeerNode_info_connectionDisconnected, getName())));
     		changeConnectState(IConnectable.ACTION_DISCONNECT, new Callback() {
     			@Override
     			protected void internalDone(Object caller, IStatus status) {
