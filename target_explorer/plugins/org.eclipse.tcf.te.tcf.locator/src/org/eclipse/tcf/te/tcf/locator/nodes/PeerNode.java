@@ -60,6 +60,8 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	// Reference to the peer id (cached for performance optimization)
 	private String peerId;
 
+	private boolean isValid = true;
+
 	/**
 	 * Constructor.
 	 *
@@ -161,13 +163,12 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	        }
         }
 
-		Protocol.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				setProperty(IPeerNodeProperties.PROP_VALID, valid.get());
-			}
-		});
-		return valid.get();
+		if (isValid != valid.get()) {
+			fireChangeEvent(IPeerNodeProperties.PROP_VALID, new Boolean(isValid), new Boolean(valid.get()));
+			isValid = valid.get();
+		}
+
+		return isValid;
 	}
 
 	/* (non-Javadoc)
