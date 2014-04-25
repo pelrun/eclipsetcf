@@ -1180,12 +1180,13 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                                 }
                                 else {
                                     image_name = ImageCache.IMG_THREAD_SUSPENDED;
-                                    String s = null;
-                                    String r = model.getContextActionResult(id);
-                                    if (r == null) r = state_data.suspend_reason;
+                                    String sig_name = null;
+                                    String bp_names = null;
+                                    String suspend_reason = model.getContextActionResult(id);
+                                    if (suspend_reason == null) suspend_reason = state_data.suspend_reason;
                                     if (state_data.suspend_params != null) {
-                                        s = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_DESCRIPTION);
-                                        if (s == null) s = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_NAME);
+                                        sig_name = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_DESCRIPTION);
+                                        if (sig_name == null) sig_name = (String)state_data.suspend_params.get(IRunControl.STATE_SIGNAL_NAME);
                                         Object ids = state_data.suspend_params.get(IRunControl.STATE_BREAKPOINT_IDS);
                                         if (ids != null) {
                                             @SuppressWarnings("unchecked")
@@ -1211,17 +1212,39 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                                                         }
                                                     }
                                                     if (bp_name == null) bp_name = bp_id;
-                                                    if (s == null) s = bp_name;
-                                                    else s = s + ", " + bp_name;
+                                                    if (bp_names == null) bp_names = bp_name;
+                                                    else bp_names = bp_names + ", " + bp_name;
                                                 }
                                             }
                                         }
                                     }
-                                    suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(r);
-                                    if (r == null) r = "Suspended";
-                                    if (s != null) r += ": " + s;
+                                    if (suspend_reason == null) suspend_reason = "Suspended";
+                                    suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(suspend_reason) || bp_names != null;
                                     label.append(" (");
-                                    label.append(r);
+                                    label.append(suspend_reason);
+                                    if (IRunControl.REASON_SIGNAL.equals(suspend_reason) && sig_name != null) {
+                                        label.append(": ");
+                                        label.append(sig_name);
+                                        sig_name = null;
+                                    }
+                                    if (IRunControl.REASON_BREAKPOINT.equals(suspend_reason) && bp_names != null) {
+                                        label.append(": ");
+                                        label.append(bp_names);
+                                        bp_names = null;
+                                    }
+                                    if (sig_name != null) {
+                                        label.append("; ");
+                                        label.append(IRunControl.REASON_SIGNAL);
+                                        label.append(": ");
+                                        label.append(sig_name);
+                                    }
+                                    if (bp_names != null) {
+                                        label.append("; ");
+                                        label.append(IRunControl.REASON_BREAKPOINT);
+                                        label.append(": ");
+                                        label.append(bp_names);
+                                    }
+                                    label.append(")");
                                     if (state_data.suspend_params != null) {
                                         String prs = (String)state_data.suspend_params.get(IRunControl.STATE_CONTEXT);
                                         if (prs != null) {
@@ -1234,7 +1257,6 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                                             label.append(cpu);
                                         }
                                     }
-                                    label.append(")");
                                 }
                             }
                         }
