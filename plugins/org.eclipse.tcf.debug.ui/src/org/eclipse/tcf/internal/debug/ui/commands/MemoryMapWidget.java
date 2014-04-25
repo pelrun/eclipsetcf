@@ -1025,8 +1025,8 @@ public class MemoryMapWidget {
                                     Map<String, Object> map = (Map<String, Object>) sym_data.props.get("FileError"); //$NON-NLS-1$
                                     if (map != null) {
                                         if (symbolFileInfo.length() > 0) symbolFileInfo.append("\n"); //$NON-NLS-1$
-                                        symbolFileInfo
-                                                .append("Symbol file error: ").append(TCFModel.getErrorMessage(new ErrorReport("", map), false)); //$NON-NLS-1$ //$NON-NLS-2$
+                                        String msg = TCFModel.getErrorMessage(new ErrorReport("", map), false); //$NON-NLS-1$
+                                        symbolFileInfo.append("Symbol file error: ").append(msg); //$NON-NLS-1$
                                     }
                                 }
                                 else if (sym_data.error == null) {
@@ -1045,7 +1045,7 @@ public class MemoryMapWidget {
                 }
             }.get();
 
-            if (symFileInfo.startsWith(r.getFileName())) {
+            if (symFileInfo != null && symFileInfo.startsWith(r.getFileName())) {
                 String id = symFileInfo.split(", ")[1];  //$NON-NLS-1$
                 symFileInfo = null;
                 if (!new File(r.getFileName()).exists()) {
