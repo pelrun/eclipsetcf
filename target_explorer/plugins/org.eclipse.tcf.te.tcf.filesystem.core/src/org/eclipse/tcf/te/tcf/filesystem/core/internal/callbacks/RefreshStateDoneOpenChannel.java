@@ -25,7 +25,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
- * The callback to process the channel opened event for refreshing the state of a 
+ * The callback to process the channel opened event for refreshing the state of a
  * file system node.
  */
 public class RefreshStateDoneOpenChannel extends CallbackBase implements IChannelManager.DoneOpenChannel{
@@ -33,7 +33,7 @@ public class RefreshStateDoneOpenChannel extends CallbackBase implements IChanne
 	FSTreeNode node;
 	// The callback after the refreshing is done.
 	ICallback callback;
-	
+
 	/**
 	 * Create an instance.
 	 */
@@ -77,7 +77,7 @@ public class RefreshStateDoneOpenChannel extends CallbackBase implements IChanne
 	/**
 	 * Invoke the callback using the specified status, if the callback
 	 * is not null.
-	 *  
+	 *
 	 * @param status The processing result.
 	 */
 	private void invokeCallback(IStatus status) {

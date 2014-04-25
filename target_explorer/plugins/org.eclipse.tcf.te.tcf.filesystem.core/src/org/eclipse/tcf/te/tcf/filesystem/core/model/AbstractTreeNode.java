@@ -17,9 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.core.interfaces.IViewerInput;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
@@ -118,14 +120,14 @@ public abstract class AbstractTreeNode extends PlatformObject {
 		firePropertyChange(event);
 	}
 
-	/**
-	 * Called when the children query is started.
-	 */
-	public void queryStarted() {
-		childrenQueryRunning = true;
-		PropertyChangeEvent event = new PropertyChangeEvent(this, "query_started", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
-		firePropertyChange(event);
-	}
+    /**
+     * Called when the children query is started.
+     */
+    public void queryStarted() {
+        childrenQueryRunning = true;
+        PropertyChangeEvent event = new PropertyChangeEvent(this, "query_started", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
+        firePropertyChange(event);
+    }
 
 	/**
 	 * Get the user account of the specified TCF peer.
@@ -265,14 +267,18 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	 *
 	 * @param callback The callback object, or <code>null</code> when callback is not needed.
 	 */
-	public void refresh(ICallback callback) {
-	    if (childrenQueryRunning) {
-	        return;
-	    }
-		queryStarted();
+	public void refresh(final ICallback callback) {
 		Map<String, Boolean> flags = new HashMap<String, Boolean>();
 		flags.put(IChannelManager.FLAG_NO_PATH_MAP, Boolean.TRUE);
-		Tcf.getChannelManager().openChannel(peerNode.getPeer(), flags, doCreateRefreshDoneOpenChannel(callback));
+		Tcf.getChannelManager().openChannel(peerNode.getPeer(), flags, doCreateRefreshDoneOpenChannel(new Callback() {
+		    /* (non-Javadoc)
+		     * @see org.eclipse.tcf.te.runtime.callback.Callback#internalDone(java.lang.Object, org.eclipse.core.runtime.IStatus)
+		     */
+		    @Override
+		    protected void internalDone(Object caller, IStatus status) {
+	            refreshChildren(callback);
+		    }
+		}));
 	}
 
 	/**
@@ -286,7 +292,7 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	/**
 	 * Query the children of this file system node.
 	 */
-	public void queryChildren() {
+	public final void queryChildren() {
 		queryChildren(null);
 	}
 	/**
@@ -325,5 +331,12 @@ public abstract class AbstractTreeNode extends PlatformObject {
 	/**
 	 * Refresh the children's children.
 	 */
-	public abstract void refreshChildren();
+	public final void refreshChildren() {
+	    refreshChildren(null);
+	}
+
+	/**
+     * Refresh the children's children.
+     */
+    public abstract void refreshChildren(ICallback callback);
 }

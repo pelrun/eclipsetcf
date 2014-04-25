@@ -26,7 +26,6 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -112,20 +111,9 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 		this.addFilter(new DirectoryFilter());
 		this.setStatusLineAboveButtons(false);
 		this.setValidator(new ISelectionStatusValidator() {
-
 			@Override
 			public IStatus validate(final Object[] selection) {
-				getShell().getDisplay().asyncExec(new Runnable() {
-					@SuppressWarnings("synthetic-access")
-                    @Override
-					public void run() {
-						IStatus status = isValidFolder(selection);
-						if (getTreeViewer().getSelection().equals(new StructuredSelection(selection))) {
-							updateStatus(status);
-						}
-					}
-				});
-				return new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), Messages.FSFolderSelectionDialog_validate_message);
+				return isValidFolder(selection);
 			}
 		});
 	}
@@ -254,33 +242,28 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	}
 
 	protected void refreshNode(final FSTreeNode treeNode) {
-		treeNode.refresh(new Callback() {
-			@Override
-            protected void internalDone(Object caller, IStatus status) {
-				getShell().getDisplay().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						getTreeViewer().refresh(treeNode, true);
-					}
-				});
-			}
-		});
+		if (!treeNode.childrenQueryRunning) {
+			treeNode.childrenQueried = false;
+			treeNode.clearChildren();
+			treeNode.refresh(new Callback() {
+				@Override
+	            protected void internalDone(Object caller, IStatus status) {
+					getShell().getDisplay().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							getTreeViewer().refresh(treeNode, true);
+							getTreeViewer().setSelection(getTreeViewer().getSelection());
+						}
+					});
+				}
+			});
+		}
 	}
 
 	protected void refreshModel() {
 		Object input = getTreeViewer().getInput();
 		if (input instanceof IPeerNode) {
-			ModelManager.getRuntimeModel((IPeerNode)input).getRoot().refresh(new Callback() {
-				@Override
-				protected void internalDone(Object caller, IStatus status) {
-					getShell().getDisplay().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							getTreeViewer().refresh(true);
-						}
-					});
-				}
-			});
+			refreshNode(ModelManager.getRuntimeModel((IPeerNode)input).getRoot());
 		}
 	}
 
@@ -309,6 +292,9 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 			}
 		}
 		if(!target.isWritable()) {
+			if (target.attr == null) {
+				refreshNode(target);
+			}
 			return error;
 		}
 		return new Status(IStatus.OK, pluginId, null);

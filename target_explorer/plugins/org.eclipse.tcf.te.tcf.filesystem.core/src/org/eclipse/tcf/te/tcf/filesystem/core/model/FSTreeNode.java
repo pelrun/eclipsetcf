@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
@@ -70,7 +71,7 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
     /**
      * Create a folder node using the specified parent node, the directory entry
      * and the flag to indicate if it is a root node.
-     * 
+     *
      * @param parentNode The parent node.
      * @param entry The directory entry.
      * @param entryIsRootNode If this folder is root folder.
@@ -161,7 +162,7 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
 
     /**
      * Returns the children outside of TCF thread.
-     * 
+     *
      * @return The children list.
      */
     @SuppressWarnings("unchecked")
@@ -203,7 +204,7 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
 
     /**
      * If this node has OS information.
-     * 
+     *
      * @return true if it has.
      */
     private boolean hasOSInfo() {
@@ -395,7 +396,7 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
     /**
      * Encode each segment of the path to a URI compatible name,
      * and get the URI encoded path.
-     * 
+     *
      * @return The encoded path which is URI compatible.
      */
     private String getEncodedURIPath() {
@@ -549,7 +550,7 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
 
     /**
      * Set the file's attributes and trigger property change event.
-     * 
+     *
      * @param attrs The new attributes.
      */
     public void setAttributes(FileAttrs attrs) {
@@ -578,7 +579,7 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
 
     /**
      * Set the file's new name and trigger property change event.
-     * 
+     *
      * @param name The new name.
      */
     public void setName(String name) {
@@ -619,18 +620,18 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
         return new QueryDoneOpenChannel(this, callback);
     }
 
-    /**
-     * Override the queryChildren to refresh the second level children upon expanding.
-     */
-    @Override
-    public void queryChildren() {
-        queryChildren(new Callback(){
-            @Override
-            protected void internalDone(Object caller, IStatus status) {
-                refreshChildren();
-            }
-        });
-    }
+//    /**
+//     * Override the queryChildren to refresh the second level children upon expanding.
+//     */
+//    @Override
+//    public void queryChildren() {
+//        queryChildren(new Callback(){
+//            @Override
+//            protected void internalDone(Object caller, IStatus status) {
+//                refreshChildren();
+//            }
+//        });
+//    }
 
     /*
      * (non-Javadoc)
@@ -646,16 +647,16 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
      * @see org.eclipse.tcf.te.tcf.filesystem.core.model.AbstractTreeNode#refreshChildren()
      */
     @Override
-    public void refreshChildren() {
+    public void refreshChildren(ICallback callback) {
         List<FSTreeNode> children = getChildren();
         if(!children.isEmpty()) {
-            ICallback callback = new Callback(){
+            ICallback proxy = new Callback(callback){
                 @Override
                 protected void internalDone(Object caller, IStatus status) {
                     queryDone();
                 }
             };
-            final CallbackMonitor monitor = new CallbackMonitor(callback);
+            final CallbackMonitor monitor = new CallbackMonitor(proxy);
             for(FSTreeNode child : children) {
                 if((child.isRoot() || child.isDirectory()) && !child.childrenQueried && !child.childrenQueryRunning) {
                     monitor.lock(child.uniqueId);
@@ -672,6 +673,9 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
                     });
                 }
             }
+        }
+        else {
+            callback.done(this, Status.OK_STATUS);
         }
     }
 }
