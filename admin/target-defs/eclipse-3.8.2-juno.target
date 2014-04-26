@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 3.8.x (Juno)" sequenceNumber="32">
+<?pde version="3.8"?><target name="Eclipse 3.8.x (Juno)" sequenceNumber="34">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson.source" version="2.2.4.v201311231704"/>
 <unit id="com.google.gson" version="2.2.4.v201311231704"/>
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/S20140227085123/repository"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.100.201305201712"/>
-<repository location="http://download.eclipse.org/tm/updates/3.5"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.apache.log4j.source" version="1.2.15.v201012070815"/>
@@ -36,6 +32,14 @@
 <unit id="org.eclipse.platform.sdk" version="3.8.2.M20130131-0800"/>
 <unit id="org.eclipse.test.feature.group" version="3.5.100.v20120528-1717-7R7dBhBgLiCViQnG8ITHM73701A1"/>
 <repository location="http://download.eclipse.org/eclipse/updates/3.8"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.300.201404231231"/>
+<repository location="http://download.eclipse.org/tm/builds/luna/nightly"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.rse.feature.group" version="3.4.1.201302122026"/>
+<repository location="http://download.eclipse.org/releases/juno"/>
 </location>
 </locations>
 </target>
