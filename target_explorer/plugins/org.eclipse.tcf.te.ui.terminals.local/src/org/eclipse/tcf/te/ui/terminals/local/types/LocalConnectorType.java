@@ -70,25 +70,31 @@ public class LocalConnectorType extends AbstractConnectorType {
 
 		// Extract the process properties using defaults
 		String image;
-		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_PROCESS_PATH) ||
-						properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH) == null){
-
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_PROCESS_PATH)
+				|| properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH) == null) {
 			File defaultShell = defaultShell();
 			image = defaultShell.isAbsolute() ? defaultShell.getAbsolutePath() : defaultShell.getPath();
 		} else {
 			image = properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH);
 		}
+
 		boolean localEcho;
-		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_LOCAL_ECHO) ||
-						properties.getStringProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO) == null){
-			localEcho = Host.isWindowsHost();
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_LOCAL_ECHO)
+				|| properties.getStringProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO) == null) {
+			localEcho = false;
+			// On Windows, turn on local echo by default if no PTY is used (bug 433645)
+			if (Host.isWindowsHost()) {
+				boolean isUsingPTY = (properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_OBJ) == null && PTY.isSupported(PTY.Mode.TERMINAL))
+										|| properties.getProperty(ITerminalsConnectorConstants.PROP_PTY_OBJ) instanceof PTY;
+				localEcho = !isUsingPTY;
+			}
 		} else {
 			localEcho = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO);
 		}
 
 		String lineSeparator;
-		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR) ||
-						properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR) == null){
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR)
+				|| properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR) == null) {
 			lineSeparator = Host.isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF;
 		} else {
 			lineSeparator = properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
