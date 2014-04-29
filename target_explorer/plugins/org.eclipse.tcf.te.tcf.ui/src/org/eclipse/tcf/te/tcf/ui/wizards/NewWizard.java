@@ -34,6 +34,7 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -69,6 +70,17 @@ public class NewWizard extends AbstractNewConfigWizard {
 		addPage(new NewTargetWizardPage());
 	}
 
+	protected String getPeerType() {
+		return null;
+	}
+
+	protected boolean isAllowedForeignAttribute(String key) {
+		return key.equals(IPeer.ATTR_TRANSPORT_NAME) ||
+						key.equals(IPeer.ATTR_IP_HOST) ||
+						key.equals(IPeer.ATTR_IP_PORT) ||
+						key.equals(IPeerNodeProperties.PROP_AUTO_CONNECT);
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.wizards.AbstractWizard#getInitialData()
 	 */
@@ -88,12 +100,16 @@ public class NewWizard extends AbstractNewConfigWizard {
 			}
 
 			if (peer != null) {
+				String selPeerType = peer.getAttributes().get(IPeerNodeProperties.PROP_TYPE);
+				final boolean sameType = getPeerType() == null ? selPeerType == null : getPeerType().equals(selPeerType);
 				final IPropertiesContainer data = new PropertiesContainer();
 				Protocol.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
 						for (Entry<String, String> attribute : peer.getAttributes().entrySet()) {
-	                        data.setProperty(attribute.getKey(), attribute.getValue());
+							if (sameType || isAllowedForeignAttribute(attribute.getKey())) {
+								data.setProperty(attribute.getKey(), attribute.getValue());
+							}
                         }
 					}
 				});
