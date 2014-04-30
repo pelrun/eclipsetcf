@@ -33,12 +33,14 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
+import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.services.AbstractService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapGeneratorService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.launch.core.activator.CoreBundleActivator;
@@ -315,6 +317,11 @@ public class PathMapService extends AbstractService implements IPathMapService {
     	if (peer == null && context instanceof IPeerNode) peer = ((IPeerNode)context).getPeer();
     	if (peer == null && context instanceof IPeerNodeProvider && ((IPeerNodeProvider)context).getPeerNode() != null) peer = ((IPeerNodeProvider)context).getPeerNode().getPeer();
 
+    	// Make sure that the callback is invoked in the TCF dispatch thread
+    	final AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
+    	final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+    	collector.initDone();
+
     	if (peer != null) {
 			final IChannel channel = Tcf.getChannelManager().getChannel(peer);
 			if (channel != null && IChannel.STATE_OPEN == channel.getState()) {
@@ -345,29 +352,29 @@ public class PathMapService extends AbstractService implements IPathMapService {
 											set(rules, svc, new IPathMap.DoneSet() {
 												@Override
 												public void doneSet(IToken token, Exception error) {
-													callback.done(PathMapService.this, StatusHelper.getStatus(error));
+													innerCallback.done(PathMapService.this, StatusHelper.getStatus(error));
 												}
 											});
 										} else {
-											callback.done(PathMapService.this, Status.OK_STATUS);
+											innerCallback.done(PathMapService.this, Status.OK_STATUS);
 										}
 									}
 								});
 							} else {
-								callback.done(PathMapService.this, Status.OK_STATUS);
+								innerCallback.done(PathMapService.this, Status.OK_STATUS);
 							}
 						}
 					};
 
 					Protocol.invokeLater(runnable);
 				} else {
-		    		callback.done(PathMapService.this, Status.OK_STATUS);
+					innerCallback.done(PathMapService.this, Status.OK_STATUS);
 				}
 			} else {
-	    		callback.done(PathMapService.this, Status.OK_STATUS);
+				innerCallback.done(PathMapService.this, Status.OK_STATUS);
 			}
     	} else {
-    		callback.done(PathMapService.this, Status.OK_STATUS);
+    		innerCallback.done(PathMapService.this, Status.OK_STATUS);
     	}
     }
 
