@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.launch.core.internal.services;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,7 +95,11 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			if (!rulesList.isEmpty()) {
 				int cnt = 0;
 				String id = getClientID();
-				for (PathMapRule r : rulesList) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++); //$NON-NLS-1$
+				for (PathMapRule r : rulesList) {
+					if (r.getProperties().get(IPathMap.PROP_ID) == null) {
+						r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++); //$NON-NLS-1$
+					}
+				}
 				rules = rulesList.toArray(new PathMapRule[rulesList.size()]);
 			}
 		} finally {
@@ -331,46 +336,13 @@ public class PathMapService extends AbstractService implements IPathMapService {
 								svc.get(new IPathMap.DoneGet() {
 									@Override
 									public void doneGet(IToken token, Exception error, PathMapRule[] map) {
-										// Merge the maps to a new list
-										List<PathMapRule> rules = new ArrayList<PathMapRule>();
+										// Merge the path maps
+										List<PathMapRule> rules = mergePathMaps(getClientID(), map, configuredMap);
 
-										if (map != null && map.length > 0) {
-											for (PathMapRule rule : map) {
-												if (rule.getID() == null || (!rule.getID().startsWith(getClientID()) && !"Agent".equals(rule.getID()))) { //$NON-NLS-1$
-													rules.add(rule);
-												}
-											}
-										}
-
-										for (PathMapRule rule : configuredMap) {
-											if (IPathMapService.PATHMAP_PROTOCOL_HOST_TO_TARGET.equals(rule.getProtocol())) continue;
-											rules.add(rule);
-										}
-
-										// Determine if the map has changed
-										boolean changed = map != null ? map.length != rules.size() : !rules.isEmpty();
-										if (!changed && !rules.isEmpty()) {
-											// Make a copy of new map and remove all rules listed
-											// by the old map. If not empty at the end, the new map
-											// is different from the old map.
-											List<PathMapRule> copy = new ArrayList<PathMapRule>(rules);
-											for (PathMapRule rule : map) {
-												Iterator<PathMapRule> iter = copy.iterator();
-												while (iter.hasNext()) {
-													PathMapRule r = iter.next();
-													if (r.equals(rule)) {
-														iter.remove();
-														break;
-													}
-												}
-											}
-
-											changed = !copy.isEmpty();
-										}
-
-										// If the path map has changed, apply the map
-										if (changed) {
-											svc.set(rules.toArray(new PathMapRule[rules.size()]), new IPathMap.DoneSet() {
+										// If the merged path map differs from the agent side path map, apply the map
+										if (isDifferent(rules, map)) {
+											// Apply the path map
+											set(rules, svc, new IPathMap.DoneSet() {
 												@Override
 												public void doneSet(IToken token, Exception error) {
 													callback.done(PathMapService.this, StatusHelper.getStatus(error));
@@ -397,6 +369,123 @@ public class PathMapService extends AbstractService implements IPathMapService {
     	} else {
     		callback.done(PathMapService.this, Status.OK_STATUS);
     	}
+    }
+
+    /**
+     * Merge the given agent and client side path maps.
+     *
+     * @param clientID The current client ID. Must not be <code>null</code>.
+     * @param agentSidePathMap The agent side path map or <code>null</code>.
+     * @param clientSidePathMap The client side path map. Must not be <code>null</code>.
+     *
+     * @return The merged path map.
+     */
+    public static List<PathMapRule> mergePathMaps(String clientID, PathMapRule[] agentSidePathMap, PathMapRule[] clientSidePathMap) {
+    	Assert.isNotNull(clientID);
+    	Assert.isNotNull(clientSidePathMap);
+
+		// Merge the maps to a new list
+		List<PathMapRule> rules = new ArrayList<PathMapRule>();
+		// The map of agent side path map rules
+		List<PathMapRule> agentSideRules = new ArrayList<PathMapRule>();
+
+		if (agentSidePathMap != null && agentSidePathMap.length > 0) {
+			for (PathMapRule rule : agentSidePathMap) {
+				if (rule.getID() == null || (!rule.getID().startsWith(clientID) && !"agent".equalsIgnoreCase(rule.getID()))) { //$NON-NLS-1$
+					rules.add(rule);
+				} else if ("agent".equalsIgnoreCase(rule.getID())) { //$NON-NLS-1$
+					agentSideRules.add(rule);
+				}
+			}
+		}
+
+		for (PathMapRule rule : clientSidePathMap) {
+			if (IPathMapService.PATHMAP_PROTOCOL_HOST_TO_TARGET.equals(rule.getProtocol())) continue;
+			// If the configured rule matches an agent side path map rule, ignore the configured rule
+			// and add the agent side rule
+			boolean addRule = true;
+			Map<String, Object> m1 = new HashMap<String, Object>(rule.getProperties());
+			m1.remove(IPathMap.PROP_ID);
+			for (PathMapRule agentSideRule : agentSideRules) {
+				Map<String, Object> m2 = new HashMap<String, Object>(agentSideRule.getProperties());
+				m2.remove(IPathMap.PROP_ID);
+				if (m1.equals(m2)) {
+					rules.add(agentSideRule);
+					addRule = false;
+					break;
+				}
+			}
+			// Add the configured rule
+			if (addRule) rules.add(rule);
+		}
+
+		return rules;
+    }
+
+    /**
+     * Returns if or if not the given merged path map is different from the given agent
+     * side path map.
+     *
+     * @param mergedPathMap The merged path map. Must not be <code>null</code>.
+     * @param agentSidePathMap The agent side path map or <code>null</code>.
+     *
+     * @return <code>True</code> if the merged path map is different, <code>false</code> if not.
+     */
+    public static boolean isDifferent(List<PathMapRule> mergedPathMap, PathMapRule[] agentSidePathMap) {
+    	Assert.isNotNull(mergedPathMap);
+
+		boolean changed = agentSidePathMap != null ? agentSidePathMap.length != mergedPathMap.size() : !mergedPathMap.isEmpty();
+		if (!changed && !mergedPathMap.isEmpty()) {
+			// Make a copy of new map and remove all rules listed
+			// by the old map. If not empty at the end, the new map
+			// is different from the old map.
+			List<PathMapRule> copy = new ArrayList<PathMapRule>(mergedPathMap);
+			for (PathMapRule rule : agentSidePathMap) {
+				Iterator<PathMapRule> iter = copy.iterator();
+				while (iter.hasNext()) {
+					PathMapRule r = iter.next();
+					if (r.equals(rule)) {
+						iter.remove();
+						break;
+					}
+				}
+			}
+
+			changed = !copy.isEmpty();
+		}
+
+		return changed;
+    }
+
+    /**
+     * Set the given path map.
+     * <p>
+     * <b>Note:</b> This method must be called from within the TCF dispatch thread.
+     *
+     * @param map The path map. Must not be <code>null</code>.
+     * @param svc The path map service. Must not be <code>null</code>.
+     * @param done The callback to invoke. Must not be <code>null</code>.
+     */
+    public static void set(List<PathMapRule> map, IPathMap svc, IPathMap.DoneSet done) {
+    	Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+    	Assert.isNotNull(map);
+    	Assert.isNotNull(svc);
+    	Assert.isNotNull(done);
+
+		// Get rid of the agent side rules before applying the rules for real
+		Iterator<PathMapRule> iter = map.iterator();
+		while (iter.hasNext()) {
+			PathMapRule rule = iter.next();
+			if ("agent".equalsIgnoreCase(rule.getID())) { //$NON-NLS-1$
+				iter.remove();
+			}
+		}
+		// Apply the path map rules if not empty
+		if (!map.isEmpty()) {
+			svc.set(map.toArray(new PathMapRule[map.size()]), done);
+		} else {
+			done.doneSet(null, null);
+		}
     }
 
     /* (non-Javadoc)
