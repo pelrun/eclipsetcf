@@ -20,6 +20,7 @@ import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.custom.CTabItem;
@@ -179,6 +180,11 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			// Setup the listeners
 			setStdoutListeners(settings.getStdOutListeners());
 			setStderrListeners(settings.getStdErrListeners());
+
+			// Enable VT100 line wrapping in case of 'winpty',
+			// because it assumes this terminal capability
+			if (pty != null && Platform.OS_WIN32.equals(Platform.getOS()))
+				control.setVT100LineWrapping(true);
 
 			// connect the streams
 			connectStreams(control, process.getOutputStream(), process.getInputStream(), (pty == null ? process.getErrorStream() : null), settings.isLocalEcho(), lineSeparator);
