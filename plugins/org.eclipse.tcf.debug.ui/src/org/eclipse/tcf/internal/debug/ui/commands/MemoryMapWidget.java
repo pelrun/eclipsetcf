@@ -998,6 +998,10 @@ public class MemoryMapWidget {
         try {
             String symFileInfo = new TCFTask<String>(channel) {
                 public void run() {
+                    if (selected_mem_map_node == null) {
+                        done(null);
+                        return;
+                    }
                     TCFDataCache<TCFNodeExecContext> mem_cache = model.searchMemoryContext(selected_mem_map_node);
                     if (mem_cache == null) {
                         error(new Exception("Context does not provide memory access")); //$NON-NLS-1$

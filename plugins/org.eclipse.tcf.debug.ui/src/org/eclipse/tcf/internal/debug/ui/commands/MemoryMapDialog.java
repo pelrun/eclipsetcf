@@ -67,7 +67,6 @@ class MemoryMapDialog extends Dialog {
         try {
             ILaunchConfigurationWorkingCopy copy = cfg.getWorkingCopy();
             if (widget.saveData(copy)) copy.doSave();
-            widget.dispose();
             super.okPressed();
         }
         catch (Throwable x) {
@@ -76,5 +75,11 @@ class MemoryMapDialog extends Dialog {
             mb.setMessage(TCFModel.getErrorMessage(x, true));
             mb.open();
         }
+    }
+
+    @Override
+    public boolean close() {
+        widget.dispose();
+        return super.close();
     }
 }
