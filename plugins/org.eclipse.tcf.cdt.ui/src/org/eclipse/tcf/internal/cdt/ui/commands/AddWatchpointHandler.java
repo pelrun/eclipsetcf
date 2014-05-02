@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,42 +11,36 @@
 
 package org.eclipse.tcf.internal.cdt.ui.commands;
 
-import java.math.BigInteger;
-
-import org.eclipse.cdt.debug.core.CDIDebugModel;
 import org.eclipse.cdt.debug.ui.CDebugUIPlugin;
+import org.eclipse.cdt.debug.ui.breakpoints.IToggleBreakpointsTargetCExtension;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.window.Window;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 public class AddWatchpointHandler extends AbstractHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ISelection selection = HandlerUtil.getCurrentSelection(event);
-        AddWatchpointDialog dlg = new AddWatchpointDialog(HandlerUtil.getActiveShell(event));
-        if (selection instanceof ITextSelection) {
-            String expr = ((ITextSelection)selection).getText();
-            dlg.setExpression(expr);
+        IWorkbenchPart part = HandlerUtil.getActivePartChecked(event);
+        IToggleBreakpointsTarget toggleTarget = DebugUITools.getToggleBreakpointsTargetManager().getToggleBreakpointsTarget(part, selection);
+        IToggleBreakpointsTargetCExtension cToggleTarget = null;
+        if (toggleTarget instanceof IToggleBreakpointsTargetCExtension) {
+            cToggleTarget = (IToggleBreakpointsTargetCExtension)toggleTarget;
+        } else {
+            CDebugUIPlugin.errorDialog("Cannot add watchpoint.", (Throwable) null);
+            return null;
         }
-        if (dlg.open() == Window.OK) {
-            addWatchpoint(dlg.getWriteAccess(), dlg.getReadAccess(), dlg.getExpression(), dlg.getMemorySpace(), dlg.getRange());
+
+        try {
+            cToggleTarget.createWatchpointsInteractive(part, selection);
+        } catch (CoreException e) {
+            CDebugUIPlugin.errorDialog("Cannot add watchpoint.", e);
         }
         return null;
-    }
-
-    private void addWatchpoint(boolean write, boolean read, String expression, String memorySpace, BigInteger range) {
-        IResource resource = ResourcesPlugin.getWorkspace().getRoot();
-        try {
-            CDIDebugModel.createWatchpoint("", resource, write, read, expression, memorySpace, range, true, 0, "", true); //$NON-NLS-1$
-        }
-        catch(CoreException ce) {
-            CDebugUIPlugin.errorDialog("Cannot add watchpoint.", ce);
-        }
     }
 }
