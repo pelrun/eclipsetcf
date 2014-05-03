@@ -11,12 +11,12 @@
 package org.eclipse.tcf.te.tcf.locator.utils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -78,43 +78,35 @@ public final class SimulatorUtils {
 	public static Result getSimulatorService(final IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
 
-		final AtomicBoolean isEnabled = new AtomicBoolean(false);
-		final AtomicReference<String> type = new AtomicReference<String>();
-		final AtomicReference<String> properties = new AtomicReference<String>();
-
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				String value = peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED);
-				if (value != null) {
-					isEnabled.set(Boolean.parseBoolean(value));
-				}
-
-				type.set(peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_TYPE));
-				properties.set(peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_PROPERTIES));
-			}
-		};
-
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
-
 		Result result = null;
 
-		if (isEnabled.get()) {
-			IService[] services = ServiceManager.getInstance().getServices(peerNode, ISimulatorService.class, false);
-			for (IService service : services) {
-				Assert.isTrue(service instanceof ISimulatorService);
-				// Get the UI service which is associated with the simulator service
-				String id = service.getId();
-				if (id != null && id.equals(type.get())) {
-					result = new Result();
-					result.service = (ISimulatorService)service;
-					result.id = id;
-					result.settings = properties.get();
-					break;
+		IPeer peer = peerNode.getPeer();
+		if (peer != null) {
+			boolean isEnabled = false;
+
+			String value = peer.getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED);
+			if (value != null) isEnabled = Boolean.parseBoolean(value);
+
+			String type = peer.getAttributes().get(IPeerNodeProperties.PROP_SIM_TYPE);
+			String properties = peer.getAttributes().get(IPeerNodeProperties.PROP_SIM_PROPERTIES);
+
+			if (isEnabled) {
+				IService[] services = ServiceManager.getInstance().getServices(peerNode, ISimulatorService.class, false);
+				for (IService service : services) {
+					Assert.isTrue(service instanceof ISimulatorService);
+					// Get the UI service which is associated with the simulator service
+					String id = service.getId();
+					if (id != null && id.equals(type)) {
+						result = new Result();
+						result.service = (ISimulatorService)service;
+						result.id = id;
+						result.settings = properties;
+						break;
+					}
 				}
 			}
 		}
+
 		return result;
 	}
 
