@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
@@ -149,19 +148,11 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	 */
 	@Override
 	public IPeerNode[] getPeerNodes() {
-		final AtomicReference<IPeerNode[]> result = new AtomicReference<IPeerNode[]>();
-
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				result.set(peerNodes.values().toArray(new IPeerNode[peerNodes.values().size()]));
-			}
-		};
-
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeAndWait(runnable);
-
-		return result.get();
+		// We explicitly allow to access the current set of peer nodes
+		// from any thread. The method returns a snapshot of the current
+		// set of peer nodes.
+		List<IPeerNode> values = new ArrayList<IPeerNode>(peerNodes.values());
+		return values.toArray(new IPeerNode[values.size()]);
 	}
 
 	/* (non-Javadoc)
