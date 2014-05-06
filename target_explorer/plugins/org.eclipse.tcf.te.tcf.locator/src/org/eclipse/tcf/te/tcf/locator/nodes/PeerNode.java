@@ -164,8 +164,8 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
         }
 
 		if (isValid != valid.get()) {
-			fireChangeEvent(IPeerNodeProperties.PROP_VALID, new Boolean(isValid), new Boolean(valid.get()));
 			isValid = valid.get();
+			fireChangeEvent(IPeerNodeProperties.PROP_VALID, new Boolean(isValid), new Boolean(valid.get()));
 		}
 
 		return isValid;
