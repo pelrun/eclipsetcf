@@ -34,18 +34,24 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 		Assert.isNotNull(rule);
 		Assert.isNotNull(fnm);
 
+		// Normalize file names to use slashes
+
+		String fnmSlash = fnm.replaceAll("\\\\", "/"); //$NON-NLS-1$ //$NON-NLS-2$
 		String src = rule.getSource();
 		if (src == null) return null;
-		if (!(new Path(src).isPrefixOf(new Path(fnm)))) return null;
+		String srcSlash = src.replaceAll("\\\\", "/"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (!(fnmSlash.startsWith(srcSlash))) return null;
 		String host = rule.getHost();
 		if (host != null && host.length() > 0) {
 			if (!IPAddressUtil.getInstance().isLocalHost(host)) return null;
 		}
 		String dst = rule.getDestination();
 		if (dst == null || dst.length() == 0) return null;
-		int l = src.length();
-		if (dst.endsWith("/") && l < fnm.length() && fnm.charAt(l) == '/') l++; //$NON-NLS-1$
-		return new Path(dst + fnm.substring(l)).toString();
+		int l = srcSlash.length();
+		if (dst.endsWith("/") && l < fnmSlash.length() && fnmSlash.charAt(l) == '/') l++; //$NON-NLS-1$
+
+		String fnmMapped = dst + fnmSlash.substring(l);
+		return fnmMapped.replaceAll("\\\\", "/"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/* (non-Javadoc)
@@ -100,7 +106,9 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 			            }
 						File f = new File(hostPath);
 						if (f.exists() && f.canRead()) {
-							return hostPath;
+							// As a host path is returned, it should be in the OS
+							// specific expected format
+							return new Path(hostPath).toOSString();
 						}
 					}
 				}
