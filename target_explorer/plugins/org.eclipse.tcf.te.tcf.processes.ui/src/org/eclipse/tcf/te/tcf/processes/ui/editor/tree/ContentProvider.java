@@ -66,7 +66,17 @@ public class ContentProvider extends org.eclipse.tcf.te.tcf.processes.ui.navigat
 	        return super.getElements(inputElement);
 		}
 
-		String message = Messages.getStringDelegated(peerNode, "ProcessMonitor_ContentProvider_notConnected"); //$NON-NLS-1$
+		String message = null;
+		if (peerNode != null) {
+			if (peerNode.getConnectState() == IConnectable.STATE_CONNECTION_LOST ||
+						peerNode.getConnectState() == IConnectable.STATE_CONNECTION_RECOVERING) {
+				message = Messages.getStringDelegated(peerNode, "ProcessMonitor_ContentProvider_connectionLost"); //$NON-NLS-1$
+			}
+			if (message == null) {
+				message = Messages.getStringDelegated(peerNode, "ProcessMonitor_ContentProvider_notConnected"); //$NON-NLS-1$
+			}
+		}
+
 		return new Object[] { new MessageModelNode(message != null ? message : Messages.ContentProvider_notConnected, IStatus.INFO, false) };
     }
 

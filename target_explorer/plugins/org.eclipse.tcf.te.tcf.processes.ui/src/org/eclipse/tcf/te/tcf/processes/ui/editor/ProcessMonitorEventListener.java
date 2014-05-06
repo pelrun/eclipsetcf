@@ -103,10 +103,7 @@ public class ProcessMonitorEventListener extends AbstractEventListener {
 								}
 							});
 						}
-						// Peer node connect state changed to disconnected or disconnecting
-						else if (changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_DISCONNECT_SCHEDULED))
-									|| changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_DISCONNECTING))
-									|| changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_DISCONNECTED))) {
+						else  {
 							// Trigger a refresh on the whole viewer to show the "Please connect ..." text
 							treeControl.getViewer().refresh();
 						}
