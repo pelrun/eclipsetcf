@@ -28,7 +28,7 @@ public interface ITerminalsConnectorConstants {
 	/**
 	 * Property: The title of the terminal tab to open.
 	 */
-	public static final String PROP_TITLE = ".title"; //$NON-NLS-1$
+	public static final String PROP_TITLE = "title"; //$NON-NLS-1$
 
 	/**
 	 * Property: The encoding of the terminal tab to open.
