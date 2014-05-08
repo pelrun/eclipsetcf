@@ -241,7 +241,10 @@
             label="%peerhost.decorator.label"
             state="true">
          <enablement>
-            <objectClass name="org.eclipse.tcf.te.core.interfaces.IDecoratable"/>
+            <or>
+               <objectClass name="org.eclipse.tcf.protocol.IPeer"/>
+               <objectClass name="org.eclipse.tcf.te.core.interfaces.IDecoratable"/>
+            </or>
          </enablement>
       </decorator>
    </extension>

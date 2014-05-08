@@ -76,7 +76,7 @@ public class DelegatingLabelProvider extends LabelProvider implements ILabelDeco
 			for (ILabelProvider delegate : delegates) {
 				if (delegate instanceof ILabelDecorator) {
 					Image candidate = ((ILabelDecorator)delegate).decorateImage(image, element);
-					if (candidate != null) {
+					if (candidate != null && candidate != image) {
 						return candidate;
 					}
 				}
