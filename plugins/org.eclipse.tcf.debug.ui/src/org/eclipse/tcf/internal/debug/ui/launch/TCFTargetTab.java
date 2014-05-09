@@ -46,6 +46,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.launch.TCFLocalAgent;
 import org.eclipse.tcf.internal.debug.launch.TCFUserDefPeer;
@@ -54,6 +55,7 @@ import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl.PeerInfo;
 import org.eclipse.tcf.internal.debug.ui.launch.setup.SetupWizardDialog;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IMemoryMap;
@@ -69,6 +71,7 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
 
     private static final String TAB_ID = "org.eclipse.tcf.launch.targetTab";
 
+    private Button run_local_server_button;
     private Button run_local_agent_button;
     private Button use_local_agent_button;
     private Text peer_id_text;
@@ -107,6 +110,15 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
         local_agent_comp.setLayout(layout);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         local_agent_comp.setLayoutData(gd);
+
+        run_local_server_button = createCheckButton(local_agent_comp, "Run TCF symbols server on the local host");
+        run_local_server_button.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent evt) {
+                updateLaunchConfigurationDialog();
+            }
+        });
+        run_local_server_button.setEnabled(true);
 
         run_local_agent_button = createCheckButton(local_agent_comp, "Run instance of TCF agent on the local host");
         run_local_agent_button.addSelectionListener(new SelectionAdapter() {
@@ -308,7 +320,7 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
         if (use_local_agent_button.getSelection()) {
             peer_tree.setEnabled(false);
             peer_tree.deselectAll();
-            String id = TCFLocalAgent.getLocalAgentID();
+            String id = TCFLocalAgent.getLocalAgentID(TCFLocalAgent.AGENT_NAME);
             if (id == null) id = "";
             peer_id_text.setText(id);
             peer_id_text.setEnabled(false);
@@ -346,6 +358,7 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
             String id = configuration.getAttribute(TCFLaunchDelegate.ATTR_PEER_ID, "");
             peer_id_text.setText(id);
             peer_list.setInitialSelection(id);
+            run_local_server_button.setSelection(configuration.getAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_SERVER, false));
             run_local_agent_button.setSelection(configuration.getAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_AGENT, false));
             use_local_agent_button.setSelection(configuration.getAttribute(TCFLaunchDelegate.ATTR_USE_LOCAL_AGENT, true));
             mem_map_cfg = configuration.getAttribute(TCFLaunchDelegate.ATTR_MEMORY_MAP, "null");
@@ -365,11 +378,13 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
         else {
             configuration.setAttribute(TCFLaunchDelegate.ATTR_PEER_ID, peer_id_text.getText());
         }
+        configuration.setAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_SERVER, run_local_server_button.getSelection());
         configuration.setAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_AGENT, run_local_agent_button.getSelection());
         configuration.setAttribute(TCFLaunchDelegate.ATTR_USE_LOCAL_AGENT, use_local_agent_button.getSelection());
     }
 
     public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
+        configuration.setAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_SERVER, false);
         configuration.setAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_AGENT, false);
         configuration.setAttribute(TCFLaunchDelegate.ATTR_USE_LOCAL_AGENT, true);
         configuration.removeAttribute(TCFLaunchDelegate.ATTR_PEER_ID);
@@ -396,8 +411,8 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
         IPeer peer = null;
         if (use_local_agent_button.getSelection()) {
             try {
-                if (run_local_agent_button.getSelection()) TCFLocalAgent.runLocalAgent();
-                final String id = TCFLocalAgent.getLocalAgentID();
+                if (run_local_agent_button.getSelection()) TCFLocalAgent.runLocalAgent(TCFLocalAgent.AGENT_NAME);
+                final String id = TCFLocalAgent.getLocalAgentID(TCFLocalAgent.AGENT_NAME);
                 peer = new TCFTask<IPeer>() {
                     public void run() {
                         done(Protocol.getLocator().getPeers().get(id));
@@ -419,6 +434,33 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
             peer = info.peer;
         }
         if (peer == null) return;
+        if (run_local_server_button.getSelection()) {
+            try {
+                final IPeer agent = peer;
+                final String id = TCFLocalAgent.runLocalAgent(TCFLocalAgent.SERVER_NAME);
+                IPeer server = new TCFTask<IPeer>() {
+                    public void run() {
+                        done(Protocol.getLocator().getPeers().get(id));
+                    }
+                }.get();
+                peer = new TransientPeer(server.getAttributes()) {
+                    public IChannel openChannel() {
+                        assert Protocol.isDispatchThread();
+                        IChannel c = super.openChannel();
+                        c.redirect(agent.getAttributes());
+                        return c;
+                    }
+                };
+            }
+            catch (Throwable err) {
+                String msg = err.getLocalizedMessage();
+                if (msg == null || msg.length() == 0) msg = err.getClass().getName();
+                MessageBox mb = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
+                mb.setText("Error");
+                mb.setMessage("Cannot start symbols server:\n" + msg);
+                mb.open();
+            }
+        }
         final Shell shell = new Shell(getShell(), SWT.TITLE | SWT.PRIMARY_MODAL);
         GridLayout layout = new GridLayout();
         layout.verticalSpacing = 0;

@@ -59,6 +59,7 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         ATTR_STOP_AT_MAIN = ITCFConstants.ID_TCF_DEBUG_MODEL + ".StopAtMain",
         ATTR_DISCONNECT_ON_CTX_EXIT = ITCFConstants.ID_TCF_DEBUG_MODEL + ".DisconnectOnCtxExit",
         ATTR_USE_TERMINAL = ITCFConstants.ID_TCF_DEBUG_MODEL + ".UseTerminal",
+        ATTR_RUN_LOCAL_SERVER = ITCFConstants.ID_TCF_DEBUG_MODEL + ".RunLocalServer",
         ATTR_RUN_LOCAL_AGENT = ITCFConstants.ID_TCF_DEBUG_MODEL + ".RunLocalAgent",
         ATTR_USE_LOCAL_AGENT = ITCFConstants.ID_TCF_DEBUG_MODEL + ".UseLocalAgent",
         ATTR_SIGNALS_DONT_STOP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".SignalsDontStop",
@@ -348,23 +349,31 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         String local_id = null;
         if (configuration.getAttribute(ATTR_RUN_LOCAL_AGENT, false)) {
             if (monitor != null) monitor.subTask("Starting TCF Agent"); //$NON-NLS-1$
-            local_id = TCFLocalAgent.runLocalAgent();
+            local_id = TCFLocalAgent.runLocalAgent(TCFLocalAgent.AGENT_NAME);
         }
         else if (configuration.getAttribute(ATTR_USE_LOCAL_AGENT, true)) {
             if (monitor != null) monitor.subTask("Searching TCF Agent"); //$NON-NLS-1$
-            local_id = TCFLocalAgent.getLocalAgentID();
+            local_id = TCFLocalAgent.getLocalAgentID(TCFLocalAgent.AGENT_NAME);
             if (local_id == null) throw new CoreException(new Status(IStatus.ERROR,
                     Activator.PLUGIN_ID, 0,
                     "Cannot find TCF agent on the local host",
                     null));
         }
 
-        final String id = configuration.getAttribute(ATTR_USE_LOCAL_AGENT, true) ?
+        String id = configuration.getAttribute(ATTR_USE_LOCAL_AGENT, true) ?
                 local_id : configuration.getAttribute(ATTR_PEER_ID, "");
+
+        if (configuration.getAttribute(ATTR_RUN_LOCAL_SERVER, false)) {
+            if (monitor != null) monitor.subTask("Starting TCF Server"); //$NON-NLS-1$
+            String server_id = TCFLocalAgent.runLocalAgent(TCFLocalAgent.SERVER_NAME);
+            id = server_id + "/" + id;
+        }
+
+        final String agent_id = id;
 
         new TCFTask<Boolean>() {
             public void run() {
-                ((TCFLaunch)launch).launchTCF(mode, id, this, monitor);
+                ((TCFLaunch)launch).launchTCF(mode, agent_id, this, monitor);
             }
         }.getE();
     }
