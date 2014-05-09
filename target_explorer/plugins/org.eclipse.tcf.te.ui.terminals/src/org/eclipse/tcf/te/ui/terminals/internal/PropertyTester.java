@@ -35,14 +35,22 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 		}
 
 		if ("hasDisconnectButton".equals(property) && receiver instanceof CTabItem) { //$NON-NLS-1$
-            Boolean hasDisconnectButton = (Boolean)((CTabItem)receiver).getData(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON);
-            return expectedValue.equals(hasDisconnectButton);
+			CTabItem tabItem = (CTabItem)receiver;
+			if (!tabItem.isDisposed()) {
+	            Boolean hasDisconnectButton = (Boolean) tabItem.getData(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON);
+	            return expectedValue.equals(hasDisconnectButton);
+			}
+			return false;
 		}
 
-		if ("canDisconnect".equals(property) && receiver instanceof CTabItem && ((CTabItem)receiver).getData() instanceof ITerminalViewControl) { //$NON-NLS-1$
-            ITerminalViewControl terminal = (ITerminalViewControl)((CTabItem)receiver).getData();
-            TerminalState state = terminal.getState();
-            return expectedValue.equals(Boolean.valueOf(state != TerminalState.CLOSED));
+		if ("canDisconnect".equals(property) && receiver instanceof CTabItem) { //$NON-NLS-1$
+			CTabItem tabItem = (CTabItem)receiver;
+			if (!tabItem.isDisposed() && tabItem.getData() instanceof ITerminalViewControl) {
+	            ITerminalViewControl terminal = (ITerminalViewControl)tabItem.getData();
+	            TerminalState state = terminal.getState();
+	            return expectedValue.equals(Boolean.valueOf(state != TerminalState.CLOSED));
+			}
+			return false;
 		}
 
 		return false;
