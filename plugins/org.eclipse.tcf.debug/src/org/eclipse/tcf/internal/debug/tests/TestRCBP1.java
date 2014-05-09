@@ -477,19 +477,26 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
 
     private void startTestContext() {
         srv_diag.runTest(test_id, new IDiagnostics.DoneRunTest() {
-            public void doneRunTest(IToken token, Throwable error, String context_id) {
+            public void doneRunTest(IToken token, Throwable error, final String context_id) {
                 if (error != null) {
                     exit(error);
                 }
-                else if (test_suite.isActive(TestRCBP1.this)) {
-                    assert test_ctx_id == null;
-                    test_ctx_id = context_id;
-                    if (pending_cancel != null) {
-                        exit(null);
-                    }
-                    else {
-                        runTest();
-                    }
+                else {
+                    // sync() is needed to resolve ambiguity if target re-uses test context IDs
+                    Protocol.sync(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!test_suite.isActive(TestRCBP1.this)) return;
+                            assert test_ctx_id == null;
+                            test_ctx_id = context_id;
+                            if (pending_cancel != null) {
+                                exit(null);
+                            }
+                            else {
+                                runTest();
+                            }
+                        }
+                    });
                 }
             }
         });
