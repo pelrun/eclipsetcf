@@ -2068,7 +2068,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 }
                 MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
                 mb.setText(title);
-                mb.setMessage(getErrorMessage(error, true));
+                mb.setMessage(getErrorMessage(error, !(error instanceof IErrorReport)));
+                if (error instanceof IErrorReport) Activator.log(title, error);
                 mb.open();
             }
         });
