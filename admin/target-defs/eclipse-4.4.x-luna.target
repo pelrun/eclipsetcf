@@ -30,16 +30,16 @@
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.rse.feature.group" version="3.5.0.201312161920"/>
-<unit id="org.eclipse.emf.sdk.feature.group" version="2.10.0.v20140310-0546"/>
+<unit id="org.eclipse.emf.sdk.feature.group" version="2.10.0.v20140428-0403"/>
 <repository location="http://download.eclipse.org/releases/luna"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.test.feature.group" version="3.6.100.v20140204-1712"/>
-<unit id="org.eclipse.platform.sdk" version="4.4.0.I20140306-1200"/>
+<unit id="org.eclipse.test.feature.group" version="3.6.100.v20140416-1551"/>
+<unit id="org.eclipse.platform.sdk" version="4.4.0.I20140501-0200"/>
 <repository location="http://download.eclipse.org/eclipse/updates/4.4milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.300.201404231231"/>
+<unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.300.201405131000"/>
 <repository location="http://download.eclipse.org/tm/builds/luna/nightly"/>
 </location>
 </locations>
