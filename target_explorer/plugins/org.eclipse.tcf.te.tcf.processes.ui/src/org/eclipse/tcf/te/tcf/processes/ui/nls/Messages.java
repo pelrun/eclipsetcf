@@ -196,4 +196,14 @@ public class Messages extends NLS {
 	public static String ProcessUserSearchable_Myself;
 	public static String ProcessUserSearchable_SpecifyUser;
 	public static String ProcessUserSearchable_WhoStarted;
+
+	public static String AttachContextSelectionDialog_dialogTitle;
+	public static String AttachContextSelectionDialog_title;
+	public static String AttachContextSelectionDialog_message;
+	public static String AttachContextSelectionDialog_filter_label;
+	public static String AttachContextSelectionDialog_contexts_label;
+	public static String AttachContextSelectionDialog_allReadyAttached_decoration;
+
+	public static String DefaultContextToolbarDelegate_attachContext_label;
+	public static String DefaultContextToolbarDelegate_attachContext_description;
 }

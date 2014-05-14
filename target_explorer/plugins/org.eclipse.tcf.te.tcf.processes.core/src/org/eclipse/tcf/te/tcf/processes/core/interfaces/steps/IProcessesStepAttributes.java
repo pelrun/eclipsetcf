@@ -69,4 +69,9 @@ public interface IProcessesStepAttributes {
 	 * Launch configuration attribute (internal use): The process context object.
 	 */
 	public static final String ATTR_PROCESS_CONTEXT = ATTR_PREFIX + ".process_context"; //$NON-NLS-1$
+
+	/**
+	 * Launch configuration attribute (internal use): The process context node object.
+	 */
+	public static final String ATTR_PROCESS_CONTEXT_NODE = ATTR_PREFIX + ".process_context_node"; //$NON-NLS-1$
 }

@@ -47,6 +47,15 @@
             </or>
          </enablement>
       </service>
+
+      <service
+            class="org.eclipse.tcf.te.tcf.processes.ui.services.DelegateService"
+            id="org.eclipse.tcf.te.tcf.processes.ui.services.Delegate">
+         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService"/>
+         <enablement>
+            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+         </enablement>
+      </service>
    </extension>
 
 <!-- Eclipse core expressions property tester -->
@@ -435,6 +444,17 @@
             </visibleWhen>
          </command>
       </menuContribution>
+
+   <!-- Main toolbar contributions -->
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach"/>
+      </menuContribution>
+
+   <!-- System menu contributions -->
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.launch.rundebug">
+         <command commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach"/>
+      </menuContribution>
+
    </extension>
 
 <!-- Command contributions -->
@@ -453,10 +473,23 @@
       </command>
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"
-            helpContextId="org.eclipse.tcf.te.launch.command_erminate"
+            helpContextId="org.eclipse.tcf.te.launch.command_Terminate"
             id="org.eclipse.tcf.te.launch.command.terminate"
             name="%command.terminate.name">
       </command>
+      <command
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.processes.ui.command_Attach"
+            id="org.eclipse.tcf.te.tcf.processes.ui.command.attach"
+            description="%command.attach.tooltip"
+            name="%command.attach.label">
+      </command>
+   </extension>
+
+<!-- Command image contributions -->
+   <extension point="org.eclipse.ui.commandImages">
+      <image commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach"
+            icon="icons/obj16/attach.gif"/>
    </extension>
 
 <!-- Handler contributions -->
@@ -471,9 +504,10 @@
             commandId="org.eclipse.tcf.te.tcf.processes.ui.command.refreshInterval">
       </handler>
 
-      <handler
-            class="org.eclipse.tcf.te.tcf.processes.ui.handler.AttachHandler"
-            commandId="org.eclipse.tcf.te.launch.command.attach">
+      <handler commandId="org.eclipse.tcf.te.launch.command.attach">
+         <class class="org.eclipse.tcf.te.tcf.processes.ui.handler.AttachContextHandler">
+            <parameter name="operation" value="attach"/>
+         </class>
          <activeWhen>
             <and>
                <with variable="activePartId">
@@ -508,6 +542,29 @@
                      </and>
                   </adapt>
                </iterate>
+            </with>
+         </enabledWhen>
+      </handler>
+
+      <handler commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach">
+         <class class="org.eclipse.tcf.te.tcf.processes.ui.handler.AttachContextToolbarHandler">
+            <parameter name="operation" value="attach"/>
+         </class>
+         <activeWhen>
+            <with variable="defaultContextSelection">
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="defaultContextSelection">
+               <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                  <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="Processes"/>
+                  <test
+                        forcePluginActivation="true"
+                        property="org.eclipse.tcf.te.runtime.services.hasService"
+                        value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+               </adapt>
             </with>
          </enabledWhen>
       </handler>

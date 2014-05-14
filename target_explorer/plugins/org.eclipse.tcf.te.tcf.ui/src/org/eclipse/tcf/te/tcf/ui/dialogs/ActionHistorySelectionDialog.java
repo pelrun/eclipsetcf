@@ -39,6 +39,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.handler.images.ActionHistoryImageDescriptor;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -47,6 +48,8 @@ import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
  * ActionHistorySelectionDialog
  */
 public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
+
+	private int maxEntries = -1;
 
 	protected static class Entry {
 		IPeerNode peerNode;
@@ -140,6 +143,13 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	    SWTControlUtil.setEnabled(editButton, entry != null);
 	}
 
+	protected int getMaxEntries() {
+		if (maxEntries <= 0) {
+			maxEntries = UIPlugin.getScopedPreferences().getInt(IPreferenceKeys.PREF_MAX_RECENT_ACTION_ENTRIES);
+		}
+		return maxEntries;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#getInput()
 	 */
@@ -165,7 +175,11 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 		List<Entry> actions = new ArrayList<Entry>();
     	String[] entries = HistoryManager.getInstance().getHistory(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + peerNode.getPeerId()); //$NON-NLS-1$
     	if (entries != null && entries.length > 0) {
+    		int count = 0;
     		for (final String entry : entries) {
+    			if (count >= getMaxEntries()) {
+    				break;
+    			}
     			IPropertiesContainer decoded = DataHelper.decodePropertiesContainer(entry);
     			String stepGroupId = decoded.getStringProperty(IStepAttributes.ATTR_STEP_GROUP_ID);
     			if (stepGroupId != null && delegates.containsKey(stepGroupId)) {
@@ -174,6 +188,7 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
     				action.delegate = delegates.get(stepGroupId);
     				action.data = entry;
          			actions.add(action);
+         			count++;
     			}
     		}
     	}

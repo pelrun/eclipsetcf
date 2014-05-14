@@ -362,7 +362,7 @@ public class Stepper implements IStepper {
 				if (!data.getBooleanProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY)) {
 					// this is the history used for the list of history actions and the history dialog
 
-					HistoryManager.getInstance().add(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + context.getId(), historyData, 10); //$NON-NLS-1$
+					HistoryManager.getInstance().add(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + context.getId(), historyData, 50); //$NON-NLS-1$
 				}
 			}
 

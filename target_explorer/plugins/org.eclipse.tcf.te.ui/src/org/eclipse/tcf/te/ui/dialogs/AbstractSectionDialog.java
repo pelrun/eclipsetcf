@@ -27,6 +27,7 @@ import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
+import org.eclipse.tcf.te.ui.interfaces.IDataExchangeDialog;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.interfaces.data.IUpdatable;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog;
@@ -39,7 +40,7 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 /**
  * Section dialog implementation.
  */
-public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implements IValidatingContainer, IDataExchangeNode {
+public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implements IValidatingContainer, IDataExchangeDialog {
 	// References to the sections
 	private AbstractSection[] sections = null;
 

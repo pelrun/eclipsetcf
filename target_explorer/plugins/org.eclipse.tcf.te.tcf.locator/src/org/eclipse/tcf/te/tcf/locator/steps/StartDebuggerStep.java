@@ -37,6 +37,9 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
  */
 public class StartDebuggerStep extends AbstractPeerNodeStep {
 
+	public static final String PARAM_ATTACH_ALL = "autoAttachAll"; //$NON-NLS-1$
+	public static final String PARAM_FORCE_START_DEBUGGER = "forceStart"; //$NON-NLS-1$
+
 	/**
 	 * Interface to be implemented by start debugger step delegates.
 	 */
@@ -72,10 +75,12 @@ public class StartDebuggerStep extends AbstractPeerNodeStep {
     public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IPeerNode node = getActivePeerModelContext(context, data, fullQualifiedId);
 		Assert.isNotNull(node);
-		String value = getParameters().get("autoAttachAll"); //$NON-NLS-1$
+		String value = getParameters().get(PARAM_ATTACH_ALL);
 		final boolean autoAttachAll = value != null ? Boolean.parseBoolean(value) : false;
+		value = getParameters().get(PARAM_FORCE_START_DEBUGGER);
+		final boolean forceStart = value != null ? Boolean.parseBoolean(value) : false;
 
-		if (StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data)) {
+		if (forceStart || StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data)) {
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {

@@ -28,10 +28,13 @@ public interface ImageConsts {
 	// ***** The image constants *****
 
 	public static final String OBJ_Process = "OBJ_Process"; //$NON-NLS-1$
-	
+
 	public static final String OBJ_Process_Root = "OBJ_Process_Root"; //$NON-NLS-1$
-	
+
 	public static final String OBJ_Thread = "OBJ_Thread"; //$NON-NLS-1$
 
 	public static final String PM_POLLING = "OBJ_Process_Polling"; //$NON-NLS-1$
+
+	public static final String ATTACH = "OBJ_Attach"; //$NON-NLS-1$
+	public static final String DETACH = "OBJ_Detach"; //$NON-NLS-1$
 }

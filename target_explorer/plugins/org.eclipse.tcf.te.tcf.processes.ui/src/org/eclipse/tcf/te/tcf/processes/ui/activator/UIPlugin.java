@@ -82,6 +82,10 @@ public class UIPlugin extends AbstractUIPlugin {
 		registry.put(ImageConsts.OBJ_Process_Root, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "process_polling.png"); //$NON-NLS-1$
 		registry.put(ImageConsts.PM_POLLING, ImageDescriptor.createFromURL(url));
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "attach.gif"); //$NON-NLS-1$
+		registry.put(ImageConsts.ATTACH, ImageDescriptor.createFromURL(url));
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + "detach.gif"); //$NON-NLS-1$
+		registry.put(ImageConsts.DETACH, ImageDescriptor.createFromURL(url));
 	}
 
 	/**
