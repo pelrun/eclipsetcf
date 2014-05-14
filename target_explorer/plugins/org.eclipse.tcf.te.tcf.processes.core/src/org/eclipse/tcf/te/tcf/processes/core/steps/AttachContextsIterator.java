@@ -18,6 +18,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
@@ -28,7 +30,9 @@ import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessContextItem;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessesDataProperties;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
+import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
 import org.eclipse.tcf.te.tcf.processes.core.util.ProcessDataHelper;
 
 /**
@@ -52,6 +56,16 @@ public class AttachContextsIterator extends AbstractPeerNodeStepGroupIterator {
 	public void initialize(IStepContext context, final IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
 		super.initialize(context, data, fullQualifiedId, monitor);
 		final IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
+
+		final Callback cb = new Callback();
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				IRuntimeModelRefreshService service = ModelManager.getRuntimeModel(peerNode).getService(IRuntimeModelRefreshService.class);
+				service.refresh(cb);
+			}
+		});
+		ExecutorsUtil.waitAndExecute(0, cb.getDoneConditionTester(monitor));
 
 		for (IProcessContextItem item : ProcessDataHelper.decodeProcessContextItems(data.getStringProperty(IProcessesDataProperties.PROPERTY_CONTEXT_LIST))) {
 			for (IProcessContextNode node : ProcessDataHelper.getProcessContextNodes(peerNode, item)) {
