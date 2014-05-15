@@ -7,6 +7,7 @@
    <extension point="org.eclipse.tm.terminal.terminalConnectors">
       <connector
             class="org.eclipse.tcf.te.ui.terminals.process.ProcessConnector"
+            hidden="true"
             id="org.eclipse.tcf.te.ui.terminals.local.LocalConnector"
             name="%TerminalConnector.local"/>
    </extension>
