@@ -188,7 +188,7 @@
 		    <id>kepler</id>
 			
 			<properties>
-                <sdk-version>4.3.1</sdk-version>
+                <sdk-version>4.3.2</sdk-version>
             </properties>
 		</profile>
 
