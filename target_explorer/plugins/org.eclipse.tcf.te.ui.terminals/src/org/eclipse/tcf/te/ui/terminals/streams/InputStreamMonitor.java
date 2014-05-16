@@ -292,7 +292,7 @@ public class InputStreamMonitor extends OutputStream implements IDisposable {
         	byte[] processedBytes = onWriteContentToStream(b, off, len);
         	// If the returned array is not the original one, adjust offset and length
         	if (processedBytes != b) {
-        		off = 0; len = processedBytes.length;
+        		off = 0; len = processedBytes.length; b = processedBytes;
         	}
 
         	// Get the content from the byte buffer specified by offset and length
