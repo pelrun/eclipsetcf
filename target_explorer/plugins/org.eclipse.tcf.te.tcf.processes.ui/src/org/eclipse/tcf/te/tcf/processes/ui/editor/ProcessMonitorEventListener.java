@@ -76,7 +76,7 @@ public class ProcessMonitorEventListener extends AbstractEventListener {
 				else if (source instanceof IPeerNode && source == getPeerNode()) {
 					if (IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId())) {
 						// Peer node connect state changed to connected
-						if (changeEvent.getNewValue().equals(new Integer(IConnectable.STATE_CONNECTED))) {
+						if (changeEvent.getNewValue().equals(Integer.valueOf(IConnectable.STATE_CONNECTED))) {
 							// Get the new runtime model
 							final IRuntimeModel model = ModelManager.getRuntimeModel(getPeerNode());
 							// Update the tree viewer input element

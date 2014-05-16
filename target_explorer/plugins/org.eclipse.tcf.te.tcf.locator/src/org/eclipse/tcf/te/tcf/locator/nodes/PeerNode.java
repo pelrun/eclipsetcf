@@ -61,7 +61,6 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	private String peerId;
 
 	private boolean isValid = true;
-	private boolean recomputeValidState = true;
 
 	/**
 	 * Constructor.
@@ -150,30 +149,23 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	 */
 	@Override
 	public boolean isValid() {
-		// Due to bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=385394, isValid() is called again
-		// and again around every 400 ms. Don't recompute the valid status if no property has changed.
-		// We may remove this once the minimum required Eclipse version is 4.4M5.
-		if (recomputeValidState) {
-			recomputeValidState = false;
-
-			final AtomicBoolean valid = new AtomicBoolean(true);
-			IService[] services = ServiceManager.getInstance().getServices(this, IDelegateService.class, false);
-			for (IService service : services) {
-				if (service instanceof IDelegateService) {
-					IPeerNode.IDelegate delegate = ((IDelegateService)service).getDelegate(this, IPeerNode.IDelegate.class);
-					if (delegate != null) {
-						if (delegate.isVisible(this) && !delegate.isValid(this)) {
-							valid.set(false);
-							break;
-						}
+		final AtomicBoolean valid = new AtomicBoolean(true);
+		IService[] services = ServiceManager.getInstance().getServices(this, IDelegateService.class, false);
+		for (IService service : services) {
+			if (service instanceof IDelegateService) {
+				IPeerNode.IDelegate delegate = ((IDelegateService)service).getDelegate(this, IPeerNode.IDelegate.class);
+				if (delegate != null) {
+					if (delegate.isVisible(this) && !delegate.isValid(this)) {
+						valid.set(false);
+						break;
 					}
 				}
 			}
+		}
 
-			if (isValid != valid.get()) {
-				isValid = valid.get();
-				fireChangeEvent(IPeerNodeProperties.PROP_VALID, new Boolean(isValid), new Boolean(valid.get()));
-			}
+		if (isValid != valid.get()) {
+			isValid = valid.get();
+			fireChangeEvent(IPeerNodeProperties.PROP_VALID, new Boolean(isValid), new Boolean(valid.get()));
 		}
 
 		return isValid;
@@ -290,9 +282,6 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 		peerId = getPeer().getID();
 		Assert.isNotNull(peerId);
 
-		// Properties changed -> recompute valid state
-		recomputeValidState = true;
-
 		super.postSetProperties(properties);
 	}
 
@@ -310,9 +299,6 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 			peerId = getPeer().getID();
 			Assert.isNotNull(peerId);
 		}
-
-		// Properties changed -> recompute valid state
-		recomputeValidState = true;
 
 		super.postSetProperty(key, value, oldValue);
 	}

@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.runtime.persistence.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,8 @@ public class DataHelper {
 		return null;
 	}
 
+	private static final Map<String, IPropertiesContainer> cache = new LinkedHashMap<String, IPropertiesContainer>();
+
 	/**
 	 * Decode a string encoded properties container.
 	 * @param encoded The string encoded properties container.
@@ -49,12 +52,21 @@ public class DataHelper {
 	 */
 	public static final IPropertiesContainer decodePropertiesContainer(String encoded) {
 		if (encoded != null && encoded.trim().length() > 0) {
-			try {
-				IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(Map.class, String.class);
-				return (IPropertiesContainer)delegate.read(IPropertiesContainer.class, encoded);
+			IPropertiesContainer result = cache.remove(encoded);
+			if (result == null) {
+				try {
+					IPersistenceDelegate delegate = PersistenceManager.getInstance().getDelegate(Map.class, String.class);
+					result = (IPropertiesContainer)delegate.read(IPropertiesContainer.class, encoded);
+				}
+				catch (Exception e) {
+				}
+
+				if (cache.size() == 10) cache.remove(cache.keySet().toArray()[0]);
 			}
-			catch (Exception e) {
-			}
+
+			cache.put(encoded, result);
+
+			return result;
 		}
 		return new PropertiesContainer();
 	}
