@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.4.x (Luna)" sequenceNumber="38">
+<?pde version="3.8"?><target name="Eclipse 4.4.x (Luna)" sequenceNumber="39">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson.source" version="2.2.4.v201311231704"/>
@@ -41,6 +41,10 @@
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.300.201405151114"/>
 <repository location="http://download.eclipse.org/tm/builds/luna/nightly"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.license.feature.group" version="1.0.1.v20140414-1359"/>
+<repository location="http://download.eclipse.org/cbi/updates/license"/>
 </location>
 </locations>
 </target>
