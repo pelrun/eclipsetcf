@@ -50,6 +50,7 @@
       <import plugin="org.eclipse.cdt.dsf.gdb" version="4.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.dsf.gdb.ui" version="2.4.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.dsf" version="2.4.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.cdt" version="8.3.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
