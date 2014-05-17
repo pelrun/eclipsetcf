@@ -33,6 +33,7 @@ import org.eclipse.tcf.internal.debug.Activator;
 import org.eclipse.tcf.internal.debug.model.ITCFConstants;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.model.TCFMemoryRegion;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IMemoryMap;
@@ -363,14 +364,23 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         String id = configuration.getAttribute(ATTR_USE_LOCAL_AGENT, true) ?
                 local_id : configuration.getAttribute(ATTR_PEER_ID, "");
 
-        if (configuration.getAttribute(ATTR_RUN_LOCAL_SERVER, false)) {
+        boolean run_server = configuration.getAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_SERVER, false);
+        if (!run_server && id.indexOf('/') < 0) {
+            final String agent_id = id;
+            run_server = new TCFTask<Boolean>() {
+                public void run() {
+                    IPeer peer = Protocol.getLocator().getPeers().get(agent_id);
+                    done(peer != null && peer.getAttributes().get(IPeer.ATTR_NEED_SYMBOLS) != null);
+                }
+            }.getE();
+        }
+        if (run_server) {
             if (monitor != null) monitor.subTask("Starting TCF Server"); //$NON-NLS-1$
             String server_id = TCFLocalAgent.runLocalAgent(TCFLocalAgent.SERVER_NAME);
             id = server_id + "/" + id;
         }
 
         final String agent_id = id;
-
         new TCFTask<Boolean>() {
             public void run() {
                 ((TCFLaunch)launch).launchTCF(mode, agent_id, this, monitor);

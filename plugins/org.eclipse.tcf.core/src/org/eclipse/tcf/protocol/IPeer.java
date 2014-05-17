@@ -59,6 +59,9 @@ public interface IPeer {
         /** If present, indicates that the peer can forward traffic to other peers */
         ATTR_PROXY = "Proxy",
 
+        /** If present, indicates that the peer should be used together with TCF symbols server */
+        ATTR_NEED_SYMBOLS = "NeedSyms",
+
         /** Host DNS name or IP address */
         ATTR_IP_HOST = "Host",
 
