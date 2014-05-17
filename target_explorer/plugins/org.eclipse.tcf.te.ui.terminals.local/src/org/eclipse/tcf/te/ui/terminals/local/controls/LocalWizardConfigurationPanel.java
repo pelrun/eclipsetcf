@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.terminals.local.controls;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -28,6 +29,7 @@ import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.WorkbenchEncoding;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
@@ -55,13 +57,28 @@ public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel im
     	panel.setLayout(new GridLayout());
     	panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
+		// Create the encoding selection combo
+		createEncodingUI(panel, false);
+
+		// Set the default encoding:
+		//     Default UTF-8 on Mac for Local, Preferences:Platform encoding otherwise
+		if (Platform.OS_MACOSX.equals(Platform.getOS())) {
+			setEncoding("UTF-8"); //$NON-NLS-1$
+		} else {
+			String encoding = WorkbenchEncoding.getWorkbenchDefaultEncoding();
+			if (encoding != null && !"".equals(encoding)) setEncoding(encoding); //$NON-NLS-1$
+		}
+
+		// Fill the rest of the panel with a label to be able to
+		// set a height and width hint for the dialog
     	Label label = new Label(panel, SWT.HORIZONTAL);
     	GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		layoutData.widthHint = 300;
-		layoutData.heightHint = 100;
+		layoutData.heightHint = 80;
 		label.setLayoutData(layoutData);
 
 		resource = getSelectionResource();
+
     	setControl(panel);
     }
 
@@ -79,6 +96,10 @@ public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel im
 	 */
 	@Override
     public void setupData(IPropertiesContainer data) {
+		if (data == null) return;
+
+		String value = data.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
+		if (value != null) setEncoding(value);
     }
 
 
@@ -93,7 +114,10 @@ public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel im
     	// set the connector type for serial
     	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
 
-    	// if we have a IResource selection use the location for working dir
+    	// Store the encoding
+		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+
+    	// if we have a IResource selection use the location for working directory
     	if (resource != null){
     		String dir = resource.getProject().getLocation().toString();
         	data.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, dir);

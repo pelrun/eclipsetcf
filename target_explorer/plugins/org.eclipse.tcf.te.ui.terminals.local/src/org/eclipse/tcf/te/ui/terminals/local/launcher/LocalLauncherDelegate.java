@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.ui.terminals.local.launcher;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -21,6 +22,7 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.local.controls.LocalWizardConfigurationPanel;
+import org.eclipse.ui.WorkbenchEncoding;
 
 /**
  * Serial launcher delegate implementation.
@@ -56,6 +58,19 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 		String terminalTitle = getTerminalTitle(properties);
 		if (terminalTitle != null) {
 			properties.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
+		}
+
+		// If not configured, set the default encodings for the local terminal
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_ENCODING)) {
+			String encoding = null;
+			// Set the default encoding:
+			//     Default UTF-8 on Mac for Local, Preferences:Platform encoding otherwise
+			if (Platform.OS_MACOSX.equals(Platform.getOS())) {
+				encoding = "UTF-8"; //$NON-NLS-1$
+			} else {
+				encoding = WorkbenchEncoding.getWorkbenchDefaultEncoding();
+			}
+			if (encoding != null && !"".equals(encoding)) properties.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, encoding); //$NON-NLS-1$
 		}
 
 		// Get the terminal service
