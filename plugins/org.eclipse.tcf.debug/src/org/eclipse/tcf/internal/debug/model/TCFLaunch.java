@@ -47,7 +47,6 @@ import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 import org.eclipse.tcf.services.IMemory;
-import org.eclipse.tcf.services.IMemory.MemoryContext;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IProcesses;
@@ -176,8 +175,6 @@ public class TCFLaunch extends Launch {
 
     private Set<String> context_filter;
 
-    private boolean supports_memory_map_preloading;
-
     private String dprintf_stream_id;
 
     private final IStreams.StreamsListener streams_listener = new IStreams.StreamsListener() {
@@ -261,45 +258,6 @@ public class TCFLaunch extends Launch {
     private void onConnected() throws Exception {
         // The method is called when TCF channel is successfully connected.
 
-        final IRunControl rc_service = getService(IRunControl.class);
-        if (rc_service != null) {
-            rc_service.addListener(rc_listener);
-        }
-
-        final IPathMap path_map_service = getService(IPathMap.class);
-        if (path_map_service != null) {
-            target_path_map = new TCFDataCache<IPathMap.PathMapRule[]>(channel) {
-                @Override
-                protected boolean startDataRetrieval() {
-                    command = path_map_service.get(new IPathMap.DoneGet() {
-                        public void doneGet(IToken token, Exception error, IPathMap.PathMapRule[] map) {
-                            set(token, error, map);
-                        }
-                    });
-                    return false;
-                }
-            };
-            path_map_service.addListener(new IPathMap.PathMapListener() {
-                public void changed() {
-                    target_path_map.reset();
-                    target_path_mapping_cache = new HashMap<String,IStorage>();
-                }
-            });
-        }
-
-        final ILaunchConfiguration cfg = getLaunchConfiguration();
-        if (cfg != null) {
-            // Send file path map:
-            if (getService(IPathMap.class) != null) {
-                new LaunchStep() {
-                    @Override
-                    void start() throws Exception {
-                        downloadPathMaps(cfg, this);
-                    }
-                };
-            }
-        }
-
         if (redirection_path.size() > 0) {
             // Connected to intermediate peer (value-add).
             // Redirect to next peer:
@@ -320,6 +278,43 @@ public class TCFLaunch extends Launch {
             };
         }
         else {
+            final ILaunchConfiguration cfg = getLaunchConfiguration();
+
+            final IRunControl rc_service = getService(IRunControl.class);
+            if (rc_service != null) {
+                rc_service.addListener(rc_listener);
+            }
+
+            final IPathMap path_map_service = getService(IPathMap.class);
+            if (path_map_service != null) {
+                target_path_map = new TCFDataCache<IPathMap.PathMapRule[]>(channel) {
+                    @Override
+                    protected boolean startDataRetrieval() {
+                        command = path_map_service.get(new IPathMap.DoneGet() {
+                            public void doneGet(IToken token, Exception error, IPathMap.PathMapRule[] map) {
+                                set(token, error, map);
+                            }
+                        });
+                        return false;
+                    }
+                };
+                path_map_service.addListener(new IPathMap.PathMapListener() {
+                    public void changed() {
+                        target_path_map.reset();
+                        target_path_mapping_cache = new HashMap<String,IStorage>();
+                    }
+                });
+            }
+
+            if (cfg != null && path_map_service != null) {
+                new LaunchStep() {
+                    @Override
+                    void start() throws Exception {
+                        downloadPathMaps(cfg, this);
+                    }
+                };
+            }
+
             final IStreams streams = getService(IStreams.class);
             if (streams != null) {
                 // Subscribe Streams service:
@@ -354,25 +349,7 @@ public class TCFLaunch extends Launch {
                     new LaunchStep() {
                         @Override
                         void start() throws Exception {
-                            final Runnable done = this;
-                            // Check if preloading is supported
-                            mem_map.set("\001", null, new IMemoryMap.DoneSet() {
-                                public void doneSet(IToken token, Exception error) {
-                                    try {
-                                        supports_memory_map_preloading = error == null;
-                                        if (!supports_memory_map_preloading) {
-                                            // Older agents (up to ver. 0.4) don't support preloading of memory maps.
-                                            updateMemoryMapsOnProcessCreation(cfg, done);
-                                        }
-                                        else {
-                                            downloadMemoryMaps(cfg, done);
-                                        }
-                                    }
-                                    catch (Exception x) {
-                                        channel.terminate(x);
-                                    }
-                                }
-                            });
+                            downloadMemoryMaps(cfg, this);
                         }
                     };
                 }
@@ -559,125 +536,6 @@ public class TCFLaunch extends Launch {
             }
         };
         if (cmds.isEmpty()) done_all.run();
-    }
-
-    private void updateMemoryMapsOnProcessCreation(ILaunchConfiguration cfg, final Runnable done) throws Exception {
-        final IMemory mem = channel.getRemoteService(IMemory.class);
-        final IMemoryMap mmap = channel.getRemoteService(IMemoryMap.class);
-        if (mem == null || mmap == null) {
-            done.run();
-            return;
-        }
-        final HashSet<String> deleted_maps = new HashSet<String>();
-        final HashMap<String,ArrayList<IMemoryMap.MemoryRegion>> maps = new HashMap<String,ArrayList<IMemoryMap.MemoryRegion>>();
-        getMemMaps(maps, cfg);
-        final HashSet<String> mems = new HashSet<String>(); // Already processed memory IDs
-        final HashSet<IToken> cmds = new HashSet<IToken>(); // Pending commands
-        final HashMap<String,String> mem2map = new HashMap<String,String>();
-        final Runnable done_all = new Runnable() {
-            boolean launch_done;
-            public void run() {
-                mems.clear();
-                deleted_maps.clear();
-                if (launch_done) return;
-                done.run();
-                launch_done = true;
-            }
-        };
-        final IMemoryMap.DoneSet done_set_mmap = new IMemoryMap.DoneSet() {
-            public void doneSet(IToken token, Exception error) {
-                cmds.remove(token);
-                if (error != null) Activator.log("Cannot update context memory map", error);
-                if (cmds.isEmpty()) done_all.run();
-            }
-        };
-        final IMemory.DoneGetContext done_get_context = new IMemory.DoneGetContext() {
-            public void doneGetContext(IToken token, Exception error, MemoryContext context) {
-                cmds.remove(token);
-                if (context != null && mems.add(context.getID())) {
-                    String id = context.getName();
-                    if (id == null) id = context.getID();
-                    if (id != null) {
-                        ArrayList<IMemoryMap.MemoryRegion> map = maps.get(id);
-                        if (map != null) {
-                            TCFMemoryRegion[] arr = map.toArray(new TCFMemoryRegion[map.size()]);
-                            cmds.add(mmap.set(context.getID(), arr, done_set_mmap));
-                            mem2map.put(context.getID(), id);
-                        }
-                        else if (deleted_maps.contains(id)) {
-                            cmds.add(mmap.set(context.getID(), null, done_set_mmap));
-                            mem2map.remove(context.getID());
-                        }
-                    }
-                }
-                if (cmds.isEmpty()) done_all.run();
-            }
-        };
-        final IMemory.DoneGetChildren done_get_children = new IMemory.DoneGetChildren() {
-            public void doneGetChildren(IToken token, Exception error, String[] ids) {
-                cmds.remove(token);
-                if (ids != null) {
-                    for (String id : ids) {
-                        cmds.add(mem.getChildren(id, this));
-                        cmds.add(mem.getContext(id, done_get_context));
-                    }
-                }
-                if (cmds.isEmpty()) done_all.run();
-            }
-        };
-        cmds.add(mem.getChildren(null, done_get_children));
-        mem.addListener(new IMemory.MemoryListener() {
-            public void memoryChanged(String context_id, Number[] addr, long[] size) {
-            }
-            public void contextRemoved(String[] context_ids) {
-                for (String id : context_ids) {
-                    mems.remove(id);
-                    mem2map.remove(id);
-                }
-            }
-            public void contextChanged(MemoryContext[] contexts) {
-                for (MemoryContext context : contexts) {
-                    String id = context.getName();
-                    if (id == null) id = context.getID();
-                    if (id == null) continue;
-                    if (id.equals(mem2map.get(context.getID()))) continue;
-                    ArrayList<IMemoryMap.MemoryRegion> map = maps.get(id);
-                    if (map == null) continue;
-                    TCFMemoryRegion[] arr = map.toArray(new TCFMemoryRegion[map.size()]);
-                    cmds.add(mmap.set(context.getID(), arr, done_set_mmap));
-                    mem2map.put(context.getID(), id);
-                }
-            }
-            public void contextAdded(MemoryContext[] contexts) {
-                for (MemoryContext context : contexts) {
-                    if (!mems.add(context.getID())) continue;
-                    String id = context.getName();
-                    if (id == null) id = context.getID();
-                    if (id == null) continue;
-                    ArrayList<IMemoryMap.MemoryRegion> map = maps.get(id);
-                    if (map == null) continue;
-                    TCFMemoryRegion[] arr = map.toArray(new TCFMemoryRegion[map.size()]);
-                    cmds.add(mmap.set(context.getID(), arr, done_set_mmap));
-                    mem2map.put(context.getID(), id);
-                }
-            }
-        });
-        update_memory_maps = new Runnable() {
-            public void run() {
-                try {
-                    maps.clear();
-                    mems.clear();
-                    getMemMaps(maps, getLaunchConfiguration());
-                    for (String id : mem2map.values()) {
-                        if (maps.get(id) == null) deleted_maps.add(id);
-                    }
-                    cmds.add(mem.getChildren(null, done_get_children));
-                }
-                catch (Throwable x) {
-                    channel.terminate(x);
-                }
-            }
-        };
     }
 
     @SuppressWarnings("unchecked")
@@ -1194,8 +1052,8 @@ public class TCFLaunch extends Launch {
      * for a context that does not exits yet.
      * @return true if memory map preloading is supported.
      */
-    public boolean isMemoryMapPreloadingSupported()  {
-        return supports_memory_map_preloading;
+    public boolean isMemoryMapPreloadingSupported() {
+        return true;
     }
 
     /**
