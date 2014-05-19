@@ -9,8 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.local.launcher;
 
+import java.util.Iterator;
+
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -22,6 +29,8 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.local.controls.LocalWizardConfigurationPanel;
+import org.eclipse.ui.ISelectionService;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchEncoding;
 
 /**
@@ -83,6 +92,35 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 		String home = System.getProperty("user.home"); //$NON-NLS-1$
 		if (home != null && !"".equals(home)) { //$NON-NLS-1$
 			properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, home);
+		}
+
+		// If the current selection resolved to an folder, default the working directory
+		// to that folder and update the terminal title
+		ISelectionService service = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
+		if (service != null && service.getSelection() != null) {
+			ISelection selection = service.getSelection();
+			if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+				String dir = null;
+				Iterator<?> iter = ((IStructuredSelection)selection).iterator();
+				while (iter.hasNext()) {
+					Object element = iter.next();
+					if (element instanceof IResource && ((IResource)element).exists()) {
+						IPath location = ((IResource)element).getLocation();
+						if (location == null) continue;
+						if (location.toFile().isFile()) location = location.removeLastSegments(1);
+						if (location.toFile().isDirectory() && location.toFile().canRead()) {
+							dir = location.toFile().getAbsolutePath();
+							break;
+						}
+					}
+				}
+				if (dir != null) {
+					properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, dir);
+
+					String basename = new Path(dir).lastSegment();
+					properties.setProperty(ITerminalsConnectorConstants.PROP_TITLE, basename + " (" + terminalTitle + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
 		}
 
 		// Get the terminal service
