@@ -79,6 +79,12 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 			properties.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
 		}
 
+		// Start the local terminal in the users home directory
+		String home = System.getProperty("user.home"); //$NON-NLS-1$
+		if (home != null && !"".equals(home)) { //$NON-NLS-1$
+			properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, home);
+		}
+
 		// Get the terminal service
 		ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
 		// If not available, we cannot fulfill this request
