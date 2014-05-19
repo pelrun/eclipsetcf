@@ -128,7 +128,7 @@
 	               id="org.eclipse.tcf.te.ui.terminals.commands.launchToolbar"
 	               label="%command.launch.label"
 	               style="push"
-	               tooltip="%command.launchWithoutSelection.tooltip">
+	               tooltip="%command.launch.tooltip">
 	         </command>
          </toolbar>
       </menuContribution>
@@ -139,7 +139,7 @@
                id="org.eclipse.tcf.te.ui.terminals.commands.launchToolbarTerminalsView"
                label="%command.launch.label"
                style="push"
-               tooltip="%command.launchWithoutSelection.tooltip">
+               tooltip="%command.launch.tooltip">
          </command>
          <command
                commandId="org.eclipse.tcf.te.ui.terminals.command.disconnect"
@@ -169,7 +169,7 @@
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             helpContextId="org.eclipse.tcf.te.ui.terminals.command_Launch"
             id="org.eclipse.tcf.te.ui.terminals.command.launch"
-            name="%command.launch.name">
+            name="%command.launch.selection.name">
       </command>
       <command
             categoryId="org.eclipse.tcf.te.ui.commands.category"

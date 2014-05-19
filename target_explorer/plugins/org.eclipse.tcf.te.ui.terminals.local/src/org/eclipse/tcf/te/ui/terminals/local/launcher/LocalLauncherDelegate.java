@@ -73,6 +73,12 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 			if (encoding != null && !"".equals(encoding)) properties.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, encoding); //$NON-NLS-1$
 		}
 
+		// For local terminals, force a new terminal tab each time it is launched,
+		// if not set otherwise from outside
+		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_FORCE_NEW)) {
+			properties.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
+		}
+
 		// Get the terminal service
 		ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
 		// If not available, we cannot fulfill this request
