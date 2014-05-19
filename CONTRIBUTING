@@ -1,0 +1,46 @@
+Contributing to Target Communication Framework
+==============================================
+
+Thanks for your interest in this project.
+
+Project description:
+--------------------
+
+TCF is a vendor-neutral, lightweight, extensible network protocol mainly for communicating with embedded systems (targets). Its most distinguishing feature is that TCF is designed to transparently plug in value-adding servers between the tool and the target. But even without value-add, the protocol has the potential to unify lots of currently independent communication links, thus saving resources and making setup and configuration much easier than in current embedded development scenarios.
+
+- https://projects.eclipse.org/projects/tools.cdt.tcf
+
+Developer resources:
+--------------------
+
+Information regarding source code management, builds, coding standards, and more.
+
+- https://projects.eclipse.org/projects/tools.cdt.tcf/developer
+
+Contributor License Agreement:
+------------------------------
+
+Before your contribution can be accepted by the project, you need to create and electronically sign the Eclipse Foundation Contributor License Agreement (CLA).
+
+- http://www.eclipse.org/legal/CLA.php
+
+Contact:
+--------
+
+Contact the project developers via the project's "dev" list.
+
+- https://dev.eclipse.org/mailman/listinfo/tcf-dev
+
+Search for bugs:
+----------------
+
+This project uses Bugzilla to track ongoing development and issues.
+
+- https://bugs.eclipse.org/bugs/buglist.cgi?product=TCF
+
+Create a new bug:
+-----------------
+
+Be sure to search for existing bugs before you create another one. Remember that contributions are always welcome!
+
+- https://bugs.eclipse.org/bugs/enter_bug.cgi?product=TCF
