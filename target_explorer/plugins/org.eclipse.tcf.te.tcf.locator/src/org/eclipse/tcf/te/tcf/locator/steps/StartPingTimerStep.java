@@ -79,28 +79,34 @@ public class StartPingTimerStep extends AbstractPeerNodeStep {
 							final AtomicBoolean running = new AtomicBoolean(false);
 							@Override
 							public void run() {
-								if (!running.get()) {
-									running.set(true);
-									Protocol.invokeLater(new Runnable() {
-										@Override
-										public void run() {
-											if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
-												diagnostics.echo("ping", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
-													@Override
-													public void doneEcho(IToken token, Throwable error, String s) {
-														running.set(false);
-														if (error != null) {
-															thisTimer.cancel();
-														}
+								try {
+									if (!running.get()) {
+										running.set(true);
+										Protocol.invokeLater(new Runnable() {
+											@Override
+											public void run() {
+												try {
+													if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+														diagnostics.echo("ping", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
+															@Override
+															public void doneEcho(IToken token, Throwable error, String s) {
+																running.set(false);
+																if (error != null) {
+																	thisTimer.cancel();
+																}
+															}
+														});
 													}
-												});
+													else {
+														thisTimer.cancel();
+													}
+												}
+												catch (Throwable e) {}
 											}
-											else {
-												thisTimer.cancel();
-											}
-										}
-									});
+										});
+									}
 								}
+								catch (Throwable e) {}
 							}
 						};
 						pingTimer.schedule(pingTask, 10000, 10000);
