@@ -148,7 +148,7 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		viewer = new TreeViewer(panel, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		Tree fModuleTree = viewer.getTree();
 		gd = new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL);
-		gd.minimumHeight = 300;
+		gd.minimumHeight = 250;
 		gd.minimumWidth = 300;
 		gd.widthHint = 300;
 		gd.heightHint = 300;

@@ -82,13 +82,13 @@ public class ProcessDataHelper {
 		return ctxItem.get();
 	}
 
-	protected static final String[] getProcessContextNodePath(IProcessContextNode node) {
-		List<String> path = new ArrayList<String>();
+	protected static final String getProcessContextNodePath(IProcessContextNode node) {
+		String path = null;
 		while (node.getParent() instanceof IProcessContextNode) {
 			node = (IProcessContextNode)node.getParent();
-			path.add(0, node.getProcessContext().getName());
+			path = node.getProcessContext().getName() + (path != null ? IProcessContextItem.PATH_SEPARATOR + path : ""); //$NON-NLS-1$
 		}
-		return path.toArray(new String[path.size()]);
+		return path;
 	}
 
 	public static final IProcessContextNode[] getProcessContextNodes(final IPeerNode peerNode, final IProcessContextItem item) {
@@ -118,21 +118,9 @@ public class ProcessDataHelper {
 
 	protected static final boolean isValid(IProcessContextNode node, IProcessContextItem item) {
 		if (item.getName() != null && node.getProcessContext().getName().equals(item.getName())) {
-			if (item.getPath() != null) {
-				String[] itemPath = item.getPath();
-				String[] nodePath = getProcessContextNodePath(node);
-				if (itemPath.length == nodePath.length) {
-					for (int i=0; i<itemPath.length; i++) {
-	                    if (!itemPath[i].equals(nodePath[i])) {
-	                    	return false;
-	                    }
-                    }
-					return true;
-				}
-			}
-			else {
-				return true;
-			}
+			String itemPath = item.getPath();
+			String nodePath = getProcessContextNodePath(node);
+			return (itemPath == null && nodePath == null) || (itemPath != null && itemPath.equals(nodePath));
 		}
 		return false;
 	}

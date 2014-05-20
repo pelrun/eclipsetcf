@@ -158,6 +158,7 @@ public abstract class AbstractContextStepperCommandHandler extends AbstractStepp
 	@Override
 	protected Object getContext(IPropertiesContainer data) {
 		IPeerNode[] contexts = PeerDataHelper.decodeContextList(data.getStringProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST));
+		data.setProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST, null);
 		return contexts.length == 1 ? contexts[0] : null;
 	}
 

@@ -10,8 +10,6 @@
 
 package org.eclipse.tcf.te.tcf.processes.core.persistence;
 
-import java.util.List;
-
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessContextItem;
 
@@ -47,15 +45,8 @@ public class ProcessContextItem extends PropertiesContainer implements IProcessC
 	 * @see org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessContextItem#getPath()
 	 */
 	@Override
-	public String[] getPath() {
-		Object path = getProperty(PROPERTY_PATH);
-		if (path instanceof String[]) {
-			return (String[])path;
-		}
-		if (path instanceof List<?>) {
-			return ((List<?>)path).toArray(new String[((List<?>)path).size()]);
-		}
-		return null;
+	public String getPath() {
+		return getStringProperty(PROPERTY_PATH);
 	}
 
 }

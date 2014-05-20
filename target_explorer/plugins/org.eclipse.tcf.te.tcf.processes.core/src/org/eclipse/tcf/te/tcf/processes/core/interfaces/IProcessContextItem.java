@@ -22,6 +22,8 @@ public interface IProcessContextItem extends IPropertiesContainer {
 	public static final String PROPERTY_NAME = "name"; //$NON-NLS-1$
 	public static final String PROPERTY_PATH = "path"; //$NON-NLS-1$
 
+	public static final String PATH_SEPARATOR = "/"; //$NON-NLS-1$
+
 	/**
 	 * Return the context id.
 	 */
@@ -35,5 +37,5 @@ public interface IProcessContextItem extends IPropertiesContainer {
 	/**
 	 * Return the context path.
 	 */
-	public String[] getPath();
+	public String getPath();
 }

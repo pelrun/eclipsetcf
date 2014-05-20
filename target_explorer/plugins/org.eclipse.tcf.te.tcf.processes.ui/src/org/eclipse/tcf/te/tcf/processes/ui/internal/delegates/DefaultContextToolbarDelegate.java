@@ -92,11 +92,9 @@ public class DefaultContextToolbarDelegate extends AbstractDefaultContextToolbar
 				else {
 					contexts += "\n\t"; //$NON-NLS-1$
 				}
-				String[] path = item.getPath();
-				if (path != null && path.length > 0) {
-					for (String segment : path) {
-						contexts += segment + "/"; //$NON-NLS-1$
-                    }
+				String path = item.getPath();
+				if (path != null && path.length() > 0) {
+					contexts += path + IProcessContextItem.PATH_SEPARATOR;
 				}
 				contexts += item.getName();
 				IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
