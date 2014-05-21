@@ -63,6 +63,14 @@ public interface IRuntimeModelRefreshService extends IModelRefreshService {
 	}
 
 	/**
+	 * Refresh the content of the model from the top to the given maximum depth.
+	 *
+	 * @param callback The callback to invoke once the refresh operation finished, or <code>null</code>.
+	 * @param depth Maximum depth or <code>-1</code> for full depth.
+	 */
+	public void refresh(ICallback callback, int depth);
+
+	/**
 	 * Auto refresh the content of the model from the top. It search for
 	 * all nodes with query state "done" and refresh them one by one.
 	 *

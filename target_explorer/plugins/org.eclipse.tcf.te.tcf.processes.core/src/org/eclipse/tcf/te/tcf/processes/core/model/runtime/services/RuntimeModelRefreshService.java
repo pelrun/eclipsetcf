@@ -151,6 +151,14 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 */
 	@Override
 	public void refresh(final ICallback callback) {
+		refresh(callback, 2);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService#refresh(org.eclipse.tcf.te.runtime.interfaces.callback.ICallback, int)
+	 */
+	@Override
+	public void refresh(ICallback callback, int depth) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the parent model
@@ -188,7 +196,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 		Assert.isNotNull(containerRefreshable);
 		containerRefreshable.setQueryState(QueryType.CHILD_LIST, QueryState.IN_PROGRESS);
 		// Initiate the refresh of the level 1 children
-		refreshChildrenLevel1(null, 2, container, new Callback() {
+		refreshChildrenLevel1(null, depth, container, new Callback() {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
 				// Mark the container refresh as done
@@ -628,7 +636,6 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	protected void refreshContextLevel1(final String contextId, final int maxDepth, final IProcessContextNode container, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(contextId);
-		Assert.isTrue(maxDepth > 0);
 		Assert.isNotNull(container);
 		Assert.isNotNull(callback);
 
@@ -650,7 +657,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 										@Override
 			                            protected void internalDone(Object caller, IStatus status) {
 											// Refresh the next level if the depth is still larger than 0
-											if (maxDepth - 1 > 0) {
+											if (maxDepth < 0 || maxDepth - 1 > 0) {
 												List<IProcessContextNode> children = container.getChildren(IProcessContextNode.class);
 												Assert.isNotNull(children);
 												refreshChildrenLevelN(channel, children.toArray(new IProcessContextNode[children.size()]), maxDepth - 1, callback);
@@ -691,7 +698,6 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 	 */
 	/* default */ void refreshChildrenLevel1(final String parentContextId, final int maxDepth, final IProcessContextNode container, final ICallback callback) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		Assert.isTrue(maxDepth > 0);
 		Assert.isNotNull(container);
 		Assert.isNotNull(callback);
 
@@ -708,7 +714,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 							@Override
                             protected void internalDone(Object caller, IStatus status) {
 								// Refresh the next level if the depth is still larger than 0
-								if (maxDepth - 1 > 0) {
+								if (maxDepth < 0 || maxDepth - 1 > 0) {
 									List<IProcessContextNode> children = container.getChildren(IProcessContextNode.class);
 									Assert.isNotNull(children);
 									refreshChildrenLevelN(channel, children.toArray(new IProcessContextNode[children.size()]), maxDepth - 1, callback);
@@ -742,7 +748,6 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(channel);
 		Assert.isNotNull(parents);
-		Assert.isTrue(maxDepth > 0);
 		Assert.isNotNull(callback);
 
 		// The channel must be opened, otherwise the query cannot run
@@ -763,7 +768,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
 				// Refresh the next level if the depth is still larger than 0
-				if (maxDepth - 1 > 0) {
+				if (maxDepth < 0 || maxDepth - 1 > 0) {
 					// The callback collector to be fired if the children of all children of all parent contexts got fully refreshed
 					final AsyncCallbackCollector collector2 = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
 

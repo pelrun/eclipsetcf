@@ -14,6 +14,7 @@ import java.util.EventObject;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
@@ -31,11 +32,8 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -43,8 +41,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
@@ -54,6 +50,8 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IContextDataProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.utils.PeerDataHelper;
@@ -66,25 +64,27 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeMo
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModelRefreshService;
 import org.eclipse.tcf.te.tcf.processes.core.util.ProcessDataHelper;
 import org.eclipse.tcf.te.tcf.processes.ui.editor.tree.ContentProvider;
+import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.interfaces.IDataExchangeDialog;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog;
 import org.eclipse.tcf.te.ui.trees.TreeViewerSorterCaseInsensitive;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.FilteredTree;
+import org.eclipse.ui.dialogs.PatternFilter;
 
 /**
  * Dialog for selecting contexts to attach to.
  */
 public class AttachContextSelectionDialog extends CustomTitleAreaDialog implements IEventListener, IDataExchangeDialog {
 	protected TreeViewer viewer;
+	protected FilteredTree filteredTree;
 
 	private boolean initDone = false;
 
 	IPeerNode peerNode;
 	IPropertiesContainer data = null;
-
-	Text filter;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.dialogs.Dialog#isResizable()
@@ -131,28 +131,70 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		Label filterLabel = new Label(panel, SWT.NONE);
 		filterLabel.setText(Messages.AttachContextSelectionDialog_filter_label);
 
-		filter = new Text(panel, SWT.BORDER);
-		GridData gd = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-		filter.setLayoutData(gd);
-		filter.addModifyListener(new ModifyListener() {
+		PatternFilter filter = new PatternFilter() {
+			/* (non-Javadoc)
+			 * @see org.eclipse.ui.dialogs.PatternFilter#isElementSelectable(java.lang.Object)
+			 */
 			@Override
-			public void modifyText(ModifyEvent e) {
-				viewer.refresh();
-				viewer.expandAll();
+			public boolean isElementSelectable(final Object element) {
+				final AtomicBoolean canAttach = new AtomicBoolean();
+				if (element instanceof IProcessContextNode) {
+					Protocol.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							canAttach.set(canAttach(element));
+						}
+					});
+				}
+			    return element instanceof IProcessContextNode;
 			}
-		});
 
-		Label contextLabel = new Label(panel, SWT.NONE);
-		contextLabel.setText(Messages.AttachContextSelectionDialog_contexts_label);
+			/* (non-Javadoc)
+			 * @see org.eclipse.ui.dialogs.PatternFilter#isLeafMatch(org.eclipse.jface.viewers.Viewer, java.lang.Object)
+			 */
+			@Override
+			protected boolean isLeafMatch(Viewer viewer, final Object element) {
+				if (element instanceof IProcessContextNode) {
+					final AtomicBoolean canAttach = new AtomicBoolean();
+					Protocol.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							canAttach.set(canAttach(element));
+						}
+					});
+					return canAttach.get() && super.isLeafMatch(viewer, element);
+				}
+				return true;
+			}
+		};
+		filter.setIncludeLeadingWildcard(true);
+		filter.setPattern("org.eclipse.ui.keys.optimization.false"); //$NON-NLS-1$
 
-		viewer = new TreeViewer(panel, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
-		Tree fModuleTree = viewer.getTree();
-		gd = new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL);
+		filteredTree = new FilteredTree(panel,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER, filter, true) {
+			/* (non-Javadoc)
+			 * @see org.eclipse.ui.dialogs.FilteredTree#getFilterString()
+			 */
+			@Override
+			protected String getFilterString() {
+			    String filter = super.getFilterString();
+			    if (filter != null) {
+			    	filter = filter.trim();
+			    	if (filter.length() == 0) {
+			    		return "*"; //$NON-NLS-1$
+			    	}
+			    	return filter;
+			    }
+			    return null;
+			}
+		};
+		viewer = filteredTree.getViewer();
+		GridData gd = new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL);
 		gd.minimumHeight = 250;
 		gd.minimumWidth = 300;
 		gd.widthHint = 300;
 		gd.heightHint = 300;
-		fModuleTree.setLayoutData(gd);
+		filteredTree.setLayoutData(gd);
+		filteredTree.setQuickSelectionMode(true);
 
 		viewer.setContentProvider(new ContentProvider());
 		DelegatingLabelProvider labelProvider = new DelegatingLabelProvider() {
@@ -161,15 +203,30 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 			 */
 			@Override
 			public String decorateText(String text, final Object element) {
-				final AtomicBoolean isAttached = new AtomicBoolean();
-				Protocol.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						isAttached.set(isAttached(element));
+				if (element instanceof IProcessContextNode) {
+
+					final AtomicBoolean isAttached = new AtomicBoolean();
+					final AtomicLong pid = new AtomicLong();
+					Protocol.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							isAttached.set(isAttached(element));
+							pid.set(((IProcessContextNode)element).getSysMonitorContext().getPID());
+						}
+					});
+
+					String id = pid.get() >= 0 ? Long.toString(pid.get()) : ""; //$NON-NLS-1$
+					if (id.startsWith("P")) id = id.substring(1); //$NON-NLS-1$
+					IPeerNode peerNode = (IPeerNode)((IProcessContextNode)element).getAdapter(IPeerNode.class);
+					IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
+					IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerNode, IProcessMonitorUIDelegate.class) : null;
+					String newId = delegate != null ? delegate.getText(element, "PID", id) : null; //$NON-NLS-1$
+					if (newId != null) {
+						text = NLS.bind(Messages.AttachContextSelectionDialog_pid_decoration, text, newId);
 					}
-				});
-				if (isAttached.get()) {
-					return NLS.bind(Messages.AttachContextSelectionDialog_allReadyAttached_decoration, text);
+					if (isAttached.get()) {
+						text = NLS.bind(Messages.AttachContextSelectionDialog_allReadyAttached_decoration, text);
+					}
 				}
 			    return text;
 			}
@@ -220,50 +277,6 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		});
 
 		viewer.setSorter(new TreeViewerSorterCaseInsensitive());
-		viewer.addFilter(new ViewerFilter() {
-			@Override
-			public boolean select(Viewer viewer, Object parentElement, final Object element) {
-				if (element instanceof IProcessContextNode) {
-					final IProcessContextNode node = (IProcessContextNode)element;
-					String filterStr = filter.getText().trim();
-					filterStr = filterStr.replaceAll("\\*",	".*"); //$NON-NLS-1$ //$NON-NLS-2$
-					filterStr = filterStr.replaceAll("\\?",	"."); //$NON-NLS-1$ //$NON-NLS-2$
-					filterStr += ".*"; //$NON-NLS-1$
-					if (!matchesFilter(filterStr, node)) {
-						return false;
-					}
-				}
-				return true;
-			}
-
-			private boolean matchesFilter(final String filterStr, final IProcessContextNode node) {
-				boolean childMatches = false;
-				if (node.hasChildren()) {
-					for (IModelNode child : node.getChildren()) {
-	                    if (child instanceof IProcessContextNode) {
-	                    	if (matchesFilter(filterStr, (IProcessContextNode)child)) {
-	                    		childMatches = true;
-	                    		break;
-	                    	}
-	                    }
-	                    else {
-	                    	childMatches = true;
-	                    	break;
-	                    }
-                    }
-				}
-				final AtomicBoolean filterMatches = new AtomicBoolean();
-				final AtomicBoolean canAttach = new AtomicBoolean();
-				Protocol.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						filterMatches.set(node.getName().toLowerCase().matches(filterStr.toLowerCase()));
-						canAttach.set(canAttach(node));
-					}
-				});
-				return (filterMatches.get() || childMatches) && canAttach.get();
-			}
-		});
 
 		EventManager.getInstance().addEventListener(this, ChangeEvent.class);
 

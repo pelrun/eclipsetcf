@@ -628,7 +628,7 @@
                id="org.eclipse.tcf.te.tcf.ui.ActionHistoryToolbarContribution"/>
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"/>
       </menuContribution>
-      <!--menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
             <visibleWhen checkEnabled="false">
                <with variable="defaultContextSelection">
@@ -636,7 +636,7 @@
                </with>
             </visibleWhen>
          </command>
-      </menuContribution-->
+      </menuContribution>
 
    <!-- System menu contribution -->
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.connect">

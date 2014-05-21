@@ -202,6 +202,7 @@ public class Messages extends NLS {
 	public static String AttachContextSelectionDialog_message;
 	public static String AttachContextSelectionDialog_filter_label;
 	public static String AttachContextSelectionDialog_contexts_label;
+	public static String AttachContextSelectionDialog_pid_decoration;
 	public static String AttachContextSelectionDialog_allReadyAttached_decoration;
 
 	public static String DefaultContextToolbarDelegate_attachContext_label;

@@ -62,7 +62,7 @@ public class AttachContextsIterator extends AbstractPeerNodeStepGroupIterator {
 			@Override
 			public void run() {
 				IRuntimeModelRefreshService service = ModelManager.getRuntimeModel(peerNode).getService(IRuntimeModelRefreshService.class);
-				service.refresh(cb);
+				service.refresh(cb, -1);
 			}
 		});
 		ExecutorsUtil.waitAndExecute(0, cb.getDoneConditionTester(monitor));
