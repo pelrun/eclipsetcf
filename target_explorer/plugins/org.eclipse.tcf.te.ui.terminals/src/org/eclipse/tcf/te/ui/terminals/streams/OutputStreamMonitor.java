@@ -277,14 +277,34 @@ public class OutputStreamMonitor implements IDisposable {
     	if (lineSeparator != null
     			&& !ILineSeparatorConstants.LINE_SEPARATOR_CRLF.equals(lineSeparator)) {
     		String separator = ILineSeparatorConstants.LINE_SEPARATOR_LF.equals(lineSeparator) ? "\n" : "\r"; //$NON-NLS-1$ //$NON-NLS-2$
-    		if (text.contains(separator)) {
-    			text = text.replaceAll(separator, "\r\n"); //$NON-NLS-1$
-    			changed = true;
+    		String separator2 = ILineSeparatorConstants.LINE_SEPARATOR_LF.equals(lineSeparator) ? "\r" : "\n"; //$NON-NLS-1$ //$NON-NLS-2$
+
+    		if (text.indexOf(separator) != -1) {
+    			String[] fragments = text.split(separator);
+    			StringBuilder b = new StringBuilder();
+    			for (int i = 0; i < fragments.length; i++) {
+    				String fragment = fragments[i];
+    				String nextFragment = i + 1 < fragments.length ? fragments[i + 1] : null;
+    				b.append(fragment);
+    				if (fragment.endsWith(separator2) || (nextFragment != null && nextFragment.startsWith(separator2))) {
+    					// Both separators are found, just add the original separator
+    					b.append(separator);
+    				} else {
+    					b.append("\n\r"); //$NON-NLS-1$
+    				}
+    			}
+    			if (!text.equals(b.toString())) {
+    				text = b.toString();
+    				changed = true;
+    			}
     		}
     	}
 
     	// If changed, get the new bytes array
-    	if (changed) byteBuffer = text.getBytes();
+    	if (changed) {
+    		byteBuffer = text.getBytes();
+    		bytesRead = byteBuffer.length;
+    	}
 
     	// If listeners are registered, invoke the listeners now.
     	if (listeners.size() > 0) {

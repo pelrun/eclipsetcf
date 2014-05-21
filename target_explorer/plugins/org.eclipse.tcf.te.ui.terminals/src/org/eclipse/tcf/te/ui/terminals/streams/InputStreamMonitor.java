@@ -333,7 +333,27 @@ public class InputStreamMonitor extends OutputStream implements IDisposable {
     			text = text.replace('\r', '\n');
     		}
     		else if (replacement == INSERT_LF_AFTER_CR) {
-    			text = text.replaceAll(ILineSeparatorConstants.LINE_SEPARATOR_CR, "\r\n"); //$NON-NLS-1$
+        		String separator = ILineSeparatorConstants.LINE_SEPARATOR_CR;
+        		String separator2 = ILineSeparatorConstants.LINE_SEPARATOR_LF;
+
+        		if (text.indexOf(separator) != -1) {
+        			String[] fragments = text.split(separator);
+        			StringBuilder b = new StringBuilder();
+        			for (int i = 0; i < fragments.length; i++) {
+        				String fragment = fragments[i];
+        				String nextFragment = i + 1 < fragments.length ? fragments[i + 1] : null;
+        				b.append(fragment);
+        				if (fragment.endsWith(separator2) || (nextFragment != null && nextFragment.startsWith(separator2))) {
+        					// Both separators are found, just add the original separator
+        					b.append(separator);
+        				} else {
+        					b.append("\n\r"); //$NON-NLS-1$
+        				}
+        			}
+        			if (!text.equals(b.toString())) {
+        				text = b.toString();
+        			}
+        		}
     		}
     		else if (replacement == REMOVE_CR) {
     			text = text.replaceAll(ILineSeparatorConstants.LINE_SEPARATOR_CR, ""); //$NON-NLS-1$
