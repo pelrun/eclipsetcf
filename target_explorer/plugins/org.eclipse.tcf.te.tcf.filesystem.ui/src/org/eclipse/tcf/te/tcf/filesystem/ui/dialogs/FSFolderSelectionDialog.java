@@ -32,6 +32,9 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -84,6 +87,11 @@ import org.eclipse.ui.dialogs.ISelectionStatusValidator;
 public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	// The nodes that are being moved.
 	private List<FSTreeNode> movedNodes;
+	private final int mode;
+
+	public static final int MODE_ALL = 0;
+	public static final int MODE_ALL_WARNING_NOT_WRITABLE = 1;
+	public static final int MODE_ONLY_WRITABLE = 2;
 
 	/**
 	 * Create an FSFolderSelectionDialog using the specified shell as the parent.
@@ -91,7 +99,17 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	 * @param parentShell The parent shell.
 	 */
 	public FSFolderSelectionDialog(Shell parentShell) {
-		this(parentShell, new FSTreeElementLabelProvider(), new FSTreeContentProvider());
+		this(parentShell, MODE_ONLY_WRITABLE);
+	}
+
+	/**
+	 * Create an FSFolderSelectionDialog using the specified shell as the parent.
+	 *
+	 * @param parentShell The parent shell.
+	 * @param mode The mode of this dialog.
+	 */
+	public FSFolderSelectionDialog(Shell parentShell, int mode) {
+		this(parentShell, new FSTreeElementLabelProvider(), new FSTreeContentProvider(), mode);
 	}
 
 	/**
@@ -101,15 +119,17 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	 * @param parentShell The parent shell.
 	 * @param labelProvider The label provider.
 	 * @param contentProvider The content provider.
+	 * @param mode The mode of this dialog.
 	 */
-	private FSFolderSelectionDialog(Shell parentShell, ILabelProvider labelProvider, ITreeContentProvider contentProvider) {
+	private FSFolderSelectionDialog(Shell parentShell, ILabelProvider labelProvider, ITreeContentProvider contentProvider, int mode) {
 		super(parentShell, createDecoratingLabelProvider(labelProvider), contentProvider);
+		this.mode = mode;
 		setTitle(Messages.FSFolderSelectionDialog_MoveDialogTitle);
 		setMessage(Messages.FSFolderSelectionDialog_MoveDialogMessage);
 		this.setAllowMultiple(false);
 		this.setComparator(new FSTreeViewerSorter());
 		this.addFilter(new DirectoryFilter());
-		this.setStatusLineAboveButtons(false);
+		this.setStatusLineAboveButtons(true);
 		this.setValidator(new ISelectionStatusValidator() {
 			@Override
 			public IStatus validate(final Object[] selection) {
@@ -181,6 +201,16 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	@Override
 	protected TreeViewer doCreateTreeViewer(Composite parent, int style) {
 		TreeViewer viewer = super.doCreateTreeViewer(parent, style);
+
+		Button refreshAll = new Button(parent, SWT.PUSH);
+		refreshAll.setText(Messages.FSFolderSelectionDialog_RefreshAll_menu);
+		refreshAll.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshModel();
+			}
+		});
+
 		viewer.getTree().addKeyListener(new KeyAdapter() {
 			/* (non-Javadoc)
 			 * @see org.eclipse.swt.events.KeyAdapter#keyReleased(org.eclipse.swt.events.KeyEvent)
@@ -207,12 +237,6 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	            };
 	            action.setAccelerator(SWT.F5);
 	            manager.add(action);
-	            manager.add(new Action(Messages.FSFolderSelectionDialog_RefreshAll_menu) {
-	            	@Override
-	            	public void run() {
-	            	    refreshModel();
-	            	}
-	            });
 	        }
 	    });
 	    Menu menu = menuMgr.createContextMenu(viewer.getControl());
@@ -268,6 +292,11 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	}
 
 
+	private final static IStatus ok = new Status(IStatus.OK, UIPlugin.getUniqueIdentifier(), null);
+	private final static IStatus error = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), null);
+	private final static IStatus errorNotWritable = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), Messages.FSFolderSelectionDialog_notWritable_error);
+	private final static IStatus warningNotWritable = new Status(IStatus.WARNING, UIPlugin.getUniqueIdentifier(), Messages.FSFolderSelectionDialog_notWritable_warning);
+
 	/**
 	 * If the specified selection is a valid folder to be selected.
 	 *
@@ -275,8 +304,6 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	 * @return An error status if it is invalid or an OK status indicating it is valid.
 	 */
 	IStatus isValidFolder(Object[] selection) {
-		String pluginId = UIPlugin.getUniqueIdentifier();
-		IStatus error = new Status(IStatus.ERROR, pluginId, null);
 		if (selection == null || selection.length == 0) {
 			return error;
 		}
@@ -291,12 +318,12 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 				}
 			}
 		}
-		if(!target.isWritable()) {
+		if(mode != MODE_ALL && !target.isWritable()) {
 			if (target.attr == null) {
 				refreshNode(target);
 			}
-			return error;
+			return mode == MODE_ONLY_WRITABLE ? errorNotWritable : warningNotWritable;
 		}
-		return new Status(IStatus.OK, pluginId, null);
+		return ok;
 	}
 }
