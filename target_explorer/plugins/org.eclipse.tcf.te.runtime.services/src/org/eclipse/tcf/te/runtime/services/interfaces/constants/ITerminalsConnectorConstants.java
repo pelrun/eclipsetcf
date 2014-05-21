@@ -96,7 +96,8 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_DATA_NO_RECONNECT = "data.noReconnect"; //$NON-NLS-1$
 
 	/**
-	 * Property: The line separator used by the terminal input.
+	 * Property: The line separator expected by the remote terminal on input streams and
+	 *           send by the remote terminal on output streams.
 	 *           <p>Typical for process and streams terminals.
 	 */
 	public static final String PROP_LINE_SEPARATOR = "lineSeparator"; //$NON-NLS-1$
