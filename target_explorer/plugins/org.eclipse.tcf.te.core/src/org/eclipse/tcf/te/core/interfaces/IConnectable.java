@@ -54,16 +54,16 @@ public interface IConnectable {
 	public boolean setConnectState(int state);
 
 	/**
-	 * Change the current connect state to the new state if possible.
-	 * Only states >= 0 are allowed.
+	 * Change the current connect state to the new state if the given action is possible.
+	 * Only actions >= 0 are allowed.
 	 *
-	 * @param state The new state.
+	 * @param action The state change action.
 	 * @param callback The callback to indicate that the state change has been finished.
 	 * @param monitor The progress monitor. If <code>null</code> a new job will be scheduled.
 	 *
-	 * @throws IllegalArgumentException if the given state is not allowed (only states >= 0 are allowed)
+	 * @throws IllegalArgumentException if the given action is not allowed (only actions >= 0 are allowed)
 	 */
-	public void changeConnectState(int state, ICallback callback, IProgressMonitor monitor) throws IllegalArgumentException;
+	public void changeConnectState(int action, ICallback callback, IProgressMonitor monitor) throws IllegalArgumentException;
 
 	/**
 	 * Check whether a state change to the given state is allowed.
