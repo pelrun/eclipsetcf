@@ -389,7 +389,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     												ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER, LaunchTerminalSettingsDialog.this);
     		}
 
-			ILauncherDelegate[] delegates = LauncherDelegateManager.getInstance().getLauncherDelegates(true);
+			ILauncherDelegate[] delegates = LauncherDelegateManager.getInstance().getLauncherDelegates(false);
 
     		if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
     			UIPlugin.getTraceHandler().trace("Got launcher delegates after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
@@ -397,13 +397,8 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     		}
 
     		for (ILauncherDelegate delegate : delegates) {
+    			if (delegate.isHidden()) continue;
     			String label = delegate.getLabel();
-    			String id=delegate.getId();
-    			// filter out tcf terminal
-    			if(id.equals("org.eclipse.tcf.te.ui.terminals.launcher.tcf")){ //$NON-NLS-1$
-    				continue;
-    			}
-
     			if (label == null || "".equals(label.trim())) label = delegate.getId(); //$NON-NLS-1$
     			label2delegate.put(label, delegate);
     			items.add(label);
@@ -422,6 +417,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     		}
 
     		for (ILauncherDelegate delegate : delegates) {
+    			if (delegate.isHidden()) continue;
     			String label = delegate.getLabel();
     			if (label == null || "".equals(label.trim())) label = delegate.getId(); //$NON-NLS-1$
     			label2delegate.put(label, delegate);

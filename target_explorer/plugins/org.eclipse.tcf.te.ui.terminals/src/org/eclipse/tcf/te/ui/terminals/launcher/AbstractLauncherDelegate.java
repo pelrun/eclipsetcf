@@ -22,6 +22,8 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 public abstract class AbstractLauncherDelegate extends ExecutableExtension implements ILauncherDelegate {
 	// The converted expression
 	private Expression expression;
+	// The hidden attribute
+	private boolean hidden;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.extensions.ExecutableExtension#doSetInitializationData(org.eclipse.core.runtime.IConfigurationElement, java.lang.String, java.lang.Object)
@@ -36,6 +38,13 @@ public abstract class AbstractLauncherDelegate extends ExecutableExtension imple
 		if (children != null && children.length > 0) {
 			expression = ExpressionConverter.getDefault().perform(children[0]);
 		}
+
+		// Read "hidden" attribute
+		String value = config.getAttribute("hidden"); //$NON-NLS-1$
+		if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
+			hidden = Boolean.parseBoolean(value);
+		}
+
 	}
 
 	/* (non-Javadoc)
@@ -44,5 +53,13 @@ public abstract class AbstractLauncherDelegate extends ExecutableExtension imple
 	@Override
     public Expression getEnablement() {
 		return expression;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#isHidden()
+	 */
+	@Override
+	public boolean isHidden() {
+	    return hidden;
 	}
 }

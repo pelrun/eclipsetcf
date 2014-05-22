@@ -25,7 +25,8 @@
       <delegate
             class="org.eclipse.tcf.te.tcf.terminals.ui.launcher.TerminalsLauncherDelegate"
             id="org.eclipse.tcf.te.ui.terminals.launcher.tcf"
-            label="%launcherDelegate.label">
+            label="%launcherDelegate.label"
+            hidden="true">
             <enablement>
                <with variable="selection">
                   <count value="1"/>

@@ -89,6 +89,13 @@ The terminal launcher delegate implementation class must be specified either by 
                </appinfo>
             </annotation>
          </attribute>
+         <attribute name="hidden" type="boolean">
+            <annotation>
+               <documentation>
+                  If &lt;code&gt;true&lt;/code&gt;, than the terminal launcher delegate is not visible in the UI, even if a possible &lt;code&gt;enablement&lt;/code&gt; will evaluate to &lt;code&gt;true&lt;/code&gt;.
+               </documentation>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 

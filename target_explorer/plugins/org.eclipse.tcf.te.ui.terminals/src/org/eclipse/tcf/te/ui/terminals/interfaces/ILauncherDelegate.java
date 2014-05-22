@@ -22,6 +22,13 @@ import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 public interface ILauncherDelegate extends IExecutableExtension, IAdaptable {
 
 	/**
+	 * Returns if or if not the launcher delegate is hidden for the user.
+	 *
+	 * @return <code>True</code> if the launcher delegate is hidden, <code>false</code> otherwise.
+	 */
+	public boolean isHidden();
+
+	/**
 	 * Returns the enablement expression.
 	 *
 	 * @return The enablement expression or <code>null</code>.
