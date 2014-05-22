@@ -16,8 +16,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.tcf.core.interfaces.IContextDataProperties;
@@ -29,7 +27,6 @@ import org.eclipse.tcf.te.tcf.processes.core.interfaces.services.IStepGroupIds;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.services.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.processes.core.util.ProcessDataHelper;
 import org.eclipse.tcf.te.tcf.processes.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.processes.ui.internal.dialogs.AttachContextSelectionDialog;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
@@ -97,13 +94,6 @@ public class DefaultContextToolbarDelegate extends AbstractDefaultContextToolbar
 					contexts += path + IProcessContextItem.PATH_SEPARATOR;
 				}
 				contexts += item.getName();
-				IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
-				IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerNode, IProcessMonitorUIDelegate.class) : null;
-				long id = item.getLongProperty(IProcessContextItem.PROPERTY_PID);
-
-				if (id  > 0) {
-					contexts += " (" + (delegate != null ? delegate.getText(peerNode, "PID", new Long(id).toString()) : id+"") + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-				}
 			}
 			return NLS.bind(Messages.DefaultContextToolbarDelegate_attachContext_description, contexts);
 		}

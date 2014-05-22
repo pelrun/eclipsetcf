@@ -71,7 +71,6 @@ public class ProcessDataHelper {
 					if (value != null && value.booleanValue()) {
 						IProcessContextItem item = new ProcessContextItem();
 						item.setProperty(IProcessContextItem.PROPERTY_ID, node.getProcessContext().getID());
-						item.setProperty(IProcessContextItem.PROPERTY_PID, node.getSysMonitorContext().getPID());
 						item.setProperty(IProcessContextItem.PROPERTY_NAME, node.getProcessContext().getName());
 						item.setProperty(IProcessContextItem.PROPERTY_PATH, getProcessContextNodePath(node));
 						ctxItem.set(item);

@@ -82,6 +82,16 @@ public interface IStepperOperationService extends IService {
 	public boolean addToActionHistory(Object context, String operation);
 
 	/**
+	 * Returns special history data if for example some values should not be persisted
+	 * (like ids that are only valid in the current session).
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param operation The operation. Must not be <code>null</code>.
+	 * @param data The step data to be validated.
+	 * @return Special history data or <code>null</code> if the original data should be used.
+	 */
+	public IPropertiesContainer getSpecialHistoryData(Object context, String operation, IPropertiesContainer data);
+
+	/**
 	 * Validates the step data to be used for the given context and operation.
 	 * @param context The context. Must not be <code>null</code>.
 	 * @param operation The operation. Must not be <code>null</code>.

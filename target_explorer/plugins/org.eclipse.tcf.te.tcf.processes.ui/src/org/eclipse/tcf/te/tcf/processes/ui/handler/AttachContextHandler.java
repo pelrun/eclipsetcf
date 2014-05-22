@@ -86,7 +86,7 @@ public class AttachContextHandler extends AbstractContextStepperCommandHandler {
 				final Object element = it.next();
 				if (element instanceof IProcessContextNode) {
     				IProcessContextItem item = ProcessDataHelper.getProcessContextItem((IProcessContextNode)element);
-    				if (item != null) {
+    				if (item != null && !items.contains(item)) {
     					items.add(item);
     				}
 				}

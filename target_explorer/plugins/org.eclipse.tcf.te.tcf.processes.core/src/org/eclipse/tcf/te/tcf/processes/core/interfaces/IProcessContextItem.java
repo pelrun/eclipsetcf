@@ -18,7 +18,6 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 public interface IProcessContextItem extends IPropertiesContainer {
 
 	public static final String PROPERTY_ID = "id"; //$NON-NLS-1$
-	public static final String PROPERTY_PID = "pid"; //$NON-NLS-1$
 	public static final String PROPERTY_NAME = "name"; //$NON-NLS-1$
 	public static final String PROPERTY_PATH = "path"; //$NON-NLS-1$
 

@@ -13,6 +13,7 @@ package org.eclipse.tcf.te.runtime.stepper.utils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
@@ -43,8 +44,12 @@ public final class StepperHelper {
 		String name = service.getStepGroupName(context, operation);
 		boolean isCancelable = service.isCancelable(context, operation);
 		boolean addToActionHistory = service.addToActionHistory(context, operation);
+		IPropertiesContainer histData = service.getSpecialHistoryData(stepContext, operation, data);
 		if (!addToActionHistory) {
 			data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, true);
+		}
+		if (histData != null) {
+			data.setProperty(IStepAttributes.ATTR_HISTORY_DATA, DataHelper.encodePropertiesContainer(histData));
 		}
 
 		if (stepGroupId != null && stepContext != null) {

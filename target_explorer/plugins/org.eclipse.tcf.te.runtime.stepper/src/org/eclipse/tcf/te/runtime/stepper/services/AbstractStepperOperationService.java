@@ -48,4 +48,12 @@ public abstract class AbstractStepperOperationService extends AbstractService im
 	public boolean validateStepData(Object context, String operation, IPropertiesContainer data) {
 	    return true;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#getSpecialHistoryData(java.lang.Object, java.lang.String, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+	@Override
+	public IPropertiesContainer getSpecialHistoryData(Object context, String operation, IPropertiesContainer data) {
+	    return null;
+	}
 }

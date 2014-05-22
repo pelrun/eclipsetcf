@@ -173,11 +173,18 @@ public class Stepper implements IStepper {
 		this.finished = false;
 
 		boolean skipLastRunHistory = data.getBooleanProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY);
-		data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, null);
-		if (!data.isEmpty()) {
-			data.setProperty(IStepAttributes.ATTR_STEP_GROUP_ID, stepGroupId);
-			data.setProperty(IStepAttributes.ATTR_HISTORY_DATA, DataHelper.encodePropertiesContainer(data));
-			data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, skipLastRunHistory);
+		if (!skipLastRunHistory && !data.isEmpty()) {
+			if (!data.containsKey(IStepAttributes.ATTR_HISTORY_DATA)) {
+				data.setProperty(IStepAttributes.ATTR_STEP_GROUP_ID, stepGroupId);
+				data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, null);
+				data.setProperty(IStepAttributes.ATTR_HISTORY_DATA, DataHelper.encodePropertiesContainer(data));
+				data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, skipLastRunHistory);
+			}
+			else {
+				IPropertiesContainer histData = DataHelper.decodePropertiesContainer(data.getStringProperty(IStepAttributes.ATTR_HISTORY_DATA));
+				histData.setProperty(IStepAttributes.ATTR_STEP_GROUP_ID, stepGroupId);
+				data.setProperty(IStepAttributes.ATTR_HISTORY_DATA, DataHelper.encodePropertiesContainer(histData));
+			}
 		}
 
 		// call the hook for the subclasses to initialize themselves
@@ -355,13 +362,13 @@ public class Stepper implements IStepper {
 			List<IStatus> statusContainer = new ArrayList<IStatus>();
 
 			// save execution to history
+			boolean skipLastRunHistory = data.getBooleanProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY);
 			String historyData = data.getStringProperty(IStepAttributes.ATTR_HISTORY_DATA);
-			if (historyData != null) {
+			if (!skipLastRunHistory && historyData != null) {
 				// this is the history for each step group used by action dialogs to prefill the values if no usable selection is available
 				HistoryManager.getInstance().add(stepGroupId + "@" + context.getId(), historyData, 1); //$NON-NLS-1$
 				if (!data.getBooleanProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY)) {
 					// this is the history used for the list of history actions and the history dialog
-
 					HistoryManager.getInstance().add(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + context.getId(), historyData, 50); //$NON-NLS-1$
 				}
 			}

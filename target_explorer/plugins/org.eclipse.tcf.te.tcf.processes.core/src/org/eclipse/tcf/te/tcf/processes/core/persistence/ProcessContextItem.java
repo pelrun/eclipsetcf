@@ -16,7 +16,7 @@ import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessContextItem;
 /**
  * ProcessContextItem
  */
-public class ProcessContextItem extends PropertiesContainer implements IProcessContextItem {
+public class ProcessContextItem extends PropertiesContainer implements IProcessContextItem, Comparable<IProcessContextItem> {
 
 	/**
 	 * Constructor.
@@ -49,4 +49,38 @@ public class ProcessContextItem extends PropertiesContainer implements IProcessC
 		return getStringProperty(PROPERTY_PATH);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+    @Override
+    public int compareTo(IProcessContextItem other) {
+	    return toString().compareTo(other.toString());
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.runtime.properties.PropertiesContainer#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+    	if (obj instanceof IProcessContextItem) {
+    		IProcessContextItem other = (IProcessContextItem)obj;
+    		return toString().equals(other.toString());
+    	}
+        return super.equals(obj);
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.runtime.properties.PropertiesContainer#toString()
+     */
+    @Override
+    public String toString() {
+		String toString = getName() != null ? getName() : "unknown"; //$NON-NLS-1$
+		if (getId() != null) {
+			toString += " (" + getId() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		if (getPath() != null) {
+			toString = getPath() + IProcessContextItem.PATH_SEPARATOR + toString;
+		}
+		return toString;
+    }
 }

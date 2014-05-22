@@ -43,6 +43,7 @@ import org.eclipse.tcf.te.launch.core.nls.Messages;
 import org.eclipse.tcf.te.launch.core.persistence.projects.ReferencedProjectsPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.interfaces.ISharedConstants;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.tracing.ITraceIds;
@@ -138,6 +139,7 @@ public class LaunchConfigurationDelegate extends org.eclipse.debug.core.model.La
 							launch.getLaunchMode());
 
 			IStepContext context = (IStepContext)launch.getAdapter(IStepContext.class);
+			properties.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, true);
 			stepper.initialize(context, stepGroupId, properties, monitor);
 
 			// Execute
