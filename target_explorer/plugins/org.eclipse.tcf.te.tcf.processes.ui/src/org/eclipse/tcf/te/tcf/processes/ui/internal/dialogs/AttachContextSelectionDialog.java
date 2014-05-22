@@ -194,7 +194,6 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		gd.widthHint = 300;
 		gd.heightHint = 300;
 		filteredTree.setLayoutData(gd);
-		filteredTree.setQuickSelectionMode(true);
 
 		viewer.setContentProvider(new ContentProvider());
 		DelegatingLabelProvider labelProvider = new DelegatingLabelProvider() {
@@ -502,7 +501,7 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 	    			Object obj = it.next();
 	    			if (obj instanceof IProcessContextNode) {
 	    				IProcessContextItem item = ProcessDataHelper.getProcessContextItem((IProcessContextNode)obj);
-	    				if (item != null) {
+	    				if (item != null && !items.contains(item)) {
 	    					items.add(item);
 	    				}
 	    			}
