@@ -154,14 +154,24 @@ public class TCFModelManager {
 
     public TCFModelManager() {
         assert Protocol.isDispatchThread();
-        PlatformUI.getWorkbench().addWorkbenchListener(workbench_listener);
+        try {
+            PlatformUI.getWorkbench().addWorkbenchListener(workbench_listener);
+        } catch (IllegalStateException e) {
+            // In headless environments the plug-in load can be still triggered.
+            // Should not trigger an "Unhandled exception in TCF event dispatch thread"
+        }
         DebugPlugin.getDefault().getLaunchManager().addLaunchListener(debug_launch_listener);
         TCFLaunch.addListener(tcf_launch_listener);
     }
 
     public void dispose() {
         assert Protocol.isDispatchThread();
-        PlatformUI.getWorkbench().removeWorkbenchListener(workbench_listener);
+        try {
+            PlatformUI.getWorkbench().removeWorkbenchListener(workbench_listener);
+        } catch (IllegalStateException e) {
+            // In headless environments the plug-in load can be still triggered.
+            // Should not trigger an "Unhandled exception in TCF event dispatch thread"
+        }
         DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(debug_launch_listener);
         TCFLaunch.removeListener(tcf_launch_listener);
         for (Iterator<TCFModel> i = models.values().iterator(); i.hasNext();) {
