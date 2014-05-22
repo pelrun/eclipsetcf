@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.dialogs;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Iterator;
@@ -194,6 +195,14 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		gd.widthHint = 300;
 		gd.heightHint = 300;
 		filteredTree.setLayoutData(gd);
+		// needs to be set using reflection as it is e4
+		// filteredTree.setQuickSelectionMode(true);
+		try {
+			  Method method = filteredTree.getClass().getMethod("setQuickSelectionMode", Boolean.TYPE); //$NON-NLS-1$
+			  method.invoke(filteredTree, Boolean.TRUE);
+		}
+		catch (Throwable e) {
+		}
 
 		viewer.setContentProvider(new ContentProvider());
 		DelegatingLabelProvider labelProvider = new DelegatingLabelProvider() {
