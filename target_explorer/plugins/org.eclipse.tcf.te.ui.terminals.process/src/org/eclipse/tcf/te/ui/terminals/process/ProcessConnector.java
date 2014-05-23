@@ -164,7 +164,7 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			}
 
 			String lineSeparator = settings.getLineSeparator();
-			if (lineSeparator == null) {
+			if (lineSeparator == null && pty == null) {
 				lineSeparator = System.getProperty("line.separator"); //$NON-NLS-1$
 				if ("\r".equals(lineSeparator)) { //$NON-NLS-1$
 					lineSeparator = ILineSeparatorConstants.LINE_SEPARATOR_CR;
