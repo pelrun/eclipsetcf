@@ -32,8 +32,10 @@ public abstract class AbstractLauncherDelegate extends ExecutableExtension imple
 	public void doSetInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
 	    super.doSetInitializationData(config, propertyName, data);
 
+	    if (config == null) return;
+
 		// Read the sub elements of the extension
-		IConfigurationElement[] children = config != null ? config.getChildren() : null;
+		IConfigurationElement[] children = config.getChildren();
 		// The "enablement" element is the only expected one
 		if (children != null && children.length > 0) {
 			expression = ExpressionConverter.getDefault().perform(children[0]);
