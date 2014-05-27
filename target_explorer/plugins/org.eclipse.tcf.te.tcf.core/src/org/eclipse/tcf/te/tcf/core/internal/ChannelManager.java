@@ -101,7 +101,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							Thread thread = new Thread(new Runnable() {
 								@Override
 								public void run() {
-									service.applyPathMap(peer, new Callback() {
+									service.applyPathMap(peer, true, new Callback() {
 										@Override
 										protected void internalDone(Object caller, IStatus status) {
 											done.doneOpenChannel(error, channel);

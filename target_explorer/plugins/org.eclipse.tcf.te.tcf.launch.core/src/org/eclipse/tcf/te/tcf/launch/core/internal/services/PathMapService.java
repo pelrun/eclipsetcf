@@ -159,7 +159,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					updateLaunchConfiguration(config, rulesList);
 
 					// Apply the path map
-					applyPathMap(context, new Callback() {
+					applyPathMap(context, false, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							if (status != null && Platform.inDebugMode()) {
@@ -207,7 +207,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					updateLaunchConfiguration(config, rulesList);
 
 					// Apply the path map
-					applyPathMap(context, new Callback() {
+					applyPathMap(context, false, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							if (status != null && Platform.inDebugMode()) {
@@ -305,10 +305,10 @@ public class PathMapService extends AbstractService implements IPathMapService {
     }
 
     /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#applyPathMap(java.lang.Object, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#applyPathMap(java.lang.Object, boolean, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
      */
     @Override
-    public void applyPathMap(final Object context, final ICallback callback) {
+    public void applyPathMap(final Object context, final boolean force, final ICallback callback) {
     	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
     	Assert.isNotNull(context);
     	Assert.isNotNull(callback);
@@ -347,7 +347,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 										List<PathMapRule> rules = mergePathMaps(getClientID(), map, configuredMap);
 
 										// If the merged path map differs from the agent side path map, apply the map
-										if (isDifferent(rules, map)) {
+										if (force || isDifferent(rules, map)) {
 											// Apply the path map
 											set(rules, svc, new IPathMap.DoneSet() {
 												@Override

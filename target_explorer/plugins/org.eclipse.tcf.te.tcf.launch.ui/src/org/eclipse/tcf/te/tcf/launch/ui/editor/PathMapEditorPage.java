@@ -53,7 +53,7 @@ public class PathMapEditorPage extends AbstractTcfLaunchTabContainerEditorPage {
 		if (peerNode != null && peerNode.getPeer() != null) {
 			IPathMapService service = ServiceManager.getInstance().getService(peerNode.getPeer(), IPathMapService.class);
 			if (service != null) {
-				service.applyPathMap(peerNode.getPeer(), new Callback() {
+				service.applyPathMap(peerNode.getPeer(), false, new Callback() {
 					@Override
 					protected void internalDone(Object caller, IStatus status) {
 						if (status != null && status.getSeverity() == IStatus.ERROR) {

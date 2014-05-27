@@ -74,9 +74,11 @@ public interface IPathMapService extends IService {
 	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
+	 * @param force If <code>true</code> the path map will be set even if it appears not to be
+	 *              different from the path map already set.
 	 * @param callback The callback to invoke once the operation completed. Must not be <code>null</code>.
 	 */
-	public void applyPathMap(Object context, ICallback callback);
+	public void applyPathMap(Object context, boolean force, ICallback callback);
 
 	/**
 	 * Returns the current client ID used to identify path map rules handled
