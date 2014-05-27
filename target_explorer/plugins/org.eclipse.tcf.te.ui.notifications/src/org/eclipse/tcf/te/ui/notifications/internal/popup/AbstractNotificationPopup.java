@@ -85,6 +85,8 @@ public abstract class AbstractNotificationPopup extends Window {
 
 	/* default */ Image lastUsedBgImage;
 
+	private boolean closed;
+
 	private final Job closeJob = new Job(LABEL_JOB_CLOSE) {
 
 		@Override
@@ -155,6 +157,8 @@ public abstract class AbstractNotificationPopup extends Window {
 
 		// Initialize the fadingEnabled flag
 		fadingEnabled = UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_ENABLE_FADING);
+
+		closed = false;
 	}
 
 	/**
@@ -556,6 +560,8 @@ public abstract class AbstractNotificationPopup extends Window {
 
 	@Override
 	public boolean close() {
+		closed = true;
+
 		if (resources != null) resources.dispose();
 		if (lastUsedRegion != null && !lastUsedRegion.isDisposed()) {
 			lastUsedRegion.dispose();
@@ -563,7 +569,12 @@ public abstract class AbstractNotificationPopup extends Window {
 		if (lastUsedBgImage != null && !lastUsedBgImage.isDisposed()) {
 			lastUsedBgImage.dispose();
 		}
+
 		return super.close();
+	}
+
+	public final boolean isClosed() {
+		return closed;
 	}
 
 	public long getDelayClose() {

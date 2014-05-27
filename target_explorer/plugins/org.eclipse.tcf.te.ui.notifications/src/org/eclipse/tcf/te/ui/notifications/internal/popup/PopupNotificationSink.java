@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +25,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.window.Window;
 import org.eclipse.tcf.te.runtime.events.NotifyEvent;
 import org.eclipse.tcf.te.ui.notifications.nls.Messages;
 import org.eclipse.ui.PlatformUI;
@@ -43,51 +41,25 @@ public class PopupNotificationSink {
 
 	/* default */ NotificationPopup popup;
 
-	/* default */ final List<NotifyEvent> cancelledNotifications = new ArrayList<NotifyEvent>();
-
-	private final Set<NotifyEvent> notifications = new HashSet<NotifyEvent>();
-
-	/* default */ final Set<NotifyEvent> currentlyNotifying = Collections.synchronizedSet(notifications);
+	/* default */ final Set<NotifyEvent> currentlyNotifying = Collections.synchronizedSet(new HashSet<NotifyEvent>());
 
 	private final Job openJob = new Job(Messages.PopupNotificationSink_Popup_Notifier_Job_Label) {
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
-			try {
-				if (Platform.isRunning() && PlatformUI.getWorkbench() != null
-						&& PlatformUI.getWorkbench().getDisplay() != null
-						&& !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
-					PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+			if (Platform.isRunning() && PlatformUI.getWorkbench() != null
+							&& PlatformUI.getWorkbench().getDisplay() != null
+							&& !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
+				PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 
-						@Override
-                        public void run() {
-							if (popup != null && popup.getReturnCode() == Window.CANCEL) {
-								List<NotifyEvent> notifications = popup.getNotifications();
-								for (NotifyEvent notification : notifications) {
-									if (!cancelledNotifications.contains(notification)) {
-										cancelledNotifications.add(notification);
-									}
-								}
-							}
-
-							for (Iterator<NotifyEvent> it = currentlyNotifying.iterator(); it.hasNext();) {
-								NotifyEvent notification = it.next();
-								if (cancelledNotifications.contains(notification)) {
-									it.remove();
-								}
-							}
-
-							synchronized (PopupNotificationSink.class) {
-								if (currentlyNotifying.size() > 0) {
-									showPopup();
-								}
+					@Override
+					public void run() {
+						synchronized (PopupNotificationSink.class) {
+							if (currentlyNotifying.size() > 0) {
+								showPopup();
 							}
 						}
-					});
-				}
-			} finally {
-				if (popup != null) {
-					schedule(popup.getDelayClose() / 2);
-				}
+					}
+				});
 			}
 
 			if (monitor.isCanceled()) {
@@ -96,18 +68,12 @@ public class PopupNotificationSink {
 
 			return Status.OK_STATUS;
 		}
-
 	};
 
 
 	public PopupNotificationSink() {
 		openJob.setSystem(runSystem);
 	}
-
-	private void cleanNotified() {
-		currentlyNotifying.clear();
-	}
-
 
 	/**
 	 * Notify the given notification events.
@@ -117,7 +83,9 @@ public class PopupNotificationSink {
 	public void notify(NotifyEvent[] events) {
 		Assert.isNotNull(events);
 
-		currentlyNotifying.addAll(Arrays.asList(events));
+		synchronized (PopupNotificationSink.class) {
+			currentlyNotifying.addAll(Arrays.asList(events));
+		}
 
 		if (!openJob.cancel()) {
 			try {
@@ -140,7 +108,9 @@ public class PopupNotificationSink {
 			List<NotifyEvent> toDisplay = new ArrayList<NotifyEvent>(currentlyNotifying);
 			Collections.sort(toDisplay);
 			popup.setContents(toDisplay);
-			cleanNotified();
+			synchronized (PopupNotificationSink.class) {
+				currentlyNotifying.clear();
+			}
 			popup.setBlockOnOpen(false);
 			popup.open();
 		}
