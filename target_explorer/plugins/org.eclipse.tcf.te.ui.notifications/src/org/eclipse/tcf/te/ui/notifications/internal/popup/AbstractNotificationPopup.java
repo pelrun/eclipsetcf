@@ -79,8 +79,6 @@ public abstract class AbstractNotificationPopup extends Window {
 
 	/* default */ GradientColors color;
 
-	/* default */ final Display display;
-
 	private Shell shell;
 
 	private Region lastUsedRegion;
@@ -91,24 +89,27 @@ public abstract class AbstractNotificationPopup extends Window {
 
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
-			if (!display.isDisposed()) {
-				display.asyncExec(new Runnable() {
-					@Override
-                    public void run() {
-						Shell shell = AbstractNotificationPopup.this.getShell();
-						if (shell == null || shell.isDisposed()) {
-							return;
+			if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench() != null && PlatformUI.getWorkbench().getDisplay() != null) {
+				final Display display = PlatformUI.getWorkbench().getDisplay();
+				if (!display.isDisposed()) {
+					display.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							Shell shell = AbstractNotificationPopup.this.getShell();
+							if (shell == null || shell.isDisposed()) {
+								return;
+							}
+
+							if (isMouseOver(shell)) {
+								scheduleAutoClose();
+								return;
+							}
+
+							AbstractNotificationPopup.this.closeFade();
 						}
 
-						if (isMouseOver(shell)) {
-							scheduleAutoClose();
-							return;
-						}
-
-						AbstractNotificationPopup.this.closeFade();
-					}
-
-				});
+					});
+				}
 			}
 			if (monitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -126,17 +127,29 @@ public abstract class AbstractNotificationPopup extends Window {
 
 	private final boolean fadingEnabled;
 
-	public AbstractNotificationPopup(Display display) {
-		this(display, SWT.NO_TRIM | SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
+	/**
+	 * Constructor
+	 *
+	 * @param parent The parent shell or <code>null</code> to create a top level shell.
+	 * @param style The shell style.
+	 */
+	public AbstractNotificationPopup(Shell parent) {
+		this(parent, SWT.NO_TRIM | SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
 	}
 
-	public AbstractNotificationPopup(Display display, int style) {
-		super(new Shell(display));
+	/**
+	 * Constructor
+	 *
+	 * @param parent The parent shell or <code>null</code> to create a top level shell.
+	 * @param style The shell style.
+	 */
+	public AbstractNotificationPopup(Shell parent, int style) {
+		super(parent);
 		setShellStyle(style);
 
-		this.display = display;
 		resources = new LocalResourceManager(JFaceResources.getResources());
-		initResources();
+
+		color = new GradientColors(PlatformUI.getWorkbench().getDisplay(), resources);
 
 		closeJob.setSystem(true);
 
@@ -245,10 +258,6 @@ public abstract class AbstractNotificationPopup extends Window {
 		return color.getTitleText();
 	}
 
-	private void initResources() {
-		color = new GradientColors(display, resources);
-	}
-
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
@@ -311,10 +320,11 @@ public abstract class AbstractNotificationPopup extends Window {
 	}
 
 	/* default */ boolean isMouseOver(Shell shell) {
-		if (display.isDisposed()) {
-			return false;
+		if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench() != null
+				&& PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
+			return shell.getBounds().contains(PlatformUI.getWorkbench().getDisplay().getCursorLocation());
 		}
-		return shell.getBounds().contains(display.getCursorLocation());
+		return false;
 	}
 
 	@Override
@@ -522,6 +532,7 @@ public abstract class AbstractNotificationPopup extends Window {
 				if (!shell.isDisposed()) {
 					if (alpha == 0) {
 						shell.close();
+						shell.dispose();
 					} else if (isMouseOver(shell)) {
 						if (fadeJob != null) {
 							fadeJob.cancelAndWait(false);

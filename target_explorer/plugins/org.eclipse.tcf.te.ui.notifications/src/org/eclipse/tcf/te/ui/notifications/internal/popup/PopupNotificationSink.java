@@ -27,7 +27,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.window.Window;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.events.NotifyEvent;
 import org.eclipse.tcf.te.ui.notifications.nls.Messages;
 import org.eclipse.ui.PlatformUI;
@@ -135,14 +134,16 @@ public class PopupNotificationSink {
 			popup.close();
 		}
 
-		Shell shell = new Shell(PlatformUI.getWorkbench().getDisplay());
-		popup = new NotificationPopup(shell);
-		List<NotifyEvent> toDisplay = new ArrayList<NotifyEvent>(currentlyNotifying);
-		Collections.sort(toDisplay);
-		popup.setContents(toDisplay);
-		cleanNotified();
-		popup.setBlockOnOpen(false);
-		popup.open();
+		if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench() != null
+				&& PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
+			popup = new NotificationPopup(PlatformUI.getWorkbench().getDisplay().getActiveShell());
+			List<NotifyEvent> toDisplay = new ArrayList<NotifyEvent>(currentlyNotifying);
+			Collections.sort(toDisplay);
+			popup.setContents(toDisplay);
+			cleanNotified();
+			popup.setBlockOnOpen(false);
+			popup.open();
+		}
 	}
 
 }

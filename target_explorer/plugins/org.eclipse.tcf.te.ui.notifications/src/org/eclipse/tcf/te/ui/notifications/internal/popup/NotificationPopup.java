@@ -52,10 +52,10 @@ public class NotificationPopup extends AbstractNotificationPopup {
 	/**
 	 * Constructor
 	 *
-	 * @param parent The parent shell. Must not be <code>null</code>.
+	 * @param parent The parent shell or <code>null</code> to create a top level shell.
 	 */
 	public NotificationPopup(Shell parent) {
-		super(parent.getDisplay());
+		super(parent);
 	}
 
 	/* (non-Javadoc)
