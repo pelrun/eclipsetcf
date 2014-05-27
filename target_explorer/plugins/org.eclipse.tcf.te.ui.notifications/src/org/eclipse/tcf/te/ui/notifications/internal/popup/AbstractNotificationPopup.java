@@ -532,7 +532,6 @@ public abstract class AbstractNotificationPopup extends Window {
 				if (!shell.isDisposed()) {
 					if (alpha == 0) {
 						shell.close();
-						shell.dispose();
 					} else if (isMouseOver(shell)) {
 						if (fadeJob != null) {
 							fadeJob.cancelAndWait(false);
