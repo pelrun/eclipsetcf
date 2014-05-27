@@ -23,7 +23,7 @@ public interface IPathMapService extends IService {
 	/**
 	 * Protocol used to mark path map rules to be used to map host paths to target paths.
 	 */
-	public final static String PATHMAP_PROTOCOL_HOST_TO_TARGET = "file"; //$NON-NLS-1$
+	public final static String PATHMAP_PROTOCOL_HOST_TO_TARGET = IPathMap.PROTOCOL_TARGET;
 
 	/**
 	 * Return the configured (object) path mappings for the given context.
