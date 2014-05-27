@@ -529,9 +529,9 @@ public abstract class AbstractNotificationPopup extends Window {
 		fadeJob = AnimationUtil.fadeOut(getShell(), new IFadeListener() {
 			@Override
             public void faded(Shell shell, int alpha) {
-				if (!shell.isDisposed()) {
+				if (shell != null && !shell.isDisposed()) {
 					if (alpha == 0) {
-						shell.close();
+						close();
 					} else if (isMouseOver(shell)) {
 						if (fadeJob != null) {
 							fadeJob.cancelAndWait(false);
@@ -556,8 +556,8 @@ public abstract class AbstractNotificationPopup extends Window {
 
 	@Override
 	public boolean close() {
-		resources.dispose();
-		if (lastUsedRegion != null) {
+		if (resources != null) resources.dispose();
+		if (lastUsedRegion != null && !lastUsedRegion.isDisposed()) {
 			lastUsedRegion.dispose();
 		}
 		if (lastUsedBgImage != null && !lastUsedBgImage.isDisposed()) {
