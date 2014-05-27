@@ -818,7 +818,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 while (test_dprintfs[test_cnt * 2 + 1] == null) test_cnt++;
                                 char ch = test_dprintfs[test_cnt * 2 + 1].charAt(char_cnt++);
                                 if (b != ch) {
-                                    exit(new Exception("Invalid ouptput of $printf"));
+                                    exit(new Exception("Invalid output of $printf: " + test_dprintfs[test_cnt * 2 + 1] + " -> " + new String(data)));
                                     return;
                                 }
                                 if (char_cnt == test_dprintfs[test_cnt * 2 + 1].length()) {
