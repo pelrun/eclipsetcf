@@ -98,19 +98,17 @@ public class PopupNotificationSink {
 	}
 
 	public void showPopup() {
-		if (popup != null) {
-			popup.close();
-		}
+		if (popup != null) popup.close();
 
 		if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench() != null
 				&& PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
 			popup = new NotificationPopup(PlatformUI.getWorkbench().getDisplay().getActiveShell());
 			List<NotifyEvent> toDisplay = new ArrayList<NotifyEvent>(currentlyNotifying);
-			Collections.sort(toDisplay);
-			popup.setContents(toDisplay);
 			synchronized (PopupNotificationSink.class) {
 				currentlyNotifying.clear();
 			}
+			Collections.sort(toDisplay);
+			popup.setContents(toDisplay);
 			popup.setBlockOnOpen(false);
 			popup.open();
 		}
