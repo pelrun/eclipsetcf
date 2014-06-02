@@ -262,4 +262,7 @@ public class Messages extends NLS {
 
 	public static String PeerNodePropertiesSection_title;
 	public static String PeerPropertiesSection_title;
+
+	public static String PingTimeoutSection_title;
+	public static String PingTimeoutSection_timeout_label;
 }

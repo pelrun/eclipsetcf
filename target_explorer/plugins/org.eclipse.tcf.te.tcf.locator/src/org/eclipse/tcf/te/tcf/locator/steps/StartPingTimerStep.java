@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.steps;
 
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +33,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
@@ -70,51 +72,91 @@ public class StartPingTimerStep extends AbstractPeerNodeStep {
 				@Override
 				public void run() {
 					final IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
-					final String name = peerNode.getName();
-					final IDiagnostics diagnostics = channel.getRemoteService(IDiagnostics.class);
-					if (diagnostics != null) {
-						final Timer pingTimer = new Timer(name + " ping"); //$NON-NLS-1$
-						TimerTask pingTask = new TimerTask() {
-							final Timer thisTimer = pingTimer;
-							final AtomicBoolean running = new AtomicBoolean(false);
-							@Override
-							public void run() {
-								try {
-									if (!running.get()) {
-										running.set(true);
-										Protocol.invokeLater(new Runnable() {
-											@Override
-											public void run() {
-												try {
-													if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
-														diagnostics.echo("ping", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
-															@Override
-															public void doneEcho(IToken token, Throwable error, String s) {
-																running.set(false);
-																if (error != null) {
-																	thisTimer.cancel();
-																}
-															}
-														});
-													}
-													else {
-														thisTimer.cancel();
-													}
-												}
-												catch (Throwable e) {}
-											}
-										});
+					final int pingInterval;
+					final int pingTimeout;
+					Map<String, String> attrs = peerNode.getPeer().getAttributes();
+
+					int interval = 10000;
+					if (attrs.containsKey(IPeerNodeProperties.PROP_PING_INTERVAL)) {
+						try {
+							interval = Integer.parseInt(attrs.get(IPeerNodeProperties.PROP_PING_INTERVAL));
+							interval = interval * 1000;
+						}
+						catch (NumberFormatException nfe) {
+						}
+					}
+					pingInterval = interval;
+
+					int timeout = 10000;
+					if (attrs.containsKey(IPeerNodeProperties.PROP_PING_TIMEOUT)) {
+						try {
+							timeout = Integer.parseInt(attrs.get(IPeerNodeProperties.PROP_PING_TIMEOUT));
+							timeout = timeout * 1000;
+						}
+						catch (NumberFormatException nfe) {
+						}
+					}
+					pingTimeout = timeout;
+
+					if (pingInterval > 0 && pingTimeout > 0) {
+						final String name = peerNode.getName();
+						final IDiagnostics diagnostics = channel.getRemoteService(IDiagnostics.class);
+						if (diagnostics != null) {
+							final Timer pingTimer = new Timer(name + " ping"); //$NON-NLS-1$
+							final TimerTask timeoutTask = new TimerTask() {
+								@Override
+	                            public void run() {
+									try {
+										pingTimer.cancel();
+										channel.close();
+									}
+									catch (Throwable e) {
 									}
 								}
-								catch (Throwable e) {}
-							}
-						};
-						pingTimer.schedule(pingTask, 10000, 10000);
-					}
-					else if (Platform.inDebugMode()) {
-						Platform.getLog(CoreBundleActivator.getDefault().getBundle()).log(new Status(IStatus.WARNING,
-										CoreBundleActivator.getUniqueIdentifier(),
-										NLS.bind(Messages.StartPingTimerStep_warning_noDiagnosticsService, name)));
+							};
+							TimerTask pingTask = new TimerTask() {
+								final AtomicBoolean running = new AtomicBoolean(false);
+								@Override
+								public void run() {
+									try {
+										if (!running.get()) {
+											running.set(true);
+											Protocol.invokeLater(new Runnable() {
+												@Override
+												public void run() {
+													try {
+														if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+															diagnostics.echo("ping", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
+																@Override
+																public void doneEcho(IToken token, Throwable error, String s) {
+																	timeoutTask.cancel();
+																	running.set(false);
+																	if (error != null) {
+																		pingTimer.cancel();
+																	}
+																}
+															});
+															pingTimer.schedule(timeoutTask, pingTimeout);
+														}
+														else {
+															pingTimer.cancel();
+														}
+													}
+													catch (Throwable e) {}
+												}
+											});
+										}
+									}
+									catch (Throwable e) {}
+								}
+							};
+							pingTimer.schedule(pingTask, pingInterval, pingInterval);
+						}
+						else if (Platform.inDebugMode()) {
+							Platform.getLog(CoreBundleActivator.getDefault().getBundle()).log(new Status(IStatus.WARNING,
+											CoreBundleActivator.getUniqueIdentifier(),
+											NLS.bind(Messages.StartPingTimerStep_warning_noDiagnosticsService, name)));
+						}
 					}
 				}
 			});

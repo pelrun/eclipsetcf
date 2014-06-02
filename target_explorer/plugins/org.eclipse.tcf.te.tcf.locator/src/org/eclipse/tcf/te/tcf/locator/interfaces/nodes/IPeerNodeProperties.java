@@ -44,25 +44,19 @@ public interface IPeerNodeProperties {
 	public static final String PROP_REDIRECT_PROXY = "redirect.proxy"; //$NON-NLS-1$
 
 	/**
-	 * Property: Reference counter tracking the active channels for this peer.
-	 */
-	public static String PROP_CHANNEL_REF_COUNTER = "channelRefCounter.silent"; //$NON-NLS-1$
-
-	/**
 	 * Property: Peer ID of selected real target.
 	 */
 	public static final String PROP_PEER_ID = "PeerId"; //$NON-NLS-1$
 
 	/**
-	 * Property: Exclude from scanner process. If set to <code>true</code>, the node will not be scanned
-	 *           by the scanner.
+	 * Property: Ping intervall.
 	 */
-	public static String PROP_SCANNER_EXCLUDE = "scanner.exclude.silent"; //$NON-NLS-1$
+	public static String PROP_PING_INTERVAL = "pingInterval"; //$NON-NLS-1$
 
 	/**
-	 * Property: The last error the scanner encounter trying to open a channel to this peer.
+	 * Property: Ping timeout.
 	 */
-	public static String PROP_LAST_SCANNER_ERROR = "lastScannerError"; //$NON-NLS-1$
+	public static String PROP_PING_TIMEOUT = "pingTimeout"; //$NON-NLS-1$
 
 	/**
 	 * Property: The peer valid state. This is not a property itself, just used to fire change events on valid state change.
