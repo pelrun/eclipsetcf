@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -41,11 +41,11 @@ public class InputStreamMonitor extends OutputStream implements IDisposable {
     private final OutputStream stream;
 
     // Reference to the thread writing the stream
-    private Thread thread;
+    private volatile Thread thread;
 
     // Flag to mark the monitor disposed. When disposed,
     // no further data is written from the monitored stream.
-    private boolean disposed;
+    private volatile boolean disposed;
 
     // A list of object to dispose if this monitor is disposed
     private final List<IDisposable> disposables = new ArrayList<IDisposable>();
@@ -219,34 +219,35 @@ public class InputStreamMonitor extends OutputStream implements IDisposable {
      */
     protected void writeStream() {
     	// Read from the queue and write to the stream until disposed
-        while (thread != null && !disposed) {
-            // If the queue is empty, wait until notified
-        	if (queue.isEmpty()) {
-        		synchronized(queue) {
-        			try { queue.wait(); } catch (InterruptedException e) { /* ignored on purpose */ }
-        		}
-        	}
-
-        	// If the queue is not empty, take the first element
-        	// and write the data to the stream
-            while (!queue.isEmpty() && !disposed) {
-            	// Retrieves the queue head (is null if queue is empty (should never happen))
-                byte[] data = queue.poll();
-                if (data != null) {
-                	try {
-                		// Write the data to the stream
-                		stream.write(data);
-                		// Flush the stream immediately
-                		stream.flush();
-                	} catch (IOException e) {
-                    	// IOException received. If this is happening when already disposed -> ignore
-        				if (!disposed) {
-        					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
-        												NLS.bind(Messages.InputStreamMonitor_error_writingToStream, e.getLocalizedMessage()), e);
-        					UIPlugin.getDefault().getLog().log(status);
-        				}
-                	}
-                }
+        outer: while (thread != null && !disposed) {
+            byte[] data;
+			// If the queue is empty, wait until notified
+    		synchronized(queue) {
+	        	while (queue.isEmpty()) {
+	        		if (disposed) break outer;
+					try {
+						queue.wait();
+					} catch (InterruptedException e) {
+						break outer;
+					}
+	        	}
+	        	// Retrieves the queue head (is null if queue is empty (should never happen))
+	        	data = queue.poll();
+    		}
+            if (data != null) {
+            	try {
+            		// Write the data to the stream
+            		stream.write(data);
+            		// Flush the stream immediately
+            		stream.flush();
+            	} catch (IOException e) {
+                	// IOException received. If this is happening when already disposed -> ignore
+    				if (!disposed) {
+    					IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
+    												NLS.bind(Messages.InputStreamMonitor_error_writingToStream, e.getLocalizedMessage()), e);
+    					UIPlugin.getDefault().getLog().log(status);
+    				}
+            	}
             }
         }
 
@@ -324,45 +325,26 @@ public class InputStreamMonitor extends OutputStream implements IDisposable {
     	Assert.isNotNull(bytes);
 
     	if (replacement != NO_CHANGE && len > 0) {
-    		String text = new String(bytes, off, len);
+    		String origText = new String(bytes, off, len);
+    		String text = null;
     		//
     		// TODO: check whether this is correct! new String(byte[], int, int) always uses the default
     		//       encoding!
 
     		if (replacement == CHANGE_CR_TO_LF) {
-    			text = text.replace('\r', '\n');
+    			text = origText.replace('\r', '\n');
     		}
     		else if (replacement == INSERT_LF_AFTER_CR) {
-        		String separator = ILineSeparatorConstants.LINE_SEPARATOR_CR;
-        		String separator2 = ILineSeparatorConstants.LINE_SEPARATOR_LF;
-
-        		if (text.indexOf(separator) != -1) {
-        			String[] fragments = text.split(separator);
-        			StringBuilder b = new StringBuilder();
-        			for (int i = 0; i < fragments.length; i++) {
-        				String fragment = fragments[i];
-        				String nextFragment = i + 1 < fragments.length ? fragments[i + 1] : null;
-        				b.append(fragment);
-        				if (fragment.endsWith(separator2) || (nextFragment != null && nextFragment.startsWith(separator2))) {
-        					// Both separators are found, just add the original separator
-        					b.append(separator);
-        				} else {
-        					b.append("\n\r"); //$NON-NLS-1$
-        				}
-        			}
-        			if (!text.equals(b.toString())) {
-        				text = b.toString();
-        			}
-        		}
+    			text = origText.replaceAll("\r\n|\r", "\r\n"); //$NON-NLS-1$ //$NON-NLS-2$
     		}
     		else if (replacement == REMOVE_CR) {
-    			text = text.replaceAll(ILineSeparatorConstants.LINE_SEPARATOR_CR, ""); //$NON-NLS-1$
+    			text = origText.replaceAll(ILineSeparatorConstants.LINE_SEPARATOR_CR, ""); //$NON-NLS-1$
     		}
     		else if (replacement == REMOVE_LF) {
-    			text = text.replaceAll(ILineSeparatorConstants.LINE_SEPARATOR_LF, ""); //$NON-NLS-1$
+    			text = origText.replaceAll(ILineSeparatorConstants.LINE_SEPARATOR_LF, ""); //$NON-NLS-1$
     		}
 
-    		if (text.length() > 0) {
+    		if (text != null && !origText.equals(text)) {
     			bytes = text.getBytes();
     		}
     	}
