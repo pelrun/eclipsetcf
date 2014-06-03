@@ -415,8 +415,6 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		else {
 			// Re-evaluate the dirty state
 			dataChanged(null);
-			// Adjust the control enablement
-			updateEnablement();
 		}
 	}
 

@@ -9,8 +9,11 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.sections;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
@@ -24,7 +27,6 @@ import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
@@ -431,7 +433,11 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			return;
 		}
 
-		// Extract the widget data into the working copy
+		// The list of removed attributes
+		final List<String> removed = new ArrayList<String>();
+		// Get the current key set from the working copy
+		Set<String> currentKeySet = wc.getProperties().keySet();
+
 		extractData(wc);
 
 		// If the data has not changed compared to the original data copy,
@@ -440,53 +446,46 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 			return;
 		}
 
+		// Get the new key set from the working copy
+		Set<String> newKeySet = wc.getProperties().keySet();
+		// Everything from the old key set not found in the new key set is a removed attribute
+		for (String key : currentKeySet) {
+			if (!newKeySet.contains(key)) {
+				removed.add(key);
+			}
+		}
+
 		// Copy the working copy data back to the original properties container
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				boolean isSimEnabled = wc.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED);
-				String configs = wc.getStringProperty(IPeerNodeProperties.PROP_SIM_PROPERTIES);
-				String type = wc.getStringProperty(IPeerNodeProperties.PROP_SIM_TYPE);
-
 				// To update the peer attributes, the peer needs to be recreated
 				IPeer oldPeer = node.getPeer();
 				// Create a write able copy of the peer attributes
 				Map<String, String> attributes = new HashMap<String, String>(oldPeer.getAttributes());
-				// Update the data
-				if (isSimEnabled) {
-					attributes.put(IPeerNodeProperties.PROP_SIM_ENABLED, Boolean.toString(isSimEnabled));
-				} else {
-					attributes.remove(IPeerNodeProperties.PROP_SIM_ENABLED);
-					attributes.put(IPeerNodeProperties.PROP_PEER_ID, selectedPeerId);
+				// Clean out the removed attributes
+				for (String key : removed) {
+					attributes.remove(key);
 				}
-				if (selectedPeerId != null) {
-					attributes.put(IPeerNodeProperties.PROP_PEER_ID, selectedPeerId);
-				}
-				else {
-					attributes.remove(IPeerNodeProperties.PROP_PEER_ID);
-				}
-				if (configs != null) {
-					attributes.put(IPeerNodeProperties.PROP_SIM_PROPERTIES, configs);
-				} else {
-					attributes.remove(IPeerNodeProperties.PROP_SIM_PROPERTIES);
-				}
-				if (type != null) {
-					attributes.put(IPeerNodeProperties.PROP_SIM_TYPE, type);
-				} else {
-					attributes.remove(IPeerNodeProperties.PROP_SIM_TYPE);
-				}
-				// And merge it to the peer model node
-				if (oldPeer instanceof TransientPeer && !(oldPeer instanceof PeerRedirector || oldPeer instanceof Peer)) {
-					// Create a peer object
-					IPeer newPeer = new Peer(attributes);
-					// Update the peer instance
-					node.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_INSTANCE, newPeer);
-				} else {
-					if (oldPeer instanceof PeerRedirector) {
-						((PeerRedirector)oldPeer).updateAttributes(attributes);
-					} else if (oldPeer instanceof Peer) {
-						((Peer)oldPeer).updateAttributes(attributes);
+				// Update with the current configured attributes
+				for (String key : wc.getProperties().keySet()) {
+					String value = wc.getStringProperty(key);
+					if (value != null) {
+						attributes.put(key, value);
 					}
+					else {
+						attributes.remove(key);
+					}
+				}
+
+				// Create the new peer
+				IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector) oldPeer).getParent(), attributes) : new Peer(attributes);
+				// Update the peer node instance (silently)
+				boolean changed = node.setChangeEventsEnabled(false);
+				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
+
+				if (changed) {
+					node.setChangeEventsEnabled(true);
 				}
 			}
 		});
