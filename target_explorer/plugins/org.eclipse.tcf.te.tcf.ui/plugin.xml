@@ -1074,5 +1074,12 @@
             pattern="org\.eclipse\.tcf\.te\.tcf\.ui/org\.eclipse\.tcf\.te\.tcf\.ui\..*">
       </activityPatternBinding>
    </extension>
+   
+<!-- Perspective contributions -->   
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="*">
+         <hiddenMenuItem id="org.eclipse.tcf.te.tcf.ui.main.menu.system"/>
+      </perspectiveExtension>
+   </extension>
 
 </plugin>
