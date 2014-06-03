@@ -438,6 +438,13 @@ public class ProfilerView extends ViewPart {
             mem_node = null;
             if (done) return;
             if (last_update != this) return;
+            boolean capabilities_ok = false;
+            if (selection instanceof TCFNodeExecContext) {
+                TCFDataCache<Map<String,Object>> cache = selection.getModel().getProfilerCapabilities(selection.getID());
+                if (!cache.validate(this)) return;
+                Map<String,Object> map = cache.getData();
+                capabilities_ok = map == null || map.containsKey("StackTraces");
+            }
             if (prof_data != null && generation != prof_data.generation_out) {
                 if (node.isDisposed()) {
                     entries.clear();
@@ -530,9 +537,7 @@ public class ProfilerView extends ViewPart {
                 Arrays.sort(prof_data.entries, new ProfileEntryComparator(sorting));
             }
             done = true;
-            final boolean enable_start =
-                    (selection instanceof TCFNodeExecContext) &&
-                    selection.getChannel().getRemoteService(IProfiler.class) != null;
+            final boolean enable_start = capabilities_ok;
             final boolean enable_stop = node != null && !prof_data.stopped;
             final boolean stopped = node != null && prof_data.stopped;
             final boolean running = node != null && !stopped;

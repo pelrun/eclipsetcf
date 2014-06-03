@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Xilinx, Inc. and others.
+ * Copyright (c) 2013, 2014 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -86,6 +86,28 @@ public interface IProfiler extends IService {
 
 
     /* Commands ------------------------------------------------------------ */
+
+    /**
+     * Report profiler service capabilities to clients so they
+     * can adjust to different implementations of the service.
+     * @param ctx - a context ID.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */
+    IToken getCapabilities(String ctx, DoneGetCapabilities done);
+
+    /**
+     * Call back interface for 'getCapabilities' command.
+     */
+    interface DoneGetCapabilities {
+        /**
+         * Called when 'getCapabilities' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param capabilities - profiler service capabilities description.
+         */
+        void doneGetCapabilities(IToken token, Exception error, Map<String,Object> capabilities);
+    }
 
     /**
      * Configure profiling of a debug context 'ctx'.

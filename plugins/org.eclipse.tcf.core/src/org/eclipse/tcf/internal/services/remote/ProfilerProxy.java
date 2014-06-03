@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Xilinx, Inc. and others.
+ * Copyright (c) 2013, 2014 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,6 +29,23 @@ public class ProfilerProxy implements IProfiler {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public IToken getCapabilities(String ctx, final DoneGetCapabilities done) {
+        return new Command(channel, this, "getCapabilities", new Object[]{ ctx }) {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void done(Exception error, Object[] args) {
+                Map<String,Object> capabilities = null;
+                if (error == null) {
+                    assert args.length == 2;
+                    error = toError(args[0]);
+                    capabilities = (Map<String,Object>)args[1];
+                }
+                done.doneGetCapabilities(token, error, capabilities);
+            }
+        }.token;
     }
 
     @Override

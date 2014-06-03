@@ -2263,6 +2263,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private final List<ProfilerDataListener> profiler_listeners =
             new ArrayList<ProfilerDataListener>();
 
+    private final Map<String,TCFDataCache<Map<String,Object>>> profiler_capabilities =
+            new HashMap<String,TCFDataCache<Map<String,Object>>>();
+
     private final Map<String,Map<String,Object>> profiler_configuration =
             new HashMap<String,Map<String,Object>>();
 
@@ -2301,6 +2304,46 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     private boolean profiler_read_posted;
     private long profiler_read_delay = 4000;
+
+    /**
+     * Get profiler capabilities data for given context ID.
+     * See Profiler service documentation for more details.
+     * @param ctx - debug context ID.
+     * @return profiler capabilities.
+     */
+    public TCFDataCache<Map<String,Object>> getProfilerCapabilities(final String ctx) {
+        assert Protocol.isDispatchThread();
+        TCFDataCache<Map<String,Object>> cache = profiler_capabilities.get(ctx);
+        if (cache == null) {
+            cache = new TCFDataCache<Map<String,Object>>(channel) {
+                @Override
+                protected boolean startDataRetrieval() {
+                    IProfiler profiler = channel.getRemoteService(IProfiler.class);
+                    if (profiler == null) {
+                        set(null, null, new HashMap<String,Object>());
+                        return false;
+                    }
+                    command = profiler.getCapabilities(ctx, new IProfiler.DoneGetCapabilities() {
+                        @Override
+                        public void doneGetCapabilities(IToken token, Exception error, Map<String,Object> capabilities) {
+                            if (error instanceof IErrorReport) {
+                                IErrorReport r = (IErrorReport)error;
+                                if (r.getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
+                                    // Backward compatibility
+                                    set(token, null, null);
+                                    return;
+                                }
+                            }
+                            set(token, error, capabilities);
+                        }
+                    });
+                    return false;
+                }
+            };
+            profiler_capabilities.put(ctx, cache);
+        }
+        return cache;
+    }
 
     /**
      * Get profiler configuration data for given context ID.
