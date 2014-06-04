@@ -25,6 +25,7 @@ import org.eclipse.tcf.te.runtime.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventFireDelegate;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.interfaces.tracing.ITraceIds;
+import org.eclipse.tcf.te.runtime.utils.Host;
 import org.osgi.framework.Bundle;
 
 
@@ -299,6 +300,9 @@ public final class EventManager {
 	 */
 	public void fireEvent(final EventObject event) {
 		Assert.isNotNull(event);
+
+		// In non-interactive mode, the notification events are suppressed.
+		if (event instanceof NotifyEvent && !Host.isInteractive()) return;
 
 		synchronized (this) {
 			// if the extension point has not been processed till here, now we have to do
