@@ -32,6 +32,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
@@ -98,22 +99,15 @@ public class StartPingTimerStep extends AbstractPeerNodeStep {
 					}
 					pingTimeout = timeout;
 
+					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+						CoreBundleActivator.getTraceHandler().trace("Interval="+pingInterval+"ms Timeout="+pingTimeout+"ms", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					}
+
 					if (pingInterval > 0 && pingTimeout > 0) {
 						final String name = peerNode.getName();
 						final IDiagnostics diagnostics = channel.getRemoteService(IDiagnostics.class);
 						if (diagnostics != null) {
 							final Timer pingTimer = new Timer(name + " ping"); //$NON-NLS-1$
-							final TimerTask timeoutTask = new TimerTask() {
-								@Override
-	                            public void run() {
-									try {
-										pingTimer.cancel();
-										channel.close();
-									}
-									catch (Throwable e) {
-									}
-								}
-							};
 							TimerTask pingTask = new TimerTask() {
 								final AtomicBoolean running = new AtomicBoolean(false);
 								@Override
@@ -122,32 +116,89 @@ public class StartPingTimerStep extends AbstractPeerNodeStep {
 										if (!running.get()) {
 											running.set(true);
 											Protocol.invokeLater(new Runnable() {
+												TimerTask timeoutTask = null;
+												long startTime = 0;
 												@Override
 												public void run() {
 													try {
 														if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+															if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+																startTime = System.currentTimeMillis();
+																CoreBundleActivator.getTraceHandler().trace("Send ping.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$
+															}
 															diagnostics.echo("ping", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
 																@Override
 																public void doneEcho(IToken token, Throwable error, String s) {
-																	timeoutTask.cancel();
+																	if (!running.get()) {
+																		return;
+																	}
+																	if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+																		long endTime = System.currentTimeMillis();
+																		CoreBundleActivator.getTraceHandler().trace("Received ping after "+(endTime-startTime)+"ms.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$ //$NON-NLS-2$
+																	}
+																	if (timeoutTask != null) {
+																		timeoutTask.cancel();
+																		timeoutTask = null;
+																	}
 																	running.set(false);
 																	if (error != null) {
+																		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+																			CoreBundleActivator.getTraceHandler().trace("Received error '"+error.getMessage()+"'.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$ //$NON-NLS-2$
+																		}
 																		pingTimer.cancel();
 																	}
 																}
 															});
+															timeoutTask = new TimerTask() {
+																@Override
+									                            public void run() {
+																	if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+																		long endTime = System.currentTimeMillis();
+																		CoreBundleActivator.getTraceHandler().trace("Timeout after "+(endTime-startTime)+"ms.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$ //$NON-NLS-2$
+																	}
+																	try {
+																		pingTimer.cancel();
+																		running.set(false);
+																		Protocol.invokeLater(new Runnable() {
+																			@Override
+																			public void run() {
+																				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+																					CoreBundleActivator.getTraceHandler().trace("Close channel.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$
+																				}
+																				channel.close();
+																			}
+																		});
+																	}
+																	catch (Throwable e) {
+																		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+																			CoreBundleActivator.getTraceHandler().trace("Error '"+e.getMessage()+"'.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$ //$NON-NLS-2$
+																		}
+																	}
+																}
+															};
 															pingTimer.schedule(timeoutTask, pingTimeout);
 														}
 														else {
+															if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+																CoreBundleActivator.getTraceHandler().trace("Connection no longer connected - cancel.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$
+															}
 															pingTimer.cancel();
 														}
 													}
-													catch (Throwable e) {}
+													catch (Throwable e) {
+														if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+															CoreBundleActivator.getTraceHandler().trace("Error '"+e.getMessage()+"'.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$ //$NON-NLS-2$
+														}
+													}
 												}
 											});
 										}
 									}
-									catch (Throwable e) {}
+									catch (Throwable e) {
+										if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_PING)) {
+											CoreBundleActivator.getTraceHandler().trace("Error '"+e.getMessage()+"'.", ITracing.ID_TRACE_PING, StartPingTimerStep.this); //$NON-NLS-1$ //$NON-NLS-2$
+										}
+									}
 								}
 							};
 							pingTimer.schedule(pingTask, pingInterval, pingInterval);

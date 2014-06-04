@@ -31,7 +31,7 @@ public interface ITracing {
 	public static String ID_TRACE_LOCATOR_LISTENER = "trace/locatorListener"; //$NON-NLS-1$
 
 	/**
-	 * If enabled, prints information about locator model property tester invocations.
+	 * If enabled, prints information about target ping.
 	 */
-	public static String ID_TRACE_PROPERTY_TESTER = "trace/propertyTester"; //$NON-NLS-1$
+	public static String ID_TRACE_PING = "trace/ping"; //$NON-NLS-1$
 }
