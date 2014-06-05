@@ -34,7 +34,7 @@
 <repository location="http://download.eclipse.org/eclipse/updates/3.8"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.300.201406020016"/>
+<unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.300.201406041709"/>
 <repository location="http://download.eclipse.org/tm/builds/luna/nightly"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
