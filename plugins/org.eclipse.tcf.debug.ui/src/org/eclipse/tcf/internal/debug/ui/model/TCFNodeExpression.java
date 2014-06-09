@@ -176,11 +176,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 if (field_id != null) {
                     e = "(" + e + ")" + (deref ? "->" : ".") + "${" + field_id + "}";
                 }
-                else if (index == 0) {
+                else if (index == 0 && deref) {
                     e = "*(" + e + ")";
                 }
-                else if (index > 0) {
-                    e = "(" + e + ")[" + index + "]";
+                else if (index >= 0) {
+                    BigInteger lower_bound = getLowerBound(this);
+                    if (lower_bound == null) return false;
+                    e = "(" + e + ")[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
                 }
                 set(null, null, e);
                 return true;
@@ -250,7 +252,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             expr_text = "*" + parent_text;
                         }
                         else {
-                            expr_text = parent_text + "[" + index + "]";
+                            BigInteger lower_bound = getLowerBound(this);
+                            if (lower_bound == null) return false;
+                            expr_text = parent_text + "[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
                         }
                     }
                     if (expr_text == null && field != null) {
@@ -1141,6 +1145,19 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         return attribute != null && attribute;
     }
 
+    private BigInteger getLowerBound(Runnable done) {
+        TCFNode n = parent;
+        while (n instanceof TCFNodeArrayPartition) n = n.parent;
+        TCFDataCache<ISymbols.Symbol> t = ((TCFNodeExpression)n).getType();
+        if (!t.validate(done)) return null;
+        ISymbols.Symbol s = t.getData();
+        if (s != null) {
+            Number l = s.getLowerBound();
+            if (l != null) return JSON.toBigInteger(l);
+        }
+        return BigInteger.valueOf(0);
+    }
+
     @Override
     protected boolean getData(ILabelUpdate result, Runnable done) {
         if (is_empty) {
@@ -1177,7 +1194,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     name = "*";
                 }
                 else {
-                    name = "[" + index + "]";
+                    BigInteger lower_bound = getLowerBound(done);
+                    if (lower_bound == null) return false;
+                    name = "[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
                 }
             }
             if (name == null && field != null) {

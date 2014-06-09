@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,11 +10,16 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.model;
 
+import java.math.BigInteger;
+
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IHasChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.ILabelUpdate;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
+import org.eclipse.tcf.protocol.JSON;
+import org.eclipse.tcf.services.ISymbols;
+import org.eclipse.tcf.util.TCFDataCache;
 
 public class TCFNodeArrayPartition extends TCFNode {
 
@@ -37,6 +42,19 @@ public class TCFNodeArrayPartition extends TCFNode {
         return size;
     }
 
+    private BigInteger getLowerBound(Runnable done) {
+        TCFNode n = parent;
+        while (n instanceof TCFNodeArrayPartition) n = n.parent;
+        TCFDataCache<ISymbols.Symbol> t = ((TCFNodeExpression)n).getType();
+        if (!t.validate(done)) return null;
+        ISymbols.Symbol s = t.getData();
+        if (s != null) {
+            Number l = s.getLowerBound();
+            if (l != null) return JSON.toBigInteger(l);
+        }
+        return BigInteger.valueOf(0);
+    }
+
     @Override
     protected boolean getData(IChildrenCountUpdate result, Runnable done) {
         if (!children.validate(done)) return false;
@@ -57,9 +75,12 @@ public class TCFNodeArrayPartition extends TCFNode {
 
     @Override
     protected boolean getData(ILabelUpdate result, Runnable done) {
+        BigInteger lower_bound = getLowerBound(done);
+        if (lower_bound == null) return false;
         result.setImageDescriptor(ImageCache.getImageDescriptor(ImageCache.IMG_ARRAY_PARTITION), 0);
         String[] cols = result.getColumnIds();
-        String name = "[" + offs + ".." + (offs + size - 1) + "]";
+        BigInteger index = lower_bound.add(BigInteger.valueOf(offs));
+        String name = "[" + index + ".." + (index.add(BigInteger.valueOf(size - 1))) + "]";
         if (cols == null || cols.length <= 1) {
             result.setLabel(name, 0);
         }
