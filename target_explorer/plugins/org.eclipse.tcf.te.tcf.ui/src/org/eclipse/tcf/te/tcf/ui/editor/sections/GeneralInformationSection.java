@@ -38,7 +38,6 @@ import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.editor.controls.InfoSectionPeerNameControl;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
@@ -303,7 +302,7 @@ public class GeneralInformationSection extends AbstractSection {
 					// Remove the persistence storage URI (if set)
 					attributes.remove(IPersistableNodeProperties.PROPERTY_URI);
 					// Create the new peer
-					IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector)oldPeer).getParent(), attributes) : new Peer(attributes);
+					IPeer newPeer = new Peer(attributes);
 					// Update the peer node instance (silently)
 					boolean changed = node.setChangeEventsEnabled(false);
 					node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);

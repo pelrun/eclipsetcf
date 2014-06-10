@@ -71,11 +71,6 @@ public interface ImageConsts {
     public static final String PEER_DISCOVERED = "PeerObjectDiscovered"; //$NON-NLS-1$
 
     /**
-     * The key to access the base remote peer discover root node object image.
-     */
-    public static final String DISCOVERY_ROOT = "RemotePeerDiscoverRootNodeObject"; //$NON-NLS-1$
-
-    /**
      * The key to access the new peer wizard image.
      */
     public static final String NEW_PEER_NODE = "NewPeerObject"; //$NON-NLS-1$

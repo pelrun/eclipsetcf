@@ -29,7 +29,6 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerAttributesTablePart;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
@@ -327,7 +326,7 @@ public class AttributesSection extends AbstractSection {
 				}
 
 				// Create the new peer
-				IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector)oldPeer).getParent(), attributes) : new Peer(attributes);
+				IPeer newPeer = new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
 				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);

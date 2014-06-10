@@ -10,10 +10,7 @@
 package org.eclipse.tcf.te.tcf.ui.navigator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
@@ -24,18 +21,14 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerRedirector;
-import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
-import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.views.Managers;
@@ -77,9 +70,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	/* default */ PeerModelListener peerModelListener = null;
 	// The locator model listener instance
 	/* default */ LocatorModelListener locatorModelListener = null;
-
-	// Internal map of PeerRedirectorGroupNodes per peer id
-	private final Map<String, PeerRedirectorGroupNode> roots = new HashMap<String, PeerRedirectorGroupNode>();
 
 	// Flag to remember if invisible nodes are to be included in the list of
 	// returned children.
@@ -299,16 +289,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	public Object getParent(final Object element) {
 		// If it is a peer model node, return the parent locator model
 		if (element instanceof IPeerNode) {
-			// If it is a peer redirector, return the parent remote peer discover root node
-			if (((IPeerNode)element).getPeer() instanceof IPeerRedirector) {
-				IPeer parentPeer =  ((IPeerRedirector)((IPeerNode)element).getPeer()).getParent();
-				String parentPeerId = parentPeer.getID();
-				if (!roots.containsKey(parentPeerId)) {
-					roots.put(parentPeer.getID(), new PeerRedirectorGroupNode(parentPeerId));
-				}
-				return roots.get(parentPeerId);
-			}
-
 			// Determine the parent category node
 			ICategory category = null;
 			String[] categoryIds = Managers.getCategoryManager().getCategoryIds(((IPeerNode)element).getPeerId());
@@ -319,30 +299,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			}
 
 			return category != null ? category : ((IPeerNode)element).getModel();
-		} else if (element instanceof PeerRedirectorGroupNode) {
-			// Return the parent peer model node
-			final AtomicReference<IPeerNode> parent = new AtomicReference<IPeerNode>();
-			final Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					parent.set(ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(((PeerRedirectorGroupNode)element).peerId));
-				}
-			};
-
-			Assert.isTrue(!Protocol.isDispatchThread());
-
-			// The caller thread is very likely the display thread. We have to us a little
-			// trick here to avoid blocking the display thread via a wait on a monitor as
-			// this can (and has) lead to dead-locks with the TCF event dispatch thread if
-			// something fatal (OutOfMemoryError in example) happens in-between.
-			ExecutorsUtil.executeWait(new Runnable() {
-				@Override
-				public void run() {
-					Protocol.invokeAndWait(runnable);
-				}
-			});
-
-			return parent.get();
 		}
 		return null;
 	}
@@ -440,8 +396,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 			else Protocol.invokeAndWait(runnable);
 			locatorModelListener = null;
 		}
-
-		roots.clear();
 	}
 
 	/* (non-Javadoc)

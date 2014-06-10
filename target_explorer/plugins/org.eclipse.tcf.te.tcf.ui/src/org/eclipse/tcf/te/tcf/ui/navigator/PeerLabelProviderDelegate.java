@@ -27,8 +27,6 @@ import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerNodeImageDescriptor;
-import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
-import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 
 /**
@@ -94,8 +92,6 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			if (!"".equals(label.trim())) { //$NON-NLS-1$
 				return label;
 			}
-		} else if (element instanceof PeerRedirectorGroupNode) {
-			return Messages.RemotePeerDiscoveryRootNode_label;
 		}
 
 		return null;
@@ -145,9 +141,6 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 		}
 		if (element instanceof IPeer) {
 			return UIPlugin.getImage(ImageConsts.PEER_DISCOVERED);
-		}
-		if (element instanceof PeerRedirectorGroupNode) {
-			return UIPlugin.getImage(ImageConsts.DISCOVERY_ROOT);
 		}
 
 		return super.getImage(element);

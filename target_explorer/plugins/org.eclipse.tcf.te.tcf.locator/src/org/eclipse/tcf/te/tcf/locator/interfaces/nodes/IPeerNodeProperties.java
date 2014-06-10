@@ -39,11 +39,6 @@ public interface IPeerNodeProperties {
 	public static final String PROP_REMOTE_SERVICES = "services.remote"; //$NON-NLS-1$
 
 	/**
-	 * Property: The redirection proxy peer id.
-	 */
-	public static final String PROP_REDIRECT_PROXY = "redirect.proxy"; //$NON-NLS-1$
-
-	/**
 	 * Property: Peer ID of selected real target.
 	 */
 	public static final String PROP_PEER_ID = "PeerId"; //$NON-NLS-1$

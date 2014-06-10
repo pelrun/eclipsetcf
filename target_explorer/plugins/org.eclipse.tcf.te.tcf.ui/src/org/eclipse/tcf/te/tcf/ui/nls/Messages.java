@@ -93,8 +93,6 @@ public class Messages extends NLS {
 	public static String NewTargetWizardPage_PeerSelectionDialog_title;
 	public static String NewTargetWizardPage_PeerSelectionDialog_message;
 
-	public static String RemotePeerDiscoveryRootNode_label;
-
 	public static String PeerIdControl_label;
 
 	public static String PeerNameControl_label;

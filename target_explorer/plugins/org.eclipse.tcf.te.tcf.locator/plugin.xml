@@ -48,7 +48,7 @@
             class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester"
             namespace="org.eclipse.tcf.te.tcf.locator"
-            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isRedirected,isProxy,isValid,isValueAdd,isOfType,isRemotePeer"
+            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isProxy,isValid,isValueAdd,isOfType,isRemotePeer"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
 
@@ -56,7 +56,7 @@
             class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester2"
             namespace="org.eclipse.tcf.te.tcf.locator"
-            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isRedirected,isProxy,isValueAdd,isOfType,isRemotePeer"
+            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isProxy,isValueAdd,isOfType,isRemotePeer"
             type="org.eclipse.tcf.protocol.IPeer">
       </propertyTester>
 

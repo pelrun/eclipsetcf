@@ -35,7 +35,6 @@ import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.net.RemoteHostAddressControl;
 import org.eclipse.tcf.te.ui.controls.net.RemoteHostPortControl;
@@ -518,7 +517,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 				}
 
 				// Create the new peer
-				IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector) oldPeer).getParent(), attributes) : new Peer(attributes);
+				IPeer newPeer = new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
 				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);

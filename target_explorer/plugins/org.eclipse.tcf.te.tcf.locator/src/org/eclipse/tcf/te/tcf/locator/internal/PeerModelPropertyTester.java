@@ -22,7 +22,6 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 
 /**
  * Locator model property tester.
@@ -93,13 +92,6 @@ public class PeerModelPropertyTester extends PropertyTester {
 		if ("osNameRegex".equals(property) && expectedValue instanceof String) { //$NON-NLS-1$
 			if (peer.getOSName() != null && peer.getOSName().matches((String)expectedValue)) {
 				return true;
-			}
-		}
-
-		if ("isRedirected".equals(property)) { //$NON-NLS-1$
-			boolean isRedirected = peer instanceof PeerRedirector;
-			if (expectedValue instanceof Boolean) {
-				return ((Boolean) expectedValue).booleanValue() == isRedirected;
 			}
 		}
 

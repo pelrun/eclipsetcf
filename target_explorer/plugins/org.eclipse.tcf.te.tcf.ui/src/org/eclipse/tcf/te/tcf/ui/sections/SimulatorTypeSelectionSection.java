@@ -35,7 +35,6 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.locator.nodes.PeerRedirector;
 import org.eclipse.tcf.te.tcf.ui.controls.SimulatorTypeSelectionControl;
 import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
@@ -479,7 +478,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				}
 
 				// Create the new peer
-				IPeer newPeer = oldPeer instanceof PeerRedirector ? new PeerRedirector(((PeerRedirector) oldPeer).getParent(), attributes) : new Peer(attributes);
+				IPeer newPeer = new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
 				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);

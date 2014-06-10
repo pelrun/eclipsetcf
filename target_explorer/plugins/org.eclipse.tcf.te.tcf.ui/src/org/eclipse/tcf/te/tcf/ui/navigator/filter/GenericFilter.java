@@ -18,7 +18,6 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerType;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
-import org.eclipse.tcf.te.tcf.ui.navigator.nodes.PeerRedirectorGroupNode;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 
@@ -50,11 +49,8 @@ public class GenericFilter extends ViewerFilter {
 			boolean belongsTo = type.get() == null || IPeerType.TYPE_GENERIC.equals(type.get());
 
 			if (parentElement instanceof TreePath) {
-				// If the direct parent is not a PeerRedirectorGroupNode, look at the very first
-				// element in the tree path as parent, which is likely the category.
-				Object candidate = ((TreePath)parentElement).getSegment(((TreePath)parentElement).getSegmentCount() - 1);
-				if (candidate instanceof PeerRedirectorGroupNode) parentElement = candidate;
-				else parentElement = ((TreePath)parentElement).getFirstSegment();
+				// Look at the very first element in the tree path as parent, which is likely the category.
+				parentElement = ((TreePath)parentElement).getFirstSegment();
 			}
 			if (parentElement instanceof ICategory) {
 				if (IUIConstants.ID_CAT_MY_TARGETS.equals(((ICategory)parentElement).getId()) || IUIConstants.ID_CAT_NEIGHBORHOOD.equals(((ICategory)parentElement).getId())) {
@@ -64,7 +60,7 @@ public class GenericFilter extends ViewerFilter {
 					visible = !belongsTo;
 				}
 			}
-			else if (!(parentElement instanceof PeerRedirectorGroupNode)) {
+			else {
 				visible = belongsTo;
 			}
 		}
