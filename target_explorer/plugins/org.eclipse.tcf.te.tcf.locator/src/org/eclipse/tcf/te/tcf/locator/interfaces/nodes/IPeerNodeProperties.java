@@ -44,7 +44,12 @@ public interface IPeerNodeProperties {
 	public static final String PROP_PEER_ID = "PeerId"; //$NON-NLS-1$
 
 	/**
-	 * Property: Ping intervall.
+	 * Property: List of proxies to use to connect to the target. (List<Map<String, String>>).
+	 */
+	public static final String PROP_PROXIES = "Proxies"; //$NON-NLS-1$
+
+	/**
+	 * Property: Ping interval.
 	 */
 	public static String PROP_PING_INTERVAL = "pingInterval"; //$NON-NLS-1$
 
