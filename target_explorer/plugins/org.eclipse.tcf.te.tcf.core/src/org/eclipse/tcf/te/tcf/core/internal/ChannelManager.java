@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.core.internal;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -850,7 +852,16 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 												0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 
 								// Print the stack trace of the error too
-								if (error != null) error.printStackTrace();
+								if (error != null) {
+									StringWriter sw = new StringWriter();
+									error.printStackTrace(new PrintWriter(sw, true));
+
+									CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_valueAdd_launch_exception, new Object[] {
+															Integer.valueOf(i), valueAdd.getLabel(),
+															sw.getBuffer().toString()
+														}),
+														0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+								}
 							}
 
 							// If we got an error and the value-add is optional,
