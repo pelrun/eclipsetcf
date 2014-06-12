@@ -137,8 +137,16 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 								// There are value-add's -> chain them now
 								internalChainValueAdds(valueAdds, peer, flags, finInnerDone);
 							} else {
-								// No value-add's -> open a channel to the target peer directly
-								internalOpenChannel(peer, flags, finInnerDone);
+								// Determine the proxy configuration
+								String proxyConfiguration = peer.getAttributes().get(IPeerProperties.PROP_PROXIES);
+								IPeer[] proxies = proxyConfiguration != null ?  PeerDataHelper.decodePeerList(proxyConfiguration) : null;
+								if (proxies != null && proxies.length > 0) {
+									// There are proxies -> chain them now
+									internalChainProxies(proxies, peer, flags, finInnerDone);
+								} else {
+									// No value-add's and no proxies -> open a channel to the target peer directly
+									internalOpenChannel(peer, flags, finInnerDone);
+								}
 							}
 						} else {
 							// Shutdown the value-add's launched
@@ -1172,6 +1180,174 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			// Channel opening failed
 			done.doneChainValueAdd(e, channel);
 		}
+	}
+
+	/**
+	 * Chain the proxies until the original target peer is reached.
+	 *
+	 * @param proxies The list of proxies to chain. Must not be <code>null</code>.
+	 * @param peer The original target peer. Must not be <code>null</code>.
+	 * @param flags Map containing the flags to parameterize the channel opening, or <code>null</code>.
+	 * @param done The client callback. Must not be <code>null</code>.
+	 */
+	/* default */ void internalChainProxies(final IPeer[] proxies, final IPeer peer, final Map<String, Boolean> flags, final DoneOpenChannel done) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(proxies);
+		Assert.isTrue(proxies.length > 0);
+		Assert.isNotNull(peer);
+		Assert.isNotNull(done);
+
+		// Get the peer id
+		final String id = peer.getID();
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+			CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_proxies_startChaining, id),
+														0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+		}
+
+		// Extract the flags of interest form the given flags map
+		boolean forceNew = flags != null && flags.containsKey(IChannelManager.FLAG_FORCE_NEW) ? flags.get(IChannelManager.FLAG_FORCE_NEW).booleanValue() : false;
+		boolean noValueAdd = flags != null && flags.containsKey(IChannelManager.FLAG_NO_VALUE_ADD) ? flags.get(IChannelManager.FLAG_NO_VALUE_ADD).booleanValue() : false;
+		boolean noPathMap = flags != null && flags.containsKey(IChannelManager.FLAG_NO_PATH_MAP) ? flags.get(IChannelManager.FLAG_NO_PATH_MAP).booleanValue() : false;
+		// If noValueAdd == true or noPathMap == true -> forceNew has to be true as well
+		if (noValueAdd || noPathMap) forceNew = true;
+
+		final boolean finForceNew = forceNew;
+
+		// Check if there is already a channel opened to this peer
+		IChannel channel = !forceNew ? channels.get(id) : null;
+		if (channel != null && (channel.getState() == IChannel.STATE_OPEN || channel.getState() == IChannel.STATE_OPENING)) {
+			// Increase the reference count
+			AtomicInteger counter = refCounters.get(id);
+			if (counter == null) {
+				counter = new AtomicInteger(0);
+				refCounters.put(id, counter);
+			}
+			counter.incrementAndGet();
+
+			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+				CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_reuse_message, id, counter.toString()),
+															0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+			}
+			// Got an existing channel -> drop out immediately if the channel is
+			// already fully opened. Otherwise wait for the channel to be fully open.
+			if (channel.getState() == IChannel.STATE_OPENING) {
+				final IChannel finChannel = channel;
+				channel.addChannelListener(new IChannel.IChannelListener() {
+					@Override
+					public void onChannelOpened() {
+						done.doneOpenChannel(null, finChannel);
+					}
+					@Override
+					public void onChannelClosed(Throwable error) {
+						done.doneOpenChannel(error != null ? error : new OperationCanceledException(), finChannel);
+					}
+					@Override
+					public void congestionLevel(int level) {
+					}
+				});
+			}
+			else {
+				done.doneOpenChannel(null, channel);
+			}
+			return;
+		} else if (channel != null) {
+			// Channel is not in open state -> drop the instance
+			channels.remove(id);
+			refCounters.remove(id);
+		}
+
+		// No existing channel -> open a new one
+
+		// Get the first proxy. This is the one we have to open the channel too.
+		IPeer firstProxy = proxies[0];
+		Assert.isNotNull(firstProxy);
+
+		// Remove the first proxy from the array and build up a new array describing
+		// the remaining proxy chain
+		final IPeer[] remainingProxies = new IPeer[proxies.length - 1];
+		if (remainingProxies.length > 0) System.arraycopy(proxies, 1, remainingProxies, 0, remainingProxies.length);
+
+		// Open a channel to the first proxy
+		channel = null;
+		try {
+			channel = firstProxy.openChannel();
+			if (channel != null) {
+				if (!forceNew) channels.put(id, channel);
+				if (!forceNew) refCounters.put(id, new AtomicInteger(1));
+				if (forceNew) forcedChannels.add(channel);
+
+				// Create and attach the channel listener to catch open/closed events
+				final IChannel finChannel = channel;
+				final IChannel.IChannelListener finChannelListener = new IChannel.IChannelListener() {
+					@Override
+					public void onChannelOpened() {
+						// Remove ourself as channel listener
+						finChannel.removeChannelListener(this);
+
+						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_success_message, id),
+																		0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+						}
+
+						// Channel opened to the first proxy. Process the proxy chain and
+						// redirect the channel through the proxies until the original target
+						// is reached
+						final DoneChainProxies chainProxiesDone = new DoneChainProxies() {
+							@Override
+							public void doneChainProxies(final Throwable error, final IChannel channel) {
+								// Invoke the outer callback
+								done.doneOpenChannel(error, channel);
+							}
+						};
+
+						// Continue the redirect chain by chaining the proxies and connecting to the target
+						doChainProxies(id, peer.getAttributes(), remainingProxies, finForceNew, 0, finChannel, chainProxiesDone);
+					}
+
+					@Override
+					public void onChannelClosed(Throwable error) {
+						// Remove ourself as channel listener
+						finChannel.removeChannelListener(this);
+
+						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_failed_message, id, error),
+																		0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+						}
+
+						// Clean the reference counter and the channel map
+						if (!finForceNew) channels.remove(id);
+						if (!finForceNew) refCounters.remove(id);
+						if (finForceNew) forcedChannels.remove(finChannel);
+
+						// Channel open failed -> This will break everything
+						done.doneOpenChannel(error, finChannel);
+					}
+
+					@Override
+					public void congestionLevel(int level) {
+					}
+				};
+				channel.addChannelListener(finChannelListener);
+			} else {
+				// Channel is null? Something went terrible wrong.
+				done.doneOpenChannel(new Exception("Unexpected null return value from IPeer#openChannel()!"), null); //$NON-NLS-1$
+
+			}
+		} catch (Throwable e) {
+			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+				CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_failed_message, id, e),
+															0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+			}
+
+			// Channel opening failed
+			done.doneOpenChannel(e, channel);
+		}
+
+
+
+
+
 	}
 
 	/* default */ void doChainProxies(final String id, final Map<String, String> attrs, final IPeer[] proxies, final boolean forceNew, final int numberOfValueAdds, final IChannel channel, final DoneChainProxies done) {
