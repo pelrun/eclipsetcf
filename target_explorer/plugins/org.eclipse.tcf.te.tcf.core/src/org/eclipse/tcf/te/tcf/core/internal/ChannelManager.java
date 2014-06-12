@@ -848,6 +848,9 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 												(error != null ? error.getLocalizedMessage() : null),
 												id }),
 												0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+
+								// Print the stack trace of the error too
+								if (error != null) error.printStackTrace();
 							}
 
 							// If we got an error and the value-add is optional,
