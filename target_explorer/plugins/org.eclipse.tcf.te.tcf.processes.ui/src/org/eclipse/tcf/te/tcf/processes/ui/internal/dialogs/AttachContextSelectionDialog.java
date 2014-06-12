@@ -55,7 +55,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IContextDataProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.utils.PeerDataHelper;
+import org.eclipse.tcf.te.tcf.locator.utils.PeerNodeDataHelper;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessContextItem;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessesDataProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
@@ -415,7 +415,7 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		this.data = new PropertiesContainer();
 		this.data.setProperties(data.getProperties());
 
-		IPeerNode[] contexts = PeerDataHelper.decodeContextList(data.getStringProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST));
+		IPeerNode[] contexts = PeerNodeDataHelper.decodeContextList(data.getStringProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST));
 		IPeerNode newPeerNode = contexts != null && contexts.length > 0  ? contexts[0] : null;
 
 		if (peerNode == null || peerNode != newPeerNode) {

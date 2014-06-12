@@ -26,7 +26,7 @@ import org.eclipse.tcf.te.tcf.core.interfaces.IContextDataProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.services.selection.RuntimeServiceContextFilter;
-import org.eclipse.tcf.te.tcf.locator.utils.PeerDataHelper;
+import org.eclipse.tcf.te.tcf.locator.utils.PeerNodeDataHelper;
 import org.eclipse.tcf.te.ui.handler.AbstractStepperCommandHandler;
 import org.eclipse.tcf.te.ui.interfaces.IDataExchangeDialog;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
@@ -93,13 +93,13 @@ public abstract class AbstractContextStepperCommandHandler extends AbstractStepp
 	protected void setContextList(ExecutionEvent event, IPropertiesContainer data) {
 		IPeerNode context = getContext(event);
 		if (context != null) {
-			data.setProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST, PeerDataHelper.encodeContextList(new IPeerNode[]{context}));
+			data.setProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST, PeerNodeDataHelper.encodeContextList(new IPeerNode[]{context}));
 		}
 	}
 
 	protected String getContextName(IPropertiesContainer data) {
 		String encoded = data.getStringProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST);
-		IPeerNode[] contexts = PeerDataHelper.decodeContextList(encoded);
+		IPeerNode[] contexts = PeerNodeDataHelper.decodeContextList(encoded);
 		if (contexts != null && contexts.length > 0) {
 			return contexts[0].getName();
 		}
@@ -157,7 +157,7 @@ public abstract class AbstractContextStepperCommandHandler extends AbstractStepp
 	 */
 	@Override
 	protected Object getContext(IPropertiesContainer data) {
-		IPeerNode[] contexts = PeerDataHelper.decodeContextList(data.getStringProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST));
+		IPeerNode[] contexts = PeerNodeDataHelper.decodeContextList(data.getStringProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST));
 		data.setProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST, null);
 		return contexts.length == 1 ? contexts[0] : null;
 	}

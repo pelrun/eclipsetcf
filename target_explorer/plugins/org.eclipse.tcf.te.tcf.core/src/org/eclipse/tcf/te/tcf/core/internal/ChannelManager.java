@@ -37,9 +37,11 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
+import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
 import org.eclipse.tcf.te.tcf.core.va.ValueAddManager;
 import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
 
@@ -903,6 +905,19 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 	}
 
 	/**
+	 * Client call back interface for doChainProxies(...).
+	 */
+	interface DoneChainProxies {
+		/**
+		 * Called when a proxies has been chained.
+		 *
+		 * @param error The error description if operation failed, <code>null</code> if succeeded.
+		 * @param channel The channel object or <code>null</code>.
+		 */
+		void doneChainProxies(Throwable error, IChannel channel);
+	}
+
+	/**
 	 * Chain the value-adds until the original target peer is reached.
 	 *
 	 * @param valueAdds The list of value-add's to chain. Must not be <code>null</code>.
@@ -930,6 +945,8 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		boolean noPathMap = flags != null && flags.containsKey(IChannelManager.FLAG_NO_PATH_MAP) ? flags.get(IChannelManager.FLAG_NO_PATH_MAP).booleanValue() : false;
 		// If noValueAdd == true or noPathMap == true -> forceNew has to be true as well
 		if (noValueAdd || noPathMap) forceNew = true;
+
+		final boolean finForceNew = forceNew;
 
 		// Check if there is already a channel opened to this peer
 		IChannel channel = !forceNew ? channels.get(id) : null;
@@ -975,20 +992,35 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 		}
 
 		// No existing channel -> open a new one
-		final DoneChainValueAdd innerDone = new DoneChainValueAdd() {
+		final DoneChainValueAdd chainValueAddDone = new DoneChainValueAdd() {
 			@Override
-			public void doneChainValueAdd(Throwable error, IChannel channel) {
-				done.doneOpenChannel(error, channel);
+			public void doneChainValueAdd(final Throwable error, final IChannel channel) {
+				// Ending up here means that the channel is redirected to the last
+				// value-add in the chain, but it is not yet redirected through the
+				// proxy configuration.
+				String proxyConfiguration = peer.getAttributes().get(IPeerProperties.PROP_PROXIES);
+				IPeer[] proxies = proxyConfiguration != null ?  PeerDataHelper.decodePeerList(proxyConfiguration) : null;
+
+				// Create the done callback
+				final DoneChainProxies chainProxiesDone = new DoneChainProxies() {
+					@Override
+					public void doneChainProxies(final Throwable error, final IChannel channel) {
+						// Invoke the outer callback
+						done.doneOpenChannel(error, channel);
+					}
+				};
+
+				// Continue the redirect chain by chaining the proxies and connecting to the target
+				doChainProxies(id, peer.getAttributes(), proxies, finForceNew, valueAdds.length, channel, chainProxiesDone);
 			}
 		};
 
-		doChainValueAdd(id, peer.getAttributes(), forceNew, valueAdds, innerDone);
+		doChainValueAdd(id, forceNew, valueAdds, chainValueAddDone);
 	}
 
-	/* default */ void doChainValueAdd(final String id, final Map<String, String> attrs, final boolean forceNew, final IValueAdd[] valueAdds, final DoneChainValueAdd done) {
+	/* default */ void doChainValueAdd(final String id, final boolean forceNew, final IValueAdd[] valueAdds, final DoneChainValueAdd done) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(id);
-		Assert.isNotNull(attrs);
 		Assert.isNotNull(valueAdds);
 		Assert.isNotNull(done);
 
@@ -1028,13 +1060,13 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				if (!forceNew) refCounters.put(id, new AtomicInteger(1));
 				if (forceNew) forcedChannels.add(channel);
 
-				// Attach the channel listener to catch open/closed events
+				// Create and attach the channel listener to catch open/closed events
 				final IChannel finChannel = channel;
-				channel.addChannelListener(new IChannel.IChannelListener() {
+				final IChannel.IChannelListener finChannelListener = new IChannel.IChannelListener() {
 					@Override
 					public void onChannelOpened() {
 						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_valueAdd_redirect_succeeded,
+							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_succeeded,
 																				 new Object[] { valueAddPeer.get().getID(), finChannel.getRemotePeer().getID(), Integer.valueOf(index.get()) }),
 																		0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 						}
@@ -1077,7 +1109,15 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							}
 
 							// Redirect the channel to the next value-add in chain
-							finChannel.redirect(nextValueAddPeer.get() != null ? nextValueAddPeer.get().getAttributes() : attrs);
+							if (nextValueAddPeer.get() != null) {
+								finChannel.redirect(nextValueAddPeer.get().getAttributes());
+							} else {
+								// Remove ourself as channel listener
+								finChannel.removeChannelListener(this);
+
+								// No other value-add in the chain -> all done
+								done.doneChainValueAdd(null, finChannel);
+							}
 						}
 					}
 
@@ -1087,7 +1127,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 						finChannel.removeChannelListener(this);
 
 						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_valueAdd_redirect_failed, valueAddPeer.get().getID(),
+							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_failed, valueAddPeer.get().getID(),
 																				 nextValueAddPeer.get() != null ? nextValueAddPeer.get().getID() : id),
 																		0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 						}
@@ -1097,18 +1137,27 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 						if (!forceNew) refCounters.remove(id);
 						if (forceNew) forcedChannels.remove(finChannel);
 
-						// Channel opening failed -> This will break everything
+						// Channel redirect failed -> This will break everything
 						done.doneChainValueAdd(error, finChannel);
 					}
 
 					@Override
 					public void congestionLevel(int level) {
 					}
-				});
+				};
+				channel.addChannelListener(finChannelListener);
 
 				// Redirect the channel to the next value-add in chain
 				// Note: If the redirect succeeds, channel.getRemotePeer().getID() will be identical to id.
-				channel.redirect(nextValueAddPeer.get() != null ? nextValueAddPeer.get().getAttributes() : attrs);
+				if (nextValueAddPeer.get() != null) {
+					channel.redirect(nextValueAddPeer.get().getAttributes());
+				} else {
+					// Remove ourself as channel listener
+					finChannel.removeChannelListener(finChannelListener);
+
+					// No other value-add in the chain -> all done
+					done.doneChainValueAdd(null, finChannel);
+				}
 			} else {
 				// Channel is null? Something went terrible wrong.
 				done.doneChainValueAdd(new Exception("Unexpected null return value from IPeer#openChannel()!"), null); //$NON-NLS-1$
@@ -1123,6 +1172,99 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			// Channel opening failed
 			done.doneChainValueAdd(e, channel);
 		}
+	}
+
+	/* default */ void doChainProxies(final String id, final Map<String, String> attrs, final IPeer[] proxies, final boolean forceNew, final int numberOfValueAdds, final IChannel channel, final DoneChainProxies done) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(id);
+		Assert.isNotNull(attrs);
+		Assert.isNotNull(channel);
+		Assert.isNotNull(done);
+
+		// The index of the currently processed proxy
+		final AtomicInteger index = new AtomicInteger(0);
+
+		// Get the proxy to chain
+		final AtomicReference<IPeer> proxy = new AtomicReference<IPeer>();
+		proxy.set(proxies != null && proxies.length > 0 ? proxies[index.get()] : null);
+		// Get the next proxy in chain
+		final AtomicReference<IPeer> nextProxy = new AtomicReference<IPeer>();
+		nextProxy.set(proxies != null && index.get() + 1 < proxies.length ? proxies[index.get() + 1] : null);
+
+		// The channel must be in open or opening state, otherwise we cannot do the redirect
+		if (channel.getState() == IChannel.STATE_CLOSED) {
+			done.doneChainProxies(new Exception(NLS.bind(Messages.ChannelManager_openChannel_redirect_invalidChannelState, id)), channel);
+			return;
+		}
+
+		// Determine the ID of the last value-add in the chain
+		final String lastValueAddID = channel.getRemotePeer().getID();
+
+		// Create and attach the channel listener
+		channel.addChannelListener(new IChannel.IChannelListener() {
+			@Override
+			public void onChannelOpened() {
+				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_succeeded,
+																		 new Object[] { lastValueAddID, channel.getRemotePeer().getID(), Integer.valueOf(numberOfValueAdds + index.get()) }),
+																0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+				}
+
+				// Channel redirect succeeded. Check if we are done.
+				if (nextProxy.get() == null) {
+					// Remove ourself as channel listener
+					channel.removeChannelListener(this);
+
+					// No other proxy is in the chain -> reached the target -> all done
+					done.doneChainProxies(null, channel);
+				} else {
+					// Process the next proxy in chain
+					index.incrementAndGet();
+
+					// Update the proxy reference
+					proxy.set(nextProxy.get());
+
+					// Determine the next proxy to redirect too
+					nextProxy.set(index.get() + 1 < proxies.length ? proxies[index.get() + 1] : null);
+
+					// Redirect the channel to the next proxy in chain, if available, or directly to the target
+					// if no more proxies are configured
+					channel.redirect(nextProxy.get() != null ? nextProxy.get().getAttributes() : attrs);
+				}
+
+				// Remove ourself as channel listener
+				channel.removeChannelListener(this);
+
+				// Invoke the done callback
+				done.doneChainProxies(null, channel);
+			}
+
+			@Override
+			public void onChannelClosed(Throwable error) {
+				// Remove ourself as channel listener
+				channel.removeChannelListener(this);
+
+				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_failed, lastValueAddID, id),
+																0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+				}
+
+				// Clean the reference counter and the channel map
+				if (forceNew) channels.remove(id);
+				if (forceNew) refCounters.remove(id);
+				if (forceNew) forcedChannels.remove(channel);
+
+				// Channel redirect failed -> This will break everything
+				done.doneChainProxies(error, channel);
+			}
+
+			@Override
+			public void congestionLevel(int level) {
+			}
+		});
+
+		// If there is no proxy configured, directly redirect to the target
+		channel.redirect(proxy.get() != null ? proxy.get().getAttributes() : attrs);
 	}
 
 	/**

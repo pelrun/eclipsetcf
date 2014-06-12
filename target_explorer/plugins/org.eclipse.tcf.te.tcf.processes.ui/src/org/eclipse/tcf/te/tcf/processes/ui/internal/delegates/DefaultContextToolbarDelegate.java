@@ -20,7 +20,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.tcf.core.interfaces.IContextDataProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.utils.PeerDataHelper;
+import org.eclipse.tcf.te.tcf.locator.utils.PeerNodeDataHelper;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessContextItem;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessesDataProperties;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.services.IStepGroupIds;
@@ -145,7 +145,7 @@ public class DefaultContextToolbarDelegate extends AbstractDefaultContextToolbar
 				dialog = new AttachContextSelectionDialog(Display.getDefault().getActiveShell(), null);
 			}
 			if (dialog != null) {
-				data.setProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST, PeerDataHelper.encodeContextList(new IPeerNode[]{peerNode}));
+				data.setProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST, PeerNodeDataHelper.encodeContextList(new IPeerNode[]{peerNode}));
 				dialog.setupData(data);
 				if (dialog.open() == Window.OK) {
 					data = new PropertiesContainer();
