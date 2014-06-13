@@ -1421,12 +1421,6 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 					// if no more proxies are configured
 					channel.redirect(nextProxy.get() != null ? nextProxy.get().getAttributes() : attrs);
 				}
-
-				// Remove ourself as channel listener
-				channel.removeChannelListener(this);
-
-				// Invoke the done callback
-				done.doneChainProxies(null, channel);
 			}
 
 			@Override
