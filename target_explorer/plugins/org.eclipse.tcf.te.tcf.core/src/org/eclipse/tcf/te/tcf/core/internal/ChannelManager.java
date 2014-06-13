@@ -298,11 +298,13 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 
 					@Override
 					public void onChannelOpened() {
+						finChannel.removeChannelListener(this);
 						done.doneOpenChannel(null, finChannel);
 					}
 
 					@Override
 					public void onChannelClosed(Throwable error) {
+						finChannel.removeChannelListener(this);
 						done.doneOpenChannel(error != null ? error : new OperationCanceledException(), finChannel);
 					}
 
@@ -992,10 +994,12 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				channel.addChannelListener(new IChannel.IChannelListener() {
 					@Override
 					public void onChannelOpened() {
+						finChannel.removeChannelListener(this);
 						done.doneOpenChannel(null, finChannel);
 					}
 					@Override
 					public void onChannelClosed(Throwable error) {
+						finChannel.removeChannelListener(this);
 						done.doneOpenChannel(error != null ? error : new OperationCanceledException(), finChannel);
 					}
 					@Override
@@ -1250,10 +1254,12 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				channel.addChannelListener(new IChannel.IChannelListener() {
 					@Override
 					public void onChannelOpened() {
+						finChannel.removeChannelListener(this);
 						done.doneOpenChannel(null, finChannel);
 					}
 					@Override
 					public void onChannelClosed(Throwable error) {
+						finChannel.removeChannelListener(this);
 						done.doneOpenChannel(error != null ? error : new OperationCanceledException(), finChannel);
 					}
 					@Override
