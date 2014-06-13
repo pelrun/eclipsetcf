@@ -1363,11 +1363,6 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 			// Channel opening failed
 			done.doneOpenChannel(e, channel);
 		}
-
-
-
-
-
 	}
 
 	/* default */ void doChainProxies(final String id, final Map<String, String> attrs, final IPeer[] proxies, final boolean forceNew, final int numberOfValueAdds, final IChannel channel, final DoneChainProxies done) {
@@ -1887,6 +1882,4 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
     		}
     	}
     }
-
-
 }
