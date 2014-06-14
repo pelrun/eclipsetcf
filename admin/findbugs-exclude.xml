@@ -17,6 +17,11 @@
 		<Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE"/>
 	</Match>
 
+	<Match>
+		<Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+		<Class name="org.eclipse.tcf.te.tcf.core.va.ValueAddException"/>
+	</Match>
+
 	<!-- Ignore all SF_SWITCH_NO_DEFAULT violations -->
 	<Match>
 		<Bug pattern="SF_SWITCH_NO_DEFAULT"/>

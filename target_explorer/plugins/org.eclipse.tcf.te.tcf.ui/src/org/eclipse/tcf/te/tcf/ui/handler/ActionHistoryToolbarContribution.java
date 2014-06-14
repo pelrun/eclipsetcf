@@ -63,73 +63,75 @@ public class ActionHistoryToolbarContribution extends CompoundContributionItem i
 	protected IContributionItem[] getContributionItems() {
 		List<IContributionItem> items = new ArrayList<IContributionItem>();
 		final IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-		boolean enabled = (peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED);
+		if (peerNode != null) {
+			boolean enabled = peerNode.getConnectState() == IConnectable.STATE_CONNECTED;
 
-		IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
-		Map<String, IDefaultContextToolbarDelegate> delegates = new LinkedHashMap<String, IDefaultContextToolbarDelegate>();
-		for (IService service : services) {
-	        if (service instanceof IDelegateService) {
-	        	IDefaultContextToolbarDelegate delegate = ((IDelegateService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
-	        	if (delegate != null) {
-        			for (String stepGroupId : delegate.getHandledStepGroupIds(peerNode)) {
-        				if (!delegates.containsKey(stepGroupId)) {
-        					delegates.put(stepGroupId, delegate);
-        				}
-                    }
-	        	}
-	        }
-        }
+			IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
+			Map<String, IDefaultContextToolbarDelegate> delegates = new LinkedHashMap<String, IDefaultContextToolbarDelegate>();
+			for (IService service : services) {
+				if (service instanceof IDelegateService) {
+					IDefaultContextToolbarDelegate delegate = ((IDelegateService)service).getDelegate(peerNode, IDefaultContextToolbarDelegate.class);
+					if (delegate != null) {
+						for (String stepGroupId : delegate.getHandledStepGroupIds(peerNode)) {
+							if (!delegates.containsKey(stepGroupId)) {
+								delegates.put(stepGroupId, delegate);
+							}
+						}
+					}
+				}
+			}
 
-		String[] entries = HistoryManager.getInstance().getHistory(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + peerNode.getPeerId()); //$NON-NLS-1$
-    	if (entries != null && entries.length > 0) {
-    		int count = 0;
-    		for (final String entry : entries) {
-    			if (count >= 5) {
-    				break;
-    			}
-    			IPropertiesContainer decoded = DataHelper.decodePropertiesContainer(entry);
-    			String stepGroupId = decoded.getStringProperty(IStepAttributes.ATTR_STEP_GROUP_ID);
-    			if (stepGroupId != null && delegates.containsKey(stepGroupId)) {
-	    			count++;
-    				final IDefaultContextToolbarDelegate delegate = delegates.get(stepGroupId);
-    				String label = "&" + count + " " + delegate.getLabel(peerNode, entry); //$NON-NLS-1$ //$NON-NLS-2$
-	    			AbstractImageDescriptor descriptor = new ActionHistoryImageDescriptor(
-	    							UIPlugin.getDefault().getImageRegistry(),
-	    							delegate.getImage(peerNode, entry),
-	    							delegate.validate(peerNode, entry));
-	    			UIPlugin.getSharedImage(descriptor);
-    				ImageDescriptor imageDescriptor = UIPlugin.getImageDescriptor(descriptor.getDecriptorKey());
-    				if (count == 1) {
-    	    			IContributionItem item = new CommandContributionItem(
-    	    							new CommandContributionItemParameter(
-    	    											serviceLocator,
-    	    											null,
-    	    											"org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast", //$NON-NLS-1$
-    	    											null,
-    	    											imageDescriptor,
-    	    											null,
-    	    											null,
-    	    											label,
-    	    											null,
-    	    											null,
-    	    											0, null, false));
-    	    			items.add(item);
-    				}
-    				else {
-	    			IAction action = new Action(label) {
-	    				@Override
-	    				public void runWithEvent(Event event) {
-	    					delegate.execute(peerNode, entry, false);
-	    				}
-	    			};
-	    			action.setImageDescriptor(imageDescriptor);
-	    			action.setEnabled(enabled);
-	    			IContributionItem item = new ActionContributionItem(action);
-	    			items.add(item);
-    				}
-                }
-	    	}
-	    }
+			String[] entries = HistoryManager.getInstance().getHistory(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + peerNode.getPeerId()); //$NON-NLS-1$
+			if (entries != null && entries.length > 0) {
+				int count = 0;
+				for (final String entry : entries) {
+					if (count >= 5) {
+						break;
+					}
+					IPropertiesContainer decoded = DataHelper.decodePropertiesContainer(entry);
+					String stepGroupId = decoded.getStringProperty(IStepAttributes.ATTR_STEP_GROUP_ID);
+					if (stepGroupId != null && delegates.containsKey(stepGroupId)) {
+						count++;
+						final IDefaultContextToolbarDelegate delegate = delegates.get(stepGroupId);
+						String label = "&" + count + " " + delegate.getLabel(peerNode, entry); //$NON-NLS-1$ //$NON-NLS-2$
+						AbstractImageDescriptor descriptor = new ActionHistoryImageDescriptor(
+										UIPlugin.getDefault().getImageRegistry(),
+										delegate.getImage(peerNode, entry),
+										delegate.validate(peerNode, entry));
+						UIPlugin.getSharedImage(descriptor);
+						ImageDescriptor imageDescriptor = UIPlugin.getImageDescriptor(descriptor.getDecriptorKey());
+						if (count == 1) {
+							IContributionItem item = new CommandContributionItem(
+											new CommandContributionItemParameter(
+															serviceLocator,
+															null,
+															"org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast", //$NON-NLS-1$
+															null,
+															imageDescriptor,
+															null,
+															null,
+															label,
+															null,
+															null,
+															0, null, false));
+							items.add(item);
+						}
+						else {
+							IAction action = new Action(label) {
+								@Override
+								public void runWithEvent(Event event) {
+									delegate.execute(peerNode, entry, false);
+								}
+							};
+							action.setImageDescriptor(imageDescriptor);
+							action.setEnabled(enabled);
+							IContributionItem item = new ActionContributionItem(action);
+							items.add(item);
+						}
+					}
+				}
+			}
+		}
 		return items.toArray(new IContributionItem[items.size()]);
 	}
 
