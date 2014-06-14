@@ -846,10 +846,18 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 						protected void internalDone(Object caller, IStatus status) {
 							Throwable error = status.getException();
 
+							String message = null;
+							if (error != null) {
+								message = error.getLocalizedMessage();
+								if ((message == null || "".equals(message)) && error.getCause() != null) { //$NON-NLS-1$
+									message = error.getCause().getLocalizedMessage();
+								}
+							}
+
 							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_valueAdd_launch, new Object[] { Integer.valueOf(i), valueAdd.getLabel(),
 												(error == null ? "success" : "failed"), //$NON-NLS-1$ //$NON-NLS-2$
-												(error != null ? error.getLocalizedMessage() : null),
+												(error != null ? message : null),
 												id }),
 												0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 

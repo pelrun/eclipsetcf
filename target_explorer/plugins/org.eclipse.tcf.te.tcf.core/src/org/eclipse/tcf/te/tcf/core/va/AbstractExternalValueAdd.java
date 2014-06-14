@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.core.va;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,6 +27,7 @@ import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
+import org.eclipse.tcf.te.runtime.interfaces.ISharedConstants;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
@@ -217,6 +219,11 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 			ValueAddEntry entry = new ValueAddEntry();
 
 			if (error == null) {
+				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.AbstractExternalValueAdd_start_at, ISharedConstants.TIME_FORMAT.format(new Date(System.currentTimeMillis())), id),
+																0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+				}
+
 				// Get the external process
 				Process process = launcher.getProcess();
 				try {
@@ -224,12 +231,22 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					int exitCode = process.exitValue();
 					// Died -> Construct the error
 					error = onProcessDied(launcher, exitCode);
+
+					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+						CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.AbstractExternalValueAdd_died_at, new Object[] { ISharedConstants.TIME_FORMAT.format(new Date(System.currentTimeMillis())), Integer.valueOf(exitCode), id }),
+																	0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+					}
 				} catch (IllegalThreadStateException e) {
 					// Still running -> Associate the process with the entry
 					entry.process = process;
 					// Associate the reader threads with the entry
 					entry.outputReader = launcher.getOutputReader();
 					entry.errorReader = launcher.getErrorReader();
+
+					if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+						CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.AbstractExternalValueAdd_running_at, ISharedConstants.TIME_FORMAT.format(new Date(System.currentTimeMillis())), id),
+																	0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+					}
 				}
 			}
 
@@ -239,12 +256,23 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 				// The agent is started with "-S" to write out the peer attributes in JSON format.
 				long timeout = getWaitForValueAddOutputTimeout();
 				int counter = Long.valueOf(Math.max(timeout, 200) / 200).intValue();
+
+				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.AbstractExternalValueAdd_start_waiting_at, new Object[] { ISharedConstants.TIME_FORMAT.format(new Date(System.currentTimeMillis())), Long.valueOf(timeout), Integer.valueOf(counter), id }),
+																0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+				}
+
 				while (counter > 0 && output == null) {
 					try {
 						// Check if the process is still alive or died in the meanwhile
 						int exitCode = entry.process.exitValue();
 						// Died -> Construct the error
 						error = onProcessDied(launcher, exitCode);
+
+						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.AbstractExternalValueAdd_died_at, new Object[] { ISharedConstants.TIME_FORMAT.format(new Date(System.currentTimeMillis())), Integer.valueOf(exitCode), id }),
+																		0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+						}
 					} catch (IllegalThreadStateException e) { /* ignored on purpose */ }
 
 					if (error != null) break;
@@ -265,6 +293,11 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					String stderr = !"".equals(launcher.getErrorReader().getOutput()) ? NLS.bind(Messages.AbstractExternalValueAdd_error_output, getLabel(), formatErrorOutput(launcher.getErrorReader().getOutput())) : ""; //$NON-NLS-1$ //$NON-NLS-2$
 					error = new ValueAddException(new IOException(NLS.bind(Messages.AbstractExternalValueAdd_error_failedToReadOutput, getLabel(), stderr)));
 				}
+			}
+
+			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+				CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.AbstractExternalValueAdd_stop_waiting_at, new Object[] { ISharedConstants.TIME_FORMAT.format(new Date(System.currentTimeMillis())), error, id }),
+															0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
 			}
 
 			 Map<String, String> attrs = null;

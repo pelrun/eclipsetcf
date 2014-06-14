@@ -96,6 +96,11 @@ public class Messages extends NLS {
 	public static String ChannelManager_stream_missing_service_message;
 
 	public static String AbstractExternalValueAdd_error_invalidLocation;
+	public static String AbstractExternalValueAdd_start_at;
+	public static String AbstractExternalValueAdd_died_at;
+	public static String AbstractExternalValueAdd_running_at;
+	public static String AbstractExternalValueAdd_start_waiting_at;
+	public static String AbstractExternalValueAdd_stop_waiting_at;
 	public static String AbstractExternalValueAdd_output;
 	public static String AbstractExternalValueAdd_error_cause;
 	public static String AbstractExternalValueAdd_error_processDied;
