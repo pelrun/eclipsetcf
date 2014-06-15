@@ -19,7 +19,7 @@
 
 	<!-- Ignore everything from org.eclipse.tcf.rse -->
 	<Match>
-		<Package name="~org\.eclipse\.tcf\.rse\..*"/>
+		<Package name="~org\.eclipse\.tcf\.internal\.rse\..*"/>
 	</Match>
 	
 	<!-- Ignore NM_CLASS_NOT_EXCEPTION -->
