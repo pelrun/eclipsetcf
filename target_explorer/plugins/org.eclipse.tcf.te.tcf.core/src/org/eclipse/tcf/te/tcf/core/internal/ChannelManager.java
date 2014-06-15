@@ -73,12 +73,12 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 	 */
 	@Override
 	public void openChannel(final IPeer peer, final Map<String, Boolean> flags, final DoneOpenChannel done) {
-		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(1, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 			try {
 				throw new Throwable();
 			} catch (Throwable e) {
 				CoreBundleActivator.getTraceHandler().trace("ChannelManager#openChannel called from:", //$NON-NLS-1$
-															0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
+															1, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
 				e.printStackTrace();
 			}
 		}
