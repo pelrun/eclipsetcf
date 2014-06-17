@@ -1120,16 +1120,6 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							valueAdd.set(nextValueAdd.get());
 							valueAddPeer.set(nextValueAddPeer.get());
 
-							if (valueAddPeer.get() == null) {
-								// Remove ourself as channel listener
-								finChannel.removeChannelListener(this);
-								// Close the channel
-								finChannel.close();
-								// Invoke the callback
-								done.doneChainValueAdd(new IllegalStateException("Invalid value-add peer."), null); //$NON-NLS-1$
-								return;
-							}
-
 							nextValueAdd.set(index.get() + 1 < valueAdds.length ? valueAdds[index.get() + 1] : null);
 							nextValueAddPeer.set(nextValueAdd.get() != null ? nextValueAdd.get().getPeer(id) : null);
 							if (nextValueAdd.get() != null && nextValueAddPeer.get() == null) {
@@ -1143,15 +1133,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							}
 
 							// Redirect the channel to the next value-add in chain
-							if (nextValueAddPeer.get() != null) {
-								finChannel.redirect(nextValueAddPeer.get().getAttributes());
-							} else {
-								// Remove ourself as channel listener
-								finChannel.removeChannelListener(this);
-
-								// No other value-add in the chain -> all done
-								done.doneChainValueAdd(null, finChannel);
-							}
+							finChannel.redirect(nextValueAddPeer.get().getAttributes());
 						}
 					}
 
