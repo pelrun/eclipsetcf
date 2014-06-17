@@ -1010,7 +1010,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (!ns_cache.validate(done)) return null;
             containerId = null;
             ISymbols.Symbol ns_data = ns_cache.getData();
-            if (ns_data != null && ns_data.getSymbolClass() == ISymbols.SymbolClass.namespace || ns_data.getSymbolClass() == ISymbols.SymbolClass.type) {
+            if (ns_data != null && (ns_data.getSymbolClass() == ISymbols.SymbolClass.namespace
+                    || ns_data.getSymbolClass() == ISymbols.SymbolClass.type)) {
                 String ns_name = ns_data.getName();
                 if (ns_name != null) {
                     prefix = ns_name + "::" + prefix;
