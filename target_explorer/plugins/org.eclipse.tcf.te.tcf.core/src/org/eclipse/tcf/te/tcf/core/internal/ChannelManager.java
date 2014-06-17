@@ -1410,7 +1410,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				}
 
 				// Channel redirect succeeded. Check if we are done.
-				if (nextProxy.get() == null) {
+				if (proxy.get() == null) {
 					// Remove ourself as channel listener
 					channel.removeChannelListener(this);
 
