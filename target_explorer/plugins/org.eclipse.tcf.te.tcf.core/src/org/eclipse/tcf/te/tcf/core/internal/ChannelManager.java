@@ -1417,18 +1417,18 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 					// No other proxy is in the chain -> reached the target -> all done
 					done.doneChainProxies(null, channel);
 				} else {
-					// Process the next proxy in chain
-					index.incrementAndGet();
-
 					// Update the proxy reference
 					proxy.set(nextProxy.get());
 
-					// Determine the next proxy to redirect too
-					nextProxy.set(index.get() + 1 < proxies.length ? proxies[index.get() + 1] : null);
+					// Process the next proxy in chain
+					index.incrementAndGet();
 
-					// Redirect the channel to the next proxy in chain, if available, or directly to the target
-					// if no more proxies are configured
-					channel.redirect(nextProxy.get() != null ? nextProxy.get().getAttributes() : attrs);
+					// Determine the next proxy to redirect too
+					nextProxy.set(index.get() < proxies.length ? proxies[index.get()] : null);
+
+					// Redirect the channel to the next proxy in chain, if available,
+					// or directly to the target if no more proxies are configured
+					channel.redirect(proxy.get() != null ? proxy.get().getAttributes() : attrs);
 				}
 			}
 
