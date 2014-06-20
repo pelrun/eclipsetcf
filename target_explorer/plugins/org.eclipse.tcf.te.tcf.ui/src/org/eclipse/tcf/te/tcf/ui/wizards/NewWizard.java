@@ -32,7 +32,9 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
@@ -75,9 +77,11 @@ public class NewWizard extends AbstractNewConfigWizard {
 	}
 
 	protected boolean isAllowedForeignAttribute(String key) {
-		return key.equals(IPeer.ATTR_TRANSPORT_NAME) ||
+		return key.equals(IPeer.ATTR_NAME) ||
+						key.equals(IPeer.ATTR_TRANSPORT_NAME) ||
 						key.equals(IPeer.ATTR_IP_HOST) ||
 						key.equals(IPeer.ATTR_IP_PORT) ||
+						key.equals(IPeerProperties.PROP_PROXIES) ||
 						key.equals(IPeerNodeProperties.PROP_AUTO_CONNECT);
 	}
 
@@ -91,6 +95,9 @@ public class NewWizard extends AbstractNewConfigWizard {
 			final IPeer peer;
 			if (selection.getFirstElement() instanceof IPeer) {
 				peer = (IPeer)selection.getFirstElement();
+			}
+			else if (selection.getFirstElement() instanceof ILocatorNode) {
+				peer = ((ILocatorNode)selection.getFirstElement()).getPeer();
 			}
 			else if (selection.getFirstElement() instanceof IPeerNode) {
 				peer = ((IPeerNode)selection.getFirstElement()).getPeer();

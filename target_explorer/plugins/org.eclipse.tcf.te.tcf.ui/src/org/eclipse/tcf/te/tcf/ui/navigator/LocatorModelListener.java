@@ -12,9 +12,9 @@ package org.eclipse.tcf.te.tcf.ui.navigator;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Tree;
-import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.ui.navigator.CommonViewer;
 
 
@@ -40,10 +40,10 @@ public class LocatorModelListener implements ILocatorModelListener {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel, org.eclipse.tcf.protocol.IPeer, boolean)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode, boolean)
 	 */
 	@Override
-	public void modelChanged(ILocatorModel model, IPeer peer, boolean added) {
+	public void modelChanged(ILocatorModel model, ILocatorNode locatorNode, boolean added) {
 		if (parentModel.equals(model)) {
 			// Locator model changed -> refresh the tree
 			Tree tree = viewer.getTree();

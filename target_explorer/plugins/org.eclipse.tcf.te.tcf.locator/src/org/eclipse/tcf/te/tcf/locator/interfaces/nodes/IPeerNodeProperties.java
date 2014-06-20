@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 
 /**
  * Default set of peer node properties.
@@ -43,12 +42,6 @@ public interface IPeerNodeProperties {
 	 * Property: Peer ID of selected real target.
 	 */
 	public static final String PROP_PEER_ID = "PeerId"; //$NON-NLS-1$
-
-	/**
-	 * Property: List of proxies to use to connect to the target.
-	 * @see IPeerProperties#PROP_PROXIES
-	 */
-	public static final String PROP_PROXIES = IPeerProperties.PROP_PROXIES;
 
 	/**
 	 * Property: Ping interval.

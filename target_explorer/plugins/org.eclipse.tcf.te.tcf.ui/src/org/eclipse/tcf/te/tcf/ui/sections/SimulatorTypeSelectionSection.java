@@ -18,7 +18,8 @@ import java.util.Set;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -33,10 +34,11 @@ import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.controls.SimulatorTypeSelectionControl;
-import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
+import org.eclipse.tcf.te.tcf.ui.dialogs.LocatorNodeSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
@@ -66,7 +68,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	protected static final int SELECTION_REAL = 0;
 	protected static final int SELECTION_SIM = 1;
 
-	protected String selectedPeerId = null;
+	protected ILocatorNode selectedLocatorNode = null;
 
 	/**
 	 * Constructor.
@@ -151,13 +153,13 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 				if (target.isLabelControlSelected()) {
 					onSelectionChanged(SELECTION_REAL);
 					if (!isUpdating()) {
-						onPeerChanged(false, true, selectedPeerId, selectedPeerId);
+						onLocatorNodeChanged(false, true, selectedLocatorNode, selectedLocatorNode);
 					}
 				}
 			}
 			@Override
 			protected void onButtonControlSelected() {
-				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
+				LocatorNodeSelectionDialog dialog = new LocatorNodeSelectionDialog(null) {
 					@Override
 					protected String getDialogTitle() {
 					    return Messages.NewTargetWizardPage_PeerSelectionDialog_dialogTitle;
@@ -171,22 +173,30 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 					    return Messages.NewTargetWizardPage_PeerSelectionDialog_message;
 					}
 					@Override
-					protected void configureTableViewer(TableViewer viewer) {
-					    super.configureTableViewer(viewer);
+					protected void configureTreeViewer(TreeViewer viewer) {
+					    super.configureTreeViewer(viewer);
 					    viewer.setFilters(getViewerFilters());
 					}
 				};
 
+				ILocatorNode locatorNode = getLocatorNode();
+
+				dialog.setSelection(locatorNode != null ? new StructuredSelection(locatorNode) : null);
 				// Open the dialog
 				if (dialog.open() == Window.OK) {
 					// Get the selected proxy from the dialog
 					ISelection selection = dialog.getSelection();
-					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeer) {
-						String oldPeerId = selectedPeerId;
-						IPeer selectedPeer = (IPeer)((IStructuredSelection)selection).getFirstElement();
-						selectedPeerId = selectedPeer != null ? selectedPeer.getID() : null;
+					if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+						Object element = ((IStructuredSelection)selection).getFirstElement();
+						ILocatorNode oldLocatorNode = selectedLocatorNode;
+						if (element instanceof ILocatorNode) {
+							selectedLocatorNode = (ILocatorNode)element;
+						}
+						else {
+							selectedLocatorNode = null;
+						}
 						dataChanged(null);
-						onPeerChanged(isLabelControlSelected(), isLabelControlSelected(), oldPeerId, selectedPeerId);
+						onLocatorNodeChanged(isLabelControlSelected(), isLabelControlSelected(), oldLocatorNode, selectedLocatorNode);
 					}
 				}
 			}
@@ -195,6 +205,7 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		target.setLabelButtonStyle(SWT.RADIO);
 		target.setParentControlIsInnerPanel(true);
 		target.setEditFieldLabel(Messages.TargetSelectorSection_button_enableReal);
+		target.setButtonLabel(Messages.TargetSelectorSection_button_configure);
 		target.setHasHistory(false);
 		target.setHideEditFieldControl(true);
 		target.setReadOnly(true);
@@ -242,6 +253,14 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	}
 
 	/**
+	 * Get the selection for the target browse dialog.
+	 * @return The locator node that should be selected in the dialog or <code>null</code>.
+	 */
+	protected ILocatorNode getLocatorNode() {
+		return selectedLocatorNode;
+	}
+
+	/**
 	 * Called on radio button selection changed.
 	 * @param selectionType The new selected simulator.
 	 */
@@ -262,14 +281,14 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 	}
 
 	/**
-	 * Called on target enabled and selected peer changed.
+	 * Called on target enabled and selected locator node changed.
 	 *
 	 * @param oldEnabled The old target enabled action.
 	 * @param newEnabled The new target enabled action.
-	 * @param oldPeerId The old selected peer id.
-	 * @param newPeerId The new selected peer id.
+	 * @param oldLocatorNode The old selected locator node id.
+	 * @param newLocatorNode The new selected locator node id.
 	 */
-	protected void onPeerChanged(boolean oldEnabled, boolean newEnabled, String	oldPeerId, String newPeerId) {
+	protected void onLocatorNodeChanged(boolean oldEnabled, boolean newEnabled, ILocatorNode oldLocatorNode, ILocatorNode newLocatorNode) {
 	}
 
 	/**
@@ -313,7 +332,6 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 
 		if (target != null) {
 			target.setLabelControlSelection(!data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED));
-			selectedPeerId = data.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
 		}
 
 		onSelectionChanged(data.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED) ? SELECTION_SIM : SELECTION_REAL);
@@ -409,7 +427,6 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		if (target != null) {
 			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, target.isLabelControlSelected());
 		}
-		data.setProperty(IPeerNodeProperties.PROP_PEER_ID, selectedPeerId);
 
 		if (simulator != null) {
 			data.setProperty(IPeerNodeProperties.PROP_SIM_ENABLED, simulator.isLabelControlSelected());
@@ -548,14 +565,6 @@ public class SimulatorTypeSelectionSection extends AbstractSection implements ID
 		if (target != null) {
 			boolean oldEnabled = !odc.getBooleanProperty(IPeerNodeProperties.PROP_SIM_ENABLED);
 			isDirty |= (oldEnabled != target.isLabelControlSelected());
-		}
-
-		String oldPeerId = odc.getStringProperty(IPeerNodeProperties.PROP_PEER_ID);
-		String newPeerId = selectedPeerId;
-		if (newPeerId == null || "".equals(newPeerId)) { //$NON-NLS-1$
-			isDirty |= oldPeerId != null && !"".equals(oldPeerId); //$NON-NLS-1$
-		} else {
-			isDirty |= !newPeerId.equals(oldPeerId);
 		}
 
 		if (simulator != null) {

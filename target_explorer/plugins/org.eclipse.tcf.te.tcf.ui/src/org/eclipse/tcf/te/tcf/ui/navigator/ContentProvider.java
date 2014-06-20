@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.ui.navigator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
@@ -22,8 +23,10 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPendingOperationNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
@@ -169,7 +172,12 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 		// If the parent element is a category, than we assume
 		// the locator model as parent element.
 		if (parentElement instanceof ICategory) {
-			parentElement = ModelManager.getPeerModel();
+			if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
+				parentElement = ModelManager.getLocatorModel();
+			}
+			else {
+				parentElement = ModelManager.getPeerModel();
+			}
 		}
 		// If the parent element is the root element and "all"
 		// categories are hidden, assume the locator model as parent element
@@ -225,17 +233,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 				candidates.add(0, newConfigNode);
 			}
-			else if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
-				for (IPeer peer : ModelManager.getLocatorModel().getPeers()) {
-					if (isFiltered(peer)) {
-						continue;
-					}
-
-					if (!candidates.contains(peer)) {
-						candidates.add(peer);
-					}
-				}
-			}
 			else if (catID != null) {
 				for (IPeerNode peerNode : peerNodes) {
 					if (isFiltered(peerNode)) {
@@ -267,7 +264,30 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				}
 			}
 
-			children = candidates.toArray(new Object[candidates.size()]);
+			children = candidates.toArray();
+		}
+		else if (parentElement instanceof ILocatorModel) {
+			final List<Object> candidates = new ArrayList<Object>();
+			if (IUIConstants.ID_CAT_NEIGHBORHOOD.equals(catID)) {
+				for (ILocatorNode locatorNode : ModelManager.getLocatorModel().getLocatorNodes()) {
+					if (isFiltered(locatorNode.getPeer())) {
+						continue;
+					}
+
+					if (!candidates.contains(locatorNode)) {
+						candidates.add(locatorNode);
+					}
+				}
+			}
+			else {
+				candidates.add(CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_NEIGHBORHOOD, false));
+			}
+			children = candidates.toArray();
+		}
+		else if (parentElement instanceof ILocatorNode) {
+			ILocatorNode locatorNode = (ILocatorNode)parentElement;
+
+			children = locatorNode.getChildren();
 		}
 
 		return children;
@@ -287,9 +307,22 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 */
 	@Override
 	public Object getParent(final Object element) {
-		// If it is a peer model node, return the parent locator model
-		if (element instanceof IPeerNode) {
-			// Determine the parent category node
+		// If it is a peer model node, return the parent peer model
+		if (element instanceof ILocatorNode) {
+			final AtomicReference<Object> parent = new AtomicReference<Object>();
+			Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					parent.set(((ILocatorNode)element).getParent());
+				}
+			});
+			if (parent.get() == null) {
+				return CategoriesExtensionPointManager.getInstance().getCategory(IUIConstants.ID_CAT_NEIGHBORHOOD, false);
+			}
+			return parent.get();
+		}
+		else if (element instanceof IPeerNode) {
+			// Determine the parent category node1
 			ICategory category = null;
 			String[] categoryIds = Managers.getCategoryManager().getCategoryIds(((IPeerNode)element).getPeerId());
 			// If we have more than one, take the first one as parent category.
@@ -300,6 +333,10 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 
 			return category != null ? category : ((IPeerNode)element).getModel();
 		}
+		else if (element instanceof IPendingOperationNode) {
+			return ((IPendingOperationNode)element).getParent();
+		}
+
 		return null;
 	}
 
@@ -336,6 +373,11 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 	 */
 	@Override
 	public boolean hasChildren(Object element) {
+
+		if (element instanceof ILocatorNode) {
+			return ((ILocatorNode)element).hasChildren();
+		}
+
 		Object[] children = getChildren(element);
 
 		if (children != null && children.length > 0 && navFilterService != null) {

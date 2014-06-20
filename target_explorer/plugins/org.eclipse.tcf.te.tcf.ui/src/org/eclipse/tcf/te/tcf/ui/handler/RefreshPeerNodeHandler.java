@@ -36,7 +36,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 /**
  * Refresh handler implementation.
  */
-public class RefreshHandler extends AbstractHandler {
+public class RefreshPeerNodeHandler extends AbstractHandler {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)

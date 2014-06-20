@@ -43,7 +43,7 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	// Flag to mark the model disposed
 	private boolean disposed;
 
-	// The list of known peers
+	// The list of known peer nodes
 	/* default */ final Map<String, IPeerNode> peerNodes = new HashMap<String, IPeerNode>();
 
 	// The list of registered model listeners
@@ -185,17 +185,6 @@ public class PeerModel extends PlatformObject implements IPeerModel {
 	@Override
 	public int hashCode() {
 	    return uniqueId.hashCode();
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public final boolean equals(Object obj) {
-		if (obj instanceof PeerModel) {
-			return uniqueId.equals(((PeerModel)obj).uniqueId);
-		}
-		return super.equals(obj);
 	}
 
 	/* (non-Javadoc)

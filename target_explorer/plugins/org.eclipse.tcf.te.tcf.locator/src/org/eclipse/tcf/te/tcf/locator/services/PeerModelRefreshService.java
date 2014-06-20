@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
@@ -142,35 +141,6 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 				model.getService(IPeerModelUpdateService.class).remove(oldPeerNode);
             }
 		}
-	}
-
-	private final AtomicBoolean REFRESH_STATIC_PEERS_GUARD = new AtomicBoolean(false);
-
-	protected void refreshStaticPeers() {
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		// This method might be called reentrant while processing. Return immediately
-		// in this case.
-		if (REFRESH_STATIC_PEERS_GUARD.get()) {
-			return;
-		}
-		REFRESH_STATIC_PEERS_GUARD.set(true);
-
-		// Get the parent peer model
-		IPeerModel model = getPeerModel();
-
-		// If the parent model is already disposed, the service will drop out immediately
-		if (model.isDisposed()) {
-			return;
-		}
-
-		// Get the list of old children (update node instances where possible)
-		final List<IPeerNode> oldChildren = new ArrayList<IPeerNode>(Arrays.asList(model.getPeerNodes()));
-
-		// Refresh the static peer definitions
-		refreshStaticPeers(oldChildren, model);
-
-		REFRESH_STATIC_PEERS_GUARD.set(false);
 	}
 
 	/**

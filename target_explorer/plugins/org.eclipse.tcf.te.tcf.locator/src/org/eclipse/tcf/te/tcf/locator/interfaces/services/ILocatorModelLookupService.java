@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.locator.interfaces.services;
 
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 
 /**
  * The service to lookup/search in the parent locator model.
@@ -39,4 +40,30 @@ public interface ILocatorModelLookupService extends ILocatorModelService {
 	 * @return The peer instances, or an empty list if the given name could not be matched.
 	 */
 	public IPeer[] lkupPeerByName(String name);
+
+	/**
+	 * Lookup the matching locator node for the given id.
+	 *
+	 * @param parent The parent locator node or <code>null</code>.
+	 * @param id The id. Must not be <code>null</code>.
+	 * @return The locator node instances, or an empty list if the given id could not be matched.
+	 */
+	public ILocatorNode[] lkupLocatorNodeById(ILocatorNode parent, String id);
+
+	/**
+	 * Lookup the matching locator node for the given agent id.
+	 *
+	 * @param parent The parent locator node or <code>null</code>.
+	 * @param agentId The agent id. Must not be <code>null</code>.
+	 * @return The locator node instances, or an empty list if the given agent id could not be matched.
+	 */
+	public ILocatorNode[] lkupLocatorNodeByAgentId(ILocatorNode parent, String agentId);
+
+	/**
+	 * Lookup the matching locator node for the given peer.
+	 *
+	 * @param peer The peer.
+	 * @return The locator node for the given peer or <code>null</code>.
+	 */
+	public ILocatorNode lkupLocatorNode(IPeer peer);
 }

@@ -19,8 +19,10 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -39,7 +41,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	 */
 	@Override
 	public String getText(final Object element) {
-		if (element instanceof IPeerNode || element instanceof IPeer) {
+		if (element instanceof IPeerNode) {
 			StringBuilder builder = new StringBuilder();
 
 			// Copy the peer node and peer attributes
@@ -52,8 +54,8 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 						attrs.putAll(((IPeerNode)element).getProperties());
 						attrs.putAll(((IPeerNode)element).getPeer().getAttributes());
 					}
-					else if (element instanceof IPeer) {
-						attrs.putAll(((IPeer)element).getAttributes());
+					else if (element instanceof ILocatorNode) {
+						attrs.putAll((((ILocatorNode)element).getPeer()).getAttributes());
 					}
 				}
 			};
@@ -92,6 +94,16 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			if (!"".equals(label.trim())) { //$NON-NLS-1$
 				return label;
 			}
+		}
+		else if (element instanceof ILocatorNode) {
+			String name = ((ILocatorNode)element).getName();
+			if (name == null) {
+				name = ((ILocatorNode)element).getPeer().getID();
+			}
+			return name;
+		}
+		else if (element instanceof IModelNode) {
+			return ((IModelNode)element).getName();
 		}
 
 		return null;
@@ -135,12 +147,18 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	 * @see org.eclipse.jface.viewers.LabelProvider#getImage(java.lang.Object)
 	 */
 	@Override
-	public Image getImage(final Object element) {
+	public Image getImage(Object element) {
 		if (element instanceof IPeerNode) {
 			return UIPlugin.getImage(ImageConsts.CONNECTION);
 		}
-		if (element instanceof IPeer) {
-			return UIPlugin.getImage(ImageConsts.PEER_DISCOVERED);
+		if (element instanceof ILocatorNode) {
+			if (((ILocatorNode)element).isDiscovered()) {
+				return UIPlugin.getImage(ImageConsts.PEER_DISCOVERED);
+			}
+			return UIPlugin.getImage(ImageConsts.PEER_STATIC);
+		}
+		else if (element instanceof IModelNode) {
+			return UIPlugin.getImage(((IModelNode)element).getImageId());
 		}
 
 		return super.getImage(element);

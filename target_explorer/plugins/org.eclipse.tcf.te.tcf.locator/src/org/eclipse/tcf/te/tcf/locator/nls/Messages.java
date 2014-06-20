@@ -77,4 +77,6 @@ public class Messages extends NLS {
 	public static String PeerNode_info_connectionDisconnected;
 
 	public static String StartPingTimerStep_warning_noDiagnosticsService;
+
+	public static String PendingOperationModelNode_label;
 }

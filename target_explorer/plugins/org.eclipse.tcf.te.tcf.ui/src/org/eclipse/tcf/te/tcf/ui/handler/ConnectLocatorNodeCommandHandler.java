@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.help.IContextHelpIds;
@@ -37,7 +37,7 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
  * Connect peer command handler implementation.
  */
 @SuppressWarnings("restriction")
-public class ConnectPeerCommandHandler extends AbstractHandler {
+public class ConnectLocatorNodeCommandHandler extends AbstractHandler {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -54,7 +54,7 @@ public class ConnectPeerCommandHandler extends AbstractHandler {
 			// The selection contains only one element as multi element selections are not supported by this handler
 			Object element = ((IStructuredSelection)selection).getFirstElement();
 			// The element must be of type IPeer
-			if (element instanceof IPeer) {
+			if (element instanceof ILocatorNode) {
 		    	System.setProperty("NewWizard_" + IPeerNodeProperties.PROP_AUTO_CONNECT, Boolean.TRUE.toString()); //$NON-NLS-1$
 
 				// Get the list of enabled new wizards

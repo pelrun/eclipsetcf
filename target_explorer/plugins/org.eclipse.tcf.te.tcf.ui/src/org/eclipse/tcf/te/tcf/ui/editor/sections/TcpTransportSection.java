@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -31,11 +32,17 @@ import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
+import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.controls.net.RemoteHostAddressControl;
 import org.eclipse.tcf.te.ui.controls.net.RemoteHostPortControl;
 import org.eclipse.tcf.te.ui.controls.validator.NameOrIPValidator;
@@ -55,10 +62,12 @@ import org.eclipse.ui.forms.widgets.Section;
  * Transport section providing TCP transport only.
  */
 public class TcpTransportSection extends AbstractSection implements IDataExchangeNode {
+	private BaseEditBrowseTextControl proxyControl = null;
 	private MyRemoteHostAddressControl addressControl = null;
 	private MyRemoteHostPortControl portControl = null;
 
 	private boolean isAutoPort = false;
+	private String proxies = null;
 
 	// Reference to the original data object
 	protected IPeerNode od;
@@ -208,11 +217,23 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		createClient(getSection(), form.getToolkit());
 	}
 
+	/**
+	 * Constructor.
+	 *
+	 * @param form The parent managed form. Must not be <code>null</code>.
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 */
+	public TcpTransportSection(IManagedForm form, Composite parent, boolean showTitleBar) {
+		super(form, parent, showTitleBar ? ExpandableComposite.EXPANDED : ExpandableComposite.NO_TITLE, showTitleBar);
+		createClient(getSection(), form.getToolkit());
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
 	 */
 	@Override
 	public void dispose() {
+		if (proxyControl != null) { proxyControl.dispose(); proxyControl = null; }
 		if (addressControl != null) { addressControl.dispose(); addressControl = null; }
 		if (portControl != null) { portControl.dispose(); portControl = null; }
 		super.dispose();
@@ -252,8 +273,17 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		Assert.isNotNull(client);
 		section.setClient(client);
 
+		proxyControl = new BaseEditBrowseTextControl(null);
+		proxyControl.setParentControlIsInnerPanel(true);
+		proxyControl.setEditFieldLabel(Messages.TcpTransportSection_proxies_label);
+		proxyControl.setReadOnly(true);
+		proxyControl.setHasHistory(false);
+		proxyControl.setHideBrowseButton(true);
+		proxyControl.setupPanel(client);
+
 		addressControl = new MyRemoteHostAddressControl();
 		addressControl.setupPanel(client);
+		addressControl.getEditFieldControl().setFocus();
 
 		portControl = new MyRemoteHostPortControl();
 		portControl.setParentControlIsInnerPanel(true);
@@ -325,6 +355,31 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 
 		boolean isAutoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
 
+		if (proxyControl != null) {
+			proxies = data.getStringProperty(IPeerProperties.PROP_PROXIES);
+			IPeer[] proxyPeers = PeerDataHelper.decodePeerList(proxies);
+			String proxyInfo = ""; //$NON-NLS-1$
+			for (final IPeer proxy : proxyPeers) {
+				final AtomicReference<ILocatorNode> locatorNode = new AtomicReference<ILocatorNode>();
+				Protocol.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						ILocatorModelLookupService lkup = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
+						locatorNode.set(lkup.lkupLocatorNode(proxy));
+					}
+				});
+				if (proxyInfo.length() > 0) {
+					proxyInfo += " / "; //$NON-NLS-1$
+				}
+				String name = locatorNode.get() != null ? locatorNode.get().getPeer().getName() : proxy.getID();
+				if (name == null || name.trim().length() == 0) {
+					name = locatorNode.get() != null ? locatorNode.get().getPeer().getID() : proxy.getID();
+				}
+	            proxyInfo += name.trim();
+            }
+			proxyControl.setEditFieldControlText(proxyInfo);
+		}
+
 		if (addressControl != null) {
 			String ip = data.getStringProperty(IPeer.ATTR_IP_HOST);
 			if (ip != null)
@@ -394,6 +449,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 				odc.setProperty(IPeer.ATTR_IP_HOST, node.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST));
 				odc.setProperty(IPeer.ATTR_IP_PORT, node.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT));
 				odc.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, node.getPeer().getAttributes().get(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO));
+				odc.setProperty(IPeerProperties.PROP_PROXIES, node.getPeer().getAttributes().get(IPeerProperties.PROP_PROXIES));
 
 				// Initially, the working copy is a duplicate of the original data copy
 				wc.setProperties(odc.getProperties());
@@ -425,6 +481,8 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		Assert.isNotNull(data);
 
 		boolean isAutoPort = isAutoPort();
+
+		data.setProperty(IPeerProperties.PROP_PROXIES, proxies);
 
 		if (addressControl != null) {
 			String host = addressControl.getEditFieldControlText();
@@ -613,14 +671,20 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		}
 
 		boolean autoPort = odc.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
-
 		if (!autoPort && portControl != null) {
 			String port = portControl.getEditFieldControlText();
 			String oldPort = odc.getStringProperty(IPeer.ATTR_IP_PORT);
 			isDirty |= !port.equals(oldPort != null ? oldPort : ""); //$NON-NLS-1$
 		}
-
 		isDirty |= isAutoPort() != autoPort;
+
+		String newProxies = odc.getStringProperty(IPeerProperties.PROP_PROXIES);
+		if (proxies == null || proxies.trim().length() == 0) {
+			isDirty |= newProxies != null && newProxies.trim().length() > 0;
+		}
+		else {
+			isDirty |= newProxies == null || newProxies.trim().length() == 0;
+		}
 
 		// If dirty, mark the form part dirty.
 		// Otherwise call refresh() to reset the dirty (and stale) flag
@@ -638,6 +702,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 	public void updateAttributes(IPropertiesContainer attributes) {
 		Assert.isNotNull(attributes);
 
+		attributes.setProperty(IPeerProperties.PROP_PROXIES, null);
 		attributes.setProperty(IPeer.ATTR_IP_HOST, null);
 		attributes.setProperty(IPeer.ATTR_IP_PORT, null);
 		attributes.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
@@ -653,6 +718,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		final Object input = od; // getManagedForm().getInput();
 
 		boolean enabled = !isReadOnly() && (!(input instanceof IPeerNode) || ((IPeerNode)input).getConnectState() == IConnectable.STATE_DISCONNECTED);
+		if (proxyControl != null) proxyControl.setEnabled(enabled);
 		if (addressControl != null) addressControl.setEnabled(enabled);
 		if (portControl != null) portControl.setEnabled(enabled && !isAutoPort);
 	}

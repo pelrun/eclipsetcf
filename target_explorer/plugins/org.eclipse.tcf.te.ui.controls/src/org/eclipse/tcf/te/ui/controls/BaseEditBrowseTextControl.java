@@ -852,7 +852,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		} else {
 			int style = SWT.SINGLE;
 			if (isReadOnly()) {
-				style |= SWT.READ_ONLY;
+				style |= SWT.READ_ONLY | SWT.NO_FOCUS;
 			}
 			editField = toolkit != null ? toolkit.createText(parent, null, doAdjustEditFieldControlStyles(SWT.BORDER | style)) : new Text(parent, doAdjustEditFieldControlStyles(SWT.BORDER | style));
 			((Text)editField).addModifyListener(new ModifyListener() {

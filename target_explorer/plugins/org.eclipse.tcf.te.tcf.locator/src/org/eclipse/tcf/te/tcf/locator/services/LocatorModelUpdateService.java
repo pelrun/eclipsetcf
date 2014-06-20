@@ -14,9 +14,15 @@ import java.util.Map;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
+import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ILocatorModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
+import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.locator.nodes.LocatorNode;
 
 
 /**
@@ -37,83 +43,124 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#add(org.eclipse.tcf.protocol.IPeer)
 	 */
 	@Override
-	public void add(final IPeer peer) {
+	public ILocatorNode add(IPeer peer) {
+		return add(peer, false);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#add(org.eclipse.tcf.protocol.IPeer, boolean)
+	 */
+	@Override
+	public ILocatorNode add(final IPeer peer, boolean isStatic) {
 		Assert.isNotNull(peer);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		Map<String, IPeer> peers = (Map<String, IPeer>)getLocatorModel().getAdapter(Map.class);
-		Assert.isNotNull(peers);
-		peers.put(peer.getID(), peer);
+		String encProxies = peer.getAttributes().get(IPeerProperties.PROP_PROXIES);
+		ILocatorNode locatorNode = null;
 
-		final ILocatorModelListener[] listeners = getLocatorModel().getListener();
-		if (listeners.length > 0) {
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					for (ILocatorModelListener listener : listeners) {
-						listener.modelChanged(getLocatorModel(), peer, true);
-					}
-				}
-			});
+		if (encProxies == null || encProxies.trim().length() == 0) {
+			Map<String, ILocatorNode> locatorNodes = (Map<String, ILocatorNode>)getLocatorModel().getAdapter(Map.class);
+			Assert.isNotNull(locatorNodes);
+			locatorNode = new LocatorNode(peer, isStatic);
+			locatorNodes.put(peer.getID(), locatorNode);
 		}
+		else {
+			IPeer[] proxies = PeerDataHelper.decodePeerList(encProxies);
+			ILocatorNode parent = null;
+			for (IPeer proxy : proxies) {
+				ILocatorModelLookupService lkup = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
+				ILocatorNode proxyNode = lkup.lkupLocatorNode(proxy);
+				if (proxyNode == null) {
+					proxyNode = new LocatorNode(proxy, true);
+					if (parent == null) {
+						Map<String, ILocatorNode> locatorNodes = (Map<String, ILocatorNode>)getLocatorModel().getAdapter(Map.class);
+						Assert.isNotNull(locatorNodes);
+						locatorNodes.put(proxy.getID(), proxyNode);
+
+					}
+					else {
+						parent.add(proxyNode);
+					}
+					parent = proxyNode;
+				}
+				else {
+					parent = proxyNode;
+				}
+            }
+			ILocatorModelLookupService lkup = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
+			locatorNode = lkup.lkupLocatorNode(peer);
+			if (locatorNode == null) {
+				locatorNode = new LocatorNode(peer, true);
+				parent.add(locatorNode);
+			}
+		}
+
+		ILocatorModelListener[] listeners = getLocatorModel().getListener();
+		for (ILocatorModelListener listener : listeners) {
+			listener.modelChanged(getLocatorModel(), locatorNode, true);
+		}
+
+		return locatorNode;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#remove(org.eclipse.tcf.protocol.IPeer)
 	 */
 	@Override
-	public void remove(final IPeer peer) {
+	public ILocatorNode remove(final IPeer peer) {
 		Assert.isNotNull(peer);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		Map<String, IPeer> peers = (Map<String, IPeer>)getLocatorModel().getAdapter(Map.class);
-		Assert.isNotNull(peers);
-		peers.remove(peer.getID());
+		ILocatorModelLookupService lkup = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
+		ILocatorNode locatorNode = lkup.lkupLocatorNode(peer);
 
-		final ILocatorModelListener[] listeners = getLocatorModel().getListener();
-		if (listeners.length > 0) {
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					for (ILocatorModelListener listener : listeners) {
-						listener.modelChanged(getLocatorModel(), peer, false);
-					}
-				}
-			});
+		if (locatorNode != null) {
+			ILocatorNode parent = locatorNode.getParent(ILocatorNode.class);
+
+			if (parent == null) {
+				Map<String, ILocatorNode> locatorNodes = (Map<String, ILocatorNode>)getLocatorModel().getAdapter(Map.class);
+				Assert.isNotNull(locatorNodes);
+				locatorNode = locatorNodes.remove(peer.getID());
+			}
+			else {
+				parent.remove(locatorNode, true);
+			}
 		}
+
+		ILocatorModelListener[] listeners = getLocatorModel().getListener();
+		for (ILocatorModelListener listener : listeners) {
+			listener.modelChanged(getLocatorModel(), locatorNode, false);
+		}
+
+		return locatorNode;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#update(org.eclipse.tcf.protocol.IPeer, org.eclipse.tcf.protocol.IPeer)
 	 */
 	@Override
-	public void update(final IPeer oldPeer, final IPeer newPeer) {
+	public ILocatorNode update(final IPeer oldPeer, final IPeer newPeer) {
 		Assert.isNotNull(oldPeer);
 		Assert.isNotNull(newPeer);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		Map<String, IPeer> peers = (Map<String, IPeer>)getLocatorModel().getAdapter(Map.class);
-		Assert.isNotNull(peers);
-		peers.remove(oldPeer.getID());
-		peers.put(newPeer.getID(), newPeer);
+		Map<String, ILocatorNode> locatorNodes = (Map<String, ILocatorNode>)getLocatorModel().getAdapter(Map.class);
+		Assert.isNotNull(locatorNodes);
+		final ILocatorNode oldLocatorNode = locatorNodes.remove(oldPeer.getID());
+		final ILocatorNode newLocatorNode = new LocatorNode(newPeer);
+		locatorNodes.put(newPeer.getID(), newLocatorNode);
 
-
-		final ILocatorModelListener[] listeners = getLocatorModel().getListener();
-		if (listeners.length > 0) {
-			Protocol.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					for (ILocatorModelListener listener : listeners) {
-						if (!oldPeer.getID().equals(newPeer.getID())) {
-							listener.modelChanged(getLocatorModel(), oldPeer, false);
-							listener.modelChanged(getLocatorModel(), newPeer, true);
-						}
-						else {
-							listener.modelChanged(getLocatorModel(), newPeer, false);
-						}
-					}
-				}
-			});
+		ILocatorModelListener[] listeners = getLocatorModel().getListener();
+		for (ILocatorModelListener listener : listeners) {
+			if (!oldPeer.getID().equals(newPeer.getID())) {
+				listener.modelChanged(getLocatorModel(), oldLocatorNode, false);
+				listener.modelChanged(getLocatorModel(), newLocatorNode, true);
+			}
+			else {
+				listener.modelChanged(getLocatorModel(), newLocatorNode, false);
+			}
 		}
+
+		return newLocatorNode;
 	}
 }

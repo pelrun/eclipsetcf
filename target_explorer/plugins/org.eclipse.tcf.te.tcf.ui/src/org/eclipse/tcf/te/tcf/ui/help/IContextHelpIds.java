@@ -45,7 +45,7 @@ public interface IContextHelpIds {
 	/**
 	 * Peer selection dialog.
 	 */
-	public final static String PEER_SELECTION_DIALOG = PREFIX + "PeerSelectionDialog"; //$NON-NLS-1$
+	public final static String LOCATOR_NODE_SELECTION_DIALOG = PREFIX + "LocatorNodeSelectionDialog"; //$NON-NLS-1$
 
 	/**
 	 * Peer node selection dialog.

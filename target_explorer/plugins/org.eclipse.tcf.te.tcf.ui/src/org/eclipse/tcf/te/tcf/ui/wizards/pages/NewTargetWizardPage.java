@@ -10,9 +10,11 @@
 package org.eclipse.tcf.te.tcf.ui.wizards.pages;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.Dialog;
@@ -21,6 +23,7 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -29,12 +32,18 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.interfaces.ITransportTypes;
+import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.controls.CustomTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerAttributesTablePart;
@@ -43,9 +52,10 @@ import org.eclipse.tcf.te.tcf.ui.controls.PipeTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.TcpTransportPanel;
 import org.eclipse.tcf.te.tcf.ui.controls.TransportTypeControl;
 import org.eclipse.tcf.te.tcf.ui.controls.TransportTypePanelControl;
-import org.eclipse.tcf.te.tcf.ui.dialogs.PeerSelectionDialog;
+import org.eclipse.tcf.te.tcf.ui.dialogs.LocatorNodeSelectionDialog;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.controls.validator.RegexValidator;
 import org.eclipse.tcf.te.ui.controls.validator.TextValidator;
@@ -65,10 +75,12 @@ import org.eclipse.ui.forms.widgets.Section;
  */
 public class NewTargetWizardPage extends AbstractValidatingWizardPage implements IDataExchangeNode {
 	private PeerNameControl peerNameControl;
+	BaseEditBrowseTextControl proxyControl = null;
 	TransportTypeControl transportTypeControl;
 	TransportTypePanelControl transportTypePanelControl;
 	private PeerAttributesTablePart tablePart;
 	/* default */ Button connect = null;
+	String proxies = null;
 
 	private FormToolkit toolkit = null;
 
@@ -261,7 +273,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 			}
 			@Override
 			protected void onButtonControlSelected() {
-				PeerSelectionDialog dialog = new PeerSelectionDialog(null) {
+				LocatorNodeSelectionDialog dialog = new LocatorNodeSelectionDialog(null) {
 					@Override
 					protected String getDialogTitle() {
 					    return Messages.NewTargetWizardPage_PeerSelectionDialog_dialogTitle;
@@ -276,22 +288,32 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 					}
 				};
 
+				ILocatorNode locatorNode = getLocatorNode();
+
+				dialog.setSelection(locatorNode != null ? new StructuredSelection(locatorNode) : null);
+
 				// Open the dialog
 				if (dialog.open() == Window.OK) {
 					// Get the selected proxy from the dialog
 					ISelection selection = dialog.getSelection();
-					if (selection instanceof IStructuredSelection && !selection.isEmpty() && ((IStructuredSelection)selection).getFirstElement() instanceof IPeer) {
-						final IPeer peer = (IPeer)((IStructuredSelection)selection).getFirstElement();
-						final IPropertiesContainer data = new PropertiesContainer();
-						Protocol.invokeAndWait(new Runnable() {
-							@Override
-							public void run() {
-								for (Entry<String, String> attribute : peer.getAttributes().entrySet()) {
-			                        data.setProperty(attribute.getKey(), attribute.getValue());
-		                        }
-							}
-						});
-						setupData(data);
+					if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+						if (((IStructuredSelection)selection).getFirstElement() instanceof ILocatorNode) {
+							final IPeer peer = ((ILocatorNode)((IStructuredSelection)selection).getFirstElement()).getPeer();
+							final IPropertiesContainer data = new PropertiesContainer();
+							Protocol.invokeAndWait(new Runnable() {
+								@Override
+								public void run() {
+									for (Entry<String, String> attribute : peer.getAttributes().entrySet()) {
+										data.setProperty(attribute.getKey(), attribute.getValue());
+									}
+								}
+							});
+							setupData(data);
+						}
+						else {
+							proxies = null;
+							proxyControl.setEditFieldControlText(""); //$NON-NLS-1$
+						}
 					}
 				}
 			}
@@ -313,6 +335,17 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		peerNameControl.setHideBrowseButton(false);
 		peerNameControl.setupPanel(client);
 		peerNameControl.getEditFieldControl().setFocus();
+
+		createEmptySpace(client, 5, 2, toolkit);
+
+		proxyControl = new BaseEditBrowseTextControl(null);
+		proxyControl.setParentControlIsInnerPanel(false);
+		proxyControl.setHideBrowseButton(true);
+		proxyControl.setReadOnly(true);
+		proxyControl.setIsGroup(false);
+		proxyControl.setHasHistory(false);
+		proxyControl.setEditFieldLabel(Messages.TcpTransportSection_proxies_label);
+		proxyControl.setupPanel(client);
 
 		createEmptySpace(client, 5, 2, toolkit);
 
@@ -384,6 +417,40 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		initializeUsedNameList();
 	}
 
+	protected ILocatorNode getLocatorNode() {
+		final AtomicReference<ILocatorNode> selectedLocatorNode = new AtomicReference<ILocatorNode>();
+		if (transportTypeControl.isValid() && transportTypePanelControl.isValid()) {
+			final IPropertiesContainer transportData = new PropertiesContainer();
+			extractData(transportData);
+			Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					String proxy = transportData.getStringProperty(IPeerProperties.PROP_PROXIES);
+					String host = transportData.getStringProperty(IPeer.ATTR_IP_HOST);
+					String port = transportData.getStringProperty(IPeer.ATTR_IP_PORT);
+					String transport = transportData.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
+					String id = transport + ":" + host + ":" + port; //$NON-NLS-1$ //$NON-NLS-2$
+					Map<String, String> attrs = new HashMap<String, String>();
+					attrs.put(IPeer.ATTR_ID, id);
+					attrs.put(IPeer.ATTR_IP_HOST, host);
+					attrs.put(IPeer.ATTR_IP_PORT, port);
+					attrs.put(IPeer.ATTR_TRANSPORT_NAME, transport);
+					attrs.put(IPeerProperties.PROP_PROXIES, proxy);
+					IPeer peer = new TransientPeer(attrs);
+					ILocatorModelLookupService lkup = ModelManager.getLocatorModel()
+					                .getService(ILocatorModelLookupService.class);
+					selectedLocatorNode.set(lkup.lkupLocatorNode(peer));
+					if (selectedLocatorNode.get() == null) {
+						ILocatorModelUpdateService update = ModelManager.getLocatorModel()
+						                .getService(ILocatorModelUpdateService.class);
+						selectedLocatorNode.set(update.add(peer, true));
+					}
+				}
+			});
+		}
+		return selectedLocatorNode.get();
+	}
+
 	/**
 	 * Creates the peer attributes table controls.
 	 *
@@ -450,6 +517,31 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 	@Override
 	public void setupData(IPropertiesContainer data) {
 
+		if (proxyControl != null) {
+			proxies = data.getStringProperty(IPeerProperties.PROP_PROXIES);
+			IPeer[] proxyPeers = PeerDataHelper.decodePeerList(proxies);
+			String proxyInfo = ""; //$NON-NLS-1$
+			for (final IPeer proxy : proxyPeers) {
+				final AtomicReference<ILocatorNode> locatorNode = new AtomicReference<ILocatorNode>();
+				Protocol.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						ILocatorModelLookupService lkup = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
+						locatorNode.set(lkup.lkupLocatorNode(proxy));
+					}
+				});
+				if (proxyInfo.length() > 0) {
+					proxyInfo += " / "; //$NON-NLS-1$
+				}
+				String name = locatorNode.get() != null ? locatorNode.get().getPeer().getName() : proxy.getID();
+				if (name == null || name.trim().length() == 0) {
+					name = locatorNode.get() != null ? locatorNode.get().getPeer().getID() : proxy.getID();
+				}
+	            proxyInfo += name.trim();
+            }
+			proxyControl.setEditFieldControlText(proxyInfo);
+		}
+
 		if (data.containsKey(IPeer.ATTR_NAME) && peerNameControl != null) {
 			String name = data.getStringProperty(IPeer.ATTR_NAME);
 			int i = 1;
@@ -488,6 +580,8 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		if (getControl() == null) return;
 
 		peerAttributes.setProperty(IPeer.ATTR_ID, uuid.toString());
+
+		peerAttributes.setProperty(IPeerProperties.PROP_PROXIES, proxies);
 
 		String value = peerNameControl != null ? peerNameControl.getEditFieldControlText() : null;
 		if (value != null && !"".equals(value)) peerAttributes.setProperty(IPeer.ATTR_NAME, value); //$NON-NLS-1$

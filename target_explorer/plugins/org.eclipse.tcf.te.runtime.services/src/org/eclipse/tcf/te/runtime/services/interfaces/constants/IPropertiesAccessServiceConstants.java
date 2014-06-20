@@ -44,30 +44,12 @@ public interface IPropertiesAccessServiceConstants {
 	public static String PROP_PORT = "port"; //$NON-NLS-1$
 
 	/**
-	 * Target address to be used to construct a SSH connection.
-	 * <p>
-	 * If not specified, clients should fall back to {@link PROP_ADDRESS}.
+	 * <code>true</code> if the port is retrieved automatically.
 	 */
-	public static String PROP_SSH_ADDRESS = "ssh.address"; //$NON-NLS-1$
+	public static String PROP_PORT_IS_AUTO = "autoPort"; //$NON-NLS-1$
 
 	/**
-	 * Target port to be used to construct a SSH connection.
-	 * <p>
-	 * If not specified, clients should assume the default "22".
+	 * Proxies to connect the target through.
 	 */
-	public static String PROP_SSH_PORT = "ssh.port"; //$NON-NLS-1$
-
-	/**
-	 * Target address to be used to construct a telnet connection.
-	 * <p>
-	 * If not specified, clients should fall back to {@link PROP_ADDRESS}.
-	 */
-	public static String PROP_TELNET_ADDRESS = "telnet.address"; //$NON-NLS-1$
-
-	/**
-	 * Target port to be used to construct a telnet connection.
-	 * <p>
-	 * If not specified, clients should assume the default "23".
-	 */
-	public static String PROP_TELNET_PORT = "telnet.port"; //$NON-NLS-1$
+	public static String PROP_PROXIES = "proxies"; //$NON-NLS-1$
 }

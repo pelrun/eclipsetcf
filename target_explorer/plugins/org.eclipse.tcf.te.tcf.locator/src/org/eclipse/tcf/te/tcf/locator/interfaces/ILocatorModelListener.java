@@ -9,8 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces;
 
-import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 
 /**
  * Interface for clients to implement that wishes to listen to changes to the locator model.
@@ -18,13 +18,13 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
 public interface ILocatorModelListener {
 
 	/**
-	 * Invoked if a peer is added or removed to/from the locator model.
+	 * Invoked if a locator node is added or removed to/from the locator model.
 	 *
 	 * @param model The changed locator model.
-	 * @param peer The added/removed peer.
-	 * @param added <code>True</code> if the peer got added, <code>false</code> if it got removed.
+	 * @param locatorNode The added/removed locator node.
+	 * @param added <code>True</code> if the locator node got added, <code>false</code> if it got removed.
 	 */
-	public void modelChanged(ILocatorModel model, IPeer peer, boolean added);
+	public void modelChanged(ILocatorModel model, ILocatorNode locatorNode, boolean added);
 
 	/**
 	 * Invoked if the locator model is disposed.

@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.internal.core.RemotePeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
@@ -36,6 +37,9 @@ public class PeerModelPropertyTester extends PropertyTester {
 	public boolean test(Object receiver, final String property, final Object[] args, final Object expectedValue) {
 		if (receiver instanceof IPeer) {
 			receiver = Platform.getAdapterManager().getAdapter(receiver, IPeerNode.class);
+		}
+		if (receiver instanceof ILocatorNode) {
+			receiver = Platform.getAdapterManager().getAdapter(((ILocatorNode)receiver).getPeer(), IPeerNode.class);
 		}
 		// The receiver is expected to be a peer model node or a peer
 		if (receiver instanceof IPeerNode) {

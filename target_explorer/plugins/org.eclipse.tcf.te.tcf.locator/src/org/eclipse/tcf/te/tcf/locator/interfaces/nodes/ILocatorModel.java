@@ -9,8 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.interfaces.nodes;
 
-import java.util.List;
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.services.ILocator;
@@ -70,27 +68,18 @@ public interface ILocatorModel extends IAdaptable {
 	public boolean isDisposed();
 
 	/**
+	 * Returns the list of locator nodes.
+	 *
+	 * @return The list of locator nodes or an empty list.
+	 */
+	public ILocatorNode[] getLocatorNodes();
+
+	/**
 	 * Returns the list of known peers.
 	 *
 	 * @return The list of known peers or an empty list.
 	 */
 	public IPeer[] getPeers();
-
-	/**
-	 * Returns an unmodifiable list of known children for the given parent peer.
-	 *
-	 * @param parentPeerID The parent peer id. Must not be <code>null</code>.
-	 * @return The child list.
-	 */
-	public List<IPeer> getChildren(String parentPeerID);
-
-	/**
-	 * Sets the list of known children for the given parent peer.
-	 *
-	 * @param parentPeerID The parent peer id. Must not be <code>null</code>.
-	 * @param children The list of children or <code>null</code> to remove the parent peer.
-	 */
-	public void setChildren(String parentPeerID, List<IPeer> children);
 
 	/**
 	 * Returns the locator model service, implementing at least the specified

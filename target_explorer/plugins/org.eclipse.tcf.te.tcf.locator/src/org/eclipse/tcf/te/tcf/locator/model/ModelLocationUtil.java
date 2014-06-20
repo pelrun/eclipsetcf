@@ -45,4 +45,30 @@ public final class ModelLocationUtil {
 
 		return null;
 	}
+
+	/**
+	 * Returns the local static locators storage root location.
+	 *
+	 * @return The root location or <code>null</code> if the location cannot be determined.
+	 */
+	public static IPath getStaticLocatorsRootLocation() {
+		try {
+			File file = CoreBundleActivator.getDefault().getStateLocation().append(".locators").toFile(); //$NON-NLS-1$
+			boolean exists = file.exists();
+			if (!exists) exists = file.mkdirs();
+			if (exists && file.canRead() && file.isDirectory()) {
+				return new Path(file.toString());
+			}
+		} catch (IllegalStateException e) {
+			/* ignored on purpose */
+		}
+
+		// The users local peers lookup directory is $HOME/.tcf/.peers.
+		File file = new Path(System.getProperty("user.home")).append(".tcf/.locators").toFile(); //$NON-NLS-1$ //$NON-NLS-2$
+		if (file.canRead() && file.isDirectory()) {
+			return new Path(file.toString());
+		}
+
+		return null;
+	}
 }

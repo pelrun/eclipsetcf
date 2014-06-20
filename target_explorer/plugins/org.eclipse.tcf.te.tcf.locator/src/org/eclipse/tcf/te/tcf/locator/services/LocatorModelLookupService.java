@@ -10,12 +10,16 @@
 package org.eclipse.tcf.te.tcf.locator.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
+import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorModel;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService;
 
 
@@ -86,5 +90,106 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 		}
 
 		return nodes.toArray(new IPeer[nodes.size()]);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupLocatorNodeById(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode, java.lang.String)
+	 */
+	@Override
+	public ILocatorNode[] lkupLocatorNodeById(ILocatorNode parent, String id) {
+		Assert.isNotNull(id);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		List<ILocatorNode> locatorNodes;
+		if (parent != null) {
+			locatorNodes = parent.getChildren(ILocatorNode.class);
+		}
+		else {
+			locatorNodes = Arrays.asList(getLocatorModel().getLocatorNodes());
+		}
+
+		List<ILocatorNode> nodes = new ArrayList<ILocatorNode>();
+		for (ILocatorNode node : locatorNodes) {
+			if (id.equals(node.getPeer().getID())) {
+				nodes.add(node);
+			}
+		}
+
+		return nodes.toArray(new ILocatorNode[nodes.size()]);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupLocatorNodeByAgentId(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode, java.lang.String)
+	 */
+	@Override
+	public ILocatorNode[] lkupLocatorNodeByAgentId(ILocatorNode parent, String agentId) {
+		Assert.isNotNull(agentId);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		List<ILocatorNode> locatorNodes;
+		if (parent != null) {
+			locatorNodes = parent.getChildren(ILocatorNode.class);
+		}
+		else {
+			locatorNodes = Arrays.asList(getLocatorModel().getLocatorNodes());
+		}
+
+		List<ILocatorNode> nodes = new ArrayList<ILocatorNode>();
+		for (ILocatorNode node : locatorNodes) {
+			if (agentId.equals(node.getPeer().getAgentID())) {
+				nodes.add(node);
+			}
+		}
+
+		return nodes.toArray(new ILocatorNode[nodes.size()]);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelLookupService#lkupLocatorNode(org.eclipse.tcf.protocol.IPeer)
+	 */
+	@Override
+	public ILocatorNode lkupLocatorNode(IPeer peer) {
+		Assert.isNotNull(peer);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		String encProxies = peer.getAttributes().get(IPeerProperties.PROP_PROXIES);
+		IPeer[] proxies = PeerDataHelper.decodePeerList(encProxies);
+
+		ILocatorNode parent = null;
+
+		for (IPeer proxy : proxies) {
+			String agentId = proxy.getAgentID();
+			String id = proxy.getID();
+			ILocatorNode[] nodes = null;
+			if (agentId != null) {
+		        nodes = lkupLocatorNodeByAgentId(parent, agentId);
+			}
+			if ((nodes == null || nodes.length == 0 ) && id != null) {
+		        nodes = lkupLocatorNodeById(parent, id);
+			}
+
+			if (nodes != null && nodes.length > 0) {
+				parent = nodes[0];
+			}
+			else {
+				parent = null;
+				break;
+			}
+        }
+
+		String agentId = peer.getAgentID();
+		String id = peer.getID();
+		ILocatorNode[] nodes = null;
+		if (agentId != null) {
+	        nodes = lkupLocatorNodeByAgentId(parent, agentId);
+		}
+		if ((nodes == null || nodes.length == 0 ) && id != null) {
+	        nodes = lkupLocatorNodeById(parent, id);
+		}
+		if (nodes != null && nodes.length > 0) {
+			return nodes[0];
+		}
+
+	    return null;
 	}
 }

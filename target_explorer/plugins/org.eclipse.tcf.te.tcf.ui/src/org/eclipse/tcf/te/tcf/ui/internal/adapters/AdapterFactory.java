@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.ui.internal.adapters;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
 import org.eclipse.tcf.te.ui.views.interfaces.IEditorSaveAsAdapter;
@@ -42,6 +43,12 @@ public class AdapterFactory implements IAdapterFactory {
 	 */
 	@Override
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
+		if (adaptableObject instanceof ILocatorNode) {
+			if (ILabelProvider.class.equals(adapterType)) {
+				return labelProvider;
+			}
+		}
+
 		if (adaptableObject instanceof IPeer) {
 			if (ILabelProvider.class.equals(adapterType)) {
 				return labelProvider;

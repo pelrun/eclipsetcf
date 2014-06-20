@@ -61,6 +61,14 @@
       </propertyTester>
 
       <propertyTester
+            class="org.eclipse.tcf.te.tcf.locator.internal.PeerModelPropertyTester"
+            id="org.eclipse.tcf.te.tcf.locator.LocatorModelPropertyTester2"
+            namespace="org.eclipse.tcf.te.tcf.locator"
+            properties="name,nameRegex,osName,osNameRegex,hasLocalService,hasRemoteService,hasOfflineService,hasAttribute,isAttribute,isProxy,isValueAdd,isOfType,isRemotePeer"
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode">
+      </propertyTester>
+
+      <propertyTester
             class="org.eclipse.tcf.te.tcf.locator.internal.SimulatorPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.SimulatorPropertyTester"
             namespace="org.eclipse.tcf.te.tcf.locator"

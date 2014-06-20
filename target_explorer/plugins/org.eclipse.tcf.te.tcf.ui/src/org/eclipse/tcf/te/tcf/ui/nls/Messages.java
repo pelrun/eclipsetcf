@@ -69,6 +69,7 @@ public class Messages extends NLS {
 
 	public static String TcpTransportSection_title;
 	public static String TcpTransportSection_description;
+	public static String TcpTransportSection_proxies_label;
 
 	public static String ServicesSection_title;
 	public static String ServicesSection_description;
@@ -144,9 +145,16 @@ public class Messages extends NLS {
 
 	public static String DeleteHandlerDelegate_MsgDeleteOnePeer;
 
-	public static String PeerSelectionDialog_dialogTitle;
-	public static String PeerSelectionDialog_title;
-	public static String PeerSelectionDialog_message;
+	public static String LocatorNodeSelectionDialog_dialogTitle;
+	public static String LocatorNodeSelectionDialog_title;
+	public static String LocatorNodeSelectionDialog_message;
+	public static String LocatorNodeSelectionDialog_button_add;
+	public static String LocatorNodeSelectionDialog_button_delete;
+	public static String LocatorNodeSelectionDialog_button_refresh;
+
+	public static String LocatorNodeSelectionDialog_add_dialogTitle;
+	public static String LocatorNodeSelectionDialog_add_title;
+	public static String LocatorNodeSelectionDialog_add_message;
 
 	public static String PeerNodeSelectionDialog_dialogTitle;
 	public static String PeerNodeSelectionDialog_title;
@@ -186,6 +194,7 @@ public class Messages extends NLS {
 
 	public static String TargetSelectorSection_title;
 	public static String TargetSelectorSection_button_enableSimulator;
+	public static String TargetSelectorSection_button_configure;
 	public static String TargetSelectorSection_button_enableReal;
 
 	public static String SimulatorTypeSelectionControl_label;

@@ -116,10 +116,10 @@ public final class ModelManager {
 		if (peerModel == null) {
 			// Create the model instance
 			IPeerModel model = new PeerModel();
-			// Refresh the model right away
-			model.getService(IPeerModelRefreshService.class).refresh(null);
 			// Apply to the global variable
 			peerModel = model;
+			// Refresh the model right away
+			model.getService(IPeerModelRefreshService.class).refresh(null);
 		}
 
 		// If locator model is set in the mean while, initialize got
@@ -128,10 +128,10 @@ public final class ModelManager {
 			// Create the model instance
 			ILocatorModel model = new LocatorModel();
 			// Refresh the model right away
-			model.getService(ILocatorModelRefreshService.class).refresh(null);
-			((LocatorModel)model).checkLocatorListener();
 			// Apply to the global variable
 			locatorModel = model;
+			model.getService(ILocatorModelRefreshService.class).refresh(null);
+			((LocatorModel)model).checkLocatorListener();
 		}
 	}
 

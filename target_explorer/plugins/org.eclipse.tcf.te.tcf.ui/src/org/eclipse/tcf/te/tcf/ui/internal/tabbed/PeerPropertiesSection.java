@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.tabbed.AbstractMapPropertiesSection;
 import org.eclipse.ui.IWorkbenchPart;
@@ -35,7 +36,10 @@ public class PeerPropertiesSection extends AbstractMapPropertiesSection {
 	    super.setInput(part, selection);
         Assert.isTrue(selection instanceof IStructuredSelection);
         Object input = ((IStructuredSelection) selection).getFirstElement();
-        if (input instanceof IPeer) {
+        if (input instanceof ILocatorNode) {
+        	peer = ((ILocatorNode)input).getPeer();
+        }
+        else if (input instanceof IPeer) {
         	peer = (IPeer)input;
         }
         else {
