@@ -11,7 +11,9 @@ package org.eclipse.tcf.te.tcf.locator.steps;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -46,7 +48,15 @@ public class StopDebuggerStep extends AbstractPeerNodeStep {
 		IDebugService dbgService = ServiceManager.getInstance().getService(getActivePeerModelContext(context, data, fullQualifiedId), IDebugService.class, false);
 		if (dbgService != null) {
 			IPropertiesContainer props = new PropertiesContainer();
-			dbgService.detach(getActivePeerModelContext(context, data, fullQualifiedId), props, monitor, callback);
+			dbgService.detach(getActivePeerModelContext(context, data, fullQualifiedId), props, monitor, new Callback() {
+				/* (non-Javadoc)
+				 * @see org.eclipse.tcf.te.runtime.callback.Callback#internalDone(java.lang.Object, org.eclipse.core.runtime.IStatus)
+				 */
+				@Override
+				protected void internalDone(Object caller, IStatus status) {
+					callback.done(this, Status.OK_STATUS);
+				}
+			});
 		}
 		else {
 			callback.done(this, Status.OK_STATUS);

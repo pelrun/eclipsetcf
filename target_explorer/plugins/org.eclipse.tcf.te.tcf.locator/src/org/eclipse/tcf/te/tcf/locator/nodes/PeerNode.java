@@ -450,7 +450,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     	int state = getConnectState();
     	switch (state) {
     		case STATE_CONNECTION_LOST:
-				return isAllowedStateOrAction(newState, STATE_CONNECTION_RECOVERING);
+				return isAllowedStateOrAction(newState, STATE_DISCONNECTED, STATE_CONNECTION_RECOVERING);
     		case STATE_CONNECTION_RECOVERING:
 				return isAllowedStateOrAction(newState, STATE_CONNECTED, STATE_DISCONNECT_SCHEDULED, STATE_DISCONNECTING, STATE_DISCONNECTED);
 			case STATE_CONNECTED:
