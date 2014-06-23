@@ -1100,9 +1100,16 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 					@Override
 					public void onChannelOpened() {
 						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_succeeded,
-																				 new Object[] { valueAddPeer.get().getID(), finChannel.getRemotePeer().getID(), Integer.valueOf(index.get()) }),
-																		0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+							if (index.get() == 0) {
+								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_succeeded,
+												 							new Object[] { valueAddPeer.get().getID(), Integer.valueOf(index.get()), id }),
+												 							0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+
+							} else {
+								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_succeeded,
+																					 new Object[] { valueAddPeer.get().getID(), finChannel.getRemotePeer().getID(), Integer.valueOf(index.get()) }),
+																					 0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+							}
 						}
 
 						// Channel opened. Check if we are done.
@@ -1133,7 +1140,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 							}
 
 							// Redirect the channel to the next value-add in chain
-							finChannel.redirect(nextValueAddPeer.get().getAttributes());
+							finChannel.redirect(valueAddPeer.get().getAttributes());
 						}
 					}
 
@@ -1143,9 +1150,15 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 						finChannel.removeChannelListener(this);
 
 						if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-							CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_failed, valueAddPeer.get().getID(),
-																				 nextValueAddPeer.get() != null ? nextValueAddPeer.get().getID() : id),
-																		0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+							if (index.get() == 0) {
+								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_failed,
+												 							new Object[] { valueAddPeer.get().getID(), Integer.valueOf(index.get()), id }),
+												 							0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+
+							} else {
+								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_redirect_failed, finChannel.getRemotePeer().getID(), valueAddPeer.get().getID()),
+																					 0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
+							}
 						}
 
 						// Clean the reference counter and the channel map
@@ -1162,18 +1175,6 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 					}
 				};
 				channel.addChannelListener(finChannelListener);
-
-				// Redirect the channel to the next value-add in chain
-				// Note: If the redirect succeeds, channel.getRemotePeer().getID() will be identical to id.
-				if (nextValueAddPeer.get() != null) {
-					channel.redirect(nextValueAddPeer.get().getAttributes());
-				} else {
-					// Remove ourself as channel listener
-					finChannel.removeChannelListener(finChannelListener);
-
-					// No other value-add in the chain -> all done
-					done.doneChainValueAdd(null, finChannel);
-				}
 			} else {
 				// Channel is null? Something went terrible wrong.
 				done.doneChainValueAdd(new Exception("Unexpected null return value from IPeer#openChannel()!"), null); //$NON-NLS-1$

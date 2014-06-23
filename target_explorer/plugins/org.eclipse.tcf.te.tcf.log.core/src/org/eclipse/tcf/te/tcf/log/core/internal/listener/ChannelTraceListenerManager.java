@@ -80,11 +80,15 @@ public class ChannelTraceListenerManager {
 		// The trace listeners can be accessed only via AbstractChannel
 		if (!(channel instanceof AbstractChannel)) return;
 
-		// If the channel is opened to a ValueAdd, do not write a log file.
-		// Logging for value-add's is done through the value-add itself
+		// If the locator events shall be logged, we need to log the communication
+		// to the value-adds as well.
+		boolean locatorEvents =  CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS);
+
+		// If the channel is opened to a ValueAdd, do not write a log file (except
+		// if the locator communication logging is enabled).
 		String value = channel.getRemotePeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
 		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
-		if (isValueAdd) return;
+		if (isValueAdd && !locatorEvents) return;
 
 		// Get the preference key if or if not logging is enabled
 		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
@@ -107,7 +111,8 @@ public class ChannelTraceListenerManager {
 		String message = NLS.bind(Messages.ChannelTraceListener_channelOpened_message,
 								  new Object[] {
 										date,
-										Integer.toHexString(channel.hashCode())
+										Integer.toHexString(channel.hashCode()),
+										isValueAdd ?  "[" + channel.getRemotePeer().getID() + "]" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 								  });
 
 		// Get the file writer

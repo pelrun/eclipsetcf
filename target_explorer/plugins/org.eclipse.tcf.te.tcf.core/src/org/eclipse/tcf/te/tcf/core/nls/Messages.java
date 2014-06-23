@@ -85,6 +85,8 @@ public class Messages extends NLS {
 	public static String ChannelManager_openChannel_valueAdd_launch_exception;
 	public static String ChannelManager_openChannel_valueAdd_startChaining;
 	public static String ChannelManager_openChannel_proxies_startChaining;
+	public static String ChannelManager_openChannel_succeeded;
+	public static String ChannelManager_openChannel_failed;
 	public static String ChannelManager_openChannel_redirect_succeeded;
 	public static String ChannelManager_openChannel_redirect_failed;
 	public static String ChannelManager_openChannel_redirect_invalidChannelState;

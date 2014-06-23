@@ -274,6 +274,11 @@ public final class LogManager implements IProtocolStateChangeListener {
 		// Get the peer name
 		logName = peer.getName();
 
+		// If the locator communication logging is enabled, it will make sense to
+		// also log communication to the proxies which may not have a name attribute set
+		boolean locatorEvents =  CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS);
+		if (locatorEvents && logName == null) logName = peer.getID();
+
 		if (logName != null) {
 			// Get the peer host IP address
 			String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
