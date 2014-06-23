@@ -61,8 +61,12 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 		if (encProxies == null || encProxies.trim().length() == 0) {
 			Map<String, ILocatorNode> locatorNodes = (Map<String, ILocatorNode>)getLocatorModel().getAdapter(Map.class);
 			Assert.isNotNull(locatorNodes);
-			locatorNode = new LocatorNode(peer, isStatic);
-			locatorNodes.put(peer.getID(), locatorNode);
+			ILocatorModelLookupService lkup = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
+			locatorNode = lkup.lkupLocatorNode(peer);
+			if (locatorNode == null) {
+				locatorNode = new LocatorNode(peer, isStatic);
+				locatorNodes.put(peer.getID(), locatorNode);
+			}
 		}
 		else {
 			IPeer[] proxies = PeerDataHelper.decodePeerList(encProxies);

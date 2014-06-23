@@ -207,7 +207,7 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
 						final ILocatorModelLookupService lkup = ModelManager.getLocatorModel().getService(ILocatorModelLookupService.class);
 						ILocatorModelRefreshService refresh = ModelManager.getLocatorModel().getService(ILocatorModelRefreshService.class);
 						ILocatorNode node = lkup.lkupLocatorNode(peer);
-						if (node == null) {
+						if (node == null || !node.isStatic()) {
 							try {
 								IURIPersistenceService persistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
 								String id = peer.getID();
