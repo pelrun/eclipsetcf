@@ -215,6 +215,9 @@ public class LoggingPreferencePage extends FieldEditorPreferencePage implements 
 		store.setDefault(IPreferenceKeys.PREF_MONITOR_ENABLED, prefs.getDefaultBoolean(IPreferenceKeys.PREF_MONITOR_ENABLED));
 		store.setValue(IPreferenceKeys.PREF_MONITOR_ENABLED, prefs.getBoolean(IPreferenceKeys.PREF_MONITOR_ENABLED));
 
+		store.setDefault(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS, prefs.getDefaultBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS));
+		store.setValue(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS, prefs.getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS));
+
 		store.setDefault(IPreferenceKeys.PREF_SHOW_HEARTBEATS, prefs.getDefaultBoolean(IPreferenceKeys.PREF_SHOW_HEARTBEATS));
 		store.setValue(IPreferenceKeys.PREF_SHOW_HEARTBEATS, prefs.getBoolean(IPreferenceKeys.PREF_SHOW_HEARTBEATS));
 
@@ -244,6 +247,7 @@ public class LoggingPreferencePage extends FieldEditorPreferencePage implements 
 	        prefs.putBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED, store.getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED));
 	        prefs.putBoolean(IPreferenceKeys.PREF_MONITOR_ENABLED, store.getBoolean(IPreferenceKeys.PREF_MONITOR_ENABLED));
 
+	        prefs.putBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS, store.getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS));
 	        prefs.putBoolean(IPreferenceKeys.PREF_SHOW_HEARTBEATS, store.getBoolean(IPreferenceKeys.PREF_SHOW_HEARTBEATS));
 	        prefs.putBoolean(IPreferenceKeys.PREF_SHOW_FRAMEWORK_EVENTS, store.getBoolean(IPreferenceKeys.PREF_SHOW_FRAMEWORK_EVENTS));
 
