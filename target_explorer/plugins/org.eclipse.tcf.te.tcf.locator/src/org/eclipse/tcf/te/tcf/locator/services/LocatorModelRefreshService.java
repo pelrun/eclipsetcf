@@ -349,11 +349,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 						}
 					}
 					for (ILocatorNode old : oldChildren) {
-						if (old.isStatic()) {
-							old.setProperty(IPeerNodeProperties.PROP_INSTANCE, old
-							                .getProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE));
-						}
-						else {
+						if (!old.isStatic()) {
 							locatorNode.remove(old, true);
 						}
 					}
