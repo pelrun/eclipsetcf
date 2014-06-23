@@ -17,12 +17,14 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -333,13 +335,23 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
 		return ModelManager.getLocatorModel();
 	}
 
+	/**
+	 * A styled label provider for the target selection list.
+	 */
+	static class TargetStyledLabelProvider extends DelegatingLabelProvider implements IStyledLabelProvider {
+		@Override
+        public StyledString getStyledText(Object element) {
+	        return new StyledString(getText(element));
+        }
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractTreeSelectionDialog#getLabelProvider()
 	 */
 	@Override
 	protected IBaseLabelProvider getLabelProvider() {
-		DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
-		return new DecoratingLabelProvider(labelProvider, labelProvider);
+		TargetStyledLabelProvider labelProvider = new TargetStyledLabelProvider();
+		return new DecoratingStyledCellLabelProvider(labelProvider, labelProvider, null);
 	}
 
 	/* (non-Javadoc)
