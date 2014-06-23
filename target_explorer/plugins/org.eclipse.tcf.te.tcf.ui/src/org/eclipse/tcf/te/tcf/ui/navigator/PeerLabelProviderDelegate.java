@@ -100,6 +100,10 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			if (name == null) {
 				name = ((ILocatorNode)element).getPeer().getID();
 			}
+			else {
+//				name += "  (" + ((ILocatorNode)element).getPeer().getAttributes().get(IPeer.ATTR_IP_HOST) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+			}
+
 			return name;
 		}
 		else if (element instanceof IModelNode) {
@@ -186,22 +190,15 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	 * @see org.eclipse.jface.viewers.ILabelDecorator#decorateText(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public String decorateText(final String text, final Object element) {
-//		String label = text;
-//
-//		if (element instanceof IConnectable) {
-//			final StringBuilder builder = new StringBuilder(label != null && !"".equals(label.trim()) ? label.trim() : "<noname>"); //$NON-NLS-1$ //$NON-NLS-2$
-//
-//			builder.append(" ["); //$NON-NLS-1$
-//			builder.append(ConnectStateHelper.getConnectState(((IConnectable)element).getConnectState()));
-//			builder.append("]"); //$NON-NLS-1$
-//
-//			label = builder.toString();
-//
-//			if (!"".equals(label.trim()) && !"<noname>".equals(label.trim())) { //$NON-NLS-1$ //$NON-NLS-2$
-//				return label;
-//			}
-//		}
+	public String decorateText(String text, Object element) {
+		if (element instanceof ILocatorNode) {
+			String ip = ((ILocatorNode)element).getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
+
+			if (!text.contains(ip)) {
+				text += " (" + ip + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+				return text;
+			}
+		}
 		return null;
 	}
 }

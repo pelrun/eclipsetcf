@@ -127,8 +127,8 @@ public abstract class AbstractTreeSelectionDialog extends CustomTitleAreaDialog 
 		tree.setLayout(treeLayout);
 
 	    GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
-	    layoutData.minimumWidth = 150;
 	    layoutData.minimumHeight = 150;
+	    layoutData.minimumWidth = 200;
 	    tree.setLayoutData(layoutData);
 
 	    viewer.setContentProvider(getContentProvider());

@@ -375,6 +375,9 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 				if (name == null || name.trim().length() == 0) {
 					name = locatorNode.get() != null ? locatorNode.get().getPeer().getID() : proxy.getID();
 				}
+				else if (locatorNode.get() != null) {
+					name += "  (" + locatorNode.get().getPeer().getAttributes().get(IPeer.ATTR_IP_HOST) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
 	            proxyInfo += name.trim();
             }
 			proxyControl.setEditFieldControlText(proxyInfo);

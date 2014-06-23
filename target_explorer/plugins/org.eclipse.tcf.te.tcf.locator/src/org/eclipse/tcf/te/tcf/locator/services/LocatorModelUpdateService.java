@@ -67,6 +67,9 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 				locatorNode = new LocatorNode(peer, isStatic);
 				locatorNodes.put(peer.getID(), locatorNode);
 			}
+			else if (isStatic) {
+				locatorNode.setProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE, peer);
+			}
 		}
 		else {
 			IPeer[] proxies = PeerDataHelper.decodePeerList(encProxies);

@@ -17,17 +17,15 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -340,37 +338,8 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
 	 */
 	@Override
 	protected IBaseLabelProvider getLabelProvider() {
-	    return new CellLabelProvider() {
-	    	ILabelProvider baseLabelProvider = new DelegatingLabelProvider();
-
-	    	/* (non-Javadoc)
-	    	 * @see org.eclipse.jface.viewers.CellLabelProvider#update(org.eclipse.jface.viewers.ViewerCell)
-	    	 */
-	    	@Override
-	    	public void update(ViewerCell cell) {
-	    		cell.setText(baseLabelProvider.getText(cell.getElement()));
-	    		cell.setImage(baseLabelProvider.getImage(cell.getElement()));
-	    	}
-
-	    	/* (non-Javadoc)
-	    	 * @see org.eclipse.jface.viewers.CellLabelProvider#getToolTipText(java.lang.Object)
-	    	 */
-	    	@Override
-            public String getToolTipText(Object element) {
-	    		if (element instanceof ILocatorNode) {
-	    			Map<String,String> attrs = ((ILocatorNode)element).getPeer().getAttributes();
-	    			String tooltip = null;
-	    			if (attrs.get(IPeer.ATTR_IP_HOST) != null) {
-	    				tooltip = attrs.get(IPeer.ATTR_IP_HOST);
-		    			if (attrs.get(IPeer.ATTR_IP_PORT) != null) {
-		    				tooltip += " : " + attrs.get(IPeer.ATTR_IP_PORT); //$NON-NLS-1$
-		    			}
-	    			}
-	    			return tooltip;
-	    		}
-	    		return null;
-	    	}
-	    };
+		DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
+		return new DecoratingLabelProvider(labelProvider, labelProvider);
 	}
 
 	/* (non-Javadoc)
