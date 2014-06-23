@@ -212,11 +212,11 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
 								IURIPersistenceService persistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
 								String id = peer.getID();
 								String name = id.replaceAll("\\W", "_").trim(); //$NON-NLS-1$ //$NON-NLS-2$
-								IPath basePath = ModelLocationUtil.getStaticLocatorsRootLocation().append(name);
-								IPath path = basePath.addFileExtension("locator"); //$NON-NLS-1$
+								IPath basePath = ModelLocationUtil.getStaticLocatorsRootLocation();
+								IPath path = basePath.append(name).addFileExtension("locator"); //$NON-NLS-1$
 								int i = 0;
 								while (path.toFile().exists()) {
-									path = basePath.append("_"+i).addFileExtension("locator"); //$NON-NLS-1$ //$NON-NLS-2$
+									path = basePath.append(name+"_"+i).addFileExtension("locator"); //$NON-NLS-1$ //$NON-NLS-2$
 								}
 								persistenceService.write(peer, path.toFile().toURI());
 							}
