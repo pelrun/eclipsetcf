@@ -31,6 +31,7 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.te.runtime.callback.Callback;
@@ -1398,7 +1399,18 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 					channel.removeChannelListener(this);
 
 					// No other proxy is in the chain -> reached the target -> all done
-					done.doneChainProxies(null, channel);
+					// HACK * HACK * HACK (is eh nur kurz drin sagt Tobias)
+					IDiagnostics svc = channel.getRemoteService(IDiagnostics.class);
+					if (svc != null) {
+						svc.echo("WRHost_FS.enable", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
+							@Override
+							public void doneEcho(IToken token, Throwable error, String s) {
+								done.doneChainProxies(null, channel);
+							}
+						});
+					} else {
+						done.doneChainProxies(null, channel);
+					}
 				} else {
 					// Update the proxy reference
 					proxy.set(nextProxy.get());
