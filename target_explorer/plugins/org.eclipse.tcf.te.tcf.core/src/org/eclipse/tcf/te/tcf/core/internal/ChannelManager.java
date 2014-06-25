@@ -1402,7 +1402,7 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 					// HACK * HACK * HACK (is eh nur kurz drin sagt Tobias)
 					IDiagnostics svc = channel.getRemoteService(IDiagnostics.class);
 					if (svc != null) {
-						svc.echo("WRHost_FS.enable", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
+						svc.echo("WR_HostFsSendCommands", new IDiagnostics.DoneEcho() { //$NON-NLS-1$
 							@Override
 							public void doneEcho(IToken token, Throwable error, String s) {
 								done.doneChainProxies(null, channel);
