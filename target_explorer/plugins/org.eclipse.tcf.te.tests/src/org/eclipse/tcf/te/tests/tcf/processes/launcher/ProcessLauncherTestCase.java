@@ -115,7 +115,7 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 		});
 
 		// Wait for the output reader to finish
-		int counter = 80;
+		int counter = 240;
 		while (counter > 0) {
 			if (proxy.getOutputReader() != null && proxy.getOutputReader().isFinished()) break;
 			waitAndDispatch(500);
