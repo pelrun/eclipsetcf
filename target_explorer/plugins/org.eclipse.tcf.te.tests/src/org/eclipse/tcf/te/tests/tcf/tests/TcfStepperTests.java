@@ -75,7 +75,7 @@ public class TcfStepperTests extends TcfTestCase {
 		IChannel channel = (IChannel)properties.getProperty(ITcfStepAttributes.ATTR_CHANNEL);
 		assertNotNull("Failed to create channel.", channel); //$NON-NLS-1$
 		assertTrue("Failed to open channel.", properties.getBooleanProperty("ValidateChannelStep.result")); //$NON-NLS-1$ //$NON-NLS-2$
-		assertTrue("Failed to close channel.", channel.getState() == IChannel.STATE_CLOSED); //$NON-NLS-1$
+		assertTrue("Failed to close channel. Channel state = " + channel.getState(), channel.getState() == IChannel.STATE_CLOSED); //$NON-NLS-1$
 	}
 
 }
