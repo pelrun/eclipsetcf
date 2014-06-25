@@ -106,7 +106,7 @@
 		
 		<profile>
 			<id>validate</id>
-			<!-- The validate profile is does work only inside the WR network. -->
+			<!-- The validate profile does work only inside the WR network. -->
 			<!-- The profile requires a custom plug-in to generate the validation report -->
 			
 			<pluginRepositories>
