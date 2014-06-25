@@ -1,0 +1,7 @@
+org.eclipse.tcf.te.runtime/debugmode = 3
+org.eclipse.tcf.te.runtime/trace/events = false
+org.eclipse.tcf.te.runtime/trace/callbacks = false
+
+org.eclipse.tcf.te.tcf.core/trace/channels = false
+org.eclipse.tcf.te.tcf.core/trace/channelManager = true
+org.eclipse.tcf.te.tcf.core/trace/channelManager/streamsListenerProxy = false

@@ -39,9 +39,14 @@
 							<testClass>org.eclipse.tcf.te.tests.suites.AllTests</testClass>
 							<useUIHarness>true</useUIHarness>
 							<useUIThread>true</useUIThread>
+							<showEclipseLog>true</showEclipseLog>
 							<!--
 							<debugPort>8003</debugPort>
 							-->
+				    
+						    <systemProperties>
+						        <osgi.debug>${basedir}/tracing/.options</osgi.debug>
+						    </systemProperties>
 							<product>org.eclipse.platform.ide</product>
 							<argLine>${tycho.testArgLine} ${ui.test.vmargs}</argLine>
 							<testFailureIgnore>true</testFailureIgnore>
