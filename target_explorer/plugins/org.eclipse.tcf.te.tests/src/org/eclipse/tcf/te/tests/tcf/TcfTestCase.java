@@ -23,6 +23,9 @@ import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
@@ -60,6 +63,12 @@ public class TcfTestCase extends CoreTestCase {
 	 */
 	@Override
 	protected void tearDown() throws Exception {
+		if (peerNode != null && peerNode.isConnectStateChangeActionAllowed(IConnectable.ACTION_DISCONNECT)) {
+			Callback cb = new Callback();
+			peerNode.changeConnectState(IConnectable.ACTION_DISCONNECT, cb, null);
+			ExecutorsUtil.waitAndExecute(60000, cb.getDoneConditionTester(null));
+		}
+
 		if (launcher != null) launcher.dispose();
 		if (peerNode != null) {
 			Runnable runnable = new Runnable() {
