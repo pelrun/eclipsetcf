@@ -22,6 +22,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.ui.AbstractSourceProvider;
 import org.eclipse.ui.ISources;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.services.IEvaluationService;
 import org.eclipse.ui.services.IServiceLocator;
 
@@ -107,7 +108,16 @@ public class SourceProvider extends AbstractSourceProvider implements IEventList
     		ChangeEvent changeEvent = (ChangeEvent)event;
     		if (changeEvent.getSource() instanceof IDefaultContextService || changeEvent.getSource() == defaultContext) {
     			defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
-    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, defaultContext != null ? defaultContext : IEvaluationContext.UNDEFINED_VARIABLE);
+    			// Fire the source changed notification within the UI thread
+    			if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
+    				PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+						@SuppressWarnings("synthetic-access")
+                        @Override
+						public void run() {
+			    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, defaultContext != null ? defaultContext : IEvaluationContext.UNDEFINED_VARIABLE);
+						}
+					});
+    			}
     		}
     	}
     }
