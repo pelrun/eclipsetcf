@@ -675,7 +675,7 @@ public final class FSTreeNode extends AbstractTreeNode implements Cloneable, IFi
             }
         }
         else {
-            callback.done(this, Status.OK_STATUS);
+            if (callback != null) callback.done(this, Status.OK_STATUS);
         }
     }
 }
