@@ -73,6 +73,7 @@ public class ProcessOutputReaderThread extends Thread {
 		// connect to a stream reader
 		reader = new BufferedReader[streams.length];
 		for (int i = 0; i < streams.length; i++) {
+			CoreBundleActivator.getTraceHandler().trace(getPrefix() + " Input stream type (index " + i + ": " + streams[i].getClass().getName(), 3, this); //$NON-NLS-1$ //$NON-NLS-2$
 			reader[i] = new BufferedReader(new InputStreamReader(streams[i]));
 		}
 
@@ -242,7 +243,10 @@ public class ProcessOutputReaderThread extends Thread {
 				if (reader[i] == null) {
 					continue;
 				}
+
+				CoreBundleActivator.getTraceHandler().trace(getPrefix() + " calling readAvailableInput", 3, this); //$NON-NLS-1$
 				int bytesRead = readAvailableInput(reader[i]);
+				CoreBundleActivator.getTraceHandler().trace(getPrefix() + " readAvailableInput returned. bytesRead = " + bytesRead, 3, this); //$NON-NLS-1$
 
 				// If readAvailableInput(...) returns 0 and the stream read is a PipedInputStream,
 				// we need to know if the stream got closed by the writer
