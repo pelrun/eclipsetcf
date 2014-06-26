@@ -52,12 +52,11 @@
 		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git</tycho.scmUrl>
 
 		<!-- P2 repository URL's -->
-		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.5 (Kepler) -->
+		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.6 (Luna) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
-		<license-site-staging>http://download.eclipse.org/cbi/staging</license-site-staging>
         <cdt-site>http://download.eclipse.org/tools/cdt/builds/kepler/milestones</cdt-site>
-		<tm-site>http://download.eclipse.org/tm/builds/luna/nightly</tm-site>
+		<tm-site>http://download.eclipse.org/tm/updates/3.6</tm-site>
 		<!-- RXTX is unresponsive. Take it out for now -->
 		<!-- <rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site> -->
 		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
@@ -69,11 +68,6 @@
         <repository>
             <id>license-feature</id>
             <url>${license-site}</url>
-            <layout>p2</layout>
-        </repository>	
-        <repository>
-            <id>license-feature-staging</id>
-            <url>${license-site-staging}</url>
             <layout>p2</layout>
         </repository>	
 		<repository>
