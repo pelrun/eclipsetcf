@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.expressions.IEvaluationContext;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
@@ -109,7 +110,9 @@ public class SourceProvider extends AbstractSourceProvider implements IEventList
     		if (changeEvent.getSource() instanceof IDefaultContextService || changeEvent.getSource() == defaultContext) {
     			defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
     			// Fire the source changed notification within the UI thread
-    			if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
+    			if (Display.getCurrent() != null) {
+	    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, defaultContext != null ? defaultContext : IEvaluationContext.UNDEFINED_VARIABLE);
+    			} else if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
     				PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 						@SuppressWarnings("synthetic-access")
                         @Override
