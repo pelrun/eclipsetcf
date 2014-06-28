@@ -11,6 +11,8 @@
 package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.DebugPlugin;
@@ -1477,7 +1479,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 }
                 else {
                     if (!field_node.appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
-                            field_data, 0, field_data.length, big_endian, done)) return false;
+                            field_data, 0, field_data.length, field_value.isBigEndian(), done)) return false;
                 }
                 cnt++;
                 continue;
@@ -1679,36 +1681,95 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             data, 0, data.length, big_endian, done)) return false;
                     }
                 }
-                int cnt = 0;
-                String reg_id = v.getRegisterID();
-                if (reg_id != null) {
-                    String nm = getRegisterName(reg_id, done);
-                    if (nm == null) return false;
-                    bf.append("Register: ", SWT.BOLD);
-                    bf.append(nm);
-                    cnt++;
-                }
-                TCFDataCache<ISymbols.Symbol> field_cache = model.getSymbolInfoCache(field_id);
-                if (field_cache != null) {
-                    if (!field_cache.validate(done)) return false;
-                    ISymbols.Symbol field_props = field_cache.getData();
-                    if (field_props != null && field_props.getProperties().get(ISymbols.PROP_OFFSET) != null) {
-                        if (cnt > 0) bf.append(", ");
-                        bf.append("Offset: ", SWT.BOLD);
-                        bf.append(Integer.toString(field_props.getOffset()), StyledStringBuffer.MONOSPACED);
-                        cnt++;
+                @SuppressWarnings("unchecked")
+                List<Map<String,Object>> pieces = (List<Map<String,Object>>)v.getProperties().get("Pieces");
+                if (pieces != null) {
+                    bf.append("Pieces: ", SWT.BOLD);
+                    int piece_cnt = 0;
+                    for (Map<String,Object> props : pieces) {
+                        int cnt = 0;
+                        if (piece_cnt > 0) bf.append("; ");
+                        String reg_id = (String)props.get("Register");
+                        if (reg_id != null) {
+                            String nm = getRegisterName(reg_id, done);
+                            if (nm == null) return false;
+                            bf.append("Register: ", SWT.BOLD);
+                            bf.append(nm);
+                            cnt++;
+                        }
+                        byte[] data = (byte[])props.get("Value");
+                        if (data != null) {
+                            bf.append("<Bin Value>", SWT.BOLD);
+                        }
+                        Number addr = (Number)props.get("Address");
+                        if (addr != null) {
+                            BigInteger i = JSON.toBigInteger(addr);
+                            if (cnt > 0) bf.append(", ");
+                            bf.append("Address: ", SWT.BOLD);
+                            bf.append("0x", StyledStringBuffer.MONOSPACED);
+                            bf.append(i.toString(16), StyledStringBuffer.MONOSPACED);
+                            cnt++;
+                        }
+                        Number bit_offs = (Number)props.get("BitOffs");
+                        if (bit_offs == null && props.get("BitSize") != null) bit_offs = BigInteger.ZERO;
+                        if (bit_offs != null) {
+                            BigInteger i = JSON.toBigInteger(bit_offs);
+                            if (cnt > 0) bf.append(", ");
+                            bf.append("Bit Offset: ", SWT.BOLD);
+                            bf.append(i.toString(10), StyledStringBuffer.MONOSPACED);
+                            cnt++;
+                        }
+                        Number bit_size = (Number)props.get("BitSize");
+                        if (bit_size != null) {
+                            BigInteger i = JSON.toBigInteger(bit_size);
+                            if (cnt > 0) bf.append(", ");
+                            bf.append("Bit Count: ", SWT.BOLD);
+                            bf.append(i.toString(10), StyledStringBuffer.MONOSPACED);
+                            cnt++;
+                        }
+                        Number byte_size = (Number)props.get("Size");
+                        if (byte_size != null) {
+                            BigInteger i = JSON.toBigInteger(byte_size);
+                            if (cnt > 0) bf.append(", ");
+                            bf.append("Byte Count: ", SWT.BOLD);
+                            bf.append(i.toString(10), StyledStringBuffer.MONOSPACED);
+                            cnt++;
+                        }
+                        piece_cnt++;
                     }
                 }
-                Number addr = v.getAddress();
-                if (addr != null) {
-                    BigInteger i = JSON.toBigInteger(addr);
-                    if (cnt > 0) bf.append(", ");
-                    bf.append("Address: ", SWT.BOLD);
-                    bf.append("0x", StyledStringBuffer.MONOSPACED);
-                    bf.append(i.toString(16), StyledStringBuffer.MONOSPACED);
-                    cnt++;
+                else {
+                    int cnt = 0;
+                    String reg_id = v.getRegisterID();
+                    if (reg_id != null) {
+                        String nm = getRegisterName(reg_id, done);
+                        if (nm == null) return false;
+                        bf.append("Register: ", SWT.BOLD);
+                        bf.append(nm);
+                        cnt++;
+                    }
+                    TCFDataCache<ISymbols.Symbol> field_cache = model.getSymbolInfoCache(field_id);
+                    if (field_cache != null) {
+                        if (!field_cache.validate(done)) return false;
+                        ISymbols.Symbol field_props = field_cache.getData();
+                        if (field_props != null && field_props.getProperties().get(ISymbols.PROP_OFFSET) != null) {
+                            if (cnt > 0) bf.append(", ");
+                            bf.append("Offset: ", SWT.BOLD);
+                            bf.append(Integer.toString(field_props.getOffset()), StyledStringBuffer.MONOSPACED);
+                            cnt++;
+                        }
+                    }
+                    Number addr = v.getAddress();
+                    if (addr != null) {
+                        BigInteger i = JSON.toBigInteger(addr);
+                        if (cnt > 0) bf.append(", ");
+                        bf.append("Address: ", SWT.BOLD);
+                        bf.append("0x", StyledStringBuffer.MONOSPACED);
+                        bf.append(i.toString(16), StyledStringBuffer.MONOSPACED);
+                        cnt++;
+                    }
+                    if (cnt > 0) bf.append('\n');
                 }
-                if (cnt > 0) bf.append('\n');
             }
             if (value.getError() != null) {
                 bf.append(value.getError(), ColorCache.rgb_error);
