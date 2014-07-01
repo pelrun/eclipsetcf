@@ -426,6 +426,9 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 				@Override
 				public void run() {
 					String proxy = transportData.getStringProperty(IPeerProperties.PROP_PROXIES);
+					if (proxy == null || proxy.trim().length() == 0) {
+						return;
+					}
 					String host = transportData.getStringProperty(IPeer.ATTR_IP_HOST);
 					String port = transportData.getStringProperty(IPeer.ATTR_IP_PORT);
 					String transport = transportData.getStringProperty(IPeer.ATTR_TRANSPORT_NAME);
