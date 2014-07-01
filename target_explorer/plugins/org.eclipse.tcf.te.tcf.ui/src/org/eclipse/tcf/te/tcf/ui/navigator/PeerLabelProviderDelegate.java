@@ -194,7 +194,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 		if (element instanceof ILocatorNode) {
 			String ip = ((ILocatorNode)element).getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
 
-			if (!text.contains(ip)) {
+			if (text != null && ip != null && !text.contains(ip)) {
 				text += " (" + ip + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				return text;
 			}
