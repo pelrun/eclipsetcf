@@ -309,7 +309,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 							lkupNodes = id != null ? lkup.lkupLocatorNodeById(locatorNode, id) : new ILocatorNode[0];
 						}
 						for (ILocatorNode node : lkupNodes) {
-							if (node.isStatic() && node.getPeer().getID().equals(id)) {
+							if (node.getPeer().getID().equals(id)) {
 								oldChildren.remove(node);
 								existing = node;
 								break;
