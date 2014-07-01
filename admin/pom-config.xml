@@ -55,7 +55,7 @@
 		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.6 (Luna) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
-        <cdt-site>http://download.eclipse.org/tools/cdt/builds/kepler/milestones</cdt-site>
+        <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
 		<tm-site>http://download.eclipse.org/tm/updates/3.6</tm-site>
 		<!-- RXTX is unresponsive. Take it out for now -->
 		<!-- <rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site> -->
@@ -141,8 +141,8 @@
 		    <id>luna</id>
 			
 			<properties>
-		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4milestones</platform-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/builds/luna/milestones</cdt-site>
+		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4</platform-site>
+                <cdt-site>http://download.eclipse.org/tools/cdt/releases/8.4</cdt-site>
             </properties>
 			
 		</profile>
