@@ -1495,8 +1495,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 bf.append('?');
             }
             else {
+                boolean big_endian_field = big_endian;
+                if ((field_props.getFlags() & ISymbols.SYM_FLAG_BIG_ENDIAN) != 0) big_endian_field = true;
+                if ((field_props.getFlags() & ISymbols.SYM_FLAG_LITTLE_ENDIAN) != 0) big_endian_field = false;
                 if (!appendValueText(bf, level + 1, field_props.getTypeID(), field_node,
-                        data, offs + f_offs, f_size, big_endian, done)) return false;
+                        data, offs + f_offs, f_size, big_endian_field, done)) return false;
             }
             cnt++;
         }
@@ -1682,7 +1685,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     }
                 }
                 @SuppressWarnings("unchecked")
-                List<Map<String,Object>> pieces = (List<Map<String,Object>>)v.getProperties().get("Pieces");
+                List<Map<String,Object>> pieces = (List<Map<String,Object>>)v.getProperties().get(IExpressions.VAL_PIECES);
                 if (pieces != null) {
                     bf.append("Pieces: ", SWT.BOLD);
                     int piece_cnt = 0;
