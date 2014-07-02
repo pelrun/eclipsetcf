@@ -141,7 +141,7 @@ public class SymbolsProxy implements ISymbols {
         }
 
         public boolean isBigEndian() {
-            Boolean b = (Boolean)props.get(PROP_LENGTH);
+            Boolean b = (Boolean)props.get(PROP_BIG_ENDIAN);
             if (b == null) return false;
             return b.booleanValue();
         }
