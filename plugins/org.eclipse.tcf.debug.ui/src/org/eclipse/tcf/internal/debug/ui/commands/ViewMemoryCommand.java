@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,8 @@ package org.eclipse.tcf.internal.debug.ui.commands;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -103,6 +105,20 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
                                                     addr = JSON.toBigInteger(reg_data.getMemoryAddress());
                                                     mem_node = model.getNode(mem_id);
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (addr == null) {
+                                    @SuppressWarnings("unchecked")
+                                    List<Map<String,Object>> pieces = (List<Map<String,Object>>)val_data.getProperties().get(IExpressions.VAL_PIECES);
+                                    if (pieces != null) {
+                                        for (Map<String,Object> props : pieces) {
+                                            addr = JSON.toBigInteger((Number)props.get("Address"));
+                                            if (addr != null) {
+                                                Number n = (Number)props.get("Size");
+                                                if (n != null) size = n.longValue();
+                                                break;
                                             }
                                         }
                                     }
