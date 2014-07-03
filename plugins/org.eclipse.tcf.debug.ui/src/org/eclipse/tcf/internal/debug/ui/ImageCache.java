@@ -73,7 +73,10 @@ public class ImageCache {
         IMG_BREAKPOINT_MOVED = "icons/moved_ovr.gif",
         IMG_BREAKPOINT_WARNING = "icons/ovr16/warning_ovr.gif",
         IMG_BREAKPOINT_ERROR = "icons/ovr16/error_ovr.gif",
-        IMG_BREAKPOINT_OVERLAY = "icons/brkp_ovr.gif";
+        IMG_BREAKPOINT_OVERLAY = "icons/brkp_ovr.gif",
+    
+        IMG_FOLDER = "icons/full/obj16/fldr_obj.png",
+        IMG_FILE = "icons/full/obj16/file_obj.png";
 
     private static final Map<String,ImageDescriptor> desc_cache = new HashMap<String,ImageDescriptor>();
     private static final Map<ImageDescriptor,Image> image_cache = new HashMap<ImageDescriptor,Image>();

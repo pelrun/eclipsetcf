@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
@@ -43,7 +44,8 @@ public class PathMapRuleDialog extends TitleAreaDialog {
     private Text source_text;
     private Text destination_text;
     private Text context_query_text;
-    private Button destination_button;
+    private Button destination_button_dir;
+    private Button destination_button_file;
 
     public PathMapRuleDialog(Shell parent, Image image, IPathMap.PathMapRule pathMapRule, boolean enable_editing, boolean showContextQuery) {
         super(parent);
@@ -84,7 +86,7 @@ public class PathMapRuleDialog extends TitleAreaDialog {
     private void createFileNameFields(Composite parent) {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(3, false);
+        GridLayout layout = new GridLayout(4, false);
         composite.setFont(font);
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -97,7 +99,7 @@ public class PathMapRuleDialog extends TitleAreaDialog {
         source_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.widthHint = convertWidthInCharsToPixels(40);
-        gd.horizontalSpan = 2;
+        gd.horizontalSpan = 3;
         source_text.setLayoutData(gd);
         source_text.setFont(font);
         source_text.setEditable(enable_editing);
@@ -126,14 +128,28 @@ public class PathMapRuleDialog extends TitleAreaDialog {
             }
         });
 
-        destination_button = new Button(composite, SWT.PUSH);
-        destination_button.setText("Browse..."); //$NON-NLS-1$
-        destination_button.setFont(font);
-        destination_button.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-        destination_button.setEnabled(enable_editing);
-        destination_button.addSelectionListener(new SelectionAdapter() {
+        destination_button_dir = new Button(composite, SWT.PUSH);
+        destination_button_dir.setImage(ImageCache.getImage(ImageCache.IMG_FOLDER));
+        destination_button_dir.setFont(font);
+        destination_button_dir.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+        destination_button_dir.setEnabled(enable_editing);
+        destination_button_dir.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.NONE);
+                dialog.setFilterPath(destination_text.getText());
+                String path = dialog.open();
+                if (path != null) destination_text.setText(path);
+            }
+        });
+
+        destination_button_file = new Button(composite, SWT.PUSH);
+        destination_button_file.setImage(ImageCache.getImage(ImageCache.IMG_FILE));
+        destination_button_file.setFont(font);
+        destination_button_file.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+        destination_button_file.setEnabled(enable_editing);
+        destination_button_file.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                FileDialog dialog = new FileDialog(getShell(), SWT.NONE);
                 dialog.setFilterPath(destination_text.getText());
                 String path = dialog.open();
                 if (path != null) destination_text.setText(path);
