@@ -72,6 +72,7 @@ public class TCFBreakpointsModel {
         ATTR_REQESTED_LINE = "requestedLine",
         ATTR_REQESTED_CHAR = "requestedCharStart",
         ATTR_CONDITION     = "org.eclipse.cdt.debug.core.condition",
+        ATTR_PRINTF_STRING = "org.eclipse.cdt.debug.core.printf_string",
         ATTR_IGNORE_COUNT  = "org.eclipse.cdt.debug.core.ignoreCount",
         ATTR_CONTEXTNAMES  = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CONTEXT_NAMES,
         ATTR_CONTEXTIDS    = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CONTEXT_IDS,
@@ -730,6 +731,12 @@ public class TCFBreakpointsModel {
             if (address != null && address.length() > 0) m.put(IBreakpoints.PROP_LOCATION, address);
         }
         String condition = (String)p.get(ATTR_CONDITION);
+        String printf_string = (String)p.get(ATTR_PRINTF_STRING);
+        if (printf_string != null && printf_string.length() > 0)
+            if (condition != null && condition.length() > 0)
+                condition = '(' + condition + ") && " + "$printf(" + printf_string + ')';
+            else
+                condition = "$printf(" + printf_string + ')';
         if (condition != null && condition.length() > 0) m.put(IBreakpoints.PROP_CONDITION, condition);
         String event_type = (String)p.get(ATTR_EVENT_TYPE);
         if (event_type != null && event_type.length() > 0) m.put(IBreakpoints.PROP_EVENT_TYPE, event_type);
