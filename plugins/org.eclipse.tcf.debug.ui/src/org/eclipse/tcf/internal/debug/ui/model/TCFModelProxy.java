@@ -50,7 +50,6 @@ import org.eclipse.tcf.protocol.Protocol;
 public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Runnable, ITreeViewerListener {
 
     private static final TCFNode[] EMPTY_NODE_ARRAY = new TCFNode[0];
-    private static boolean is_linux = "Linux".equals(System.getProperty("os.name"));
     private final TCFModel model;
     private final TCFLaunch launch;
     private final Display display;
@@ -219,7 +218,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 IDebugUIConstants.ID_DEBUG_VIEW.equals(getPresentationContext().getId()) &&
                 viewer instanceof IInternalTreeModelViewer;
         viewer.addViewerUpdateListener(update_listener);
-        if (is_linux && viewer instanceof TreeViewer) {
+        if (viewer instanceof TreeViewer) {
             ((TreeViewer)viewer).addTreeListener(this);
         }
         Protocol.invokeAndWait(new Runnable() {
@@ -245,7 +244,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
             }
         });
         viewer.removeViewerUpdateListener(update_listener);
-        if (is_linux && viewer instanceof TreeViewer) {
+        if (viewer instanceof TreeViewer) {
             ((TreeViewer)viewer).removeTreeListener(this);
         }
         super.dispose();
@@ -329,7 +328,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                 else {
                     expand = Boolean.TRUE;
                     while (node != null) {
-                        expanded_nodes.put(node.getID(), is_linux);
+                        expanded_nodes.put(node.getID(), true);
                         node = node.getParent();
                     }
                 }
