@@ -51,9 +51,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
@@ -309,7 +307,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             colQuery.setAlignment(SWT.LEFT);
             colQuery.setText(getColumnText(3));
         }
-        final TableColumn finColQuery = colQuery;
 
         TableLayout layout = new TableLayout();
         layout.addColumnData(new ColumnPixelData(30));
@@ -317,45 +314,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         layout.addColumnData(new ColumnPixelData(300));
         if (showContextQuery())
             layout.addColumnData(new ColumnPixelData(100));
-
-        table.addListener(SWT.Resize, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                int width = table.getSize().x - 4 - colEnable.getWidth();
-                colSource.setWidth(Math.max(width/2, 200));
-                colDest.setWidth(Math.max(width/2, 200));
-            }
-        });
-
-        Listener listener = new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                if (event.widget instanceof TableColumn) {
-                    TableColumn col = (TableColumn)event.widget;
-                    int colWidth = col.getWidth();
-                    if (colWidth < 200) {
-                        event.doit = false;
-                        col.setWidth(200);
-                    }
-                }
-            }
-        };
-
-        colSource.addListener(SWT.Resize, listener);
-        colDest.addListener(SWT.Resize, listener);
-
-        if (showContextQuery()) {
-            finColQuery.addListener(SWT.Resize, new Listener() {
-                @Override
-                public void handleEvent(Event event) {
-                    int colWidth = finColQuery.getWidth();
-                    if (colWidth < 80) {
-                        event.doit = false;
-                        finColQuery.setWidth(80);
-                    }
-                }
-            });
-        }
 
         table.setLayout(layout);
         table.setHeaderVisible(true);
