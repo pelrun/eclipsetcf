@@ -305,9 +305,9 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         TableColumn colQuery = null;
         if (showContextQuery()) {
             colQuery = new TableColumn(table, 3);
-            colSource.setResizable(true);
-            colSource.setAlignment(SWT.LEFT);
-            colSource.setText(getColumnText(3));
+            colQuery.setResizable(true);
+            colQuery.setAlignment(SWT.LEFT);
+            colQuery.setText(getColumnText(3));
         }
         final TableColumn finColQuery = colQuery;
 
@@ -319,12 +319,12 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             layout.addColumnData(new ColumnPixelData(100));
 
         table.addListener(SWT.Resize, new Listener() {
-                @Override
-                public void handleEvent(Event event) {
-                    int width = table.getSize().x - 4 - colEnable.getWidth();
-                    colSource.setWidth(Math.max(width/2, 200));
-                    colDest.setWidth(Math.max(width/2, 200));
-                }
+            @Override
+            public void handleEvent(Event event) {
+                int width = table.getSize().x - 4 - colEnable.getWidth();
+                colSource.setWidth(Math.max(width/2, 200));
+                colDest.setWidth(Math.max(width/2, 200));
+            }
         });
 
         Listener listener = new Listener() {
