@@ -308,7 +308,7 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      * the node should not be expanded.
      * <p>
      * Note: As a workaround for bug 208939 on Linux, the auto-expansion is
-     * enabled even after the first suspend event.  User collapse/expand actions
+     * enabled even after the first suspend event. User collapse/expand actions
      * are tracked to determine whether a given node should be expanded.
      * </p>
      * @param id Id of execution node to check.
@@ -317,7 +317,6 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
      */
     boolean getAutoExpandNode(TCFNode node, boolean user_request) {
         String id = node.id;
-        node.getParent();
         Boolean expand = null;
         synchronized(expanded_nodes) {
             expand = expanded_nodes.get(id);
