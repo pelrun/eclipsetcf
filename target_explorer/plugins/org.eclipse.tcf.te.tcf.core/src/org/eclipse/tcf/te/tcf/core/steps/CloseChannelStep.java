@@ -48,6 +48,6 @@ public class CloseChannelStep extends AbstractPeerStep {
 		if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
 			Tcf.getChannelManager().closeChannel(channel);
 		}
-		callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+		callback.done(this, Status.OK_STATUS);
 	}
 }

@@ -51,7 +51,7 @@ public class OpenChannelStep extends AbstractPeerStep {
 			@Override
 			public void doneOpenChannel(final Throwable error, final IChannel channel) {
 				StepperAttributeUtil.setProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId.getParentId(), data, channel);
-				callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
+				callback.done(OpenChannelStep.this, StatusHelper.getStatus(error));
 			}
 		});
 	}

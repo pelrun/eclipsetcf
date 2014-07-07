@@ -147,7 +147,8 @@ public class StepperAttributeUtil {
 	 * @param fullQualifiedId The full qualified id for this step.
 	 * @param data The data.
 	 * @param value The new value.
-	 * @param share If <code>true</code>, the value is also stored without the full qualified id.
+	 * @param share When <code>true</code>, the value is also stored within the parent full
+	 *            qualified id to share the value with other steps within the same parent (group).
 	 * @return <code>true</code> if the value was set.
 	 */
 	public final static boolean setProperty(String key, IFullQualifiedId fullQualifiedId, IPropertiesContainer data, Object value, boolean share) {
@@ -181,7 +182,8 @@ public class StepperAttributeUtil {
 	 * @param fullQualifiedId The full qualified id for this step.
 	 * @param data The data.
 	 * @param value The new boolean value.
-	 * @param share If <code>true</code>, the value is also stored without the full qualified id.
+	 * @param share When <code>true</code>, the value is also stored within the parent full
+	 *            qualified id to share the value with other steps within the same parent (group).
 	 * @return <code>true</code> if the value was set.
 	 */
 	public final static boolean setProperty(String key, IFullQualifiedId fullQualifiedId, IPropertiesContainer data, boolean value, boolean share) {
@@ -189,7 +191,7 @@ public class StepperAttributeUtil {
 		Assert.isNotNull(data);
 
 		if (share && fullQualifiedId != null) {
-			data.setProperty(getFullQualifiedKey(key, null, data), value);
+			data.setProperty(getFullQualifiedKey(key, fullQualifiedId.getParentId(), data), value);
 		}
 		return data.setProperty(getFullQualifiedKey(key, fullQualifiedId, data), value);
 	}
@@ -215,7 +217,8 @@ public class StepperAttributeUtil {
 	 * @param fullQualifiedId The full qualified id for this step.
 	 * @param data The data.
 	 * @param value The new int value.
-	 * @param share If <code>true</code>, the value is also stored without the full qualified id.
+	 * @param share When <code>true</code>, the value is also stored within the parent full
+	 *            qualified id to share the value with other steps within the same parent (group).
 	 * @return <code>true</code> if the value was set.
 	 */
 	public final static boolean setProperty(String key, IFullQualifiedId fullQualifiedId, IPropertiesContainer data, int value, boolean share) {
@@ -223,7 +226,7 @@ public class StepperAttributeUtil {
 		Assert.isNotNull(data);
 
 		if (share && fullQualifiedId != null) {
-			data.setProperty(getFullQualifiedKey(key, null, data), value);
+			data.setProperty(getFullQualifiedKey(key, fullQualifiedId.getParentId(), data), value);
 		}
 		return data.setProperty(getFullQualifiedKey(key, fullQualifiedId, data), value);
 	}

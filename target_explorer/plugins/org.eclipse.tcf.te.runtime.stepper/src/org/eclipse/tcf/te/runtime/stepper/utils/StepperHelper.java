@@ -10,9 +10,7 @@
 
 package org.eclipse.tcf.te.runtime.stepper.utils;
 
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
@@ -55,7 +53,6 @@ public final class StepperHelper {
 		}
 
 		if (stepGroupId != null && stepContext != null) {
-			scheduleStepperJob(stepContext, stepGroupId, name, histData, isCancelable, callback, monitor);
 			StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
 											stepContext,
 											data,
@@ -73,34 +70,5 @@ public final class StepperHelper {
 			}
 		}
 
-	}
-
-	public static final void scheduleStepperJob(Object context, String stepGroupId, String jobName, IPropertiesContainer data, boolean isCancelable, ICallback callback, IProgressMonitor monitor) {
-		IStepContext stepContext = null;
-		if (context instanceof IStepContext) {
-			stepContext = (IStepContext)context;
-		}
-		else if (context instanceof IAdaptable) {
-			stepContext = (IStepContext)((IAdaptable)context).getAdapter(IStepContext.class);
-		}
-		if (stepContext == null && context != null) {
-			stepContext = (IStepContext)Platform.getAdapterManager().getAdapter(context, IStepContext.class);
-		}
-
-		StepperJob job = new StepperJob(jobName != null ? jobName : "", //$NON-NLS-1$
-						stepContext,
-						data,
-						stepGroupId,
-						stepGroupId,
-						isCancelable,
-						monitor == null);
-		job.setJobCallback(callback);
-
-		if (monitor != null) {
-			job.run(monitor);
-		}
-		else {
-			job.schedule();
-		}
 	}
 }
