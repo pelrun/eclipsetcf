@@ -167,6 +167,7 @@ public final class StepperJob extends Job {
 		setJobs(jobs, stepContext.getContextObject());
 	}
 
+    @SuppressWarnings("unchecked")
     public static Map<String,List<Job>> getJobs(Object context) {
 		IPropertiesAccessService service = ServiceManager.getInstance().getService(context, IPropertiesAccessService.class);
 		Map<String,List<Job>> jobs = null;

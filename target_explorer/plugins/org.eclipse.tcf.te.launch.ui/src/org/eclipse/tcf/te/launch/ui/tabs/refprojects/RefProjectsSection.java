@@ -199,7 +199,8 @@ public class RefProjectsSection extends AbstractTableSection implements ILaunchC
 		colProject.setText(Messages.ReferencedProjectsSection_name_column);
 		colProject.setResizable(true);
 		tvProjectCol.setLabelProvider(new ColumnLabelProvider() {
-			@Override
+			@SuppressWarnings("unchecked")
+            @Override
 			public String getToolTipText(Object element) {
 				if (element instanceof IReferencedProjectItem) {
 					IReferencedProjectItem item = (IReferencedProjectItem)element;
@@ -241,7 +242,8 @@ public class RefProjectsSection extends AbstractTableSection implements ILaunchC
 
 		@SuppressWarnings("unused")
 		AbstractDecorationCellPaintListener cpl = new AbstractDecorationCellPaintListener(table, 1) {
-			@Override
+			@SuppressWarnings("unchecked")
+            @Override
 			protected int getDecorationState(Object data, int columnIndex) {
 				if (data instanceof IReferencedProjectItem) {
 					IReferencedProjectItem item = (IReferencedProjectItem)data;

@@ -622,7 +622,8 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 		String encoding = properties.getStringProperty(ITerminalsLauncher.PROP_TERMINAL_ENCODING);
 
 		// Environment: Default to "null" if not explicitly specified
-		Map<String, String> env = (Map<String, String>)properties.getProperty(ITerminalsLauncher.PROP_TERMINAL_ENV);
+		@SuppressWarnings("unchecked")
+        Map<String, String> env = (Map<String, String>)properties.getProperty(ITerminalsLauncher.PROP_TERMINAL_ENV);
 
 		// Launch the remote terminal
 		getSvcTerminals().launch(type, encoding, env != null ? makeEnvironmentArray(env) : null, new ITerminals.DoneLaunch() {

@@ -116,7 +116,8 @@ public class ExecutableExtensionProxy<V> {
 	 *
 	 * @return A new extension class instance or <code>null</code> if the instantiation fails.
 	 */
-	public V newInstance() {
+	@SuppressWarnings("unchecked")
+    public V newInstance() {
 		IConfigurationElement element = getConfigurationElement();
 		Assert.isNotNull(element);
 

@@ -80,7 +80,8 @@ public class CategoryManager implements ICategoryManager {
 	/**
 	 * Initialize the category manager.
 	 */
-	private void initialize() {
+	@SuppressWarnings("unchecked")
+    private void initialize() {
 		IPath root = getRoot();
 		if (root == null) {
 			return;

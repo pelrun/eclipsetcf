@@ -48,6 +48,6 @@ public class ShutDownStep extends AbstractPeerStep {
 				Tcf.getChannelManager().shutdown(getActivePeerContext(context, data, fullQualifiedId));
 			}
 		});
-		callback.done(this, Status.OK_STATUS);
+		callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 	}
 }

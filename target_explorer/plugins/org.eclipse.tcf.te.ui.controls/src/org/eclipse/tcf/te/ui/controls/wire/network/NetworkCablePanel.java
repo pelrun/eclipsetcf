@@ -260,6 +260,7 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 
 		boolean isDirty = false;
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeNetwork.PROPERTY_CONTAINER_NAME);
 		if (container == null) container = new HashMap<String, Object>();
 
@@ -287,6 +288,7 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
     public void setupData(IPropertiesContainer data) {
 		if (data == null) return;
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeNetwork.PROPERTY_CONTAINER_NAME);
 		if (container == null) container = new HashMap<String, Object>();
 
@@ -310,6 +312,7 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
     public void extractData(IPropertiesContainer data) {
 		if (data == null) return;
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeNetwork.PROPERTY_CONTAINER_NAME);
 		if (container == null) container = new HashMap<String, Object>();
 
@@ -354,6 +357,7 @@ public class NetworkCablePanel extends AbstractWizardConfigurationPanel implemen
 		Assert.isNotNull(src);
 		Assert.isNotNull(dst);
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> srcContainer = (Map<String, Object>)src.getProperty(IWireTypeNetwork.PROPERTY_CONTAINER_NAME);
         Map<String, Object> dstContainer = null;
 

@@ -100,7 +100,8 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						Map<String, Object> caps = (Map<String, Object>)node.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
+						@SuppressWarnings("unchecked")
+                        Map<String, Object> caps = (Map<String, Object>)node.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
 						if (caps != null) {
 							hasCapability.set(caps.containsKey(expectedValue) && Boolean.parseBoolean(caps.get(expectedValue).toString()));
 						}

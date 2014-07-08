@@ -50,7 +50,8 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#add(org.eclipse.tcf.protocol.IPeer, boolean)
 	 */
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public ILocatorNode add(final IPeer peer, boolean isStatic) {
 		Assert.isNotNull(peer);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
@@ -113,7 +114,8 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#remove(org.eclipse.tcf.protocol.IPeer)
 	 */
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public ILocatorNode remove(final IPeer peer) {
 		Assert.isNotNull(peer);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
@@ -145,7 +147,8 @@ public class LocatorModelUpdateService extends AbstractLocatorModelService imple
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.services.ILocatorModelUpdateService#update(org.eclipse.tcf.protocol.IPeer, org.eclipse.tcf.protocol.IPeer)
 	 */
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public ILocatorNode update(final IPeer oldPeer, final IPeer newPeer) {
 		Assert.isNotNull(oldPeer);
 		Assert.isNotNull(newPeer);

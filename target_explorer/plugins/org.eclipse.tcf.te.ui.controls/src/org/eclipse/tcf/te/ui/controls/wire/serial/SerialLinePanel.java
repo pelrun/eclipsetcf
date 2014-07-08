@@ -806,7 +806,8 @@ public class SerialLinePanel extends AbstractWizardConfigurationPanel implements
 		boolean isDirty = false;
 
 		if (!terminalMode) {
-			Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeSerial.PROPERTY_CONTAINER_NAME);
+			@SuppressWarnings("unchecked")
+            Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeSerial.PROPERTY_CONTAINER_NAME);
 			if (container == null) container = new HashMap<String, Object>();
 
 			String value = SWTControlUtil.getText(hostTTYDeviceCombo);
@@ -945,7 +946,8 @@ public class SerialLinePanel extends AbstractWizardConfigurationPanel implements
 		if (data == null) return;
 
 		if (!terminalMode) {
-			Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeSerial.PROPERTY_CONTAINER_NAME);
+			@SuppressWarnings("unchecked")
+            Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeSerial.PROPERTY_CONTAINER_NAME);
 			if (container == null) container = new HashMap<String, Object>();
 
 			SWTControlUtil.setText(hostTTYDeviceCombo, (String)container.get(IWireTypeSerial.PROPERTY_SERIAL_DEVICE));
@@ -981,7 +983,8 @@ public class SerialLinePanel extends AbstractWizardConfigurationPanel implements
 		if (data == null) return;
 
 		if (!terminalMode) {
-			Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeSerial.PROPERTY_CONTAINER_NAME);
+			@SuppressWarnings("unchecked")
+            Map<String, Object> container = (Map<String, Object>)data.getProperty(IWireTypeSerial.PROPERTY_CONTAINER_NAME);
 			if (container == null) container = new HashMap<String, Object>();
 
 			container.put(IWireTypeSerial.PROPERTY_SERIAL_DEVICE, SWTControlUtil.getText(hostTTYDeviceCombo));
@@ -1032,6 +1035,7 @@ public class SerialLinePanel extends AbstractWizardConfigurationPanel implements
 		Assert.isNotNull(src);
 		Assert.isNotNull(dst);
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> srcContainer = (Map<String, Object>)src.getProperty(IWireTypeSerial.PROPERTY_CONTAINER_NAME);
         Map<String, Object> dstContainer = null;
 

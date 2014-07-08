@@ -91,7 +91,8 @@ public class FactoryDelegateProxy extends ExecutableExtensionProxy<IFactoryDeleg
 					if (bundle == null) bundle = CoreBundleActivator.getContext().getBundle();
 
 					// Try to load the node type class now.
-					Class<? extends IModelNode> typeClass = (Class<? extends IModelNode>)(bundle != null ? bundle.loadClass(type) : Class.forName(type));
+					@SuppressWarnings("unchecked")
+                    Class<? extends IModelNode> typeClass = (Class<? extends IModelNode>)(bundle != null ? bundle.loadClass(type) : Class.forName(type));
 					this.nodeTypes.add(typeClass);
 				}
 				catch (Exception e) {

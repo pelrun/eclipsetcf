@@ -187,7 +187,8 @@ public abstract class AbstractFileTransferSection extends AbstractTableSection i
 		colHost.setText(Messages.FileTransferSection_host_column);
 		colHost.setResizable(true);
 		tvHostCol.setLabelProvider(new ColumnLabelProvider() {
-			@Override
+			@SuppressWarnings("unchecked")
+            @Override
 			public String getToolTipText(Object element) {
 				if (element instanceof IFileTransferItem) {
 					IFileTransferItem item = (IFileTransferItem)element;
@@ -282,7 +283,8 @@ public abstract class AbstractFileTransferSection extends AbstractTableSection i
 		colTarget.setText(Messages.FileTransferSection_target_column);
 		colTarget.setResizable(true);
 		tvTargetCol.setLabelProvider(new ColumnLabelProvider() {
-			@Override
+			@SuppressWarnings("unchecked")
+            @Override
 			public String getToolTipText(Object element) {
 				if (element instanceof IFileTransferItem) {
 					IFileTransferItem item = (IFileTransferItem)element;
@@ -379,7 +381,8 @@ public abstract class AbstractFileTransferSection extends AbstractTableSection i
 
 		@SuppressWarnings("unused")
 		AbstractDecorationCellPaintListener cpl = new AbstractDecorationCellPaintListener(table, 1, 3) {
-			@Override
+			@SuppressWarnings("unchecked")
+            @Override
 			protected int getDecorationState(Object data, int columnIndex) {
 				if (data instanceof IFileTransferItem) {
 					IFileTransferItem item = (IFileTransferItem)data;

@@ -216,7 +216,8 @@ public class GsonMapPersistenceDelegate extends ExecutableExtension implements I
 		return read(context, container, false);
 	}
 
-	private Object read(Object context, Object container, boolean isList) throws IOException {
+	@SuppressWarnings("unchecked")
+    private Object read(Object context, Object container, boolean isList) throws IOException {
 		Assert.isNotNull(container);
 
 //		Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();

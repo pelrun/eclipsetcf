@@ -438,7 +438,8 @@ public class TreeViewerExtension {
 		}
 		attribute = configuration.getAttribute("comparator"); //$NON-NLS-1$
 		if (attribute != null) {
-			Comparator<Object> comparator = (Comparator<Object>) configuration.createExecutableExtension("comparator"); //$NON-NLS-1$
+			@SuppressWarnings("unchecked")
+            Comparator<Object> comparator = (Comparator<Object>) configuration.createExecutableExtension("comparator"); //$NON-NLS-1$
 			if (comparator != null) {
 				column.setComparator(comparator);
 			}

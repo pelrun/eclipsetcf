@@ -60,7 +60,8 @@ public class HistoryManager {
 	/**
 	 * Initialize the history manager.
 	 */
-	private void initialize() {
+	@SuppressWarnings("unchecked")
+    private void initialize() {
 		history.clear();
 		try {
 			// Get the persistence service

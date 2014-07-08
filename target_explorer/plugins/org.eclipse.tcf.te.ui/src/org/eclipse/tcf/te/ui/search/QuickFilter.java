@@ -202,7 +202,8 @@ public class QuickFilter extends TablePatternFilter implements PropertyChangeLis
 	 */
 	public void resetViewer() {
 		viewer.removeFilter(this);
-		Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
+		@SuppressWarnings("unchecked")
+        Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
 		if (filters != null) {
 			filters.remove(root);
 		}

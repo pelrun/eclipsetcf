@@ -183,7 +183,8 @@ public class RuntimeModelLookupService extends AbstractModelService<IRuntimeMode
 		IProcessContextNode node = null;
 		List<IProcessContextNode> candidates = container.getChildren(IProcessContextNode.class);
 		for (IProcessContextNode candidate : candidates) {
-			Map<String, Object> caps = (Map<String, Object>)candidate.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
+			@SuppressWarnings("unchecked")
+            Map<String, Object> caps = (Map<String, Object>)candidate.getProperty(IProcessContextNodeProperties.PROPERTY_CAPABILITIES);
 
 			if (Boolean.getBoolean("sm.trace.rootnodelkup")) { //$NON-NLS-1$
 				String message = "RuntimeModelLookupService: findInContainerByCapabilitiesRecursively:        candidate=" + candidate + ", capabilities=" + caps.keySet(); //$NON-NLS-1$ //$NON-NLS-2$

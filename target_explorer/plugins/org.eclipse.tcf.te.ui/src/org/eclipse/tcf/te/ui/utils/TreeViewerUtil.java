@@ -64,10 +64,10 @@ public class TreeViewerUtil {
             }
 		});
 	}
-	
+
 	/**
 	 * Decorate the image using the filtering image.
-	 * 
+	 *
 	 * @param image
 	 * @param viewer
 	 * @param path
@@ -77,10 +77,10 @@ public class TreeViewerUtil {
 		AbstractImageDescriptor descriptor = new FilteringImageDescriptor(UIPlugin.getDefault().getImageRegistry(), image);
 		return UIPlugin.getSharedImage(descriptor);
 	}
-	
+
 	/**
 	 * Decorate the text using the filter text.
-	 * 
+	 *
 	 * @param text
 	 * @param viewer
 	 * @param path
@@ -97,12 +97,13 @@ public class TreeViewerUtil {
 
 	/**
 	 * Reset the viewer to the original view.
-	 * 
+	 *
 	 * @param viewer The viewer to be reset.
 	 */
 	public static void doReset(TreeViewer viewer) {
 		ViewerFilter[] vFilters = viewer.getFilters();
-		Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
+		@SuppressWarnings("unchecked")
+        Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
 		if (filters != null && vFilters != null && !filters.isEmpty() && vFilters.length > 0) {
 			List<ViewerFilter> filterList = new ArrayList<ViewerFilter>(Arrays.asList(vFilters));
 			for(Map.Entry<TreePath, QuickFilter> entry : filters.entrySet()) {
@@ -118,14 +119,15 @@ public class TreeViewerUtil {
 
 	/**
 	 * Provide a pop up to enter filter to filter the tree viewer.
-	 * 
+	 *
 	 * @param viewer The tree viewer to be filtered.
 	 */
 	public static void doCommonViewerFilter(TreeViewer viewer) {
 		TreePath rootPath = getSelectedPath(viewer);
 		TreePath root = getViewFilterRoot(viewer, rootPath);
 		if (root != null && (root.getSegmentCount() == 0 || viewer.getExpandedState(root))) {
-			Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
+			@SuppressWarnings("unchecked")
+            Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
 			if (filters == null) {
 				filters = new HashMap<TreePath, QuickFilter>();
 				viewer.setData("quick.filter", filters); //$NON-NLS-1$
@@ -138,17 +140,18 @@ public class TreeViewerUtil {
 			filter.showFilterPopup(false);
 		}
 	}
-	
+
 	/**
 	 * Provide a pop up to enter filter to filter the tree viewer.
-	 * 
+	 *
 	 * @param viewer The tree viewer to be filtered.
 	 */
 	public static void doEditorFilter(TreeViewer viewer) {
 		TreePath rootPath = getSelectedPath(viewer);
 		TreePath root = getEditorFilterRoot(viewer, rootPath);
 		if (root != null && (root.getSegmentCount() == 0 || viewer.getExpandedState(root))) {
-			Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
+			@SuppressWarnings("unchecked")
+            Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
 			if (filters == null) {
 				filters = new HashMap<TreePath, QuickFilter>();
 				viewer.setData("quick.filter", filters); //$NON-NLS-1$
@@ -161,10 +164,10 @@ public class TreeViewerUtil {
 			filter.showFilterPopup(root.getSegmentCount() == 0);
 		}
 	}
-	
+
 	/**
 	 * Search a tree viewer for specified name specified in the pop up dialog.
-	 * 
+	 *
 	 * @param viewer The tree viewer to be searched.
 	 */
 	public static void doSearch(TreeViewer viewer) {
@@ -174,16 +177,17 @@ public class TreeViewerUtil {
 		TreeViewerSearchDialog dialog = new TreeViewerSearchDialog(viewer, rootPath);
 		dialog.open();
 	}
-	
+
 	/**
 	 * If the specified element is being filtered.
-	 * 
+	 *
 	 * @param path
 	 * @return
 	 */
 	public static boolean isFiltering(TreeViewer viewer, TreePath path) {
 		if(path != null) {
-			Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
+			@SuppressWarnings("unchecked")
+            Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
 			if (filters != null) {
 				QuickFilter filter = filters.get(path);
 				if(filter != null) {
@@ -193,15 +197,16 @@ public class TreeViewerUtil {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Test if the specified tree viewer is being filtered.
-	 * 
+	 *
 	 * @param viewer The tree viewer to be tested.
 	 * @return true if there's at least a filter.
 	 */
 	public static boolean isFiltering(TreeViewer viewer) {
-		Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
+		@SuppressWarnings("unchecked")
+        Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
 		if (filters != null && !filters.isEmpty()) {
 			for(Map.Entry<TreePath, QuickFilter> entry : filters.entrySet()) {
 				TreePath path = entry.getKey();
@@ -214,7 +219,7 @@ public class TreeViewerUtil {
 
 	/**
 	 * Get the filter root for the viewer based on the root path.
-	 * 
+	 *
 	 * @param viewer The tree viewer.
 	 * @param rootPath The root path of the filter.
 	 * @return An adjust filter.
@@ -235,7 +240,7 @@ public class TreeViewerUtil {
 	}
 	/**
 	 * Get the filter root for the viewer based on the root path.
-	 * 
+	 *
 	 * @param viewer The tree viewer.
 	 * @param rootPath The root path of the filter.
 	 * @return An adjust filter.
@@ -280,7 +285,7 @@ public class TreeViewerUtil {
 		});
 		return result[0];
 	}
-	
+
 	/**
 	 * Reposition the starting search path.
 	 */
@@ -296,11 +301,11 @@ public class TreeViewerUtil {
 		}
 		return new TreePath(new Object[] { viewer.getInput() });
 	}
-	
+
 	/**
-	 * Test if the root for the tree viewer is eligible as a root path 
+	 * Test if the root for the tree viewer is eligible as a root path
 	 * of a quick filter.
-	 * 
+	 *
 	 * @param root The root path to be tested.
 	 * @param viewer The tree viewer to be filtered.
 	 * @return true if it is eligible as a root path or else false.
@@ -311,7 +316,7 @@ public class TreeViewerUtil {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Judges if the specified root has children nodes.
 	 */
@@ -336,7 +341,7 @@ public class TreeViewerUtil {
 
 	/**
 	 * Get the selected path of the viewer.
-	 * 
+	 *
 	 * @param viewer The tree viewer to get the selected path from.
 	 * @return the first selected path or null if no selected path.
 	 */
@@ -354,13 +359,14 @@ public class TreeViewerUtil {
 
 	/**
 	 * Get the filtering text of the filter attached to the specified tree viewer at the specified path.
-	 * 
+	 *
 	 * @param viewer The tree viewer.
 	 * @param path The path at which the filter applies to.
 	 * @return The filter text.
 	 */
 	public static String getFilteringString(TreeViewer viewer, TreePath path) {
-		Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
+		@SuppressWarnings("unchecked")
+        Map<TreePath, QuickFilter> filters = (Map<TreePath, QuickFilter>) viewer.getData("quick.filter"); //$NON-NLS-1$
 		if (filters != null) {
 			QuickFilter filter = filters.get(path);
 			if (filter != null) {

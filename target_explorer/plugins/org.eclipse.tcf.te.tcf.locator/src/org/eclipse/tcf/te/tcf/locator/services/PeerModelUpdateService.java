@@ -38,7 +38,8 @@ public class PeerModelUpdateService extends AbstractPeerModelService implements 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.services.ILocatorModelUpdateService#add(org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.IPeerModel)
 	 */
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public void add(final IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
@@ -63,7 +64,8 @@ public class PeerModelUpdateService extends AbstractPeerModelService implements 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.core.interfaces.services.ILocatorModelUpdateService#remove(org.eclipse.tcf.te.tcf.locator.core.interfaces.nodes.IPeerModel)
 	 */
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public void remove(final IPeerNode peerNode) {
 		Assert.isNotNull(peerNode);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$

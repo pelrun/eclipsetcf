@@ -891,7 +891,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 		// Merge the initial process environment and the desired process environment
 		Map<String, String> processEnv = new HashMap<String, String>(environment);
-		Map<String, String> processEnvDiff = (Map<String, String>)properties.getProperty(IProcessLauncher.PROP_PROCESS_ENV);
+		@SuppressWarnings("unchecked")
+        Map<String, String> processEnvDiff = (Map<String, String>)properties.getProperty(IProcessLauncher.PROP_PROCESS_ENV);
 		if (processEnvDiff != null && !processEnvDiff.isEmpty()) {
 			processEnv.putAll(processEnvDiff);
 		}
@@ -919,6 +920,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
             params.put(IProcessesV1.START_USE_TERMINAL, Boolean.FALSE);
 
             if (properties.getProperty(IProcessLauncher.PROP_PROCESSESV1_PARAMS) != null) {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> addParams = (Map<String, Object>)properties.getProperty(IProcessLauncher.PROP_PROCESSESV1_PARAMS);
                 for (Entry<String,Object> entry : addParams.entrySet()) {
 	                params.put(entry.getKey(), entry.getValue());
