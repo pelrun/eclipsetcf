@@ -563,48 +563,11 @@ public class MemoryMapWidget {
         colOffset.setText(getColumnText(4));
 
         TableLayout layout = new TableLayout();
-        layout.addColumnData(new ColumnPixelData(150));
-        layout.addColumnData(new ColumnPixelData(90));
-        layout.addColumnData(new ColumnPixelData(90));
+        layout.addColumnData(new ColumnPixelData(300));
+        layout.addColumnData(new ColumnPixelData(100));
+        layout.addColumnData(new ColumnPixelData(80));
         layout.addColumnData(new ColumnPixelData(50));
         layout.addColumnData(new ColumnPixelData(140));
-
-        table.addListener(SWT.Resize, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                int width = table.getSize().x - 4 - colAddr.getWidth() - colSize.getWidth() - colFlags.getWidth() - colOffset.getWidth();
-                colFile.setWidth(Math.max(width, 100));
-            }
-        });
-
-        colFile.addListener(SWT.Resize, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                int colWidth = colFile.getWidth();
-                if (colWidth < 100) {
-                    event.doit = false;
-                    colFile.setWidth(100);
-                }
-            }
-        });
-
-        Listener listener = new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                if (event.widget instanceof TableColumn) {
-                    TableColumn col = (TableColumn) event.widget;
-                    int colWidth = col.getWidth();
-                    if (colWidth < 40) {
-                        event.doit = false;
-                        col.setWidth(40);
-                    }
-                }
-            }
-        };
-        colAddr.addListener(SWT.Resize, listener);
-        colSize.addListener(SWT.Resize, listener);
-        colFlags.addListener(SWT.Resize, listener);
-        colOffset.addListener(SWT.Resize, listener);
 
         // "Symbol File Errors" are displayed as tooltip on the table item.
         // See
