@@ -379,10 +379,13 @@ function test_one_conf()
     -DMEM_USAGE_FACTOR=1"
 
   local CFLAGS2="\
-   -DENABLE_SymbolsProxy=1 \
-   -DENABLE_LineNumbersProxy=1"
+   -DENABLE_SymbolsProxy=0 \
+   -DENABLE_LineNumbersProxy=0"
 
   local CFLAGS3="\
+   -DENABLE_ELF=0"
+
+  local CFLAGS4="\
    -DSERVICE_RunControl=0 \
    -DSERVICE_Breakpoints=0 \
    -DSERVICE_Memory=0 \
@@ -393,7 +396,7 @@ function test_one_conf()
    -DSERVICE_LineNumbers=0 \
    -DSERVICE_Expressions=0"
 
-  local CFLAGS4="\
+  local CFLAGS5="\
     -DENABLE_DebugContext=0 \
     -DENABLE_ELF=0 \
     -DSERVICE_StackTrace=0 \
@@ -407,7 +410,7 @@ function test_one_conf()
     -DSERVICE_MemoryMap=0"
 
   SEQ=1
-  for CFLAGS in "" "$CFLAGS1" "$CFLAGS2" "$CFLAGS3" "$CFLAGS4"
+  for CFLAGS in "" "$CFLAGS1" "$CFLAGS2" "$CFLAGS3" "$CFLAGS4" "$CFLAGS5"
   do
     build_and_test_agent
     SEQ=`expr $SEQ + 1`

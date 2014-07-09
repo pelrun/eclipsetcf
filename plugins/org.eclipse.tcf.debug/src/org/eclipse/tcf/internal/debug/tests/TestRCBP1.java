@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -113,6 +113,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     private boolean all_setup_done;
 
     private static int mem_map_region_id = 0;
+    private static int test_cnt;
 
     private static class SuspendedContext {
         final String id;
@@ -1340,6 +1341,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         assert !sc.get_state_pending;
         sc.get_state_pending = true;
         final SuspendedContext sc0 = sc;
+        testSymbolsFlushEvents();
         ctx.getState(new IRunControl.DoneGetState() {
             public void doneGetState(IToken token, Exception error, boolean susp,
                     String pc, String reason, Map<String,Object> params) {
@@ -1882,6 +1884,32 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                         });
                     }
                 });
+            }
+        });
+    }
+
+    private void testSymbolsFlushEvents() {
+        // Use MemoryMap service to generate "memory map changed" event.
+        // The event invalidates any cached symbols info.
+        if (srv_memory_map == null) return;
+        if (rnd.nextInt(11) != 0) return;
+        ArrayList<MemoryRegion> l = null;
+        String process_id = test_context.getProcessID();
+        if (mem_map != null) l = mem_map.get(process_id);
+        if (l == null) l = new ArrayList<MemoryRegion>();
+        else l = new ArrayList<MemoryRegion>(l);
+        Map<String,Object> props = new HashMap<String,Object>();
+        props.put("TestRCBP1", test_cnt++);
+        l.add(new TCFMemoryRegion(props));
+        srv_memory_map.set(process_id, l.toArray(new MemoryRegion[l.size()]), new IMemoryMap.DoneSet() {
+            public void doneSet(IToken token, Exception error) {
+                if (error instanceof IErrorReport) {
+                    IErrorReport e = (IErrorReport)error;
+                    if (e.getErrorCode() == IErrorReport.TCF_ERROR_INV_CONTEXT) error = null;
+                }
+                if (error != null) {
+                    exit(error);
+                }
             }
         });
     }

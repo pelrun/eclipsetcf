@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.debug.tests;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,11 +29,14 @@ import org.eclipse.tcf.services.IBreakpoints;
 import org.eclipse.tcf.services.IDPrintf;
 import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.services.IExpressions;
+import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.services.IExpressions.Value;
+import org.eclipse.tcf.services.IMemoryMap.MemoryRegion;
+import org.eclipse.tcf.util.TCFMemoryRegion;
 
 class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     IRunControl.RunControlListener, IExpressions.ExpressionsListener, IBreakpoints.BreakpointsListener {
@@ -47,7 +51,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     private final IBreakpoints srv_bp;
     private final IDPrintf srv_dprintf;
     private final IStreams srv_streams;
+    private final IMemoryMap srv_memory_map;
     private final Random rnd = new Random();
+    private final Map<String,ArrayList<MemoryRegion>> mem_map;
 
     private String test_id;
     private String bp_id;
@@ -79,6 +85,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     private final Map<String,String[]> expr_chld = new HashMap<String,String[]>();
     private final Set<String> expr_to_dispose = new HashSet<String>();
     private int timer = 0;
+
+    private static int test_cnt;
 
     private static String[] global_var_names = {
         "tcf_test_char",
@@ -187,9 +195,11 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         Map<String,Object> props;
     }
 
-    TestExpressions(TCFTestSuite test_suite, RunControl test_rc, IChannel channel) {
+    TestExpressions(TCFTestSuite test_suite, RunControl test_rc,
+            IChannel channel, Map<String,ArrayList<MemoryRegion>> mem_map) {
         this.test_suite = test_suite;
         this.test_rc = test_rc;
+        this.mem_map = mem_map;
         srv_diag = channel.getRemoteService(IDiagnostics.class);
         srv_expr = channel.getRemoteService(IExpressions.class);
         srv_syms = channel.getRemoteService(ISymbols.class);
@@ -198,6 +208,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         srv_bp = channel.getRemoteService(IBreakpoints.class);
         srv_dprintf = channel.getRemoteService(IDPrintf.class);
         srv_streams = channel.getRemoteService(IStreams.class);
+        srv_memory_map = channel.getRemoteService(IMemoryMap.class);
     }
 
     public void start() {
@@ -505,6 +516,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
             return;
         }
         if (local_var_expr_ids == null) {
+            testSymbolsFlushEvents();
             srv_expr.getChildren(stack_trace[stack_trace.length - 2], new IExpressions.DoneGetChildren() {
                 public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                     if (error != null || context_ids == null) {
@@ -523,6 +535,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         }
         for (final String id : local_var_expr_ids) {
             if (expr_ctx.get(id) == null) {
+                testSymbolsFlushEvents();
                 cmds.add(srv_expr.getContext(id, new IExpressions.DoneGetContext() {
                     public void doneGetContext(IToken token, Exception error, IExpressions.Expression ctx) {
                         cmds.remove(token);
@@ -655,6 +668,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
             }
             if (!vars_ok) continue;
             if (expr_ctx.get(txt) == null) {
+                testSymbolsFlushEvents();
                 if (rnd.nextBoolean()) {
                     Map<String,Object> scope = new HashMap<String,Object>();
                     scope.put(IExpressions.SCOPE_CONTEXT_ID, stack_trace[stack_trace.length - 2]);
@@ -697,6 +711,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         }
         for (final String id : local_var_expr_ids) {
             if (expr_val.get(id) == null) {
+                testSymbolsFlushEvents();
                 cmds.add(srv_expr.evaluate(id, new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
                         cmds.remove(token);
@@ -714,6 +729,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         }
         for (final String id : expr_ctx.keySet()) {
             if (expr_val.get(id) == null) {
+                testSymbolsFlushEvents();
                 cmds.add(srv_expr.evaluate(expr_ctx.get(id).getID(), new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
                         cmds.remove(token);
@@ -741,6 +757,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     IExpressions.Value v = expr_val.get(id);
                     String type_id = v.getTypeID();
                     if (type_id != null) {
+                        testSymbolsFlushEvents();
                         cmds.add(srv_syms.getContext(type_id, new ISymbols.DoneGetContext() {
                             public void doneGetContext(IToken token, Exception error, ISymbols.Symbol ctx) {
                                 cmds.remove(token);
@@ -762,6 +779,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
             }
             for (final String id : expr_sym.keySet()) {
                 if (expr_chld.get(id) == null) {
+                    testSymbolsFlushEvents();
                     ISymbols.Symbol sym = expr_sym.get(id);
                     cmds.add(srv_syms.getChildren(sym.getID(), new ISymbols.DoneGetChildren() {
                         public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
@@ -847,6 +865,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     for (int n = 0; n < test_dprintfs.length; n += 2) {
                         final String txt = test_dprintfs[n];
                         final String res = test_dprintfs[n + 1];
+                        testSymbolsFlushEvents();
                         cmds.add(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
                             public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
                                 cmds.remove(token);
@@ -855,6 +874,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 }
                                 else {
                                     if (res == null) exit(new Exception("Expressions service was expected to return error: " + txt));
+                                    testSymbolsFlushEvents();
                                     expr_to_dispose.add(ctx.getID());
                                     cmds.add(srv_expr.evaluate(ctx.getID(), new IExpressions.DoneEvaluate() {
                                         @Override
@@ -891,6 +911,31 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         }
         if (cmds.size() > 0) return;
         test_done = true;
+    }
+
+    private void testSymbolsFlushEvents() {
+        // Use MemoryMap service to generate "memory map changed" event.
+        // The event invalidates any cached symbols info.
+        if (srv_memory_map == null) return;
+        if (rnd.nextInt(11) != 0) return;
+        ArrayList<MemoryRegion> l = null;
+        if (mem_map != null) l = mem_map.get(process_id);
+        if (l == null) l = new ArrayList<MemoryRegion>();
+        else l = new ArrayList<MemoryRegion>(l);
+        Map<String,Object> props = new HashMap<String,Object>();
+        props.put("TestExpression", test_cnt++);
+        l.add(new TCFMemoryRegion(props));
+        srv_memory_map.set(process_id, l.toArray(new MemoryRegion[l.size()]), new IMemoryMap.DoneSet() {
+            public void doneSet(IToken token, Exception error) {
+                if (error instanceof IErrorReport) {
+                    IErrorReport e = (IErrorReport)error;
+                    if (e.getErrorCode() == IErrorReport.TCF_ERROR_INV_CONTEXT) error = null;
+                }
+                if (error != null) {
+                    exit(error);
+                }
+            }
+        });
     }
 
     private void exit(Throwable x) {

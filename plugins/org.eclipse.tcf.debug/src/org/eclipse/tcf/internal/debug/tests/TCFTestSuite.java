@@ -102,7 +102,7 @@ public class TCFTestSuite {
             public void run() {
                 listener.progress("Running Expressions Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
-                    active_tests.put(new TestExpressions(TCFTestSuite.this, run_controls.get(channel), channel), channel);
+                    active_tests.put(new TestExpressions(TCFTestSuite.this, run_controls.get(channel), channel, mem_map), channel);
                 }
             }
         });
@@ -161,7 +161,7 @@ public class TCFTestSuite {
                     case 1: test = new TestEchoERR(TCFTestSuite.this, channel); break;
                     case 2: test = new TestEchoFP(TCFTestSuite.this, channel); break;
                     case 3: test = new TestAttachTerminate(TCFTestSuite.this, run_controls.get(channel), channel); break;
-                    case 4: test = new TestExpressions(TCFTestSuite.this, run_controls.get(channel), channel); break;
+                    case 4: test = new TestExpressions(TCFTestSuite.this, run_controls.get(channel), channel, mem_map); break;
                     case 5: test = new TestRCBP1(TCFTestSuite.this, run_controls.get(channel), channel, i, path_map, mem_map); break;
                     case 6: test = new TestFileSystem(TCFTestSuite.this, channel, i); break;
                     case 7: test = new TestPathMap(TCFTestSuite.this, channel, path_map); break;
