@@ -183,12 +183,14 @@ public class MemoryMapWidget {
                 IMemoryMap.MemoryRegion region1 = all.get(i);
                 boolean multiple = false;
                 ArrayList<IMemoryMap.MemoryRegion> children = new ArrayList<IMemoryMap.MemoryRegion>();
-                for (int j = i + 1; j < all.size(); j++) {
-                    IMemoryMap.MemoryRegion region2 = all.get(j);
-                    if (!region1.equals(region2) && region1.getFileName().equals(region2.getFileName())) {
-                        multiple = true;
-                        children.add(region2);
-                        removed.add(region2);
+                if (region1.getFileName() != null) {
+                    for (int j = i + 1; j < all.size(); j++) {
+                        IMemoryMap.MemoryRegion region2 = all.get(j);
+                        if (!region1.equals(region2) && region1.getFileName().equals(region2.getFileName())) {
+                            multiple = true;
+                            children.add(region2);
+                            removed.add(region2);
+                        }
                     }
                 }
                 if (!removed.contains(region1)) {
@@ -198,8 +200,7 @@ public class MemoryMapWidget {
                         Map<String, Object> props = new HashMap<String, Object>();
                         props.put(IMemoryMap.PROP_FILE_NAME, region1.getFileName());
                         props.put("_CHILDREN", children.toArray()); //$NON-NLS-1$
-                        TCFMemoryRegion region = new TCFMemoryRegion(props);
-                        roots.add(region);
+                        roots.add(new TCFMemoryRegion(props));
                     }
                     else {
                         roots.add(region1);
@@ -932,8 +933,7 @@ public class MemoryMapWidget {
         String[] arr = ids.toArray(new String[ids.size()]);
         Arrays.sort(arr);
         ctx_text.removeAll();
-        for (String id : arr)
-            ctx_text.add(id);
+        for (String id : arr) ctx_text.add(id);
         if (map_id == null && arr.length > 0) map_id = arr[0];
         if (map_id == null) map_id = ""; //$NON-NLS-1$
         ctx_text.setText(map_id);
