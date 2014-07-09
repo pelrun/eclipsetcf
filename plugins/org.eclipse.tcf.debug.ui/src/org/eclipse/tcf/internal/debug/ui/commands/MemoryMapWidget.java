@@ -66,7 +66,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
@@ -957,7 +956,8 @@ public class MemoryMapWidget {
             region = (IMemoryMap.MemoryRegion)((Object[])region.getProperties().get("_CHILDREN"))[0]; //$NON-NLS-1$
         }
         final IMemoryMap.MemoryRegion r = region;
-        if (channel == null || channel.getState() != IChannel.STATE_OPEN || r == null || r.getAddress() == null) return null;
+        if (channel == null || channel.getState() != IChannel.STATE_OPEN) return null;
+        if (r == null || r.getAddress() == null || r.getFileName() == null) return null;
         try {
             String symFileInfo = new TCFTask<String>(channel) {
                 public void run() {
@@ -984,12 +984,12 @@ public class MemoryMapWidget {
                             TCFSymFileRef sym_data = sym_cache.getData();
                             if (sym_data != null) {
                                 if (sym_data.props != null) {
-                                    String sym_file_name = (String) sym_data.props.get("FileName"); //$NON-NLS-1$
+                                    String sym_file_name = (String)sym_data.props.get("FileName"); //$NON-NLS-1$
                                     if (sym_file_name != null && !sym_file_name.equals(r.getFileName()))
                                         symbolFileInfo.append("Symbol file name: ").append(sym_file_name); //$NON-NLS-1$
 
                                     @SuppressWarnings("unchecked")
-                                    Map<String, Object> map = (Map<String, Object>) sym_data.props.get("FileError"); //$NON-NLS-1$
+                                    Map<String, Object> map = (Map<String, Object>)sym_data.props.get("FileError"); //$NON-NLS-1$
                                     if (map != null) {
                                         if (symbolFileInfo.length() > 0) symbolFileInfo.append("\n"); //$NON-NLS-1$
                                         String msg = TCFModel.getErrorMessage(new ErrorReport("", map), false); //$NON-NLS-1$
