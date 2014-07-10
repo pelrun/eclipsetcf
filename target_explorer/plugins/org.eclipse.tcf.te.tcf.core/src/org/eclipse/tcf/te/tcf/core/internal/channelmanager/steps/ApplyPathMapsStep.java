@@ -8,7 +8,7 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.tcf.core.steps.internal;
+package org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,24 +16,27 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
-import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
 
 /**
- * ChainPeerStep
+ * ApplyPathMapsStep
  */
-public class ChainPeerStep extends AbstractPeerStep {
+public class ApplyPathMapsStep extends AbstractPeerStep {
 
 	/**
 	 * Constructor.
 	 */
-	public ChainPeerStep() {
+	public ApplyPathMapsStep() {
 	}
 
 	/* (non-Javadoc)
@@ -41,56 +44,35 @@ public class ChainPeerStep extends AbstractPeerStep {
 	 */
 	@Override
 	public void validateExecute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+		if (channel == null || channel.getState() != IChannel.STATE_OPEN) {
+			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "missing TCF channel")); //$NON-NLS-1$
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#execute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void execute(IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, final ICallback callback) {
-		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+	public void execute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, final ICallback callback) {
+		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
-
-		if (channel == null) {
-			channel = peer.openChannel();
+		final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
+		final IPathMap svc = channel.getRemoteService(IPathMap.class);
+		if (service != null && svc != null) {
+			// Apply the initial path map to the opened channel.
+			// This must happen outside the TCF dispatch thread as it may trigger
+			// the launch configuration change listeners.
+			Thread thread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					service.applyPathMap(peer, true, callback);
+				}
+			});
+			thread.start();
+		} else {
+			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 		}
-		else {
-			channel.redirect(peer.getAttributes());
-		}
-
-		final IChannel finChannel = channel;
-		channel.addChannelListener(new IChannel.IChannelListener() {
-			@Override
-			public void onChannelOpened() {
-				finChannel.removeChannelListener(this);
-					StepperAttributeUtil.setProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data, finChannel, true);
-				callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-			}
-
-			@Override
-			public void onChannelClosed(Throwable error) {
-				// Remove ourself as listener from the channel
-				finChannel.removeChannelListener(this);
-					callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
-			}
-
-			@Override
-			public void congestionLevel(int level) {
-			}
-		});
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#rollback(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IStatus, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
-	 */
-	@Override
-	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
-		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
-
-		if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
-			channel.close();
-		}
-
-		super.rollback(context, data, status, fullQualifiedId, monitor, callback);
-	}
 }

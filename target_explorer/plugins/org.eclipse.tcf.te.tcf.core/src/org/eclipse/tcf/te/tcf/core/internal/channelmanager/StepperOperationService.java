@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.core.internal;
+package org.eclipse.tcf.te.tcf.core.internal.channelmanager;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
@@ -53,9 +53,9 @@ public class StepperOperationService extends AbstractStepperOperationService {
 		Assert.isTrue(context instanceof IPeer);
 
 		if (OPEN_CHANNEL.equals(operation))
-			return "org.eclipse.tcf.te.tcf.core.openChannelStepGroup"; //$NON-NLS-1$
+			return "org.eclipse.tcf.te.tcf.core.channelmanager.openChannelStepGroup"; //$NON-NLS-1$
 		if (CLOSE_CHANNEL.equals(operation))
-			return "org.eclipse.tcf.te.tcf.core.closeChannelStepGroup"; //$NON-NLS-1$
+			return "org.eclipse.tcf.te.tcf.core.channelmanager.closeChannelStepGroup"; //$NON-NLS-1$
 
 		return null;
 	}

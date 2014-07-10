@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.core.internal;
+package org.eclipse.tcf.te.tcf.core.internal.channelmanager;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

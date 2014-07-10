@@ -19,7 +19,7 @@
       </service>
 
       <service
-            class="org.eclipse.tcf.te.tcf.core.internal.StepperOperationService"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.StepperOperationService"
             id="org.eclipse.tcf.te.tcf.core.services.stepperOperation">
          <serviceType
                bundleId="org.eclipse.tcf.te.runtime.stepper"
@@ -49,61 +49,61 @@
             label="%ShutDownStep.name"/>
             
       <step
-            id="org.eclipse.tcf.te.tcf.core.internal.launchValueAddStep"
-            class="org.eclipse.tcf.te.tcf.core.steps.internal.LaunchValueAddStep"
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddStep"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.LaunchValueAddStep"
             label="%LaunchValueAddStep.name"/>
       <step
-            id="org.eclipse.tcf.te.tcf.core.internal.chainPeerStep"
-            class="org.eclipse.tcf.te.tcf.core.steps.internal.ChainPeerStep"
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeerStep"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ChainPeerStep"
             label="%ChainPeerStep.name"/>
       <step
-            id="org.eclipse.tcf.te.tcf.core.internal.applyPathMapsStep"
-            class="org.eclipse.tcf.te.tcf.core.steps.internal.ApplyPathMapsStep"
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.applyPathMapsStep"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ApplyPathMapsStep"
             label="%ApplyPatMapsStep.name"/> 
       <step
-            id="org.eclipse.tcf.te.tcf.core.internal.closeChannelStep"
-            class="org.eclipse.tcf.te.tcf.core.steps.internal.CloseChannelStep"
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.closeChannelStep"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.CloseChannelStep"
             label="%CloseChannelStep.name"/>
       <step
-            id="org.eclipse.tcf.te.tcf.core.internal.shutdownValueAddsStepGroup"
-            class="org.eclipse.tcf.te.tcf.core.steps.internal.ShutdownValueAddStep"
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddsStepGroup"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ShutdownValueAddStep"
             label="%ShutdownValueAddStep.name"/>
             
    </extension>
 
 <!-- Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.stepGroups">
-      <stepGroup id="org.eclipse.tcf.te.tcf.core.openChannelStepGroup">
+      <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.openChannelStepGroup">
          <references>
-            <reference id="org.eclipse.tcf.te.tcf.core.launchValueAddsStepGroup"/>
-            <reference id="org.eclipse.tcf.te.tcf.core.chainPeersStepGroup"/>
-            <reference id="org.eclipse.tcf.te.tcf.core.internal.applyPathMapsStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddsStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeersStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.applyPathMapsStep"/>
          </references>      	
       </stepGroup>
-      <stepGroup id="org.eclipse.tcf.te.tcf.core.internal.launchValueAddsStepGroup"
+      <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddsStepGroup"
             iterator="org.eclipse.tcf.te.tcf.core.iterators.ValueAddsIterator">
          <references>
-            <reference id="org.eclipse.tcf.te.tcf.core.internal.launchValueAddStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddStep"/>
          </references>      	
       </stepGroup>
-      <stepGroup id="org.eclipse.tcf.te.tcf.core.internal.chainPeersStepGroup"
+      <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeersStepGroup"
             iterator="org.eclipse.tcf.te.tcf.core.iterators.ChainPeersIterator">
          <references>
-            <reference id="org.eclipse.tcf.te.tcf.core.internal.chainPeerStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeerStep"/>
          </references>      	
       </stepGroup>
       
 
-      <stepGroup id="org.eclipse.tcf.te.tcf.core.closeChannelStepGroup">
+      <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.closeChannelStepGroup">
          <references>
-            <reference id="org.eclipse.tcf.te.tcf.core.internal.closeChannelStep"/>
-            <reference id="org.eclipse.tcf.te.tcf.core.shutdownValueAddsStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.closeChannelStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddsStepGroup"/>
          </references>      	
       </stepGroup>
-      <stepGroup id="org.eclipse.tcf.te.tcf.core.internal.shutdownValueAddsStepGroup"
+      <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddsStepGroup"
             iterator="org.eclipse.tcf.te.tcf.core.iterators.ValueAddsIterator">
          <references>
-            <reference id="org.eclipse.tcf.te.tcf.core.internal.shutdownValueAddStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddStep"/>
          </references>      	
       </stepGroup>
    </extension>

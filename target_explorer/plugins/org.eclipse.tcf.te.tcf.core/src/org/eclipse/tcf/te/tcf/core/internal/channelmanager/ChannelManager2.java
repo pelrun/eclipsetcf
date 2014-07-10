@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.core.internal;
+package org.eclipse.tcf.te.tcf.core.internal.channelmanager;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
@@ -31,7 +32,7 @@ import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
  */
 public class ChainPeersIterator extends AbstractPeerStepGroupIterator {
 
-	private final List<IPeer> peers = new ArrayList<IPeer>();
+	/* default */ final List<IPeer> peers = new ArrayList<IPeer>();
 
 	/**
 	 * Constructor.
@@ -49,21 +50,32 @@ public class ChainPeersIterator extends AbstractPeerStepGroupIterator {
 	    final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
 	    final String peerId = peer.getID();
 
-		IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
-		for (IValueAdd valueAdd : valueAdds) {
-			IPeer valueAddPeer = valueAdd.getPeer(peerId);
-			if (valueAddPeer != null) {
-				peers.add(valueAddPeer);
+	    peers.clear();
+
+	    Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
+				for (IValueAdd valueAdd : valueAdds) {
+					IPeer valueAddPeer = valueAdd.getPeer(peerId);
+					if (valueAddPeer != null) {
+						peers.add(valueAddPeer);
+					}
+		        }
+
+				String proxyConfiguration = peer.getAttributes().get(IPeerProperties.PROP_PROXIES);
+				if (proxyConfiguration != null) {
+					for (IPeer proxy : PeerDataHelper.decodePeerList(proxyConfiguration)) {
+				        peers.add(proxy);
+			        }
+				}
+
+			    peers.add(peer);
 			}
-        }
+		};
 
-		String proxyConfiguration = peer.getAttributes().get(IPeerProperties.PROP_PROXIES);
-		IPeer[] proxies = proxyConfiguration != null ?  PeerDataHelper.decodePeerList(proxyConfiguration) : null;
-
-		for (IPeer proxy : proxies) {
-	        peers.add(proxy);
-        }
-	    peers.add(peer);
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
 
 	    setIterations(peers.size());
 	}
