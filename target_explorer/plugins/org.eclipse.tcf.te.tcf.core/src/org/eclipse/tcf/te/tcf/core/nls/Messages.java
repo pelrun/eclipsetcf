@@ -74,6 +74,7 @@ public class Messages extends NLS {
 
 	public static String ChannelManager_openChannel_message;
 	public static String ChannelManager_openChannel_reuse_message;
+	public static String ChannelManager_openChannel_pending_message;
 	public static String ChannelManager_openChannel_new_message;
 	public static String ChannelManager_openChannel_success_message;
 	public static String ChannelManager_openChannel_failed_message;
@@ -91,9 +92,12 @@ public class Messages extends NLS {
 	public static String ChannelManager_openChannel_redirect_failed;
 	public static String ChannelManager_openChannel_redirect_invalidChannelState;
 	public static String ChannelManager_createPeer_new_message;
+	public static String ChannelManager_closeChannel_close_message;
 	public static String ChannelManager_closeChannel_message;
 	public static String ChannelManager_closeChannel_inuse_message;
 	public static String ChannelManager_closeChannel_closed_message;
+	public static String ChannelManager_closeChannel_pending_message;
+	public static String ChannelManager_closeChannel_failed_message;
 	public static String ChannelManager_stream_closed_message;
 	public static String ChannelManager_stream_missing_service_message;
 
@@ -120,4 +124,7 @@ public class Messages extends NLS {
 	public static String Extension_error_invalidChannelStateChangeListener;
 
 	public static String AbstractJob_error_dialogTitle;
+
+	public static String StepperOperationService_stepGroupName_openChannel;
+	public static String StepperOperationService_stepGroupName_closeChannel;
 }

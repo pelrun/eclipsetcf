@@ -10,6 +10,7 @@
 
 package org.eclipse.tcf.te.runtime.stepper.utils;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -38,7 +39,12 @@ public final class StepperHelper {
 		return stepperOperationService;
 	}
 
-	public static final void scheduleStepperJob(Object context, String operation, IStepperOperationService service, IPropertiesContainer data, ICallback callback, IProgressMonitor monitor) {
+	public static final StepperJob scheduleStepperJob(Object context, String operation, IStepperOperationService service, IPropertiesContainer data, ICallback callback, IProgressMonitor monitor) {
+		Assert.isNotNull(service);
+		Assert.isNotNull(data);
+
+		StepperJob job = null;
+
 		IStepContext stepContext = service.getStepContext(context, operation);
 		String stepGroupId = service.getStepGroupId(context, operation);
 		String name = service.getStepGroupName(context, operation);
@@ -53,13 +59,7 @@ public final class StepperHelper {
 		}
 
 		if (stepGroupId != null && stepContext != null) {
-			StepperJob job = new StepperJob(name != null ? name : "", //$NON-NLS-1$
-											stepContext,
-											data,
-											stepGroupId,
-											operation,
-											isCancelable,
-											monitor == null);
+			job = new StepperJob(name != null ? name : "", stepContext, data, stepGroupId, operation, isCancelable, monitor == null); //$NON-NLS-1$
 			job.setJobCallback(callback);
 
 			if (monitor != null) {
@@ -70,5 +70,6 @@ public final class StepperHelper {
 			}
 		}
 
+		return job;
 	}
 }

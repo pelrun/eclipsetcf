@@ -24,8 +24,9 @@ public interface IChannelManager extends IAdaptable {
 
 	/**
 	 * If set to <code>true</code>, a new and not reference counted channel is opened.
-	 * The returned channel must be closed by the caller himself. The channel manager
-	 * is not keeping track of non reference counted channels.
+	 * <p>
+	 * All channels opened by the channel manager must be closed by the channel managers
+	 * {@link #closeChannel(IChannel)} API.
 	 * <p>
 	 * If not present in the flags map passed in to open channel, the default value is
 	 * <code>false</code>.
@@ -37,8 +38,8 @@ public interface IChannelManager extends IAdaptable {
 	 * and no value add is launched and associated with the channel. This option should
 	 * be used with extreme caution.
 	 * <p>
-	 * The returned channel must be closed by the caller himself. The channel manager
-	 * is not keeping track of non reference counted channels.
+	 * All channels opened by the channel manager must be closed by the channel managers
+	 * {@link #closeChannel(IChannel)} API.
 	 * <p>
 	 * If not present in the flags map passed in to open channel, the default value is
 	 * <code>false</code>.
@@ -49,8 +50,8 @@ public interface IChannelManager extends IAdaptable {
 	 * If set to <code>true</code>, a new and not reference counted channel is opened,
 	 * and the configured path map is not auto applied to the opened channel.
 	 * <p>
-	 * The returned channel must be closed by the caller himself. The channel manager
-	 * is not keeping track of non reference counted channels.
+	 * All channels opened by the channel manager must be closed by the channel managers
+	 * {@link #closeChannel(IChannel)} API.
 	 * <p>
 	 * If not present in the flags map passed in to open channel, the default value is
 	 * <code>false</code>.
@@ -77,7 +78,8 @@ public interface IChannelManager extends IAdaptable {
 	/**
 	 * Opens a new channel to communicate with the given peer.
 	 * <p>
-	 * Reference counted channels are cached by the channel manager and must be closed via {@link #closeChannel(IChannel)}.
+	 * Channels opened by the channel manager must be closed by the channel managers
+	 * {@link #closeChannel(IChannel)} API.
 	 * <p>
 	 * The method can be called from any thread context.
 	 *
@@ -90,7 +92,8 @@ public interface IChannelManager extends IAdaptable {
 	/**
 	 * Opens a new channel to communicate with the peer described by the given peer attributes.
 	 * <p>
-	 * Reference counted channels are cached by the channel manager and must be closed via {@link #closeChannel(IChannel)}.
+	 * Channels opened by the channel manager must be closed by the channel managers
+	 * {@link #closeChannel(IChannel)} API.
 	 * <p>
 	 * The method can be called from any thread context.
 	 *

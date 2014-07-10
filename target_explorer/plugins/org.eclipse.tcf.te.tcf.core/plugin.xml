@@ -17,6 +17,18 @@
             class="org.eclipse.tcf.te.tcf.core.internal.services.PathMapResolverService">
          <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IPathMapResolverService"/>
       </service>
+
+      <service
+            class="org.eclipse.tcf.te.tcf.core.internal.StepperOperationService"
+            id="org.eclipse.tcf.te.tcf.core.services.stepperOperation">
+         <serviceType
+               bundleId="org.eclipse.tcf.te.runtime.stepper"
+               class="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService">
+         </serviceType>
+         <enablement>
+            <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+         </enablement>
+      </service>
    </extension>
 
 <!-- Step contributions -->
