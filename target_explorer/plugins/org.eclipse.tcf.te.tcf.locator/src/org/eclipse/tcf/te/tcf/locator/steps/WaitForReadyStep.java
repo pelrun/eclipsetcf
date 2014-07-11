@@ -179,15 +179,20 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#rollback(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IStatus, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
+	public void rollback(final IStepContext context, final IPropertiesContainer data, final IStatus status, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
-		Protocol.invokeAndWait(new Runnable() {
-			@Override
+
+		Runnable runnable = new Runnable() {
+			@SuppressWarnings("synthetic-access")
+            @Override
 			public void run() {
 				Tcf.getChannelManager().shutdown(peer);
+				WaitForReadyStep.super.rollback(context, data, status, fullQualifiedId, monitor, callback);
 			}
-		});
-		callback.done(this, Status.OK_STATUS);
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeLater(runnable);
 	}
 
 	/* (non-Javadoc)

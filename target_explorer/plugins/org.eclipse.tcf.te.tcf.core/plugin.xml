@@ -65,7 +65,7 @@
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.CloseChannelStep"
             label="%CloseChannelStep.name"/>
       <step
-            id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddsStepGroup"
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ShutdownValueAddStep"
             label="%ShutdownValueAddStep.name"/>
             
@@ -81,13 +81,13 @@
          </references>      	
       </stepGroup>
       <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddsStepGroup"
-            iterator="org.eclipse.tcf.te.tcf.core.iterators.ValueAddsIterator">
+            iterator="org.eclipse.tcf.te.tcf.core.internal.channelmanager.iterators.ValueAddsIterator">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddStep"/>
          </references>      	
       </stepGroup>
       <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeersStepGroup"
-            iterator="org.eclipse.tcf.te.tcf.core.iterators.ChainPeersIterator">
+            iterator="org.eclipse.tcf.te.tcf.core.internal.channelmanager.iterators.ChainPeersIterator">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeerStep"/>
          </references>      	
@@ -101,7 +101,7 @@
          </references>      	
       </stepGroup>
       <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddsStepGroup"
-            iterator="org.eclipse.tcf.te.tcf.core.iterators.ValueAddsIterator">
+            iterator="org.eclipse.tcf.te.tcf.core.internal.channelmanager.iterators.ValueAddsIterator">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddStep"/>
          </references>      	

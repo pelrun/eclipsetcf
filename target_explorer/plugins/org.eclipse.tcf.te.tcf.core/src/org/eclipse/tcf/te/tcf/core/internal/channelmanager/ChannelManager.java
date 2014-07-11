@@ -24,7 +24,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IToken;
@@ -40,7 +39,6 @@ import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
-import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
 import org.eclipse.tcf.te.tcf.core.va.ValueAddManager;
 import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
@@ -315,76 +313,6 @@ public final class ChannelManager extends PlatformObject implements IChannelMana
 				done.doneOpenChannel(null, channel);
 			}
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#openChannel(java.util.Map, java.util.Map, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel)
-	 */
-	@Override
-	public void openChannel(final Map<String, String> peerAttributes, final Map<String, Boolean> flags, final DoneOpenChannel done) {
-		Runnable runnable = new Runnable() {
-			@Override
-            public void run() {
-				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-				internalOpenChannel(peerAttributes, flags, done);
-			}
-		};
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeLater(runnable);
-	}
-
-	/**
-	 * Internal implementation of {@link #openChannel(Map, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel)}.
-	 * <p>
-	 * Method must be called within the TCF dispatch thread.
-	 *
-	 * @param peerAttributes The peer attributes. Must not be <code>null</code>.
-	 * @param flags Map containing the flags to parameterize the channel opening, or <code>null</code>.
-	 * @param done The client callback. Must not be <code>null</code>.
-	 */
-	/* default */ void internalOpenChannel(final Map<String, String> peerAttributes, final Map<String, Boolean> flags, final DoneOpenChannel done) {
-		Assert.isNotNull(peerAttributes);
-		Assert.isNotNull(done);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		// Call openChannel(IPeer, ...) instead of calling internalOpenChannel(IPeer, ...) directly
-		// to include the value-add handling.
-		openChannel(getOrCreatePeerInstance(peerAttributes), flags, done);
-	}
-
-	/**
-	 * Tries to find an existing peer instance or create an new {@link IPeer}
-	 * instance if not found.
-	 * <p>
-	 * <b>Note:</b> This method must be invoked at the TCF dispatch thread.
-	 *
-	 * @param peerAttributes The peer attributes. Must not be <code>null</code>.
-	 * @return The peer instance.
-	 */
-	private IPeer getOrCreatePeerInstance(final Map<String, String> peerAttributes) {
-		Assert.isNotNull(peerAttributes);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		// Get the peer id from the properties
-		String peerId = peerAttributes.get(IPeer.ATTR_ID);
-		Assert.isNotNull(peerId);
-
-		// Check if we shall open the peer transient
-		boolean isTransient = peerAttributes.containsKey("transient") ? Boolean.parseBoolean(peerAttributes.remove("transient")) : false; //$NON-NLS-1$ //$NON-NLS-2$
-
-		// Look the peer via the Locator Service.
-		IPeer peer = Protocol.getLocator().getPeers().get(peerId);
-		// If not peer could be found, create a new one
-		if (peer == null) {
-			peer = isTransient ? new Peer(peerAttributes) : new AbstractPeer(peerAttributes);
-
-			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-				CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_createPeer_new_message, peerId, Boolean.valueOf(isTransient)),
-															0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, this);
-			}
-		}
-
-		// Return the peer instance
-		return peer;
 	}
 
 	/* (non-Javadoc)

@@ -99,9 +99,8 @@ public abstract class AbstractStep extends ExecutableExtension implements IStep 
 	 */
 	@Override
 	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
-		if (callback != null) {
-			callback.done(this, Status.OK_STATUS);
-		}
+		Assert.isNotNull(callback);
+		callback.done(this, Status.OK_STATUS);
 	}
 
 	/* (non-Javadoc)

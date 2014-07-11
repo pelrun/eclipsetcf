@@ -10,6 +10,7 @@
 
 package org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -53,6 +54,12 @@ public class LaunchValueAddStep extends AbstractPeerStep {
 	 */
 	@Override
 	public void execute(IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, final ICallback callback) {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
+		Assert.isNotNull(callback);
+
 		final IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		final String peerId = getActivePeerContext(context, data, fullQualifiedId).getID();
 
@@ -88,10 +95,11 @@ public class LaunchValueAddStep extends AbstractPeerStep {
 		final String peerId = getActivePeerContext(context, data, fullQualifiedId).getID();
 
 		Runnable runnable = new Runnable() {
-			@Override
+			@SuppressWarnings("synthetic-access")
+            @Override
 			public void run() {
 				valueAdd.shutdown(peerId, callback);
-				if (callback != null) callback.done(this, Status.OK_STATUS);
+				LaunchValueAddStep.super.rollback(context, data, status, fullQualifiedId, monitor, callback);
 			}
 		};
 

@@ -21,7 +21,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.core.AbstractPeer;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IToken;
@@ -39,7 +38,6 @@ import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
-import org.eclipse.tcf.te.tcf.core.peers.Peer;
 
 /**
  * Channel manager implementation.
@@ -85,6 +83,23 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 			}
 		}
 
+		// The client done callback must be called within the TCF event dispatch thread
+		final DoneOpenChannel internalDone = new DoneOpenChannel() {
+
+			@Override
+			public void doneOpenChannel(final Throwable error, final IChannel channel) {
+				Runnable runnable = new Runnable() {
+					@Override
+					public void run() {
+						done.doneOpenChannel(error, channel);
+					}
+				};
+
+				if (Protocol.isDispatchThread()) runnable.run();
+				else Protocol.invokeLater(runnable);
+			}
+		};
+
 		// The channel instance to return
 		IChannel channel = null;
 
@@ -127,7 +142,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 				}
 
 				// Invoke the channel open done callback
-				done.doneOpenChannel(null, channel);
+				internalDone.doneOpenChannel(null, channel);
 			}
 			// If the channel is opening, wait for the channel to become fully opened.
 			// Add the done open channel callback to the list of pending callback's.
@@ -138,10 +153,10 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 					pendingDones.put(id, dones);
 				}
 				Assert.isNotNull(dones);
-				dones.add(done);
+				dones.add(internalDone);
 
 				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_pending_message, id, "0x" + Integer.toHexString(done.hashCode())), //$NON-NLS-1$
+					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_pending_message, id, "0x" + Integer.toHexString(internalDone.hashCode())), //$NON-NLS-1$
 																0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager2.this);
 				}
 			}
@@ -187,7 +202,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 							pendingOpenChannel.remove(id);
 
 							// Invoke the primary "open channel" done callback
-							done.doneOpenChannel(error, null);
+							internalDone.doneOpenChannel(error, null);
 
 							// Invoke pending callback's
 							List<DoneOpenChannel> pending = pendingDones.remove(id);
@@ -216,7 +231,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 							}
 
 							// Invoke the primary "open channel" done callback
-							done.doneOpenChannel(null, channel);
+							internalDone.doneOpenChannel(null, channel);
 
 							// Invoke pending callback's
 							List<DoneOpenChannel> pending = pendingDones.remove(id);
@@ -252,69 +267,14 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 					pendingDones.put(id, dones);
 				}
 				Assert.isNotNull(dones);
-				dones.add(done);
+				dones.add(internalDone);
 
 				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_pending_message, id, "0x" + Integer.toHexString(done.hashCode())), //$NON-NLS-1$
+					CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_pending_message, id, "0x" + Integer.toHexString(internalDone.hashCode())), //$NON-NLS-1$
 																0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager2.this);
 				}
 			}
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#openChannel(java.util.Map, java.util.Map, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel)
-	 */
-	@Override
-	public void openChannel(final Map<String, String> peerAttributes, final Map<String, Boolean> flags, final DoneOpenChannel done) {
-		Assert.isNotNull(peerAttributes);
-		Assert.isNotNull(done);
-
-		Runnable runnable = new Runnable() {
-			@Override
-            public void run() {
-				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-				openChannel(getOrCreatePeerInstance(peerAttributes), flags, done);
-			}
-		};
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeLater(runnable);
-	}
-
-	/**
-	 * Tries to find an existing peer instance or create an new {@link IPeer}
-	 * instance if not found.
-	 * <p>
-	 * <b>Note:</b> This method must be invoked at the TCF dispatch thread.
-	 *
-	 * @param peerAttributes The peer attributes. Must not be <code>null</code>.
-	 * @return The peer instance.
-	 */
-	/* default */ IPeer getOrCreatePeerInstance(final Map<String, String> peerAttributes) {
-		Assert.isNotNull(peerAttributes);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		// Get the peer id from the properties
-		String peerId = peerAttributes.get(IPeer.ATTR_ID);
-		Assert.isNotNull(peerId);
-
-		// Check if we shall open the peer transient
-		boolean isTransient = peerAttributes.containsKey("transient") ? Boolean.parseBoolean(peerAttributes.remove("transient")) : false; //$NON-NLS-1$ //$NON-NLS-2$
-
-		// Look the peer via the Locator Service.
-		IPeer peer = Protocol.getLocator().getPeers().get(peerId);
-		// If not peer could be found, create a new one
-		if (peer == null) {
-			peer = isTransient ? new Peer(peerAttributes) : new AbstractPeer(peerAttributes);
-
-			if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
-				CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_createPeer_new_message, peerId, Boolean.valueOf(isTransient)),
-															0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager2.this);
-			}
-		}
-
-		// Return the peer instance
-		return peer;
 	}
 
 	/* (non-Javadoc)

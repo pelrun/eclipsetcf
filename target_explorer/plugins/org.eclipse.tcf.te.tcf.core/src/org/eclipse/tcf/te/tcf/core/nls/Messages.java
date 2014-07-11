@@ -91,7 +91,6 @@ public class Messages extends NLS {
 	public static String ChannelManager_openChannel_redirect_succeeded;
 	public static String ChannelManager_openChannel_redirect_failed;
 	public static String ChannelManager_openChannel_redirect_invalidChannelState;
-	public static String ChannelManager_createPeer_new_message;
 	public static String ChannelManager_closeChannel_close_message;
 	public static String ChannelManager_closeChannel_message;
 	public static String ChannelManager_closeChannel_inuse_message;

@@ -8,7 +8,7 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.tcf.te.tcf.core.iterators;
+package org.eclipse.tcf.te.tcf.core.internal.channelmanager.iterators;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +23,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
+import org.eclipse.tcf.te.tcf.core.iterators.AbstractPeerStepGroupIterator;
 import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
 import org.eclipse.tcf.te.tcf.core.va.ValueAddManager;
 import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;

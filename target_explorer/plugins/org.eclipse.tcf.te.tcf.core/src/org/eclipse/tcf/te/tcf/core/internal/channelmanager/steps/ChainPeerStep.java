@@ -10,12 +10,16 @@
 
 package org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps;
 
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
@@ -48,49 +52,81 @@ public class ChainPeerStep extends AbstractPeerStep {
 	 */
 	@Override
 	public void execute(IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, final ICallback callback) {
-		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
+		Assert.isNotNull(callback);
+
+		final AtomicReference<IChannel> channel = new AtomicReference<IChannel>((IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data));
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
 
-		if (channel == null) {
-			channel = peer.openChannel();
-		}
-		else {
-			channel.redirect(peer.getAttributes());
-		}
-
-		final IChannel finChannel = channel;
-		channel.addChannelListener(new IChannel.IChannelListener() {
+		Runnable runnable = new Runnable() {
 			@Override
-			public void onChannelOpened() {
-				finChannel.removeChannelListener(this);
-					StepperAttributeUtil.setProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data, finChannel, true);
-				callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-			}
+			public void run() {
+				IChannel c = channel.get();
 
-			@Override
-			public void onChannelClosed(Throwable error) {
-				// Remove ourself as listener from the channel
-				finChannel.removeChannelListener(this);
-					callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
-			}
+				// If the channel is not yet opened, open it now.
+				// Otherwise redirect the channel to the next peer.
+				if (c == null) {
+					c = peer.openChannel();
+					channel.set(c);
+				} else {
+					c.redirect(peer.getAttributes());
+				}
 
-			@Override
-			public void congestionLevel(int level) {
+				// At this point, channel must not be null and
+				// channel.get and c must be the same
+				Assert.isNotNull(c);
+				Assert.isTrue(c.equals(channel.get()));
+
+				c.addChannelListener(new IChannel.IChannelListener() {
+					@Override
+					public void onChannelOpened() {
+						channel.get().removeChannelListener(this);
+						StepperAttributeUtil.setProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data, channel.get(), true);
+						callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+					}
+
+					@Override
+					public void onChannelClosed(Throwable error) {
+						// Remove ourself as listener from the channel
+						channel.get().removeChannelListener(this);
+						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
+					}
+
+					@Override
+					public void congestionLevel(int level) {
+					}
+				});
 			}
-		});
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeLater(runnable);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#rollback(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IStatus, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
 	 */
 	@Override
-	public void rollback(IStepContext context, IPropertiesContainer data, IStatus status, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
-		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+	public void rollback(final IStepContext context, final IPropertiesContainer data, final IStatus status, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
+		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 
 		if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
-			channel.close();
-		}
+			Runnable runnable = new Runnable() {
+				@SuppressWarnings("synthetic-access")
+                @Override
+				public void run() {
+					channel.close();
+					ChainPeerStep.super.rollback(context, data, status, fullQualifiedId, monitor, callback);
+				}
+			};
 
-		super.rollback(context, data, status, fullQualifiedId, monitor, callback);
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeLater(runnable);
+		} else {
+			super.rollback(context, data, status, fullQualifiedId, monitor, callback);
+		}
 	}
 }

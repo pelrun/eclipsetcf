@@ -81,27 +81,14 @@ public interface IChannelManager extends IAdaptable {
 	 * Channels opened by the channel manager must be closed by the channel managers
 	 * {@link #closeChannel(IChannel)} API.
 	 * <p>
-	 * The method can be called from any thread context.
+	 * The method can be called from any thread context, the client done callback
+	 * is always invoked within the TCF event dispatch thread.
 	 *
 	 * @param peer The peer. Must not be <code>null</code>.
 	 * @param flags Map containing the flags to parameterize the channel opening, or <code>null</code>.
 	 * @param done The client callback. Must not be <code>null</code>.
 	 */
 	public void openChannel(IPeer peer, Map<String, Boolean> flags, DoneOpenChannel done);
-
-	/**
-	 * Opens a new channel to communicate with the peer described by the given peer attributes.
-	 * <p>
-	 * Channels opened by the channel manager must be closed by the channel managers
-	 * {@link #closeChannel(IChannel)} API.
-	 * <p>
-	 * The method can be called from any thread context.
-	 *
-	 * @param peerAttributes The peer attributes. Must not be <code>null</code>.
-	 * @param flags Map containing the flags to parameterize the channel opening, or <code>null</code>.
-	 * @param done The client callback. Must not be <code>null</code>.
-	 */
-	public void openChannel(Map<String, String> peerAttributes, Map<String, Boolean> flags, DoneOpenChannel done);
 
 	/**
 	 * Returns the shared channel instance for the given peer. Channels retrieved using this
