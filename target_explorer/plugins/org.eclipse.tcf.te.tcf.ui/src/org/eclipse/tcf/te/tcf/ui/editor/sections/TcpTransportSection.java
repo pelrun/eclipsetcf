@@ -52,6 +52,7 @@ import org.eclipse.tcf.te.ui.controls.wire.network.NetworkCablePanel;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
+import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -280,6 +281,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		proxyControl.setHasHistory(false);
 		proxyControl.setHideBrowseButton(true);
 		proxyControl.setupPanel(client);
+		SWTControlUtil.setEnabled(proxyControl.getEditFieldControl(), false);
 
 		addressControl = new MyRemoteHostAddressControl();
 		addressControl.setupPanel(client);

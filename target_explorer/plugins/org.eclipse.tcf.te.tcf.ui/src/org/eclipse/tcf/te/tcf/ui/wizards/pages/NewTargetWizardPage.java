@@ -346,6 +346,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		proxyControl.setHasHistory(false);
 		proxyControl.setEditFieldLabel(Messages.TcpTransportSection_proxies_label);
 		proxyControl.setupPanel(client);
+		SWTControlUtil.setEnabled(proxyControl.getEditFieldControl(), false);
 
 		createEmptySpace(client, 5, 2, toolkit);
 
