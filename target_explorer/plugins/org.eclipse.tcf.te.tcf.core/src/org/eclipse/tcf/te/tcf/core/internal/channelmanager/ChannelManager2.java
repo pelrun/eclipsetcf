@@ -129,7 +129,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 			// If the channel is still open, it's all done and the channel can be returned right away
 			if (channel.getState() == IChannel.STATE_OPEN) {
 				// Increase the reference count
-				AtomicInteger counter = refCounters.get(id);
+				AtomicInteger counter = refCounters.get(channel);
 				if (counter == null) {
 					counter = new AtomicInteger(0);
 					refCounters.put(channel, counter);
@@ -317,7 +317,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 			// Channel is not in open state -> drop the instance
 			channel = null;
 			channels.remove(id);
-			refCounters.remove(id);
+			refCounters.remove(channel);
 		}
 
 		return channel;
@@ -366,7 +366,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 		final boolean isRefCounted = !forcedChannels.contains(channel);
 
 		// Get the reference counter (if the channel is a reference counted channel)
-		AtomicInteger counter = isRefCounted ? refCounters.get(id) : null;
+		AtomicInteger counter = isRefCounted ? refCounters.get(channel) : null;
 
 		// If the counter is null or get 0 after the decrement, close the channel
 		if (counter == null || counter.decrementAndGet() == 0) {
@@ -403,8 +403,8 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 							pendingCloseChannel.remove(id);
 
 							// Clean the reference counter and the channel map
-							if (isRefCounted) refCounters.remove(id);
-							if (isRefCounted) channels.remove(channel);
+							if (isRefCounted) channels.remove(id);
+							if (isRefCounted) refCounters.remove(channel);
 							if (!isRefCounted) forcedChannels.remove(channel);
 
 							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
@@ -497,7 +497,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 		IChannel channel = internalGetChannel(peer);
 		if (channel != null) {
 			// Reset the reference count (will force a channel close)
-			refCounters.remove(id);
+			refCounters.remove(channel);
 
 			// Close the channel
 			internalCloseChannel(channel);
