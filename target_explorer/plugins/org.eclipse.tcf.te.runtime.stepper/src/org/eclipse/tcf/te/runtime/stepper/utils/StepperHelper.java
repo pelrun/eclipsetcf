@@ -39,11 +39,9 @@ public final class StepperHelper {
 		return stepperOperationService;
 	}
 
-	public static final StepperJob scheduleStepperJob(Object context, String operation, IStepperOperationService service, IPropertiesContainer data, ICallback callback, IProgressMonitor monitor) {
+	public static final void scheduleStepperJob(Object context, String operation, IStepperOperationService service, IPropertiesContainer data, ICallback callback, IProgressMonitor monitor) {
 		Assert.isNotNull(service);
 		Assert.isNotNull(data);
-
-		StepperJob job = null;
 
 		IStepContext stepContext = service.getStepContext(context, operation);
 		String stepGroupId = service.getStepGroupId(context, operation);
@@ -59,7 +57,7 @@ public final class StepperHelper {
 		}
 
 		if (stepGroupId != null && stepContext != null) {
-			job = new StepperJob(name != null ? name : "", stepContext, data, stepGroupId, operation, isCancelable, monitor == null); //$NON-NLS-1$
+			StepperJob job = new StepperJob(name != null ? name : "", stepContext, data, stepGroupId, operation, isCancelable, monitor == null); //$NON-NLS-1$
 			job.setJobCallback(callback);
 
 			if (monitor != null) {
@@ -69,7 +67,5 @@ public final class StepperHelper {
 				job.schedule();
 			}
 		}
-
-		return job;
 	}
 }

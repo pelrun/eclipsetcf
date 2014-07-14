@@ -21,6 +21,7 @@ Bundle-Localization: plugin
 Export-Package: org.eclipse.tcf.te.tcf.core,
  org.eclipse.tcf.te.tcf.core.activator;x-internal:=true,
  org.eclipse.tcf.te.tcf.core.async,
+ org.eclipse.tcf.te.tcf.core.channelmanager,
  org.eclipse.tcf.te.tcf.core.concurrent,
  org.eclipse.tcf.te.tcf.core.help,
  org.eclipse.tcf.te.tcf.core.interfaces,

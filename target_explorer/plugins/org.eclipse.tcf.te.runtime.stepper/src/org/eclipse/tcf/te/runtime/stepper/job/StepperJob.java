@@ -291,6 +291,10 @@ public final class StepperJob extends Job {
 				handler[0].handleStatus(status, null, null);
 			}
 		}
+		markStatusHandled();
+	}
+
+	public void markStatusHandled() {
 		statusHandled = true;
 	}
 

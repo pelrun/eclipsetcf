@@ -26,6 +26,7 @@ import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.core.channelmanager.OpenChannelException;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
 
@@ -33,12 +34,6 @@ import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
  * ChainPeerStep
  */
 public class ChainPeerStep extends AbstractPeerStep {
-
-	/**
-	 * Constructor.
-	 */
-	public ChainPeerStep() {
-	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
@@ -66,6 +61,11 @@ public class ChainPeerStep extends AbstractPeerStep {
 			public void run() {
 				IChannel c = channel.get();
 
+				// Flag to remember if openChannel or redirect is triggering
+				// the channel listener invocation. Repackage the error if
+				// the channel listener is invoked because of calling openChannel.
+				final boolean openChannelCalled = c == null;
+
 				// If the channel is not yet opened, open it now.
 				// Otherwise redirect the channel to the next peer.
 				if (c == null) {
@@ -92,6 +92,11 @@ public class ChainPeerStep extends AbstractPeerStep {
 					public void onChannelClosed(Throwable error) {
 						// Remove ourself as listener from the channel
 						channel.get().removeChannelListener(this);
+						// If invoked as result to an openChannel call, the error is repackaged
+						if (openChannelCalled && error != null) {
+							error = new OpenChannelException(error);
+						}
+						// Invoke the callback
 						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
 					}
 

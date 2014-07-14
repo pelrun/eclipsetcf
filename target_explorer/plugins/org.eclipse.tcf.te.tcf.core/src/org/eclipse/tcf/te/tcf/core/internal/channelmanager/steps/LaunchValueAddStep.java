@@ -32,17 +32,16 @@ import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
  */
 public class LaunchValueAddStep extends AbstractPeerStep {
 
-	/**
-	 * Constructor.
-	 */
-	public LaunchValueAddStep() {
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
 	public void validateExecute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
+
 		IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		if (valueAdd == null) {
 			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "Value-add descriptor instance not set.")); //$NON-NLS-1$

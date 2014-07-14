@@ -35,20 +35,19 @@ import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
  */
 public class ApplyPathMapsStep extends AbstractPeerStep {
 
-	/**
-	 * Constructor.
-	 */
-	public ApplyPathMapsStep() {
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
 	public void validateExecute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
+
 		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		if (channel == null || channel.getState() != IChannel.STATE_OPEN) {
-			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "Channel to target not available.")); //$NON-NLS-1$
+			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "Channel to target not available or closed.")); //$NON-NLS-1$
 		}
 	}
 
@@ -64,7 +63,9 @@ public class ApplyPathMapsStep extends AbstractPeerStep {
 		Assert.isNotNull(callback);
 
 		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+		Assert.isNotNull(channel);
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
+		Assert.isNotNull(peer);
 
 		Runnable runnable = new Runnable() {
 			@Override

@@ -10,6 +10,7 @@
 
 package org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -30,17 +31,16 @@ import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
  */
 public class ShutdownValueAddStep extends AbstractPeerStep {
 
-	/**
-	 * Constructor.
-	 */
-	public ShutdownValueAddStep() {
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
 	public void validateExecute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
+
 		IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		if (valueAdd == null) {
 			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "Value-add descriptor instance not set.")); //$NON-NLS-1$
@@ -52,6 +52,12 @@ public class ShutdownValueAddStep extends AbstractPeerStep {
 	 */
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
+		Assert.isNotNull(callback);
+
 		final IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		final String peerId = getActivePeerContext(context, data, fullQualifiedId).getID();
 

@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.Protocol;
@@ -20,6 +21,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
 
@@ -28,17 +30,20 @@ import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
  */
 public class CloseChannelStep extends AbstractPeerStep {
 
-	/**
-	 * Constructor.
-	 */
-	public CloseChannelStep() {
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IExtendedStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
 	public void validateExecute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
+
+		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+		if (channel == null) {
+			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "Channel to target not available.")); //$NON-NLS-1$
+		}
 	}
 
 	/* (non-Javadoc)
@@ -53,13 +58,12 @@ public class CloseChannelStep extends AbstractPeerStep {
 		Assert.isNotNull(callback);
 
 		final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
+		Assert.isNotNull(channel);
 
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
-					channel.close();
-				}
+				if (channel.getState() != IChannel.STATE_CLOSED) channel.close();
 				callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 			}
 		};
