@@ -10,8 +10,6 @@
 package org.eclipse.tcf.te.tcf.core.scripting.launcher;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
@@ -109,10 +107,8 @@ public class ScriptLauncher extends PlatformObject implements IScriptLauncher {
 		// Remember the process properties
 		this.properties = properties;
 
-		// Open a dedicated channel to the given peer
-		Map<String, Boolean> flags = new HashMap<String, Boolean>();
-		flags.put(IChannelManager.FLAG_FORCE_NEW, Boolean.TRUE);
-		Tcf.getChannelManager().openChannel(peer, flags, new IChannelManager.DoneOpenChannel() {
+		// Open a channel to the given peer if necessary
+		Tcf.getChannelManager().openChannel(peer, null, new IChannelManager.DoneOpenChannel() {
 			/* (non-Javadoc)
 			 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel#doneOpenChannel(java.lang.Throwable, org.eclipse.tcf.protocol.IChannel)
 			 */
