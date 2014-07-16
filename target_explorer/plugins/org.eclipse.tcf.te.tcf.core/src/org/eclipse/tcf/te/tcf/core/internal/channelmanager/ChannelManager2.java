@@ -30,6 +30,7 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
@@ -182,8 +183,11 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 
 				// Create the data properties container passed to the "open channel" steps
 				final IPropertiesContainer data = new PropertiesContainer();
+				// Set the flags to be passed to the "open channel" steps
 				data.setProperty(IChannelManager.FLAG_NO_VALUE_ADD, noValueAdd);
 				data.setProperty(IChannelManager.FLAG_NO_PATH_MAP, noPathMap);
+				// No recent action history persistence
+				data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, true);
 
 				// Create the callback to be invoked once the "open channel" stepper job is completed
 				final ICallback callback = new Callback() {
@@ -322,9 +326,9 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 		IChannel channel = channels.get(id);
 		if (channel != null && !(channel.getState() == IChannel.STATE_OPEN || channel.getState() == IChannel.STATE_OPENING)) {
 			// Channel is not in open state -> drop the instance
-			channel = null;
 			channels.remove(id);
 			refCounters.remove(channel);
+			channel = null;
 		}
 
 		return channel;
@@ -388,6 +392,10 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 
 				// Create the data properties container passed to the "close channel" steps
 				final IPropertiesContainer data = new PropertiesContainer();
+				// Set the channel to close
+				data.setProperty(ITcfStepAttributes.ATTR_CHANNEL, channel);
+				// No recent action history persistence
+				data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, true);
 
 				// Create the callback to be invoked once the "close channel" stepper job is completed
 				final ICallback callback = new Callback() {

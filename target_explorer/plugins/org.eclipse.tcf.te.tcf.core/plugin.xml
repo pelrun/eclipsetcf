@@ -37,12 +37,14 @@
             id="org.eclipse.tcf.te.tcf.core.openChannelStep"
             class="org.eclipse.tcf.te.tcf.core.steps.OpenChannelStep"
             label="%OpenChannelStep.name"/>
+      
       <step
             id="org.eclipse.tcf.te.tcf.core.closeChannelStep"
             class="org.eclipse.tcf.te.tcf.core.steps.CloseChannelStep"
             label="%CloseChannelStep.name">
          <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
       </step>
+      
       <step
             id="org.eclipse.tcf.te.tcf.core.shutDownStep"
             class="org.eclipse.tcf.te.tcf.core.steps.ShutDownStep"
@@ -52,18 +54,22 @@
             id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.LaunchValueAddStep"
             label="%LaunchValueAddStep.name"/>
+            
       <step
             id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeerStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ChainPeerStep"
             label="%ChainPeerStep.name"/>
+            
       <step
             id="org.eclipse.tcf.te.tcf.core.channelmanager.applyPathMapsStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ApplyPathMapsStep"
             label="%ApplyPatMapsStep.name"/> 
+            
       <step
             id="org.eclipse.tcf.te.tcf.core.channelmanager.closeChannelStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.CloseChannelStep"
             label="%CloseChannelStep.name"/>
+
       <step
             id="org.eclipse.tcf.te.tcf.core.channelmanager.shutdownValueAddStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ShutdownValueAddStep"

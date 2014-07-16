@@ -472,10 +472,10 @@ public class Stepper implements IStepper {
 			throw new CoreException(StatusHelper.getStatus(new OperationCanceledException()));
 		}
 
-		CoreBundleActivator
-		.getTraceHandler()
-		.trace("Stepper#executeStepGroup: step group: '" + stepGroup.getLabel() + "'", //$NON-NLS-1$ //$NON-NLS-2$
-						0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
+		CoreBundleActivator.getTraceHandler().trace("Stepper#executeStepGroup: step group: '" //$NON-NLS-1$
+													+ (stepGroup.getLabel() != null && !"".equals(stepGroup.getLabel().trim()) ? stepGroup.getLabel() : stepGroup.getId()) //$NON-NLS-1$
+													+ "'", //$NON-NLS-1$
+													0, ITraceIds.TRACE_STEPPING, IStatus.WARNING, this);
 
 		// Resolve the steps to execute
 		IStepGroupable[] groupables = stepGroup.getSteps(getContext());
