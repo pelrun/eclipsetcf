@@ -30,6 +30,10 @@ import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
  * ShutdownValueAddStep
  */
 public class ShutdownValueAddStep extends AbstractPeerStep {
+	/**
+	 * If set to <code>true</code>, skip the shutdown step.
+	 */
+	public static final String PROP_SKIP_SHUTDOWN_STEP = "ShutdownValueAddStep.skip"; //$NON-NLS-1$
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
@@ -61,14 +65,19 @@ public class ShutdownValueAddStep extends AbstractPeerStep {
 		final IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		final String peerId = getActivePeerContext(context, data, fullQualifiedId).getID();
 
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				valueAdd.shutdown(peerId, callback);
-			}
-		};
+		boolean skip = StepperAttributeUtil.getBooleanProperty(PROP_SKIP_SHUTDOWN_STEP, fullQualifiedId, data);
+		if (!skip) {
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					valueAdd.shutdown(peerId, callback);
+				}
+			};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeLater(runnable);
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeLater(runnable);
+		} else {
+			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+		}
 	}
 }

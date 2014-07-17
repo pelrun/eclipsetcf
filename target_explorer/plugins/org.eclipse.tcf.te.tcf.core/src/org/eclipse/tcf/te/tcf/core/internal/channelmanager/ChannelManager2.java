@@ -39,6 +39,7 @@ import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
+import org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ShutdownValueAddStep;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
 
 /**
@@ -396,6 +397,17 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 				data.setProperty(ITcfStepAttributes.ATTR_CHANNEL, channel);
 				// No recent action history persistence
 				data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, true);
+
+				// Determine if the value-add's can be shutdown or must stay alive.
+				// In case the channel to close is not reference counted, but this is a reference
+				// counted channel to the same peer, and that channel is still open, the
+				// value-adds must stay alive.
+				if (!isRefCounted) {
+					IChannel shared = channels.get(id);
+					if (shared != null && (shared.getState() == IChannel.STATE_OPEN || shared.getState() == IChannel.STATE_OPENING)) {
+						data.setProperty(ShutdownValueAddStep.PROP_SKIP_SHUTDOWN_STEP, true);
+					}
+				}
 
 				// Create the callback to be invoked once the "close channel" stepper job is completed
 				final ICallback callback = new Callback() {
