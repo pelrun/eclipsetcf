@@ -52,8 +52,10 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 	/* default */ final Map<String, IChannel> channels = new HashMap<String, IChannel>();
 	// The map of pending open channel callback's per peer id
 	/* default */ final Map<String, List<DoneOpenChannel>> pendingDones = new HashMap<String, List<DoneOpenChannel>>();
-	// The map of channels opened via "forceNew" flag (needed to handle the close channel correctly)
+	// The list of channels opened via "forceNew" flag (needed to handle the close channel correctly)
 	/* default */ final List<IChannel> forcedChannels = new ArrayList<IChannel>();
+	// The map of flags used for opening a forced channel per channel
+	/* default */ final Map<IChannel, Map<String, Boolean>> forcedChannelFlags = new HashMap<IChannel, Map<String, Boolean>>();
 	// The map of stream listener proxies per channel
 	/* default */ final Map<IChannel, List<StreamListenerProxy>> streamProxies = new HashMap<IChannel, List<StreamListenerProxy>>();
 	// The map of scheduled "open channel" stepper jobs per peer id
@@ -227,6 +229,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 							if (!finForceNew) channels.put(id, channel);
 							if (!finForceNew) refCounters.put(channel, new AtomicInteger(1));
 							if (finForceNew) forcedChannels.add(channel);
+							if (finForceNew) forcedChannelFlags.put(channel, flags);
 
 							// Job is done -> remove it from the list of pending jobs
 							pendingOpenChannel.remove(id);
@@ -407,6 +410,22 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 					if (shared != null && (shared.getState() == IChannel.STATE_OPEN || shared.getState() == IChannel.STATE_OPENING)) {
 						data.setProperty(ShutdownValueAddStep.PROP_SKIP_SHUTDOWN_STEP, true);
 					}
+				} else {
+					// The channel is reference counted, that means it is a shared channel
+					// and normally it will shutdown the value-adds if closed. However, we
+					// can have not reference counted channels to the same target that is
+					// using value-add's. In this case we also have to skip shutting down
+					// the value-add.
+					for (IChannel c : forcedChannels) {
+						if (id.equals(c.getRemotePeer().getID())) {
+							Map<String, Boolean> flags = forcedChannelFlags.get(c);
+							boolean noValueAdd = flags != null && flags.containsKey(IChannelManager.FLAG_NO_VALUE_ADD) ? flags.get(IChannelManager.FLAG_NO_VALUE_ADD).booleanValue() : false;
+							if (!noValueAdd) {
+								data.setProperty(ShutdownValueAddStep.PROP_SKIP_SHUTDOWN_STEP, true);
+								break;
+							}
+						}
+					}
 				}
 
 				// Create the callback to be invoked once the "close channel" stepper job is completed
@@ -433,6 +452,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 							if (isRefCounted) channels.remove(id);
 							if (isRefCounted) refCounters.remove(channel);
 							if (!isRefCounted) forcedChannels.remove(channel);
+							if (!isRefCounted) forcedChannelFlags.remove(channel);
 
 							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_closeChannel_closed_message, id),
@@ -483,6 +503,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 			IChannel c = iter.next();
 			if (c.getState() == IChannel.STATE_CLOSED) {
 				iter.remove();
+				forcedChannelFlags.remove(c);
 			}
 		}
 	}
@@ -523,6 +544,7 @@ public class ChannelManager2 extends PlatformObject implements IChannelManager {
 			if (id.equals(c.getRemotePeer().getID())) {
 				c.close();
 				iter.remove();
+				forcedChannelFlags.remove(c);
 			}
 		}
 
