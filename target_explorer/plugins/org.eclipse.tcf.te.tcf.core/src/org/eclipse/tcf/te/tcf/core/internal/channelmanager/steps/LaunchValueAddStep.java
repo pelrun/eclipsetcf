@@ -23,6 +23,7 @@ import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
 import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
@@ -61,28 +62,33 @@ public class LaunchValueAddStep extends AbstractPeerStep {
 
 		final IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		final String peerId = getActivePeerContext(context, data, fullQualifiedId).getID();
+		final boolean useValueAdds = !StepperAttributeUtil.getBooleanProperty(IChannelManager.FLAG_NO_VALUE_ADD, fullQualifiedId, data);
 
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				valueAdd.isAlive(peerId, new Callback() {
-					@Override
-					protected void internalDone(Object caller, IStatus status) {
-						boolean alive = ((Boolean)getResult()).booleanValue();
+		if (useValueAdds) {
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					valueAdd.isAlive(peerId, new Callback() {
+						@Override
+						protected void internalDone(Object caller, IStatus status) {
+							boolean alive = ((Boolean)getResult()).booleanValue();
 
-						if (!alive) {
-							valueAdd.launch(peerId, callback);
+							if (!alive) {
+								valueAdd.launch(peerId, callback);
+							}
+							else {
+								callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+							}
 						}
-						else {
-							callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-						}
-					}
-				});
-			}
-		};
+					});
+				}
+			};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeLater(runnable);
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeLater(runnable);
+		} else {
+			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -92,17 +98,22 @@ public class LaunchValueAddStep extends AbstractPeerStep {
 	public void rollback(final IStepContext context, final IPropertiesContainer data, final IStatus status, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		final String peerId = getActivePeerContext(context, data, fullQualifiedId).getID();
+		final boolean useValueAdds = !StepperAttributeUtil.getBooleanProperty(IChannelManager.FLAG_NO_VALUE_ADD, fullQualifiedId, data);
 
-		Runnable runnable = new Runnable() {
-			@SuppressWarnings("synthetic-access")
-            @Override
-			public void run() {
-				valueAdd.shutdown(peerId, callback);
-				LaunchValueAddStep.super.rollback(context, data, status, fullQualifiedId, monitor, callback);
-			}
-		};
+		if (useValueAdds) {
+			Runnable runnable = new Runnable() {
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void run() {
+					valueAdd.shutdown(peerId, callback);
+					LaunchValueAddStep.super.rollback(context, data, status, fullQualifiedId, monitor, callback);
+				}
+			};
 
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeLater(runnable);
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeLater(runnable);
+		} else {
+			super.rollback(context, data, status, fullQualifiedId, monitor, callback);
+		}
 	}
 }

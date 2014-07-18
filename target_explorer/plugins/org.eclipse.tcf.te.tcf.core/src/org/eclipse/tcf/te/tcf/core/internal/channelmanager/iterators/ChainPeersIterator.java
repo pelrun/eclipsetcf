@@ -22,6 +22,7 @@ import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.iterators.AbstractPeerStepGroupIterator;
 import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
@@ -50,19 +51,22 @@ public class ChainPeersIterator extends AbstractPeerStepGroupIterator {
 
 	    final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
 	    final String peerId = peer.getID();
+		final boolean useValueAdds = !StepperAttributeUtil.getBooleanProperty(IChannelManager.FLAG_NO_VALUE_ADD, fullQualifiedId, data);
 
 	    peers.clear();
 
 	    Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
-				for (IValueAdd valueAdd : valueAdds) {
-					IPeer valueAddPeer = valueAdd.getPeer(peerId);
-					if (valueAddPeer != null) {
-						peers.add(valueAddPeer);
+				if (useValueAdds) {
+					IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
+					for (IValueAdd valueAdd : valueAdds) {
+						IPeer valueAddPeer = valueAdd.getPeer(peerId);
+						if (valueAddPeer != null) {
+							peers.add(valueAddPeer);
+						}
 					}
-		        }
+				}
 
 				String proxyConfiguration = peer.getAttributes().get(IPeerProperties.PROP_PROXIES);
 				if (proxyConfiguration != null) {

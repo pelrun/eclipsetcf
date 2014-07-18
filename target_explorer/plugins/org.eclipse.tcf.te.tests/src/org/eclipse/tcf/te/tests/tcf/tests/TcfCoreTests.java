@@ -84,6 +84,7 @@ public class TcfCoreTests extends TcfTestCase {
 		int counter = 10;
 		while (counter > 0 && channel.getState() != IChannel.STATE_CLOSED) {
 			waitAndDispatch(200);
+			counter--;
 		}
 		assertTrue("Channel is not in expected closed action.", channel.getState() == IChannel.STATE_CLOSED); //$NON-NLS-1$
 	}
