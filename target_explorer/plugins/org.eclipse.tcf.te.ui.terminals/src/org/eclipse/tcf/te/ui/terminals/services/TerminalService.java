@@ -188,7 +188,11 @@ public class TerminalService extends AbstractService implements ITerminalService
 				flags.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW)));
 				flags.put(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON)));
 				// Open the new console
-				CTabItem item = ConsoleManager.getInstance().openConsole(id, secondaryId, title, encoding, connector, data, flags);
+				CTabItem item;
+				if (secondaryId != null)
+					item = ConsoleManager.getInstance().openConsole(id, secondaryId, title, encoding, connector, data, flags);
+				else
+					item = ConsoleManager.getInstance().openConsole(id, title, encoding, connector, data, flags);
 				// Associate the original terminal properties with the tab item.
 				// This makes it easier to persist the connection data within the memento handler
 				if (item != null && !item.isDisposed()) item.setData("properties", properties); //$NON-NLS-1$

@@ -48,6 +48,9 @@ import org.eclipse.ui.PlatformUI;
 @SuppressWarnings("restriction")
 public class ConsoleManager {
 
+	// Constant to indicate any secondary id is acceptable
+	private final static String ANY_SECONDARY_ID = new String("*"); //$NON-NLS-1$
+
 	// Reference to the perspective listener instance
 	private final IPerspectiveListener perspectiveListener;
 
@@ -234,7 +237,9 @@ public class ConsoleManager {
 		for (int i = 0; i < refs.length; i++) {
 			IViewReference ref = refs[i];
 			if (ref.getId().equals(id)) {
-				if (secondaryId == null || secondaryId.equals(ref.getSecondaryId())) {
+				if (secondaryId == ANY_SECONDARY_ID
+						|| secondaryId == null && ref.getSecondaryId() == null
+						|| secondaryId != null && secondaryId.equals(ref.getSecondaryId())) {
 					IViewPart part = ref.getView(true);
 					if (useActive) {
 						if (page.isPartVisible(part)) {
@@ -289,6 +294,8 @@ public class ConsoleManager {
 			String secondaryIdStr = Integer.toString(i);
 			if (!terminalViews.keySet().contains(secondaryIdStr)) {
 				// found a free slot
+				if (i == 0)
+					return null;
 				return Integer.toString(i);
 			}
 		}
@@ -360,7 +367,7 @@ public class ConsoleManager {
 				}
 				// we found a active terminal page
 				// if it is pinned search for a non pinned (not active)
-				if (((ITerminalsView) activePart).isPinned() && secondaryId == null) {
+				if (((ITerminalsView) activePart).isPinned() && secondaryId == ANY_SECONDARY_ID) {
 					// we found one so use it
 					IViewPart notPinnedPart = getFirstNotPinnedTerminalsView(id != null ? id : IUIConstants.ID);
 					if (notPinnedPart != null) {
@@ -401,7 +408,7 @@ public class ConsoleManager {
 	 * @param flags The flags controlling how the console is opened or <code>null</code> to use defaults.
 	 */
 	public CTabItem openConsole(String id, String title, String encoding, ITerminalConnector connector, Object data, Map<String, Boolean> flags) {
-		return openConsole(id, null, title, encoding, connector, data, flags);
+		return openConsole(id, ANY_SECONDARY_ID, title, encoding, connector, data, flags);
 	}
 
 	/**
