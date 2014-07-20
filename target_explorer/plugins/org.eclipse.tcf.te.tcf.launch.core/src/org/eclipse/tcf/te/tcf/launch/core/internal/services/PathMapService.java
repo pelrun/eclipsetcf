@@ -207,7 +207,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					updateLaunchConfiguration(config, rulesList);
 
 					// Apply the path map
-					applyPathMap(context, false, new Callback() {
+					applyPathMap(context, true, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							if (status != null && Platform.inDebugMode()) {
@@ -317,27 +317,33 @@ public class PathMapService extends AbstractService implements IPathMapService {
     	if (peer == null && context instanceof IPeerNode) peer = ((IPeerNode)context).getPeer();
     	if (peer == null && context instanceof IPeerNodeProvider && ((IPeerNodeProvider)context).getPeerNode() != null) peer = ((IPeerNodeProvider)context).getPeerNode().getPeer();
 
+    	// If called as part of the "open channel" step group, IChannelManager.getChannel(peer)
+    	// will return null. For this case, the channel to use is passed as context directly.
+    	IChannel channel = context instanceof IChannel ? (IChannel)context : null;
+    	// The peer in that case is the remote peer of the channel
+    	if (peer == null && channel != null) peer = channel.getRemotePeer();
+
     	// Make sure that the callback is invoked in the TCF dispatch thread
     	final AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
     	final ICallback innerCallback = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
     	collector.initDone();
 
     	if (peer != null) {
-			final IChannel channel = Tcf.getChannelManager().getChannel(peer);
-			if (channel != null && IChannel.STATE_OPEN == channel.getState()) {
+			final IChannel c = channel != null ? channel : Tcf.getChannelManager().getChannel(peer);
+			if (c != null && IChannel.STATE_OPEN == c.getState()) {
 				// Channel is open -> Have to update the path maps
 
 				// Get the configured path mappings. This must be called from
 				// outside the runnable as getPathMap(...) must be called from
 				// outside of the TCF dispatch thread.
-				final PathMapRule[] configuredMap = getPathMap(context);
+				final PathMapRule[] configuredMap = getPathMap(context instanceof IChannel ? peer : context);
 
 				if (configuredMap != null && configuredMap.length > 0) {
 					// Create the runnable which set the path map
 					Runnable runnable = new Runnable() {
 						@Override
 						public void run() {
-							final IPathMap svc = channel.getRemoteService(IPathMap.class);
+							final IPathMap svc = c.getRemoteService(IPathMap.class);
 							if (svc != null) {
 								// Get the old path maps first. Keep path map rules not coming from us
 								svc.get(new IPathMap.DoneGet() {
@@ -349,7 +355,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 										// If the merged path map differs from the agent side path map, apply the map
 										if (force || isDifferent(rules, map)) {
 											// Apply the path map
-											set(rules, svc, new IPathMap.DoneSet() {
+											set(rules, svc, force, new IPathMap.DoneSet() {
 												@Override
 												public void doneSet(IToken token, Exception error) {
 													innerCallback.done(PathMapService.this, StatusHelper.getStatus(error));
@@ -473,7 +479,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
      * @param svc The path map service. Must not be <code>null</code>.
      * @param done The callback to invoke. Must not be <code>null</code>.
      */
-    public static void set(List<PathMapRule> map, IPathMap svc, IPathMap.DoneSet done) {
+    public static void set(List<PathMapRule> map, IPathMap svc, boolean force, IPathMap.DoneSet done) {
     	Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
     	Assert.isNotNull(map);
     	Assert.isNotNull(svc);
@@ -487,8 +493,8 @@ public class PathMapService extends AbstractService implements IPathMapService {
 				iter.remove();
 			}
 		}
-		// Apply the path map rules if not empty
-		if (!map.isEmpty()) {
+		// Apply the path map rules if not empty or forced
+		if (!map.isEmpty() || force) {
 			svc.set(map.toArray(new PathMapRule[map.size()]), done);
 		} else {
 			done.doneSet(null, null);

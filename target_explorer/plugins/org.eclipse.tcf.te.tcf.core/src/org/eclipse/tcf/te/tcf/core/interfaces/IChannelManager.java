@@ -109,6 +109,9 @@ public interface IChannelManager extends IAdaptable {
 	 * If the given channel is a reference counted channel, the channel will be closed if the reference counter
 	 * reaches 0. For non reference counted channels, the channel is closed immediately.
 	 * <p>
+	 * <b>Note:</b> Closing a channel is an asynchronous operation and the {@link #closeChannel(IChannel)}
+	 * method can return while closing the channel is still in progress.
+	 * <p>
 	 * The method can be called from any thread context.
 	 *
 	 * @param channel The channel. Must not be <code>null</code>.
@@ -118,6 +121,12 @@ public interface IChannelManager extends IAdaptable {
 	/**
 	 * Shutdown the communication to the given peer, no matter of the current
 	 * reference count. A possible associated value-add is shutdown as well.
+	 * <p>
+	 * <b>Note:</b> Shutting down a channel is an asynchronous operation and the
+	 * {@link #shutdown(IPeer)} method can return while shutting down the channel
+	 * is still in progress.
+	 * <p>
+	 * The method can be called from any thread context.
 	 *
 	 * @param peer The peer. Must not be <code>null</code>.
 	 */

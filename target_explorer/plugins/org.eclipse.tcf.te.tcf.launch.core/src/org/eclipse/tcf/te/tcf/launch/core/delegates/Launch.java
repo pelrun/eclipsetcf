@@ -167,7 +167,7 @@ public final class Launch extends TCFLaunch {
 						// If the merged path map differs from the agent side path map, apply the map
 						if (PathMapService.isDifferent(rules, map)) {
 							// Apply the path map
-							PathMapService.set(rules, svc, done);
+							PathMapService.set(rules, svc, false, done);
 						} else {
 							done.doneSet(null, null);
 						}

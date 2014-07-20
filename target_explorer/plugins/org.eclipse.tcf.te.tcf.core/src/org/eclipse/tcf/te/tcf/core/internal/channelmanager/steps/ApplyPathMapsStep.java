@@ -18,7 +18,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -67,30 +66,19 @@ public class ApplyPathMapsStep extends AbstractPeerStep {
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
 		Assert.isNotNull(peer);
 
-		Runnable runnable = new Runnable() {
-			@Override
-			public void run() {
-				final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
-				final IPathMap svc = channel.getRemoteService(IPathMap.class);
-				if (service != null && svc != null) {
-					// Apply the initial path map to the opened channel.
-					// This must happen outside the TCF dispatch thread as it may trigger
-					// the launch configuration change listeners.
-					Thread thread = new Thread(new Runnable() {
-						@Override
-						public void run() {
-							service.applyPathMap(peer, true, callback);
-						}
-					});
-					thread.start();
-				} else {
-					callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-				}
-			}
-		};
-
-		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeLater(runnable);
+		// Apply the initial path map to the opened channel.
+		//
+		// This must happen outside the TCF dispatch thread as it may trigger
+		// the launch configuration change listeners.
+		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
+		if (service != null) {
+			// Pass in the channel for direct use. IChannelManager.getChannel(peer)
+			// does return null while still executing the "open channel" step group.
+			service.applyPathMap(channel, true, callback);
+		} else {
+			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+		}
 	}
 
 }
