@@ -61,8 +61,8 @@ public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel im
 		createEncodingUI(panel, false);
 
 		// Set the default encoding:
-		//     Default UTF-8 on Mac for Local, Preferences:Platform encoding otherwise
-		if (Platform.OS_MACOSX.equals(Platform.getOS())) {
+		//     Default UTF-8 on Mac or Windows for Local, Preferences:Platform encoding otherwise
+		if (Platform.OS_MACOSX.equals(Platform.getOS()) || Platform.OS_WIN32.equals(Platform.getOS())) {
 			setEncoding("UTF-8"); //$NON-NLS-1$
 		} else {
 			String encoding = WorkbenchEncoding.getWorkbenchDefaultEncoding();

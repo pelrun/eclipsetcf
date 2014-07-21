@@ -48,6 +48,7 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.WorkbenchEncoding;
+import org.eclipse.ui.ide.IDEEncoding;
 
 /**
  * Abstract terminal configuration panel implementation.
@@ -486,6 +487,10 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			// Some hard-coded encodings
 			encodings.add("Default (ISO-8859-1)"); //$NON-NLS-1$
 			encodings.add("UTF-8"); //$NON-NLS-1$
+
+			// The currently selected IDE encoding from the preferences
+			String ideEncoding = IDEEncoding.getResourceEncoding();
+			if (ideEncoding != null && !encodings.contains(ideEncoding)) encodings.add(ideEncoding);
 
 			// The default Eclipse Workbench encoding (configured in the preferences)
 			String eclipseEncoding = WorkbenchEncoding.getWorkbenchDefaultEncoding();

@@ -24,12 +24,6 @@
       <update label="%updateSiteName" url="http://download.eclipse.org/releases/kepler"/>
    </url>
 
-   <!-- For PTY.Modes.TERMINAL , we need minimum o.e.cdt.core_5.6 which is in CDT 8.3      -->
-   <!-- But we express this in bundle dependencies only in order to get a smaller install  -->
-   <!-- The side-effect of depending on feature o.e.cdt.native is that it requires CDT 8.4 -->
-   <!-- This is OK for this "stand-alone" feature. Product builders who want CDT 8.3 can   -->
-   <!-- Still get it by not using this feature but direct cdt.platform / bundle dependency -->
-   <!-- See https://bugs.eclipse.org/bugs/show_bug.cgi?id=435150                           -->
    <requires>
       <import plugin="org.eclipse.core.expressions" version="3.4.400" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.runtime" version="3.8.0" match="greaterOrEqual"/>
@@ -53,6 +47,7 @@
       <import feature="org.eclipse.tm.terminal.serial" version="2.1.300" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.ssh" version="2.1.300" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.telnet" version="2.1.300" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.ide" version="3.10.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
