@@ -25,6 +25,7 @@ import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
@@ -66,16 +67,22 @@ public class ApplyPathMapsStep extends AbstractPeerStep {
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
 		Assert.isNotNull(peer);
 
-		// Apply the initial path map to the opened channel.
-		//
-		// This must happen outside the TCF dispatch thread as it may trigger
-		// the launch configuration change listeners.
-		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
-		if (service != null) {
-			// Pass in the channel for direct use. IChannelManager.getChannel(peer)
-			// does return null while still executing the "open channel" step group.
-			service.applyPathMap(channel, true, callback);
+		final boolean applyPathMaps = !StepperAttributeUtil.getBooleanProperty(IChannelManager.FLAG_NO_PATH_MAP, fullQualifiedId, data);
+
+		if (applyPathMaps) {
+			// Apply the initial path map to the opened channel.
+			//
+			// This must happen outside the TCF dispatch thread as it may trigger
+			// the launch configuration change listeners.
+			Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+			final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
+			if (service != null) {
+				// Pass in the channel for direct use. IChannelManager.getChannel(peer)
+				// does return null while still executing the "open channel" step group.
+				service.applyPathMap(channel, true, callback);
+			} else {
+				callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+			}
 		} else {
 			callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 		}
