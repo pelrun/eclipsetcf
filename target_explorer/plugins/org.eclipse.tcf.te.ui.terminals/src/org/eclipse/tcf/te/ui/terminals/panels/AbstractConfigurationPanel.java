@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -49,7 +50,7 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.WorkbenchEncoding;
-import org.eclipse.ui.ide.IDEEncoding;
+import org.osgi.framework.Bundle;
 
 /**
  * Abstract terminal configuration panel implementation.
@@ -527,7 +528,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			encodings.add("UTF-8"); //$NON-NLS-1$
 
 			// The currently selected IDE encoding from the preferences
-			String ideEncoding = IDEEncoding.getResourceEncoding();
+			String ideEncoding = getResourceEncoding();
 			if (ideEncoding != null && !encodings.contains(ideEncoding)) encodings.add(ideEncoding);
 
 			// The default Eclipse Workbench encoding (configured in the preferences)
@@ -550,6 +551,26 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 
 			lastSelectedEncoding = SWTControlUtil.getText(encodingCombo);
 		}
+	}
+
+	/**
+	 * Get the current value of the encoding preference. If the value is not set
+	 * return <code>null</code>.
+	 * <p>
+	 * <b>Note:</b> Copied from <code>org.eclipse.ui.ide.IDEEncoding</code>.
+	 *
+	 * @return String
+	 */
+	@SuppressWarnings("deprecation")
+    private String getResourceEncoding() {
+		String preference = null;
+
+		if (Platform.getBundle("org.eclipse.core.resources") != null //$NON-NLS-1$
+				&& Platform.getBundle("org.eclipse.core.resources").getState() == Bundle.ACTIVE) { //$NON-NLS-1$
+			preference = org.eclipse.core.resources.ResourcesPlugin.getPlugin().getPluginPreferences().getString(org.eclipse.core.resources.ResourcesPlugin.PREF_ENCODING);
+		}
+
+		return preference != null && preference.length() > 0 ? preference : null;
 	}
 
 	/**
