@@ -722,7 +722,7 @@ public class ProfilerView extends ViewPart {
 
     private static final String[] column_ids = {
         "Address",
-        "%",
+        "% Exclusive",
         "% Inclusive",
         "Function",
         "File",
