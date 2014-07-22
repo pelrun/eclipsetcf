@@ -318,7 +318,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 
 						String parentAgentId = locatorNode.getPeer().getAgentID();
 						String parentId = locatorNode.getPeer().getID();
-						if (!agentId.equals(parentAgentId)) {
+						if (agentId != null && !agentId.equals(parentAgentId)) {
 							ILocatorNode parent = locatorNode.getParent(ILocatorNode.class);
 							ILocatorNode[] parentNodes = lkup
 							                .lkupLocatorNodeByAgentId(parent, agentId);

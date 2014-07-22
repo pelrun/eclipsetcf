@@ -25,9 +25,18 @@
 	<!-- Ignore NM_CLASS_NOT_EXCEPTION -->
 	<Match>
 		<Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
-		<Class name="org.eclipse.tcf.te.tcf.core.va.ValueAddException"/>
+		<Or>
+			<Class name="org.eclipse.tcf.te.tcf.core.va.ValueAddException"/>
+			<Class name="org.eclipse.tcf.te.tcf.core.channelmanager.OpenChannelException"/>
+		</Or>
 	</Match>
 
+	<!-- Ignore ES_COMPARING_PARAMETER_STRING_WITH_EQ -->
+	<Match>
+		<Bug pattern="ES_COMPARING_PARAMETER_STRING_WITH_EQ"/>
+		<Class name="org.eclipse.tcf.te.ui.terminals.manager.ConsoleManager"/>
+	</Match>
+	
 	<!-- Ignore all SF_SWITCH_NO_DEFAULT violations -->
 	<Match>
 		<Bug pattern="SF_SWITCH_NO_DEFAULT"/>
