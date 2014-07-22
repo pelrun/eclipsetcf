@@ -13,6 +13,7 @@ import java.util.Iterator;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -104,6 +105,14 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 				Iterator<?> iter = ((IStructuredSelection)selection).iterator();
 				while (iter.hasNext()) {
 					Object element = iter.next();
+
+					// If the element is not an IResource, try to adapt to IResource
+					if (!(element instanceof IResource)) {
+						Object adapted = element instanceof IAdaptable ? ((IAdaptable)element).getAdapter(IResource.class) : null;
+						if (adapted == null) adapted = Platform.getAdapterManager().getAdapter(element, IResource.class);
+						if (adapted != null) element = adapted;
+					}
+
 					if (element instanceof IResource && ((IResource)element).exists()) {
 						IPath location = ((IResource)element).getLocation();
 						if (location == null) continue;
