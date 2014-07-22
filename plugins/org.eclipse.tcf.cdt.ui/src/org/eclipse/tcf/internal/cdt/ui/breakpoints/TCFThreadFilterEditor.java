@@ -505,14 +505,9 @@ public class TCFThreadFilterEditor {
                 fPage.setErrorMessage(Messages.TCFThreadFilterEditor_cannotEditExpr);
             }
             else {
-                String result = null;
                 TCFContextQueryExpressionDialog dlg = new TCFContextQueryExpressionDialog(parentShell, attrsList, scopeExprCombo.getText());
-
                 if (dlg.open() == Window.OK) {
-                    result = dlg.getExpression();
-                }
-                if (result != null) {
-                    scopeExprCombo.setText(result);
+                    scopeExprCombo.setText(dlg.getExpression());
                 }
             }
         }

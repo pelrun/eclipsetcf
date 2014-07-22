@@ -9,16 +9,14 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui.breakpoints;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.EditingSupport;
-import org.eclipse.jface.viewers.ICellEditorListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableLayout;
@@ -39,313 +37,140 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 
 public class TCFContextQueryExpressionDialog extends SelectionDialog {
 
-    private String expression;
-    final private String originalExpression;
-    final private String[] attributeList;
-    private ParameterDataModel[] parameterData;
-    final String[] columnNames = new String[] {"Parameter","Value"};
+    private final String[] attributes;
+    private String expression_text;
+    private int expression_parent;
+    private final Map<String,String> expression_attrs = new HashMap<String,String>();
 
-    protected TCFContextQueryExpressionDialog(Shell parentShell, String[] attributes, String initialExpression) {
+    private final String[] column_names = new String[] { "Parameter", "Value" };
+
+    private int pos;
+    private int len;
+
+    protected TCFContextQueryExpressionDialog(Shell parentShell, String[] attributes, String expression) {
         super(parentShell);
         setShellStyle(getShellStyle() | SWT.RESIZE);
-        expression = initialExpression;
-        originalExpression = initialExpression;
-        attributeList = attributes;
+        this.attributes = attributes;
+        expression_text = expression;
+        len = expression.length();
+        parseExpression();
     }
 
-    String getParameterInitialValue (String comparator, int initIndex){
-       String param = comparator + "=";
-       if (expression != null && expression.length() > 0) {
-           int indexExpr = expression.indexOf (param, initIndex);
-           if (indexExpr != -1){
-               // Make sure we didn't partial match to another parameter name.
-               if (indexExpr != 0) {
-                   String testChar = expression.substring(indexExpr-1, indexExpr);
-                   if (!testChar.matches("[,/]")) {
-                       return getParameterInitialValue(comparator,indexExpr+1);
-                   }
-               }
-               int startOfVal = indexExpr + param.length();
-               if (startOfVal != -1) {
-                   int endOfVal = -1;
-                   if (startOfVal != 0) {
-                       if (expression.charAt(startOfVal) == '"') {
-                           startOfVal+=1;
-                           endOfVal = expression.indexOf('"', startOfVal);
-                       }
-                       else {
-                           endOfVal = expression.indexOf (',', startOfVal);
-                       }
-                       if (endOfVal == -1) {
-                           endOfVal = expression.length();
-                       }
-                   }
-                   return expression.substring(startOfVal, endOfVal);
-               }
-           }
-       }
-       return null;
-   }
+    private void parseExpression() {
+        if (pos < len && expression_text.charAt(pos) == '/') {
+            pos++;
+            expression_parent = pos;
+            expression_attrs.clear();
+        }
+        while (pos < len) {
+            parseExpressionPart();
+            if (pos >= len) break;
+            char ch = expression_text.charAt(pos);
+            if (ch == '/') {
+                pos++;
+                expression_parent = pos;
+                expression_attrs.clear();
+            }
+            else {
+                // Syntax error
+                break;
+            }
+        }
+    }
 
-    /**
-    *
-    * ParameterDataModel - Data to populate table view.
-    *
-    */
-   public static class ParameterDataModel {
+    private void parseExpressionPart() {
+        while (pos < len) {
+            String name = parseString();
+            if (pos < len && expression_text.charAt(pos) == '=') {
+                pos++;
+                String value = parseString();
+                expression_attrs.put(name,  value);
+            }
+            if (pos < len && expression_text.charAt(pos) == ',') {
+                pos++;
+            }
+            else {
+                break;
+            }
+        }
+    }
 
-       private String attribute;
-       private String value;
+    private String parseString() {
+        StringBuffer bf = new StringBuffer();
+        if (pos < len && expression_text.charAt(pos) == '"') {
+            pos++;
+            while (pos < len) {
+                char ch = expression_text.charAt(pos++);
+                if (ch == '"') break;
+                if (ch == '\\' && pos < len) {
+                    ch = expression_text.charAt(pos++);
+                }
+                bf.append(ch);
+            }
+        }
+        else {
+            while (pos < len) {
+                char ch = expression_text.charAt(pos);
+                if (ch == '=' || ch == '/' || ch == ',') break;
+                bf.append(ch);
+                pos++;
+            }
+        }
+        return bf.toString();
+    }
 
-       public ParameterDataModel(String label) {
-           attribute = label;
-           value ="";
-         }
+    private final class ParameterTableLabelProvider extends LabelProvider implements ITableLabelProvider {
+        public Image getColumnImage(Object element, int columnIndex) {
+            return null;
+        }
 
-       public String getLabel() {
-         return attribute;
-       }
+        public String getColumnText(Object element, int column) {
+            if (column == 0) return (String)element;
+            return expression_attrs.get((String)element);
+        }
+    }
 
-       public void setLabel(String label) {
-         attribute = label;
-       }
+    public final class ExpressionEditingSupport extends EditingSupport {
 
-       public String getData() {
-         return value;
-       }
+        private TextCellEditor editor;
+        private ColumnViewer viewer;
 
-       public void setData(Object data) {
-           if (data != null) {
-               value = (String)data;
-           }
-           else {
-               value = "";
-           }
-       }
-     }
+        private ExpressionEditingSupport(ColumnViewer viewer) {
+            super(viewer);
+            this.viewer = viewer;
+            editor = new TextCellEditor((Composite) getViewer().getControl(), SWT.NONE);
+        }
 
-   ParameterDataModel[] setupTableList() {
-       parameterData = new ParameterDataModel[attributeList.length];
-       for (int i = 0; i < attributeList.length; i++) {
-           parameterData[i] = new ParameterDataModel(attributeList[i]);
+        @Override
+        protected CellEditor getCellEditor(Object element) {
+            return editor;
+        }
 
-           String initialValue = getParameterInitialValue(attributeList[i], 0);
-           if (initialValue!= null){
-              parameterData[i].setData(initialValue);
-          }
-       }
-       return parameterData;
-   }
+        @Override
+        protected boolean canEdit(Object element) {
+            return true;
+        }
 
-   public final class ParameterTableLabelProvider extends LabelProvider implements ITableLabelProvider {
-       public Image getColumnImage(Object element, int columnIndex) {
-         return null;
-       }
-       public String getColumnText(Object element, int columnIndex) {
-         ParameterDataModel data = (ParameterDataModel) element;
-         switch (columnIndex) {
-           case 0:
-             return data.getLabel();
-           case 1:
-             return data.getData();
-           default:
-             return "";
-           }
-       }
-     }
+        @Override
+        protected Object getValue(Object element) {
+            String value = expression_attrs.get((String)element);
+            if (value == null) value = "";
+            return value;
+        }
 
-   public class ValueCellEditor extends TextCellEditor {
-       private Object tableElement;
-       public ValueCellEditor(Composite parent) {
-           super(parent);
-           tableElement = null;
-       }
-       public ValueCellEditor(Composite parent, int style) {
-           super(parent, style);
-           tableElement = null;
-       }
-       public void setTableElement( Object element) {
-           tableElement = element;
-       }
-       public Object getTableElement() {
-           return tableElement;
-       }
-   }
-
-   int findParameter(String comparator, int initIndex) {
-       int indexExpr = -1;
-       if (expression != null && expression.length() > 0) {
-           indexExpr = expression.indexOf (comparator, initIndex);
-           if (indexExpr != -1){
-               // Make sure we didn't partial match to another parameter name.
-               if (indexExpr != 0) {
-                   String testChar = expression.substring(indexExpr-1, indexExpr);
-                   if (!testChar.matches("[,/]")) {
-                       return findParameter(comparator,indexExpr+1);
-                   }
-               }
-           }
-       }
-       return indexExpr;
-   }
-
-   private boolean replaceParameter(String parameter, String replaceString, int index) {
-       String testChar = null;
-       int endLocation = 0;
-       if (replaceString.length() != 0 && expression.contains(replaceString))
-           return true;
-       if (index != 0) {
-           testChar = expression.substring(index+parameter.length(), index+1+parameter.length());
-           if (!testChar.equals("=")) {
-               return false;
-           }
-           testChar = expression.substring(index-1, index);
-           if (!testChar.matches("[,/]"))
-               return false;
-       }
-       testChar = expression.substring(index+parameter.length()+1,index+parameter.length()+2);
-       if (testChar.equals("\"")) {
-           endLocation = expression.indexOf('"', index+parameter.length()+3);
-           if (endLocation != -1 && endLocation != (expression.length() -1)) {
-               testChar = expression.substring(endLocation+1, endLocation+2);
-               if (testChar.equals(","))
-                   endLocation++;
-           }
-           else
-               endLocation = -1;
-       }
-       else {
-           endLocation = expression.indexOf(',', index+1);
-       }
-
-       if (endLocation == -1) {
-           endLocation = expression.length();
-           testChar = expression.substring(index-1, index);
-           if (testChar.matches("[,]") && replaceString.length() == 0)
-               index-=1;
-       }
-       else if (replaceString.length() == 0)
-           endLocation++;
-
-       String removeStr = expression.substring(index, endLocation);
-       expression = expression.replace(removeStr, replaceString);
-
-       return true;
-   }
-
-   public final class CellEditorListener implements ICellEditorListener {
-       private ValueCellEditor fcellEditor;
-       public CellEditorListener(ValueCellEditor cellEditor) {
-           fcellEditor = cellEditor;
-       }
-       public void applyEditorValue() {
-           String cellString = null;
-           Object obj = fcellEditor.getValue();
-           ParameterDataModel param = (ParameterDataModel)fcellEditor.getTableElement();
-           String paramName = param.getLabel();
-           if (obj != null) {
-               cellString = (String)obj;
-           }
-           if (cellString == null) {
-               return;
-           }
-           cellString = cellString.trim();
-           if (cellString.length() > 0) {
-               if (cellString.charAt(0) != '"')
-                   cellString = "\"" + cellString;
-               if (cellString.charAt(cellString.length()-1 ) != '"')
-                   cellString += "\"";
-               if (expression == null || expression.length() == 0) {
-                   expression = new String(paramName + "=" + cellString);
-                   }
-               else {
-                   String nameValuePair = paramName + "=" + cellString;
-                   int strIndex = findParameter(paramName, 0);
-                   if (strIndex == -1) {
-                       String check_parameter = expression;
-                       Pattern p = Pattern.compile("\"([^\"]*)\"");
-                       Matcher m = p.matcher(check_parameter);
-                       check_parameter = m.replaceAll("temp");
-                       if (check_parameter.matches("^(.*?)=(.*)$"))
-                           expression += "," + nameValuePair;
-                       else
-                           expression += nameValuePair;
-                   }
-                   else {
-                       if (!replaceParameter(paramName,nameValuePair,strIndex)) {
-                           getButton(IDialogConstants.OK_ID).setEnabled(false);
-                       }
-                   }
-               }
-               param.setData(cellString);
-           }
-           else if (expression != null && expression.length() != 0){
-               fcellEditor.setValue(cellString);
-               int strIndex = findParameter(paramName, 0);
-               if (strIndex != -1) {
-                   if (!replaceParameter(paramName,"",strIndex)) {
-                       getButton(IDialogConstants.OK_ID).setEnabled(false);
-                   }
-                   param.setData("");
-               }
-           }
-           if (expression == null ||
-              (expression.length() == 0 && originalExpression.length() == 0) ||
-               originalExpression.contentEquals(expression)) {
-               getButton(IDialogConstants.OK_ID).setEnabled(false);
-           }
-           else {
-               getButton(IDialogConstants.OK_ID).setEnabled(true);
-           }
-      }
-
-      public void cancelEditor() {
-      }
-      public void editorValueChanged(boolean oldValidState, boolean newValidState) {
-      }
-  }
-
-   public final class ExpressionEditingSupport extends EditingSupport {
-
-       private ValueCellEditor cellEditor = null;
-       private ColumnViewer fviewer;
-
-       private ExpressionEditingSupport(ColumnViewer viewer) {
-           super(viewer);
-           fviewer = viewer;
-           cellEditor = new ValueCellEditor((Composite) getViewer().getControl(), SWT.NONE);
-           cellEditor.addListener(new CellEditorListener(cellEditor));
-       }
-
-       @Override
-       protected CellEditor getCellEditor(Object element) {
-           cellEditor.setTableElement(element);
-           return cellEditor;
-       }
-
-       @Override
-       protected boolean canEdit(Object element) {
-           return true;
-       }
-
-       @Override
-       protected Object getValue(Object element) {
-           if (element instanceof ParameterDataModel) {
-               ParameterDataModel data = (ParameterDataModel)element;
-               return data.getData();
-           }
-           return null;
-       }
-
-       @Override
-       protected void setValue(Object element, Object value) {
-           if (element instanceof ParameterDataModel) {
-               ParameterDataModel data = (ParameterDataModel) element;
-               data.setData(value);
-               fviewer.update(element, null);
-           }
-       }
-   }
+        @Override
+        protected void setValue(Object element, Object value) {
+            String name = (String)element;
+            String str = (String)value;
+            if (str == null || str.length() == 0) {
+                expression_attrs.remove(name);
+            }
+            else {
+                expression_attrs.put(name, str);
+            }
+            viewer.update(element, null);
+        }
+    }
 
     @Override
     protected Control createDialogArea(Composite parent) {
@@ -365,44 +190,61 @@ public class TCFContextQueryExpressionDialog extends SelectionDialog {
         Control cntrl = tableViewer.getControl();
         cntrl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         TableViewerColumn labelColumn = new TableViewerColumn(tableViewer, SWT.NONE);
-        labelColumn.getColumn().setText(columnNames[0]);
+        labelColumn.getColumn().setText(column_names[0]);
         TableViewerColumn valueColumn = new TableViewerColumn(tableViewer, SWT.Modify);
-        valueColumn.getColumn().setText(columnNames[1]);
+        valueColumn.getColumn().setText(column_names[1]);
         tableViewer.setContentProvider(new ArrayContentProvider());
         tableViewer.setLabelProvider(new ParameterTableLabelProvider());
         valueColumn.setEditingSupport(new ExpressionEditingSupport(valueColumn.getViewer()));
-        tableViewer.setInput(setupTableList());
+        tableViewer.setInput(attributes);
         tableViewer.setComparator(new ViewerComparator() {
             @Override
             public int compare(Viewer viewer, Object e1, Object e2) {
-                ParameterDataModel t1 = (ParameterDataModel) e1;
-                ParameterDataModel t2 = (ParameterDataModel) e2;
-                    return t1.getLabel().compareTo(t2.getLabel());
+                String t1 = (String)e1;
+                String t2 = (String)e2;
+                return t1.compareTo(t2);
             };
         });
         return parent;
     }
 
+    private void appendString(StringBuffer bf, String s) {
+        int l = s.length();
+        boolean q = false;
+        for (int i = 0; !q && i < l; i++) {
+            char ch = s.charAt(i);
+            q = !Character.isDigit(ch) && !Character.isLetter(ch);
+        }
+        if (!q) {
+            bf.append(s);
+            return;
+        }
+        bf.append('"');
+        for (int i = 0; i < l; i++) {
+            char ch = s.charAt(i);
+            if (ch == '\\' || ch == '"') bf.append('\\');
+            bf.append(ch);
+        }
+        bf.append('"');
+    }
+
     public String getExpression() {
-        return expression;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets
-     * .Shell)
-     */
-    @Override
-    protected void configureShell(Shell newShell) {
-        super.configureShell(newShell);
-        newShell.setText("Select Expression Parameters");
+        StringBuffer bf = new StringBuffer();
+        for (String name : attributes) {
+            String value = expression_attrs.get(name);
+            if (value != null && value.length() > 0) {
+                if (bf.length() > 0) bf.append(',');
+                appendString(bf, name);
+                bf.append('=');
+                appendString(bf, value);
+            }
+        }
+        return expression_text.substring(0, expression_parent) + bf.toString();
     }
 
     @Override
-    public void create() {
-        super.create();
-        getButton(IDialogConstants.OK_ID).setEnabled(false);
+    protected void configureShell(Shell shell) {
+        super.configureShell(shell);
+        shell.setText("Select Expression Parameters");
     }
 }
