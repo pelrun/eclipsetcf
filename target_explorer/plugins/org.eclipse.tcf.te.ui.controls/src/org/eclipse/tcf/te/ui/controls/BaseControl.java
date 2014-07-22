@@ -197,6 +197,41 @@ public class BaseControl extends PlatformObject implements IValidatable {
 	}
 
 	/**
+	 * Returns the dialog settings to use to save and restore control specific
+	 * widget values.
+	 *
+	 * @param settings The parent dialog settings. Must not be <code>null</code>.
+	 * @return The dialog settings to use.
+	 */
+	public final IDialogSettings getDialogSettings(IDialogSettings settings) {
+		Assert.isNotNull(settings);
+
+		// Get the parent section for the control dialog settings.
+		IDialogSettings parentSection = doGetParentSection(settings);
+		Assert.isNotNull(parentSection);
+
+		// Store the settings of the control within it's own section.
+		String sectionName = this.getClass().getSimpleName();
+		Class<?> enclosing = this.getClass().getEnclosingClass();
+        while ((sectionName == null || sectionName.trim().length() == 0) && enclosing != null) {
+            sectionName = enclosing.getSimpleName();
+            enclosing = this.getClass().getEnclosingClass();
+        }
+		IDialogSettings section = null;
+        if (sectionName != null && sectionName.trim().length() > 0) {
+			section = parentSection.getSection(sectionName);
+			if (section == null) {
+				section = parentSection.addNewSection(sectionName);
+			}
+		}
+		else {
+		    section = parentSection;
+		}
+
+        return section;
+	}
+
+	/**
 	 * Returns the correctly prefixed dialog settings slot id. In case the given id
 	 * suffix is <code>null</code> or empty, <code>id</code> is returned as is.
 	 *
@@ -241,30 +276,8 @@ public class BaseControl extends PlatformObject implements IValidatable {
 	public final void restoreWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
 
-		// Get the parent section for the control dialog settings.
-		IDialogSettings parentSection = doGetParentSection(settings);
-		Assert.isNotNull(parentSection);
-
-		// Store the settings of the control within it's own section.
-		String sectionName = this.getClass().getSimpleName();
-		Class<?> enclosing = this.getClass().getEnclosingClass();
-        while ((sectionName == null || sectionName.trim().length() == 0) && enclosing != null) {
-            sectionName = enclosing.getSimpleName();
-            enclosing = this.getClass().getEnclosingClass();
-        }
-		IDialogSettings section = null;
-        if (sectionName != null && sectionName.trim().length() > 0) {
-			section = parentSection.getSection(sectionName);
-			if (section == null) {
-				section = parentSection.addNewSection(sectionName);
-			}
-		}
-		else {
-		    section = parentSection;
-		}
-
 		// now, call the hook for actually reading the single properties from the dialog settings.
-		doRestoreWidgetValues(section, idPrefix);
+		doRestoreWidgetValues(getDialogSettings(settings), idPrefix);
 	}
 
 	/**
@@ -293,30 +306,8 @@ public class BaseControl extends PlatformObject implements IValidatable {
 	public final void saveWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
 
-		// Get the parent section for the control dialog settings.
-		IDialogSettings parentSection = doGetParentSection(settings);
-		Assert.isNotNull(parentSection);
-
-        // Store the settings of the control within it's own section.
-        String sectionName = this.getClass().getSimpleName();
-        Class<?> enclosing = this.getClass().getEnclosingClass();
-        while ((sectionName == null || sectionName.trim().length() == 0) && enclosing != null) {
-            sectionName = enclosing.getSimpleName();
-            enclosing = this.getClass().getEnclosingClass();
-        }
-        IDialogSettings section = null;
-        if (sectionName != null && sectionName.trim().length() > 0) {
-            section = parentSection.getSection(sectionName);
-            if (section == null) {
-                section = parentSection.addNewSection(sectionName);
-            }
-        }
-        else {
-            section = parentSection;
-        }
-
 		// now, call the hook for actually writing the single properties to the dialog settings.
-		doSaveWidgetValues(section, idPrefix);
+		doSaveWidgetValues(getDialogSettings(settings), idPrefix);
 	}
 
 	/**

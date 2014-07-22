@@ -118,6 +118,10 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
             	addConfigurationPanel(key, configPanel);
             	// Create the panel controls
             	configPanel.setupPanel(getPanel(), getFormToolkit());
+            	// Restore widget values
+            	IDialogSettings dialogSettings = LaunchTerminalSettingsDialog.this.settings.getDialogSettings(LaunchTerminalSettingsDialog.this.getDialogSettings());
+            	IDialogSettings configPanelSettings = dialogSettings != null ? dialogSettings.getSection(key) : null;
+            	if (configPanelSettings != null) configPanel.doRestoreWidgetValues(configPanelSettings, null);
     		}
 
             super.showConfigurationPanel(key);
@@ -303,8 +307,6 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         	public void widgetSelected(SelectionEvent e) {
         		// Get the old panel
         		IWizardConfigurationPanel oldPanel = settings.getActiveConfigurationPanel();
-        		// Save the encoding of the old panel
-        		((AbstractConfigurationPanel)oldPanel).getEncoding();
         		// Extract the current settings in an special properties container
         		IPropertiesContainer data = new PropertiesContainer();
         		if (oldPanel instanceof IDataExchangeNode) ((IDataExchangeNode)oldPanel).extractData(data);
@@ -313,6 +315,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         		data.setProperty(ITerminalsConnectorConstants.PROP_TIMEOUT, null);
             	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, null);
             	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, null);
+            	data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, null);
         		// Switch to the new panel
         		settings.showConfigurationPanel(terminals.getText());
         		// Get the new panel

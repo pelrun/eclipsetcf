@@ -170,8 +170,14 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			}
 		}
 
-		// Restore the encodings widget values
-		doRestoreEncodingsWidgetValues(settings, idPrefix);
+		encodingHistory.clear();
+		String[] encodings = settings.getArray(ENCODINGS_TAG);
+		if (encodings != null && encodings.length > 0) {
+			encodingHistory.addAll(Arrays.asList(encodings));
+			for (String encoding : encodingHistory) {
+				SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
+			}
+		}
 	}
 
 	/**
@@ -182,15 +188,6 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 */
 	protected void doRestoreEncodingsWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-
-		encodingHistory.clear();
-		String[] encodings = settings.getArray(ENCODINGS_TAG);
-		if (encodings != null && encodings.length > 0) {
-			encodingHistory.addAll(Arrays.asList(encodings));
-			for (String encoding : encodingHistory) {
-				SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
-			}
-		}
 
 		String encoding = settings.get(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix));
 		if (encoding != null && encoding.trim().length() > 0) {
@@ -266,8 +263,9 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			}
 		}
 
-		// Save the encodings widget values
-		doSaveEncodingsWidgetValues(settings, idPrefix);
+		if (!encodingHistory.isEmpty()) {
+			settings.put(ENCODINGS_TAG, encodingHistory.toArray(new String[encodingHistory.size()]));
+		}
 	}
 
 	/**
@@ -278,10 +276,6 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 */
 	protected void doSaveEncodingsWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-
-		if (!encodingHistory.isEmpty()) {
-			settings.put(ENCODINGS_TAG, encodingHistory.toArray(new String[encodingHistory.size()]));
-		}
 
 		String encoding = getEncoding();
 		if (encoding != null) {
@@ -578,7 +572,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 *
 	 * @param encoding The encoding. Must not be <code>null</code>.
 	 */
-	public void setEncoding(String encoding) {
+	protected void setEncoding(String encoding) {
 		Assert.isNotNull(encoding);
 
 		int index = SWTControlUtil.indexOf(encodingCombo, "ISO-8859-1".equals(encoding) ? "Default (ISO-8859-1)" : encoding); //$NON-NLS-1$ //$NON-NLS-2$
@@ -596,7 +590,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 *
 	 * @return The selected encoding or <code>null</code>.
 	 */
-	public String getEncoding() {
+	protected String getEncoding() {
 		String encoding = SWTControlUtil.getText(encodingCombo);
 		return encoding != null && encoding.startsWith("Default") ? null : encoding; //$NON-NLS-1$
 	}
