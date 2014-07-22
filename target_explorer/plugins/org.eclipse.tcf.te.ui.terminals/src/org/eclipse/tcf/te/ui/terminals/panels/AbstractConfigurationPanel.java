@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * Wind River Systems - initial API and implementation
+ *     Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.panels;
 
@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -168,6 +169,19 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			}
 		}
 
+		// Restore the encodings widget values
+		doRestoreEncodingsWidgetValues(settings, idPrefix);
+	}
+
+	/**
+	 * Restore the encodings widget values.
+	 *
+	 * @param settings The dialog settings. Must not be <code>null</code>.
+	 * @param idPrefix The prefix or <code>null</code>.
+	 */
+	protected void doRestoreEncodingsWidgetValues(IDialogSettings settings, String idPrefix) {
+		Assert.isNotNull(settings);
+
 		encodingHistory.clear();
 		String[] encodings = settings.getArray(ENCODINGS_TAG);
 		if (encodings != null && encodings.length > 0) {
@@ -175,6 +189,11 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			for (String encoding : encodingHistory) {
 				SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
 			}
+		}
+
+		String encoding = settings.get(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix));
+		if (encoding != null && encoding.trim().length() > 0) {
+			setEncoding(encoding);
 		}
 	}
 
@@ -246,10 +265,29 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 			}
 		}
 
+		// Save the encodings widget values
+		doSaveEncodingsWidgetValues(settings, idPrefix);
+	}
+
+	/**
+	 * Save the encodings widget values.
+	 *
+	 * @param settings The dialog settings. Must not be <code>null</code>.
+	 * @param idPrefix The prefix or <code>null</code>.
+	 */
+	protected void doSaveEncodingsWidgetValues(IDialogSettings settings, String idPrefix) {
+		Assert.isNotNull(settings);
+
 		if (!encodingHistory.isEmpty()) {
 			settings.put(ENCODINGS_TAG, encodingHistory.toArray(new String[encodingHistory.size()]));
 		}
+
+		String encoding = getEncoding();
+		if (encoding != null) {
+			settings.put(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix), encoding);
+		}
 	}
+
 
 	protected abstract void saveSettingsForHost(boolean add);
 
@@ -519,7 +557,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 *
 	 * @param encoding The encoding. Must not be <code>null</code>.
 	 */
-	protected void setEncoding(String encoding) {
+	public void setEncoding(String encoding) {
 		Assert.isNotNull(encoding);
 
 		int index = SWTControlUtil.indexOf(encodingCombo, "ISO-8859-1".equals(encoding) ? "Default (ISO-8859-1)" : encoding); //$NON-NLS-1$ //$NON-NLS-2$
@@ -537,7 +575,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 	 *
 	 * @return The selected encoding or <code>null</code>.
 	 */
-	protected String getEncoding() {
+	public String getEncoding() {
 		String encoding = SWTControlUtil.getText(encodingCombo);
 		return encoding != null && encoding.startsWith("Default") ? null : encoding; //$NON-NLS-1$
 	}

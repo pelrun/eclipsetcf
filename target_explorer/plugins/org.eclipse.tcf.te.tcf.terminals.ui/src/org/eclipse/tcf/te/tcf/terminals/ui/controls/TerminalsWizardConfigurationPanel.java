@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * Wind River Systems - initial API and implementation
+ *     Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.terminals.ui.controls;
 
@@ -115,10 +115,8 @@ public class TerminalsWizardConfigurationPanel extends AbstractConfigurationPane
 	@Override
     public void doSaveWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-		String encoding = getEncoding();
-		if (encoding != null) {
-			settings.put(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix), encoding);
-		}
+		// Save the encodings widget values
+		doSaveEncodingsWidgetValues(settings, idPrefix);
     }
 
 	/* (non-Javadoc)
@@ -127,10 +125,8 @@ public class TerminalsWizardConfigurationPanel extends AbstractConfigurationPane
 	@Override
     public void doRestoreWidgetValues(IDialogSettings settings, String idPrefix) {
 		Assert.isNotNull(settings);
-		String encoding = settings.get(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix));
-		if (encoding != null && encoding.trim().length() > 0) {
-			setEncoding(encoding);
-		}
+		// Restore the encodings widget values
+		doRestoreEncodingsWidgetValues(settings, idPrefix);
 	}
 
 	/* (non-Javadoc)
