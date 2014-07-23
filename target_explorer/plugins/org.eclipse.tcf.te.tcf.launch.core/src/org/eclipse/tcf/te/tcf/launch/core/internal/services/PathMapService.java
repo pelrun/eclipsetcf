@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -319,9 +320,20 @@ public class PathMapService extends AbstractService implements IPathMapService {
 
     	// If called as part of the "open channel" step group, IChannelManager.getChannel(peer)
     	// will return null. For this case, the channel to use is passed as context directly.
-    	IChannel channel = context instanceof IChannel ? (IChannel)context : null;
+    	final IChannel channel = context instanceof IChannel ? (IChannel)context : null;
     	// The peer in that case is the remote peer of the channel
-    	if (peer == null && channel != null) peer = channel.getRemotePeer();
+    	if (peer == null && channel != null) {
+    		final AtomicReference<IPeer> remotePeer = new AtomicReference<IPeer>();
+
+    		Protocol.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					remotePeer.set(channel.getRemotePeer());
+				}
+			});
+
+    		peer = remotePeer.get();
+    	}
 
     	// Make sure that the callback is invoked in the TCF dispatch thread
     	final AsyncCallbackCollector collector = new AsyncCallbackCollector(callback, new CallbackInvocationDelegate());
