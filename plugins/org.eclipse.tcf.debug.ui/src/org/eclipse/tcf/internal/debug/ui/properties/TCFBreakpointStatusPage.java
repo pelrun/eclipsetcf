@@ -277,9 +277,14 @@ public class TCFBreakpointStatusPage extends PropertyPage {
                 IRunControl.RunControlContext ctx = cache.getData();
                 if (ctx != null) {
                     y.text = ctx.getName();
+                    if (y.text == null) y.text = node.getID();
+                    String additionalInfo = (String) ctx.getProperties().get("AdditionalInfo");
+                    if (additionalInfo != null) y.text += additionalInfo;
                     y.has_state = ctx.hasState();
                 }
-                if (y.text == null) y.text = node.getID();
+                else {
+                    y.text = node.getID();
+                }
             }
             x.add(y);
             return y;
