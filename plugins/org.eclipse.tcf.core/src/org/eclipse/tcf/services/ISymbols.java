@@ -355,6 +355,7 @@ public interface ISymbols extends IService {
 
     /**
      * Search symbol with given address in given context.
+     * Return first matching symbol.
      * The context can be memory space, process, thread or stack frame.
      *
      * @param context_id - a search scope.
@@ -364,6 +365,19 @@ public interface ISymbols extends IService {
      */
     IToken findByAddr(String context_id, Number addr, DoneFind done);
 
+    /**
+     * Search symbol with given address in given context.
+     * Return all matching symbols.
+     * The context can be memory space, process, thread or stack frame.
+     *
+     * @param context_id - a search scope.
+     * @param addr - symbol address.
+     * @param done - call back interface called when operation is completed.
+     * @return - pending command handle.
+     * @since 1.3
+     */
+    IToken findByAddr(String context_id, Number addr, DoneFindAll done);
+    
     /**
      * Search symbol with given address in given context.
      * The context can be memory space, process, thread or stack frame.
@@ -378,7 +392,7 @@ public interface ISymbols extends IService {
     IToken findInScope(String context_id, Number ip, String scope_id, String name, DoneFindAll done);
 
     /**
-     * Client call back interface for find()and findByAddr().
+     * Client call back interface for find() and findByAddr().
      */
     interface DoneFind {
         /**
@@ -391,7 +405,7 @@ public interface ISymbols extends IService {
     }
 
     /**
-     * Client call back interface for findByName() and findInScope().
+     * Client call back interface for findByName(), findInScope() and findByAddr().
      */
     interface DoneFindAll {
         /**

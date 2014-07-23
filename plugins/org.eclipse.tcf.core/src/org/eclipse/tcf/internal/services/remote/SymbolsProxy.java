@@ -248,19 +248,38 @@ public class SymbolsProxy implements ISymbols {
 
     public IToken findByAddr(String context_id, Number addr, final DoneFind done) {
         return new Command(channel, this, "findByAddr", new Object[]{ context_id, addr }) {
+            @SuppressWarnings("rawtypes")
             @Override
             public void done(Exception error, Object[] args) {
                 String id = null;
                 if (error == null) {
                     assert args.length == 2;
                     error = toError(args[0]);
-                    id = (String)args[1];
+                    if (args[1] instanceof Collection)
+                        id = (String)((Collection) args[1]).iterator().next();
+                    else
+                        id = (String)args[1];
                 }
                 done.doneFind(token, error, id);
             }
         }.token;
     }
 
+    public IToken findByAddr(String context_id, Number addr, final DoneFindAll done) {
+        return new Command(channel, this, "findByAddr", new Object[]{ context_id, addr }) {
+            @Override
+            public void done(Exception error, Object[] args) {
+                String[] ids = null;
+                if (error == null) {
+                    assert args.length == 2;
+                    error = toError(args[0]);
+                    ids = toStringArray(args[1]);
+                }
+                done.doneFind(token, error, ids);
+            }
+        }.token;
+    }
+    
     public IToken list(String context_id, final DoneList done) {
         return new Command(channel, this, "list", new Object[]{ context_id }) {
             @Override
