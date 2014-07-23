@@ -65,10 +65,11 @@ public class ChannelTraceListenerManager {
 	 * New channel opened. Attach a channel trace listener.
 	 *
 	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelOpened(final IChannel channel) {
+	public void onChannelOpened(final IChannel channel, String message) {
 		Assert.isNotNull(channel);
-		Assert.isTrue(Protocol.isDispatchThread());
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// The trace listener interface does not have a onChannelOpenend method, but
 		// for consistency, log the channel opening similar to the others.
@@ -80,15 +81,10 @@ public class ChannelTraceListenerManager {
 		// The trace listeners can be accessed only via AbstractChannel
 		if (!(channel instanceof AbstractChannel)) return;
 
-		// If the locator events shall be logged, we need to log the communication
-		// to the value-adds as well.
-		boolean locatorEvents =  CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS);
-
-		// If the channel is opened to a ValueAdd, do not write a log file (except
-		// if the locator communication logging is enabled).
+		// If the channel is opened to a ValueAdd, do not write a log file.
 		String value = channel.getRemotePeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
 		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
-		if (isValueAdd && !locatorEvents) return;
+		if (isValueAdd) return;
 
 		// Get the preference key if or if not logging is enabled
 		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
@@ -108,26 +104,26 @@ public class ChannelTraceListenerManager {
 		// Log the channel opening
 		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-		String message = NLS.bind(Messages.ChannelTraceListener_channelOpened_message,
-								  new Object[] {
-										date,
-										Integer.toHexString(channel.hashCode()),
-										isValueAdd ?  "[" + channel.getRemotePeer().getID() + "]" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-								  });
+		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelOpened_message,
+										new Object[] {
+											date,
+											Integer.toHexString(channel.hashCode()),
+											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+								  		});
 
 		// Get the file writer
 		FileWriter writer = LogManager.getInstance().getWriter(channel);
 		if (writer != null) {
 			try {
 				writer.write("\n\n\n"); //$NON-NLS-1$
-				writer.write(message);
+				writer.write(fullMessage);
 				writer.write("\n"); //$NON-NLS-1$
 				writer.flush();
 			} catch (IOException e) {
 				/* ignored on purpose */
 			}
 		}
-		LogManager.getInstance().monitor(channel, MonitorEvent.Type.OPEN, new MonitorEvent.Message('F', message));
+		LogManager.getInstance().monitor(channel, MonitorEvent.Type.OPEN, new MonitorEvent.Message('F', fullMessage));
 	}
 
 	/**
@@ -137,7 +133,7 @@ public class ChannelTraceListenerManager {
 	 */
 	public void onChannelClosed(final IChannel channel) {
 		Assert.isNotNull(channel);
-		Assert.isTrue(Protocol.isDispatchThread());
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// The trace listeners can be accessed only via AbstractChannel
 		if (!(channel instanceof AbstractChannel)) return;

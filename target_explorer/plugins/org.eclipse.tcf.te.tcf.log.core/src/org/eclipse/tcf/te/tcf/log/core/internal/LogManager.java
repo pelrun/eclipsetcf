@@ -27,27 +27,20 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.tcf.core.Tcf;
-import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IChannelStateChangeListener;
-import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IProtocolStateChangeListener;
 import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
 import org.eclipse.tcf.te.tcf.log.core.interfaces.IPreferenceKeys;
-import org.eclipse.tcf.te.tcf.log.core.internal.listener.ChannelStateChangeListener;
 import org.eclipse.tcf.te.tcf.log.core.internal.nls.Messages;
 
 
 /**
  * TCF logging log manager implementation.
  */
-public final class LogManager implements IProtocolStateChangeListener {
+public final class LogManager {
 	/**
 	 * Time format representing date and time with milliseconds.
 	 */
 	public final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); //$NON-NLS-1$
-
-	// Reference to the channel state change listener
-	private IChannelStateChangeListener channelStateChangeListener;
 
 	// Maps file writer per log file base name
 	private final Map<String, FileWriter> fileWriterMap = new HashMap<String, FileWriter>();
@@ -138,42 +131,6 @@ public final class LogManager implements IProtocolStateChangeListener {
 
 		maxInCycle = CoreBundleActivator.getScopedPreferences().getInt(IPreferenceKeys.PREF_MAX_FILES_IN_CYCLE);
 		if (maxInCycle <= 0) maxInCycle = 5;
-	}
-
-	/**
-	 * Create, register and initialize the listeners.
-	 * <p>
-	 * <b>Note:</b> This method is supposed to be called from {@link Startup} only!
-	 */
-	/* default */ final void initListeners() {
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		// If the channel state change listener instance has been created
-		// already, there is nothing left to do here
-		if (channelStateChangeListener != null) return;
-
-		// Register ourself as protocol change listener
-		Tcf.addProtocolStateChangeListener(this);
-
-		// Create and register the channel state change listener
-		channelStateChangeListener = new ChannelStateChangeListener();
-		Tcf.addChannelStateChangeListener(channelStateChangeListener);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.listeners.interfaces.IProtocolStateChangeListener#stateChanged(boolean)
-	 */
-	@Override
-	public void stateChanged(boolean state) {
-		Assert.isTrue(Protocol.isDispatchThread());
-
-		// On shutdown, get the listener removed and disposed
-		if (!state) {
-			Tcf.removeChannelStateChangeListener(channelStateChangeListener);
-			channelStateChangeListener = null;
-
-			Tcf.removeProtocolStateChangeListener(this);
-		}
 	}
 
 	/**

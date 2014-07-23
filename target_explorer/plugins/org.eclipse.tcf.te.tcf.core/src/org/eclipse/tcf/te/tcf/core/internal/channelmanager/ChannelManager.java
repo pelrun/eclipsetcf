@@ -27,6 +27,7 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -36,6 +37,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.job.StepperJob;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.core.events.ChannelEvent;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
@@ -93,6 +95,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 
 			@Override
 			public void doneOpenChannel(final Throwable error, final IChannel channel) {
+				// Invoke the client done callback
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
@@ -119,8 +122,8 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 		// First thing to determine is if to open a new channel or the shared
 		// channel can be used, if there is a shared channel at all.
 		boolean forceNew = flags != null && flags.containsKey(IChannelManager.FLAG_FORCE_NEW) ? flags.get(IChannelManager.FLAG_FORCE_NEW).booleanValue() : false;
-		boolean noValueAdd = flags != null && flags.containsKey(IChannelManager.FLAG_NO_VALUE_ADD) ? flags.get(IChannelManager.FLAG_NO_VALUE_ADD).booleanValue() : false;
-		boolean noPathMap = flags != null && flags.containsKey(IChannelManager.FLAG_NO_PATH_MAP) ? flags.get(IChannelManager.FLAG_NO_PATH_MAP).booleanValue() : false;
+		final boolean noValueAdd = flags != null && flags.containsKey(IChannelManager.FLAG_NO_VALUE_ADD) ? flags.get(IChannelManager.FLAG_NO_VALUE_ADD).booleanValue() : false;
+		final boolean noPathMap = flags != null && flags.containsKey(IChannelManager.FLAG_NO_PATH_MAP) ? flags.get(IChannelManager.FLAG_NO_PATH_MAP).booleanValue() : false;
 		// If noValueAdd == true or noPathMap == true -> forceNew has to be true as well
 		if (noValueAdd || noPathMap) forceNew = true;
 
@@ -238,6 +241,14 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_success_message, id),
 																			0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 							}
+
+							// Log successfully opened channels
+							String message = finForceNew ? "Private" : "Shared"; //$NON-NLS-1$ //$NON-NLS-2$
+							if (noValueAdd) message += ", No Value Add"; //$NON-NLS-1$
+							if (noPathMap) message += ", Not Applying Path Map"; //$NON-NLS-1$
+
+							ChannelEvent event = new ChannelEvent(ChannelManager.this, channel, ChannelEvent.TYPE_OPEN, message);
+							EventManager.getInstance().fireEvent(event);
 
 							// Invoke the primary "open channel" done callback
 							internalDone.doneOpenChannel(null, channel);
@@ -459,6 +470,10 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 																			0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 							}
 						}
+
+						// Log closed channels
+						ChannelEvent event = new ChannelEvent(ChannelManager.this, channel, ChannelEvent.TYPE_CLOSE, null);
+						EventManager.getInstance().fireEvent(event);
 					}
 				};
 

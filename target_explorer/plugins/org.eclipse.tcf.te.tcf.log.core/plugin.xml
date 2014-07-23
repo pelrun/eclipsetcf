@@ -2,11 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
 
-<!-- TCF framework startup participant -->   
-   <extension point="org.eclipse.tcf.startup">
-      <class name="org.eclipse.tcf.te.tcf.log.core.internal.Startup"/>
-   </extension>
-
 <!-- Preference contributions -->
    <extension point="org.eclipse.core.runtime.preferences">
       <initializer
@@ -14,4 +9,15 @@
       </initializer>
    </extension>
 
+<!-- Event listener contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.eventListeners">
+      <eventListener
+            class="org.eclipse.tcf.te.tcf.log.core.internal.listener.EventListener"
+            forcePluginActivation="true">
+         <eventType
+               bundleId="org.eclipse.tcf.te.tcf.core"
+               class="org.eclipse.tcf.te.tcf.core.events.ChannelEvent">
+         </eventType>
+      </eventListener>
+   </extension>
 </plugin>

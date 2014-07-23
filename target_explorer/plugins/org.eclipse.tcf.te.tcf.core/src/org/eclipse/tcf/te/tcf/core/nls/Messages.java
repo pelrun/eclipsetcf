@@ -67,11 +67,6 @@ public class Messages extends NLS {
 
 	// **** Declare externalized string id's down here *****
 
-	public static String InternalChannelOpenListener_onChannelOpen_message;
-
-	public static String InternalChannelListener_onChannelClosed_message;
-	public static String InternalChannelListener_onChannelClosed_cause;
-
 	public static String ChannelManager_openChannel_message;
 	public static String ChannelManager_openChannel_reuse_message;
 	public static String ChannelManager_openChannel_pending_message;
@@ -108,7 +103,6 @@ public class Messages extends NLS {
 	public static String MonitorTask_TimeoutError;
 
 	public static String Extension_error_invalidProtocolStateChangeListener;
-	public static String Extension_error_invalidChannelStateChangeListener;
 
 	public static String AbstractJob_error_dialogTitle;
 

@@ -23,15 +23,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.protocol.Protocol.ChannelOpenListener;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.internal.Startup;
 import org.eclipse.tcf.te.tcf.core.internal.channelmanager.ChannelManager;
-import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IChannelOpenListener;
-import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IChannelStateChangeListener;
 import org.eclipse.tcf.te.tcf.core.listeners.interfaces.IProtocolStateChangeListener;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
 
@@ -42,10 +38,7 @@ import org.eclipse.tcf.te.tcf.core.nls.Messages;
 public final class Tcf {
 	/* default */ IChannelManager channelManager;
 
-	/* default */ ChannelOpenListener channelOpenListener;
-
 	/* default */ final List<IProtocolStateChangeListener> protocolStateChangeListeners = new ArrayList<IProtocolStateChangeListener>();
-	/* default */ final List<IChannelStateChangeListener> channelStateChangeListeners = new ArrayList<IChannelStateChangeListener>();
 
 
 	/*
@@ -120,59 +113,6 @@ public final class Tcf {
 	}
 
 	/**
-	 * Adds a listener that will be notified once the TCF framework state changes.
-	 *
-	 * @param listener The listener. Must not be <code>null</code>.
-	 */
-	public static final void addChannelStateChangeListener(IChannelStateChangeListener listener) {
-		Assert.isTrue(Protocol.isDispatchThread());
-		Assert.isNotNull(listener);
-
-		Tcf tcf = getInstance();
-		Assert.isNotNull(tcf);
-
-		if (!tcf.channelStateChangeListeners.contains(listener)) {
-			tcf.channelStateChangeListeners.add(listener);
-		}
-	}
-
-	/**
-	 * Removes the specified protocol state change listener.
-	 *
-	 * @param listener The listener. Must not be <code>null</code>.
-	 */
-	public static final void removeChannelStateChangeListener(IChannelStateChangeListener listener) {
-		Assert.isTrue(Protocol.isDispatchThread());
-		Assert.isNotNull(listener);
-
-		Tcf tcf = getInstance();
-		Assert.isNotNull(tcf);
-
-		tcf.channelStateChangeListeners.remove(listener);
-	}
-
-	/**
-	 * Fires the channel state change listeners.
-	 *
-	 * @param channel The channel which changed state. Must not be <code>null</code>.
-	 * @param state The new state.
-	 */
-	public static final void fireChannelStateChangeListeners(final IChannel channel, final int state) {
-		Assert.isTrue(Protocol.isDispatchThread());
-		Assert.isNotNull(channel);
-
-		Tcf tcf = getInstance();
-		Assert.isNotNull(tcf);
-
-		final IChannelStateChangeListener[] listeners = tcf.channelStateChangeListeners.toArray(new IChannelStateChangeListener[tcf.channelStateChangeListeners.size()]);
-		if (listeners.length > 0) {
-			for (IChannelStateChangeListener listener : listeners) {
-				listener.stateChanged(channel, state);
-			}
-		}
-	}
-
-	/**
 	 * Returns if or if not the TCF framework is up and running.
 	 *
 	 * @return <code>True</code> if the framework is up and running, <code>false</code> otherwise.
@@ -195,12 +135,6 @@ public final class Tcf {
 		Tcf tcf = getInstance();
 		Assert.isNotNull(tcf);
 
-		// Create and register the global channel open listener
-		if (tcf.channelOpenListener == null) {
-			tcf.channelOpenListener = new org.eclipse.tcf.te.tcf.core.listeners.ChannelOpenListener();
-			Protocol.addChannelOpenListener(tcf.channelOpenListener);
-		}
-
 		// Create and register listeners contributed via extension point
         IExtensionRegistry registry = Platform.getExtensionRegistry();
         IExtensionPoint point = registry.getExtensionPoint("org.eclipse.tcf.te.tcf.core.listeners"); //$NON-NLS-1$
@@ -217,18 +151,6 @@ public final class Tcf {
                         } catch (CoreException e) {
                             IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
                                                         NLS.bind(Messages.Extension_error_invalidProtocolStateChangeListener, element.getDeclaringExtension().getUniqueIdentifier()),
-                                                        e);
-                            Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-                        }
-                    }
-                    else if ("channelStateChangeListener".equals(element.getName())) { //$NON-NLS-1$
-                        try {
-                            // Create the channel state change listener instance
-                            IChannelStateChangeListener listener = (IChannelStateChangeListener)element.createExecutableExtension("class"); //$NON-NLS-1$
-                            if (listener != null) addChannelStateChangeListener(listener);
-                        } catch (CoreException e) {
-                            IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-                                                        NLS.bind(Messages.Extension_error_invalidChannelStateChangeListener, element.getDeclaringExtension().getUniqueIdentifier()),
                                                         e);
                             Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
                         }
@@ -264,12 +186,6 @@ public final class Tcf {
 
 		Tcf tcf = getInstance();
 		Assert.isNotNull(tcf);
-
-		// Unregister the channel open listener of created
-		if (tcf.channelOpenListener != null) {
-			Protocol.removeChannelOpenListener(tcf.channelOpenListener);
-			tcf.channelOpenListener = null;
-		}
 
 		// Signal to interested listeners that we've just went down
 		final IProtocolStateChangeListener[] listeners = tcf.protocolStateChangeListeners.toArray(new IProtocolStateChangeListener[tcf.protocolStateChangeListeners.size()]);
@@ -333,9 +249,6 @@ public final class Tcf {
 
 		if (IChannelManager.class.equals(adapter)) {
 			return tcf.channelManager;
-		}
-		if (IChannelOpenListener.class.equals(adapter)) {
-			return tcf.channelOpenListener;
 		}
 
 		return Platform.getAdapterManager().getAdapter(tcf, adapter);
