@@ -160,7 +160,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					updateLaunchConfiguration(config, rulesList);
 
 					// Apply the path map
-					applyPathMap(context, false, new Callback() {
+					applyPathMap(context, false, false, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							if (status != null && Platform.inDebugMode()) {
@@ -208,7 +208,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					updateLaunchConfiguration(config, rulesList);
 
 					// Apply the path map
-					applyPathMap(context, true, new Callback() {
+					applyPathMap(context, true, true, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
 							if (status != null && Platform.inDebugMode()) {
@@ -306,10 +306,10 @@ public class PathMapService extends AbstractService implements IPathMapService {
     }
 
     /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#applyPathMap(java.lang.Object, boolean, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#applyPathMap(java.lang.Object, boolean, boolean, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
      */
     @Override
-    public void applyPathMap(final Object context, final boolean force, final ICallback callback) {
+    public void applyPathMap(final Object context, final boolean force, final boolean forceEmpty, final ICallback callback) {
     	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
     	Assert.isNotNull(context);
     	Assert.isNotNull(callback);
@@ -367,7 +367,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 										// If the merged path map differs from the agent side path map, apply the map
 										if (force || isDifferent(rules, map)) {
 											// Apply the path map
-											set(rules, svc, force, new IPathMap.DoneSet() {
+											set(rules, svc, forceEmpty, new IPathMap.DoneSet() {
 												@Override
 												public void doneSet(IToken token, Exception error) {
 													innerCallback.done(PathMapService.this, StatusHelper.getStatus(error));
@@ -489,9 +489,10 @@ public class PathMapService extends AbstractService implements IPathMapService {
      *
      * @param map The path map. Must not be <code>null</code>.
      * @param svc The path map service. Must not be <code>null</code>.
+	 * @param forceEmpty If <code>true</code>, the path map will be set even if empty.
      * @param done The callback to invoke. Must not be <code>null</code>.
      */
-    public static void set(List<PathMapRule> map, IPathMap svc, boolean force, IPathMap.DoneSet done) {
+    public static void set(List<PathMapRule> map, IPathMap svc, boolean forceEmpty, IPathMap.DoneSet done) {
     	Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
     	Assert.isNotNull(map);
     	Assert.isNotNull(svc);
@@ -506,7 +507,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			}
 		}
 		// Apply the path map rules if not empty or forced
-		if (!map.isEmpty() || force) {
+		if (!map.isEmpty() || forceEmpty) {
 			svc.set(map.toArray(new PathMapRule[map.size()]), done);
 		} else {
 			done.doneSet(null, null);

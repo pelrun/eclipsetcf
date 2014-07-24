@@ -59,6 +59,11 @@
             id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeerStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ChainPeerStep"
             label="%ChainPeerStep.name"/>
+
+      <step
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.initializeLoggingStep"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.InitializeLoggingStep"
+            label="%InitializeLoggingStep.name"/>
             
       <step
             id="org.eclipse.tcf.te.tcf.core.channelmanager.applyPathMapsStep"
@@ -83,6 +88,7 @@
          <references>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddsStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeersStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.initializeLoggingStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.applyPathMapsStep"/>
          </references>      	
       </stepGroup>

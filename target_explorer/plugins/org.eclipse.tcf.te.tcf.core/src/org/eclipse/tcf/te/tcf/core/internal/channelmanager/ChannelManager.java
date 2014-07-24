@@ -190,6 +190,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 				// Create the data properties container passed to the "open channel" steps
 				final IPropertiesContainer data = new PropertiesContainer();
 				// Set the flags to be passed to the "open channel" steps
+				data.setProperty(IChannelManager.FLAG_FORCE_NEW, forceNew);
 				data.setProperty(IChannelManager.FLAG_NO_VALUE_ADD, noValueAdd);
 				data.setProperty(IChannelManager.FLAG_NO_PATH_MAP, noPathMap);
 				// No recent action history persistence
@@ -241,14 +242,6 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_success_message, id),
 																			0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 							}
-
-							// Log successfully opened channels
-							String message = finForceNew ? "Private" : "Shared"; //$NON-NLS-1$ //$NON-NLS-2$
-							if (noValueAdd) message += ", No Value Add"; //$NON-NLS-1$
-							if (noPathMap) message += ", Not Applying Path Map"; //$NON-NLS-1$
-
-							ChannelEvent event = new ChannelEvent(ChannelManager.this, channel, ChannelEvent.TYPE_OPEN, message);
-							EventManager.getInstance().fireEvent(event);
 
 							// Invoke the primary "open channel" done callback
 							internalDone.doneOpenChannel(null, channel);
