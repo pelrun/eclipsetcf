@@ -723,7 +723,10 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		final Object input = od; // getManagedForm().getInput();
 
 		boolean enabled = !isReadOnly() && (!(input instanceof IPeerNode) || ((IPeerNode)input).getConnectState() == IConnectable.STATE_DISCONNECTED);
-		if (proxyControl != null) proxyControl.setEnabled(enabled);
+		if (proxyControl != null) {
+			proxyControl.setEnabled(enabled);
+			if (enabled) SWTControlUtil.setEnabled(proxyControl.getEditFieldControl(), false);
+		}
 		if (addressControl != null) addressControl.setEnabled(enabled);
 		if (portControl != null) portControl.setEnabled(enabled && !isAutoPort);
 	}
