@@ -19,9 +19,11 @@ import org.eclipse.tcf.protocol.IChannel;
 public final class ChannelEvent extends EventObject {
     private static final long serialVersionUID = 864759021559875199L;
 
-    public static final String TYPE_OPEN = "open"; //$NON-NLS-1$
+    public static final String TYPE_OPENING = "opening"; //$NON-NLS-1$
 	public static final String TYPE_REDIRECT = "redirect"; //$NON-NLS-1$
+    public static final String TYPE_OPEN = "open"; //$NON-NLS-1$
 	public static final String TYPE_CLOSE = "close"; //$NON-NLS-1$
+	public static final String TYPE_MARK = "mark"; //$NON-NLS-1$
 
 	// The channel
 	private IChannel channel;

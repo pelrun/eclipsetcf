@@ -13,14 +13,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.core.AbstractChannel;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
@@ -40,6 +43,9 @@ public class ChannelTraceListenerManager {
 
 	// The map of trace listeners per channel
 	private final Map<IChannel, AbstractChannel.TraceListener> listeners = new HashMap<IChannel, AbstractChannel.TraceListener>();
+
+	// The map of queued messaged per channel
+	private final Map<IChannel, List<String>> queued = new HashMap<IChannel, List<String>>();
 
 	/*
 	 * Thread save singleton instance creation.
@@ -74,7 +80,7 @@ public class ChannelTraceListenerManager {
 		// The trace listener interface does not have a onChannelOpenend method, but
 		// for consistency, log the channel opening similar to the others.
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
-			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelOpened ( " + channel + " )", //$NON-NLS-1$ //$NON-NLS-2$
+			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelOpened ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
 
@@ -116,6 +122,17 @@ public class ChannelTraceListenerManager {
 		if (writer != null) {
 			try {
 				writer.write("\n\n\n"); //$NON-NLS-1$
+
+				// Write the queued redirects
+				List<String> queue = queued.remove(channel);
+				if (queue != null) {
+					for (String m : queue) {
+						writer.write(m);
+						writer.write("\n"); //$NON-NLS-1$
+					}
+				}
+
+				// Write the opened message
 				writer.write(fullMessage);
 				writer.write("\n"); //$NON-NLS-1$
 				writer.flush();
@@ -127,6 +144,140 @@ public class ChannelTraceListenerManager {
 	}
 
 	/**
+	 * Channel is opening.
+	 * <p>
+	 * This is the state where {@link IPeer#openChannel()} got called but no
+	 * further redirect or channel listener got invoked.
+	 *
+	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param message A message or <code>null</code>.
+	 */
+	public void onChannelOpening(final IChannel channel, String message) {
+		Assert.isNotNull(channel);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// The trace listener interface does not have a onChannelOpenend method, but
+		// for consistency, log the channel opening similar to the others.
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
+			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelOpening ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
+		}
+
+		// Get the preference key if or if not logging is enabled
+		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
+		// If false, we are done here and wont create any console or trace listener.
+		if (!loggingEnabled) return;
+
+		// Log the channel opening
+		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+
+		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelOpening_message,
+										new Object[] {
+											date,
+											Integer.toHexString(channel.hashCode()),
+											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+								  		});
+
+		List<String> queue = queued.get(channel);
+		if (queue == null) {
+			queue = new ArrayList<String>();
+			queued.put(channel, queue);
+		}
+		queue.add(fullMessage);
+	}
+
+	/**
+	 * Channel got redirected.
+	 *
+	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param message A message or <code>null</code>.
+	 */
+	public void onChannelRedirected(final IChannel channel, String message) {
+		Assert.isNotNull(channel);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// The trace listener interface does not have a onChannelOpenend method, but
+		// for consistency, log the channel opening similar to the others.
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
+			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelRedirected ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
+		}
+
+		// Get the preference key if or if not logging is enabled
+		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
+		// If false, we are done here and wont create any console or trace listener.
+		if (!loggingEnabled) return;
+
+		// Log the channel opening
+		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+
+		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelRedirected_message,
+										new Object[] {
+											date,
+											Integer.toHexString(channel.hashCode()),
+											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+								  		});
+
+		List<String> queue = queued.get(channel);
+		if (queue == null) {
+			queue = new ArrayList<String>();
+			queued.put(channel, queue);
+		}
+		queue.add(fullMessage);
+	}
+
+	/**
+	 * Mark an event in the channel log.
+	 *
+	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param message A message or <code>null</code>.
+	 */
+	public void onMark(final IChannel channel, String message) {
+		Assert.isNotNull(channel);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// The trace listener interface does not have a onChannelOpenend method, but
+		// for consistency, log the channel opening similar to the others.
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
+			CoreBundleActivator.getTraceHandler().trace("TraceListener.onMark ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
+		}
+
+		// If the channel is opened to a ValueAdd, do not write a log file.
+		String value = channel.getRemotePeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
+		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
+		if (isValueAdd) return;
+
+		// Get the preference key if or if not logging is enabled
+		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
+		// If false, we are done here and wont create any console or trace listener.
+		if (!loggingEnabled) return;
+
+		// Log the channel opening
+		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+
+		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelMark_message,
+										new Object[] {
+											date,
+											Integer.toHexString(channel.hashCode()),
+											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+								  		});
+
+		// Get the file writer
+		FileWriter writer = LogManager.getInstance().getWriter(channel);
+		if (writer != null) {
+			try {
+				// Write the message
+				writer.write(fullMessage);
+				writer.write("\n"); //$NON-NLS-1$
+				writer.flush();
+			} catch (IOException e) {
+				/* ignored on purpose */
+			}
+		}
+	}
+
+	/**
 	 * Channel closed. Detach the channel trace listener if any.
 	 *
 	 * @param channel The channel. Must not be <code>null</code>.
@@ -134,6 +285,9 @@ public class ChannelTraceListenerManager {
 	public void onChannelClosed(final IChannel channel) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		// Remove the queued messages
+		queued.remove(channel);
 
 		// The trace listeners can be accessed only via AbstractChannel
 		if (!(channel instanceof AbstractChannel)) return;

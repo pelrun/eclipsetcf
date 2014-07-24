@@ -45,11 +45,20 @@ public final class EventListener extends PlatformObject implements IEventListene
 			final String type = ((ChannelEvent)event).getType();
 			final String message = ((ChannelEvent)event).getMessage();
 
-			if (ChannelEvent.TYPE_OPEN.equals(type)) {
+			if (ChannelEvent.TYPE_OPENING.equals(type)) {
+				ChannelTraceListenerManager.getInstance().onChannelOpening(channel, message);
+			}
+			else if (ChannelEvent.TYPE_REDIRECT.equals(type)) {
+				ChannelTraceListenerManager.getInstance().onChannelRedirected(channel, message);
+			}
+			else if (ChannelEvent.TYPE_OPEN.equals(type)) {
 				ChannelTraceListenerManager.getInstance().onChannelOpened(channel, message);
 			}
 			else if (ChannelEvent.TYPE_CLOSE.equals(type)) {
 				ChannelTraceListenerManager.getInstance().onChannelClosed(channel);
+			}
+			else if (ChannelEvent.TYPE_MARK.equals(type)) {
+				ChannelTraceListenerManager.getInstance().onMark(channel, message);
 			}
 		}
 	}

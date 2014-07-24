@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
@@ -27,6 +28,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.channelmanager.OpenChannelException;
+import org.eclipse.tcf.te.tcf.core.events.ChannelEvent;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.steps.AbstractPeerStep;
 
@@ -71,7 +73,15 @@ public class ChainPeerStep extends AbstractPeerStep {
 				if (c == null) {
 					c = peer.openChannel();
 					channel.set(c);
+
+					String message = "to " + peer.getID(); //$NON-NLS-1$
+					ChannelEvent event = new ChannelEvent(ChainPeerStep.this, c, ChannelEvent.TYPE_OPENING, message);
+					EventManager.getInstance().fireEvent(event);
 				} else {
+					String message = c.getRemotePeer().getID() + " --> " + peer.getID(); //$NON-NLS-1$
+					ChannelEvent event = new ChannelEvent(ChainPeerStep.this, c, ChannelEvent.TYPE_REDIRECT, message);
+					EventManager.getInstance().fireEvent(event);
+
 					c.redirect(peer.getAttributes());
 				}
 
