@@ -12,6 +12,8 @@ package org.eclipse.tcf.internal.debug.ui.model;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.DebugPlugin;
@@ -1863,189 +1865,210 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     private static final ICellModifier cell_modifier = new ICellModifier() {
+        private Object original_value;
 
         public boolean canModify(Object element, final String property) {
             final TCFNodeExpression node = (TCFNodeExpression)element;
-            return new TCFTask<Boolean>(node.channel) {
-                public void run() {
-                    if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
-                        done(node.is_empty || node.script != null);
-                        return;
+            try {
+                return new TCFTask<Boolean>(node.channel) {
+                    public void run() {
+                        if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
+                            done(node.is_empty || node.script != null);
+                            return;
+                        }
+                        if (!node.is_empty && node.enabled) {
+                            if (!node.rem_expression.validate(this)) return;
+                            IExpressions.Expression exp = node.rem_expression.getData();
+                            if (exp != null && exp.canAssign()) {
+                                if (!node.value.validate(this)) return;
+                                if (!node.type.validate(this)) return;
+                                if (TCFColumnPresentationExpression.COL_HEX_VALUE.equals(property)) {
+                                    done(TCFNumberFormat.isValidHexNumber(node.toNumberString(16)) == null);
+                                    return;
+                                }
+                                if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
+                                    done(TCFNumberFormat.isValidDecNumber(true, node.toNumberString(10)) == null);
+                                    return;
+                                }
+                                if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
+                                    StyledStringBuffer bf = node.getPrettyExpression(this);
+                                    if (bf == null) return;
+                                    String s = bf.toString();
+                                    done(s.startsWith("0x") || TCFNumberFormat.isValidDecNumber(true, s) == null);
+                                    return;
+                                }
+                            }
+                        }
+                        done(Boolean.FALSE);
                     }
-                    if (!node.is_empty && node.enabled) {
-                        if (!node.rem_expression.validate(this)) return;
-                        IExpressions.Expression exp = node.rem_expression.getData();
-                        if (exp != null && exp.canAssign()) {
-                            if (!node.value.validate(this)) return;
-                            if (!node.type.validate(this)) return;
+                }.get(1, TimeUnit.SECONDS);
+            }
+            catch (Exception e) {
+                return false;
+            }
+        }
+
+        public Object getValue(Object element, final String property) {
+            original_value = null;
+            final TCFNodeExpression node = (TCFNodeExpression)element;
+            try {
+                return original_value = new TCFTask<String>() {
+                    public void run() {
+                        if (node.is_empty) {
+                            done("");
+                            return;
+                        }
+                        if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
+                            done(node.script);
+                            return;
+                        }
+                        if (!node.value.validate(this)) return;
+                        if (node.value.getData() != null) {
                             if (TCFColumnPresentationExpression.COL_HEX_VALUE.equals(property)) {
-                                done(TCFNumberFormat.isValidHexNumber(node.toNumberString(16)) == null);
+                                done(node.toNumberString(16));
                                 return;
                             }
                             if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
-                                done(TCFNumberFormat.isValidDecNumber(true, node.toNumberString(10)) == null);
+                                done(node.toNumberString(10));
                                 return;
                             }
                             if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
                                 StyledStringBuffer bf = node.getPrettyExpression(this);
                                 if (bf == null) return;
-                                String s = bf.toString();
-                                done(s.startsWith("0x") || TCFNumberFormat.isValidDecNumber(true, s) == null);
+                                done(bf.toString());
                                 return;
                             }
                         }
+                        done(null);
                     }
-                    done(Boolean.FALSE);
-                }
-            }.getE();
-        }
-
-        public Object getValue(Object element, final String property) {
-            final TCFNodeExpression node = (TCFNodeExpression)element;
-            return new TCFTask<String>() {
-                public void run() {
-                    if (node.is_empty) {
-                        done("");
-                        return;
-                    }
-                    if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
-                        done(node.script);
-                        return;
-                    }
-                    if (!node.value.validate(this)) return;
-                    if (node.value.getData() != null) {
-                        if (TCFColumnPresentationExpression.COL_HEX_VALUE.equals(property)) {
-                            done(node.toNumberString(16));
-                            return;
-                        }
-                        if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
-                            done(node.toNumberString(10));
-                            return;
-                        }
-                        if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
-                            StyledStringBuffer bf = node.getPrettyExpression(this);
-                            if (bf == null) return;
-                            done(bf.toString());
-                            return;
-                        }
-                    }
-                    done(null);
-                }
-            }.getE();
+                }.get(1, TimeUnit.SECONDS);
+            }
+            catch (Exception e) {
+                return null;
+            }
         }
 
         public void modify(Object element, final String property, final Object value) {
             if (value == null) return;
+            if (original_value != null && original_value.equals(value)) return;
             final TCFNodeExpression node = (TCFNodeExpression)element;
-            new TCFTask<Boolean>() {
-                @SuppressWarnings("incomplete-switch")
-                public void run() {
-                    try {
-                        if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
-                            if (node.is_empty) {
-                                if (value instanceof String) {
-                                    final String s = ((String)value).trim();
-                                    if (s.length() > 0) {
-                                        node.model.getDisplay().asyncExec(new Runnable() {
-                                            public void run() {
-                                                IWatchExpression expression = DebugPlugin.getDefault().getExpressionManager().newWatchExpression(s);
-                                                DebugPlugin.getDefault().getExpressionManager().addExpression(expression);
-                                                IAdaptable object = DebugUITools.getDebugContext();
-                                                IDebugElement context = null;
-                                                if (object instanceof IDebugElement) {
-                                                    context = (IDebugElement)object;
+            try {
+                new TCFTask<Boolean>() {
+                    @SuppressWarnings("incomplete-switch")
+                    public void run() {
+                        try {
+                            if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
+                                if (node.is_empty) {
+                                    if (value instanceof String) {
+                                        final String s = ((String)value).trim();
+                                        if (s.length() > 0) {
+                                            node.model.getDisplay().asyncExec(new Runnable() {
+                                                public void run() {
+                                                    IWatchExpression expression = DebugPlugin.getDefault().getExpressionManager().newWatchExpression(s);
+                                                    DebugPlugin.getDefault().getExpressionManager().addExpression(expression);
+                                                    IAdaptable object = DebugUITools.getDebugContext();
+                                                    IDebugElement context = null;
+                                                    if (object instanceof IDebugElement) {
+                                                        context = (IDebugElement)object;
+                                                    }
+                                                    else if (object instanceof ILaunch) {
+                                                        context = ((ILaunch)object).getDebugTarget();
+                                                    }
+                                                    expression.setExpressionContext(context);
                                                 }
-                                                else if (object instanceof ILaunch) {
-                                                    context = ((ILaunch)object).getDebugTarget();
-                                                }
-                                                expression.setExpressionContext(context);
-                                            }
-                                        });
+                                            });
+                                        }
                                     }
                                 }
-                            }
-                            else if (!node.script.equals(value)) {
-                                IExpressionManager m = DebugPlugin.getDefault().getExpressionManager();
-                                for (final IExpression e : m.getExpressions()) {
-                                    if (node.script.equals(e.getExpressionText())) m.removeExpression(e);
+                                else if (!node.script.equals(value)) {
+                                    IExpressionManager m = DebugPlugin.getDefault().getExpressionManager();
+                                    for (final IExpression e : m.getExpressions()) {
+                                        if (node.script.equals(e.getExpressionText())) m.removeExpression(e);
+                                    }
+                                    IExpression e = m.newWatchExpression((String)value);
+                                    m.addExpression(e);
                                 }
-                                IExpression e = m.newWatchExpression((String)value);
-                                m.addExpression(e);
+                                done(Boolean.TRUE);
+                                return;
                             }
-                            done(Boolean.TRUE);
-                            return;
-                        }
-                        if (!node.rem_expression.validate(this)) return;
-                        IExpressions.Expression exp = node.rem_expression.getData();
-                        if (exp != null && exp.canAssign()) {
-                            byte[] bf = null;
-                            int size = exp.getSize();
-                            boolean is_float = false;
-                            boolean big_endian = false;
-                            boolean signed = false;
-                            if (!node.value.validate(this)) return;
-                            IExpressions.Value eval = node.value.getData();
-                            if (eval != null) {
-                                switch(eval.getTypeClass()) {
-                                case real:
-                                    is_float = true;
-                                    signed = true;
-                                    break;
-                                case integer:
-                                    signed = true;
-                                    break;
+                            if (!node.rem_expression.validate(this)) return;
+                            IExpressions.Expression exp = node.rem_expression.getData();
+                            if (exp != null && exp.canAssign()) {
+                                byte[] bf = null;
+                                int size = exp.getSize();
+                                boolean is_float = false;
+                                boolean big_endian = false;
+                                boolean signed = false;
+                                if (!node.value.validate(this)) return;
+                                IExpressions.Value eval = node.value.getData();
+                                if (eval != null) {
+                                    switch(eval.getTypeClass()) {
+                                    case real:
+                                        is_float = true;
+                                        signed = true;
+                                        break;
+                                    case integer:
+                                        signed = true;
+                                        break;
+                                    }
+                                    big_endian = eval.isBigEndian();
+                                    size = eval.getValue().length;
                                 }
-                                big_endian = eval.isBigEndian();
-                                size = eval.getValue().length;
-                            }
-                            String input = (String)value;
-                            String error = null;
-                            if (TCFColumnPresentationExpression.COL_HEX_VALUE.equals(property)) {
-                                if (input.startsWith("0x")) input = input.substring(2);
-                                error = TCFNumberFormat.isValidHexNumber(input);
-                                if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, signed, big_endian);
-                            }
-                            else if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
-                                error = TCFNumberFormat.isValidDecNumber(is_float, input);
-                                if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
-                            }
-                            else if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
-                                if (input.startsWith("0x")) {
-                                    String s = input.substring(2);
-                                    error = TCFNumberFormat.isValidHexNumber(s);
-                                    if (error == null) bf = TCFNumberFormat.toByteArray(s, 16, false, size, signed, big_endian);
+                                String input = (String)value;
+                                String error = null;
+                                if (TCFColumnPresentationExpression.COL_HEX_VALUE.equals(property)) {
+                                    if (input.startsWith("0x")) input = input.substring(2);
+                                    error = TCFNumberFormat.isValidHexNumber(input);
+                                    if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, signed, big_endian);
                                 }
-                                else {
+                                else if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
                                     error = TCFNumberFormat.isValidDecNumber(is_float, input);
                                     if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
                                 }
-                            }
-                            if (error != null) throw new Exception("Invalid value: " + value, new Exception(error));
-                            if (bf != null) {
-                                IExpressions exps = node.launch.getService(IExpressions.class);
-                                exps.assign(exp.getID(), bf, new IExpressions.DoneAssign() {
-                                    public void doneAssign(IToken token, Exception error) {
-                                        node.getRootExpression().onValueChanged();
-                                        if (error != null) {
-                                            node.model.showMessageBox("Cannot modify element value", error);
-                                            done(Boolean.FALSE);
-                                        }
-                                        else {
-                                            done(Boolean.TRUE);
-                                        }
+                                else if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
+                                    if (input.startsWith("0x")) {
+                                        String s = input.substring(2);
+                                        error = TCFNumberFormat.isValidHexNumber(s);
+                                        if (error == null) bf = TCFNumberFormat.toByteArray(s, 16, false, size, signed, big_endian);
                                     }
-                                });
-                                return;
+                                    else {
+                                        error = TCFNumberFormat.isValidDecNumber(is_float, input);
+                                        if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
+                                    }
+                                }
+                                if (error != null) throw new Exception("Invalid value: " + value, new Exception(error));
+                                if (bf != null) {
+                                    IExpressions exps = node.launch.getService(IExpressions.class);
+                                    exps.assign(exp.getID(), bf, new IExpressions.DoneAssign() {
+                                        public void doneAssign(IToken token, Exception error) {
+                                            node.getRootExpression().onValueChanged();
+                                            if (error != null) {
+                                                node.model.showMessageBox("Cannot modify element value", error);
+                                                done(Boolean.FALSE);
+                                            }
+                                            else {
+                                                done(Boolean.TRUE);
+                                            }
+                                        }
+                                    });
+                                    return;
+                                }
                             }
+                            done(Boolean.FALSE);
                         }
-                        done(Boolean.FALSE);
+                        catch (Throwable x) {
+                            node.model.showMessageBox("Cannot modify element value", x);
+                            done(Boolean.FALSE);
+                        }
                     }
-                    catch (Throwable x) {
-                        node.model.showMessageBox("Cannot modify element value", x);
-                        done(Boolean.FALSE);
-                    }
-                }
-            }.getE();
+                }.get(10, TimeUnit.SECONDS);
+            }
+            catch (TimeoutException e) {
+                node.model.showMessageBox("Timeout modifying element value", new Exception("No response for 10 seconds."));
+            }
+            catch (Exception e) {
+                node.model.showMessageBox("Error modifying element value", e);
+            }
         }
     };
 

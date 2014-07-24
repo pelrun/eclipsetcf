@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
@@ -649,120 +651,151 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
     }
 
     private static final ICellModifier cell_modifier = new ICellModifier() {
+        private Object original_value;
 
         public boolean canModify(Object element, final String property) {
             final TCFNodeRegister node = (TCFNodeRegister)element;
-            return new TCFTask<Boolean>() {
-                public void run() {
-                    if (!node.context.validate(this)) return;
-                    IRegisters.RegistersContext ctx = node.context.getData();
-                    if (ctx != null && ctx.isWriteable()) {
+            try {
+                return new TCFTask<Boolean>() {
+                    public void run() {
+                        if (!node.context.validate(this)) return;
+                        IRegisters.RegistersContext ctx = node.context.getData();
+                        if (ctx != null && ctx.isWriteable()) {
+                            if (!ctx.isReadable()) {
+                                done(Boolean.TRUE);
+                                return;
+                            }
+                            if (!node.value.validate(this)) return;
+                            if (node.value.getError() == null) {
+                                if (TCFColumnPresentationRegister.COL_HEX_VALUE.equals(property)) {
+                                    done(TCFNumberFormat.isValidHexNumber(node.toNumberString(16)) == null);
+                                    return;
+                                }
+                                if (TCFColumnPresentationRegister.COL_DEC_VALUE.equals(property)) {
+                                    done(TCFNumberFormat.isValidDecNumber(true, node.toNumberString(10)) == null);
+                                    return;
+                                }
+                            }
+                        }
+                        done(Boolean.FALSE);
+                    }
+                }.get(1, TimeUnit.SECONDS);
+            }
+            catch (Exception e) {
+                return false;
+            }
+        }
+
+        public Object getValue(Object element, final String property) {
+            original_value = null;
+            final TCFNodeRegister node = (TCFNodeRegister)element;
+            try {
+                return original_value = new TCFTask<String>() {
+                    public void run() {
+                        if (!node.context.validate(this)) return;
+                        IRegisters.RegistersContext ctx = node.context.getData();
                         if (!ctx.isReadable()) {
-                            done(Boolean.TRUE);
+                            done("0");
                             return;
                         }
                         if (!node.value.validate(this)) return;
                         if (node.value.getError() == null) {
                             if (TCFColumnPresentationRegister.COL_HEX_VALUE.equals(property)) {
-                                done(TCFNumberFormat.isValidHexNumber(node.toNumberString(16)) == null);
+                                done(node.toNumberString(16));
                                 return;
                             }
                             if (TCFColumnPresentationRegister.COL_DEC_VALUE.equals(property)) {
-                                done(TCFNumberFormat.isValidDecNumber(true, node.toNumberString(10)) == null);
+                                done(node.toNumberString(10));
                                 return;
                             }
                         }
+                        done(null);
                     }
-                    done(Boolean.FALSE);
-                }
-            }.getE();
-        }
-
-        public Object getValue(Object element, final String property) {
-            final TCFNodeRegister node = (TCFNodeRegister)element;
-            return new TCFTask<String>() {
-                public void run() {
-                    if (!node.context.validate(this)) return;
-                    IRegisters.RegistersContext ctx = node.context.getData();
-                    if (!ctx.isReadable()) {
-                        done("0");
-                        return;
-                    }
-                    if (!node.value.validate(this)) return;
-                    if (node.value.getError() == null) {
-                        if (TCFColumnPresentationRegister.COL_HEX_VALUE.equals(property)) {
-                            done(node.toNumberString(16));
-                            return;
-                        }
-                        if (TCFColumnPresentationRegister.COL_DEC_VALUE.equals(property)) {
-                            done(node.toNumberString(10));
-                            return;
-                        }
-                    }
-                    done(null);
-                }
-            }.getE();
+                }.get(1, TimeUnit.SECONDS);
+            }
+            catch (Exception e) {
+                return null;
+            }
         }
 
         public void modify(Object element, final String property, final Object value) {
             if (value == null) return;
+            if (original_value != null && original_value.equals(value)) return;
             final TCFNodeRegister node = (TCFNodeRegister)element;
-            new TCFTask<Boolean>() {
-                public void run() {
-                    try {
-                        if (!node.context.validate(this)) return;
-                        IRegisters.RegistersContext ctx = node.context.getData();
-                        if (ctx != null && ctx.isWriteable()) {
-                            byte[] bf = null;
-                            boolean is_float = ctx.isFloat();
-                            int size = ctx.getSize();
-                            boolean big_endian = ctx.isBigEndian();
-                            String input = (String)value;
-                            String error = null;
-                            int[] bits = ctx.getBitNumbers();
-                            if (bits != null) size = (bits.length + 7) / 8;
-                            if (TCFColumnPresentationRegister.COL_HEX_VALUE.equals(property)) {
-                                if (input.startsWith("0x")) input = input.substring(2);
-                                error = TCFNumberFormat.isValidHexNumber(input);
-                                if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, false, big_endian);
-                            }
-                            else if (TCFColumnPresentationRegister.COL_DEC_VALUE.equals(property)) {
-                                error = TCFNumberFormat.isValidDecNumber(is_float, input);
-                                if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, is_float, big_endian);
-                            }
-                            if (error != null) throw new Exception("Invalid value: " + value, new Exception(error));
-                            if (bf != null) {
-                                // handle bit fields
-                                if (bits != null) {
-                                    TCFNodeRegister p = (TCFNodeRegister)node.parent;
-                                    if (!p.value.validate(this)) return;
-                                    byte[] parent_value = p.value.getData();
-                                    if (!p.context.validate(this)) return;
-                                    IRegisters.RegistersContext parent_context = p.context.getData();
+            try {
+                new TCFTask<Boolean>() {
+                    public void run() {
+                        try {
+                            if (!node.context.validate(this)) return;
+                            IRegisters.RegistersContext ctx = node.context.getData();
+                            if (ctx != null && ctx.isWriteable()) {
+                                byte[] bf = null;
+                                boolean is_float = ctx.isFloat();
+                                int size = ctx.getSize();
+                                boolean big_endian = ctx.isBigEndian();
+                                String input = (String)value;
+                                String error = null;
+                                int[] bits = ctx.getBitNumbers();
+                                if (bits != null) size = (bits.length + 7) / 8;
+                                if (TCFColumnPresentationRegister.COL_HEX_VALUE.equals(property)) {
+                                    if (input.startsWith("0x")) input = input.substring(2);
+                                    error = TCFNumberFormat.isValidHexNumber(input);
+                                    if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, false, big_endian);
+                                }
+                                else if (TCFColumnPresentationRegister.COL_DEC_VALUE.equals(property)) {
+                                    error = TCFNumberFormat.isValidDecNumber(is_float, input);
+                                    if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, is_float, big_endian);
+                                }
+                                if (error != null) throw new Exception("Invalid value: " + value, new Exception(error));
+                                if (bf != null) {
+                                    // handle bit fields
+                                    if (bits != null) {
+                                        TCFNodeRegister p = (TCFNodeRegister)node.parent;
+                                        if (!p.value.validate(this)) return;
+                                        byte[] parent_value = p.value.getData();
+                                        if (!p.context.validate(this)) return;
+                                        IRegisters.RegistersContext parent_context = p.context.getData();
 
-                                    if (parent_context != null && parent_value != null) {
-                                        byte[] new_value = new byte[parent_value.length];
-                                        System.arraycopy(parent_value, 0, new_value, 0, parent_value.length);
-                                        for (int pos = 0; pos < bits.length; pos++) {
-                                            int bit = bits[pos];
-                                            if (bit / 8 >= new_value.length) continue;
-                                            if ((bf[pos / 8] & (1 << (pos % 8))) == 0) {
-                                                new_value[bit / 8] &= ~(1 << (bit % 8));
+                                        if (parent_context != null && parent_value != null) {
+                                            byte[] new_value = new byte[parent_value.length];
+                                            System.arraycopy(parent_value, 0, new_value, 0, parent_value.length);
+                                            for (int pos = 0; pos < bits.length; pos++) {
+                                                int bit = bits[pos];
+                                                if (bit / 8 >= new_value.length) continue;
+                                                if ((bf[pos / 8] & (1 << (pos % 8))) == 0) {
+                                                    new_value[bit / 8] &= ~(1 << (bit % 8));
+                                                }
+                                                else {
+                                                    new_value[bit / 8] |= 1 << (bit % 8);
+                                                }
                                             }
-                                            else {
-                                                new_value[bit / 8] |= 1 << (bit % 8);
-                                            }
+                                            parent_context.set(new_value, new IRegisters.DoneSet() {
+                                                public void doneSet(IToken token, Exception error) {
+                                                    TCFNodeRegister p = (TCFNodeRegister)node.parent;
+                                                    if (error != null) {
+                                                        p.model.showMessageBox("Cannot modify register value", error);
+                                                        done(Boolean.FALSE);
+                                                    }
+                                                    else {
+                                                        p.value.reset();
+                                                        p.postStateChangedDelta();
+                                                        done(Boolean.TRUE);
+                                                    }
+                                                }
+                                            });
+                                            return;
                                         }
-                                        parent_context.set(new_value, new IRegisters.DoneSet() {
+                                    }
+                                    else {
+                                        ctx.set(bf, new IRegisters.DoneSet() {
                                             public void doneSet(IToken token, Exception error) {
-                                                TCFNodeRegister p = (TCFNodeRegister)node.parent;
                                                 if (error != null) {
-                                                    p.model.showMessageBox("Cannot modify register value", error);
+                                                    node.model.showMessageBox("Cannot modify register value", error);
                                                     done(Boolean.FALSE);
                                                 }
                                                 else {
-                                                    p.value.reset();
-                                                    p.postStateChangedDelta();
+                                                    node.value.reset();
+                                                    node.postStateChangedDelta();
                                                     done(Boolean.TRUE);
                                                 }
                                             }
@@ -770,32 +803,22 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                                         return;
                                     }
                                 }
-                                else {
-                                    ctx.set(bf, new IRegisters.DoneSet() {
-                                        public void doneSet(IToken token, Exception error) {
-                                            if (error != null) {
-                                                node.model.showMessageBox("Cannot modify register value", error);
-                                                done(Boolean.FALSE);
-                                            }
-                                            else {
-                                                node.value.reset();
-                                                node.postStateChangedDelta();
-                                                done(Boolean.TRUE);
-                                            }
-                                        }
-                                    });
-                                    return;
-                                }
                             }
+                            done(Boolean.FALSE);
                         }
-                        done(Boolean.FALSE);
+                        catch (Throwable x) {
+                            node.model.showMessageBox("Cannot modify register value", x);
+                            done(Boolean.FALSE);
+                        }
                     }
-                    catch (Throwable x) {
-                        node.model.showMessageBox("Cannot modify register value", x);
-                        done(Boolean.FALSE);
-                    }
-                }
-            }.getE();
+                }.get(10, TimeUnit.SECONDS);
+            }
+            catch (TimeoutException e) {
+                node.model.showMessageBox("Timeout modifying register value", new Exception("No response for 10 seconds."));
+            }
+            catch (Exception e) {
+                node.model.showMessageBox("Error modifying register value", e);
+            }
         }
     };
 
