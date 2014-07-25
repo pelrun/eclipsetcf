@@ -16,6 +16,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 
 /**
  * Filter implementation filtering peers not started by the current user.
@@ -28,13 +29,14 @@ public class PeersByCurrentUserFilter extends ViewerFilter {
 	 */
 	@Override
 	public boolean select(final Viewer viewer, final Object parentElement, final Object element) {
-		if (element instanceof IPeer) {
+		if (element instanceof IPeer || element instanceof ILocatorNode) {
+			final IPeer peer = element instanceof IPeer ? (IPeer)element : ((ILocatorNode)element).getPeer();
 			final AtomicReference<String> user = new AtomicReference<String>();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					user.set(((IPeer)element).getUserName());
+					user.set(peer.getUserName());
 				}
 			};
 			Assert.isTrue(!Protocol.isDispatchThread());

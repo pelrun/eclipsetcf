@@ -136,7 +136,11 @@ public class LocatorModelLookupService extends AbstractLocatorModelService imple
 
 		List<ILocatorNode> nodes = new ArrayList<ILocatorNode>();
 		for (ILocatorNode node : locatorNodes) {
-			if (agentId.equals(node.getPeer().getAgentID())) {
+			String nodeAgentId = node.getPeer().getAgentID();
+			if (nodeAgentId == null) {
+				nodeAgentId = node.getStringProperty(IPeer.ATTR_AGENT_ID);
+			}
+			if (agentId.equals(nodeAgentId)) {
 				nodes.add(node);
 			}
 		}

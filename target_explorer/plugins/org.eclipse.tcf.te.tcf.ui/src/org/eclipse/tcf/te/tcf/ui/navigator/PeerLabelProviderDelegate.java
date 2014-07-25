@@ -193,9 +193,16 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	public String decorateText(String text, Object element) {
 		if (element instanceof ILocatorNode) {
 			String ip = ((ILocatorNode)element).getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
+			String port = ((ILocatorNode)element).getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
+			if (port == null || port.trim().equals("1534")) { //$NON-NLS-1$
+				port = ""; //$NON-NLS-1$
+			}
+			else {
+				port = ":" + port.trim(); //$NON-NLS-1$
+			}
 
 			if (text != null && ip != null && !text.contains(ip)) {
-				text += " (" + ip + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+				text += " (" + ip + port + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				return text;
 			}
 		}

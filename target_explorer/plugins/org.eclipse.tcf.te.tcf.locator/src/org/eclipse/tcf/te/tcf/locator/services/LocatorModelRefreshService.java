@@ -29,6 +29,7 @@ import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.te.runtime.callback.Callback;
@@ -186,7 +187,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Get the parent peer model
-		ILocatorModel model = getLocatorModel();
+		final ILocatorModel model = getLocatorModel();
 
 		// If the parent model is already disposed, the service will drop out immediately
 		if (model.isDisposed()) {
@@ -230,34 +231,40 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			}
 		};
 
-		Tcf.getChannelManager()
-		                .openChannel(locatorNode.getPeer(), flags, new IChannelManager.DoneOpenChannel() {
-			                @Override
-			                public void doneOpenChannel(Throwable error, final IChannel channel) {
-				                if (error != null || channel == null) {
-					                locatorNode.removeAll(ILocatorNode.class);
-					                refreshCtx.setQueryState(QueryType.CONTEXT, QueryState.DONE);
-					                refreshCtx.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
-					                if (channel != null) {
-						                Tcf.getChannelManager().closeChannel(channel);
-					                }
-					                invokeCallback(finCb);
-				                }
-				                else {
-					                onDoneOpenChannelRefreshLocatorNode(channel, locatorNode, new Callback(finCb) {
-						                @Override
-						                protected void internalDone(Object caller, org.eclipse.core.runtime.IStatus status) {
-							                Tcf.getChannelManager().closeChannel(channel);
-						                }
-					                });
-				                }
-			                }
-		                });
+		Tcf.getChannelManager().openChannel(locatorNode.getPeer(), flags, new IChannelManager.DoneOpenChannel() {
+            @Override
+            public void doneOpenChannel(Throwable error, final IChannel channel) {
+                if (error != null || channel == null) {
+	                locatorNode.removeAll(ILocatorNode.class);
+	                refreshCtx.setQueryState(QueryType.CONTEXT, QueryState.DONE);
+	                refreshCtx.setQueryState(QueryType.CHILD_LIST, QueryState.DONE);
+	                if (channel != null) {
+		                Tcf.getChannelManager().closeChannel(channel);
+	                }
+	                if (locatorNode.isStatic()) {
+	                	locatorNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, locatorNode.getProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE));
+	                }
+	                else {
+	                	ILocatorModelUpdateService update = model.getService(ILocatorModelUpdateService.class);
+	                	update.remove(locatorNode.getPeer());
+	                }
+	                invokeCallback(finCb);
+                }
+                else {
+	                onDoneOpenChannelRefreshLocatorNode(channel, locatorNode, new Callback(finCb) {
+		                @Override
+		                protected void internalDone(Object caller, org.eclipse.core.runtime.IStatus status) {
+			                Tcf.getChannelManager().closeChannel(channel);
+		                }
+	                });
+                }
+            }
+        });
 	}
 
-	protected void onDoneOpenChannelRefreshLocatorNode(IChannel channel, ILocatorNode locatorNode, ICallback callback) {
-		ILocator locator = channel.getRemoteService(ILocator.class);
-		IAsyncRefreshableCtx refreshCtx = (IAsyncRefreshableCtx) locatorNode
+	protected void onDoneOpenChannelRefreshLocatorNode(final IChannel channel, final ILocatorNode locatorNode, final ICallback callback) {
+		final ILocator locator = channel.getRemoteService(ILocator.class);
+		final IAsyncRefreshableCtx refreshCtx = (IAsyncRefreshableCtx) locatorNode
 		                .getAdapter(IAsyncRefreshableCtx.class);
 		if (locator == null) {
 			locatorNode.removeAll(ILocatorNode.class);
@@ -266,8 +273,16 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			invokeCallback(callback);
 		}
 		else {
-			refreshCtx.setQueryState(QueryType.CONTEXT, QueryState.DONE);
-			getPeers(locator, channel, locatorNode, callback);
+			locator.getAgentID(new ILocator.DoneGetAgentID() {
+				@Override
+				public void doneGetAgentID(IToken token, Exception error, String agentID) {
+					if (error == null) {
+						locatorNode.setProperty(IPeer.ATTR_AGENT_ID, agentID);
+					}
+					refreshCtx.setQueryState(QueryType.CONTEXT, QueryState.DONE);
+					getPeers(locator, channel, locatorNode, callback);
+				}
+			});
 		}
 	}
 
@@ -296,12 +311,19 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 					ILocatorModelLookupService lkup = getLocatorModel()
 					                .getService(ILocatorModelLookupService.class);
 
+					String parentAgentId = locatorNode.getPeer().getAgentID();
+					if (parentAgentId == null) {
+						parentAgentId = locatorNode.getStringProperty(IPeer.ATTR_AGENT_ID);
+					}
+					String parentId = normalizeId(locatorNode.getPeer().getID());
+
 					@SuppressWarnings("unchecked")
 					Collection<Map<String, String>> peerAttributesList = (Collection<Map<String, String>>) args[1];
 					for (Map<String, String> attributes : peerAttributesList) {
 
 						String agentId = attributes.get(IPeer.ATTR_AGENT_ID);
 						String id = attributes.get(IPeer.ATTR_ID);
+						String normalizedId = normalizeId(id);
 						ILocatorNode existing = null;
 						ILocatorNode[] lkupNodes = agentId != null ? lkup
 						                .lkupLocatorNodeByAgentId(locatorNode, agentId) : new ILocatorNode[0];
@@ -309,15 +331,13 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 							lkupNodes = id != null ? lkup.lkupLocatorNodeById(locatorNode, id) : new ILocatorNode[0];
 						}
 						for (ILocatorNode node : lkupNodes) {
-							if (node.getPeer().getID().equals(id)) {
+							if (normalizeId(node.getPeer().getID()).equals(normalizedId)) {
 								oldChildren.remove(node);
 								existing = node;
 								break;
 							}
 						}
 
-						String parentAgentId = locatorNode.getPeer().getAgentID();
-						String parentId = locatorNode.getPeer().getID();
 						if (agentId != null && !agentId.equals(parentAgentId)) {
 							ILocatorNode parent = locatorNode.getParent(ILocatorNode.class);
 							ILocatorNode[] parentNodes = lkup
@@ -328,24 +348,29 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 							}
 
 							attributes = new HashMap<String, String>(attributes);
+							attributes.put(IPeerProperties.PROP_PROXIES, encProxies);
+							IPeer peer = new TransientPeer(attributes);
 
-							if (parentAgentId == null && id.equals(parentId)) {
-								attributes.put(IPeerProperties.PROP_PROXIES, parentProxies);
-								IPeer peer = new TransientPeer(attributes);
-								locatorNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
+							if (existing == null) {
+								if (parentNodes.length == 0 && !isFiltered(peer)) {
+									locatorNode.add(new LocatorNode(peer));
+								}
 							}
 							else {
-								attributes.put(IPeerProperties.PROP_PROXIES, encProxies);
-								IPeer peer = new TransientPeer(attributes);
-								if (existing == null) {
-									if (parentNodes.length == 0 && !isFiltered(peer)) {
-										locatorNode.add(new LocatorNode(peer));
-									}
-								}
-								else {
+								if (parentNodes.length == 0 && !isFiltered(peer)) {
 									existing.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
 								}
+								else {
+									locatorNode.remove(existing, true);
+								}
 							}
+						}
+						else if (locatorNode.isStatic()) {
+							attributes = new HashMap<String, String>(attributes);
+							attributes.put(IPeerProperties.PROP_PROXIES, parentProxies);
+							attributes.putAll(((IPeer)locatorNode.getProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE)).getAttributes());
+							IPeer peer = new TransientPeer(attributes);
+							locatorNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
 						}
 					}
 					for (ILocatorNode old : oldChildren) {
@@ -353,10 +378,14 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 							locatorNode.remove(old, true);
 						}
 					}
-					if (locatorNode.isStatic() && locatorNode.getPeer().getAgentID() != null) {
-						String parentAgentId = locatorNode.getPeer().getAgentID();
-						for (ILocatorNode child : locatorNode.getChildren(ILocatorNode.class)) {
-							if (parentAgentId.equals(child.getPeer().getAgentID())) {
+					for (ILocatorNode child : locatorNode.getChildren(ILocatorNode.class)) {
+						String childAgentId = child.getPeer().getAgentID();
+						String childId = child.getPeer().getID();
+						if (parentAgentId.equals(childAgentId)) {
+							locatorNode.remove(child, true);
+						}
+						else if (parentId != null) {
+							if (parentId.equals(normalizeId(childId))) {
 								locatorNode.remove(child, true);
 							}
 						}
@@ -383,6 +412,14 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 			}
 		};
 
+	}
+
+	protected String normalizeId(String id) {
+		if (id != null) {
+			id = id.toLowerCase().replaceAll(":localhost:", "::"); //$NON-NLS-1$ //$NON-NLS-2$
+			id = id.replaceAll(":127\\.0+\\.0+\\.0*1:", "::"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		return id;
 	}
 
 	/**

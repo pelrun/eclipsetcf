@@ -60,8 +60,6 @@ import org.eclipse.ui.navigator.INavigatorFilterService;
 public class ContentProvider implements ICommonContentProvider, ITreePathContentProvider {
 	private final static Object[] NO_ELEMENTS = new Object[0];
 
-	// The "Redirected Peers" filter id
-	private final static String REDIRECT_PEERS_FILTER_ID = "org.eclipse.tcf.te.tcf.ui.navigator.RedirectPeersFilter"; //$NON-NLS-1$
 	// The current user filter id
 	private final static String CURRENT_USER_FILTER_ID = "org.eclipse.tcf.te.tcf.ui.navigator.PeersByCurrentUserFilter"; //$NON-NLS-1$
 
@@ -504,11 +502,6 @@ public class ContentProvider implements ICommonContentProvider, ITreePathContent
 				if (descriptor.getId() != null && !"".equals(descriptor.getId()) && filterService.isActive(descriptor.getId())) { //$NON-NLS-1$
 					activeFilderIds.add(descriptor.getId());
 				}
-			}
-
-			if (!activeFilderIds.contains(REDIRECT_PEERS_FILTER_ID)) {
-				activeFilderIds.add(REDIRECT_PEERS_FILTER_ID);
-				activeFiltersChanged = true;
 			}
 
 			if (UIPlugin.getDefault().getPreferenceStore().getBoolean(IPreferenceKeys.PREF_ACTIVATE_CURRENT_USER_FILTER)
