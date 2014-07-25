@@ -24,6 +24,7 @@ public final class ChannelEvent extends EventObject {
     public static final String TYPE_OPEN = "open"; //$NON-NLS-1$
 	public static final String TYPE_CLOSE = "close"; //$NON-NLS-1$
 	public static final String TYPE_MARK = "mark"; //$NON-NLS-1$
+	public static final String TYPE_CLOSE_WRITER = "closeWriter"; //$NON-NLS-1$
 
 	// The channel
 	private IChannel channel;

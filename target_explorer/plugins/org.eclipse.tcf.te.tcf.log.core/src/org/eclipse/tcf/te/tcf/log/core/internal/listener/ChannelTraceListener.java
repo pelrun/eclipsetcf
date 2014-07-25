@@ -87,7 +87,18 @@ public class ChannelTraceListener implements TraceListener {
 										error
 								  });
 
-		LogManager.getInstance().closeWriter(channel, message);
+		// Get the file writer
+		FileWriter writer = LogManager.getInstance().getWriter(channel);
+		if (writer != null) {
+			try {
+				writer.write(message);
+				writer.write("\n"); //$NON-NLS-1$
+				writer.flush();
+			} catch (IOException e) {
+				/* ignored on purpose */
+			}
+		}
+
 		LogManager.getInstance().monitor(channel, MonitorEvent.Type.CLOSE, new MonitorEvent.Message('F', message));
 	}
 

@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.log.core.activator;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
+import org.eclipse.tcf.te.tcf.log.core.internal.LogManager;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -83,6 +84,7 @@ public class CoreBundleActivator extends Plugin {
 		plugin = null;
 		scopedPreferences = null;
 		traceHandler = null;
+		LogManager.getInstance().dispose();
 		super.stop(context);
 	}
 }

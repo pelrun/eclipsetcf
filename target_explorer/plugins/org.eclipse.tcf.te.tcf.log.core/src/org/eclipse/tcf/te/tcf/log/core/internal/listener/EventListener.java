@@ -18,6 +18,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventFireDelegate;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.tcf.core.events.ChannelEvent;
+import org.eclipse.tcf.te.tcf.log.core.internal.LogManager;
 
 /**
  * Channel event listener.
@@ -59,6 +60,9 @@ public final class EventListener extends PlatformObject implements IEventListene
 			}
 			else if (ChannelEvent.TYPE_MARK.equals(type)) {
 				ChannelTraceListenerManager.getInstance().onMark(channel, message);
+			}
+			else if (ChannelEvent.TYPE_CLOSE_WRITER.equals(type)) {
+				LogManager.getInstance().closeWriter(channel, message);
 			}
 		}
 	}

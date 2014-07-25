@@ -14,7 +14,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,21 +77,13 @@ public final class LogManager {
 	 * Dispose the log manager instance.
 	 */
 	public void dispose() {
-		String message = NLS.bind(Messages.LogManager_dispose_message,
-								  DATE_FORMAT.format(new Date(System.currentTimeMillis())));
+		// Close all still open file writer instances
 		for (FileWriter writer : fileWriterMap.values()) {
 			try {
-				writer.write(message);
-				writer.write("\n"); //$NON-NLS-1$
+				writer.flush();
+				writer.close();
 			} catch (IOException e) {
 				/* ignored on purpose */
-			} finally {
-				try {
-					writer.flush();
-					writer.close();
-				} catch (IOException e) {
-					/* ignored on purpose */
-				}
 			}
 		}
 		fileWriterMap.clear();

@@ -467,6 +467,31 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 						// Log closed channels
 						ChannelEvent event = new ChannelEvent(ChannelManager.this, channel, ChannelEvent.TYPE_CLOSE, null);
 						EventManager.getInstance().fireEvent(event);
+
+						// If there is no remaining shared or private channel to the target,
+						// also close the log writer which is shared by all channels to the same target.
+						Runnable runnable = new Runnable() {
+							@Override
+							public void run() {
+								boolean closeWriter = internalGetChannel(peer) == null;
+								if (closeWriter) {
+									for (IChannel c : forcedChannels) {
+										if (id.equals(c.getRemotePeer().getID()) && c.getState() != IChannel.STATE_CLOSED) {
+											closeWriter = false;
+											break;
+										}
+									}
+
+									if (closeWriter) {
+										ChannelEvent event = new ChannelEvent(ChannelManager.this, channel, ChannelEvent.TYPE_CLOSE_WRITER, null);
+										EventManager.getInstance().fireEvent(event);
+									}
+								}
+							}
+						};
+
+						if (Protocol.isDispatchThread()) runnable.run();
+						else Protocol.invokeLater(runnable);
 					}
 				};
 
