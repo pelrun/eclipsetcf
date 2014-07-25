@@ -170,6 +170,7 @@ public class ChannelTraceListener implements TraceListener {
 		// The message format is: <time>: [<---|--->] <type> <token> <service>#<name> <args>
 		StringBuilder message = new StringBuilder();
 		message.append(time).append(":"); //$NON-NLS-1$
+		message.append(" [").append(Integer.toHexString(channel.hashCode())).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
 		message.append(" ").append(received ? "<---" : "--->"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		message.append(" ").append(Character.valueOf(type)); //$NON-NLS-1$
 		if (token != null) message.append(" ").append(token); //$NON-NLS-1$
