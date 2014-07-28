@@ -360,7 +360,7 @@ class TCFConsole extends AbstractConsole {
             title += " Debugger Command Line";
             break;
         case TYPE_DPRINTF:
-            title += " Debugger Dynamic Print";
+            title = "Debug Dynamic Printf";
             break;
         }
         return title;
