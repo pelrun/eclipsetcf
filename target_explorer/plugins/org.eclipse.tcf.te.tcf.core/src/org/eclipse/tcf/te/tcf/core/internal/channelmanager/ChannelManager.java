@@ -179,7 +179,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 		// Channel not available -> open a new one
 		if (channel == null) {
 			// Check if there is a pending "open channel" stepper job
-			StepperJob job = pendingOpenChannel.get(id);
+			StepperJob job = !forceNew ? pendingOpenChannel.get(id) : null;
 			if (job == null) {
 				// No pending "open channel" stepper job -> schedule one and initiate opening the channel
 				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
@@ -210,8 +210,8 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 																			0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
 							}
 
-							// Job is done -> remove it from the list of pending jobs
-							pendingOpenChannel.remove(id);
+							// Job is done -> remove it from the list of pending jobs (shared channels only)
+							if (!finForceNew) pendingOpenChannel.remove(id);
 
 							// Invoke the primary "open channel" done callback
 							internalDone.doneOpenChannel(error, null);
@@ -235,8 +235,8 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 							if (finForceNew) forcedChannels.add(channel);
 							if (finForceNew) forcedChannelFlags.put(channel, flags);
 
-							// Job is done -> remove it from the list of pending jobs
-							pendingOpenChannel.remove(id);
+							// Job is done -> remove it from the list of pending jobs (shared channels only)
+							if (!finForceNew) pendingOpenChannel.remove(id);
 
 							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_openChannel_success_message, id),
@@ -246,11 +246,13 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 							// Invoke the primary "open channel" done callback
 							internalDone.doneOpenChannel(null, channel);
 
-							// Invoke pending callback's
-							List<DoneOpenChannel> pending = pendingDones.remove(id);
-							if (pending != null && !pending.isEmpty()) {
-								for (DoneOpenChannel d : pending) {
-									d.doneOpenChannel(null, channel);
+							// Invoke pending callback's (shared channels only)
+							if (!finForceNew) {
+								List<DoneOpenChannel> pending = pendingDones.remove(id);
+								if (pending != null && !pending.isEmpty()) {
+									for (DoneOpenChannel d : pending) {
+										d.doneOpenChannel(null, channel);
+									}
 								}
 							}
 						}
@@ -274,8 +276,8 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 					job.schedule();
 				}
 
-				// Remember the "open channel" stepper job until finished
-				if (job != null) {
+				// Remember the "open channel" stepper job until finished (shared channels only)
+				if (job != null && !forceNew) {
 					pendingOpenChannel.put(id, job);
 				}
 			} else {
