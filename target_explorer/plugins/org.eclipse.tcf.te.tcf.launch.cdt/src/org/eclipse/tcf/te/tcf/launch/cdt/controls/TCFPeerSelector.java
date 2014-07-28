@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.controls;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
@@ -17,9 +19,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
-import org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 
@@ -85,8 +87,13 @@ public class TCFPeerSelector {
 	 * Get the selected peer.
 	 */
 	public IPeerNode getPeerNode() {
-		final String peerId = getPeerId();
-		return TEHelper.getPeerNode(peerId);
+		if (peers != null && !combo.isDisposed()) {
+			int selectionIndex = combo.getSelectionIndex();
+			if (selectionIndex >= 0 && selectionIndex < peers.length) {
+				return peers[selectionIndex];
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -96,31 +103,16 @@ public class TCFPeerSelector {
 		if (peers != null && !combo.isDisposed()) {
 			int selectionIndex = combo.getSelectionIndex();
 			if (selectionIndex >= 0 && selectionIndex < peers.length) {
-				return combo.getItem(selectionIndex);
+				return peers[selectionIndex].getPeerId();
 			}
 		}
 		return null;
 	}
 
-	public void updateSelectionFrom(IPeerNode peerNode) {
-		int newSelectedIndex = -1;
-		String[] peerIds = combo.getItems();
-		for (int i = 0; i < peerIds.length; i++) {
-			if (peerIds[i].equals(peerNode.getPeerId())) {
-				newSelectedIndex = i;
-				break;
-			}
-		}
-		if (newSelectedIndex >= 0) {
-			combo.select(newSelectedIndex);
-		}
-	}
-
 	public void updateSelectionFrom(String peerId) {
 		int newSelectedIndex = -1;
-		String[] peerIds = combo.getItems();
-		for (int i = 0; i < peerIds.length; i++) {
-			if (peerIds[i].equals(peerId)) {
+		for (int i = 0; i < peers.length; i++) {
+			if (peers[i].getPeerId().equals(peerId)) {
 				newSelectedIndex = i;
 				break;
 			}
@@ -135,7 +127,19 @@ public class TCFPeerSelector {
 		peers = ModelManager.getPeerModel().getPeerNodes();
 		int newSelectedIndex = 0;
 		for (int i = 0; i < peers.length; i++) {
-			combo.add(peers[i].getPeerId());
+			final AtomicReference<String> name = new AtomicReference<String>();
+			final int index = i;
+
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					name.set(peers[index].getName());
+				}
+			};
+
+			Protocol.invokeAndWait(runnable);
+
+			combo.add(name.get());
 		}
 		combo.select(newSelectedIndex);
 	}
