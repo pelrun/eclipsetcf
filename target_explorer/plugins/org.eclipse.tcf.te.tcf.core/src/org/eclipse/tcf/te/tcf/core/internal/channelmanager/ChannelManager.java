@@ -62,8 +62,8 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 	/* default */ final Map<IChannel, List<StreamListenerProxy>> streamProxies = new HashMap<IChannel, List<StreamListenerProxy>>();
 	// The map of scheduled "open channel" stepper jobs per peer id
 	/* default */ final Map<String, StepperJob> pendingOpenChannel = new HashMap<String, StepperJob>();
-	// The map of scheduled "close channel" stepper jobs per peer id
-	/* default */ final Map<String, StepperJob> pendingCloseChannel = new HashMap<String, StepperJob>();
+	// The map of scheduled "close channel" stepper jobs per channel
+	/* default */ final Map<IChannel, StepperJob> pendingCloseChannel = new HashMap<IChannel, StepperJob>();
 
 	/**
 	 * Constructor
@@ -390,7 +390,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 		// If the counter is null or get 0 after the decrement, close the channel
 		if (counter == null || counter.decrementAndGet() == 0) {
 			// Check if there is a pending "close channel" stepper job
-			StepperJob job = pendingCloseChannel.get(id);
+			StepperJob job = pendingCloseChannel.get(channel);
 			if (job == null) {
 				// No pending "close channel" stepper job -> schedule one and initiate closing the channel
 				if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
@@ -447,10 +447,10 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 							}
 
 							// Job is done -> remove it from the list of pending jobs
-							pendingCloseChannel.remove(id);
+							pendingCloseChannel.remove(channel);
 						} else {
 							// Job is done -> remove it from the list of pending jobs
-							pendingCloseChannel.remove(id);
+							pendingCloseChannel.remove(channel);
 
 							// Clean the reference counter and the channel map
 							if (isRefCounted) channels.remove(id);
@@ -514,7 +514,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 
 				// Remember the "close channel" stepper job until finished
 				if (job != null) {
-					pendingCloseChannel.put(id, job);
+					pendingCloseChannel.put(channel, job);
 				}
 			} else {
 				// There is a pending "close channel" stepper job
