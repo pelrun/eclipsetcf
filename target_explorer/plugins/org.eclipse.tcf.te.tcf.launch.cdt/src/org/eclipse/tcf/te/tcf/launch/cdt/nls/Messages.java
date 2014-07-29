@@ -1,11 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
- * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * Copyright (c) 2006, 2012 Wind River Systems, Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Wind River Systems - initial API and implementation
+ * Martin Oberhuber      (Wind River) - initial API and implementation
+ * Ewa Matejska          (PalmSource) - [158783] browse button for cdt remote path
+ * Johann Draschwandtner (Wind River) - [231827][remotecdt]Auto-compute default for Remote path
+ * Anna Dushistova       (MontaVista) - [244173][remotecdt][nls] Externalize Strings in RemoteRunLaunchDelegate
+ * Anna Dushistova       (MontaVista) - [181517][usability] Specify commands to be run before remote application launch
+ * Nikita Shulga      (EmbeddedAlley) - [265236][remotecdt] Wait for RSE to initialize before querying it for host list
+ * Anna Dushistova       (MontaVista) - [368597][remote debug] if gdbserver fails to launch on target, launch doesn't get terminated
+ * Anna Dushistova       (MontaVista) - adapted from org.eclipse.cdt.launch.remote
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.nls;
 

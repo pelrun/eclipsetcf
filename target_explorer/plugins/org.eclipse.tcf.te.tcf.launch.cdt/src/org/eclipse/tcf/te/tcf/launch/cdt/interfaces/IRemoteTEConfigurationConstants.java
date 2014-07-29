@@ -1,11 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
- * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     Wind River Systems - initial API and implementation
+ * Copyright (c) 2006, 2012 PalmSource, Inc. and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Eclipse Public License v1.0 
+ * which accompanies this distribution, and is available at 
+ * http://www.eclipse.org/legal/epl-v10.html 
+ * 
+ * Contributors: 
+ * Ewa Matejska    (PalmSource) - Adapted from IGDBServerMILaunchConfigurationConstants
+ * Anna Dushistova (MontaVista) - [181517][usability] Specify commands to be run before remote application launch
+ * Anna Dushistova (MontaVista) - cloned from IRemoteConnectionConfigurationConstants
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.interfaces;
 

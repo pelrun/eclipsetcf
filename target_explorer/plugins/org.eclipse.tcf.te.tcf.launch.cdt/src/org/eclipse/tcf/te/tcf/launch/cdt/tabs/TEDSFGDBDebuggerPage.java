@@ -1,11 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
- * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * Copyright (c) 2006, 2012 PalmSource, Inc. and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Wind River Systems - initial API and implementation
+ * Ewa Matejska (PalmSource)
+ *
+ * Referenced GDBDebuggerPage code to write this.
+ * Anna Dushistova (Mentor Graphics) - adapted from RemoteGDBDebuggerPage
+ * Anna Dushistova (Mentor Graphics) - moved to org.eclipse.cdt.launch.remote.tabs
+ * Anna Dushistova (MontaVista)      - adapted from TEDSFGDBDebuggerPage
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 

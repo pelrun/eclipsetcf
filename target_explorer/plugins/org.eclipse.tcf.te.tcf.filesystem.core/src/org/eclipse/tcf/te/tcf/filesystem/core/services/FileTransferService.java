@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Wind River Systems - initial API and implementation
+ * Wind River Systems          - initial API and implementation
+ * Anna Dushistova(Montavista) - [386484]Allow file transfer from target to host into existing directories
+ * Anna Dushistova(Montavista) - [387819]File Transfer stopped working
  *******************************************************************************/
 
 package org.eclipse.tcf.te.tcf.filesystem.core.services;
