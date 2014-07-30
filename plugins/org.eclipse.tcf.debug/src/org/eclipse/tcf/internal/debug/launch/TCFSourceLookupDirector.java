@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,16 +43,9 @@ public class TCFSourceLookupDirector extends AbstractSourceLookupDirector {
     private static Set<String> fSupportedContainerTypes;
     static {
         fSupportedContainerTypes = new HashSet<String>();
-        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.absolutePath");
-        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.absolutePath");
-        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.programRelativePath");
+        // Bug 440538:
+        // Only CDT path mapping source containers are currently supported
         fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.mapping");
-        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.compilationDirectory");
-        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.project");
-        fSupportedContainerTypes.add("org.eclipse.cdt.debug.core.containerType.sourceFoldersRelativePath");
-        fSupportedContainerTypes.add("org.eclipse.debug.core.containerType.folder");
-        fSupportedContainerTypes.add("org.eclipse.debug.core.containerType.workspace");
-        fSupportedContainerTypes.add("org.eclipse.debug.core.containerType.directory");
     };
 
     public static Object lookup(final TCFLaunch launch, final String ctx, Object element) {
