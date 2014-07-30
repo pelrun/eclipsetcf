@@ -36,6 +36,7 @@ public class PinTerminalAction extends AbstractTerminalAction {
 						UIPlugin.getImageDescriptor(ImageConsts.ACTION_PinTerminal_Enabled),
 						UIPlugin.getImageDescriptor(ImageConsts.ACTION_PinTerminal_Disabled), true);
 		setChecked(view.isPinned());
+		setEnabled(true);
 	}
 
 	/* (non-Javadoc)
@@ -44,13 +45,5 @@ public class PinTerminalAction extends AbstractTerminalAction {
 	@Override
     public void run() {
         view.setPinned(isChecked());
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tm.internal.terminal.control.actions.AbstractTerminalAction#updateAction(boolean)
-	 */
-	@Override
-	public void updateAction(boolean aboutToShow) {
-		setEnabled(getTarget() != null && aboutToShow);
 	}
 }

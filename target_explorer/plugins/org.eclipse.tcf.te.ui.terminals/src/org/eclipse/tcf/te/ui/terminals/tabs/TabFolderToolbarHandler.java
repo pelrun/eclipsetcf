@@ -335,7 +335,7 @@ public class TabFolderToolbarHandler extends PlatformObject {
 			// If the terminal control is not available, the updateAction
 			// method of certain actions enable the action (bugzilla #260372).
 			// Workaround by forcing the action to get disabled with setEnabled.
-			if (control == null) {
+			if (control == null && !(action instanceof PinTerminalAction)) {
 				action.setEnabled(false);
 			}
 			else {
