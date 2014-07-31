@@ -124,6 +124,7 @@ public abstract class AbstractWizardConfigurationPanel implements IWizardConfigu
 	 */
 	@Override
 	public boolean isValid() {
+		setMessage(null, NONE);
 		return true;
 	}
 }

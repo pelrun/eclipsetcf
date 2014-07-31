@@ -130,7 +130,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 */
 	public AbstractConfigWizardPage(String pageName) {
 		super(pageName);
-
 	}
 
 	/**
@@ -465,7 +464,14 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 * @param section The section. Must not be <code>null</code>.
 	 * @param peerAttributes The peer attributes. Must not be <code>null</code>.
 	 */
-	protected abstract void updateAttribute(AbstractSection section, IPropertiesContainer peerAttributes);
+	protected void updateAttribute(AbstractSection section, IPropertiesContainer peerAttributes) {
+		Assert.isNotNull(section);
+		Assert.isNotNull(peerAttributes);
+
+		if (section instanceof IDataExchangeNode) {
+			((IDataExchangeNode)section).extractData(peerAttributes);
+		}
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
@@ -482,6 +488,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 */
 	@Override
 	public void setupData(IPropertiesContainer data) {
+		if (data.containsKey(IPeer.ATTR_NAME)) {
+			String name = data.getStringProperty(IPeer.ATTR_NAME);
+			name = name.replaceAll("[^0-9a-zA-Z. _()-]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+			autoGenerateConfigurationName(name);
+		}
 		if (selectorSection instanceof IDataExchangeNode) {
 			((IDataExchangeNode)selectorSection).setupData(data);
 		}

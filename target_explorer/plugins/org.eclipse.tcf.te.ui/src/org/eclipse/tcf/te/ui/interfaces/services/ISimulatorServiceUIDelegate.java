@@ -34,9 +34,11 @@ public interface ISimulatorServiceUIDelegate {
 	/**
 	 * Get a description fo rthe given config.
 	 * This description is shown i.e. as tooltip of the configure button.
+     * @param context The context for which the simulator should be configured.
+     * @param config The configuration or <code>null</code>.
 	 * @return The description of the given config.
 	 */
-	public String getDescription(String config);
+	public String getDescription(Object context, String config);
 
     /**
      * Configure the simulator.

@@ -56,7 +56,7 @@ public class PeerNodeValidationDelegate implements IPeerNode.IDelegate {
 		if (valid.get()) {
 			SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(peerNode);
 			if (result != null) {
-				valid.set(result.service.isValidConfig(peerNode, result.settings));
+				valid.set(result.service.isValidConfig(peerNode, result.settings, true));
 			}
 		}
 

@@ -74,7 +74,7 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 		if ("isValidSimulatorConfig".equals(property) && receiver instanceof IPeerNode && expectedValue instanceof Boolean) { //$NON-NLS-1$
 			SimulatorUtils.Result simulator = SimulatorUtils.getSimulatorService((IPeerNode)receiver);
-			boolean valid = simulator != null && simulator.service.isValidConfig(receiver, simulator.settings);
+			boolean valid = simulator != null && simulator.service.isValidConfig(receiver, simulator.settings, true);
 			return ((Boolean)expectedValue).booleanValue() == valid;
 		}
 

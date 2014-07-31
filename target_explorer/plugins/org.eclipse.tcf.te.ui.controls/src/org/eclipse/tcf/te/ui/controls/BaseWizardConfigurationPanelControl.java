@@ -17,9 +17,14 @@ import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.TypedEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
+import org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
@@ -37,6 +42,49 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	private String activeConfigurationPanelKey = null;
 	private IWizardConfigurationPanel activeConfigurationPanel = null;
 
+	private final AbstractWizardConfigurationPanel EMPTY_PANEL;
+
+	protected class EmptySettingsPanel extends AbstractWizardConfigurationPanel {
+
+		/**
+	     * Constructor.
+	     *
+		 * @param parentControl The parent control. Must not be <code>null</code>!
+	     */
+	    public EmptySettingsPanel(BaseDialogPageControl parentControl) {
+		    super(parentControl);
+	    }
+
+		/* (non-Javadoc)
+	     * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#setupPanel(org.eclipse.swt.widgets.Composite, org.eclipse.tcf.te.ui.controls.interfaces.FormToolkit)
+	     */
+        @Override
+	    public void setupPanel(Composite parent, FormToolkit toolkit) {
+	    	Composite panel = new Composite(parent, SWT.NONE);
+	    	panel.setLayout(new GridLayout());
+	    	panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+	    	setControl(panel);
+	    }
+
+	    /* (non-Javadoc)
+	     * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
+	     */
+	    @Override
+	    public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
+	        return false;
+	    }
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseControl#dispose()
+	 */
+	@Override
+	public void dispose() {
+		EMPTY_PANEL.dispose();
+	    super.dispose();
+	}
+
 	/**
 	 * Constructor.
 	 *
@@ -45,6 +93,7 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	 */
 	public BaseWizardConfigurationPanelControl(IDialogPage parentPage) {
 		super(parentPage);
+		EMPTY_PANEL = new EmptySettingsPanel(this);
 		clear();
 		setPanelIsGroup(false);
 	}
@@ -111,6 +160,7 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 		panel.setLayout(panelLayout);
 
 		setupConfigurationPanels(panel, configurationPanelKeys, toolkit);
+		EMPTY_PANEL.setupPanel(panel, toolkit);
 	}
 
 	/**
@@ -137,8 +187,10 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	 * @return The wizard configuration panel instance or <code>null</code> if the key is unknown.
 	 */
 	public IWizardConfigurationPanel getConfigurationPanel(String key) {
-		if (key == null) return null;
-		return configurationPanels.get(key);
+		if (key == null) return EMPTY_PANEL;
+		IWizardConfigurationPanel panel = configurationPanels.get(key);
+
+		return (panel != null ? panel : EMPTY_PANEL);
 	}
 
 	/**
@@ -188,8 +240,6 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	 * @param key The key to get the wizard configuration panel for. Must not be <code>null</code>!
 	 */
 	public void showConfigurationPanel(String key) {
-		if (key == null) return;
-
 		IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
 		if (configPanel != null && configPanel.getControl() != null) {
 			activeConfigurationPanel = configPanel;

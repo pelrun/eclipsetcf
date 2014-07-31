@@ -87,8 +87,9 @@ public interface ISimulatorService extends IService {
 	 * .
 	 * @param context The context. Must not be <code>null</code>.
 	 * @param config The configuration to validate.
+	 * @param checkContextAttributes <code>true</code> if attributes stored in the context should be checked too.
 	 *
 	 * @return <code>true</code> if the configuration is valid.
 	 */
-	public boolean isValidConfig(Object context, String config);
+	public boolean isValidConfig(Object context, String config, boolean checkContextAttributes);
 }

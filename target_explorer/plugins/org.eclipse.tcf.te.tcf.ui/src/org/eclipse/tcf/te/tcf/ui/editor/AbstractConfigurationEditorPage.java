@@ -14,8 +14,13 @@ import java.util.EventObject;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.action.ControlContribution;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
@@ -23,25 +28,22 @@ import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
-import org.eclipse.tcf.te.tcf.ui.sections.SimulatorTypeSelectionSection;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.forms.IManagedForm;
-import org.eclipse.ui.forms.widgets.TableWrapData;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.events.IHyperlinkListener;
+import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
 /**
  * Abstract configuration editor page implementation.
  */
 public abstract class AbstractConfigurationEditorPage extends AbstractCustomFormToolkitEditorPage {
-
-	// Section to select real or simulator
-	/* default */ SimulatorTypeSelectionSection simulatorTypeSelectionSection = null;
 
 	private IEventListener listener = null;
 
@@ -80,71 +82,13 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 	    }
 	}
 
-	/**
-	 * Add the target selector section if an {@link ISimulatorService} is available.
-	 * @param form The form.
-	 * @param parent The parent composite.
-	 */
-	protected void addTargetSelectorSection(IManagedForm form, Composite parent) {
-		ISimulatorService service = ServiceManager.getInstance().getService(getEditorInputNode(), ISimulatorService.class);
-		if (service != null) {
-			simulatorTypeSelectionSection = doCreateTargetSelectorSection(form, parent);
-			if (simulatorTypeSelectionSection != null) {
-				simulatorTypeSelectionSection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP));
-				getManagedForm().addPart(simulatorTypeSelectionSection);
-			}
-		}
-	}
-
-	protected SimulatorTypeSelectionSection getTargetSelectorSection() {
-		return simulatorTypeSelectionSection;
-	}
-
-	/**
-	 * Create the target selector section.
-	 * @param form The form.
-	 * @param parent The parent composite.
-	 * @return The target selector section.
-	 */
-	protected SimulatorTypeSelectionSection doCreateTargetSelectorSection (IManagedForm form, Composite parent) {
-		return new SimulatorTypeSelectionSection(getManagedForm(), parent);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#dispose()
 	 */
 	@Override
 	public void dispose() {
-		if (simulatorTypeSelectionSection != null) { simulatorTypeSelectionSection.dispose(); simulatorTypeSelectionSection = null; }
 		if (listener != null) { EventManager.getInstance().removeEventListener(listener); listener = null; }
 		super.dispose();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setActive(boolean)
-	 */
-	@Override
-	public void setActive(boolean active) {
-		super.setActive(active);
-
-		if (simulatorTypeSelectionSection != null) {
-			simulatorTypeSelectionSection.setActive(active);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#doValidate()
-	 */
-	@Override
-	protected ValidationResult doValidate() {
-		ValidationResult result = super.doValidate();
-
-		if (simulatorTypeSelectionSection != null) {
-			simulatorTypeSelectionSection.isValid();
-			result.setResult(simulatorTypeSelectionSection);
-		}
-
-		return result;
 	}
 
 	/* (non-Javadoc)
@@ -190,5 +134,70 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 				}
 			});
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#doCreateLinkContribution(org.eclipse.jface.action.IToolBarManager)
+	 */
+	@Override
+	protected IContributionItem doCreateLinkContribution(final IToolBarManager tbManager) {
+		return new ControlContribution("SetAsDefaultContextLink") { //$NON-NLS-1$
+			IEventListener eventListener = null;
+			@Override
+			public void dispose() {
+				super.dispose();
+				if (eventListener == null) {
+					EventManager.getInstance().removeEventListener(eventListener);
+				}
+			}
+			@Override
+			protected Control createControl(Composite parent) {
+				final ImageHyperlink hyperlink = new ImageHyperlink(parent, SWT.NONE);
+				hyperlink.setText("Set as default connection"); //$NON-NLS-1$
+				hyperlink.setUnderlined(true);
+				hyperlink.setForeground(getManagedForm().getToolkit().getHyperlinkGroup().getForeground());
+				IPeerNode defaultNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+				setVisible(defaultNode == null || defaultNode != getEditorInputNode());
+				hyperlink.addHyperlinkListener(new IHyperlinkListener() {
+					@Override
+					public void linkActivated(HyperlinkEvent e) {
+						if (getEditorInputNode() instanceof IPeerNode) {
+							ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext((IPeerNode)getEditorInputNode());
+						}
+					}
+					@Override
+					public void linkEntered(HyperlinkEvent e) {
+						hyperlink.setForeground(getManagedForm().getToolkit().getHyperlinkGroup().getActiveForeground());
+					}
+					@Override
+					public void linkExited(HyperlinkEvent e) {
+						hyperlink.setForeground(getManagedForm().getToolkit().getHyperlinkGroup().getForeground());
+					}
+				});
+
+				eventListener = new IEventListener() {
+					@Override
+					public void eventFired(EventObject event) {
+						if (event instanceof ChangeEvent) {
+							ChangeEvent changeEvent = (ChangeEvent)event;
+							if (changeEvent.getSource() instanceof IDefaultContextService) {
+								IPeerNode defaultNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+								setVisible(defaultNode == null || getEditorInputNode() == null || defaultNode != getEditorInputNode());
+								ExecutorsUtil.executeInUI(new Runnable() {
+									@Override
+									public void run() {
+										tbManager.update(true);
+									}
+								});
+							}
+						}
+					}
+				};
+
+				EventManager.getInstance().addEventListener(eventListener, ChangeEvent.class);
+
+				return hyperlink;
+			}
+		};
 	}
 }
