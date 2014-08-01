@@ -280,7 +280,7 @@ public class SymbolsProxy implements ISymbols {
             }
         }.token;
     }
-    
+
     public IToken list(String context_id, final DoneList done) {
         return new Command(channel, this, "list", new Object[]{ context_id }) {
             @Override

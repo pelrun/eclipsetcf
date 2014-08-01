@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -378,7 +378,7 @@ public interface ISymbols extends IService {
      * @since 1.3
      */
     IToken findByAddr(String context_id, Number addr, DoneFindAll done);
-    
+
     /**
      * Search symbol with given address in given context.
      * The context can be memory space, process, thread or stack frame.
