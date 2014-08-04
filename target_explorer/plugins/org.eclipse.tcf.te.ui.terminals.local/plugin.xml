@@ -28,5 +28,32 @@
             id="org.eclipse.tcf.te.ui.terminals.local.launcher.local"
             label="%LocalLauncherDelegate.label">
       </delegate>
+   </extension>
+
+<!-- Command contributions -->
+   <extension point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.ui.terminals.local.command_Launch"
+            id="org.eclipse.tcf.te.ui.terminals.local.command.launch"
+            name="%command.launch.name">
+      </command>
+   </extension>
+
+<!-- Key bindings -->
+   <extension point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.tcf.te.ui.terminals.local.command.launch"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="CTRL+M3+T"/> <!-- Bug 435111: Don't use M1 since COMMAND+Option T already taken on Mac -->
+   </extension>
+
+<!-- Handler contributions -->
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            class="org.eclipse.tcf.te.ui.terminals.local.launcher.LocalLauncherHandler"
+            commandId="org.eclipse.tcf.te.ui.terminals.local.command.launch">
+      </handler>
    </extension>   
 </plugin>

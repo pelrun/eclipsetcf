@@ -191,7 +191,7 @@
             commandId="org.eclipse.tcf.te.ui.terminals.command.launchToolbar"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="CTRL+M3+T"/> <!-- Bug 435111: Don't use M1 since COMMAND+Option T already taken on Mac -->
+            sequence="CTRL+SHIFT+M3+T"/> <!-- Bug 435111: Don't use M1 since COMMAND+Option T already taken on Mac -->
    </extension>
 
 <!-- Handler contributions -->

@@ -74,8 +74,8 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_ENCODING)) {
 			String encoding = null;
 			// Set the default encoding:
-			//     Default UTF-8 on Mac for Local, Preferences:Platform encoding otherwise
-			if (Platform.OS_MACOSX.equals(Platform.getOS())) {
+			//     Default UTF-8 on Mac or Windows for Local, Preferences:Platform encoding otherwise
+			if (Platform.OS_MACOSX.equals(Platform.getOS()) || Platform.OS_WIN32.equals(Platform.getOS())) {
 				encoding = "UTF-8"; //$NON-NLS-1$
 			} else {
 				encoding = WorkbenchEncoding.getWorkbenchDefaultEncoding();
@@ -98,8 +98,9 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 		// If the current selection resolved to an folder, default the working directory
 		// to that folder and update the terminal title
 		ISelectionService service = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
-		if (service != null && service.getSelection() != null) {
-			ISelection selection = service.getSelection();
+		if ((service != null && service.getSelection() != null) || properties.containsKey(ITerminalsConnectorConstants.PROP_SELECTION)) {
+			ISelection selection = (ISelection)properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION);
+			if (selection == null) selection = service.getSelection();
 			if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 				String dir = null;
 				Iterator<?> iter = ((IStructuredSelection)selection).iterator();

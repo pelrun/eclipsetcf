@@ -108,10 +108,10 @@ public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel im
 	 */
 	@Override
     public void extractData(IPropertiesContainer data) {
-    	// set the terminal connector id for serial
+    	// set the terminal connector id for local terminal
     	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tcf.te.ui.terminals.local.LocalConnector"); //$NON-NLS-1$
 
-    	// set the connector type for serial
+    	// set the connector type for local terminal
     	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
 
     	// Store the encoding
