@@ -45,6 +45,7 @@ public final class StepperHelper {
 
 		IStepContext stepContext = service.getStepContext(context, operation);
 		String stepGroupId = service.getStepGroupId(context, operation);
+		data = service.getStepGroupData(context, operation, data);
 		String name = service.getStepGroupName(context, operation);
 		boolean isCancelable = service.isCancelable(context, operation);
 		boolean addToActionHistory = service.addToActionHistory(context, operation);

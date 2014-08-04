@@ -146,7 +146,10 @@
                class="org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService">
          </serviceType>
          <enablement>
-            <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+            <or>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+            </or>
             <test forcePluginActivation="true" property="org.eclipse.tcf.te.tcf.locator.isOfType" value="null"/>
          </enablement>
       </service>

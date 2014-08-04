@@ -99,4 +99,14 @@ public interface IStepperOperationService extends IService {
 	 * @return <code>true</code> if the step data is valid.
 	 */
 	public boolean validateStepData(Object context, String operation, IPropertiesContainer data);
+
+	/**
+	 * Get the stepper data to be used for the given context, operation and user data.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param operation The operation. Must not be <code>null</code>.
+	 * @param data The step data to be validated.
+	 * @return Stepper data to be useed.
+	 */
+	public IPropertiesContainer getStepGroupData(Object context, String operation, IPropertiesContainer data);
+
 }

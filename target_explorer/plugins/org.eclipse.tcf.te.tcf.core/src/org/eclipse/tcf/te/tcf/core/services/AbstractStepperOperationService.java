@@ -7,33 +7,43 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.core.internal.channelmanager;
+package org.eclipse.tcf.te.tcf.core.services;
 
-import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.te.runtime.stepper.services.AbstractStepperOperationService;
+import org.eclipse.tcf.te.tcf.core.interfaces.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
 
 /**
  * Channel manager stepper operation service implementation.
  */
-public class StepperOperationService extends AbstractStepperOperationService {
-	/**
-	 * Open channel operation
-	 */
-	public static final String OPEN_CHANNEL = "openChannel"; //$NON-NLS-1$
-
-	/**
-	 * Close channel operation
-	 */
-	public static final String CLOSE_CHANNEL = "closeChannel"; //$NON-NLS-1$
+public abstract class AbstractStepperOperationService extends org.eclipse.tcf.te.runtime.stepper.services.AbstractStepperOperationService {
 
 	/**
 	 * Constructor
 	 */
-	public StepperOperationService() {
+	public AbstractStepperOperationService() {
 		super();
+	}
+
+	/**
+	 * Returns the peer context.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @return The peer context.
+	 */
+	protected IPeer getPeerContext(Object context) {
+		IPeer peer = null;
+		if (context instanceof IPeer)
+			return (IPeer)context;
+		if (context instanceof IAdaptable)
+			peer = (IPeer)((IAdaptable)context).getAdapter(IPeer.class);
+		if (peer == null)
+			peer = (IPeer)Platform.getAdapterManager().getAdapter(context, IPeer.class);
+
+		return peer;
 	}
 
 	/* (non-Javadoc)
@@ -41,8 +51,7 @@ public class StepperOperationService extends AbstractStepperOperationService {
 	 */
 	@Override
 	public boolean isHandledOperation(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeer);
-		return OPEN_CHANNEL.equals(operation) || CLOSE_CHANNEL.equals(operation);
+		return IStepperServiceOperations.OPEN_CHANNEL.equals(operation) || IStepperServiceOperations.CLOSE_CHANNEL.equals(operation);
 	}
 
 	/* (non-Javadoc)
@@ -50,11 +59,9 @@ public class StepperOperationService extends AbstractStepperOperationService {
 	 */
 	@Override
 	public String getStepGroupId(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeer);
-
-		if (OPEN_CHANNEL.equals(operation))
+		if (IStepperServiceOperations.OPEN_CHANNEL.equals(operation))
 			return "org.eclipse.tcf.te.tcf.core.channelmanager.openChannelStepGroup"; //$NON-NLS-1$
-		if (CLOSE_CHANNEL.equals(operation))
+		if (IStepperServiceOperations.CLOSE_CHANNEL.equals(operation))
 			return "org.eclipse.tcf.te.tcf.core.channelmanager.closeChannelStepGroup"; //$NON-NLS-1$
 
 		return null;
@@ -65,11 +72,9 @@ public class StepperOperationService extends AbstractStepperOperationService {
 	 */
 	@Override
 	public String getStepGroupName(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeer);
-
-		if (OPEN_CHANNEL.equals(operation))
+		if (IStepperServiceOperations.OPEN_CHANNEL.equals(operation))
 			return NLS.bind(Messages.StepperOperationService_stepGroupName_openChannel, ((IPeer)context).getName());
-		if (CLOSE_CHANNEL.equals(operation))
+		if (IStepperServiceOperations.CLOSE_CHANNEL.equals(operation))
 			return NLS.bind(Messages.StepperOperationService_stepGroupName_closeChannel, ((IPeer)context).getName());
 
 		return null;
@@ -80,8 +85,7 @@ public class StepperOperationService extends AbstractStepperOperationService {
 	 */
 	@Override
 	public boolean isEnabled(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeer);
-		return OPEN_CHANNEL.equals(operation) || CLOSE_CHANNEL.equals(operation);
+		return IStepperServiceOperations.OPEN_CHANNEL.equals(operation) || IStepperServiceOperations.CLOSE_CHANNEL.equals(operation);
 	}
 
 	/* (non-Javadoc)
@@ -89,7 +93,6 @@ public class StepperOperationService extends AbstractStepperOperationService {
 	 */
 	@Override
 	public boolean isCancelable(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeer);
 		return false;
 	}
 
@@ -98,7 +101,6 @@ public class StepperOperationService extends AbstractStepperOperationService {
 	 */
 	@Override
 	public boolean addToActionHistory(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeer);
 		return false;
 	}
 

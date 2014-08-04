@@ -39,6 +39,7 @@ import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.tcf.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.core.events.ChannelEvent;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ShutdownValueAddStep;
@@ -260,17 +261,17 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 				};
 
 				// Get the stepper operation service
-				IStepperOperationService stepperOperationService = StepperHelper.getService(peer, StepperOperationService.OPEN_CHANNEL);
+				IStepperOperationService stepperOperationService = StepperHelper.getService(peer, IStepperServiceOperations.OPEN_CHANNEL);
 
 				// Schedule the "open channel" stepper job
-				IStepContext stepContext = stepperOperationService.getStepContext(peer, StepperOperationService.OPEN_CHANNEL);
-				String stepGroupId = stepperOperationService.getStepGroupId(peer, StepperOperationService.OPEN_CHANNEL);
+				IStepContext stepContext = stepperOperationService.getStepContext(peer, IStepperServiceOperations.OPEN_CHANNEL);
+				String stepGroupId = stepperOperationService.getStepGroupId(peer, IStepperServiceOperations.OPEN_CHANNEL);
 
 				if (stepGroupId != null && stepContext != null) {
-					String name = stepperOperationService.getStepGroupName(peer, StepperOperationService.OPEN_CHANNEL);
-					boolean isCancelable = stepperOperationService.isCancelable(peer, StepperOperationService.OPEN_CHANNEL);
+					String name = stepperOperationService.getStepGroupName(peer, IStepperServiceOperations.OPEN_CHANNEL);
+					boolean isCancelable = stepperOperationService.isCancelable(peer, IStepperServiceOperations.OPEN_CHANNEL);
 
-					job = new StepperJob(name != null ? name : "", stepContext, data, stepGroupId, StepperOperationService.OPEN_CHANNEL, isCancelable, true); //$NON-NLS-1$
+					job = new StepperJob(name != null ? name : "", stepContext, stepperOperationService.getStepGroupData(peer, IStepperServiceOperations.OPEN_CHANNEL, data), stepGroupId, IStepperServiceOperations.OPEN_CHANNEL, isCancelable, true); //$NON-NLS-1$
 					job.setJobCallback(callback);
 					job.markStatusHandled();
 					job.schedule();
@@ -498,17 +499,17 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 				};
 
 				// Get the stepper operation service
-				IStepperOperationService stepperOperationService = StepperHelper.getService(peer, StepperOperationService.CLOSE_CHANNEL);
+				IStepperOperationService stepperOperationService = StepperHelper.getService(peer, IStepperServiceOperations.CLOSE_CHANNEL);
 
 				// Schedule the "close channel" stepper job
-				IStepContext stepContext = stepperOperationService.getStepContext(peer, StepperOperationService.CLOSE_CHANNEL);
-				String stepGroupId = stepperOperationService.getStepGroupId(peer, StepperOperationService.CLOSE_CHANNEL);
+				IStepContext stepContext = stepperOperationService.getStepContext(peer, IStepperServiceOperations.CLOSE_CHANNEL);
+				String stepGroupId = stepperOperationService.getStepGroupId(peer, IStepperServiceOperations.CLOSE_CHANNEL);
 
 				if (stepGroupId != null && stepContext != null) {
-					String name = stepperOperationService.getStepGroupName(peer, StepperOperationService.CLOSE_CHANNEL);
-					boolean isCancelable = stepperOperationService.isCancelable(peer, StepperOperationService.CLOSE_CHANNEL);
+					String name = stepperOperationService.getStepGroupName(peer, IStepperServiceOperations.CLOSE_CHANNEL);
+					boolean isCancelable = stepperOperationService.isCancelable(peer, IStepperServiceOperations.CLOSE_CHANNEL);
 
-					job = new StepperJob(name != null ? name : "", stepContext, data, stepGroupId, StepperOperationService.CLOSE_CHANNEL, isCancelable, true); //$NON-NLS-1$
+					job = new StepperJob(name != null ? name : "", stepContext, stepperOperationService.getStepGroupData(peer, IStepperServiceOperations.CLOSE_CHANNEL, data), stepGroupId, IStepperServiceOperations.CLOSE_CHANNEL, isCancelable, true); //$NON-NLS-1$
 					job.setJobCallback(callback);
 					job.markStatusHandled();
 					job.schedule();

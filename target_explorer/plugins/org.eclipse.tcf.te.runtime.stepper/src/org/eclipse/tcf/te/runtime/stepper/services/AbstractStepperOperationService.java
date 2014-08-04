@@ -56,4 +56,12 @@ public abstract class AbstractStepperOperationService extends AbstractService im
 	public IPropertiesContainer getSpecialHistoryData(Object context, String operation, IPropertiesContainer data) {
 	    return null;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#getStepGroupData(java.lang.Object, java.lang.String, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+	@Override
+	public IPropertiesContainer getStepGroupData(Object context, String operation, IPropertiesContainer data) {
+	    return data;
+	}
 }

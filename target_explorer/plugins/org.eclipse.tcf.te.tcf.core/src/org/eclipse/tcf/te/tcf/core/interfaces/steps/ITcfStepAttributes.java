@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.core.interfaces.steps;
 
+import org.eclipse.tcf.te.tcf.core.internal.channelmanager.iterators.ChainPeersIterator;
+
 
 /**
  * Defines locator related step data attribute id's.
@@ -35,4 +37,8 @@ public interface ITcfStepAttributes {
 	 */
 	public static final String ATTR_VALUE_ADD = ITcfStepAttributes.ATTR_PREFIX + ".value_add"; //$NON-NLS-1$
 
+	/**
+	 * Step attribute: Flag if the peer should not be added to the list of peers to chain in {@link ChainPeersIterator}.
+	 */
+	public static final String ATTR_SKIP_PEER_TO_CHAIN = ITcfStepAttributes.ATTR_PREFIX + ".skip_peer_to_chain"; //$NON-NLS-1$
 }

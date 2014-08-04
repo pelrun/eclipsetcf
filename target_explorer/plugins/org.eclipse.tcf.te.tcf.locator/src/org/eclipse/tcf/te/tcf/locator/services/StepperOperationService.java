@@ -9,7 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.services;
 
-import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepGroupIds;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepperServiceOperations;
@@ -18,7 +19,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 /**
  * Connect/disconnect stepper operation service implementation.
  */
-public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.services.AbstractStepperOperationService {
+public class StepperOperationService extends org.eclipse.tcf.te.tcf.core.services.AbstractStepperOperationService {
 
 	/**
 	 * Constructor.
@@ -26,12 +27,32 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	public StepperOperationService() {
 	}
 
+
+	/**
+	 * Returns the peer node context.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @return The peer node context.
+	 */
+	protected IPeerNode getPeerNodeContext(Object context) {
+		IPeerNode peerNode = null;
+		if (context instanceof IPeerNode)
+			return (IPeerNode)context;
+		if (context instanceof IAdaptable)
+			peerNode = (IPeerNode)((IAdaptable)context).getAdapter(IPeerNode.class);
+		if (peerNode == null)
+			peerNode = (IPeerNode)Platform.getAdapterManager().getAdapter(context, IPeerNode.class);
+
+		return peerNode;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService#isHandledOperation(java.lang.Object, java.lang.String)
 	 */
 	@Override
 	public boolean isHandledOperation(Object context, String operation) {
-		return IStepperServiceOperations.CONNECT.equals(operation) ||
+		return super.isHandledOperation(context, operation) ||
+						IStepperServiceOperations.CONNECT.equals(operation) ||
 						IStepperServiceOperations.DISCONNECT.equals(operation) ||
 						IStepperServiceOperations.CONNECTION_LOST.equals(operation) ||
 						IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation);
@@ -42,7 +63,7 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	 */
 	@Override
 	public boolean addToActionHistory(Object context, String operation) {
-	    return false;
+	    return super.addToActionHistory(context, operation);
 	}
 
 	/* (non-Javadoc)
@@ -50,8 +71,6 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	 */
 	@Override
 	public String getStepGroupId(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeerNode);
-
 		if (IStepperServiceOperations.CONNECT.equals(operation)) {
 			return IStepGroupIds.CONNECT;
 		}
@@ -65,7 +84,7 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 			return IStepGroupIds.CONNECTION_RECOVERING;
 		}
 
-		return null;
+		return super.getStepGroupId(context, operation);
 	}
 
 	/* (non-Javadoc)
@@ -73,8 +92,6 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	 */
 	@Override
 	public String getStepGroupName(Object context, String operation) {
-		Assert.isTrue(context instanceof IPeerNode);
-
 		if (IStepperServiceOperations.CONNECT.equals(operation)) {
 			return "Connect "+((IPeerNode)context).getName(); //$NON-NLS-1$
 		}
@@ -88,7 +105,7 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 			return "Recovering Connection to "+((IPeerNode)context).getName(); //$NON-NLS-1$
 		}
 
-		return null;
+		return super.getStepGroupName(context, operation);
 	}
 
 	/* (non-Javadoc)
@@ -111,7 +128,7 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 			}
 		}
 
-		return false;
+		return super.isEnabled(context, operation);
 	}
 
 	/* (non-Javadoc)
@@ -119,6 +136,8 @@ public class StepperOperationService extends org.eclipse.tcf.te.runtime.stepper.
 	 */
 	@Override
 	public boolean isCancelable(Object context, String operation) {
-		return IStepperServiceOperations.CONNECT.equals(operation) || IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation);
+		return super.isCancelable(context, operation) ||
+						IStepperServiceOperations.CONNECT.equals(operation) ||
+						IStepperServiceOperations.CONNECTION_RECOVERING.equals(operation);
 	}
 }

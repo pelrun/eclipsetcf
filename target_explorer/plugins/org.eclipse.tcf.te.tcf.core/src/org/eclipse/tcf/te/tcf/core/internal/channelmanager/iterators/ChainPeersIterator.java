@@ -24,6 +24,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
+import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.iterators.AbstractPeerStepGroupIterator;
 import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
 import org.eclipse.tcf.te.tcf.core.va.ValueAddManager;
@@ -46,7 +47,7 @@ public class ChainPeersIterator extends AbstractPeerStepGroupIterator {
 	 * @see org.eclipse.tcf.te.runtime.stepper.iterators.AbstractStepGroupIterator#initialize(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	public void initialize(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+	public void initialize(IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
 	    super.initialize(context, data, fullQualifiedId, monitor);
 
 	    final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
@@ -75,7 +76,9 @@ public class ChainPeersIterator extends AbstractPeerStepGroupIterator {
 			        }
 				}
 
-			    peers.add(peer);
+				if (!StepperAttributeUtil.getBooleanProperty(ITcfStepAttributes.ATTR_SKIP_PEER_TO_CHAIN, fullQualifiedId, data)) {
+					peers.add(peer);
+				}
 			}
 		};
 
