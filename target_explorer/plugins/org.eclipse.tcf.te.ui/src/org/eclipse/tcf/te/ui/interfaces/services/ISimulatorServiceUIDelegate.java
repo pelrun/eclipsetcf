@@ -9,12 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.interfaces.services;
 
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 
 /**
  * Simulator service UI delegate.
  */
 public interface ISimulatorServiceUIDelegate {
+
+	public static final String PROPERTY_ADDRESS_READONLY = "addressReadOnly";  //$NON-NLS-1$
 
 	/**
 	 * Get the simulator service the UI delegate is associated with.
@@ -48,6 +51,14 @@ public interface ISimulatorServiceUIDelegate {
      * @return The new configuration or <code>null</code>.
      */
     public String configure(Object context, String oldConfig);
+
+    /**
+     * Get UI configuration properties.
+     * @param context The context.
+     * @param config The configuration or <code>null</code>.
+     * @return The UI configuration properties.
+     */
+    public IPropertiesContainer getUIProperties(Object context, String config);
 
     /**
      * Returns <code>true</code> if the simulator is configurable.

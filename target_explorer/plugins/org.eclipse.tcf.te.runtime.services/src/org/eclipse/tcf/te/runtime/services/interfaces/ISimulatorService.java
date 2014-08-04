@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.runtime.services.interfaces;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 
 /**
  * Simulator service.
@@ -81,6 +82,15 @@ public interface ISimulatorService extends IService {
 	 * @return The default configuration or <code>null</code>.
 	 */
 	public String getDefaultConfig();
+
+	/**
+	 * Get the address data for the given simulator config.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param config The encoded simulator settings or <code>null</code>.
+	 * @param currentAddress The current address data.
+	 * @return The new simulator address data.
+	 */
+	public IPropertiesContainer getSimulatorAddress(Object context, String config, IPropertiesContainer currentAddress);
 
 	/**
 	 * Validate a simulator configuration

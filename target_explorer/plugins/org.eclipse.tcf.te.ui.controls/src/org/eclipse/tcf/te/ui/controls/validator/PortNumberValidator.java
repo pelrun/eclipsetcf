@@ -18,8 +18,8 @@ package org.eclipse.tcf.te.ui.controls.validator;
 public class PortNumberValidator extends NumberValidator {
 
 	// regular expressions for validator
-	protected static final String PORT_REGEX_DEC = "([0-9]{1,5})"; //$NON-NLS-1$
-	protected static final String PORT_REGEX_HEX = "(0(x|X)[0-9a-fA-F]{1,4})"; //$NON-NLS-1$
+	public static final String PORT_REGEX_DEC = "([0-9]{1,5})"; //$NON-NLS-1$
+	public static final String PORT_REGEX_HEX = "(0(x|X)[0-9a-fA-F]{1,4})"; //$NON-NLS-1$
 
 	public static final int ATTR_HEX = 4;
 	public static final int ATTR_DECIMAL = 8;
