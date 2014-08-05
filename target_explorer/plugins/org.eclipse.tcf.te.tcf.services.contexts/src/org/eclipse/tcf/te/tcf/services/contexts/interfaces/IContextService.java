@@ -18,7 +18,7 @@ public interface IContextService {
 	/**
 	 * Context handler delegate.
 	 */
-	public interface IDelegate {
+	public static interface IDelegate {
 
 		/**
 		 * Checks if the delegate can handle the context identified by the

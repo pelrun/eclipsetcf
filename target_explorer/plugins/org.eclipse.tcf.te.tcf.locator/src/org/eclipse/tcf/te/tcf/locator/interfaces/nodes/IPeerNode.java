@@ -27,7 +27,7 @@ public interface IPeerNode extends IContainerModelNode, IDecoratable, IConnectab
 	/**
 	 * Delegate for
 	 */
-	public interface IDelegate {
+	public static interface IDelegate {
 
 		/**
 		 * Validate the peer node attributes.
