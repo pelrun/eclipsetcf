@@ -1339,8 +1339,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         for (TCFModelProxy p : model.getModelProxies()) {
             String view_id = p.getPresentationContext().getId();
             if (IDebugUIConstants.ID_DEBUG_VIEW.equals(view_id)) {
-                /* Note: should use IModelDelta.INSERTED but it is broken in Eclipse 3.6 */
-                p.addDelta(this, IModelDelta.ADDED);
+                p.addDelta(this, IModelDelta.INSERTED);
             }
             else if (ITCFDebugUIConstants.ID_CONTEXT_QUERY_VIEW.equals(view_id)) {
                 p.addDelta(parent, IModelDelta.CONTENT);
