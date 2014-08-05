@@ -24,6 +24,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
@@ -234,8 +235,18 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 		managedPropertyNames.add(IProcessContextNodeProperties.PROPERTY_NAME);
 
 		// Determine if a delegate is registered
-		IDelegateService service = ServiceManager.getInstance().getService(dst, IDelegateService.class, false);
-		IRuntimeModelRefreshService.IDelegate delegate = service != null ? service.getDelegate(dst, IRuntimeModelRefreshService.IDelegate.class) : null;
+		IRuntimeModelRefreshService.IDelegate delegate = null;
+		IService[] services = ServiceManager.getInstance().getServices(dst, IDelegateService.class, false);
+		for (IService s : services) {
+			if (s instanceof IDelegateService) {
+				IDelegateService service = (IDelegateService) s;
+				IRuntimeModelRefreshService.IDelegate candidate = service.getDelegate(dst, IRuntimeModelRefreshService.IDelegate.class);
+				if (candidate != null) {
+					delegate = candidate;
+					break;
+				}
+			}
+		}
 
 		if (delegate == null && getModel().getService(IRuntimeModelRefreshService.class) instanceof RuntimeModelRefreshService) {
 			delegate = ((RuntimeModelRefreshService)getModel().getService(IRuntimeModelRefreshService.class)).defaultDelegate;

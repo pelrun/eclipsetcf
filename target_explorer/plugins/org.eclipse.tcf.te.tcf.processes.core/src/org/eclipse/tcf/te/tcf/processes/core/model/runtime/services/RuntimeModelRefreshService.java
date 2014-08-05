@@ -33,6 +33,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
@@ -861,8 +862,18 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 			@Override
             protected void internalDone(Object caller, IStatus status) {
 				// Determine if a delegate is registered
-				IDelegateService service = ServiceManager.getInstance().getService(channel.getRemotePeer(), IDelegateService.class, false);
-				IRuntimeModelRefreshService.IDelegate delegate = service != null ? service.getDelegate(channel.getRemotePeer(), IRuntimeModelRefreshService.IDelegate.class) : null;
+				IRuntimeModelRefreshService.IDelegate delegate = null;
+				IService[] services = ServiceManager.getInstance().getServices(channel.getRemotePeer(), IDelegateService.class, false);
+				for (IService s : services) {
+					if (s instanceof IDelegateService) {
+						IDelegateService service = (IDelegateService) s;
+						IRuntimeModelRefreshService.IDelegate candidate = service.getDelegate(channel.getRemotePeer(), IRuntimeModelRefreshService.IDelegate.class);
+						if (candidate != null) {
+							delegate = candidate;
+							break;
+						}
+					}
+				}
 
 				// Run the post refresh context delegate
 				if (delegate == null) delegate = defaultDelegate;
@@ -958,8 +969,18 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 								@Override
                                 protected void internalDone(Object caller, IStatus status) {
 									// Determine if a delegate is registered
-									IDelegateService service = ServiceManager.getInstance().getService(channel.getRemotePeer(), IDelegateService.class, false);
-									IRuntimeModelRefreshService.IDelegate delegate = service != null ? service.getDelegate(channel.getRemotePeer(), IRuntimeModelRefreshService.IDelegate.class) : null;
+									IRuntimeModelRefreshService.IDelegate delegate = null;
+									IService[] services = ServiceManager.getInstance().getServices(channel.getRemotePeer(), IDelegateService.class, false);
+									for (IService s : services) {
+										if (s instanceof IDelegateService) {
+											IDelegateService service = (IDelegateService) s;
+											IRuntimeModelRefreshService.IDelegate candidate = service.getDelegate(channel.getRemotePeer(), IRuntimeModelRefreshService.IDelegate.class);
+											if (candidate != null) {
+												delegate = candidate;
+												break;
+											}
+										}
+									}
 
 									// Determine the node type
 									if (delegate != null) delegate.setNodeType(parentContextId, node);
