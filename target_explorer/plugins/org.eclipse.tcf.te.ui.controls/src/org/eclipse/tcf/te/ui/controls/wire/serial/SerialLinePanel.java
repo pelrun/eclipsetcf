@@ -508,7 +508,7 @@ public class SerialLinePanel extends AbstractWizardConfigurationPanel implements
 	}
 
 	/**
-	 * Query the list of serial devices via RXTX.
+	 * Query the list of serial devices.
 	 */
 	protected void queryAvailableSerialDevices() {
 		// Avoid printing the library version output to stdout if the platform

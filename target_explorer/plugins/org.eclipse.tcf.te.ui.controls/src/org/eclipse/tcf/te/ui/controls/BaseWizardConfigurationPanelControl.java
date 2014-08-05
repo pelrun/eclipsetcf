@@ -44,7 +44,10 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 
 	private final AbstractWizardConfigurationPanel EMPTY_PANEL;
 
-	protected class EmptySettingsPanel extends AbstractWizardConfigurationPanel {
+	/**
+	 * An empty configuration panel implementation.
+	 */
+	private static final class EmptySettingsPanel extends AbstractWizardConfigurationPanel {
 
 		/**
 	     * Constructor.
@@ -184,13 +187,22 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	 * Returns the wizard configuration panel instance registered for the given configuration panel key.
 	 *
 	 * @param key The key to get the wizard configuration panel for. Must not be <code>null</code>!
-	 * @return The wizard configuration panel instance or <code>null</code> if the key is unknown.
+	 * @return The wizard configuration panel instance or an empty configuration panel if the key is unknown.
 	 */
 	public IWizardConfigurationPanel getConfigurationPanel(String key) {
-		if (key == null) return EMPTY_PANEL;
-		IWizardConfigurationPanel panel = configurationPanels.get(key);
+		IWizardConfigurationPanel panel = key != null ? configurationPanels.get(key) : null;
+		return panel != null ? panel : EMPTY_PANEL;
+	}
 
-		return (panel != null ? panel : EMPTY_PANEL);
+	/**
+	 * Returns if or if not the given wizard configuration panel is equal to the
+	 * empty configuration panel.
+	 *
+	 * @param panel The wizard configuration panel or <code>null</code>.
+	 * @return <code>True</code> if the wizard configuration panel is equal to the empty configuration panel.
+	 */
+	public final boolean isEmptyConfigurationPanel(IWizardConfigurationPanel panel) {
+		return EMPTY_PANEL == panel;
 	}
 
 	/**
@@ -227,7 +239,8 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 		if (configurationPanelKeys != null) {
 			for (int i = 0; i < configurationPanelKeys.length; i++) {
 				IWizardConfigurationPanel configPanel = getConfigurationPanel(configurationPanelKeys[i]);
-				if (configPanel != null) configPanel.setupPanel(parent, toolkit);
+				Assert.isNotNull(configPanel);
+				configPanel.setupPanel(parent, toolkit);
 			}
 		}
 	}
@@ -241,7 +254,8 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	 */
 	public void showConfigurationPanel(String key) {
 		IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
-		if (configPanel != null && configPanel.getControl() != null) {
+		Assert.isNotNull(configPanel);
+		if (configPanel.getControl() != null) {
 			activeConfigurationPanel = configPanel;
 			activeConfigurationPanelKey = key;
 			panelLayout.topControl = configPanel.getControl();
@@ -275,7 +289,7 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 		super.doSaveWidgetValues(settings, idPrefix);
 		if (settings != null) {
 			IWizardConfigurationPanel configPanel = getActiveConfigurationPanel();
-			if (configPanel != null) {
+			if (configPanel != null && !isEmptyConfigurationPanel(configPanel)) {
 				IDialogSettings configPanelSettings = settings.getSection(activeConfigurationPanelKey);
 				if (configPanelSettings == null) configPanelSettings = settings.addNewSection(activeConfigurationPanelKey);
 				configPanel.doSaveWidgetValues(configPanelSettings, idPrefix);
@@ -292,7 +306,7 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 		if (settings != null) {
 			for (String key : configurationPanels.keySet()) {
 				IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
-				if (configPanel != null) {
+				if (!isEmptyConfigurationPanel(configPanel)) {
 					IDialogSettings configPanelSettings = settings.getSection(key);
 					if (configPanelSettings == null) configPanelSettings = settings.addNewSection(key);
 					configPanel.doRestoreWidgetValues(configPanelSettings, idPrefix);

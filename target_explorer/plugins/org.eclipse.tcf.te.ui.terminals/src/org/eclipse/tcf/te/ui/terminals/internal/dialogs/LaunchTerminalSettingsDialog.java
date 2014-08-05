@@ -26,7 +26,6 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -39,7 +38,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
@@ -53,7 +51,6 @@ import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
-import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
@@ -106,23 +103,24 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         public void showConfigurationPanel(String key) {
         	// Check if we have to create the panel first
     		IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
-    		if (configPanel == null) {
+    		if (isEmptyConfigurationPanel(configPanel)) {
            		// Get the corresponding delegate
            		ILauncherDelegate delegate = label2delegate.get(key);
            		Assert.isNotNull(delegate);
-           		// Get the wizard configuration panel instance
+           		// Create the wizard configuration panel instance
            		configPanel = delegate.getPanel(this);
-            	if (configPanel == null) configPanel = new EmptySettingsPanel(this);
-            	// Push the selection to the configuration panel
-            	((IConfigurationPanel)configPanel).setSelection(getSelection());
-            	// Add it
-            	addConfigurationPanel(key, configPanel);
-            	// Create the panel controls
-            	configPanel.setupPanel(getPanel(), getFormToolkit());
-            	// Restore widget values
-            	IDialogSettings dialogSettings = LaunchTerminalSettingsDialog.this.settings.getDialogSettings(LaunchTerminalSettingsDialog.this.getDialogSettings());
-            	IDialogSettings configPanelSettings = dialogSettings != null ? dialogSettings.getSection(key) : null;
-            	if (configPanelSettings != null) configPanel.doRestoreWidgetValues(configPanelSettings, null);
+           		if (configPanel != null) {
+           			// Add it to the settings panel control
+               		settings.addConfigurationPanel(key, configPanel);
+                	// Push the selection to the configuration panel
+                	if (configPanel instanceof IConfigurationPanel) ((IConfigurationPanel)configPanel).setSelection(getSelection());
+                	// Create the panel controls
+                	configPanel.setupPanel(getPanel(), getFormToolkit());
+                	// Restore widget values
+                	IDialogSettings dialogSettings = LaunchTerminalSettingsDialog.this.settings.getDialogSettings(LaunchTerminalSettingsDialog.this.getDialogSettings());
+                	IDialogSettings configPanelSettings = dialogSettings != null ? dialogSettings.getSection(key) : null;
+                	if (configPanelSettings != null) configPanel.doRestoreWidgetValues(configPanelSettings, null);
+           		}
     		}
 
             super.showConfigurationPanel(key);
@@ -142,69 +140,6 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         public IValidatingContainer getValidatingContainer() {
             return this;
         }
-	}
-
-	/**
-	 * An empty terminal settings panel.
-	 */
-	protected class EmptySettingsPanel extends AbstractConfigurationPanel {
-
-		/**
-	     * Constructor.
-	     *
-		 * @param parentControl The parent control. Must not be <code>null</code>!
-	     */
-	    public EmptySettingsPanel(BaseDialogPageControl parentControl) {
-		    super(parentControl);
-	    }
-
-		/* (non-Javadoc)
-	     * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#setupPanel(org.eclipse.swt.widgets.Composite, org.eclipse.tcf.te.ui.controls.interfaces.FormToolkit)
-	     */
-	    @SuppressWarnings("synthetic-access")
-        @Override
-	    public void setupPanel(Composite parent, FormToolkit toolkit) {
-	    	Composite panel = new Composite(parent, SWT.NONE);
-	    	panel.setLayout(new GridLayout());
-	    	panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-	    	Label label = new Label(panel, SWT.HORIZONTAL);
-	    	GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
-			layoutData.widthHint = convertWidthInCharsToPixels(30);
-			layoutData.heightHint = convertHeightInCharsToPixels(5);
-			label.setLayoutData(layoutData);
-
-	    	setControl(panel);
-	    }
-
-	    /* (non-Javadoc)
-	     * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
-	     */
-	    @Override
-	    public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
-	        return false;
-	    }
-
-		@Override
-        protected void saveSettingsForHost(boolean add) {
-        }
-
-		@Override
-        protected void fillSettingsForHost(String host) {
-        }
-
-		@Override
-        protected String getHostFromSettings() {
-			return null;
-        }
-
-		@Override
-	    public void doRestoreWidgetValues(IDialogSettings settings, String idPrefix) {
-		}
-
-		@Override
-	    public void doSaveWidgetValues(IDialogSettings settings, String idPrefix) {
-		}
 	}
 
 	/**
@@ -342,15 +277,14 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
        		// Get the corresponding delegate
        		ILauncherDelegate delegate = label2delegate.get(terminalLabel);
        		Assert.isNotNull(delegate);
-       		// Get the wizard configuration panel instance
+       		// Create the wizard configuration panel instance
        		IConfigurationPanel configPanel = delegate.getPanel(settings);
-        	if (configPanel == null) configPanel = new EmptySettingsPanel(settings);
-        	// Push the selection to the configuration panel
-        	Assert.isNotNull(configPanel);
-        	configPanel.setSelection(getSelection());
-        	// Add it
-        	settings.addConfigurationPanel(terminalLabel, configPanel);
-        	// Attach the listener
+       		if (configPanel != null) {
+       			// Add it to the settings panel control
+           		settings.addConfigurationPanel(terminalLabel, configPanel);
+            	// Push the selection to the configuration panel
+            	configPanel.setSelection(getSelection());
+       		}
         }
 
         // Create the toolkit

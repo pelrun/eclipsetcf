@@ -51,11 +51,10 @@ public class TransportSectionTypePanelControl extends TransportTypePanelControl 
 			if (transportType != null) {
 				// get the panel for the transport simulator and validate the panel
 				IWizardConfigurationPanel panel = getConfigurationPanel(transportType);
-
-				if (panel != null) {
-					valid = panel.isValid();
-					setMessage(panel.getMessage(), panel.getMessageType());
-				}
+				// getConfigurationPanel(...) always return a non-null value
+				Assert.isNotNull(panel);
+				valid = panel.isValid();
+				setMessage(panel.getMessage(), panel.getMessageType());
 			}
 		}
 

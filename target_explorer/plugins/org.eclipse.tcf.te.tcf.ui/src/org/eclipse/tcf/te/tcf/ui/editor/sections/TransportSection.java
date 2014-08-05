@@ -335,8 +335,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 					}
 
 					for (String id : transportTypePanelControl.getConfigurationPanelIds()) {
-						IWizardConfigurationPanel panel = transportTypePanelControl
-						                .getConfigurationPanel(id);
+						IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(id);
 						if (panel instanceof IDataExchangeNode3) {
 							((IDataExchangeNode3) panel).copyData(src, odc);
 						}
@@ -391,8 +390,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 		}
 
 		if (transportTypeControl != null) {
-			data.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl
-			                .getSelectedTransportType());
+			data.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl.getSelectedTransportType());
 		}
     }
 
@@ -551,10 +549,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 			}
 
 			if (transportTypePanelControl != null) {
-				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportType);
-				if (panel != null) {
-					isDirty |= panel.dataChanged(odc, e);
-				}
+				isDirty |= transportTypePanelControl.getConfigurationPanel(transportType).dataChanged(odc, e);
 			}
 		}
 
@@ -591,8 +586,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 		}
 
 		if (transportTypeControl != null) {
-			attributes.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl
-			                .getSelectedTransportType());
+			attributes.setProperty(IPeer.ATTR_TRANSPORT_NAME, transportTypeControl.getSelectedTransportType());
 		}
 	}
 
@@ -608,10 +602,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 			boolean enabled = !isReadOnly() && (!(input instanceof IPeerNode) || ((IPeerNode)input).getConnectState() == IConnectable.STATE_DISCONNECTED);
 			SWTControlUtil.setEnabled(transportTypeControl.getEditFieldControl(), enabled && SWTControlUtil.getItemCount(transportTypeControl.getEditFieldControl()) > 1);
 			if (transportTypePanelControl != null) {
-				IWizardConfigurationPanel panel = transportTypePanelControl.getConfigurationPanel(transportTypeControl.getSelectedTransportType());
-				if (panel != null) {
-					panel.setEnabled(enabled);
-				}
+				transportTypePanelControl.getConfigurationPanel(transportTypeControl.getSelectedTransportType()).setEnabled(enabled);
 			}
 		}
 	}
