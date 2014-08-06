@@ -87,11 +87,6 @@ public class ChannelTraceListenerManager {
 		// The trace listeners can be accessed only via AbstractChannel
 		if (!(channel instanceof AbstractChannel)) return;
 
-		// If the channel is opened to a ValueAdd, do not write a log file.
-		String value = channel.getRemotePeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
-		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
-		if (isValueAdd) return;
-
 		// Get the preference key if or if not logging is enabled
 		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
 		// If false, we are done here and wont create any console or trace listener.
@@ -242,11 +237,6 @@ public class ChannelTraceListenerManager {
 			CoreBundleActivator.getTraceHandler().trace("TraceListener.onMark ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
-
-		// If the channel is opened to a ValueAdd, do not write a log file.
-		String value = channel.getRemotePeer().getAttributes().get("ValueAdd"); //$NON-NLS-1$
-		boolean isValueAdd = value != null && ("1".equals(value.trim()) || Boolean.parseBoolean(value.trim())); //$NON-NLS-1$
-		if (isValueAdd) return;
 
 		// Get the preference key if or if not logging is enabled
 		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
