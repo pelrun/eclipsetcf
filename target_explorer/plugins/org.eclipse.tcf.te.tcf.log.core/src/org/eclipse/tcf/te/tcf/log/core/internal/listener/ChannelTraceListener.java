@@ -24,8 +24,8 @@ import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
 import org.eclipse.tcf.te.tcf.log.core.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.log.core.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.log.core.internal.LogManager;
 import org.eclipse.tcf.te.tcf.log.core.internal.nls.Messages;
+import org.eclipse.tcf.te.tcf.log.core.manager.LogManager;
 
 /**
  * TCF logging channel trace listener implementation.
@@ -43,15 +43,20 @@ public class ChannelTraceListener implements TraceListener {
 
 	// Reference to the channel
 	private final IChannel channel;
+	// The log name
+	private final String logname;
 
 	private final boolean reverseReceived;
 
 	/**
 	 * Constructor.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 */
-	public ChannelTraceListener(IChannel channel) {
+	public ChannelTraceListener(String logname, IChannel channel) {
+		this.logname = logname;
+
 		Assert.isNotNull(channel);
 		this.channel = channel;
 
@@ -88,7 +93,7 @@ public class ChannelTraceListener implements TraceListener {
 								  });
 
 		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(channel);
+		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
 		if (writer != null) {
 			try {
 				writer.write(message);
@@ -153,7 +158,7 @@ public class ChannelTraceListener implements TraceListener {
 		// Format the message
 		final String message = formatMessage(type, token, service, name, data, received);
 		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(channel);
+		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
 		if (writer != null) {
 			try {
 				writer.write(message);

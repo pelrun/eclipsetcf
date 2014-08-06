@@ -12,12 +12,15 @@ package org.eclipse.tcf.te.tcf.core.events;
 import java.util.EventObject;
 
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 
 /**
  * Channel event implementation.
  */
 public final class ChannelEvent extends EventObject {
     private static final long serialVersionUID = 864759021559875199L;
+
+    // Event type constants
 
     public static final String TYPE_OPENING = "opening"; //$NON-NLS-1$
 	public static final String TYPE_REDIRECT = "redirect"; //$NON-NLS-1$
@@ -26,12 +29,16 @@ public final class ChannelEvent extends EventObject {
 	public static final String TYPE_MARK = "mark"; //$NON-NLS-1$
 	public static final String TYPE_CLOSE_WRITER = "closeWriter"; //$NON-NLS-1$
 
+	// Property constants
+	public static final String PROP_MESSAGE = "message"; //$NON-NLS-1$
+	public static final String PROP_LOG_NAME = "logname"; //$NON-NLS-1$
+
 	// The channel
-	private IChannel channel;
+	private final IChannel channel;
 	// The event type
-	private String type;
-	// The optional message
-	private String message;
+	private final String type;
+	// The event data
+	private final IPropertiesContainer data;
 
 	/**
 	 * Constructor
@@ -39,9 +46,9 @@ public final class ChannelEvent extends EventObject {
 	 * @param source The source object. Must not be <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param type The event type. Must not be <code>null</code>.
-	 * @param message A message or <code>null</code>.
+	 * @param data The event data <code>null</code>.
 	 */
-	public ChannelEvent(Object source, IChannel channel, String type, String message) {
+	public ChannelEvent(Object source, IChannel channel, String type, IPropertiesContainer data) {
 		super(source);
 
 		if (channel == null) {
@@ -54,7 +61,7 @@ public final class ChannelEvent extends EventObject {
 
 		this.channel = channel;
 		this.type = type;
-		this.message = message;
+		this.data = data;
 	}
 
 	/**
@@ -76,11 +83,11 @@ public final class ChannelEvent extends EventObject {
 	}
 
 	/**
-	 * Returns the optional message.
+	 * Returns the event data.
 	 *
-	 * @return The optional message or <code>null</code>.
+	 * @return The event data or <code>null</code>.
 	 */
-	public String getMessage() {
-		return message;
+	public IPropertiesContainer getData() {
+		return data;
 	}
 }

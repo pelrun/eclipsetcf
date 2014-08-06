@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.log.core.internal;
+package org.eclipse.tcf.te.tcf.log.core.manager;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -127,26 +127,27 @@ public final class LogManager {
 	/**
 	 * Returns the file writer instance to use for the given channel.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @return The file writer instance or <code>null</code>.
 	 */
-	public FileWriter getWriter(IChannel channel) {
+	public FileWriter getWriter(String logname, IChannel channel) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Before looking up the writer, check the file limits
-		checkLimits(channel);
+		checkLimits(logname, channel);
 
-		String logName = getLogName(channel);
-		FileWriter writer = logName != null ? fileWriterMap.get(logName) : null;
-		if (writer == null && logName != null) {
+		if (logname == null) logname = getLogName(channel);
+		FileWriter writer = logname != null ? fileWriterMap.get(logname) : null;
+		if (writer == null && logname != null) {
 			// Create the writer
 			IPath path = getLogDir();
 			if (path != null) {
-				path = path.append(logName + ".log"); //$NON-NLS-1$
+				path = path.append(logname + ".log"); //$NON-NLS-1$
 				try {
 					writer = new FileWriter(path.toFile(), true);
-					fileWriterMap.put(logName, writer);
+					fileWriterMap.put(logname, writer);
 				} catch (IOException e) {
 					/* ignored on purpose */
 				}
@@ -159,16 +160,17 @@ public final class LogManager {
 	/**
 	 * Close the writer instance used for the given channel.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message The last message to write or <code>null</code>.
 	 */
-	public void closeWriter(IChannel channel, String message) {
+	public void closeWriter(String logname, IChannel channel, String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Remove the writer from the map
-		String logName = getLogName(channel);
-		FileWriter writer = logName != null ? fileWriterMap.remove(logName) : null;
+		if (logname == null) logname = getLogName(channel);
+		FileWriter writer = logname != null ? fileWriterMap.remove(logname) : null;
 		if (writer != null) {
 			try {
 				// If specified, write the last message.
@@ -222,11 +224,6 @@ public final class LogManager {
 		// Get the peer name
 		logName = peer.getName();
 
-		// If the locator communication logging is enabled, it will make sense to
-		// also log communication to the proxies which may not have a name attribute set
-		boolean locatorEvents =  CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS);
-		if (locatorEvents && logName == null) logName = peer.getID();
-
 		if (logName != null) {
 			// Get the peer host IP address
 			String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
@@ -254,7 +251,7 @@ public final class LogManager {
 	 * @param name The name. Must not be <code>null</code>.
 	 * @return The modified name.
 	 */
-	private String makeValid(String name) {
+	public String makeValid(String name) {
 		Assert.isNotNull(name);
 
 		String result = name.replaceAll("\\s", "_"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -312,10 +309,11 @@ public final class LogManager {
 	/**
 	 * Checks the limits set by the preferences.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @return The checked file writer instance.
 	 */
-	private void checkLimits(IChannel channel) {
+	private void checkLimits(String logname, IChannel channel) {
 		Assert.isNotNull(channel);
 
 		String logName = getLogName(channel);
@@ -330,7 +328,7 @@ public final class LogManager {
 						// Max log file size reached -> cycle files
 
 						// If there is an active writer, flush and close the writer
-						closeWriter(channel, null);
+						closeWriter(logname, channel, null);
 
 						// Determine if the maximum number of files in the cycle has been reached
 						File maxFileInCycle = path.append(logName + "_" + maxInCycle + ".log").toFile(); //$NON-NLS-1$ //$NON-NLS-2$

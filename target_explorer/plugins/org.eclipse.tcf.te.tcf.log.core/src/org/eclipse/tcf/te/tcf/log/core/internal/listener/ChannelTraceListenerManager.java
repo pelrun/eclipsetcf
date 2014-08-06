@@ -29,8 +29,8 @@ import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
 import org.eclipse.tcf.te.tcf.log.core.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.log.core.interfaces.ITracing;
-import org.eclipse.tcf.te.tcf.log.core.internal.LogManager;
 import org.eclipse.tcf.te.tcf.log.core.internal.nls.Messages;
+import org.eclipse.tcf.te.tcf.log.core.manager.LogManager;
 
 /**
  * TCF logging channel trace listener manager implementation.
@@ -70,10 +70,11 @@ public class ChannelTraceListenerManager {
 	/**
 	 * New channel opened. Attach a channel trace listener.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelOpened(final IChannel channel, String message) {
+	public void onChannelOpened(String logname, IChannel channel, String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -96,7 +97,7 @@ public class ChannelTraceListenerManager {
 		AbstractChannel.TraceListener traceListener = listeners.remove(channel);
 		if (traceListener != null) ((AbstractChannel)channel).removeTraceListener(traceListener);
 		// Create a new trace listener instance
-		traceListener = new ChannelTraceListener(channel);
+		traceListener = new ChannelTraceListener(logname, channel);
 		// Attach trace listener to the channel
 		((AbstractChannel)channel).addTraceListener(traceListener);
 		// Remember the associated trace listener
@@ -113,7 +114,7 @@ public class ChannelTraceListenerManager {
 								  		});
 
 		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(channel);
+		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
 		if (writer != null) {
 			try {
 				writer.write("\n\n\n"); //$NON-NLS-1$
@@ -144,10 +145,11 @@ public class ChannelTraceListenerManager {
 	 * This is the state where {@link IPeer#openChannel()} got called but no
 	 * further redirect or channel listener got invoked.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelOpening(final IChannel channel, String message) {
+	public void onChannelOpening(String logname, IChannel channel, String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -184,10 +186,11 @@ public class ChannelTraceListenerManager {
 	/**
 	 * Channel got redirected.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelRedirected(final IChannel channel, String message) {
+	public void onChannelRedirected(String logname, IChannel channel, String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -224,10 +227,11 @@ public class ChannelTraceListenerManager {
 	/**
 	 * Mark an event in the channel log.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onMark(final IChannel channel, String message) {
+	public void onMark(String logname, IChannel channel, String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -254,7 +258,7 @@ public class ChannelTraceListenerManager {
 								  		});
 
 		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(channel);
+		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
 		if (writer != null) {
 			try {
 				// Write the message
@@ -270,9 +274,10 @@ public class ChannelTraceListenerManager {
 	/**
 	 * Channel closed. Detach the channel trace listener if any.
 	 *
+	 * @param logname The log name or <code>null</code>.
 	 * @param channel The channel. Must not be <code>null</code>.
 	 */
-	public void onChannelClosed(final IChannel channel) {
+	public void onChannelClosed(String logname, final IChannel channel) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 

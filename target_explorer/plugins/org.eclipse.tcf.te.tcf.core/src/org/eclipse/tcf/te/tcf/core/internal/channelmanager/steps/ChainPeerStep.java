@@ -23,6 +23,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
@@ -42,6 +43,10 @@ public class ChainPeerStep extends AbstractPeerStep {
 	 */
 	@Override
 	public void validateExecute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) throws CoreException {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
 	}
 
 	/* (non-Javadoc)
@@ -57,6 +62,7 @@ public class ChainPeerStep extends AbstractPeerStep {
 
 		final AtomicReference<IChannel> channel = new AtomicReference<IChannel>((IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data));
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
+		final String logname = StepperAttributeUtil.getStringProperty(ITcfStepAttributes.ATTR_LOG_NAME, fullQualifiedId, data);
 
 		Runnable runnable = new Runnable() {
 			@Override
@@ -75,11 +81,21 @@ public class ChainPeerStep extends AbstractPeerStep {
 					channel.set(c);
 
 					String message = "to " + peer.getID(); //$NON-NLS-1$
-					ChannelEvent event = new ChannelEvent(ChainPeerStep.this, c, ChannelEvent.TYPE_OPENING, message);
+
+					IPropertiesContainer eventData = new PropertiesContainer();
+					eventData.setProperty(ChannelEvent.PROP_MESSAGE, message);
+					eventData.setProperty(ChannelEvent.PROP_LOG_NAME, logname);
+
+					ChannelEvent event = new ChannelEvent(ChainPeerStep.this, c, ChannelEvent.TYPE_OPENING, eventData);
 					EventManager.getInstance().fireEvent(event);
 				} else {
 					String message = c.getRemotePeer().getID() + " --> " + peer.getID(); //$NON-NLS-1$
-					ChannelEvent event = new ChannelEvent(ChainPeerStep.this, c, ChannelEvent.TYPE_REDIRECT, message);
+
+					IPropertiesContainer eventData = new PropertiesContainer();
+					eventData.setProperty(ChannelEvent.PROP_MESSAGE, message);
+					eventData.setProperty(ChannelEvent.PROP_LOG_NAME, logname);
+
+					ChannelEvent event = new ChannelEvent(ChainPeerStep.this, c, ChannelEvent.TYPE_REDIRECT, eventData);
 					EventManager.getInstance().fireEvent(event);
 
 					c.redirect(peer.getAttributes());

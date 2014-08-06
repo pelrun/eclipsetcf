@@ -41,4 +41,9 @@ public interface ITcfStepAttributes {
 	 * Step attribute: Flag if the peer should not be added to the list of peers to chain in {@link ChainPeersIterator}.
 	 */
 	public static final String ATTR_SKIP_PEER_TO_CHAIN = ITcfStepAttributes.ATTR_PREFIX + ".skip_peer_to_chain"; //$NON-NLS-1$
+
+	/**
+	 * Step attribute: The log file name
+	 */
+	public static final String ATTR_LOG_NAME = ITcfStepAttributes.ATTR_PREFIX + ".logname"; //$NON-NLS-1$
 }

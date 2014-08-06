@@ -17,8 +17,9 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventFireDelegate;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.events.ChannelEvent;
-import org.eclipse.tcf.te.tcf.log.core.internal.LogManager;
+import org.eclipse.tcf.te.tcf.log.core.manager.LogManager;
 
 /**
  * Channel event listener.
@@ -42,27 +43,32 @@ public final class EventListener extends PlatformObject implements IEventListene
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		if (event instanceof ChannelEvent) {
-			final IChannel channel = ((ChannelEvent)event).getChannel();
-			final String type = ((ChannelEvent)event).getType();
-			final String message = ((ChannelEvent)event).getMessage();
+			IChannel channel = ((ChannelEvent)event).getChannel();
+			String type = ((ChannelEvent)event).getType();
+			IPropertiesContainer data = ((ChannelEvent)event).getData();
+
+			String message = data != null ? data.getStringProperty(ChannelEvent.PROP_MESSAGE) : null;
+			String logname = data != null ? data.getStringProperty(ChannelEvent.PROP_LOG_NAME) : null;
+
+			if (logname != null) logname = LogManager.getInstance().makeValid(logname);
 
 			if (ChannelEvent.TYPE_OPENING.equals(type)) {
-				ChannelTraceListenerManager.getInstance().onChannelOpening(channel, message);
+				ChannelTraceListenerManager.getInstance().onChannelOpening(logname, channel, message);
 			}
 			else if (ChannelEvent.TYPE_REDIRECT.equals(type)) {
-				ChannelTraceListenerManager.getInstance().onChannelRedirected(channel, message);
+				ChannelTraceListenerManager.getInstance().onChannelRedirected(logname, channel, message);
 			}
 			else if (ChannelEvent.TYPE_OPEN.equals(type)) {
-				ChannelTraceListenerManager.getInstance().onChannelOpened(channel, message);
+				ChannelTraceListenerManager.getInstance().onChannelOpened(logname, channel, message);
 			}
 			else if (ChannelEvent.TYPE_CLOSE.equals(type)) {
-				ChannelTraceListenerManager.getInstance().onChannelClosed(channel);
+				ChannelTraceListenerManager.getInstance().onChannelClosed(logname, channel);
 			}
 			else if (ChannelEvent.TYPE_MARK.equals(type)) {
-				ChannelTraceListenerManager.getInstance().onMark(channel, message);
+				ChannelTraceListenerManager.getInstance().onMark(logname, channel, message);
 			}
 			else if (ChannelEvent.TYPE_CLOSE_WRITER.equals(type)) {
-				LogManager.getInstance().closeWriter(channel, message);
+				LogManager.getInstance().closeWriter(logname, channel, message);
 			}
 		}
 	}

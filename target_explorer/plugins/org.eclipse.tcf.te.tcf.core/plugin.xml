@@ -68,6 +68,10 @@
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ShutdownValueAddStep"
             label="%ShutdownValueAddStep.name"/>
             
+      <step
+            id="org.eclipse.tcf.te.tcf.core.channelmanager.calculateLogNameStep"
+            class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.CalculateLogNameStep"
+            label="%CalculateLogNameStep.name"/>
    </extension>
 
 <!-- Step contributions -->
@@ -75,6 +79,7 @@
       <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.openChannelStepGroup">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddsStepGroup"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.calculateLogNameStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeersStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.initializeLoggingStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.applyPathMapsStep"/>
