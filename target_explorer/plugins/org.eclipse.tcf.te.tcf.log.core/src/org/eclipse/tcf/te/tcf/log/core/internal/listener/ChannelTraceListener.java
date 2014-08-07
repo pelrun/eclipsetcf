@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.core.AbstractChannel.TraceListener;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.te.tcf.core.util.JSONUtils;
 import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
@@ -155,8 +156,16 @@ public class ChannelTraceListener implements TraceListener {
 			return;
 		}
 
+		// Decode the arguments again for tracing purpose
+		String args = JSONUtils.decodeStringFromByteArray(data);
+
+		// Filter out 'Diagnostic echo "ping"' and response
+		if (type == 'C' && IDiagnostics.NAME.equals(service) && "echo".equals(name) && "ping".equals(args)) { //$NON-NLS-1$ //$NON-NLS-2$
+			return;
+		}
+
 		// Format the message
-		final String message = formatMessage(type, token, service, name, data, received);
+		final String message = formatMessage(type, token, service, name, args, received);
 		// Get the file writer
 		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
 		if (writer != null) {
@@ -174,12 +183,9 @@ public class ChannelTraceListener implements TraceListener {
 	/**
 	 * Format the trace message.
 	 */
-	protected String formatMessage(char type, String token, String service, String name, byte[] data, boolean received) {
+	protected String formatMessage(char type, String token, String service, String name, String args, boolean received) {
 		// Get the current time stamp
 		String time = TIME_FORMAT.format(new Date(System.currentTimeMillis()));
-
-		// Decode the arguments again for tracing purpose
-		String args = JSONUtils.decodeStringFromByteArray(data);
 
 		// Construct the full message
 		//
