@@ -65,6 +65,8 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 	/* default */ final Map<String, StepperJob> pendingOpenChannel = new HashMap<String, StepperJob>();
 	// The map of scheduled "close channel" stepper jobs per channel
 	/* default */ final Map<IChannel, StepperJob> pendingCloseChannel = new HashMap<IChannel, StepperJob>();
+	// The map of channel to peer associations
+	/* default */ final Map<IChannel, IPeer> c2p = new HashMap<IChannel, IPeer>();
 
 	/**
 	 * Constructor
@@ -173,6 +175,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 				// Channel is not in open state -> drop the instance
 				channels.remove(id);
 				refCounters.remove(channel);
+				c2p.remove(channel);
 				channel = null;
 			}
 		}
@@ -235,6 +238,9 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 							if (!finForceNew) refCounters.put(channel, new AtomicInteger(1));
 							if (finForceNew) forcedChannels.add(channel);
 							if (finForceNew) forcedChannelFlags.put(channel, flags);
+
+							// Remember for which peer the channel got opened.
+							c2p.put(channel, peer);
 
 							// Job is done -> remove it from the list of pending jobs (shared channels only)
 							if (!finForceNew) pendingOpenChannel.remove(id);
@@ -339,6 +345,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 			// Channel is not in open state -> drop the instance
 			channels.remove(id);
 			refCounters.remove(channel);
+			c2p.remove(channel);
 			channel = null;
 		}
 
@@ -375,8 +382,11 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
+		// Determine the peer for the channel to close
+		IPeer p = c2p.get(channel);
+		final IPeer peer = p != null ? p : channel.getRemotePeer();
+
 		// Get the id of the remote peer
-		final IPeer peer = channel.getRemotePeer();
 		final String id = peer.getID();
 
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
@@ -461,6 +471,9 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 							if (!isRefCounted) forcedChannels.remove(channel);
 							if (!isRefCounted) forcedChannelFlags.remove(channel);
 
+							// Remove the channel / peer association
+							c2p.remove(channel);
+
 							if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_CHANNEL_MANAGER)) {
 								CoreBundleActivator.getTraceHandler().trace(NLS.bind(Messages.ChannelManager_closeChannel_closed_message, id),
 																			0, ITraceIds.TRACE_CHANNEL_MANAGER, IStatus.INFO, ChannelManager.this);
@@ -540,6 +553,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 			if (c.getState() == IChannel.STATE_CLOSED) {
 				iter.remove();
 				forcedChannelFlags.remove(c);
+				c2p.remove(c);
 			}
 		}
 	}
@@ -629,6 +643,8 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 		channels.clear();
 
 		for (IChannel channel : openChannels) internalCloseChannel(channel);
+
+		c2p.clear();
 	}
 
 	// ----- Streams handling -----
