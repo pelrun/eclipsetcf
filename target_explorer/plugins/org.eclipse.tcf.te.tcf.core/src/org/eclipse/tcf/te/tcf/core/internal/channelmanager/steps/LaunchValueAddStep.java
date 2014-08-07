@@ -32,6 +32,7 @@ import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
  * LaunchValueAddStep
  */
 public class LaunchValueAddStep extends AbstractPeerStep {
+	private static final String POSTFIX_KEEP_ALIVE = ".keepalive"; //$NON-NLS-1$
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.interfaces.IStep#validateExecute(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor)
@@ -74,9 +75,14 @@ public class LaunchValueAddStep extends AbstractPeerStep {
 							boolean alive = ((Boolean)getResult()).booleanValue();
 
 							if (!alive) {
+								// Value-add not running -> launch it now
 								valueAdd.launch(peerId, callback);
-							}
-							else {
+							} else {
+								// Value-add had been alive -> no value add shutdown to be executed
+								// in a possible roll back. Otherwise the value-add might be killed
+								// for other open channels.
+								StepperAttributeUtil.setProperty(valueAdd.getId() + POSTFIX_KEEP_ALIVE, fullQualifiedId, data, true);
+								// Invoke the callback
 								callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 							}
 						}
@@ -99,8 +105,9 @@ public class LaunchValueAddStep extends AbstractPeerStep {
 		final IValueAdd valueAdd = (IValueAdd)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_VALUE_ADD, fullQualifiedId, data);
 		final String peerId = getActivePeerContext(context, data, fullQualifiedId).getID();
 		final boolean useValueAdds = !StepperAttributeUtil.getBooleanProperty(IChannelManager.FLAG_NO_VALUE_ADD, fullQualifiedId, data);
+		final boolean keepalive = StepperAttributeUtil.getBooleanProperty(valueAdd.getId() + POSTFIX_KEEP_ALIVE, fullQualifiedId, data);
 
-		if (useValueAdds) {
+		if (useValueAdds && !keepalive) {
 			Runnable runnable = new Runnable() {
 				@SuppressWarnings("synthetic-access")
 				@Override
