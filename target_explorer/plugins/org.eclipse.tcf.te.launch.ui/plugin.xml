@@ -608,10 +608,11 @@
          </activeWhen>
          <enabledWhen>
             <with variable="selection">
-               <iterate 
-                     operator="and" 
-                     ifEmpty="false">
-                  <test property="org.eclipse.tcf.te.launch.ui.model.isValidLaunchConfig"/>
+               <iterate operator="and" ifEmpty="false">
+                  <and>
+                     <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
+                     <test property="org.eclipse.tcf.te.launch.ui.model.isValidLaunchConfig"/>
+                  </and>
                </iterate>
             </with>
          </enabledWhen>
@@ -658,10 +659,11 @@
          </activeWhen>
          <enabledWhen>
             <with variable="selection">
-               <iterate 
-                     operator="and" 
-                     ifEmpty="false">
-                  <test property="org.eclipse.tcf.te.launch.ui.model.canRefresh"/>
+               <iterate operator="and" ifEmpty="false">
+                  <and>
+                     <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
+                     <test property="org.eclipse.tcf.te.launch.ui.model.canRefresh"/>
+                  </and>
                </iterate>
             </with>
          </enabledWhen>
@@ -696,10 +698,9 @@
          <enabledWhen>
             <with variable="selection">
                <count value="1"/>
-               <iterate 
-                     operator="and" 
-                     ifEmpty="false">
+               <iterate  operator="and" ifEmpty="false">
                   <and>
+                     <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
                      <test property="org.eclipse.tcf.te.launch.ui.model.isLaunchConfig"/>
                      <test property="org.eclipse.tcf.te.launch.ui.model.isValidLaunchConfig" value="run"/>
                   </and>
@@ -723,6 +724,7 @@
                <count value="1"/>
                <iterate  operator="and" ifEmpty="false">
                   <and>
+                     <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
                      <test property="org.eclipse.tcf.te.launch.ui.model.isLaunchConfig"/>
                      <test property="org.eclipse.tcf.te.launch.ui.model.isValidLaunchConfig" value="debug"/>
                   </and>
@@ -862,10 +864,9 @@
       <definition id="launch.expressions.isSingleLaunchConfig">
           <with variable="selection">
              <count value="1"/>
-             <iterate
-                   ifEmpty="false"
-                   operator="and">
+             <iterate ifEmpty="false" operator="and">
 	            <and>
+                   <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
                    <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
                    <test property="org.eclipse.tcf.te.launch.ui.model.isLaunchConfig"/>
                 </and>
@@ -874,10 +875,9 @@
       </definition>
       <definition id="launch.expressions.isMultiLaunchConfig">
           <with variable="selection">
-             <iterate
-                   ifEmpty="false"
-                   operator="and">
+             <iterate ifEmpty="false" operator="and">
 	            <and>
+                   <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
                    <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
                    <test property="org.eclipse.tcf.te.launch.ui.model.isLaunchConfig"/>
                 </and>
