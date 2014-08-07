@@ -160,7 +160,8 @@ public class ChannelTraceListener implements TraceListener {
 		String args = JSONUtils.decodeStringFromByteArray(data);
 
 		// Filter out 'Diagnostic echo "ping"' and response
-		if (type == 'C' && IDiagnostics.NAME.equals(service) && "echo".equals(name) && "ping".equals(args)) { //$NON-NLS-1$ //$NON-NLS-2$
+		if ((type == 'C' && IDiagnostics.NAME.equals(service) && "echo".equals(name) && "\"ping\"".equals(args)) //$NON-NLS-1$ //$NON-NLS-2$
+				|| (type == 'R' && service == null && name == null && "\"ping\"".equals(args))) { //$NON-NLS-1$
 			return;
 		}
 
