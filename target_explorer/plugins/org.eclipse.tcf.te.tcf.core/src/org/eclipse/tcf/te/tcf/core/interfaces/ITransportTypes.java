@@ -42,4 +42,14 @@ public interface ITransportTypes {
 	 * Custom transport type.
 	 */
 	public static final String TRANSPORT_TYPE_CUSTOM = "Custom"; //$NON-NLS-1$
+
+	/**
+	 * Transport type "UDP".
+	 */
+	public static final String TRANSPORT_TYPE_UDP = "UDP"; //$NON-NLS-1$
+
+	/**
+	 * Transport type "Serial".
+	 */
+	public static final String TRANSPORT_TYPE_SERIAL = "Serial"; //$NON-NLS-1$
 }

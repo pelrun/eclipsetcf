@@ -48,6 +48,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	private ConfigNameControl configName = null;
 	private AbstractSection selectorSection = null;
 	private AbstractSection detailsSection = null;
+	private AbstractSection[] additionalSections = null;
 	/* default */ Button launchDbg = null;
 	/* default */ Button connect = null;
 	private Button advancedButton = null;
@@ -151,6 +152,12 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		if (configName != null) { configName.dispose(); configName = null; }
 		if (selectorSection != null) { selectorSection.dispose(); selectorSection = null; }
 		if (detailsSection != null) { detailsSection.dispose(); detailsSection = null; }
+		if (additionalSections != null) {
+			for (AbstractSection additionalSection : additionalSections) {
+				additionalSection.dispose();
+			}
+			additionalSections = null;
+		}
 
 		super.dispose();
 	}
@@ -179,6 +186,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		if (detailsSection != null) {
 			detailsSection.getSection().setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
 		}
+
+		additionalSections = doCreateAdditionalSections(getManagedForm(), parent);
+		for (AbstractSection additionalSection : additionalSections) {
+			additionalSection.getSection().setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+        }
 
 		Composite panel = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout(1, true);
@@ -267,6 +279,19 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 */
 	protected abstract AbstractSection doCreateDetailsSection(IManagedForm form, Composite parent);
 
+	protected AbstractSection[] doCreateAdditionalSections(IManagedForm form, Composite parent) {
+		return new AbstractSection[0];
+	}
+
+	/**
+	 * Returns the additional sections instances.
+	 *
+	 * @return The additional sections instances or <code>null</code> if not yet created.
+	 */
+	protected final AbstractSection[] getAdditionalSection() {
+		return additionalSections;
+	}
+
 	/**
 	 * Returns the details section instance.
 	 *
@@ -349,6 +374,8 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 * @param customID The custom ID to bind with the default configuration name template, or <code>null</code>.
 	 */
 	public void autoGenerateConfigurationName(String customID) {
+		customID = customID.replaceAll("[^0-9a-zA-Z. _()-]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+
 		// Get the default configuration name template
 		String template = getDefaultConfigNameTemplate();
 		Assert.isNotNull(template);
@@ -418,6 +445,13 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			result.setResult(detailsSection);
 		}
 
+		if (additionalSections != null) {
+			for (AbstractSection additionalSection : additionalSections) {
+				valid &= additionalSection.isValid();
+				result.setResult(additionalSection);
+            }
+		}
+
 		result.setValid(valid);
 
 		return result;
@@ -454,6 +488,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		}
 		if (detailsSection != null) {
 			updateAttribute(detailsSection, peerAttributes);
+		}
+		if (additionalSections != null) {
+			for (AbstractSection additionalSection : additionalSections) {
+				updateAttribute(additionalSection, peerAttributes);
+            }
 		}
 	}
 
@@ -499,6 +538,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		if (detailsSection instanceof IDataExchangeNode) {
 			((IDataExchangeNode)detailsSection).setupData(data);
 		}
+		if (additionalSections != null) {
+			for (AbstractSection additionalSection : additionalSections) {
+				((IDataExchangeNode)additionalSection).setupData(data);
+            }
+		}
 	}
 
 	/* (non-Javadoc)
@@ -515,6 +559,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			}
 			if (detailsSection != null) {
 				detailsSection.saveWidgetValues(settings);
+			}
+			if (additionalSections != null) {
+				for (AbstractSection additionalSection : additionalSections) {
+					additionalSection.saveWidgetValues(settings);
+	            }
 			}
 		}
 	}
@@ -533,6 +582,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			}
 			if (detailsSection != null) {
 				detailsSection.restoreWidgetValues(settings);
+			}
+			if (additionalSections != null) {
+				for (AbstractSection additionalSection : additionalSections) {
+					additionalSection.restoreWidgetValues(settings);
+	            }
 			}
 		}
 	}

@@ -67,6 +67,8 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	    	panel.setLayout(new GridLayout());
 	    	panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
+	    	panel.setBackground(parent.getBackground());
+
 	    	setControl(panel);
 	    }
 
@@ -260,6 +262,7 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 			activeConfigurationPanelKey = key;
 			panelLayout.topControl = configPanel.getControl();
 			panel.layout();
+			configPanel.activate();
 		}
 	}
 

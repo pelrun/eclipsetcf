@@ -92,4 +92,9 @@ public interface IWizardConfigurationPanel extends IMessageProvider {
 	 * @param enabled <code>True</code> to enable the UI elements, <code>false</code> otherwise.
 	 */
 	public void setEnabled(boolean enabled);
+
+	/**
+	 * Called when the panel gets the active panel.
+	 */
+	public void activate();
 }

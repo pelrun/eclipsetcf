@@ -127,4 +127,11 @@ public abstract class AbstractWizardConfigurationPanel implements IWizardConfigu
 		setMessage(null, NONE);
 		return true;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#activate()
+	 */
+	@Override
+	public void activate() {
+	}
 }

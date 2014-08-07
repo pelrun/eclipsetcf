@@ -60,6 +60,8 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 
 	// Flag to remember the read-only state
 	/* default */ boolean readOnly = false;
+	// Flag to remember the enabled state
+	/* default */ boolean enabled = true;
 
 	/**
 	 * Constructor.
@@ -356,6 +358,22 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	 */
 	public boolean isReadOnly() {
 		return readOnly;
+	}
+
+	/**
+	 * Set the sections enabled state.
+	 * @param readOnly <code>true</code> if the sections controls should be enabled.
+	 */
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	/**
+	 * Get the enabled state of this section.
+	 * @return The enabled state.
+	 */
+	public boolean isEnabled() {
+		return enabled;
 	}
 
 	/* (non-Javadoc)
