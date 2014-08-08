@@ -17,6 +17,7 @@ import org.eclipse.jface.fieldassist.FieldDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.tcf.te.ui.controls.nls.Messages;
 
 /**
  * AbstractDecoratedDialogPageControl
@@ -119,6 +120,7 @@ public abstract class AbstractDecoratedDialogPageControl extends BaseDialogPageC
 				else {
 					fieldDeco = registry.getFieldDecoration(FieldDecorationRegistry.DEC_CONTENT_PROPOSAL);
 					if (fieldDeco != null) {
+						getControlDecoration().setDescriptionText(Messages.AbstractDecoratedDialogPageControl_contentAssist_message);
 						getControlDecoration().setImage(fieldDeco.getImage());
 						getControlDecoration().show();
 					}

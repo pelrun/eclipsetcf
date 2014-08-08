@@ -55,6 +55,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 
 	protected boolean autoConnect = false;
 	protected boolean autoLaunchDbg = false;
+	protected boolean isAutoLaunchDbgEnabled = true;
 
 	// The list of existing configuration names. Used to generate a unique name
 	// and validate the wizard
@@ -421,6 +422,13 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		return autoLaunchDbg;
 	}
 
+	protected final void setIsAutoStartDebugger(boolean autoLaunchDbg) {
+		this.autoLaunchDbg = autoLaunchDbg;
+		if (launchDbg != null) {
+			launchDbg.setSelection(autoLaunchDbg);
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#doValidate()
 	 */
@@ -588,6 +596,12 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 					additionalSection.restoreWidgetValues(settings);
 	            }
 			}
+		}
+	}
+
+	protected void updateEnablement() {
+		if (launchDbg != null) {
+			launchDbg.setEnabled(isAutoLaunchDbgEnabled);
 		}
 	}
 }

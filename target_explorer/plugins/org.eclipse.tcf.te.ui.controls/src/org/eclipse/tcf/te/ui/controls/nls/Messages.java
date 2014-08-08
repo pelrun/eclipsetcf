@@ -70,6 +70,8 @@ public class Messages extends NLS {
 	public static String BaseEditBrowseTextControl_button_label;
 	public static String BaseEditBrowseTextControl_validationJob_name;
 
+	public static String AbstractDecoratedDialogPageControl_contentAssist_message;
+
 	public static String DirectorySelectionControl_title;
 	public static String DirectorySelectionControl_group_label;
 	public static String DirectorySelectionControl_editfield_label;
