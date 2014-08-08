@@ -48,7 +48,7 @@ public class RegexValidator extends Validator {
 
 		// info message when value is empty and mandatory
 		if (newText == null || newText.trim().length() == 0) {
-			if (isAttribute(ATTR_MANDATORY)) {
+			if (isMandatory()) {
 				setMessage(getMessageText(INFO_MISSING_VALUE), getMessageTextType(INFO_MISSING_VALUE, INFORMATION));
 				return false;
 			}

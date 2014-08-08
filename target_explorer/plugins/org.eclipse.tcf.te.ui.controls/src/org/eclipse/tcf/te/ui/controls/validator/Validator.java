@@ -85,6 +85,14 @@ public abstract class Validator implements IMessageProvider, ICellEditorValidato
 	}
 
 	/**
+	 * Returns if a value is mandatory.
+	 * @return
+	 */
+	public boolean isMandatory() {
+		return isAttribute(ATTR_MANDATORY);
+	}
+
+	/**
 	 * Returns true if the argument is set.
 	 * @param attribute The argument to ask for.
 	 * @return

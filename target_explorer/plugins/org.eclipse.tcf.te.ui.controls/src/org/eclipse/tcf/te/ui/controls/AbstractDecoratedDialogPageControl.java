@@ -113,7 +113,16 @@ public abstract class AbstractDecoratedDialogPageControl extends BaseDialogPageC
 			}
 
 			if (message == null || messageType == IMessageProvider.NONE) {
-				getControlDecoration().hide();
+				if (!hasContentAssist()) {
+					getControlDecoration().hide();
+				}
+				else {
+					fieldDeco = registry.getFieldDecoration(FieldDecorationRegistry.DEC_CONTENT_PROPOSAL);
+					if (fieldDeco != null) {
+						getControlDecoration().setImage(fieldDeco.getImage());
+						getControlDecoration().show();
+					}
+				}
 			}
 			else {
 				getControlDecoration().show();
@@ -128,5 +137,9 @@ public abstract class AbstractDecoratedDialogPageControl extends BaseDialogPageC
 	 */
 	public final ControlDecoration getControlDecoration() {
 		return controlDecoration;
+	}
+
+	protected boolean hasContentAssist() {
+		return false;
 	}
 }
