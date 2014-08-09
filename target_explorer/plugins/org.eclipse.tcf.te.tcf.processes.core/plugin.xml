@@ -137,7 +137,7 @@
          <references>
             <reference
                   id="org.eclipse.tcf.te.tcf.processes.core.disposeModelStep"
-                  insertAfter="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
+                  insertBefore="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
          </references>
       </stepGroup>
 
@@ -153,7 +153,7 @@
          <references>
             <reference
                   id="org.eclipse.tcf.te.tcf.processes.core.disposeModelStep"
-                  insertAfter="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
+                  insertBefore="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
          </references>
       </stepGroup>
 
