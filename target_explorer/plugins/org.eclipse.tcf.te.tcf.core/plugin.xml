@@ -37,6 +37,11 @@
             id="org.eclipse.tcf.te.tcf.core.shutDownStep"
             class="org.eclipse.tcf.te.tcf.core.steps.ShutDownStep"
             label="%ShutDownStep.name"/>
+
+      <step
+            id="org.eclipse.tcf.te.tcf.core.getChannelStep"
+            class="org.eclipse.tcf.te.tcf.core.steps.GetChannelStep"
+            label="%GetChannelStep.name"/>
             
       <step
             id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddStep"

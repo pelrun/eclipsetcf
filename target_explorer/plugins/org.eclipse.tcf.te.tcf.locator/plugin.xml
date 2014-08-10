@@ -234,6 +234,7 @@
             	<parameter name="stateOnError" value="disconnected" />
             </reference>
             <reference id="org.eclipse.tcf.te.runtime.stepper.cancelJobsStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.getChannelStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
