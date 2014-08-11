@@ -30,6 +30,26 @@
       </delegate>
    </extension>
 
+<!-- Menu contributions -->
+   <extension point="org.eclipse.ui.menus">
+      <!-- Project Explorer "Show In" contribution -->
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.terminals.ProjectExplorer.menu.showIn?after=additions">
+         <command
+               commandId="org.eclipse.tcf.te.ui.terminals.local.command.launch"
+               id="rg.eclipse.tcf.te.ui.terminals.local.commands.showin.launch"
+               label="%menu.showIn.localterminal.label"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <adapt type="org.eclipse.core.resources.IResource"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+
 <!-- Command contributions -->
    <extension point="org.eclipse.ui.commands">
       <command
@@ -38,6 +58,13 @@
             id="org.eclipse.tcf.te.ui.terminals.local.command.launch"
             name="%command.launch.name">
       </command>
+   </extension>
+
+   <extension point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.eclipse.tcf.te.ui.terminals.local.command.launch"
+            icon="icons/eview16/terminal_view.gif">
+      </image>
    </extension>
 
 <!-- Key bindings -->
@@ -55,5 +82,7 @@
             class="org.eclipse.tcf.te.ui.terminals.local.launcher.LocalLauncherHandler"
             commandId="org.eclipse.tcf.te.ui.terminals.local.command.launch">
       </handler>
-   </extension>   
+   </extension>
+   
+<!-- Perspective contributions -->
 </plugin>
