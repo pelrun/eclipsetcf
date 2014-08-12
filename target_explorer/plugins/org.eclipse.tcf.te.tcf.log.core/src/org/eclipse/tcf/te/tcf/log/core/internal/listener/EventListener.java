@@ -70,6 +70,9 @@ public final class EventListener extends PlatformObject implements IEventListene
 			else if (ChannelEvent.TYPE_CLOSE_WRITER.equals(type)) {
 				LogManager.getInstance().closeWriter(logname, channel, message);
 			}
+			else if (ChannelEvent.TYPE_SERVICS.equals(type)) {
+				ChannelTraceListenerManager.getInstance().onChannelServices(logname, channel, message);
+			}
 		}
 	}
 

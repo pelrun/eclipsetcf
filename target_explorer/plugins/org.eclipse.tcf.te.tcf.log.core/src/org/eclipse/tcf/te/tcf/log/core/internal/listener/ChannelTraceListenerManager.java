@@ -153,8 +153,6 @@ public class ChannelTraceListenerManager {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		// The trace listener interface does not have a onChannelOpenend method, but
-		// for consistency, log the channel opening similar to the others.
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelOpening ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
@@ -194,8 +192,6 @@ public class ChannelTraceListenerManager {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		// The trace listener interface does not have a onChannelOpenend method, but
-		// for consistency, log the channel opening similar to the others.
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelRedirected ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
@@ -210,6 +206,45 @@ public class ChannelTraceListenerManager {
 		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
 		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelRedirected_message,
+										new Object[] {
+											date,
+											Integer.toHexString(channel.hashCode()),
+											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+								  		});
+
+		List<String> queue = queued.get(channel);
+		if (queue == null) {
+			queue = new ArrayList<String>();
+			queued.put(channel, queue);
+		}
+		queue.add(fullMessage);
+	}
+
+	/**
+	 * Channel remote services got queried.
+	 *
+	 * @param logname The log name or <code>null</code>.
+	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param message A message or <code>null</code>.
+	 */
+	public void onChannelServices(String logname, IChannel channel, String message) {
+		Assert.isNotNull(channel);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
+			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelServices ( " + channel + ", \"" + message + "\" )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
+		}
+
+		// Get the preference key if or if not logging is enabled
+		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
+		// If false, we are done here and wont create any console or trace listener.
+		if (!loggingEnabled) return;
+
+		// Log the channel opening
+		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+
+		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelServices_message,
 										new Object[] {
 											date,
 											Integer.toHexString(channel.hashCode()),
