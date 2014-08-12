@@ -22,4 +22,14 @@ public interface IPeerProperties {
 	 *           must be decoded using {@link PeerDataHelper#decodePeerList(String)}.
 	 */
 	public static final String PROP_PROXIES = "Proxies"; //$NON-NLS-1$
+
+	/**
+	 * Property: The version of the connection.
+	 */
+	public static final String PROP_VERSION = "Version";  //$NON-NLS-1$
+
+	/**
+	 * Property: <code>true</code> if this connection was already migrated to a higher version.
+	 */
+	public static final String PROP_MIGRATED = "Migrated";  //$NON-NLS-1$
 }

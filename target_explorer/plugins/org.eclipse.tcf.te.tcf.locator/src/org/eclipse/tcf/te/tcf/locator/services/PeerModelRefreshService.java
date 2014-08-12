@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.tcf.locator.services;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,8 +28,12 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelMigrationDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -39,6 +42,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshServi
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelUpdateService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelLocationUtil;
 import org.eclipse.tcf.te.tcf.locator.nodes.PeerNode;
+import org.osgi.framework.Version;
 
 
 /**
@@ -209,12 +213,45 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 								}
 								attrs.put(IPeer.ATTR_ID, id);
 							}
-
 							// Construct the peer from the attributes
 							IPeer peer = new Peer(attrs);
-							// Add the constructed peer to the peers map
-							peers.put(peer.getID(), peer);
-						} catch (IOException e) {
+
+							IPeerModelMigrationDelegate delegate = null;
+							for (IService delegateService : ServiceManager.getInstance().getServices(peer, IDelegateService.class, false)) {
+								delegate = ((IDelegateService)delegateService).getDelegate(peer, IPeerModelMigrationDelegate.class);
+								if (delegate != null) break;
+                            }
+							if (delegate != null) {
+								Version activeVersion = delegate.getVersion();
+								String version = attrs.get(IPeerProperties.PROP_VERSION);
+								String value = attrs.get(IPeerProperties.PROP_MIGRATED);
+								boolean migrated = value != null && Boolean.parseBoolean(value);
+								Version peerVersion = version != null ? new Version(version.trim()) : Version.emptyVersion;
+								if (peerVersion.compareTo(activeVersion) == 0) {
+									// Add the peer to the peers map
+									peers.put(peer.getID(), peer);
+								}
+								else if (!migrated) {
+									IPeer migratedPeer = delegate.migrate(peer);
+									if (migratedPeer != null) {
+										attrs.put(IPeerProperties.PROP_MIGRATED, Boolean.TRUE.toString());
+										service.write(new Peer(attrs), null);
+
+										attrs = new HashMap<String, String>(migratedPeer.getAttributes());
+										attrs.put(IPersistableNodeProperties.PROPERTY_URI, null);
+										attrs.put(IPeerProperties.PROP_VERSION, activeVersion.toString());
+										peer = new Peer(attrs);
+										service.write(peer, null);
+										// Add the migrated peer to the peers map
+										peers.put(peer.getID(), peer);
+									}
+								}
+							}
+							else {
+								// Add the peer to the peers map
+								peers.put(peer.getID(), peer);
+							}
+						} catch (Throwable e) {
 							/* ignored on purpose */
 						}
 					}

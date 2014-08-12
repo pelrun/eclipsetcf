@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.internal.adapters;
 
+import java.io.File;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,9 +19,11 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.adapters.ModelNodePersistableURIProvider;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.locator.model.ModelLocationUtil;
+import org.osgi.framework.Version;
 
 /**
  * Persistable implementation handling peer attributes.
@@ -62,6 +65,7 @@ public class PeerPersistableURIProvider extends ModelNodePersistableURIProvider 
 		if (peer != null) {
 			// Get the URI the peer model has been created from
 			final AtomicReference<URI> nodeURI = new AtomicReference<URI>();
+			final AtomicReference<Version> version = new AtomicReference<Version>();
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
@@ -69,6 +73,8 @@ public class PeerPersistableURIProvider extends ModelNodePersistableURIProvider 
 					if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 						nodeURI.set(URI.create(value.trim()));
 					}
+					value = peer.getAttributes().get(IPeerProperties.PROP_VERSION);
+					version.set(value != null ? new Version(value.trim()) : Version.emptyVersion);
 				}
 			};
 			if (Protocol.isDispatchThread()) {
@@ -89,8 +95,23 @@ public class PeerPersistableURIProvider extends ModelNodePersistableURIProvider 
 				}
 				name = makeValidFileSystemName(name);
 				// Get the URI from the name
-				uri = getRoot().append(name).toFile().toURI();
-
+				uri = getRoot().append(name+".peer").toFile().toURI(); //$NON-NLS-1$
+				try {
+					File file = new File(uri.normalize());
+					if (file.exists()) {
+						name = makeValidFileSystemName(name + "_" + version.toString()); //$NON-NLS-1$
+						uri = getRoot().append(name+".peer").toFile().toURI(); //$NON-NLS-1$
+					}
+					file = new File(uri.normalize());
+					int i = 1;
+					while (file.exists()) {
+						name = makeValidFileSystemName(name + "_" + i); //$NON-NLS-1$
+						uri = getRoot().append(name+".peer").toFile().toURI(); //$NON-NLS-1$
+						i++;
+					}
+				}
+				catch (Exception e) {
+				}
 			}
 		}
 
