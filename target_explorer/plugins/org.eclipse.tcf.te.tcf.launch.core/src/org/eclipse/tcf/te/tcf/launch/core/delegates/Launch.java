@@ -21,7 +21,9 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IPathMap.DoneSet;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
@@ -86,7 +88,10 @@ public final class Launch extends TCFLaunch {
 		Assert.isNotNull(node);
 		Assert.isNotNull(callback);
 
-		final String name = node.getPeer().getName();
+		// Remember the peer node
+		properties.setProperty("node", node); //$NON-NLS-1$
+		// Determine the peer name to pass on to the TCF launch
+		final String name = node.getName();
 
 		// The debugger is using it's own channel as the implementation
 		// calls for channel.terminate(...) directly
@@ -128,6 +133,19 @@ public final class Launch extends TCFLaunch {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#getPeerName(org.eclipse.tcf.protocol.IPeer)
+	 */
+	@Override
+	protected String getPeerName(IPeer peer) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(peer);
+
+		IPeerNode node = (IPeerNode)properties.getProperty("node"); //$NON-NLS-1$
+
+	    return node != null ? node.getName() : super.getPeerName(peer);
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#readCustomPathMapConfiguration(org.eclipse.tcf.protocol.IChannel, org.eclipse.debug.core.ILaunchConfiguration, java.util.List)
 	 */
 	@Override
@@ -136,9 +154,12 @@ public final class Launch extends TCFLaunch {
 		Assert.isNotNull(cfg);
 		Assert.isNotNull(host_path_map);
 
-        IPathMapGeneratorService generator = ServiceManager.getInstance().getService(channel.getRemotePeer(), IPathMapGeneratorService.class);
+		IPeerNode node = (IPeerNode)properties.getProperty("node"); //$NON-NLS-1$
+		IPeer peer = node != null ? node.getPeer() : channel.getRemotePeer();
+
+        IPathMapGeneratorService generator = ServiceManager.getInstance().getService(peer, IPathMapGeneratorService.class);
         if (generator != null) {
-        	PathMapRule[] generatedRules = generator.getPathMap(channel.getRemotePeer());
+        	PathMapRule[] generatedRules = generator.getPathMap(peer);
         	if (generatedRules != null && generatedRules.length > 0) {
         		host_path_map.addAll(Arrays.asList(generatedRules));
         	}
