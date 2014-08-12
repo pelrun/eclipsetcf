@@ -1296,6 +1296,20 @@ public class TCFLaunch extends Launch {
         return peer_name;
     }
 
+    /**
+     * Returns the name for the given peer. Overwrite to customize
+     * the peer name shown.
+     * 
+     * @param peer The peer. Must not be <code>null</code>.
+     * @return The peer name. Must be never <code>null</code>.
+     */
+    protected String getPeerName(IPeer peer) {
+        assert Protocol.isDispatchThread();
+        assert peer != null;
+        
+        return peer.getName();
+    }
+    
     public <V extends IService> V getService(Class<V> cls) {
         assert Protocol.isDispatchThread();
         return channel.getRemoteService(cls);
@@ -1437,13 +1451,13 @@ public class TCFLaunch extends Launch {
             String id0 = redirection_path.removeFirst();
             IPeer peer = Protocol.getLocator().getPeers().get(id0);
             if (peer == null) throw new Exception("Cannot locate peer " + id0);
-            peer_name = peer.getName();
+            peer_name = getPeerName(peer);
             channel = peer.openChannel();
             channel.addChannelListener(new IChannel.IChannelListener() {
 
                 public void onChannelOpened() {
                     try {
-                        peer_name = getPeer().getName();
+                        peer_name = getPeerName(getPeer());
                         onConnected();
                     }
                     catch (Throwable x) {
@@ -1489,7 +1503,7 @@ public class TCFLaunch extends Launch {
 
                 public void onChannelOpened() {
                     try {
-                        TCFLaunch.this.peer_name = getPeer().getName();
+                        TCFLaunch.this.peer_name = getPeerName(getPeer());
                         onConnected();
                     }
                     catch (Throwable x) {
