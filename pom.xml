@@ -105,40 +105,6 @@
                 <module>tests/plugins/org.eclipse.tcf.debug.test</module>
                 -->
             </modules>
-
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.eclipse.tycho</groupId>
-                            <artifactId>target-platform-configuration</artifactId>
-                            <configuration>
-                                <dependency-resolution>
-                                    <extraRequirements>
-                                        <requirement>
-                                            <type>eclipse-feature</type>
-                                            <id>org.eclipse.sdk</id>
-                                            <versionRange>0.0.0</versionRange>
-                                        </requirement>
-                                        <requirement>
-                                            <type>eclipse-feature</type>
-                                            <id>>org.eclipse.tcf.te.tcf.feature</id>
-                                            <versionRange>0.0.0</versionRange>
-                                        </requirement>
-                                        <!--
-                                        <requirement>
-                                            <type>eclipse-plugin</type>
-                                            <id>org.eclipse.tcf.te.tests</id>
-                                            <versionRange>0.0.0</versionRange>
-                                        </requirement>
-                                        -->
-                                    </extraRequirements>
-                                </dependency-resolution>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
         </profile>
     </profiles>
 </project>
