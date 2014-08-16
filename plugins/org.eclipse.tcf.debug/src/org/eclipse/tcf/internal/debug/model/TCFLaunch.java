@@ -1299,17 +1299,17 @@ public class TCFLaunch extends Launch {
     /**
      * Returns the name for the given peer. Overwrite to customize
      * the peer name shown.
-     * 
+     *
      * @param peer The peer. Must not be <code>null</code>.
      * @return The peer name. Must be never <code>null</code>.
      */
     protected String getPeerName(IPeer peer) {
         assert Protocol.isDispatchThread();
         assert peer != null;
-        
+
         return peer.getName();
     }
-    
+
     public <V extends IService> V getService(Class<V> cls) {
         assert Protocol.isDispatchThread();
         return channel.getRemoteService(cls);

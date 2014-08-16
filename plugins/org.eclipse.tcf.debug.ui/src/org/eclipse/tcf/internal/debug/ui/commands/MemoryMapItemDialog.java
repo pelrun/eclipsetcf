@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -270,8 +270,9 @@ class MemoryMapItemDialog extends Dialog {
     private void getData() {
         getNumber(addr_text, IMemoryMap.PROP_ADDRESS);
         getNumber(size_text, IMemoryMap.PROP_SIZE);
-        if (offset_text.getText().startsWith(".")) {
-            props.put(IMemoryMap.PROP_SECTION_NAME, offset_text.getText());
+        String s = offset_text.getText().trim();
+        if (s.length() > 0 && !Character.isDigit(s.charAt(0))) {
+            props.put(IMemoryMap.PROP_SECTION_NAME, s);
             props.remove(IMemoryMap.PROP_OFFSET);
         }
         else {
