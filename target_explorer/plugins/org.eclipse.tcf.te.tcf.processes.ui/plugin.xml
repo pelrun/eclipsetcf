@@ -197,6 +197,8 @@
                      <and>
                         <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
                         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
                            <test
                                  forcePluginActivation="true"
                                  property="org.eclipse.tcf.te.runtime.services.hasService"
@@ -447,12 +449,38 @@
 
    <!-- Main toolbar contributions -->
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach"/>
+         <command commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach">
+            <visibleWhen checkEnabled="false">
+               <with variable="defaultContextSelection">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
+                     <test
+                           forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                  </adapt>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
 
    <!-- System menu contributions -->
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach"/>
+         <command commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach">
+            <visibleWhen checkEnabled="false">
+               <with variable="defaultContextSelection">
+                  <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                     <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="Processes"/>
+                     <test
+                           forcePluginActivation="true"
+                           property="org.eclipse.tcf.te.runtime.services.hasService"
+                           value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                  </adapt>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
 
    </extension>
