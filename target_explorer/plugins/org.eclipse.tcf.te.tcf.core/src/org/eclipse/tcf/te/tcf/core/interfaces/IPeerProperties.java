@@ -32,4 +32,11 @@ public interface IPeerProperties {
 	 * Property: <code>true</code> if this connection was already migrated to a higher version.
 	 */
 	public static final String PROP_MIGRATED = "Migrated";  //$NON-NLS-1$
+
+	/**
+	 * Property: The list of supported platforms.
+	 */
+	public static final String ATTR_PLATFORMS = "Platforms"; //$NON-NLS-1$
+
 }
+

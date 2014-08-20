@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.internal.core.RemotePeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -125,6 +126,18 @@ public class PeerModelPropertyTester extends PropertyTester {
 			String value = peer.getAttributes().get(IPeerNodeProperties.PROP_TYPE);
 			if (expectedValue instanceof String) {
 				return value != null ? ((String)expectedValue).equals(value) : ((String)expectedValue).equalsIgnoreCase("null"); //$NON-NLS-1$
+			}
+		}
+
+		if ("containsPlatform".equals(property)) { //$NON-NLS-1$
+			String value = peer.getAttributes().get(IPeerProperties.ATTR_PLATFORMS);
+			if (value != null) {
+				String[] platforms = value.split("\\s*,\\s*"); //$NON-NLS-1$
+				for (String platform : platforms) {
+					if (platform.equalsIgnoreCase(expectedValue.toString())) {
+						return true;
+					}
+				}
 			}
 		}
 
