@@ -69,11 +69,6 @@ public class ChainPeerStep extends AbstractPeerStep {
 			public void run() {
 				IChannel c = channel.get();
 
-				// Flag to remember if openChannel or redirect is triggering
-				// the channel listener invocation. Repackage the error if
-				// the channel listener is invoked because of calling openChannel.
-				final boolean openChannelCalled = c == null;
-
 				// If the channel is not yet opened, open it now.
 				// Otherwise redirect the channel to the next peer.
 				if (c == null) {
@@ -118,8 +113,8 @@ public class ChainPeerStep extends AbstractPeerStep {
 					public void onChannelClosed(Throwable error) {
 						// Remove ourself as listener from the channel
 						channel.get().removeChannelListener(this);
-						// If invoked as result to an openChannel call, the error is repackaged
-						if (openChannelCalled && error != null) {
+						// The error is repackaged
+						if (error != null) {
 							error = new OpenChannelException(error);
 						}
 						// Invoke the callback
