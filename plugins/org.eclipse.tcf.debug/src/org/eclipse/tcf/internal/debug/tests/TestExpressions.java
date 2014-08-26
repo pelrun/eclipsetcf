@@ -187,6 +187,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "$printf(\"%u\",func2_local3.f_enum)", "3",
         "$printf(\"%g\",func2_local3.f_float)", "3.14",
         "$printf(\"%g\",func2_local3.f_double)", "2.71",
+        "0 && $printf(\"fail\")", "",
+        "1 && $printf(\"OK\")", "OK",
     };
 
     @SuppressWarnings("unused")
@@ -833,7 +835,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 return;
                             }
                             for (byte b : data) {
-                                while (test_dprintfs[test_cnt * 2 + 1] == null) test_cnt++;
+                                while (test_dprintfs[test_cnt * 2 + 1] == null || test_dprintfs[test_cnt * 2 + 1].length() == 0) test_cnt++;
                                 char ch = test_dprintfs[test_cnt * 2 + 1].charAt(char_cnt++);
                                 if (b != ch) {
                                     exit(new Exception("Invalid output of $printf: " + test_dprintfs[test_cnt * 2 + 1] + " -> " + new String(data)));
