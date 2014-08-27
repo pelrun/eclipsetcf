@@ -9,6 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.ui.internal.services;
 
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -201,7 +204,14 @@ public class DebugService extends AbstractService implements IDebugService {
 						}
 					}
 				} catch (Exception e) {
-					callback.done(this, StatusHelper.getStatus(e));
+					if (e instanceof ExecutionException && "TCF task aborted".equals(e.getMessage()) //$NON-NLS-1$
+							|| e.getCause() instanceof CancellationException) {
+						// This disconnect of the debug launch timed out. We are going
+						// to ignore this as we are detaching from the debugger anyway.
+						callback.done(this, Status.OK_STATUS);
+					} else {
+						callback.done(this, StatusHelper.getStatus(e));
+					}
 					return;
 				}
 			}
