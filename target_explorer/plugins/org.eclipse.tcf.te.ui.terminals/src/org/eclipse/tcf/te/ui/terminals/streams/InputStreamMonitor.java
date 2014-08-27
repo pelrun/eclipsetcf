@@ -236,10 +236,21 @@ public class InputStreamMonitor extends OutputStream implements IDisposable {
     		}
             if (data != null) {
             	try {
-            		// Write the data to the stream
-            		stream.write(data);
-            		// Flush the stream immediately
-            		stream.flush();
+            		// Break up writes into max 1000 byte junks to avoid console input buffer overflows on Windows
+            		int written = 0;
+            		byte[] buf = new byte[1000];
+            		while (written < data.length) {
+	            		int len = Math.min(buf.length, data.length - written);
+	            		System.arraycopy(data, written, buf, 0, len);
+	               		// Write the data to the stream
+	            		stream.write(buf, 0, len);
+						written += len;
+	            		// Flush the stream immediately
+	            		stream.flush();
+	            		// Wait a little between writes to allow input being processed
+	            		if (written < data.length)
+	            			Thread.sleep(100);
+            		}
             	} catch (IOException e) {
                 	// IOException received. If this is happening when already disposed -> ignore
     				if (!disposed) {
@@ -248,6 +259,9 @@ public class InputStreamMonitor extends OutputStream implements IDisposable {
     					UIPlugin.getDefault().getLog().log(status);
     				}
             	}
+                catch (InterruptedException e) {
+                	break;
+                }
             }
         }
 
