@@ -544,6 +544,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
         line_info.cancel();
         func_info.cancel();
         address.cancel();
+        if (frame_no > 0) children_regs.onRegistersChanged();
         children_vars.onRegisterValueChanged();
         children_exps.onRegisterValueChanged();
         children_hover_exps.onRegisterValueChanged();
