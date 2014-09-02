@@ -92,6 +92,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_test_char",
         "tcf_test_short",
         "tcf_test_long",
+        "tcf_test_str",
         "tcf_cpp_test_bool",
         "tcf_cpp_test_int_ref",
         "tcf_cpp_test_class_extension_var",
@@ -189,6 +190,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "$printf(\"%g\",func2_local3.f_double)", "2.71",
         "0 && $printf(\"fail\")", "",
         "1 && $printf(\"OK\")", "OK",
+        "$printf(\"aa%%dd %s\",tcf_test_str)", "aa%dd abc",
+        "$printf(\"%s %s\",tcf_test_str,func2_local_str)", "abc bcd",
     };
 
     @SuppressWarnings("unused")
