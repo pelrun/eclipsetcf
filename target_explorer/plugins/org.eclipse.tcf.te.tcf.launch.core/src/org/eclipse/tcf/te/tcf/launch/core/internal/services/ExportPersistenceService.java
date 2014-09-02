@@ -18,10 +18,13 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.core.TransientPeer;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.persistence.PersistenceManager;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistenceDelegate;
 import org.eclipse.tcf.te.runtime.persistence.services.URIPersistenceService;
 import org.eclipse.tcf.te.tcf.core.interfaces.IExportPersistenceService;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.launch.core.interfaces.ILaunchTypes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
@@ -55,13 +58,26 @@ public class ExportPersistenceService extends URIPersistenceService implements I
 					final String launchConfigString = (String)launchDelegate.write(launchConfig, String.class);
 					Map<String,String> attrs = new HashMap<String, String>(node.getPeer().getAttributes());
 					attrs.put(ILaunchTypes.ATTACH, launchConfigString);
+					attrs.remove(IPersistableNodeProperties.PROPERTY_URI);
+					attrs.remove(IPeerProperties.PROP_MIGRATED);
 					delegate.write(new TransientPeer(attrs), uri);
 					return;
 				}
 			}
+			// Pass on to the delegate for writing
+			Map<String,String> attrs = new HashMap<String, String>(node.getPeer().getAttributes());
+			attrs.remove(IPersistableNodeProperties.PROPERTY_URI);
+			attrs.remove(IPeerProperties.PROP_MIGRATED);
+			delegate.write(new TransientPeer(attrs), uri);
 		}
-
-		// Pass on to the delegate for writing
-		delegate.write(context, uri);
+		else if (context instanceof IPeer) {
+			Map<String,String> attrs = new HashMap<String, String>(((IPeer)context).getAttributes());
+			attrs.remove(IPersistableNodeProperties.PROPERTY_URI);
+			attrs.remove(IPeerProperties.PROP_MIGRATED);
+			delegate.write(new TransientPeer(attrs), uri);
+		}
+		else {
+			delegate.write(context, uri);
+		}
 	}
 }

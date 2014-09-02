@@ -74,7 +74,7 @@ public class PeerPersistableURIProvider extends ModelNodePersistableURIProvider 
 						nodeURI.set(URI.create(value.trim()));
 					}
 					value = peer.getAttributes().get(IPeerProperties.PROP_VERSION);
-					version.set(value != null ? new Version(value.trim()) : Version.emptyVersion);
+					version.set(value != null ? new Version(value.trim()) : null);
 				}
 			};
 			if (Protocol.isDispatchThread()) {
@@ -89,24 +89,22 @@ public class PeerPersistableURIProvider extends ModelNodePersistableURIProvider 
 			}
 
 			if (uri == null) {
-				String name = peer.getName();
-				if (name == null) {
-					name = peer.getID();
+				String baseName = peer.getName();
+				if (baseName == null) {
+					baseName = peer.getID();
 				}
-				name = makeValidFileSystemName(name);
+				String name = makeValidFileSystemName(baseName);
 				// Get the URI from the name
-				uri = getRoot().append(name+".peer").toFile().toURI(); //$NON-NLS-1$
+				uri = getRoot().append(name + ".peer").toFile().toURI(); //$NON-NLS-1$
 				try {
 					File file = new File(uri.normalize());
-					if (file.exists()) {
-						name = makeValidFileSystemName(name + "_" + version.toString()); //$NON-NLS-1$
-						uri = getRoot().append(name+".peer").toFile().toURI(); //$NON-NLS-1$
-					}
-					file = new File(uri.normalize());
-					int i = 1;
+					int i = 0;
 					while (file.exists()) {
-						name = makeValidFileSystemName(name + "_" + i); //$NON-NLS-1$
-						uri = getRoot().append(name+".peer").toFile().toURI(); //$NON-NLS-1$
+						name = makeValidFileSystemName(baseName +
+										(version.get() != null ? "_" + version.get().toString() : "") +  //$NON-NLS-1$ //$NON-NLS-2$
+										(i > 0 ? " (" + i + ")": "")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						uri = getRoot().append(name + ".peer").toFile().toURI(); //$NON-NLS-1$
+						file = new File(uri.normalize());
 						i++;
 					}
 				}

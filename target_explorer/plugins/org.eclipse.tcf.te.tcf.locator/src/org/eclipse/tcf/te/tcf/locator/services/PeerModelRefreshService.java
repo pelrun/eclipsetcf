@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.locator.services;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -241,7 +242,9 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 										attrs.put(IPersistableNodeProperties.PROPERTY_URI, null);
 										attrs.put(IPeerProperties.PROP_VERSION, activeVersion.toString());
 										peer = new Peer(attrs);
-										service.write(peer, null);
+										URI uri = service.getURI(peer);
+										attrs.put(IPersistableNodeProperties.PROPERTY_URI, uri.toString());
+										service.write(peer, uri);
 										// Add the migrated peer to the peers map
 										peers.put(peer.getID(), peer);
 									}

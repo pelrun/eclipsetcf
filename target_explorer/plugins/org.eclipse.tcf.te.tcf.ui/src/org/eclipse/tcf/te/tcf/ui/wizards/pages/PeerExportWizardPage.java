@@ -142,7 +142,14 @@ public class PeerExportWizardPage extends WizardPage {
 			@Override
 			public Object[] getElements(Object inputElement) {
 				if (inputElement instanceof IPeerModel) {
-					return ((IPeerModel)inputElement).getPeerNodes();
+					IPeerNode[] nodes = ((IPeerModel)inputElement).getPeerNodes();
+					List<IPeerNode> filteredNodes = new ArrayList<IPeerNode>();
+					for (IPeerNode node : nodes) {
+	                    if (node.isVisible()) {
+	                    	filteredNodes.add(node);
+	                    }
+                    }
+					return filteredNodes.toArray();
 				}
 				return new Object[0];
 			}
