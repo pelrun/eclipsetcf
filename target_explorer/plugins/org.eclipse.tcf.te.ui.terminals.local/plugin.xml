@@ -42,7 +42,13 @@
             <visibleWhen checkEnabled="false">
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <adapt type="org.eclipse.core.resources.IResource"/>
+                     <adapt type="org.eclipse.core.resources.IResource">
+                       <not>
+                          <!-- The JDT Project Explorer contributions are adding the "Navigate -> Show In" quick menu.
+                               See o.e.jdt.internal.ui.navigator.JavaNavigatorActionProvider -->
+                          <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.jdt.core.javanature" />
+                       </not> 
+                     </adapt>
                   </iterate>
                </with>
             </visibleWhen>
