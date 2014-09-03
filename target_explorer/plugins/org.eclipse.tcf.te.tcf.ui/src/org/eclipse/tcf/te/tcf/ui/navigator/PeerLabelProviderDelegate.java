@@ -41,7 +41,7 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 	 */
 	@Override
 	public String getText(final Object element) {
-		if (element instanceof IPeerNode) {
+		if (element instanceof IPeerNode || element instanceof IPeer) {
 			StringBuilder builder = new StringBuilder();
 
 			// Copy the peer node and peer attributes
@@ -54,8 +54,8 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 						attrs.putAll(((IPeerNode)element).getProperties());
 						attrs.putAll(((IPeerNode)element).getPeer().getAttributes());
 					}
-					else if (element instanceof ILocatorNode) {
-						attrs.putAll((((ILocatorNode)element).getPeer()).getAttributes());
+					else if (element instanceof IPeer) {
+						attrs.putAll(((IPeer)element).getAttributes());
 					}
 				}
 			};

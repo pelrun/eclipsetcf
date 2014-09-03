@@ -390,13 +390,7 @@ public class PeerImportWizardPage extends WizardPage {
 						}
 						try {
 							URI uri = service.getURI(config);
-							File defaultFile = new File(uri.normalize());
-							File file = new Path(new File(uri.normalize()).toString()).addFileExtension("peer").toFile(); //$NON-NLS-1$
-							int i = 1;
-							while (file.exists()) {
-								file = new Path(defaultFile.toString() + "_" + i).addFileExtension("peer").toFile(); //$NON-NLS-1$ //$NON-NLS-2$
-								i++;
-							}
+							File file = new File(uri.normalize());
 							service.write(config, file.toURI());
 						}
 						catch (IOException e) {

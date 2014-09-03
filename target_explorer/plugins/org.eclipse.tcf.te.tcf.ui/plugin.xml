@@ -235,6 +235,7 @@
             id="org.eclipse.tcf.te.tcf.ui.peerLabelProviderDelegate">
          <enablement>
             <or>
+               <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
                <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode"/>
                <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
                <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPendingOperationNode"/>
