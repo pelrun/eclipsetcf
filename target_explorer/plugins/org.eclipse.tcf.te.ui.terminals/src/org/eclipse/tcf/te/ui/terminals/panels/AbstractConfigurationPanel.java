@@ -207,7 +207,7 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 
 		if (hostString.length() != 0) {
 			String[] hostAttrs = hostString.split("\\:");//$NON-NLS-1$
-			for (int j = 0; j < hostAttrs.length; j = j + 2) {
+			for (int j = 0; j < hostAttrs.length-1; j = j + 2) {
 				String key = hostAttrs[j];
 				String value = hostAttrs[j + 1];
 				attr.put(key, value);
