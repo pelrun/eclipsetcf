@@ -13,13 +13,17 @@ import java.util.EventObject;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.expressions.EvaluationContext;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.nls.Messages;
+import org.eclipse.ui.ISources;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.handlers.IHandlerService;
@@ -47,7 +51,12 @@ public class TriggerCommandEventListener extends AbstractEventListener {
 				Assert.isNotNull(pCmd);
 				IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
 				Assert.isNotNull(handlerSvc);
-				handlerSvc.executeCommandInContext(pCmd, null, handlerSvc.getCurrentState());
+				IEvaluationContext ctx = handlerSvc.getCurrentState();
+				if (commandEvent.getSource() instanceof ISelection) {
+					ctx = new EvaluationContext(ctx, commandEvent.getSource());
+					ctx.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, commandEvent.getSource());
+				}
+				handlerSvc.executeCommandInContext(pCmd, null, ctx);
 			} catch (Exception e) {
 				// If the platform is in debug mode, we print the exception to the log view
 				if (Platform.inDebugMode()) {

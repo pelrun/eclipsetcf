@@ -17,7 +17,7 @@
             name="%TerminalsView.name">
       </view>
     </extension>
-    
+
 <!-- Perspective extension contributions -->    
    <extension point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="org.eclipse.tcf.te.ui.perspective">
@@ -31,6 +31,8 @@
                relative="org.eclipse.ui.views.TaskList"
                visible="false">
          </view>
+         <!-- Show In shortcut -->
+         <showInPart id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
       </perspectiveExtension>
 
       <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
@@ -44,6 +46,8 @@
                relative="org.eclipse.ui.views.TaskList"
                visible="false">
          </view>
+         <!-- Show In shortcut -->
+         <showInPart id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
       </perspectiveExtension>
 
       <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
@@ -57,6 +61,8 @@
                relative="org.eclipse.ui.views.TaskList"
                visible="false">
          </view>
+         <!-- Show In shortcut -->
+         <showInPart id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
       </perspectiveExtension>
 
       <perspectiveExtension targetID="org.eclipse.cdt.ui.CPerspective">
@@ -70,6 +76,8 @@
                relative="org.eclipse.ui.views.TaskList"
                visible="false">
          </view>
+         <!-- Show In shortcut -->
+         <showInPart id="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
       </perspectiveExtension>
    </extension>
 

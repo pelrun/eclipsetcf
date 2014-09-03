@@ -10,10 +10,16 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.view;
 
+import java.util.Iterator;
 import java.util.UUID;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -35,6 +41,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderManager;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderMenuHandler;
@@ -44,13 +52,15 @@ import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.IShowInTarget;
 import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.part.ViewPart;
 
 /**
  * Terminals view.
  */
-public class TerminalsView extends ViewPart implements ITerminalsView {
+public class TerminalsView extends ViewPart implements ITerminalsView, IShowInTarget {
 
 	// Reference to the main page book control
 	private PageBook pageBookControl;
@@ -623,5 +633,40 @@ public class TerminalsView extends ViewPart implements ITerminalsView {
 	public void restoreState(IMemento memento) {
 		if (memento == null) return;
 		mementoHandler.restoreState(this, memento);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.IShowInTarget#show(org.eclipse.ui.part.ShowInContext)
+	 */
+	@Override
+	public boolean show(ShowInContext context) {
+		if (context != null) {
+			// Get the selection from the context
+			ISelection selection = context.getSelection();
+			// The selection must contain elements that can be adapted to IResource
+			if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+				boolean isValid = true;
+
+				Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
+				while (iterator.hasNext() && isValid) {
+					Object element = iterator.next();
+					if (element instanceof IResource) continue;
+
+					IResource adapted = element instanceof IAdaptable ? (IResource)((IAdaptable)element).getAdapter(IResource.class) : null;
+					if (adapted == null) adapted = (IResource)Platform.getAdapterManager().getAdapter(element, IResource.class);
+					if (adapted == null) adapted = (IResource)Platform.getAdapterManager().loadAdapter(element, IResource.class.getName());
+
+					isValid = adapted != null;
+				}
+
+				// If the selection is valid, fire the command to open the local terminal
+				if (isValid) {
+					TriggerCommandEvent event = new TriggerCommandEvent(selection, "org.eclipse.tcf.te.ui.terminals.local.command.launch"); //$NON-NLS-1$
+					EventManager.getInstance().fireEvent(event);
+					return true;
+				}
+			}
+		}
+	    return false;
 	}
 }

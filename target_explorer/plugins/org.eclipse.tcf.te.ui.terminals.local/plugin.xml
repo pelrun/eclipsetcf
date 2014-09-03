@@ -36,7 +36,7 @@
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.terminals.ProjectExplorer.menu.showIn?after=additions">
          <command
                commandId="org.eclipse.tcf.te.ui.terminals.local.command.launch"
-               id="rg.eclipse.tcf.te.ui.terminals.local.commands.showin.launch"
+               id="org.eclipse.tcf.te.ui.terminals.local.commands.showin.launch"
                label="%menu.showIn.localterminal.label"
                style="push">
             <visibleWhen checkEnabled="false">
