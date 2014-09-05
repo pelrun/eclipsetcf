@@ -893,9 +893,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		Map<String, String> processEnv = new HashMap<String, String>(environment);
 		@SuppressWarnings("unchecked")
         Map<String, String> processEnvDiff = (Map<String, String>)properties.getProperty(IProcessLauncher.PROP_PROCESS_ENV);
-		if (processEnvDiff != null && !processEnvDiff.isEmpty()) {
-			processEnv.putAll(processEnvDiff);
-		}
+		mergeEnvironment(processEnv, processEnvDiff);
 
 		boolean processConsole = properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE);
 
@@ -977,6 +975,17 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 					}
 				}
 			});
+		}
+	}
+
+	/**
+	 * Merge original channel environment and process environment.
+	 * @param processEnv
+	 * @param processEnvDiff
+	 */
+	protected void mergeEnvironment(Map<String,String> processEnv, Map<String,String> processEnvDiff) {
+		if (processEnv != null && processEnvDiff != null && !processEnvDiff.isEmpty()) {
+			processEnv.putAll(processEnvDiff);
 		}
 	}
 

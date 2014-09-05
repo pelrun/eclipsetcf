@@ -31,6 +31,11 @@ public interface IProcessesStepAttributes {
 	public static final String ATTR_PROCESS_ARGUMENTS = ATTR_PREFIX + ".process_arguments"; //$NON-NLS-1$
 
 	/**
+	 * Launch configuration attribute: The process library path.
+	 */
+	public static final String ATTR_PROCESS_LIBRARY_PATH = ATTR_PREFIX + ".process_library_path"; //$NON-NLS-1$
+
+	/**
 	 * Launch configuration attribute: Flag if or if not to stop at process entry.
 	 */
 	public static final String ATTR_STOP_AT_ENTRY = ATTR_PREFIX + ".process_stop_at_entry"; //$NON-NLS-1$

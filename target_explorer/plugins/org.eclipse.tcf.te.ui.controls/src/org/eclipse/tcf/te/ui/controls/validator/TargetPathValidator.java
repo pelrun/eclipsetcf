@@ -17,8 +17,12 @@ import org.eclipse.tcf.te.ui.controls.nls.Messages;
  */
 public class TargetPathValidator extends RegexValidator {
 
-	protected static final String TARGET_PATH_SEGMENT_REGEX = "[^?* /\\\\]+|([^?* /\\\\]+[^?*/\\\\]*)"; //$NON-NLS-1$
+	public static final int ATTR_MULTIPLE = 4;
+
+	protected static final String TARGET_PATH_SEGMENT_REGEX = "[^;?* /\\\\]+"; //$NON-NLS-1$
 	protected static final String TARGET_PATH_REGEX = "(/(" + TARGET_PATH_SEGMENT_REGEX + "))+"; //$NON-NLS-1$ //$NON-NLS-2$
+
+	protected static final String TARGET_PATH_MULTIPLE_REGEX = TARGET_PATH_REGEX + "(;" + TARGET_PATH_REGEX + ")*"; //$NON-NLS-1$ //$NON-NLS-2$
 
 	/**
 	 * Constructor.
@@ -26,7 +30,7 @@ public class TargetPathValidator extends RegexValidator {
 	 * @param regex
 	 */
 	public TargetPathValidator(int attributes) {
-		super(attributes, TARGET_PATH_REGEX);
+		super(attributes, isAttribute(ATTR_MULTIPLE, attributes) ? TARGET_PATH_MULTIPLE_REGEX : TARGET_PATH_REGEX);
 		setMessageText(INFO_MISSING_VALUE, Messages.TargetPathValidator_Information_MissingTargetPath);
 		setMessageText(ERROR_INVALID_VALUE, Messages.TargetPathValidator_Error_InvalidTargetPath);
 	}
