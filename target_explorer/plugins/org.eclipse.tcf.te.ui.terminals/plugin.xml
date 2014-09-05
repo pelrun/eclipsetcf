@@ -86,6 +86,16 @@
                  hidden="true"
                  class="org.eclipse.tcf.te.ui.terminals.streams.StreamsConnector"/>
    </extension>
+
+<!-- Preference page contributions -->
+   <extension point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.eclipse.tcf.te.ui.preferences.general"
+            class="org.eclipse.tcf.te.ui.terminals.internal.preferences.PreferencePage"
+            id="org.eclipse.tcf.te.ui.terminals.preferences.general"
+            name="%preference.page.name">
+      </page>
+   </extension>
    
 <!-- Preferences contributions -->
    <extension point="org.eclipse.core.runtime.preferences">

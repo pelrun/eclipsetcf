@@ -104,4 +104,12 @@ public class Messages extends NLS {
 	public static String TabFolderManager_state_connected;
 	public static String TabFolderManager_state_connecting;
 	public static String TabFolderManager_state_closed;
+
+	public static String PreferencePage_label;
+	public static String PreferencePage_executables_label;
+	public static String PreferencePage_executables_column_name_label;
+	public static String PreferencePage_executables_column_path_label;
+	public static String PreferencePage_executables_button_add_label;
+	public static String PreferencePage_executables_button_edit_label;
+	public static String PreferencePage_executables_button_remove_label;
 }
