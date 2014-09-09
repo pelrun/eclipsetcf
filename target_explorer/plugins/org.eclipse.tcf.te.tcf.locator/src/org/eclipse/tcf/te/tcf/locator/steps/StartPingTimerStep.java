@@ -32,6 +32,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -67,7 +68,9 @@ public class StartPingTimerStep extends AbstractPeerNodeStep {
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 	    SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(getActivePeerModelContext(context, data, fullQualifiedId));
 
-		if (result == null) {
+	    boolean startClientPing = StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_CLIENT_PING, fullQualifiedId, data);
+
+		if (result == null && startClientPing) {
 			final IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 			Protocol.invokeLater(new Runnable() {
 				@Override
