@@ -307,22 +307,14 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				menuMgr = new MenuManager();
 				menuMgr.add(new GroupMarker("group.configurations")); //$NON-NLS-1$
 	    		IPeerNode defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+	    		if (defaultContext != null && defaultContext.isVisible()) {
+					menuMgr.add(getAction(defaultContext));
+	    		}
 			    for (final IPeerNode peerNode : getPeerNodesSorted()) {
 			    	if (peerNode == defaultContext || !peerNode.isVisible()) {
 			    		continue;
 			    	}
-					IAction action = new Action() {
-						private IPeerNode node = peerNode;
-						@Override
-		                public void run() {
-							ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(node);
-						}
-					};
-				    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
-					action.setText(labelProvider.getText(peerNode));
-					Image image = labelProvider.decorateImage(labelProvider.getImage(peerNode), peerNode);
-					action.setImageDescriptor(ImageDescriptor.createFromImage(image));
-					menuMgr.add(action);
+					menuMgr.add(getAction(peerNode));
 			    }
 			    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
 			    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
@@ -342,6 +334,22 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				menu = null;
 			}
 		}
+	}
+
+	protected IAction getAction(final IPeerNode peerNode) {
+		IAction action = new Action() {
+			private IPeerNode node = peerNode;
+			@Override
+            public void run() {
+				ServiceManager.getInstance().getService(IDefaultContextService.class).setDefaultContext(node);
+			}
+		};
+	    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
+		action.setText(labelProvider.getText(peerNode));
+		Image image = labelProvider.decorateImage(labelProvider.getImage(peerNode), peerNode);
+		action.setImageDescriptor(ImageDescriptor.createFromImage(image));
+
+		return action;
 	}
 
 	/**
