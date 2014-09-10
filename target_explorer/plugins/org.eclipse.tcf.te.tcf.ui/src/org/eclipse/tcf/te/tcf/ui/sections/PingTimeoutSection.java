@@ -13,12 +13,13 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.tcf.te.ui.controls.validator.NumberVerifyListener;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -31,7 +32,7 @@ import org.eclipse.ui.forms.widgets.Section;
  */
 public class PingTimeoutSection extends AbstractSection implements IDataExchangeNode {
 	// The section sub controls
-	/* default */ Combo verbosity;
+	/* default */ Text verbosity;
 	/* default */ Label verbosityLabel;
 
 	/**
@@ -76,10 +77,9 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 		verbosityLabel.setLayoutData(layoutData);
 		verbosityLabel.setBackground(client.getBackground());
 
-		verbosity = new Combo(panel, SWT.DROP_DOWN | SWT.READ_ONLY);
+		verbosity = new Text(panel, SWT.BORDER);
 		toolkit.adapt(verbosity, true, true);
-		verbosity.setItems(new String[] { "0", "10", "20", "30", "60"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-		verbosity.select(0);
+		verbosity.addVerifyListener(new NumberVerifyListener(0, -1));
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(verbosity, 5);
 		verbosity.setLayoutData(layoutData);
@@ -96,10 +96,10 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 		if (verbosity != null) {
 			int timeout = attributes.getIntProperty(IPeerNodeProperties.PROP_PING_TIMEOUT);
 			if (timeout >= 0) {
-				SWTControlUtil.select(verbosity, SWTControlUtil.indexOf(verbosity, timeout+"")); //$NON-NLS-1$
+				SWTControlUtil.setText(verbosity, timeout+""); //$NON-NLS-1$
 			}
 			else {
-				SWTControlUtil.select(verbosity, SWTControlUtil.indexOf(verbosity, "10")); //$NON-NLS-1$
+				SWTControlUtil.setText(verbosity, "2"); //$NON-NLS-1$
 			}
 		}
 	}
