@@ -117,6 +117,7 @@ public class SourceProvider extends AbstractSourceProvider implements IEventList
 						@SuppressWarnings("synthetic-access")
                         @Override
 						public void run() {
+			    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, IEvaluationContext.UNDEFINED_VARIABLE);
 			    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, defaultContext != null ? defaultContext : IEvaluationContext.UNDEFINED_VARIABLE);
 						}
 					});
