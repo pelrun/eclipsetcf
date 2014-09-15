@@ -10,15 +10,20 @@
 package org.eclipse.tcf.te.ui.controls.file;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.ui.controls.BaseDialogSelectionControl;
 import org.eclipse.tcf.te.ui.controls.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.validator.DirectoryNameValidator;
 import org.eclipse.tcf.te.ui.controls.validator.Validator;
+import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.osgi.framework.Bundle;
 
 
@@ -28,7 +33,7 @@ import org.osgi.framework.Bundle;
  * The control supports direct editing by the user or browsing for the directory. By
  * default, the control has a history of recently selected directories.
  */
-public class DirectorySelectionControl extends BaseDialogSelectionControl {
+public class DirectorySelectionControl extends BaseDialogSelectionControl implements IDataExchangeNode {
 	private String dialogMessage = ""; //$NON-NLS-1$
 
 	/**
@@ -152,5 +157,40 @@ public class DirectorySelectionControl extends BaseDialogSelectionControl {
 		}
 
 		return null;
+	}
+
+	protected String getDataKey() {
+		return "Directory"; //$NON-NLS-1$
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+	@Override
+	public void setupData(IPropertiesContainer data) {
+		String dir = data.getStringProperty(getDataKey());
+		IPath path = dir != null ? new Path(dir) : null;
+		setEditFieldControlText(path != null ? path.toOSString() : ""); //$NON-NLS-1$
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+	@Override
+	public void extractData(IPropertiesContainer data) {
+		String dir = doGetSelectedDirectory();
+		IPath path = dir.trim().length() > 0 ? new Path(dir) : null;
+		data.setProperty(getDataKey(), path != null ? path.toPortableString() : null);
+	}
+
+	public boolean checkDataChanged(IPropertiesContainer data) {
+		IPropertiesContainer newData = new PropertiesContainer();
+		extractData(newData);
+		String newValue = newData.getStringProperty(getDataKey());
+		String oldValue = data.getStringProperty(getDataKey());
+		if (oldValue == null) {
+			return newValue != null;
+		}
+		return newValue == null || !oldValue.equals(newValue);
 	}
 }
