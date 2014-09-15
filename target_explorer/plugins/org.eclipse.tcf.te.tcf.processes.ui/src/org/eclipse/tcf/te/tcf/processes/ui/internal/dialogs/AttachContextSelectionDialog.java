@@ -133,9 +133,6 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		filterLabel.setText(Messages.AttachContextSelectionDialog_filter_label);
 
 		PatternFilter filter = new PatternFilter() {
-			/* (non-Javadoc)
-			 * @see org.eclipse.ui.dialogs.PatternFilter#isElementSelectable(java.lang.Object)
-			 */
 			@Override
 			public boolean isElementSelectable(final Object element) {
 				final AtomicBoolean canAttach = new AtomicBoolean();
@@ -149,10 +146,6 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 				}
 			    return element instanceof IProcessContextNode;
 			}
-
-			/* (non-Javadoc)
-			 * @see org.eclipse.ui.dialogs.PatternFilter#isLeafMatch(org.eclipse.jface.viewers.Viewer, java.lang.Object)
-			 */
 			@Override
 			protected boolean isLeafMatch(Viewer viewer, final Object element) {
 				if (element instanceof IProcessContextNode) {
@@ -338,9 +331,12 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 	protected boolean canAttach(Object selection) {
 		if (selection instanceof IProcessContextNode) {
 			IProcessContextNode node = (IProcessContextNode)selection;
-			if (node.getProcessContext().getProperties().containsKey("CanAttach")) { //$NON-NLS-1$
-				Boolean value = (Boolean)node.getProcessContext().getProperties().get("CanAttach"); //$NON-NLS-1$
-				return value != null && value.booleanValue();
+			if (node.getProcessContext() != null) {
+				if (node.getProcessContext().getProperties().containsKey("CanAttach")) { //$NON-NLS-1$
+					Boolean value = (Boolean)node.getProcessContext().getProperties().get("CanAttach"); //$NON-NLS-1$
+					return value != null && value.booleanValue();
+				}
+				return true;
 			}
 		}
 		return false;
@@ -349,7 +345,7 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 	protected boolean isAttached(Object selection) {
 		if (selection instanceof IProcessContextNode) {
 			IProcessContextNode node = (IProcessContextNode)selection;
-			return node.getProcessContext().isAttached();
+			return node.getProcessContext() != null && node.getProcessContext().isAttached();
 		}
 		return false;
 	}

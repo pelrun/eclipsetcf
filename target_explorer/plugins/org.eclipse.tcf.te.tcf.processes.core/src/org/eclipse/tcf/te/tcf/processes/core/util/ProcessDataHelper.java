@@ -66,8 +66,9 @@ public class ProcessDataHelper {
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				if (node.getProcessContext().getProperties().containsKey("CanAttach")) { //$NON-NLS-1$
-					Boolean value = (Boolean)node.getProcessContext().getProperties().get("CanAttach"); //$NON-NLS-1$
+				if (node.getProcessContext() != null) {
+					Boolean value = node.getProcessContext().getProperties().containsKey("CanAttach") ?  //$NON-NLS-1$
+									(Boolean)node.getProcessContext().getProperties().get("CanAttach") : Boolean.TRUE; //$NON-NLS-1$
 					if (value != null && value.booleanValue()) {
 						IProcessContextItem item = new ProcessContextItem();
 						item.setProperty(IProcessContextItem.PROPERTY_ID, node.getProcessContext().getID());

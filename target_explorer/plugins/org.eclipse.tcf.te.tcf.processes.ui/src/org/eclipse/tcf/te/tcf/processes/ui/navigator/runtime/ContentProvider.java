@@ -38,7 +38,6 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeMo
 import org.eclipse.tcf.te.tcf.processes.core.model.nodes.PendingOperationNode;
 import org.eclipse.tcf.te.tcf.processes.ui.navigator.events.TreeViewerListener;
 
-
 /**
  * Runtime model content provider delegate implementation.
  */
@@ -300,7 +299,6 @@ public class ContentProvider implements ITreeContentProvider {
 	 */
 	@Override
     public void dispose() {
-//		ModelManager.disposeAllRuntimeModels();
 	}
 
 	/* (non-Javadoc)

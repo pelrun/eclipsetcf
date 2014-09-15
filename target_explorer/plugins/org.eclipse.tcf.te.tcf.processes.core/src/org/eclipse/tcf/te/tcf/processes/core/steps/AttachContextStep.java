@@ -24,6 +24,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
@@ -86,19 +87,19 @@ public class AttachContextStep extends AbstractPeerNodeStep {
 		if (processes != null) {
 			processContext.attach(new IProcesses.DoneCommand() {
 				@Override
-				public void doneCommand(IToken token, Exception error) {
+				public void doneCommand(IToken token, final Exception error) {
 					if (processContextNode != null) {
 						IModel model = processContextNode.getParent(IModel.class);
 						Assert.isNotNull(model);
 						model.getService(IModelRefreshService.class).refresh(processContextNode, new Callback() {
 							@Override
                             protected void internalDone(Object caller, IStatus status) {
-								callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+								callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
 							}
 						});
 					}
 					else {
-						callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+						callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
 					}
 				}
 			});
