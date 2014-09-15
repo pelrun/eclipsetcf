@@ -9,15 +9,34 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.pages;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.ui.editor.AbstractTreeViewerExplorerEditorPage;
+import org.eclipse.tcf.te.ui.trees.TreeControl;
 /**
  * The editor page for the file system explorer.
  */
 public class FSExplorerEditorPage extends AbstractTreeViewerExplorerEditorPage {
+
+	// The event listener instance
+	private FSExplorerEventListener listener = null;
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#dispose()
+	 */
+	@Override
+	public void dispose() {
+		if (listener != null) {
+			EventManager.getInstance().removeEventListener(listener);
+			listener = null;
+		}
+	    super.dispose();
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -68,4 +87,20 @@ public class FSExplorerEditorPage extends AbstractTreeViewerExplorerEditorPage {
 		}
 		return peerNode != null ? ModelManager.getRuntimeModel(peerNode).getRoot() : null;
     }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage#doCreateTreeControl()
+	 */
+	@Override
+	protected TreeControl doCreateTreeControl() {
+	    TreeControl treeControl = super.doCreateTreeControl();
+	    Assert.isNotNull(treeControl);
+
+	    if (listener == null) {
+	    	listener = new FSExplorerEventListener(treeControl);
+	    	EventManager.getInstance().addEventListener(listener, ChangeEvent.class);
+	    }
+
+	    return treeControl;
+	}
 }

@@ -13,6 +13,9 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.nls;
 import java.lang.reflect.Field;
 
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.tcf.filesystem.ui.interfaces.IFileSystemUIDelegate;
 
 /**
  * File System plug-in externalized strings management.
@@ -65,6 +68,26 @@ public class Messages extends NLS {
 
 		return null;
 	}
+
+	/**
+	 * Returns the corresponding string for the given externalized strings key via
+	 * the {@link IFileSystemUIDelegate}.
+	 *
+	 * @param context The context or <code>null</code>.
+	 * @param key The externalized strings key or <code>null</code>.
+	 *
+	 * @return The corresponding string or <code>null</code>.
+	 */
+	public static String getStringDelegated(Object context, String key) {
+		if (key != null) {
+			IUIService service = ServiceManager.getInstance().getService(context, IUIService.class);
+			IFileSystemUIDelegate delegate = service != null ? service.getDelegate(context, IFileSystemUIDelegate.class) : null;
+			return delegate != null ? delegate.getMessage(key) : null;
+		}
+
+		return null;
+	}
+
 	public static String FSFolderSelectionDialog_MoveDialogMessage;
 	public static String FSFolderSelectionDialog_MoveDialogTitle;
 	public static String FSFolderSelectionDialog_Refresh_menu;
@@ -224,4 +247,7 @@ public class Messages extends NLS {
 	public static String TreeViewerSearchDialog_GrpOptionsText;
 	public static String TreeViewerSearchDialog_BtnCaseText;
 	public static String TreeViewerSearchDialog_BtnPreciseText;
+
+	public static String ContentProvider_notConnected;
+
 }

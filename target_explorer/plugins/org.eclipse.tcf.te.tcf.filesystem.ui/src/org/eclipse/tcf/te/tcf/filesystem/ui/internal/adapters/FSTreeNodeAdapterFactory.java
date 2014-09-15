@@ -100,6 +100,9 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 			else if (adapterType == IPeerNodeProvider.class) {
 				return new FSTreeNodePeerNodeProvider(node);
 			}
+			else if (adapterType == IPeerNode.class) {
+				return new FSTreeNodePeerNodeProvider(node).getPeerNode();
+			}
 			else if (adapterType == ISearchable.class) {
 				return new FSTreeNodeSearchable(node);
 			}

@@ -19,11 +19,16 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
+import org.eclipse.tcf.te.runtime.model.MessageModelNode;
+import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.ui.trees.CommonViewerListener;
 import org.eclipse.tcf.te.ui.trees.Pending;
 
@@ -45,6 +50,9 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 	protected TreeViewer viewer;
 	// The pending nodes and their direct parents.
 	private Map<Object, Pending> pendings;
+
+	// The target's peer model.
+	private IPeerNode peerNode;
 
 	/**
 	 * Create a tree content provider.
@@ -139,7 +147,16 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 		Assert.isTrue(viewer instanceof TreeViewer);
 		this.viewer = (TreeViewer) viewer;
 		this.commonViewerListener = new CommonViewerListener(this.viewer, this);
+		peerNode = getPeerNode(newInput);
 	}
+
+    protected IPeerNode getPeerNode(Object input) {
+		IPeerNode peerNode = input instanceof IPeerNode ? (IPeerNode)input : null;
+		if (peerNode == null && input instanceof IAdaptable) {
+			peerNode = (IPeerNode)((IAdaptable)input).getAdapter(IPeerNode.class);
+		}
+		return peerNode;
+    }
 
 	/**
 	 * Install a property change listener to the specified element.
@@ -170,6 +187,21 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 	 */
 	@Override
 	public Object[] getElements(Object inputElement) {
-		return getChildren(inputElement);
+		if (peerNode != null && peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+	        return getChildren(inputElement);
+		}
+
+		String message = null;
+		if (peerNode != null) {
+			if (peerNode.getConnectState() == IConnectable.STATE_CONNECTION_LOST ||
+						peerNode.getConnectState() == IConnectable.STATE_CONNECTION_RECOVERING) {
+				message = Messages.getStringDelegated(peerNode, "FileSystem_ContentProvider_connectionLost"); //$NON-NLS-1$
+			}
+			if (message == null) {
+				message = Messages.getStringDelegated(peerNode, "FileSystem_ContentProvider_notConnected"); //$NON-NLS-1$
+			}
+		}
+
+		return new Object[] { new MessageModelNode(message != null ? message : Messages.ContentProvider_notConnected, IStatus.INFO, false) };
 	}
 }

@@ -1678,6 +1678,7 @@
          <adapter type="org.eclipse.tcf.te.ui.interfaces.ILazyLoader"/>
          <adapter type="org.eclipse.tcf.te.ui.interfaces.ISearchable"/>
          <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider"/>
+         <adapter type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
       </factory>
       <factory
             adaptableType="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"

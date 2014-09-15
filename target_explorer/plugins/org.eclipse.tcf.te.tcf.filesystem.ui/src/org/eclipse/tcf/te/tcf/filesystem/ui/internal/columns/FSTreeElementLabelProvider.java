@@ -10,8 +10,10 @@
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns;
 
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.trees.PendingAwareLabelProvider;
 
 /**
@@ -20,7 +22,7 @@ import org.eclipse.tcf.te.ui.trees.PendingAwareLabelProvider;
 public class FSTreeElementLabelProvider extends PendingAwareLabelProvider {
 	// The image provider to provide platform specific images.
 	private ImageProvider imgProvider;
-	
+
 	/**
 	 * Constructor.
 	 */
@@ -42,6 +44,10 @@ public class FSTreeElementLabelProvider extends PendingAwareLabelProvider {
 		if (element instanceof FSTreeNode) {
 			return ((FSTreeNode) element).name;
 		}
+		else if (element instanceof IModelNode) {
+			return ((IModelNode)element).getName();
+		}
+
 		return super.getText(element);
 	}
 
@@ -55,6 +61,10 @@ public class FSTreeElementLabelProvider extends PendingAwareLabelProvider {
 			FSTreeNode node = (FSTreeNode) element;
 			return imgProvider.getImage(node);
 		}
+		else if (element instanceof IModelNode) {
+			return UIPlugin.getImage(((IModelNode)element).getImageId());
+		}
+
 		return super.getImage(element);
 	}
 }
