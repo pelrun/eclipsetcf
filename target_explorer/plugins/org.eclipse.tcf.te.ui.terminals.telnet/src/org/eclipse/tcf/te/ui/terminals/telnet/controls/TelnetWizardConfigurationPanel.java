@@ -183,13 +183,17 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_HOST, telnetSettings.getHost());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(telnetSettings.getNetworkPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(telnetSettings.getTimeout()));
-				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				if (getEncoding() != null) {
+					hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				}
 			} else if (add) {
 				Map<String, String> hostSettings=new HashMap<String, String>();
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_HOST, telnetSettings.getHost());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(telnetSettings.getNetworkPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(telnetSettings.getTimeout()));
-				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				if (getEncoding() != null) {
+					hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				}
 				hostSettingsMap.put(host, hostSettings);
 			}
 		}
