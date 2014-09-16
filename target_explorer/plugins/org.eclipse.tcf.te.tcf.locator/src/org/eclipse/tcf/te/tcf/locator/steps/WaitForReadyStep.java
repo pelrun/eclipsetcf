@@ -202,4 +202,12 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 	public int getTotalWork(IStepContext context, IPropertiesContainer data) {
 	    return 100;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#getCancelTimeout()
+	 */
+	@Override
+	public int getCancelTimeout() {
+	    return 500;
+	}
 }
