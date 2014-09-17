@@ -31,4 +31,9 @@ public interface IContextHelpIds {
 	 * Terminal control encoding selection dialog.
 	 */
 	public final static String ENCODING_SELECTION_DIALOG = PREFIX + "EncodingSelectionDialog"; //$NON-NLS-1$
+
+	/**
+	 * External executables dialog.
+	 */
+	public final static String EXTERNAL_EXECUTABLES_DIALOG = PREFIX + "ExternalExecutablesDialog"; //$NON-NLS-1$
 }
