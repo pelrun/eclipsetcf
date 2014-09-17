@@ -93,6 +93,7 @@ public class NewWizard extends AbstractNewConfigWizard {
 		IStructuredSelection selection = getSelection();
 		if (selection != null) {
 			final IPeer peer;
+			boolean isPeerNode = false;
 			if (selection.getFirstElement() instanceof IPeer) {
 				peer = (IPeer)selection.getFirstElement();
 			}
@@ -100,6 +101,7 @@ public class NewWizard extends AbstractNewConfigWizard {
 				peer = ((ILocatorNode)selection.getFirstElement()).getPeer();
 			}
 			else if (selection.getFirstElement() instanceof IPeerNode) {
+				isPeerNode = true;
 				peer = ((IPeerNode)selection.getFirstElement()).getPeer();
 			}
 			else {
@@ -109,12 +111,13 @@ public class NewWizard extends AbstractNewConfigWizard {
 			if (peer != null) {
 				String selPeerType = peer.getAttributes().get(IPeerNodeProperties.PROP_TYPE);
 				final boolean sameType = getPeerType() == null ? selPeerType == null : getPeerType().equals(selPeerType);
+				final boolean finIsPeerNode = isPeerNode;
 				final IPropertiesContainer data = new PropertiesContainer();
 				Protocol.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
 						for (Entry<String, String> attribute : peer.getAttributes().entrySet()) {
-							if (sameType || isAllowedForeignAttribute(attribute.getKey())) {
+							if (sameType || (!finIsPeerNode && isAllowedForeignAttribute(attribute.getKey()))) {
 								data.setProperty(attribute.getKey(), attribute.getValue());
 							}
                         }
