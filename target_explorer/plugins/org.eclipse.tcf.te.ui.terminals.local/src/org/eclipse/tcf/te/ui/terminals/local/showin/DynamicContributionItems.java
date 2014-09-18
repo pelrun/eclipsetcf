@@ -19,7 +19,10 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -67,6 +70,33 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 					String path = (String) executableData.get("Path"); //$NON-NLS-1$
 					if (name != null && !"".equals(name) && path != null && !"".equals(path)) { //$NON-NLS-1$ //$NON-NLS-2$
 						IAction action = createAction(name, path);
+
+						ImageLoader loader = new ImageLoader();
+						ImageData[] data = loader.load("C:\\NoScan\\Apps\\Git\\etc\\git.ico");
+						if (data != null) {
+							ImageData id = null;
+							for (ImageData d : data) {
+								if (d.height == 16 && d.width == 16) {
+									if (id == null || id.height != 16 && id.width != 16) {
+										id = d;
+									} else if (d.depth < id.depth && d.depth >= 8){
+										id = d;
+									}
+								} else {
+									if (id == null) {
+										id = d;
+									} else if (id.height != 16 && d.height < id.height && id.width != 16 && d.width < id.width) {
+										id = d;
+									}
+								}
+							}
+
+							if (id != null) {
+								ImageDescriptor desc = ImageDescriptor.createFromImageData(id);
+								if (desc != null) action.setImageDescriptor(desc);
+							}
+						}
+
 						IContributionItem item = new ActionContributionItem(action);
 						items.add(item);
 					}
