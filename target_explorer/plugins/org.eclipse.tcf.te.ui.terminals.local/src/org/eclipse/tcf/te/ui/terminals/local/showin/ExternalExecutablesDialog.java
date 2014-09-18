@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.terminals.internal.dialogs;
+package org.eclipse.tcf.te.ui.terminals.local.showin;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +28,8 @@ import org.eclipse.tcf.te.ui.controls.validator.Validator;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog;
 import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
-import org.eclipse.tcf.te.ui.terminals.help.IContextHelpIds;
-import org.eclipse.tcf.te.ui.terminals.nls.Messages;
+import org.eclipse.tcf.te.ui.terminals.local.help.IContextHelpIds;
+import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
 
 /**
  * External executables dialog implementation.

@@ -104,23 +104,4 @@ public class Messages extends NLS {
 	public static String TabFolderManager_state_connected;
 	public static String TabFolderManager_state_connecting;
 	public static String TabFolderManager_state_closed;
-
-	public static String PreferencePage_label;
-	public static String PreferencePage_executables_label;
-	public static String PreferencePage_executables_column_name_label;
-	public static String PreferencePage_executables_column_path_label;
-	public static String PreferencePage_executables_button_add_label;
-	public static String PreferencePage_executables_button_edit_label;
-	public static String PreferencePage_executables_button_remove_label;
-
-	public static String ExternalExecutablesDialog_title_add;
-	public static String ExternalExecutablesDialog_title_edit;
-	public static String ExternalExecutablesDialog_button_add;
-	public static String ExternalExecutablesDialog_field_path;
-	public static String ExternalExecutablesDialog_name_info_missingValue;
-	public static String ExternalExecutablesDialog_path_info_missingFilename;
-	public static String ExternalExecutablesDialog_path_error_mustExist;
-	public static String ExternalExecutablesDialog_path_error_invalidFilename;
-	public static String ExternalExecutablesDialog_path_error_noAccess;
-	public static String ExternalExecutablesDialog_path_error_isRelativ;
 }

@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.terminals.internal;
+package org.eclipse.tcf.te.ui.terminals.local.showin;
 
 import java.io.File;
 import java.io.FileReader;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

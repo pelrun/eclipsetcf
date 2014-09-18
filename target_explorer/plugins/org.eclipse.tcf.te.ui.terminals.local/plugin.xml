@@ -53,6 +53,23 @@
                </with>
             </visibleWhen>
          </command>
+         <dynamic
+               class="org.eclipse.tcf.te.ui.terminals.local.showin.DynamicContributionItems"
+               id="org.eclipse.tcf.te.ui.terminals.local.LocalLauncherDynamicContributionItems">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <adapt type="org.eclipse.core.resources.IResource">
+                       <not>
+                          <!-- The JDT Project Explorer contributions are adding the "Navigate -> Show In" quick menu.
+                               See o.e.jdt.internal.ui.navigator.JavaNavigatorActionProvider -->
+                          <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.jdt.core.javanature" />
+                       </not> 
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </dynamic>
       </menuContribution>
    </extension>
 
@@ -90,5 +107,21 @@
       </handler>
    </extension>
    
-<!-- Perspective contributions -->
+<!-- Preference page contributions -->
+   <extension point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.eclipse.tcf.te.ui.preferences.general"
+            class="org.eclipse.tcf.te.ui.terminals.local.showin.preferences.PreferencePage"
+            id="org.eclipse.tcf.te.ui.terminals.local.showin.preferences"
+            name="%preference.page.name">
+      </page>
+   </extension>
+
+<!-- Help Context contributions -->
+   <extension point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+
 </plugin>

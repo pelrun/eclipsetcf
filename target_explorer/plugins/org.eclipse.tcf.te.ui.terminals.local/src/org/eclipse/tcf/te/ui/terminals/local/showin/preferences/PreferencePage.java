@@ -7,7 +7,7 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.terminals.internal.preferences;
+package org.eclipse.tcf.te.ui.terminals.local.showin.preferences;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +40,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
-import org.eclipse.tcf.te.ui.terminals.internal.ExternalExecutablesManager;
-import org.eclipse.tcf.te.ui.terminals.internal.dialogs.ExternalExecutablesDialog;
-import org.eclipse.tcf.te.ui.terminals.nls.Messages;
+import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
+import org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesDialog;
+import org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesManager;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
