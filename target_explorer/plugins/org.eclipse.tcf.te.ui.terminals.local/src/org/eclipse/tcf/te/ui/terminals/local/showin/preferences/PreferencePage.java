@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.terminals.local.showin.preferences;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -172,6 +173,24 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(removeButton, 10);
 		removeButton.setLayoutData(layoutData);
+		removeButton.addSelectionListener(new SelectionAdapter() {
+			@SuppressWarnings("unchecked")
+            @Override
+			public void widgetSelected(SelectionEvent e) {
+				ISelection s = viewer.getSelection();
+				if (s instanceof IStructuredSelection && !s.isEmpty()) {
+					Iterator<?> iterator = ((IStructuredSelection)s).iterator();
+					while (iterator.hasNext()) {
+						Object element = iterator.next();
+						if (element instanceof Map) {
+							Map<String, Object> m = (Map<String, Object>)element;
+							executables.remove(m);
+						}
+						viewer.refresh();
+					}
+				}
+			}
+		});
 
 		viewer.setContentProvider(new IStructuredContentProvider() {
 			@Override
