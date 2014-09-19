@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.controls.common.NameControl;
 import org.eclipse.tcf.te.ui.controls.file.FileSelectionControl;
 import org.eclipse.tcf.te.ui.controls.validator.FileNameValidator;
@@ -30,6 +31,7 @@ import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.terminals.local.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
+import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutablesProperties;
 
 /**
  * External executables dialog implementation.
@@ -38,6 +40,8 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 	private final boolean edit;
 	private NameControl name;
 	private FileSelectionControl path;
+	private BaseEditBrowseTextControl args;
+	private FileSelectionControl icon;
 
 	private Map<String, Object> executableData;
 
@@ -111,11 +115,51 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
         path.setEditFieldLabel(Messages.ExternalExecutablesDialog_field_path);
         path.setupPanel(panel);
 
+        args = new BaseEditBrowseTextControl(null) {
+        	@Override
+        	public IValidatingContainer getValidatingContainer() {
+        	    return ExternalExecutablesDialog.this;
+        	}
+        };
+        args.setEditFieldLabel(Messages.ExternalExecutablesDialog_field_args);
+        args.setParentControlIsInnerPanel(true);
+        args.setupPanel(panel);
+
+        icon = new FileSelectionControl(null) {
+        	@Override
+        	protected Validator doCreateEditFieldValidator() {
+        		return new FileNameValidator(FileNameValidator.ATTR_MUST_EXIST | FileNameValidator.ATTR_CAN_READ | FileNameValidator.ATTR_ABSOLUT);
+        	}
+        	@Override
+        	protected void configureEditFieldValidator(Validator validator) {
+        	    super.configureEditFieldValidator(validator);
+    			validator.setMessageText(FileNameValidator.ERROR_MUST_EXIST, Messages.ExternalExecutablesDialog_icon_error_mustExist);
+    			validator.setMessageText(FileNameValidator.ERROR_INVALID_FILE_NAME, Messages.ExternalExecutablesDialog_icon_error_invalidFilename);
+    			validator.setMessageText(FileNameValidator.ERROR_NO_ACCESS, Messages.ExternalExecutablesDialog_icon_error_noAccess);
+    			validator.setMessageText(FileNameValidator.ERROR_IS_RELATIV, Messages.ExternalExecutablesDialog_icon_error_isRelativ);
+
+
+        	}
+        	@Override
+        	public IValidatingContainer getValidatingContainer() {
+        	    return ExternalExecutablesDialog.this;
+        	}
+        };
+        icon.setIsGroup(false);
+        icon.setParentControlIsInnerPanel(true);
+        icon.setEditFieldLabel(Messages.ExternalExecutablesDialog_field_icon);
+        icon.setupPanel(panel);
+
+
         if (executableData != null) {
-        	String value = (String)executableData.get("Name"); //$NON-NLS-1$
+        	String value = (String)executableData.get(IExternalExecutablesProperties.PROP_NAME);
         	name.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
-        	value = (String)executableData.get("Path"); //$NON-NLS-1$
+        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_PATH);
         	path.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
+        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_ARGS);
+        	args.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
+        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_ICON);
+        	icon.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
         }
 	}
 
@@ -151,16 +195,30 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 
 			String value = name.getEditFieldControlText();
 			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
-				executableData.put("Name", value); //$NON-NLS-1$
+				executableData.put(IExternalExecutablesProperties.PROP_NAME, value);
 			} else {
-				executableData.remove("Name"); //$NON-NLS-1$
+				executableData.remove(IExternalExecutablesProperties.PROP_NAME);
 			}
 
 			value = path.getEditFieldControlText();
 			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
-				executableData.put("Path", value); //$NON-NLS-1$
+				executableData.put(IExternalExecutablesProperties.PROP_PATH, value);
 			} else {
-				executableData.remove("Path"); //$NON-NLS-1$
+				executableData.remove(IExternalExecutablesProperties.PROP_PATH);
+			}
+
+			value = args.getEditFieldControlText();
+			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
+				executableData.put(IExternalExecutablesProperties.PROP_ARGS, value);
+			} else {
+				executableData.remove(IExternalExecutablesProperties.PROP_ARGS);
+			}
+
+			value = icon.getEditFieldControlText();
+			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
+				executableData.put(IExternalExecutablesProperties.PROP_ICON, value);
+			} else {
+				executableData.remove(IExternalExecutablesProperties.PROP_ICON);
 			}
 		} else {
 			executableData = null;
@@ -209,8 +267,16 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 			valid = name.isValid();
 		}
 
-		if (valid && path != null) {
-			valid = path.isValid();
+		if (path != null) {
+			valid |= path.isValid();
+		}
+
+		if (args != null) {
+			valid |= args.isValid();
+		}
+
+		if (icon != null) {
+			valid |= icon.isValid();
 		}
 
 		SWTControlUtil.setEnabled(getButton(IDialogConstants.OK_ID), valid);

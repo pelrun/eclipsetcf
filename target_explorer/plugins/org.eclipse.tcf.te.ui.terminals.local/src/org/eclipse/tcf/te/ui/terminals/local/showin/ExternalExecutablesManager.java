@@ -15,8 +15,11 @@ import java.io.FileWriter;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
 
 import com.google.gson.Gson;
@@ -84,5 +87,41 @@ public class ExternalExecutablesManager {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Loads the image data suitable for showing an icon in a menu
+	 * (16 x 16, 8bit depth) from the given file.
+	 *
+	 * @param path The image file path. Must not be <code>null</code>.
+	 * @return The image data or <code>null</code>.
+	 */
+	public static ImageData loadImage(String path) {
+		Assert.isNotNull(path);
+
+		ImageData id = null;
+
+		ImageLoader loader = new ImageLoader();
+		ImageData[] data = loader.load(path);
+
+		if (data != null) {
+			for (ImageData d : data) {
+				if (d.height == 16 && d.width == 16) {
+					if (id == null || id.height != 16 && id.width != 16) {
+						id = d;
+					} else if (d.depth < id.depth && d.depth >= 8){
+						id = d;
+					}
+				} else {
+					if (id == null) {
+						id = d;
+					} else if (id.height != 16 && d.height < id.height && id.width != 16 && d.width < id.width) {
+						id = d;
+					}
+				}
+			}
+		}
+
+		return id;
 	}
 }

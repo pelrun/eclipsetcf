@@ -10,9 +10,11 @@
 package org.eclipse.tcf.te.ui.terminals.local.showin.preferences;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -30,6 +32,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -43,6 +46,7 @@ import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesDialog;
 import org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesManager;
+import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutablesProperties;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -56,6 +60,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	private Button removeButton;
 
 	/* default */ final List<Map<String, Object>> executables = new ArrayList<Map<String, Object>>();
+	/* default */ final Map<String, Image> images = new HashMap<String, Image>();
 
 	/* default */ static final Object[] NO_ELEMENTS = new Object[0];
 
@@ -195,17 +200,42 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 
                     switch (columnIndex) {
                     case 0:
-                    	return (String)m.get("Name"); //$NON-NLS-1$
+                    	return (String)m.get(IExternalExecutablesProperties.PROP_NAME);
                     case 1:
-                    	return (String)m.get("Path"); //$NON-NLS-1$
+                    	return (String)m.get(IExternalExecutablesProperties.PROP_PATH);
                     }
 				}
 				return null;
 			}
 
-			@Override
+			@SuppressWarnings("unchecked")
+            @Override
 			public Image getColumnImage(Object element, int columnIndex) {
-				return null;
+				Image i = null;
+
+				if (element instanceof Map) {
+					switch (columnIndex) {
+					case 0:
+	                    Map<String, Object> m = (Map<String, Object>)element;
+						String icon = (String) m.get(IExternalExecutablesProperties.PROP_ICON);
+						if (icon != null) {
+							i = images.get(icon);
+							if (i == null) {
+								ImageData id = ExternalExecutablesManager.loadImage(icon);
+								if (id != null) {
+									ImageDescriptor d = ImageDescriptor.createFromImageData(id);
+									if (d != null) i = d.createImage();
+									if (i != null) images.put(icon, i);
+								}
+							}
+						}
+						break;
+					case 1:
+						break;
+					}
+				}
+
+				return i;
 			}
 
 			@Override
@@ -286,4 +316,15 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	    return super.performOk();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.DialogPage#dispose()
+	 */
+	@Override
+	public void dispose() {
+		for (Image i : images.values()) {
+			i.dispose();
+		}
+		images.clear();
+	    super.dispose();
+	}
 }

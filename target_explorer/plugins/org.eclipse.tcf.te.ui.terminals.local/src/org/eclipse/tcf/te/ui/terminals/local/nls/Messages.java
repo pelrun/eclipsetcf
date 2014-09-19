@@ -49,4 +49,10 @@ public class Messages extends NLS {
 	public static String ExternalExecutablesDialog_path_error_invalidFilename;
 	public static String ExternalExecutablesDialog_path_error_noAccess;
 	public static String ExternalExecutablesDialog_path_error_isRelativ;
+	public static String ExternalExecutablesDialog_field_args;
+	public static String ExternalExecutablesDialog_field_icon;
+	public static String ExternalExecutablesDialog_icon_error_mustExist;
+	public static String ExternalExecutablesDialog_icon_error_invalidFilename;
+	public static String ExternalExecutablesDialog_icon_error_noAccess;
+	public static String ExternalExecutablesDialog_icon_error_isRelativ;
 }

@@ -30,5 +30,6 @@ Export-Package: org.eclipse.tcf.te.ui.terminals.local.activator;x-internal:=true
  org.eclipse.tcf.te.ui.terminals.local.launcher,
  org.eclipse.tcf.te.ui.terminals.local.nls;x-internal:=true,
  org.eclipse.tcf.te.ui.terminals.local.showin,
+ org.eclipse.tcf.te.ui.terminals.local.showin.interfaces,
  org.eclipse.tcf.te.ui.terminals.local.showin.preferences,
  org.eclipse.tcf.te.ui.terminals.local.types

@@ -22,13 +22,13 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
+import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutablesProperties;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.CompoundContributionItem;
@@ -66,35 +66,18 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 			List<Map<String, Object>> l = ExternalExecutablesManager.load();
 			if (l != null && !l.isEmpty()) {
 				for (Map<String, Object> executableData : l) {
-					String name = (String) executableData.get("Name"); //$NON-NLS-1$
-					String path = (String) executableData.get("Path"); //$NON-NLS-1$
+					String name = (String) executableData.get(IExternalExecutablesProperties.PROP_NAME);
+					String path = (String) executableData.get(IExternalExecutablesProperties.PROP_PATH);
+					String args = (String) executableData.get(IExternalExecutablesProperties.PROP_ARGS);
+					String icon = (String) executableData.get(IExternalExecutablesProperties.PROP_ICON);
+
 					if (name != null && !"".equals(name) && path != null && !"".equals(path)) { //$NON-NLS-1$ //$NON-NLS-2$
-						IAction action = createAction(name, path);
+						IAction action = createAction(name, path, args);
 
-						ImageLoader loader = new ImageLoader();
-						ImageData[] data = loader.load("C:\\NoScan\\Apps\\Git\\etc\\git.ico");
-						if (data != null) {
-							ImageData id = null;
-							for (ImageData d : data) {
-								if (d.height == 16 && d.width == 16) {
-									if (id == null || id.height != 16 && id.width != 16) {
-										id = d;
-									} else if (d.depth < id.depth && d.depth >= 8){
-										id = d;
-									}
-								} else {
-									if (id == null) {
-										id = d;
-									} else if (id.height != 16 && d.height < id.height && id.width != 16 && d.width < id.width) {
-										id = d;
-									}
-								}
-							}
-
-							if (id != null) {
-								ImageDescriptor desc = ImageDescriptor.createFromImageData(id);
-								if (desc != null) action.setImageDescriptor(desc);
-							}
+						ImageData id = icon != null ? ExternalExecutablesManager.loadImage(icon) : null;
+						if (id != null) {
+							ImageDescriptor desc = ImageDescriptor.createFromImageData(id);
+							if (desc != null) action.setImageDescriptor(desc);
 						}
 
 						IContributionItem item = new ActionContributionItem(action);
@@ -112,10 +95,11 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 	 *
 	 * @param label The label. Must not be <code>null</code>.
 	 * @param path The executable path. Must not be <code>null</code>.
+	 * @param args The executable arguments or <code>null</code>.
 	 *
 	 * @return The action to execute.
 	 */
-	protected IAction createAction(final String label, final String path) {
+	protected IAction createAction(final String label, final String path, final String args) {
 		Assert.isNotNull(label);
 		Assert.isNotNull(path);
 
@@ -133,7 +117,7 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 		    	properties.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
 		    	if (selection != null) properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 		    	properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH, path);
-		    	properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, "--login -i"); //$NON-NLS-1$
+		    	if (args != null) properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, args);
 
 		    	delegate.execute(properties, new Callback() {
 		    		@Override
