@@ -32,6 +32,8 @@ import org.eclipse.tcf.te.ui.terminals.process.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.process.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.terminals.process.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.streams.AbstractStreamsConnector;
+import org.eclipse.tm.internal.terminal.emulator.VT100Emulator;
+import org.eclipse.tm.internal.terminal.emulator.VT100TerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
@@ -108,6 +110,10 @@ public class ProcessConnector extends AbstractStreamsConnector {
 				if (PTY.isSupported(PTY.Mode.TERMINAL)) {
 					try {
 						pty = new PTY(PTY.Mode.TERMINAL);
+
+						// Initialize the terminal size
+						VT100Emulator text = ((VT100TerminalControl)control).getTerminalText();
+						text.fontChanged();
 					} catch (IOException e) {
 						// PTY not supported
 					}
