@@ -159,6 +159,14 @@ public interface IExpressions extends IService {
         boolean isBigEndian();
 
         /**
+         * Implicit pointer means that the value represents a pointer,
+         * which value is unknown or optimized away,
+         * even though the value it would point to is known.
+         * @return true if the value is implicit pointer.
+         */
+        boolean isImplicitPointer();
+
+        /**
          * Return register ID if the value represents register variable.
          * @return register ID or null.
          */
@@ -196,6 +204,7 @@ public interface IExpressions extends IService {
         VAL_CLASS = "Class",
         VAL_TYPE = "Type",
         VAL_BIG_ENDIAN = "BigEndian",
+        VAL_IMPLICIT_POINTER = "ImplicitPointer",
         VAL_REGISTER = "Register",
         VAL_SYMBOL = "Symbol",
         VAL_ADDRESS = "Address",

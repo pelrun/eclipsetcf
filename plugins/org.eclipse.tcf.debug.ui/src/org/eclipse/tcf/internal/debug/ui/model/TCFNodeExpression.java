@@ -1638,19 +1638,6 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 break;
             }
         }
-        if (level == 0) {
-            if (!type_name.validate(done)) return false;
-            bf.append("Size: ", SWT.BOLD);
-            bf.append(Integer.toString(type_data.getSize()), StyledStringBuffer.MONOSPACED);
-            bf.append(type_data.getSize() == 1 ? " byte" : " bytes");
-            String nm = type_name.getData();
-            if (nm != null) {
-                bf.append(", ");
-                bf.append("Type: ", SWT.BOLD);
-                bf.append(nm);
-            }
-            bf.append('\n');
-        }
         return true;
     }
 
@@ -1678,13 +1665,36 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (!value.validate(done)) return false;
             IExpressions.Value v = value.getData();
             if (v != null) {
-                if (value.getError() == null) {
+                String type_id = v.getTypeID();
+                if (v.isImplicitPointer()) {
+                    bf.append("Implicit pointer, value not available\n", SWT.BOLD);
+                }
+                else if (value.getError() == null) {
                     byte[] data = v.getValue();
                     if (data != null) {
                         boolean big_endian = v.isBigEndian();
-                        if (!appendValueText(bf, 0, v.getTypeID(), this,
+                        if (!appendValueText(bf, 0, type_id, this,
                             data, 0, data.length, big_endian, done)) return false;
                     }
+                }
+                ISymbols.Symbol type_data = null;
+                if (type_id != null) {
+                    TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(type_id);
+                    if (!type_cache.validate(done)) return false;
+                    type_data = type_cache.getData();
+                }
+                if (type_data != null) {
+                    if (!type_name.validate(done)) return false;
+                    bf.append("Size: ", SWT.BOLD);
+                    bf.append(Integer.toString(type_data.getSize()), StyledStringBuffer.MONOSPACED);
+                    bf.append(type_data.getSize() == 1 ? " byte" : " bytes");
+                    String nm = type_name.getData();
+                    if (nm != null) {
+                        bf.append(", ");
+                        bf.append("Type: ", SWT.BOLD);
+                        bf.append(nm);
+                    }
+                    bf.append('\n');
                 }
                 @SuppressWarnings("unchecked")
                 List<Map<String,Object>> pieces = (List<Map<String,Object>>)v.getProperties().get(IExpressions.VAL_PIECES);

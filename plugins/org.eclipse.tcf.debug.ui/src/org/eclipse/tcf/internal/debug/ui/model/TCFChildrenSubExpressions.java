@@ -249,7 +249,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
             TCFDataCache<IExpressions.Value> val_cache = ((TCFNodeExpression)exp).getValue();
             if (!val_cache.validate(this)) return false;
             IExpressions.Value val_data = val_cache.getData();
-            if (val_data != null && !isNull(val_data.getValue())) {
+            if (val_data != null && (val_data.isImplicitPointer() || !isNull(val_data.getValue()))) {
                 TCFDataCache<ISymbols.Symbol> base_type_cache = node.model.getSymbolInfoCache(type_data.getBaseTypeID());
                 if (base_type_cache != null) {
                     if (!base_type_cache.validate(this)) return false;

@@ -146,6 +146,12 @@ public class ExpressionsProxy implements IExpressions {
             if (n == null) return false;
             return n.booleanValue();
         }
+
+        public boolean isImplicitPointer() {
+            Boolean n = (Boolean)props.get(VAL_IMPLICIT_POINTER);
+            if (n == null) return false;
+            return n.booleanValue();
+        }
     }
 
     public ExpressionsProxy(IChannel channel) {
