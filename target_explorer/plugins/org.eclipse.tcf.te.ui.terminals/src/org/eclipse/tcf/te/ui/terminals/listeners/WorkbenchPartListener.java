@@ -7,12 +7,11 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.views.listeners;
+package org.eclipse.tcf.te.ui.terminals.listeners;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
@@ -68,8 +67,7 @@ public class WorkbenchPartListener implements IPartListener2 {
 	 */
 	@Override
 	public void partActivated(IWorkbenchPartReference partRef) {
-		if (IUIConstants.ID_EXPLORER.equals(partRef.getId()) ||
-						IUIConstants.ID_EDITOR.equals(partRef.getId())) {
+		if ("org.eclipse.tcf.te.ui.terminals.TerminalsView".equals(partRef.getId())) { //$NON-NLS-1$
 			IWorkbenchPart part = partRef.getPart(false);
 			if (part != null && part.getSite() != null) {
 				IContextService service = (IContextService)part.getSite().getService(IContextService.class);
@@ -90,8 +88,7 @@ public class WorkbenchPartListener implements IPartListener2 {
 	 */
 	@Override
 	public void partDeactivated(IWorkbenchPartReference partRef) {
-		if (IUIConstants.ID_EXPLORER.equals(partRef.getId()) ||
-				IUIConstants.ID_EDITOR.equals(partRef.getId())) {
+		if ("org.eclipse.tcf.te.ui.terminals.TerminalsView".equals(partRef.getId())) { //$NON-NLS-1$
 			IWorkbenchPart part = partRef.getPart(false);
 			if (part != null && part.getSite() != null) {
 				IContextService service = (IContextService)part.getSite().getService(IContextService.class);

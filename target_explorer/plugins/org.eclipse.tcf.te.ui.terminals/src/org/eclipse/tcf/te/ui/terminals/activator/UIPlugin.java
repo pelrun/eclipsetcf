@@ -20,17 +20,21 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ImageConsts;
+import org.eclipse.tcf.te.ui.terminals.listeners.WorkbenchWindowListener;
 import org.eclipse.tcf.te.ui.terminals.view.TerminalsView;
 import org.eclipse.tcf.te.ui.terminals.view.TerminalsViewMementoHandler;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchListener;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
@@ -49,6 +53,8 @@ public class UIPlugin extends AbstractUIPlugin {
 	private static volatile TraceHandler traceHandler;
 	// The workbench listener instance
 	private IWorkbenchListener listener;
+	// The global window listener instance
+	private IWindowListener windowListener;
 
 	/**
 	 * The constructor
@@ -162,6 +168,26 @@ public class UIPlugin extends AbstractUIPlugin {
 			}
 		};
 		PlatformUI.getWorkbench().addWorkbenchListener(listener);
+
+		if (windowListener == null && PlatformUI.getWorkbench() != null) {
+			windowListener = new WorkbenchWindowListener();
+			PlatformUI.getWorkbench().addWindowListener(windowListener);
+			activateContexts();
+		}
+	}
+
+	void activateContexts() {
+		if (Display.getCurrent() != null) {
+			IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+			if (window != null && windowListener != null) windowListener.windowOpened(window);
+		}
+		else {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable(){
+				@Override
+				public void run() {
+					activateContexts();
+				}});
+		}
 	}
 
 	/* (non-Javadoc)
@@ -169,6 +195,11 @@ public class UIPlugin extends AbstractUIPlugin {
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
+		if (windowListener != null && PlatformUI.getWorkbench() != null) {
+			PlatformUI.getWorkbench().removeWindowListener(windowListener);
+			windowListener = null;
+		}
+
 		plugin = null;
 		scopedPreferences = null;
 		traceHandler = null;

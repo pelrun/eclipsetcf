@@ -165,6 +165,20 @@
                </visibleWhen>
          </command>
       </menuContribution>
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.terminals.TerminalsView?after=additions">
+         <command
+               commandId="org.eclipse.ui.window.maximizePart"
+               id="org.eclipse.tcf.te.ui.terminals.commands.maximizePart"
+               label="Maximize View"
+               style="push">
+         </command>
+         <command
+               commandId="org.eclipse.ui.window.quickAccess"
+               id="org.eclipse.tcf.te.ui.terminals.commands.quickAccess"
+               label="Quick Access"
+               style="push">
+         </command>
+      </menuContribution>
 
       <!-- Project Explorer "Show In" contribution -->
       <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?before=group.edit">
@@ -276,5 +290,14 @@
       <defaultEnablement
             id="com.windriver.te.tcf.ui.activity.terminals.views">
       </defaultEnablement>
+   </extension>
+
+   <extension point="org.eclipse.ui.contexts">
+      <context
+            id="org.eclipse.tcf.te.ui.terminals.TerminalsView"
+            name="%TerminalsView.context.name"
+            description="%TerminalsView.context.description"
+            parentId="org.eclipse.ui.contexts.window">
+      </context>
    </extension>
 </plugin>
