@@ -167,13 +167,13 @@
       </menuContribution>
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.terminals.TerminalsView?after=additions">
          <command
-               commandId="org.eclipse.ui.window.maximizePart"
+               commandId="org.eclipse.tm.terminal.maximize"
                id="org.eclipse.tcf.te.ui.terminals.commands.maximizePart"
                label="Maximize View"
                style="push">
          </command>
          <command
-               commandId="org.eclipse.ui.window.quickAccess"
+               commandId="org.eclipse.tm.terminal.quickaccess"
                id="org.eclipse.tcf.te.ui.terminals.commands.quickAccess"
                label="Quick Access"
                style="push">
@@ -246,6 +246,27 @@
                </with>
             </enabledWhen>
       </handler>
+      
+      <handler
+            class="org.eclipse.tcf.te.ui.terminals.internal.handler.MaximizeViewHandler"
+            commandId="org.eclipse.tm.terminal.maximize">
+            <activeWhen>
+               <with variable="activePartId">
+                  <equals value="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
+               </with>
+            </activeWhen>
+      </handler>
+      
+      <handler
+            class="org.eclipse.tcf.te.ui.terminals.internal.handler.QuickAccessHandler"
+            commandId="org.eclipse.tm.terminal.quickaccess">
+            <activeWhen>
+               <with variable="activePartId">
+                  <equals value="org.eclipse.tcf.te.ui.terminals.TerminalsView"/>
+               </with>
+            </activeWhen>
+      </handler>
+
    </extension>
 
 <!-- Help Context contributions -->
