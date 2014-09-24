@@ -20,9 +20,9 @@ public class TargetPathValidator extends RegexValidator {
 	public static final int ATTR_MULTIPLE = 4;
 
 	protected static final String TARGET_PATH_SEGMENT_REGEX = "[^;?* /\\\\]+"; //$NON-NLS-1$
-	protected static final String TARGET_PATH_REGEX = "(/(" + TARGET_PATH_SEGMENT_REGEX + "))+"; //$NON-NLS-1$ //$NON-NLS-2$
+	protected static final String TARGET_PATH_REGEX = "(/?(" + TARGET_PATH_SEGMENT_REGEX + "))(/(" + TARGET_PATH_SEGMENT_REGEX + "))*"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
-	protected static final String TARGET_PATH_MULTIPLE_REGEX = TARGET_PATH_REGEX + "/?(;" + TARGET_PATH_REGEX + "/?)*"; //$NON-NLS-1$ //$NON-NLS-2$
+	protected static final String TARGET_PATH_MULTIPLE_REGEX = TARGET_PATH_REGEX + "/?([ ]*;[ ]*" + TARGET_PATH_REGEX + "/?)*"; //$NON-NLS-1$ //$NON-NLS-2$
 
 	/**
 	 * Constructor.
