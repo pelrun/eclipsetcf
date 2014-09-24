@@ -272,7 +272,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 			}
 			@Override
 			protected void onButtonControlSelected() {
-				LocatorNodeSelectionDialog dialog = new LocatorNodeSelectionDialog(null) {
+				LocatorNodeSelectionDialog dialog = new LocatorNodeSelectionDialog(null, true) {
 					@Override
 					protected String getDialogTitle() {
 					    return Messages.NewTargetWizardPage_PeerSelectionDialog_dialogTitle;

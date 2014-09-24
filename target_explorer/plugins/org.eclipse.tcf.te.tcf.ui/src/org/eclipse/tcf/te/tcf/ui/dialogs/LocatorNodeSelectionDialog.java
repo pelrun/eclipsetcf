@@ -84,13 +84,17 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
 	Button deleteButton;
 	Button refreshButton;
 
+	final boolean isProxyAllowed;
+
 	/**
 	 * Constructor.
 	 *
 	 * @param shell The shell used to view the dialog, or <code>null</code>.
 	 */
-	public LocatorNodeSelectionDialog(Shell shell) {
+	public LocatorNodeSelectionDialog(Shell shell, boolean isProxyAllowed) {
 		super(shell, IContextHelpIds.LOCATOR_NODE_SELECTION_DIALOG);
+
+		this.isProxyAllowed = isProxyAllowed;
 
 		ModelManager.getLocatorModel().addListener(this);
 	}
@@ -359,7 +363,30 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
 	 */
 	@Override
     protected IContentProvider getContentProvider() {
-		return new ContentProvider();
+		return new ContentProvider() {
+			@Override
+			public Object[] getChildren(Object parentElement) {
+				if (isProxyAllowed || parentElement instanceof ILocatorModel || parentElement instanceof ICategory) {
+					return super.getChildren(parentElement);
+				}
+				return new Object[0];
+			}
+			@Override
+			public boolean hasChildren(Object element) {
+				if (isProxyAllowed || element instanceof ILocatorModel || element instanceof ICategory) {
+					return super.hasChildren(element);
+				}
+				return false;
+			}
+		};
+	}
+
+    protected Object getViewerSelection() {
+		ISelection sel = getViewer().getSelection();
+		if (sel instanceof IStructuredSelection) {
+			return ((IStructuredSelection)sel).getFirstElement();
+		}
+		return null;
 	}
 
 	/* (non-Javadoc)
@@ -367,13 +394,8 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
 	 */
 	@Override
 	protected boolean isValidSelection() {
-		boolean valid = false;
-		ISelection sel = getViewer().getSelection();
-		if (sel instanceof IStructuredSelection) {
-			Object element = ((IStructuredSelection)sel).getFirstElement();
-			valid = element instanceof ICategory || element instanceof ILocatorNode;
-		}
-	    return valid;
+		Object element = getViewerSelection();
+		return element instanceof ICategory || element instanceof ILocatorNode;
 	}
 
 	/* (non-Javadoc)
@@ -423,7 +445,12 @@ public class LocatorNodeSelectionDialog extends AbstractTreeSelectionDialog impl
     	boolean valid = isValidSelection();
 
     	if (addButton != null && !addButton.isDisposed()) {
-    		addButton.setEnabled(valid);
+    		if (isProxyAllowed) {
+    			addButton.setEnabled(valid);
+    		}
+    		else {
+    			addButton.setEnabled(getViewerSelection() instanceof ICategory);
+    		}
     	}
     	if (refreshButton != null && !refreshButton.isDisposed()) {
     		refreshButton.setEnabled(valid);
