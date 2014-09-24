@@ -64,8 +64,9 @@ public interface IDefaultContextToolbarDelegate {
 	 * @param peerNode
 	 * @param entry
 	 * @param showDialog
+	 * @param The executed entry or <code>null</code> if not executed.
 	 */
-	public boolean execute(IPeerNode peerNode, String entry, boolean showDialog);
+	public String execute(IPeerNode peerNode, String entry, boolean showDialog);
 
 	/**
 	 * Validate the entry.

@@ -74,8 +74,8 @@ public abstract class AbstractDefaultContextToolbarDelegate implements IDefaultC
 	 * @see org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate#execute(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, boolean)
 	 */
 	@Override
-	public boolean execute(IPeerNode peerNode, String entry, boolean showDialog) {
-		return false;
+	public String execute(IPeerNode peerNode, String entry, boolean showDialog) {
+		return null;
 	}
 
 	protected String getStepGroupId(String entry) {

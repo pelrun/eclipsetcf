@@ -164,7 +164,9 @@ public class Messages extends NLS {
 	public static String ActionHistorySelectionDialog_title;
 	public static String ActionHistorySelectionDialog_message;
 	public static String ActionHistorySelectionDialog_button_edit;
+	public static String ActionHistorySelectionDialog_button_copy;
 	public static String ActionHistorySelectionDialog_button_execute;
+	public static String ActionHistorySelectionDialog_button_remove;
 
 	public static String RedirectHandler_error_title;
 	public static String RedirectHandler_error_redirectFailed;

@@ -119,7 +119,7 @@ public class DefaultContextToolbarDelegate extends AbstractDefaultContextToolbar
 	 * @see org.eclipse.tcf.te.tcf.ui.delegates.AbstractDefaultContextToolbarDelegate#execute(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, java.lang.String, boolean)
 	 */
 	@Override
-	public boolean execute(IPeerNode peerNode, String entry, boolean showDialog) {
+	public String execute(IPeerNode peerNode, String entry, boolean showDialog) {
 		String operation = null;
 		String stepGroupId = getStepGroupId(entry);
 		if (IStepGroupIds.ATTACH.equals(stepGroupId)) {
@@ -136,7 +136,7 @@ public class DefaultContextToolbarDelegate extends AbstractDefaultContextToolbar
 			}
 		}
 		else {
-			return false;
+			return null;
 		}
 
 		if (showDialog) {
@@ -153,13 +153,13 @@ public class DefaultContextToolbarDelegate extends AbstractDefaultContextToolbar
 					data.setProperty(IContextDataProperties.PROPERTY_CONTEXT_LIST, null);
 				}
 				else {
-					return false;
+					return null;
 				}
 			}
 		}
 
 		StepperHelper.scheduleStepperJob(peerNode, operation, stepperOperationService, data, null, null);
-		return true;
+		return DataHelper.encodePropertiesContainer(data);
 	}
 
 	/* (non-Javadoc)

@@ -23,9 +23,14 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.history.HistoryManager;
@@ -43,11 +48,21 @@ import org.eclipse.tcf.te.tcf.ui.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * ActionHistorySelectionDialog
  */
 public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
+
+	private static final int EDIT_ID = IDialogConstants.CLIENT_ID;
+	private static final int COPY_ID = IDialogConstants.CLIENT_ID + 1;
+
+	MenuItem menuExecute = null;
+	MenuItem menuEdit = null;
+	MenuItem menuCopy = null;
+	MenuItem menuRemove = null;
 
 	private int maxEntries = -1;
 
@@ -67,12 +82,66 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
+	 */
+	@SuppressWarnings("unused")
+    @Override
+	protected void createDialogAreaContent(Composite parent) {
+	    super.createDialogAreaContent(parent);
+
+        Menu menu = new Menu(getViewer().getTable());
+
+        menuEdit = new MenuItem(menu, SWT.PUSH);
+        menuEdit.setText(Messages.ActionHistorySelectionDialog_button_copy);
+        menuEdit.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        	    editPressed();
+        	}
+		});
+
+        menuCopy = new MenuItem(menu, SWT.PUSH);
+        menuCopy.setText(Messages.ActionHistorySelectionDialog_button_edit);
+        menuCopy.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        	    copyPressed();
+        	}
+		});
+
+        menuExecute = new MenuItem(menu, SWT.PUSH);
+        menuExecute.setText(Messages.ActionHistorySelectionDialog_button_execute);
+        menuExecute.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        	    okPressed();
+        	}
+		});
+
+        new MenuItem(menu, SWT.SEPARATOR);
+
+        menuRemove = new MenuItem(menu, SWT.PUSH);
+        menuRemove.setText(Messages.ActionHistorySelectionDialog_button_remove);
+        menuRemove.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        	    removePressed();
+        	}
+		});
+        menuRemove.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE));
+
+        getViewer().getTable().setMenu(menu);
+
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.jface.dialogs.Dialog#createButtonsForButtonBar(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.CLIENT_ID, Messages.ActionHistorySelectionDialog_button_edit,	false);
-		createButton(parent, IDialogConstants.OK_ID, Messages.ActionHistorySelectionDialog_button_execute,	true);
+		createButton(parent, COPY_ID, Messages.ActionHistorySelectionDialog_button_copy, false);
+		createButton(parent, EDIT_ID, Messages.ActionHistorySelectionDialog_button_edit, false);
+		createButton(parent, IDialogConstants.OK_ID, Messages.ActionHistorySelectionDialog_button_execute, true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
@@ -81,18 +150,43 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	 */
 	@Override
 	protected void buttonPressed(int buttonId) {
-		if (IDialogConstants.CLIENT_ID == buttonId) {
+		if (EDIT_ID == buttonId) {
 			editPressed();
+		}
+		else if (COPY_ID == buttonId) {
+			copyPressed();
 		}
 		else {
 		    super.buttonPressed(buttonId);
 		}
 	}
 
+	protected void removePressed() {
+		Entry entry = getSelectedEntry();
+		if (entry != null) {
+			HistoryManager.getInstance().remove(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + entry.peerNode.getPeerId(), entry.data); //$NON-NLS-1$
+			getViewer().setInput(getInput());
+			getViewer().refresh();
+		}
+	}
+
+	protected void copyPressed() {
+		Entry entry = getSelectedEntry();
+		if (entry != null) {
+			if (entry.delegate.execute(entry.peerNode, entry.data, true) != null) {
+				close();
+			}
+		}
+	}
+
 	protected void editPressed() {
 		Entry entry = getSelectedEntry();
 		if (entry != null) {
-			if (entry.delegate.execute(entry.peerNode, entry.data, true)) {
+			String newData = entry.delegate.execute(entry.peerNode, entry.data, true);
+			if (newData != null) {
+				if (!entry.data.equals(newData)) {
+					HistoryManager.getInstance().remove(IStepAttributes.PROP_LAST_RUN_HISTORY_ID + "@" + entry.peerNode.getPeerId(), entry.data); //$NON-NLS-1$
+				}
 				close();
 			}
 		}
@@ -106,7 +200,7 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 		Entry entry = getSelectedEntry();
 	    super.okPressed();
 		if (entry != null) {
-			if (entry.delegate.execute(entry.peerNode, entry.data, false)) {
+			if (entry.delegate.execute(entry.peerNode, entry.data, false) != null) {
 				close();
 			}
 		}
@@ -137,10 +231,27 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	    // Adjust the OK button enablement
 	    Button okButton = getButton(IDialogConstants.OK_ID);
 	    SWTControlUtil.setEnabled(okButton, entry != null && entry.delegate.validate(entry.peerNode, entry.data));
+	    if (menuExecute != null) {
+		    menuExecute.setEnabled(entry != null && entry.delegate.validate(entry.peerNode, entry.data));
+	    }
 
 	    // Adjust the edit button enablement
-	    Button editButton = getButton(IDialogConstants.CLIENT_ID);
+	    Button editButton = getButton(EDIT_ID);
 	    SWTControlUtil.setEnabled(editButton, entry != null);
+	    if (menuEdit != null) {
+		    menuEdit.setEnabled(entry != null);
+	    }
+
+	    // Adjust the copy button enablement
+	    Button copyButton = getButton(COPY_ID);
+	    SWTControlUtil.setEnabled(copyButton, entry != null);
+	    if (menuCopy != null) {
+		    menuCopy.setEnabled(entry != null);
+	    }
+
+	    if (menuRemove != null) {
+		    menuRemove.setEnabled(entry != null);
+	    }
 	}
 
 	protected int getMaxEntries() {
