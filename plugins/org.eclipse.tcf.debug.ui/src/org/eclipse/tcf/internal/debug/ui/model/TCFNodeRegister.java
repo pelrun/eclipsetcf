@@ -114,8 +114,10 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                             char ch = s.charAt(i);
                             if (ch >= 'A' && ch <= 'Z') continue;
                             if (ch >= 'a' && ch <= 'z') continue;
-                            if (ch >= '0' && ch <= '9') continue;
-                            if (ch == '_') continue;
+                            if (i > 0) {
+                                if (ch >= '0' && ch <= '9') continue;
+                                if (ch == '_') continue;
+                            }
                             need_quotes = true;
                             break;
                         }
