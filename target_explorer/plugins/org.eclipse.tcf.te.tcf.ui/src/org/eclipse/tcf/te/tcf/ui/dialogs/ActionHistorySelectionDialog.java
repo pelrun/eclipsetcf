@@ -372,4 +372,18 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 		return Messages.ActionHistorySelectionDialog_message;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#updateSelection(org.eclipse.jface.viewers.ISelection)
+	 */
+    @Override
+    protected void updateSelection(ISelection selection) {
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#createButtonAreaContent(org.eclipse.swt.widgets.Composite)
+	 */
+    @Override
+    protected void createButtonAreaContent(Composite parent) {
+    }
+
 }

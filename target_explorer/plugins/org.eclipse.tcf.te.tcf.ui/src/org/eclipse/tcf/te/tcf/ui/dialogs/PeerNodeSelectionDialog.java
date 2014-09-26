@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
@@ -149,5 +151,19 @@ public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog implem
 	 */
     @Override
     public void modelDisposed(IPeerModel model) {
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#updateSelection(org.eclipse.jface.viewers.ISelection)
+	 */
+    @Override
+    protected void updateSelection(ISelection selection) {
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.ui.dialogs.AbstractArraySelectionDialog#createButtonAreaContent(org.eclipse.swt.widgets.Composite)
+	 */
+    @Override
+    protected void createButtonAreaContent(Composite parent) {
     }
 }

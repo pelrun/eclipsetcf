@@ -37,6 +37,7 @@ import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.tcf.ui.navigator.ViewerSorter;
 import org.eclipse.tcf.te.ui.jface.dialogs.CustomTitleAreaDialog;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.tcf.te.ui.trees.TreeArrayContentProvider;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 
 /**
@@ -110,12 +111,16 @@ public abstract class AbstractTreeSelectionDialog extends CustomTitleAreaDialog 
 		createButtonAreaContent(comp);
 	}
 
+	protected int getTreeViewerStyle() {
+		return (supportsMultiSelection() ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER;
+	}
+
 	protected TreeViewer createTreeAreaContent(Composite parent) {
 	    // Create the tree viewer
-	    viewer = new TreeViewer(parent, (supportsMultiSelection() ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER);
+	    viewer = new TreeViewer(parent, getTreeViewerStyle());
 
 	    // Configure the tree
-	    Tree tree = viewer.getTree();
+	    final Tree tree = viewer.getTree();
 
 		@SuppressWarnings("unused")
 		TreeColumn column = new TreeColumn(tree, SWT.LEFT);
@@ -141,9 +146,7 @@ public abstract class AbstractTreeSelectionDialog extends CustomTitleAreaDialog 
 	    viewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				if (!viewer.getSelection().isEmpty()) {
-					okPressed();
-				}
+				onDoubleClick();
 			}
 		});
 	    viewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -159,11 +162,19 @@ public abstract class AbstractTreeSelectionDialog extends CustomTitleAreaDialog 
 	    return viewer;
 	}
 
+	protected void onDoubleClick() {
+		if (!viewer.getSelection().isEmpty()) {
+			okPressed();
+		}
+	}
+
 	protected abstract void updateSelection(ISelection selection);
 
 	protected abstract void createButtonAreaContent(Composite parent);
 
-	protected abstract IContentProvider getContentProvider();
+	protected IContentProvider getContentProvider() {
+		return new TreeArrayContentProvider();
+	}
 
 	protected IBaseLabelProvider getLabelProvider() {
 	    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();

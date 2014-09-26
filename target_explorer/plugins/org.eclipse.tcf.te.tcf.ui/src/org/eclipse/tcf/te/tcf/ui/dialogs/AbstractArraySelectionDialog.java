@@ -26,7 +26,10 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -98,23 +101,45 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 		setTitle(getTitle());
 		setDefaultMessage(getDefaultMessage(), IMessageProvider.NONE);
 
-	    // Create the table viewer
-	    viewer = new TableViewer(parent, (supportsMultiSelection() ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER);
+		Composite comp = new Composite(parent, SWT.NONE);
+		GridLayout gl = new GridLayout(2, false);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		comp.setLayout(gl);
+	    GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+	    comp.setLayoutData(gd);
+
+		createTableAreaContent(comp);
+		createButtonAreaContent(comp);
+	}
+
+	protected int getTableViewerStyle() {
+		return (supportsMultiSelection() ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL;
+	}
+
+	protected TableViewer createTableAreaContent(Composite parent) {
+		// Create the tree viewer
+		viewer = new TableViewer(parent, getTableViewerStyle());
 
 	    // Configure the table
-	    Table table = viewer.getTable();
+	    final Table table = viewer.getTable();
+		TableLayout tl = new TableLayout();
+		tl.addColumnData(new ColumnWeightData(100));
+		table.setLayout(tl);
+	    GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+	    table.setLayoutData(gd);
 
-		@SuppressWarnings("unused")
-        TableColumn column = new TableColumn(table, SWT.LEFT);
+        final TableColumn column = new TableColumn(table, SWT.LEFT);
 
 		ColumnViewerToolTipSupport.enableFor(viewer);
 
-		TableLayout tableLayout = new TableLayout();
-		tableLayout.addColumnData(new ColumnWeightData(100));
-		table.setLayout(tableLayout);
 
-	    GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
-	    table.setLayoutData(layoutData);
+	    table.addControlListener(new ControlAdapter() {
+			@Override
+			public void controlResized(ControlEvent e) {
+				column.setWidth(Math.max(200, table.getBounds().width - table.getBorderWidth()*2));
+			}
+		});
 
 	    viewer.setContentProvider(getContentProvider());
 	    viewer.setLabelProvider(getLabelProvider());
@@ -126,9 +151,7 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 	    viewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				if (!viewer.getSelection().isEmpty()) {
-					okPressed();
-				}
+				onDoubleClick();
 			}
 		});
 	    viewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -139,7 +162,18 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 		});
 
 	    viewer.refresh();
+	    updateSelection(getSelection());
+
+	    return viewer;
 	}
+
+	protected void onDoubleClick() {
+		if (!viewer.getSelection().isEmpty()) {
+			okPressed();
+		}
+	}
+
+	protected abstract void updateSelection(ISelection selection);
 
 	protected IContentProvider getContentProvider() {
 		return new ArrayContentProvider();
@@ -161,7 +195,9 @@ public abstract class AbstractArraySelectionDialog extends CustomTitleAreaDialog
 		});
 	}
 
-	protected abstract Object[] getInput();
+	protected abstract Object getInput();
+
+	protected abstract void createButtonAreaContent(Composite parent);
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.dialogs.TrayDialog#createButtonBar(org.eclipse.swt.widgets.Composite)
