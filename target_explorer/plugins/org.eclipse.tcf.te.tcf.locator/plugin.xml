@@ -275,6 +275,10 @@
             	<parameter name="state" value="connected" />
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.locator.startPingTimerStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep">
+               <parameter name="forceStart" value="true"/>
+               <parameter name="reAttach" value="true"/>
+            </reference>
          </references>
       </stepGroup>
 

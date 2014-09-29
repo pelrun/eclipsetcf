@@ -202,6 +202,7 @@ public class DebugService extends AbstractService implements IDebugService {
 						if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
 							((IDisconnect)launch).disconnect();
 						}
+						data.setProperty(PROPERTY_DEBUGGER_DETACHED, true);
 					}
 				} catch (Exception e) {
 					if (e instanceof ExecutionException && "TCF task aborted".equals(e.getMessage()) //$NON-NLS-1$

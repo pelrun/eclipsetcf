@@ -39,6 +39,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 public class StartDebuggerStep extends AbstractPeerNodeStep {
 
 	public static final String PARAM_ATTACH_ALL = "autoAttachAll"; //$NON-NLS-1$
+	public static final String PARAM_REATTACH = "reAttach"; //$NON-NLS-1$
 	public static final String PARAM_FORCE_START_DEBUGGER = "forceStart"; //$NON-NLS-1$
 
 	/**
@@ -80,11 +81,18 @@ public class StartDebuggerStep extends AbstractPeerNodeStep {
 		final boolean autoAttachAll = value != null ? Boolean.parseBoolean(value) : false;
 		value = getParameters().get(PARAM_FORCE_START_DEBUGGER);
 		final boolean forceStart = value != null ? Boolean.parseBoolean(value) : false;
+		value = getParameters().get(PARAM_REATTACH);
+		final boolean reAttach= value != null ? Boolean.parseBoolean(value) : false;
 
 		if (forceStart || StepperAttributeUtil.getBooleanProperty(IStepAttributes.ATTR_START_DEBUGGER, fullQualifiedId, data)) {
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
+					boolean detached = node.getBooleanProperty(IDebugService.PROPERTY_DEBUGGER_DETACHED);
+					if (reAttach && !detached) {
+						callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
+						return;
+					}
 					// Don't attach the debugger if no run control is provided by the target
 					String remoteServices = node.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 					Assert.isNotNull(remoteServices);

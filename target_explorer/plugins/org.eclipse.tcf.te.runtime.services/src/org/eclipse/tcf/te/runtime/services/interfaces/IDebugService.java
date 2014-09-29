@@ -20,6 +20,8 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
  */
 public interface IDebugService extends IService {
 
+	public static final String PROPERTY_DEBUGGER_DETACHED = "debuggerDetached"; //$NON-NLS-1$
+
 	/**
 	 * Launches a debug session for the given context and attaches to it. The attach
 	 * can be parameterized via the data properties.
