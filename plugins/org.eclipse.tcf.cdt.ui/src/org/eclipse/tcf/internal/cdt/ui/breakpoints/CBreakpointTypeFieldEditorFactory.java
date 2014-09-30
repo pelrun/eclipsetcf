@@ -51,7 +51,7 @@ public class CBreakpointTypeFieldEditorFactory implements IFieldEditorFactory {
             if (state == Bundle.ACTIVE || state == Bundle.RESOLVED || state == Bundle.STARTING) {
                 Version version = cdtDebugUi.getVersion();
                 // if cdt.debug.ui version is at least 7.4 (CDT 8.4) we don't need the contribution
-                if (version.compareTo(Version.valueOf("7.4")) >= 0)
+                if (version.compareTo(Version.parseVersion("7.4")) >= 0)
                     return false;
             }
         }
