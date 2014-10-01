@@ -25,6 +25,8 @@ public interface IPathMapService extends IService {
 	 */
 	public final static String PATHMAP_PROTOCOL_HOST_TO_TARGET = IPathMap.PROTOCOL_TARGET;
 
+	public void generateSourcePathMappings(Object context);
+
 	/**
 	 * Return the configured (object) path mappings for the given context.
 	 * <p>

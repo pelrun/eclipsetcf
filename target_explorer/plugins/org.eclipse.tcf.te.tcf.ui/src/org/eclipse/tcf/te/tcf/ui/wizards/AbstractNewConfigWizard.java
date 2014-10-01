@@ -16,6 +16,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
@@ -84,6 +85,11 @@ public abstract class AbstractNewConfigWizard extends AbstractWizard implements 
 				connect.set(Boolean.parseBoolean(peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_AUTO_CONNECT)));
 			}
 		});
+
+		IPathMapService service = ServiceManager.getInstance().getService(peerNode, IPathMapService.class);
+		if (service != null) {
+			service.generateSourcePathMappings(peerNode);
+		}
 
 		if (connect.get()) {
 			peerNode.changeConnectState(IConnectable.ACTION_CONNECT, null, null);

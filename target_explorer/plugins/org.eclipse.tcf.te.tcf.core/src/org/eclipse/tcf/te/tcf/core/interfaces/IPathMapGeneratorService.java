@@ -28,4 +28,6 @@ public interface IPathMapGeneratorService extends IService {
 	 * @return The generated path map or <code>null</code>.
 	 */
 	public IPathMap.PathMapRule[] getPathMap(Object context);
+
+	public IPathMap.PathMapRule[] getSourcePathMap(Object context);
 }

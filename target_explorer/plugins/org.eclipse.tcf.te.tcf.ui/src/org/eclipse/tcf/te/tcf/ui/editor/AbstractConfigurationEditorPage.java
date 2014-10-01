@@ -30,6 +30,7 @@ import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
@@ -133,6 +134,11 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 					((IPeerNode)input).fireChangeEvent("properties", null, ((IPeerNode)input).getProperties()); //$NON-NLS-1$
 				}
 			});
+
+			IPathMapService service = ServiceManager.getInstance().getService(input, IPathMapService.class);
+			if (service != null) {
+				service.generateSourcePathMappings(input);
+			}
 		}
 	}
 

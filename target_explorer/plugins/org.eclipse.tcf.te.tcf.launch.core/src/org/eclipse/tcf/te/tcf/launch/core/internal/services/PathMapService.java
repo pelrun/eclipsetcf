@@ -20,13 +20,20 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.cdt.debug.core.sourcelookup.MappingSourceContainer;
+import org.eclipse.cdt.debug.internal.core.sourcelookup.MapEntrySourceContainer;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.model.ISourceLocator;
+import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector;
+import org.eclipse.debug.core.sourcelookup.ISourceContainer;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
@@ -51,9 +58,92 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 /**
  * Path map service implementation.
  */
+@SuppressWarnings("restriction")
 public class PathMapService extends AbstractService implements IPathMapService {
 	// Lock to handle multi thread access
 	private final Lock lock = new ReentrantLock();
+
+	private final String SOURCE_PATH_MAPPING_CONTAINER_NAME = "Generated Mappings"; //$NON-NLS-1$
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#generateSourcePathMappings(java.lang.Object)
+	 */
+	@Override
+	public void generateSourcePathMappings(Object context) {
+		// Get the launch configuration for that peer model
+		ILaunchConfiguration config = (ILaunchConfiguration) Platform.getAdapterManager().getAdapter(context, ILaunchConfiguration.class);
+		if (config == null) {
+			config = (ILaunchConfiguration) Platform.getAdapterManager().loadAdapter(context, "org.eclipse.debug.core.ILaunchConfiguration"); //$NON-NLS-1$
+		}
+
+		IPathMapGeneratorService generator = ServiceManager.getInstance().getService(context, IPathMapGeneratorService.class);
+
+		if (config != null) {
+			if (generator != null) {
+				PathMapRule[] generatedRules = generator.getSourcePathMap(context);
+				if (generatedRules != null) {
+					MapEntrySourceContainer[] mappings = new MapEntrySourceContainer[generatedRules.length];
+					int i = 0;
+					for (PathMapRule pathMapRule : generatedRules) {
+                        mappings[i++] = new MapEntrySourceContainer(new Path(pathMapRule.getSource()), new Path(pathMapRule.getDestination()));
+                    }
+					try {
+						config = addSourceMappingToLaunchConfig(config, mappings);
+					}
+					catch (Exception e) {
+					}
+				}
+			}
+		}
+	}
+
+	private ILaunchConfiguration addSourceMappingToLaunchConfig(ILaunchConfiguration config, MapEntrySourceContainer[] mappings) throws CoreException {
+		String memento = null;
+		String type = null;
+
+		ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
+		memento = wc.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, (String) null);
+		type = wc.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_ID, (String) null);
+		if (type == null) {
+			type = wc.getType().getSourceLocatorId();
+		}
+		ISourceLocator locator = DebugPlugin.getDefault().getLaunchManager().newSourceLocator(type);
+		if (locator instanceof AbstractSourceLookupDirector) {
+			AbstractSourceLookupDirector director = (AbstractSourceLookupDirector) locator;
+			if (memento == null) {
+				director.initializeDefaults(wc);
+			} else {
+				director.initializeFromMemento(memento, wc);
+			}
+
+			ArrayList<ISourceContainer> containerList = new ArrayList<ISourceContainer>(Arrays.asList(director.getSourceContainers()));
+			MappingSourceContainer generatedMappings = null;
+			for (ISourceContainer container : containerList) {
+				if (container instanceof MappingSourceContainer) {
+					if (container.getName().equals(SOURCE_PATH_MAPPING_CONTAINER_NAME)) {
+						generatedMappings = (MappingSourceContainer) container;
+						break;
+					}
+				}
+			}
+
+			if (generatedMappings != null) {
+				containerList.remove(generatedMappings);
+			}
+			generatedMappings = new MappingSourceContainer(SOURCE_PATH_MAPPING_CONTAINER_NAME);
+			generatedMappings.init(director);
+			containerList.add(generatedMappings);
+
+			for (MapEntrySourceContainer mapping : mappings) {
+				generatedMappings.addMapEntry(mapping);
+	        }
+			director.setSourceContainers(containerList.toArray(new ISourceContainer[containerList.size()]));
+			wc.setAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, director.getMemento());
+			wc.setAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_ID, director.getId());
+			return wc.doSave();
+		}
+		return config;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#getPathMap(java.lang.Object)
@@ -68,6 +158,8 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		try {
 			// Acquire the lock before accessing the path mappings
 			lock.lock();
+
+			generateSourcePathMappings(context);
 
 			List<PathMapRule> rulesList = new ArrayList<PathMapRule>();
 
@@ -517,7 +609,6 @@ public class PathMapService extends AbstractService implements IPathMapService {
     /* (non-Javadoc)
      * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#getClientID()
      */
-    @SuppressWarnings("restriction")
     @Override
     public String getClientID() {
         return org.eclipse.tcf.internal.debug.Activator.getClientID();
