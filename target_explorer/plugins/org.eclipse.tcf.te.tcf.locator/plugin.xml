@@ -278,6 +278,7 @@
             <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep">
                <parameter name="forceStart" value="true"/>
                <parameter name="reAttach" value="true"/>
+               <parameter name="autoAttachAll" value="true"/>
             </reference>
          </references>
       </stepGroup>
