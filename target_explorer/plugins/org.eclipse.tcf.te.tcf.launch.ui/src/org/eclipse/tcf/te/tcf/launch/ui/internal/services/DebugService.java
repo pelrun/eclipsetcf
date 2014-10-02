@@ -197,12 +197,17 @@ public class DebugService extends AbstractService implements IDebugService {
 			ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
 			for (ILaunch launch : launches) {
 				try {
-					if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && launch instanceof IDisconnect && !((IDisconnect)launch).isDisconnected()) {
+					if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH)) {
 						IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
 						if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
-							((IDisconnect)launch).disconnect();
+							if (launch instanceof IDisconnect && !((IDisconnect)launch).isDisconnected()) {
+								((IDisconnect)launch).disconnect();
+								data.setProperty(PROPERTY_DEBUGGER_DETACHED, true);
+							}
+							else if (launch instanceof Launch) {
+								data.setProperty(PROPERTY_DEBUGGER_DETACHED, !((Launch)launch).isManualDisconnected());
+							}
 						}
-						data.setProperty(PROPERTY_DEBUGGER_DETACHED, true);
 					}
 				} catch (Exception e) {
 					if (e instanceof ExecutionException && "TCF task aborted".equals(e.getMessage()) //$NON-NLS-1$

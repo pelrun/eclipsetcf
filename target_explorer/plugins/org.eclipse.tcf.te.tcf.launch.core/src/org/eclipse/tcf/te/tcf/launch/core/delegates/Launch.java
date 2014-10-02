@@ -17,6 +17,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
@@ -47,6 +48,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 public final class Launch extends TCFLaunch {
 
 	private ICallback callback = null;
+
+	private boolean manualDisconnected = false;
 
 	/**
 	 * Non-notifying properties container used for data exchange between the steps.
@@ -87,6 +90,8 @@ public final class Launch extends TCFLaunch {
 	public void attachDebugger(IPeerNode node, final ICallback callback) {
 		Assert.isNotNull(node);
 		Assert.isNotNull(callback);
+
+		manualDisconnected = false;
 
 		// Remember the peer node
 		properties.setProperty("node", node); //$NON-NLS-1$
@@ -130,6 +135,19 @@ public final class Launch extends TCFLaunch {
 				}
 			}
 		});
+	}
+
+	public boolean isManualDisconnected() {
+		return manualDisconnected;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#disconnect()
+	 */
+	@Override
+	public void disconnect() throws DebugException {
+		manualDisconnected = true;
+	    super.disconnect();
 	}
 
 	/* (non-Javadoc)
