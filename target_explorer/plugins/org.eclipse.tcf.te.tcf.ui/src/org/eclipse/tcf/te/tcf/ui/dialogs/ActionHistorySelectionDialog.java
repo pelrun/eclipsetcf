@@ -313,18 +313,11 @@ public class ActionHistorySelectionDialog extends AbstractArraySelectionDialog {
 	@Override
 	protected IBaseLabelProvider getLabelProvider() {
 	    return new CellLabelProvider() {
-	    	/* (non-Javadoc)
-	    	 * @see org.eclipse.jface.viewers.CellLabelProvider#update(org.eclipse.jface.viewers.ViewerCell)
-	    	 */
 	    	@Override
 	    	public void update(ViewerCell cell) {
 	    		cell.setText(" " + getText(cell.getElement())); //$NON-NLS-1$
 	    		cell.setImage(getImage(cell.getElement()));
 	    	}
-
-	    	/* (non-Javadoc)
-	    	 * @see org.eclipse.jface.viewers.CellLabelProvider#getToolTipText(java.lang.Object)
-	    	 */
 	    	@Override
             public String getToolTipText(Object element) {
 	    		Entry entry = (Entry)element;

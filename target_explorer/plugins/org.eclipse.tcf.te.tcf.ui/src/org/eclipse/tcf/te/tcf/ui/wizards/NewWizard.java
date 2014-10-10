@@ -36,7 +36,6 @@ import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -82,7 +81,7 @@ public class NewWizard extends AbstractNewConfigWizard {
 						key.equals(IPeer.ATTR_IP_HOST) ||
 						key.equals(IPeer.ATTR_IP_PORT) ||
 						key.equals(IPeerProperties.PROP_PROXIES) ||
-						key.equals(IPeerNodeProperties.PROP_AUTO_CONNECT);
+						key.equals(IPeerProperties.PROP_AUTO_CONNECT);
 	}
 
 	/* (non-Javadoc)
@@ -109,7 +108,7 @@ public class NewWizard extends AbstractNewConfigWizard {
 			}
 
 			if (peer != null) {
-				String selPeerType = peer.getAttributes().get(IPeerNodeProperties.PROP_TYPE);
+				String selPeerType = peer.getAttributes().get(IPeerProperties.PROP_TYPE);
 				final boolean sameType = getPeerType() == null ? selPeerType == null : getPeerType().equals(selPeerType);
 				final boolean finIsPeerNode = isPeerNode;
 				final IPropertiesContainer data = new PropertiesContainer();

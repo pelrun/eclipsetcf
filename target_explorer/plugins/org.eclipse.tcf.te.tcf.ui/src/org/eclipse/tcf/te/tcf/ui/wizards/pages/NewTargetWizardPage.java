@@ -392,8 +392,8 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 		// Create the auto connect button
 		if (hasAutoConnectButton()) {
-			if (System.getProperty("NewWizard_" + org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT) != null) { //$NON-NLS-1$
-				autoConnect = Boolean.getBoolean("NewWizard_" + org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT); //$NON-NLS-1$
+			if (System.getProperty("NewWizard_" + IPeerProperties.PROP_AUTO_CONNECT) != null) { //$NON-NLS-1$
+				autoConnect = Boolean.getBoolean("NewWizard_" + IPeerProperties.PROP_AUTO_CONNECT); //$NON-NLS-1$
 			}
 
 			connect = new Button(client, SWT.CHECK);
@@ -612,7 +612,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		}
 
 		if (isAutoConnect()) {
-			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT, true);
+			peerAttributes.setProperty(IPeerProperties.PROP_AUTO_CONNECT, true);
 		}
 	}
 

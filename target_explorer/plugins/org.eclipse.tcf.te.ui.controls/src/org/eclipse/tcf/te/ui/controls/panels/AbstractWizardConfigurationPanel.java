@@ -26,6 +26,8 @@ public abstract class AbstractWizardConfigurationPanel implements IWizardConfigu
 	private String message = null;
 	private int messageType = IMessageProvider.NONE;
 
+	private boolean enabled = true;
+
 	/**
 	 * Constructor.
 	 *
@@ -117,7 +119,15 @@ public abstract class AbstractWizardConfigurationPanel implements IWizardConfigu
 	 */
 	@Override
 	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
+
+	/**
+     * @return Returns the enabled state.
+     */
+    public boolean isEnabled() {
+	    return enabled;
+    }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#isValid()

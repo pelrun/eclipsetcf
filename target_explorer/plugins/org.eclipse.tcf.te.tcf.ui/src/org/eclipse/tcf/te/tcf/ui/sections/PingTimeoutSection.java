@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.validator.NumberVerifyListener;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
@@ -94,7 +94,7 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 		Assert.isNotNull(attributes);
 
 		if (verbosity != null) {
-			int timeout = attributes.getIntProperty(IPeerNodeProperties.PROP_PING_TIMEOUT);
+			int timeout = attributes.getIntProperty(IPeerProperties.PROP_PING_TIMEOUT);
 			if (timeout >= 0) {
 				SWTControlUtil.setText(verbosity, timeout+""); //$NON-NLS-1$
 			}
@@ -115,7 +115,7 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 
 		String value = SWTControlUtil.getText(verbosity);
 		if (value != null && !"".equals(value)) { //$NON-NLS-1$
-			attributes.setProperty(IPeerNodeProperties.PROP_PING_TIMEOUT, value);
+			attributes.setProperty(IPeerProperties.PROP_PING_TIMEOUT, value);
 		}
 	}
 

@@ -19,6 +19,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -75,7 +76,7 @@ public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog implem
 	    			Protocol.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
-			    			String offlineServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
+			    			String offlineServices = peerNode.getStringProperty(IPeerProperties.PROP_OFFLINE_SERVICES);
 			    			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 			    			List<String> offline = offlineServices != null ? Arrays.asList(offlineServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			    			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$

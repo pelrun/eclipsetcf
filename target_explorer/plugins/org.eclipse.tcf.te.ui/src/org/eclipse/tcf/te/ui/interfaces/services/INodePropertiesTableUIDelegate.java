@@ -9,11 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.interfaces.services;
 
+import java.util.List;
+
+import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
+
 /**
  * Interface to be implemented by clients to filter the content of the
  * node properties table control.
  */
-public interface INodePropertiesTableFilterUIDelegate {
+public interface INodePropertiesTableUIDelegate {
 
 	/**
 	 * Returns if or if not the given property is filtered from the node
@@ -25,5 +29,11 @@ public interface INodePropertiesTableFilterUIDelegate {
 	 *
 	 * @return <code>True</code> if the property is filtered, <code>false</code> otherwise.
 	 */
-	boolean isFiltered(Object context, String name, Object value);
+	public boolean isFiltered(Object context, String name, Object value);
+
+	/**
+	 * Expand nodes after the list was generated and sorted.
+	 * @param sortedNodes
+	 */
+	public void expandNodesAfterSort(List<NodePropertiesTableTableNode> sortedNodes);
 }

@@ -14,8 +14,8 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.controls.validator.NameOrIPValidator;
@@ -143,7 +143,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
 			isDirty |= !port.equals(oldPort != null ? oldPort : ""); //$NON-NLS-1$
 		}
 
-		boolean autoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+		boolean autoPort = data.getBooleanProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO);
 		isDirty |= isAutoPort() != autoPort;
 
 		return isDirty;
@@ -156,7 +156,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
     public void setupData(IPropertiesContainer data) {
 		if (data == null) return;
 
-		boolean isAutoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+		boolean isAutoPort = data.getBooleanProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO);
 
 		NetworkAddressControl addressControl = getAddressControl();
 		if (addressControl != null) {
@@ -199,9 +199,9 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		}
 
 		if (isAutoPort) {
-			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, Boolean.TRUE.toString());
+			data.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, Boolean.TRUE.toString());
 		} else {
-			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
+			data.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, null);
 		}
 	}
 
@@ -213,7 +213,7 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		if (data == null) return;
 		data.setProperty(IPeer.ATTR_IP_HOST, null);
 		data.setProperty(IPeer.ATTR_IP_PORT, null);
-		data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
+		data.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, null);
 	}
 
 	/* (non-Javadoc)
@@ -225,6 +225,6 @@ public class TcpTransportPanel extends NetworkCablePanel {
 		Assert.isNotNull(dst);
 		dst.setProperty(IPeer.ATTR_IP_HOST, src.getStringProperty(IPeer.ATTR_IP_HOST));
 		dst.setProperty(IPeer.ATTR_IP_PORT, src.getStringProperty(IPeer.ATTR_IP_PORT));
-		dst.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, src.getStringProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO));
+		dst.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, src.getStringProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO));
 	}
 }

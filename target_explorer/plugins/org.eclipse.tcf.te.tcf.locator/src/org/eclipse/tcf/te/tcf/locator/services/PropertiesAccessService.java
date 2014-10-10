@@ -15,7 +15,6 @@ import java.util.Map;
 
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -73,7 +72,7 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 						result.put(IPropertiesAccessServiceConstants.PROP_PROXIES, value);
 					}
 
-					value = attributes.get(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+					value = attributes.get(IPeerProperties.PROP_IP_PORT_IS_AUTO);
 					if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 						result.put(IPropertiesAccessServiceConstants.PROP_PORT_IS_AUTO, value);
 					}

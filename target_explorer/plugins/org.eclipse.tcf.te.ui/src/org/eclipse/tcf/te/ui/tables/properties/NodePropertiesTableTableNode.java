@@ -39,4 +39,18 @@ public final class NodePropertiesTableTableNode extends PlatformObject {
 		this.name = name;
 		this.value = value;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+	    boolean equals = super.equals(obj);
+
+	    if (!equals && obj instanceof NodePropertiesTableTableNode) {
+	    	return name.equals(((NodePropertiesTableTableNode)obj).name);
+	    }
+
+	    return equals;
+	}
 }

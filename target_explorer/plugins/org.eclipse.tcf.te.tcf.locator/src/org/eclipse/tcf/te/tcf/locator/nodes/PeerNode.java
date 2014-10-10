@@ -40,6 +40,7 @@ import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepperOperationService;
 import org.eclipse.tcf.te.runtime.stepper.utils.StepperHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepperServiceOperations;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
@@ -309,8 +310,8 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	@Override
 	public boolean isVisible() {
 		IPeer peer = getPeer();
-		boolean visible = peer != null && peer.getAttributes().containsKey(IPeerNodeProperties.PROP_VISIBLE)
-						? Boolean.valueOf(peer.getAttributes().get(IPeerNodeProperties.PROP_VISIBLE)).booleanValue() : true;
+		boolean visible = peer != null && peer.getAttributes().containsKey(IPeerProperties.PROP_VISIBLE)
+						? Boolean.valueOf(peer.getAttributes().get(IPeerProperties.PROP_VISIBLE)).booleanValue() : true;
 		if (visible) {
 			IService[] services = ServiceManager.getInstance().getServices(this, IDelegateService.class, false);
 			if (services != null && services.length > 0) {
@@ -353,7 +354,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     	Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				type.set(getPeer().getAttributes().get(IPeerNodeProperties.PROP_TYPE));
+				type.set(getPeer().getAttributes().get(IPeerProperties.PROP_TYPE));
 			}
 		});
     	return type.get();

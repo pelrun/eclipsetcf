@@ -30,12 +30,12 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.ITracing;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
@@ -81,9 +81,9 @@ public class StartPingTimerStep extends AbstractPeerNodeStep {
 					Map<String, String> attrs = peerNode.getPeer().getAttributes();
 
 					int interval = 10000;
-					if (attrs.containsKey(IPeerNodeProperties.PROP_PING_INTERVAL)) {
+					if (attrs.containsKey(IPeerProperties.PROP_PING_INTERVAL)) {
 						try {
-							interval = Integer.parseInt(attrs.get(IPeerNodeProperties.PROP_PING_INTERVAL));
+							interval = Integer.parseInt(attrs.get(IPeerProperties.PROP_PING_INTERVAL));
 							interval = interval * 1000;
 						}
 						catch (NumberFormatException nfe) {
@@ -92,9 +92,9 @@ public class StartPingTimerStep extends AbstractPeerNodeStep {
 					pingInterval = interval;
 
 					int timeout = 10000;
-					if (attrs.containsKey(IPeerNodeProperties.PROP_PING_TIMEOUT)) {
+					if (attrs.containsKey(IPeerProperties.PROP_PING_TIMEOUT)) {
 						try {
-							timeout = Integer.parseInt(attrs.get(IPeerNodeProperties.PROP_PING_TIMEOUT));
+							timeout = Integer.parseInt(attrs.get(IPeerProperties.PROP_PING_TIMEOUT));
 							timeout = timeout * 1000;
 						}
 						catch (NumberFormatException nfe) {

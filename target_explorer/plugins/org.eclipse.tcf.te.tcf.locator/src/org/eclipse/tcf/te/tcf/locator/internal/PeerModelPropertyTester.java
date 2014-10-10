@@ -123,14 +123,14 @@ public class PeerModelPropertyTester extends PropertyTester {
 		}
 
 		if ("isOfType".equals(property)) { //$NON-NLS-1$
-			String value = peer.getAttributes().get(IPeerNodeProperties.PROP_TYPE);
+			String value = peer.getAttributes().get(IPeerProperties.PROP_TYPE);
 			if (expectedValue instanceof String) {
 				return value != null ? ((String)expectedValue).equals(value) : ((String)expectedValue).equalsIgnoreCase("null"); //$NON-NLS-1$
 			}
 		}
 
 		if ("containsPlatform".equals(property)) { //$NON-NLS-1$
-			String value = peer.getAttributes().get(IPeerProperties.ATTR_PLATFORMS);
+			String value = peer.getAttributes().get(IPeerProperties.PROP_PLATFORMS);
 			if (value != null) {
 				String[] platforms = value.split("\\s*,\\s*"); //$NON-NLS-1$
 				for (String platform : platforms) {
@@ -165,7 +165,7 @@ public class PeerModelPropertyTester extends PropertyTester {
 		}
 
 		if ("hasOfflineService".equals(property)) { //$NON-NLS-1$
-			String offlineServices = peer.getAttributes().get(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
+			String offlineServices = peer.getAttributes().get(IPeerProperties.PROP_OFFLINE_SERVICES);
 			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
 			List<String> offline = offlineServices != null ? Arrays.asList(offlineServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$

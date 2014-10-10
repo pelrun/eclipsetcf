@@ -1136,6 +1136,14 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		}
 	}
 
+	public void addToEditFieldControlHistory(String entry, int index) {
+		if (hasHistory() && getEditFieldControl() instanceof Combo) {
+			Combo combo = (Combo)getEditFieldControl();
+			if (entry != null && entry.trim().length() > 0 && combo.indexOf(entry) == -1) {
+				combo.add(entry, index >= 0 && index <= combo.getItemCount() ? index : combo.getItemCount());
+			}
+		}
+	}
 	/**
 	 * The method is called to create an edit field validator during setup.
 	 * Subclasses have to override this method to create the right validator.

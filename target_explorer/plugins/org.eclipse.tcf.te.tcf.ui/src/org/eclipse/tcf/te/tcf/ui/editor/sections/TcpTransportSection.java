@@ -28,7 +28,6 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
-import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.Tcf;
@@ -355,7 +354,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		// Mark the control update as in-progress now
 		setIsUpdating(true);
 
-		boolean isAutoPort = data.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+		boolean isAutoPort = data.getBooleanProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO);
 
 		if (proxyControl != null) {
 			proxies = data.getStringProperty(IPeerProperties.PROP_PROXIES);
@@ -453,7 +452,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 				odc.setProperty(IPeer.ATTR_TRANSPORT_NAME, node.getPeer().getTransportName());
 				odc.setProperty(IPeer.ATTR_IP_HOST, node.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST));
 				odc.setProperty(IPeer.ATTR_IP_PORT, node.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT));
-				odc.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, node.getPeer().getAttributes().get(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO));
+				odc.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, node.getPeer().getAttributes().get(IPeerProperties.PROP_IP_PORT_IS_AUTO));
 				odc.setProperty(IPeerProperties.PROP_PROXIES, node.getPeer().getAttributes().get(IPeerProperties.PROP_PROXIES));
 
 				// Initially, the working copy is a duplicate of the original data copy
@@ -505,9 +504,9 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		}
 
 		if (isAutoPort) {
-			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, Boolean.TRUE.toString());
+			data.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, Boolean.TRUE.toString());
 		} else {
-			data.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
+			data.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, null);
 		}
 
 		// Transport name is always "TCP"
@@ -675,7 +674,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 			}
 		}
 
-		boolean autoPort = odc.getBooleanProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+		boolean autoPort = odc.getBooleanProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO);
 		if (!autoPort && portControl != null) {
 			String port = portControl.getEditFieldControlText();
 			String oldPort = odc.getStringProperty(IPeer.ATTR_IP_PORT);
@@ -710,7 +709,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		attributes.setProperty(IPeerProperties.PROP_PROXIES, null);
 		attributes.setProperty(IPeer.ATTR_IP_HOST, null);
 		attributes.setProperty(IPeer.ATTR_IP_PORT, null);
-		attributes.setProperty(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO, null);
+		attributes.setProperty(IPeerProperties.PROP_IP_PORT_IS_AUTO, null);
 
 		extractData(attributes);
 	}

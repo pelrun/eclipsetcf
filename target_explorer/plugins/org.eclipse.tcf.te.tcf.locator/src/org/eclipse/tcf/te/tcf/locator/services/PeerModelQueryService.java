@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -89,7 +90,7 @@ public class PeerModelQueryService extends AbstractPeerModelService implements I
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				services.set(node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_OFFLINE_SERVICES));
+				services.set(node.getPeer().getAttributes().get(IPeerProperties.PROP_OFFLINE_SERVICES));
 			}
 		});
 

@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
@@ -78,7 +79,7 @@ public class RuntimeServiceContextFilter implements IDefaultContextService.ICont
 
 				if (useDisconnectedContexts) {
 					final IPeer peer = peerNode.getPeer();
-					services = peer.getAttributes().get(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
+					services = peer.getAttributes().get(IPeerProperties.PROP_OFFLINE_SERVICES);
 					list = services != null ? Arrays.asList(services.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 					boolean containsAll = true;
 					for (String serviceName : serviceNames) {

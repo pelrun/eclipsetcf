@@ -10,6 +10,8 @@
 package org.eclipse.tcf.te.tcf.ui.internal.tabbed;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,10 +26,13 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.ui.interfaces.services.INodePropertiesTableFilterUIDelegate;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.ui.interfaces.services.INodePropertiesTableUIDelegate;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
 import org.eclipse.ui.forms.widgets.Section;
@@ -79,18 +84,26 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 				Protocol.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						properties.putAll(((IPeerNode)inputElement).getPeer().getAttributes());
+						IPeerNode peerNode = (IPeerNode)inputElement;
+						properties.putAll(peerNode.getPeer().getAttributes());
+						properties.put(IPeerNodeProperties.PROP_CONNECT_STATE, ConnectStateHelper.getConnectState(peerNode.getConnectState()));
+						if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+							properties.put(IPeerNodeProperties.PROP_LOCAL_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
+							properties.put(IPeerNodeProperties.PROP_REMOTE_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
+						}
 					}
 				});
 			}
 
-			INodePropertiesTableFilterUIDelegate filterDelegate = service != null ? service.getDelegate(inputElement, INodePropertiesTableFilterUIDelegate.class) : null;
+			INodePropertiesTableUIDelegate delegate = service != null ? service.getDelegate(inputElement, INodePropertiesTableUIDelegate.class) : null;
 
 			for (Entry<String, Object> entry : properties.entrySet()) {
 				String name = entry.getKey();
 				// Check if the property is filtered
-				if (name.endsWith(".silent") || name.contains(".transient")) continue; //$NON-NLS-1$ //$NON-NLS-2$
-				if (filterDelegate != null && filterDelegate.isFiltered(inputElement, name, entry.getValue())) continue;
+				if (name.endsWith(".silent") || name.contains(".transient")) { //$NON-NLS-1$ //$NON-NLS-2$
+					continue;
+				}
+				if (delegate != null && delegate.isFiltered(inputElement, name, entry.getValue())) continue;
 				// Create the properties node
 				NodePropertiesTableTableNode propertiesNode = new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : ""); //$NON-NLS-1$
 
@@ -116,6 +129,13 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 				// Add the properties node
 				nodes.add(propertiesNode);
 			}
+			Collections.sort(nodes, new Comparator<NodePropertiesTableTableNode>() {
+				@Override
+	            public int compare(NodePropertiesTableTableNode arg0, NodePropertiesTableTableNode arg1) {
+		            return arg0.name.compareToIgnoreCase(arg1.name);
+	            }
+			});
+			if (delegate != null) delegate.expandNodesAfterSort(nodes);
 		}
 
 		return nodes.toArray(new NodePropertiesTableTableNode[nodes.size()]);

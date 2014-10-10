@@ -23,8 +23,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel;
+import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
+import org.eclipse.tcf.te.ui.interfaces.data.IUpdatable;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
@@ -255,13 +258,25 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	 * @param key The key to get the wizard configuration panel for. Must not be <code>null</code>!
 	 */
 	public void showConfigurationPanel(String key) {
-		IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
+		String activeKey = getActiveConfigurationPanelKey();
+		if (key != null && key.equals(activeKey)) {
+			return;
+		}
+		IWizardConfigurationPanel configPanel = getActiveConfigurationPanel();
+		IPropertiesContainer data = new PropertiesContainer();
+		if (configPanel instanceof IDataExchangeNode) {
+			((IDataExchangeNode)configPanel).extractData(data);
+		}
+		configPanel = getConfigurationPanel(key);
 		Assert.isNotNull(configPanel);
 		if (configPanel.getControl() != null) {
 			activeConfigurationPanel = configPanel;
 			activeConfigurationPanelKey = key;
 			panelLayout.topControl = configPanel.getControl();
 			panel.layout();
+			if (!data.isEmpty() && configPanel instanceof IUpdatable) {
+				((IUpdatable)configPanel).updateData(data);
+			}
 			configPanel.activate();
 		}
 	}

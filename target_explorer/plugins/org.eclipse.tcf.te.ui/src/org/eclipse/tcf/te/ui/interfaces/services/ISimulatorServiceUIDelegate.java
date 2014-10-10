@@ -17,7 +17,9 @@ import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
  */
 public interface ISimulatorServiceUIDelegate {
 
-	public static final String PROPERTY_ADDRESS_READONLY = "addressReadOnly";  //$NON-NLS-1$
+	public static final String PROP_MODES = "Modes"; //$NON-NLS-1$
+	public static final String PROP_MODE_LABEL_X = "ModeLabel"; //$NON-NLS-1$
+	public static final String PROP_MODE_DESCRIPTION_X = "ModeDescription"; //$NON-NLS-1$
 
 	/**
 	 * Get the simulator service the UI delegate is associated with.
@@ -43,26 +45,11 @@ public interface ISimulatorServiceUIDelegate {
 	 */
 	public String getDescription(Object context, String config);
 
-    /**
-     * Configure the simulator.
-     *
-     * @param context The context for which the simulator should be configured.
-     * @param oldConfig The previous configuration or <code>null</code>.
-     * @return The new configuration or <code>null</code>.
-     */
-    public String configure(Object context, String oldConfig);
-
-    /**
-     * Get UI configuration properties.
-     * @param context The context.
-     * @param config The configuration or <code>null</code>.
-     * @return The UI configuration properties.
-     */
-    public IPropertiesContainer getUIProperties(Object context, String config);
-
-    /**
-     * Returns <code>true</code> if the simulator is configurable.
-     * @return <code>true</code> if the simulator is configurable.
-     */
-    public boolean canConfigure();
+	/**
+	 * Get properties for ui configuration.
+	 * @param context The conetxt.
+	 * @param config The current config.
+	 * @return The properties for ui configuartion
+	 */
+	public IPropertiesContainer getProperties(Object context, String config);
 }

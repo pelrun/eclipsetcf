@@ -91,15 +91,17 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	    super.createPageControls(pageContainer);
 
 	    IPropertiesContainer data = getInitialData();
-	    if (data == null) data = new PropertiesContainer();
-	    	for (IWizardPage page : getPages()) {
-	    		if (page instanceof IDataExchangeNode) {
-	    			((IDataExchangeNode)page).setupData(data);
-	    			if (page instanceof AbstractValidatingWizardPage) {
-	    				((AbstractValidatingWizardPage)page).validate();
-	    			}
+	    if (data == null) {
+	    	data = new PropertiesContainer();
+	    }
+	    for (IWizardPage page : getPages()) {
+	    	if (page instanceof IDataExchangeNode) {
+	    		((IDataExchangeNode)page).setupData(data);
+	    		if (page instanceof AbstractValidatingWizardPage) {
+	    			((AbstractValidatingWizardPage)page).validate();
 	    		}
 	    	}
+	    }
 	}
 
 	/**

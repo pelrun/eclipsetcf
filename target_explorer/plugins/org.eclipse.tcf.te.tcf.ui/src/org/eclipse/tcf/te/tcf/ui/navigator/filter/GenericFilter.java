@@ -15,9 +15,9 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerType;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.ui.views.interfaces.ICategory;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 
@@ -39,7 +39,7 @@ public class GenericFilter extends ViewerFilter {
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					type.set(((IPeerNode)element).getPeer().getAttributes().get(IPeerNodeProperties.PROP_TYPE));
+					type.set(((IPeerNode)element).getPeer().getAttributes().get(IPeerProperties.PROP_TYPE));
 				}
 			};
 

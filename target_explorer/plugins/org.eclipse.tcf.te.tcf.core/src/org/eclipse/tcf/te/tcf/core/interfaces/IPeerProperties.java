@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.core.interfaces;
 
+import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
 import org.eclipse.tcf.te.tcf.core.util.persistence.PeerDataHelper;
 
 /**
@@ -36,7 +37,98 @@ public interface IPeerProperties {
 	/**
 	 * Property: The list of supported platforms.
 	 */
-	public static final String ATTR_PLATFORMS = "Platforms"; //$NON-NLS-1$
+	public static final String PROP_PLATFORMS = "Platforms"; //$NON-NLS-1$
 
+	/**
+	 * Property: The connection subtype (real/sim/...).
+	 */
+	public static final String PROP_SUBTYPE= "SubType"; //$NON-NLS-1$
+
+	/**
+	 * Peer "SubType" attribute value for real target.
+	 */
+	public static final String SUBTYPE_REAL = "real"; //$NON-NLS-1$
+
+	/**
+	 * Peer "SubType" attribute value for simulator.
+	 */
+	public static final String SUBTYPE_SIM = "sim"; //$NON-NLS-1$
+
+	/**
+	 * Property: The connection mode (run/stop/...).
+	 */
+	public static final String PROP_MODE= "Mode"; //$NON-NLS-1$
+
+	/**
+	 * Peer "Mode" attribute value for application mode.
+	 */
+	public static final String MODE_RUN = "run"; //$NON-NLS-1$
+
+	/**
+	 * Peer "Mode" attribute value for stop mode.
+	 */
+	public static final String MODE_STOP = "stop"; //$NON-NLS-1$
+
+	/**
+	 * Property: The connection mode properties.
+	 */
+	public static final String PROP_MODE_PROPERTIES = "ModeProperties"; //$NON-NLS-1$
+
+	/**
+	 * Property: The kernel image.
+	 */
+	public static final String PROP_KERNEL_IMAGE= "KernelImage"; //$NON-NLS-1$
+
+	/**
+	 * Property: The peer type.
+	 */
+	public static final String PROP_TYPE = "Type"; //$NON-NLS-1$
+
+	/**
+	 * Property: List of TCF services the peer would have when it goes online (comma separated list).
+	 */
+	public static final String PROP_OFFLINE_SERVICES = "OfflineServices"; //$NON-NLS-1$
+
+	/**
+	 * Property: The peer visible state.
+	 */
+	public static final String PROP_VISIBLE = "Visible"; //$NON-NLS-1$
+
+	/**
+	 * Property: Simulator properties
+	 */
+	public static final String PROP_SIM_PROPERTIES = "SimulatorProperties"; //$NON-NLS-1$
+
+	/**
+	 * Property: Last selected simulator type
+	 */
+	public static final String PROP_SIM_TYPE = "SimulatorType"; //$NON-NLS-1$
+
+	/**
+	 * Property: Auto-start the debugger after the agent launch.
+	 */
+	public static final String PROP_AUTO_START_DEBUGGER = "autoStartDebugger"; //$NON-NLS-1$
+
+	/**
+	 * Property: Connect after the configuration has been created.
+	 */
+	public static final String PROP_AUTO_CONNECT = "autoConnect"; //$NON-NLS-1$
+
+	/**
+	 * Property: Ping interval.
+	 */
+	public static String PROP_PING_INTERVAL = "pingInterval"; //$NON-NLS-1$
+
+	/**
+	 * Property: Ping timeout.
+	 */
+	public static String PROP_PING_TIMEOUT = "pingTimeout"; //$NON-NLS-1$
+
+	public static String DEFAULT_PING_TIMEOUT = "2"; //$NON-NLS-1$
+
+	/**
+	 * The network port is a "auto port" (automatically determined and read-only to the user).
+	 */
+	public static final String PROP_IP_PORT_IS_AUTO = IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO;
 }
 

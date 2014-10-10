@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerNameControl;
@@ -484,11 +485,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		}
 
 		if (isAutoStartDebugger()) {
-			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_START_DEBUGGER, true);
+			peerAttributes.setProperty(IPeerProperties.PROP_AUTO_START_DEBUGGER, true);
 		}
 
 		if (isAutoConnect()) {
-			peerAttributes.setProperty(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT, true);
+			peerAttributes.setProperty(IPeerProperties.PROP_AUTO_CONNECT, true);
 		}
 
 		if (selectorSection != null) {

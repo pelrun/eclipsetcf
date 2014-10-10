@@ -133,8 +133,22 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	 * @return The client container composite.
 	 */
 	protected Composite createClientContainer(Composite parent, int numColumns, FormToolkit toolkit) {
+		return createClientContainer(parent, numColumns, false, toolkit);
+	}
+
+	/**
+	 * Creates the client container composite.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 * @param numColumns The number of columns.
+	 * @param makeColumnsEqualWith
+	 * @param toolkit The form toolkit or <code>null</code>.
+	 *
+	 * @return The client container composite.
+	 */
+	protected Composite createClientContainer(Composite parent, int numColumns, boolean makeColumnsEqualWith, FormToolkit toolkit) {
 		Composite container = toolkit != null ? toolkit.createComposite(parent) : new Composite(parent, SWT.NONE);
-		container.setLayout(FormLayoutFactory.createSectionClientGridLayout(false, numColumns));
+		container.setLayout(FormLayoutFactory.createSectionClientGridLayout(makeColumnsEqualWith, numColumns));
 
 		// Adjust the background
 		Color bg = parent.getBackground();

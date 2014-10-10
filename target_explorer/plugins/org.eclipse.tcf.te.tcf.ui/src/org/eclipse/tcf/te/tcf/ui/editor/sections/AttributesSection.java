@@ -26,6 +26,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -61,7 +62,7 @@ public class AttributesSection extends AbstractSection {
 		IPeer.ATTR_NAME, IPeer.ATTR_TRANSPORT_NAME, IPeer.ATTR_IP_HOST,
 		IPeer.ATTR_IP_PORT, "PipeName", //$NON-NLS-1$
 		"redirect.proxy", //$NON-NLS-1$
-		IPeerNodeProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
+		IPeerProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
 	};
 
 	/*
@@ -74,7 +75,7 @@ public class AttributesSection extends AbstractSection {
 		IPeer.ATTR_NAME, IPeer.ATTR_TRANSPORT_NAME, IPeer.ATTR_IP_HOST,
 		IPeer.ATTR_IP_PORT, "PipeName", //$NON-NLS-1$
 		"redirect.proxy", //$NON-NLS-1$
-		IPeerNodeProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
+		IPeerProperties.PROP_VISIBLE, "ClientID" //$NON-NLS-1$
 	};
 
 	/**

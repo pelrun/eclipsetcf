@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.nodes.interfaces.wire.IWireTypeNetwork;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 
@@ -42,7 +42,7 @@ public class PeerNodeValidationDelegate implements IPeerNode.IDelegate {
 					// For TCP or SSL transport, ATTR_IP_HOST must not be null.
 					String ip = peerNode.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
 					String port = peerNode.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT);
-					String autoPortString = peerNode.getPeer().getAttributes().get(IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO);
+					String autoPortString = peerNode.getPeer().getAttributes().get(IPeerProperties.PROP_IP_PORT_IS_AUTO);
 					boolean autoPort = Boolean.parseBoolean(autoPortString);
 					if (("TCP".equals(transport) || "SSL".equals(transport)) && (ip == null || (!autoPort && port == null))) { //$NON-NLS-1$ //$NON-NLS-2$
 						valid.set(false);

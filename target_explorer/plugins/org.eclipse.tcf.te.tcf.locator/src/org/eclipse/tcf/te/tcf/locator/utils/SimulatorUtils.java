@@ -22,8 +22,8 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Simulator related utilities.
@@ -53,9 +53,9 @@ public final class SimulatorUtils {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = peerNode.getPeer().getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED);
-				if (value != null) {
-					isEnabled.set(Boolean.parseBoolean(value));
+				String subType = peerNode.getPeer().getAttributes().get(IPeerProperties.PROP_SUBTYPE);
+				if (subType != null) {
+					isEnabled.set(subType.equals(IPeerProperties.SUBTYPE_SIM));
 				}
 			}
 		};
@@ -81,15 +81,8 @@ public final class SimulatorUtils {
 
 		IPeer peer = peerNode.getPeer();
 		if (peer != null) {
-			boolean isEnabled = false;
-
-			String value = peer.getAttributes().get(IPeerNodeProperties.PROP_SIM_ENABLED);
-			if (value != null) isEnabled = Boolean.parseBoolean(value);
-
-			String type = peer.getAttributes().get(IPeerNodeProperties.PROP_SIM_TYPE);
-			String properties = peer.getAttributes().get(IPeerNodeProperties.PROP_SIM_PROPERTIES);
-
-			if (isEnabled) {
+			if (isSimulatorEnabled(peerNode)) {
+				String type = peer.getAttributes().get(IPeerProperties.PROP_SIM_TYPE);
 				IService[] services = ServiceManager.getInstance().getServices(peerNode, ISimulatorService.class, false);
 				for (IService service : services) {
 					Assert.isTrue(service instanceof ISimulatorService);
@@ -99,7 +92,7 @@ public final class SimulatorUtils {
 						result = new Result();
 						result.service = (ISimulatorService)service;
 						result.id = id;
-						result.settings = properties;
+						result.settings = peer.getAttributes().get(IPeerProperties.PROP_SIM_PROPERTIES);
 						break;
 					}
 				}
@@ -107,6 +100,30 @@ public final class SimulatorUtils {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Returns the simulator service and the settings for the simulator launch.
+	 * If no simulator service is configured in the peer
+	 * or the configured service is not available, <code>null</code> will be returned.
+	 *
+	 * @param peerNode The peer model node. Must not be <code>null</code>.
+	 * @return The {@link Result} containing the simulator service and the settings or <code>null</code>.
+	 */
+	public static ISimulatorService getSimulatorService(final Object context, final String type) {
+		Assert.isNotNull(context);
+
+		IService[] services = ServiceManager.getInstance().getServices(context, ISimulatorService.class, false);
+		for (IService service : services) {
+			Assert.isTrue(service instanceof ISimulatorService);
+			// Get the UI service which is associated with the simulator service
+			String id = service.getId();
+			if (id != null && id.equals(type)) {
+				return (ISimulatorService)service;
+			}
+		}
+
+		return null;
 	}
 
 	/**

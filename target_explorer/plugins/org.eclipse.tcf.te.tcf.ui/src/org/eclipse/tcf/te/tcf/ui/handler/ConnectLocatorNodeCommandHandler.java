@@ -16,8 +16,8 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.wizards.newWizard.NewWizard;
@@ -55,7 +55,7 @@ public class ConnectLocatorNodeCommandHandler extends AbstractHandler {
 			Object element = ((IStructuredSelection)selection).getFirstElement();
 			// The element must be of type IPeer
 			if (element instanceof ILocatorNode) {
-		    	System.setProperty("NewWizard_" + IPeerNodeProperties.PROP_AUTO_CONNECT, Boolean.TRUE.toString()); //$NON-NLS-1$
+		    	System.setProperty("NewWizard_" + IPeerProperties.PROP_AUTO_CONNECT, Boolean.TRUE.toString()); //$NON-NLS-1$
 
 				// Get the list of enabled new wizards
 				IWorkbenchPart part = HandlerUtil.getActivePart(event);
@@ -79,7 +79,7 @@ public class ConnectLocatorNodeCommandHandler extends AbstractHandler {
 					}
 				}
 
-				System.clearProperty("NewWizard_" + org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties.PROP_AUTO_CONNECT); //$NON-NLS-1$
+				System.clearProperty("NewWizard_" + IPeerProperties.PROP_AUTO_CONNECT); //$NON-NLS-1$
 			}
 		}
 

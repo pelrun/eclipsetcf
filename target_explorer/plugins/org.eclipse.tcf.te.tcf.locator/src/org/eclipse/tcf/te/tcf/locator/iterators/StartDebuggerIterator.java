@@ -19,9 +19,9 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Step group iterator for debugger attach.
@@ -48,7 +48,7 @@ public class StartDebuggerIterator extends AbstractPeerNodeStepGroupIterator {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				String value = node.getPeer().getAttributes().get(IPeerNodeProperties.PROP_AUTO_START_DEBUGGER);
+				String value = node.getPeer().getAttributes().get(IPeerProperties.PROP_AUTO_START_DEBUGGER);
 				autoStartDbg.set(value != null ? Boolean.parseBoolean(value) : false);
 			}
 		};

@@ -25,9 +25,9 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.StepperAttributeUtil;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.locator.activator.CoreBundleActivator;
-import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Check service step implementation.
@@ -88,7 +88,7 @@ public class CheckServiceStep extends AbstractPeerNodeStep {
 		}
 
 		String offlineService = getParameters().get(PARAMETER_OFFLINE_SERVICE);
-		String services = getActivePeerContext(context, data, fullQualifiedId).getAttributes().get(IPeerNodeProperties.PROP_OFFLINE_SERVICES);
+		String services = getActivePeerContext(context, data, fullQualifiedId).getAttributes().get(IPeerProperties.PROP_OFFLINE_SERVICES);
 		List<String> list = services != null ? Arrays.asList(services.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 		if (offlineService != null && !list.contains(offlineService)) {
 			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "missing offline service '" + offlineService + "'")); //$NON-NLS-1$ //$NON-NLS-2$
