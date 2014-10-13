@@ -21,7 +21,12 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.actions.SelectEncodingAction;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
@@ -200,6 +205,39 @@ public class TabFolderMenuHandler extends PlatformObject {
 
 		// Create and add the paste action
 		add(new TerminalActionPaste() {
+			@Override
+			public void run() {
+				// Determine if pasting to the active tab require backslash translation
+				boolean needsTranslation = false;
+
+				TabFolderManager manager = (TabFolderManager)getParentView().getAdapter(TabFolderManager.class);
+				if (manager != null) {
+					// If we have the active tab item, we can get the active terminal control
+					CTabItem activeTabItem = manager.getActiveTabItem();
+					if (activeTabItem != null) {
+						IPropertiesContainer properties = (IPropertiesContainer)activeTabItem.getData("properties"); //$NON-NLS-1$
+						if (properties != null && properties.containsKey(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE)) {
+							needsTranslation = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE);
+						}
+					}
+				}
+
+				if (needsTranslation) {
+					ITerminalViewControl target = getTarget();
+					if (target != null && target.getClipboard() != null && !target.getClipboard().isDisposed()) {
+						String text = (String) target.getClipboard().getContents(TextTransfer.getInstance());
+						if (text != null) {
+							text = text.replace('\\', '/');
+
+							Object[] data = new Object[] { text };
+							Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
+							target.getClipboard().setContents(data, types, DND.CLIPBOARD);
+						}
+					}
+				}
+
+			    super.run();
+			}
 			/* (non-Javadoc)
 			 * @see org.eclipse.tcf.internal.terminal.control.actions.AbstractTerminalAction#getTarget()
 			 */

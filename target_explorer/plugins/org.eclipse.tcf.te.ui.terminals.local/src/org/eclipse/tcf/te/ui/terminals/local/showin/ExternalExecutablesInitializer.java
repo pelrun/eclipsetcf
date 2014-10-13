@@ -77,6 +77,7 @@ public class ExternalExecutablesInitializer implements IStartup {
 					m.put(IExternalExecutablesProperties.PROP_PATH, gitPath);
 					m.put(IExternalExecutablesProperties.PROP_ARGS, "--login -i"); //$NON-NLS-1$
 					if (iconPath != null) m.put(IExternalExecutablesProperties.PROP_ICON, iconPath);
+					m.put(IExternalExecutablesProperties.PROP_TRANSLATE, Boolean.TRUE.toString());
 
 					l.add(m);
 					ExternalExecutablesManager.save(l);

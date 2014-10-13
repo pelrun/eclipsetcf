@@ -114,6 +114,12 @@ public interface ITerminalsConnectorConstants {
 	 */
 	public static final String PROP_STDERR_LISTENERS = "stderrListeners"; //$NON-NLS-1$
 
+	/**
+	 * Property: If set to <code>true</code>, backslashes are translated to
+	 *           slashes before pasting the text to the terminal widget.
+	 */
+	public static final String PROP_TRANSLATE_BACKSLASHES_ON_PASTE = "translateBackslashesOnPaste"; //$NON-NLS-1$
+
 	// ***** IP based terminals connector properties *****
 
 	/**

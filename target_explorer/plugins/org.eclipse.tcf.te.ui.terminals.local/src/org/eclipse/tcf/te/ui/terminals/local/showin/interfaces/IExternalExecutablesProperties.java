@@ -33,4 +33,9 @@ public interface IExternalExecutablesProperties {
 	 * The absolute path to the icon representing the external executable.
 	 */
 	public final String PROP_ICON = "Icon"; //$NON-NLS-1$
+
+	/**
+	 * If set, backslashes are translated to forward slashes on paste.
+	 */
+	public final String PROP_TRANSLATE = "Translate"; //$NON-NLS-1$
 }

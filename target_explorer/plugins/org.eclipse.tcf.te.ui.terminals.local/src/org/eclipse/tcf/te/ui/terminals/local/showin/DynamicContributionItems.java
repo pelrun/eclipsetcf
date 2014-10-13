@@ -71,8 +71,11 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 					String args = (String) executableData.get(IExternalExecutablesProperties.PROP_ARGS);
 					String icon = (String) executableData.get(IExternalExecutablesProperties.PROP_ICON);
 
+					String strTranslate = (String) executableData.get(IExternalExecutablesProperties.PROP_TRANSLATE);
+					boolean translate = strTranslate != null ? Boolean.parseBoolean(strTranslate) : false;
+
 					if (name != null && !"".equals(name) && path != null && !"".equals(path)) { //$NON-NLS-1$ //$NON-NLS-2$
-						IAction action = createAction(name, path, args);
+						IAction action = createAction(name, path, args, translate);
 
 						ImageData id = icon != null ? ExternalExecutablesManager.loadImage(icon) : null;
 						if (id != null) {
@@ -96,10 +99,11 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 	 * @param label The label. Must not be <code>null</code>.
 	 * @param path The executable path. Must not be <code>null</code>.
 	 * @param args The executable arguments or <code>null</code>.
+	 * @param translate Translate backslashes.
 	 *
 	 * @return The action to execute.
 	 */
-	protected IAction createAction(final String label, final String path, final String args) {
+	protected IAction createAction(final String label, final String path, final String args, final boolean translate) {
 		Assert.isNotNull(label);
 		Assert.isNotNull(path);
 
@@ -118,6 +122,7 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 		    	if (selection != null) properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 		    	properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH, path);
 		    	if (args != null) properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, args);
+		    	properties.setProperty(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE, translate);
 
 		    	delegate.execute(properties, new Callback() {
 		    		@Override

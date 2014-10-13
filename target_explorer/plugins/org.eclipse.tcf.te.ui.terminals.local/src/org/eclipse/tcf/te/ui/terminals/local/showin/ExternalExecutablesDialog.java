@@ -42,6 +42,7 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 	private FileSelectionControl path;
 	private BaseEditBrowseTextControl args;
 	private FileSelectionControl icon;
+	private Button translate;
 
 	private Map<String, Object> executableData;
 
@@ -150,6 +151,11 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
         icon.setEditFieldLabel(Messages.ExternalExecutablesDialog_field_icon);
         icon.setupPanel(panel);
 
+        translate = new Button(panel, SWT.CHECK);
+        translate.setText(Messages.ExternalExecutablesDialog_field_translate);
+        layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        layoutData.horizontalSpan = 2;
+        translate.setLayoutData(layoutData);
 
         if (executableData != null) {
         	String value = (String)executableData.get(IExternalExecutablesProperties.PROP_NAME);
@@ -160,6 +166,8 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
         	args.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
         	value = (String)executableData.get(IExternalExecutablesProperties.PROP_ICON);
         	icon.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
+        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_TRANSLATE);
+        	translate.setSelection(value != null ? Boolean.parseBoolean(value) : false);
         }
 	}
 
@@ -219,6 +227,12 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 				executableData.put(IExternalExecutablesProperties.PROP_ICON, value);
 			} else {
 				executableData.remove(IExternalExecutablesProperties.PROP_ICON);
+			}
+
+			if (translate.getSelection()) {
+				executableData.put(IExternalExecutablesProperties.PROP_TRANSLATE, Boolean.TRUE.toString());
+			} else {
+				executableData.remove(IExternalExecutablesProperties.PROP_TRANSLATE);
 			}
 		} else {
 			executableData = null;
