@@ -67,7 +67,8 @@ public interface IBreakpoints extends IService {
         PROP_EVENT_TYPE = "EventType",            // String
         PROP_EVENT_ARGS = "EventArgs",            // String or Object
         PROP_CLIENT_DATA = "ClientData",          // Object
-        PROP_ACTION = "Action";                   // String - expression or script
+        PROP_ACTION = "Action",                   // String - expression or script
+        PROP_SKIP_PROLOGUE = "SkipPrologue";      // Boolean
 
     /**
      * @deprecated
@@ -151,7 +152,8 @@ public interface IBreakpoints extends IService {
         CAPABILITY_TEMPORARY = "Temporary",             // Boolean
         CAPABILITY_IGNORE_COUNT = "IgnoreCount",        // Boolean
         CAPABILITY_ACCESS_MODE = "AccessMode",          // Number
-        CAPABILITY_CLIENT_DATA = "ClientData";          // Boolean
+        CAPABILITY_CLIENT_DATA = "ClientData",          // Boolean
+        CAPABILITY_SKIP_PROLOGUE = "SkipPrologue";      // Boolean
 
     /**
      * @deprecated

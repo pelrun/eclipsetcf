@@ -725,6 +725,12 @@ public class TCFBreakpointsModel {
         else if (p.get(ATTR_FUNCTION) != null) {
             String expr = (String)p.get(ATTR_FUNCTION);
             if (expr != null && expr.length() != 0) m.put(IBreakpoints.PROP_LOCATION, expr);
+            if (capabilities != null) {
+                Object obj = capabilities.get(IBreakpoints.CAPABILITY_SKIP_PROLOGUE);
+                if (obj instanceof Boolean && ((Boolean)obj).booleanValue()) {
+                    m.put(IBreakpoints.PROP_SKIP_PROLOGUE, Boolean.TRUE);
+                }
+            }
         }
         else if (file == null) {
             String address = (String)p.get(ATTR_ADDRESS);
