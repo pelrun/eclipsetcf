@@ -474,10 +474,14 @@
                   <count value="1"/>
                   <iterate operator="and" ifEmpty="false">
                      <and>
-                        <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                        <and>
+                           <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                           <or>
+                              <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                              <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                           </or>
+                        </and>
                         <or>
-                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
-                           <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
                            <not>
                               <test
                                     forcePluginActivation="true"
@@ -662,7 +666,13 @@
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
             <visibleWhen checkEnabled="false">
                <with variable="defaultContextSelection">
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                  <and>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                     <or>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                     </or>
+                  </and>
                </with>
             </visibleWhen>
          </command>
@@ -678,7 +688,13 @@
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
             <visibleWhen checkEnabled="false">
                <with variable="defaultContextSelection">
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                  <and>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                     <or>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasOfflineService" value="RunControl"/>
+                     </or>
+                  </and>
                </with>
             </visibleWhen>
          </command>
