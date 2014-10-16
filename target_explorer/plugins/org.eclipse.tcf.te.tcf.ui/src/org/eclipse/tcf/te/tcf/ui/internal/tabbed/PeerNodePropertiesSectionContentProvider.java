@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeSelection;
@@ -71,6 +72,7 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 		if (inputElement instanceof IPeerNode) {
 			// Get all custom properties of the node
 			final Map<String, Object> properties = new HashMap<String, Object>();
+			final Map<String, Object> debugProperties = new HashMap<String, Object>();
 			// And get all native properties of the peer
 			if (Protocol.isDispatchThread()) {
 				properties.putAll(((IPeerNode)inputElement).getPeer().getAttributes());
@@ -85,6 +87,10 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 							properties.put(IPeerNodeProperties.PROP_LOCAL_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
 							properties.put(IPeerNodeProperties.PROP_REMOTE_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
 						}
+
+						if (Platform.inDebugMode()) {
+							debugProperties.putAll(peerNode.getProperties());
+						}
 					}
 				});
 			}
@@ -95,14 +101,9 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 			for (Entry<String, Object> entry : properties.entrySet()) {
 				String name = entry.getKey();
 				// Check if the property is filtered
-				if (!name.endsWith(".silent") && !name.contains(".transient")) { //$NON-NLS-1$ //$NON-NLS-2$
-					if (delegate == null || !delegate.isFiltered(inputElement, name, entry.getValue())) {
-						// Create the properties node
-						NodePropertiesTableTableNode propertiesNode = new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : ""); //$NON-NLS-1$
-
-						// Add the properties node
-						nodes.add(propertiesNode);
-					}
+				if (Platform.inDebugMode() || (!name.endsWith(".silent") && !name.contains(".transient") &&  //$NON-NLS-1$ //$NON-NLS-2$
+								(delegate == null || !delegate.isFiltered(inputElement, name, entry.getValue())))) {
+					nodes.add(new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : "")); //$NON-NLS-1$
 				}
 			}
 			Collections.sort(nodes, new Comparator<NodePropertiesTableTableNode>() {
@@ -138,6 +139,24 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 
 				result.add(node);
             }
+
+			if (!debugProperties.isEmpty()) {
+				nodes.clear();
+				for (Entry<String, Object> entry : debugProperties.entrySet()) {
+					String name = entry.getKey();
+					if (!name.equals(IPeerNodeProperties.PROP_CONNECT_STATE) && !name.equals(IPeerNodeProperties.PROP_LOCAL_SERVICES) && !name.equals(IPeerNodeProperties.PROP_REMOTE_SERVICES)) {
+						nodes.add(new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : "")); //$NON-NLS-1$
+					}
+				}
+				Collections.sort(nodes, new Comparator<NodePropertiesTableTableNode>() {
+					@Override
+		            public int compare(NodePropertiesTableTableNode arg0, NodePropertiesTableTableNode arg1) {
+			            return arg0.name.compareToIgnoreCase(arg1.name);
+		            }
+				});
+				result.add(new NodePropertiesTableTableNode("", "")); //$NON-NLS-1$ //$NON-NLS-2$
+				result.addAll(nodes);
+			}
 			return result.toArray(new NodePropertiesTableTableNode[result.size()]);
 
 		}
