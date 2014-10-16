@@ -55,6 +55,15 @@ public interface ISimulatorService extends IService {
 	public void stop(Object context, String config, ICallback callback, IProgressMonitor monitor);
 
 	/**
+	 * Cleanup after stop or simulator killed.
+	 * Should be called from stop.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param config The encoded simulator settings or <code>null</code>.
+	 */
+	public void cleanup(Object context, String config);
+
+	/**
 	 * Checks if the simulator is running.
 	 * <p>
 	 * The result of the check is return as {@link Boolean} object by the callback's {@link ICallback#getResult()} method.

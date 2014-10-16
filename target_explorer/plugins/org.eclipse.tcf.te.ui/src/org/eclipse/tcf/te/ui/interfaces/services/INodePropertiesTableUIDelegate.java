@@ -33,7 +33,8 @@ public interface INodePropertiesTableUIDelegate {
 
 	/**
 	 * Expand nodes after the list was generated and sorted.
+	 * @param context The context. Must not be <code>null</code>.
 	 * @param sortedNodes
 	 */
-	public void expandNodesAfterSort(List<NodePropertiesTableTableNode> sortedNodes);
+	public void expandNodesAfterSort(Object context, List<NodePropertiesTableTableNode> sortedNodes);
 }

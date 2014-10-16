@@ -18,17 +18,12 @@ import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.controls.PeerNameControl;
@@ -38,7 +33,6 @@ import org.eclipse.tcf.te.ui.controls.validator.Validator;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.parts.AbstractSection;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
-import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.wizards.pages.AbstractFormsWizardPage;
 import org.eclipse.ui.forms.IManagedForm;
 
@@ -50,13 +44,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	private AbstractSection selectorSection = null;
 	private AbstractSection detailsSection = null;
 	private AbstractSection[] additionalSections = null;
-	/* default */ Button launchDbg = null;
-	/* default */ Button connect = null;
-	private Button advancedButton = null;
-
-	protected boolean autoConnect = false;
-	protected boolean autoLaunchDbg = false;
-	protected boolean isAutoLaunchDbgEnabled = true;
 
 	// The list of existing configuration names. Used to generate a unique name
 	// and validate the wizard
@@ -192,57 +179,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		additionalSections = doCreateAdditionalSections(getManagedForm(), parent);
 		for (AbstractSection additionalSection : additionalSections) {
 			additionalSection.getSection().setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
-        }
-
-		Composite panel = new Composite(parent, SWT.NONE);
-		GridLayout layout = new GridLayout(1, true);
-		layout.marginHeight = 0; layout.marginWidth = 0;
-		panel.setLayout(layout);
-		panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		panel.setBackground(parent.getBackground());
-
-		connect = new Button(panel, SWT.CHECK);
-		connect.setText(Messages.AbstractConfigWizardPage_connect_label);
-		connect.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		connect.setSelection(autoConnect);
-		connect.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				autoConnect = SWTControlUtil.getSelection(connect);
-			}
-		});
-
-		Composite innerPanel = panel;
-		if (hasAdvancedButton()) {
-			innerPanel = new Composite(panel, SWT.NONE);
-			layout = new GridLayout(2, false);
-			layout.marginHeight = 0; layout.marginWidth = 0;
-			innerPanel.setLayout(layout);
-			innerPanel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			innerPanel.setBackground(parent.getBackground());
-		}
-
-		launchDbg = new Button(innerPanel, SWT.CHECK);
-		launchDbg.setText(Messages.AbstractConfigWizardPage_launchDbg_label);
-		launchDbg.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		launchDbg.setSelection(autoLaunchDbg);
-		launchDbg.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				autoLaunchDbg = SWTControlUtil.getSelection(launchDbg);
-			}
-		});
-
-		if (hasAdvancedButton()) {
-			advancedButton = new Button(innerPanel, SWT.PUSH);
-			advancedButton.setText("  " + Messages.AbstractConfigWizardPage_advancedButton_label + "  "); //$NON-NLS-1$ //$NON-NLS-2$
-			advancedButton.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
-			advancedButton.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					onAdvancedButtonSelected();
-				}
-			});
 		}
 
 		// restore the widget values from the history
@@ -304,23 +240,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	}
 
 	/**
-	 * Returns if or if not the page should show an advanced button.
-	 *
-	 * @return <code>True</code> if the page has an advanced button, <code>false</code> if not.
-	 */
-	protected boolean hasAdvancedButton() {
-		return false;
-	}
-
-	/**
-	 * Called once the user pressed the advanced button. Subclasses
-	 * needs to overwrite this method to provide the logic behind the
-	 * advanced button if {@link #hasAdvancedButton()} returned <code>true</code>.
-	 */
-	protected void onAdvancedButtonSelected() {
-	}
-
-	/**
 	 * Returns the peer type.
 	 *
 	 * @return The peer type. Never <code>null</code>.
@@ -357,11 +276,11 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 				IPeerNode[] peers = ModelManager.getPeerModel().getPeerNodes();
 				// Loop them and find the ones which are of our handled types
 				for (IPeerNode peerNode : peers) {
-						String name = peerNode.getPeer().getName();
-						Assert.isNotNull(name);
-						if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
-							usedNames.add(name.trim().toUpperCase());
-						}
+					String name = peerNode.getPeer().getName();
+					Assert.isNotNull(name);
+					if (!"".equals(name) && !usedNames.contains(name)) { //$NON-NLS-1$
+						usedNames.add(name.trim().toUpperCase());
+					}
 				}
 			}
 		};
@@ -405,31 +324,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		}
 	}
 
-	/**
-	 * Returns if or if not to connect after the configuration got created.
-	 *
-	 * @return <code>True</code> to connect, <code>false</code> if not.
-	 */
-	public final boolean isAutoConnect() {
-		return autoConnect;
-	}
-
-	/**
-	 * Returns if or if not to auto-start the debugger after the configuration got created.
-	 *
-	 * @return <code>True</code> to auto-start the debugger, <code>false</code> if not.
-	 */
-	public final boolean isAutoStartDebugger() {
-		return autoLaunchDbg;
-	}
-
-	protected final void setIsAutoStartDebugger(boolean autoLaunchDbg) {
-		this.autoLaunchDbg = autoLaunchDbg;
-		if (launchDbg != null) {
-			launchDbg.setSelection(autoLaunchDbg);
-		}
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.wizards.pages.AbstractValidatingWizardPage#doValidate()
 	 */
@@ -458,7 +352,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			for (AbstractSection additionalSection : additionalSections) {
 				valid &= additionalSection.isValid();
 				result.setResult(additionalSection);
-            }
+			}
 		}
 
 		result.setValid(valid);
@@ -484,14 +378,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			peerAttributes.setProperty(IPeer.ATTR_NAME, value);
 		}
 
-		if (isAutoStartDebugger()) {
-			peerAttributes.setProperty(IPeerProperties.PROP_AUTO_START_DEBUGGER, true);
-		}
-
-		if (isAutoConnect()) {
-			peerAttributes.setProperty(IPeerProperties.PROP_AUTO_CONNECT, true);
-		}
-
 		if (selectorSection != null) {
 			updateAttribute(selectorSection, peerAttributes);
 		}
@@ -501,7 +387,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		if (additionalSections != null) {
 			for (AbstractSection additionalSection : additionalSections) {
 				updateAttribute(additionalSection, peerAttributes);
-            }
+			}
 		}
 	}
 
@@ -550,7 +436,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		if (additionalSections != null) {
 			for (AbstractSection additionalSection : additionalSections) {
 				((IDataExchangeNode)additionalSection).setupData(data);
-            }
+			}
 		}
 	}
 
@@ -572,7 +458,7 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			if (additionalSections != null) {
 				for (AbstractSection additionalSection : additionalSections) {
 					additionalSection.saveWidgetValues(settings);
-	            }
+				}
 			}
 		}
 	}
@@ -595,14 +481,8 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			if (additionalSections != null) {
 				for (AbstractSection additionalSection : additionalSections) {
 					additionalSection.restoreWidgetValues(settings);
-	            }
+				}
 			}
-		}
-	}
-
-	protected void updateEnablement() {
-		if (launchDbg != null) {
-			launchDbg.setEnabled(isAutoLaunchDbgEnabled);
 		}
 	}
 }

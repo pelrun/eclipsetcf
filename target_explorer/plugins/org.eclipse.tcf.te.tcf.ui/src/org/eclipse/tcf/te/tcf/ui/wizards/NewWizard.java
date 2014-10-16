@@ -151,23 +151,20 @@ public class NewWizard extends AbstractNewConfigWizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		// Create the peer attributes
-		final IPropertiesContainer peerAttributes = new PropertiesContainer();
-
 		// Extract the data from the wizard pages
-		extractData(peerAttributes);
+		extractData(data);
 
 		// Fill in the minimum set of peer attributes to create a new peer
-		if (!peerAttributes.containsKey(IPeer.ATTR_ID)) {
-			peerAttributes.setProperty(IPeer.ATTR_ID, UUID.randomUUID().toString());
+		if (!data.containsKey(IPeer.ATTR_ID)) {
+			data.setProperty(IPeer.ATTR_ID, UUID.randomUUID().toString());
 		}
-		if (!peerAttributes.containsKey(IPeer.ATTR_NAME)) {
-			peerAttributes.setProperty(IPeer.ATTR_NAME, NLS.bind(Messages.NewTargetWizard_newPeer_name, Integer.valueOf(counter.incrementAndGet())));
+		if (!data.containsKey(IPeer.ATTR_NAME)) {
+			data.setProperty(IPeer.ATTR_NAME, NLS.bind(Messages.NewTargetWizard_newPeer_name, Integer.valueOf(counter.incrementAndGet())));
 		}
 
 		// Convert the properties container into a Map<String, String>
 		final Map<String, String> attrs = new HashMap<String, String>();
-		for (Entry<String, Object> entry : peerAttributes.getProperties().entrySet()) {
+		for (Entry<String, Object> entry : data.getProperties().entrySet()) {
 			if (entry.getKey() == null || entry.getValue() == null) continue;
 			attrs.put(entry.getKey(), entry.getValue() instanceof String ? (String)entry.getValue() : entry.getValue().toString());
 		}

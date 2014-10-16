@@ -198,6 +198,7 @@ public final class SimulatorUtils {
 							}
 						}, monitor);
 					} else {
+						result.service.cleanup(peerNode, result.settings);
 						callback.done(null, Status.OK_STATUS);
 					}
 				}

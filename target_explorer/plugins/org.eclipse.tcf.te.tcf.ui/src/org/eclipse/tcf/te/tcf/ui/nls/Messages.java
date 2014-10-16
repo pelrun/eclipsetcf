@@ -30,6 +30,24 @@ public class Messages extends NLS {
 	}
 
 	/**
+	 * Returns if or if not this NLS manager contains a constant for
+	 * the given externalized strings key.
+	 *
+	 * @param key The externalized strings key or <code>null</code>.
+	 * @return <code>True</code> if a constant for the given key exists, <code>false</code> otherwise.
+	 */
+	public static boolean hasString(String key) {
+		if (key != null) {
+			try {
+				Field field = Messages.class.getDeclaredField(key);
+				return field != null;
+			} catch (NoSuchFieldException e) { /* ignored on purpose */ }
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns the corresponding string for the given externalized strings
 	 * key or <code>null</code> if the key does not exist.
 	 *
@@ -270,4 +288,10 @@ public class Messages extends NLS {
 
 	public static String PingTimeoutSection_title;
 	public static String PingTimeoutSection_timeout_label;
+
+	public static String PeerLabelProviderDelegate_NodePropertiesTable_Mode_run;
+	public static String PeerLabelProviderDelegate_NodePropertiesTable_Mode_stop;
+	public static String PeerLabelProviderDelegate_NodePropertiesTable_SubType_real;
+	public static String PeerLabelProviderDelegate_NodePropertiesTable_SubType_sim;
+	public static String PeerLabelProviderDelegate_NodePropertiesTable_Port_0;
 }

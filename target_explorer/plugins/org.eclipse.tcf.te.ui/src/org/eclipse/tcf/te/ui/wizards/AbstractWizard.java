@@ -37,6 +37,8 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	// The selection passed to the wizard via IWorkbenchWizard#init.
 	private IStructuredSelection selection = null;
 
+	protected IPropertiesContainer data;
+
 	/**
 	 * Initialize the dialog settings and associate them with the wizard.
 	 */
@@ -90,7 +92,7 @@ public abstract class AbstractWizard extends Wizard implements IWorkbenchWizard 
 	public void createPageControls(Composite pageContainer) {
 	    super.createPageControls(pageContainer);
 
-	    IPropertiesContainer data = getInitialData();
+	    data = getInitialData();
 	    if (data == null) {
 	    	data = new PropertiesContainer();
 	    }

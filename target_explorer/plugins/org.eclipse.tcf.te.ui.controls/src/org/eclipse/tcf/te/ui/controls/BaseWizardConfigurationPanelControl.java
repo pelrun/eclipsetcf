@@ -259,7 +259,7 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	 */
 	public void showConfigurationPanel(String key) {
 		String activeKey = getActiveConfigurationPanelKey();
-		if (key != null && key.equals(activeKey)) {
+		if (key != null && key.equals(activeKey) && activeConfigurationPanel != null) {
 			return;
 		}
 		IWizardConfigurationPanel configPanel = getActiveConfigurationPanel();
@@ -278,6 +278,9 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 				((IUpdatable)configPanel).updateData(data);
 			}
 			configPanel.activate();
+		}
+		else {
+			activeConfigurationPanelKey = key;
 		}
 	}
 

@@ -68,13 +68,7 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 	 */
 	@Override
 	public Object[] getElements(final Object inputElement) {
-		List<NodePropertiesTableTableNode> nodes = new ArrayList<NodePropertiesTableTableNode>();
-
 		if (inputElement instanceof IPeerNode) {
-			// Get the associated label provider
-			IUIService service = ServiceManager.getInstance().getService(inputElement, IUIService.class);
-			ILabelProvider provider = service != null ? service.getDelegate(inputElement, ILabelProvider.class) : null;
-
 			// Get all custom properties of the node
 			final Map<String, Object> properties = new HashMap<String, Object>();
 			// And get all native properties of the peer
@@ -95,39 +89,21 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 				});
 			}
 
+			IUIService service = ServiceManager.getInstance().getService(inputElement, IUIService.class);
 			INodePropertiesTableUIDelegate delegate = service != null ? service.getDelegate(inputElement, INodePropertiesTableUIDelegate.class) : null;
-
+			List<NodePropertiesTableTableNode> nodes = new ArrayList<NodePropertiesTableTableNode>();
 			for (Entry<String, Object> entry : properties.entrySet()) {
 				String name = entry.getKey();
 				// Check if the property is filtered
-				if (name.endsWith(".silent") || name.contains(".transient")) { //$NON-NLS-1$ //$NON-NLS-2$
-					continue;
+				if (!name.endsWith(".silent") && !name.contains(".transient")) { //$NON-NLS-1$ //$NON-NLS-2$
+					if (delegate == null || !delegate.isFiltered(inputElement, name, entry.getValue())) {
+						// Create the properties node
+						NodePropertiesTableTableNode propertiesNode = new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : ""); //$NON-NLS-1$
+
+						// Add the properties node
+						nodes.add(propertiesNode);
+					}
 				}
-				if (delegate != null && delegate.isFiltered(inputElement, name, entry.getValue())) continue;
-				// Create the properties node
-				NodePropertiesTableTableNode propertiesNode = new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : ""); //$NON-NLS-1$
-
-				// Possible replacement for the node properties table table node value
-				String text = null;
-
-				// Get the label provider delegate for the input element
-				ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(inputElement, false);
-				if (delegates != null && delegates.length > 0) {
-					text = delegates[0].getText(propertiesNode);
-				}
-
-				// Fallback to the label provider
-				if (text == null && provider != null) {
-					text = provider.getText(propertiesNode);
-				}
-
-				// Replace the node properties table table node value
-				if (text != null && !"".equals(text)) { //$NON-NLS-1$
-					propertiesNode = new NodePropertiesTableTableNode(name, text);
-				}
-
-				// Add the properties node
-				nodes.add(propertiesNode);
 			}
 			Collections.sort(nodes, new Comparator<NodePropertiesTableTableNode>() {
 				@Override
@@ -135,10 +111,38 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 		            return arg0.name.compareToIgnoreCase(arg1.name);
 	            }
 			});
-			if (delegate != null) delegate.expandNodesAfterSort(nodes);
+			if (delegate != null) delegate.expandNodesAfterSort(inputElement, nodes);
+
+
+			ILabelProvider provider = service != null ? service.getDelegate(inputElement, ILabelProvider.class) : null;
+			List<NodePropertiesTableTableNode> result = new ArrayList<NodePropertiesTableTableNode>();
+			for (NodePropertiesTableTableNode node : nodes) {
+				// Possible replacement for the node properties table table node value
+				String text = null;
+
+				// Get the label provider delegate for the input element
+				ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(inputElement, false);
+				if (delegates != null && delegates.length > 0) {
+					text = delegates[0].getText(node);
+				}
+
+				// Fallback to the label provider
+				if (text == null && provider != null) {
+					text = provider.getText(node);
+				}
+
+				// Replace the node properties table table node value
+				if (text != null && !"".equals(text)) { //$NON-NLS-1$
+					node = new NodePropertiesTableTableNode(node.name, text);
+				}
+
+				result.add(node);
+            }
+			return result.toArray(new NodePropertiesTableTableNode[result.size()]);
+
 		}
 
-		return nodes.toArray(new NodePropertiesTableTableNode[nodes.size()]);
+		return new Object[0];
 	}
 
 	/* (non-Javadoc)
