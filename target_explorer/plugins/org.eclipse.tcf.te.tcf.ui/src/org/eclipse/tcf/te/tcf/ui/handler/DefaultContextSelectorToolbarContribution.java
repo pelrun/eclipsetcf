@@ -386,8 +386,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
     		if (changeEvent.getSource() instanceof IDefaultContextService ||
     						(changeEvent.getSource() == peerNode &&
-    						(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) ||
-    										IPeerNodeProperties.PROP_VALID.equals(changeEvent.getEventId()) ||
+    						(IPeerNodeProperties.PROPERTY_CONNECT_STATE.equals(changeEvent.getEventId()) ||
+    										IPeerNodeProperties.PROPERTY_IS_VALID.equals(changeEvent.getEventId()) ||
     										"properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
     			if (menuMgr != null) menuMgr.markDirty();
     			ExecutorsUtil.executeInUI(new Runnable() {

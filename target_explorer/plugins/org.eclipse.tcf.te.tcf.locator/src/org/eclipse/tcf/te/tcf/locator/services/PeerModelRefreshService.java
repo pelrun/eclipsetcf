@@ -137,7 +137,7 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 			}
 
 			if (peerNode.getPeer() != peer) {
-				peerNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
+				peerNode.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, peer);
 			}
 		}
 

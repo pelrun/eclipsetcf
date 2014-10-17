@@ -226,7 +226,7 @@ implements IWorkbenchContribution, IEventListener {
 			IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
 			if (changeEvent.getSource() instanceof IDefaultContextService ||
 				(changeEvent.getSource() == peerNode &&
-				(IPeerNodeProperties.PROP_CONNECT_STATE.equals(changeEvent.getEventId()) || "properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
+				(IPeerNodeProperties.PROPERTY_CONNECT_STATE.equals(changeEvent.getEventId()) || "properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
 				ExecutorsUtil.executeInUI(new Runnable() {
 					@Override
 					public void run() {

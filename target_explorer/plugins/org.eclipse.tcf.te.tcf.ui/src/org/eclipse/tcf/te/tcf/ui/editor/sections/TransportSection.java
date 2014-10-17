@@ -464,7 +464,7 @@ public class TransportSection extends AbstractSection implements IDataExchangeNo
 				IPeer newPeer = new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
-				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
+				node.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, newPeer);
 				// As the transport changed, we have to reset the state back to "unknown"
 				// and clear out the services and DNS markers
 				node.setProperty("dns.name.transient", null); //$NON-NLS-1$

@@ -80,8 +80,8 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 		// Set the default properties before enabling the change events.
 		// The properties changed listeners should not be called from the
 		// constructor.
-		setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
-		setProperty(IPeerNodeProperties.PROP_CONNECT_STATE, IConnectable.STATE_DISCONNECTED);
+		setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, peer);
+		setProperty(IPeerNodeProperties.PROPERTY_CONNECT_STATE, IConnectable.STATE_DISCONNECTED);
 
 		// Initialize the peer id
 		peerId = peer.getID();
@@ -166,7 +166,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 
 		if (isValid != valid.get()) {
 			isValid = valid.get();
-			fireChangeEvent(IPeerNodeProperties.PROP_VALID, new Boolean(isValid), new Boolean(valid.get()));
+			fireChangeEvent(IPeerNodeProperties.PROPERTY_IS_VALID, new Boolean(isValid), new Boolean(valid.get()));
 		}
 
 		return isValid;
@@ -214,7 +214,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 			return model;
 		}
 
-		Object peer = getProperty(IPeerNodeProperties.PROP_INSTANCE);
+		Object peer = getProperty(IPeerNodeProperties.PROPERTY_INSTANCE);
 		// Check with adapter.isAssignableFrom(...) to return the peer instance
 		// correctly if adapter is IPeer.class.
 		if (peer != null && adapter.isAssignableFrom(peer.getClass())) {
@@ -296,7 +296,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 		Assert.isNotNull(getPeer());
 
 		// If the peer instance changed, update the element id
-		if (IPeerNodeProperties.PROP_INSTANCE.equals(key)) {
+		if (IPeerNodeProperties.PROPERTY_INSTANCE.equals(key)) {
 			peerId = getPeer().getID();
 			Assert.isNotNull(peerId);
 		}
@@ -337,8 +337,8 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
     	Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				if (getProperty(IPeerNodeProperties.PROP_CONNECT_STATE) != null) {
-					state.set(getIntProperty(IPeerNodeProperties.PROP_CONNECT_STATE));
+				if (getProperty(IPeerNodeProperties.PROPERTY_CONNECT_STATE) != null) {
+					state.set(getIntProperty(IPeerNodeProperties.PROPERTY_CONNECT_STATE));
 				}
 			}
 		});
@@ -367,7 +367,7 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 	    	Protocol.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-			    	result.set(setProperty(IPeerNodeProperties.PROP_CONNECT_STATE, newState));
+			    	result.set(setProperty(IPeerNodeProperties.PROPERTY_CONNECT_STATE, newState));
 				}
 			});
     	}

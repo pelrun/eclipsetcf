@@ -77,7 +77,7 @@ public class PeerNodeSelectionDialog extends AbstractArraySelectionDialog implem
 						@Override
 						public void run() {
 			    			String offlineServices = peerNode.getStringProperty(IPeerProperties.PROP_OFFLINE_SERVICES);
-			    			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+			    			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 			    			List<String> offline = offlineServices != null ? Arrays.asList(offlineServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			    			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$
 			    			boolean hasOfflineService = true;

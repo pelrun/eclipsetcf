@@ -158,10 +158,10 @@ public class ServicesSection extends AbstractSection {
 		// Create the UI runnable
 		boolean fireNotification = false;
 
-		String value = odc.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES);
+		String value = odc.getStringProperty(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES);
 		fireNotification |= value != null && !value.equals(SWTControlUtil.getText(local));
 		SWTControlUtil.setText(local, value != null ? value : ""); //$NON-NLS-1$
-		value = odc.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+		value = odc.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 		fireNotification |= value != null && !value.equals(SWTControlUtil.getText(remote));
 		SWTControlUtil.setText(remote, value != null ? value : ""); //$NON-NLS-1$
 

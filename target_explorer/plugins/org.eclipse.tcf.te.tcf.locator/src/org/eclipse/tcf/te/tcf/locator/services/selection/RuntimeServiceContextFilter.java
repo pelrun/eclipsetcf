@@ -63,7 +63,7 @@ public class RuntimeServiceContextFilter implements IDefaultContextService.ICont
 			@Override
 			public void run() {
 				List<String> list;
-				String services = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+				String services = peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 				if (services != null) {
 					list = Arrays.asList(services.split(",\\s*")); //$NON-NLS-1$
 					boolean containsAll = true;

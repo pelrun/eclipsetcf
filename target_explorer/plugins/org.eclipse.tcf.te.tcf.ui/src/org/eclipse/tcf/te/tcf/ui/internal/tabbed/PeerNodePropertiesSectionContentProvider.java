@@ -82,10 +82,10 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 					public void run() {
 						IPeerNode peerNode = (IPeerNode)inputElement;
 						properties.putAll(peerNode.getPeer().getAttributes());
-						properties.put(IPeerNodeProperties.PROP_CONNECT_STATE, ConnectStateHelper.getConnectState(peerNode.getConnectState()));
+						properties.put(IPeerNodeProperties.PROPERTY_CONNECT_STATE, ConnectStateHelper.getConnectState(peerNode.getConnectState()));
 						if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
-							properties.put(IPeerNodeProperties.PROP_LOCAL_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
-							properties.put(IPeerNodeProperties.PROP_REMOTE_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
+							properties.put(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES));
+							properties.put(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES));
 						}
 
 						if (Platform.inDebugMode()) {
@@ -144,7 +144,7 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 				nodes.clear();
 				for (Entry<String, Object> entry : debugProperties.entrySet()) {
 					String name = entry.getKey();
-					if (!name.equals(IPeerNodeProperties.PROP_CONNECT_STATE) && !name.equals(IPeerNodeProperties.PROP_LOCAL_SERVICES) && !name.equals(IPeerNodeProperties.PROP_REMOTE_SERVICES)) {
+					if (!name.equals(IPeerNodeProperties.PROPERTY_CONNECT_STATE) && !name.equals(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES) && !name.equals(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES)) {
 						nodes.add(new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : "")); //$NON-NLS-1$
 					}
 				}

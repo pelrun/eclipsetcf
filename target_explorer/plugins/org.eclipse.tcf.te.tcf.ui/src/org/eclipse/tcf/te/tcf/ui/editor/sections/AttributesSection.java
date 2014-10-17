@@ -330,7 +330,7 @@ public class AttributesSection extends AbstractSection {
 				IPeer newPeer = new Peer(attributes);
 				// Update the peer node instance (silently)
 				boolean changed = node.setChangeEventsEnabled(false);
-				node.setProperty(IPeerNodeProperties.PROP_INSTANCE, newPeer);
+				node.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, newPeer);
 				if (changed) {
 					node.setChangeEventsEnabled(true);
 				}

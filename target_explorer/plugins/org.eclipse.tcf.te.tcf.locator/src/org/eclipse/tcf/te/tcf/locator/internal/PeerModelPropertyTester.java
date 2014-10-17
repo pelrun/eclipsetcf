@@ -166,7 +166,7 @@ public class PeerModelPropertyTester extends PropertyTester {
 
 		if ("hasOfflineService".equals(property)) { //$NON-NLS-1$
 			String offlineServices = peer.getAttributes().get(IPeerProperties.PROP_OFFLINE_SERVICES);
-			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 			List<String> offline = offlineServices != null ? Arrays.asList(offlineServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$
 			boolean hasOfflineService = (remote == null) ? offline.contains(expectedValue) : remote.contains(expectedValue);
@@ -177,7 +177,7 @@ public class PeerModelPropertyTester extends PropertyTester {
 		}
 
 		if ("hasRemoteService".equals(property)) { //$NON-NLS-1$
-			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			boolean hasRemoteService = remote.contains(expectedValue);
 			if (expectedValue instanceof Boolean) {
@@ -187,7 +187,7 @@ public class PeerModelPropertyTester extends PropertyTester {
 		}
 
 		if ("hasLocalService".equals(property)) { //$NON-NLS-1$
-			String localServices = peerNode.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES);
+			String localServices = peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES);
 			List<String> remote = localServices != null ? Arrays.asList(localServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			boolean hasLocalService = remote.contains(expectedValue);
 			if (expectedValue instanceof Boolean) {

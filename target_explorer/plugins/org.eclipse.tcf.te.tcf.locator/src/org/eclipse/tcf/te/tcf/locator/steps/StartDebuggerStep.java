@@ -94,7 +94,7 @@ public class StartDebuggerStep extends AbstractPeerNodeStep {
 						return;
 					}
 					// Don't attach the debugger if no run control is provided by the target
-					String remoteServices = node.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+					String remoteServices = node.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 					Assert.isNotNull(remoteServices);
 					boolean canAttachDbg = false;
 					StringTokenizer tokenizer = new StringTokenizer(remoteServices, ","); //$NON-NLS-1$

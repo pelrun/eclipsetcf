@@ -242,7 +242,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 		                Tcf.getChannelManager().closeChannel(channel);
 	                }
 	                if (locatorNode.isStatic()) {
-	                	locatorNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, locatorNode.getProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE));
+	                	locatorNode.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, locatorNode.getProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE));
 	                }
 	                else {
 	                	ILocatorModelUpdateService update = model.getService(ILocatorModelUpdateService.class);
@@ -358,7 +358,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 							}
 							else {
 								if (parentNodes.length == 0 && !isFiltered(peer)) {
-									existing.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
+									existing.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, peer);
 								}
 								else {
 									locatorNode.remove(existing, true);
@@ -370,7 +370,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 							attributes.put(IPeerProperties.PROP_PROXIES, parentProxies);
 							attributes.putAll(((IPeer)locatorNode.getProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE)).getAttributes());
 							IPeer peer = new TransientPeer(attributes);
-							locatorNode.setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
+							locatorNode.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, peer);
 						}
 					}
 					for (ILocatorNode old : oldChildren) {
@@ -395,7 +395,7 @@ public class LocatorModelRefreshService extends AbstractLocatorModelService impl
 					List<ILocatorNode> oldChildren = locatorNode.getChildren(ILocatorNode.class);
 					for (ILocatorNode old : oldChildren) {
 						if (old.isStatic()) {
-							old.setProperty(IPeerNodeProperties.PROP_INSTANCE, locatorNode
+							old.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, locatorNode
 							                .getProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE));
 						}
 						else {

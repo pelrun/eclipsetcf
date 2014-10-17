@@ -46,7 +46,7 @@ public class PeerModelQueryService extends AbstractPeerModelService implements I
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				services.set(node.getStringProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES));
+				services.set(node.getStringProperty(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES));
 			}
 		});
 
@@ -68,7 +68,7 @@ public class PeerModelQueryService extends AbstractPeerModelService implements I
 		Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				services.set(node.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES));
+				services.set(node.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES));
 			}
 		});
 

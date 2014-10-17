@@ -47,7 +47,7 @@ public class LocatorNode extends ContainerModelNode implements ILocatorNode {
 		// Set the default properties before enabling the change events.
 		// The properties changed listeners should not be called from the
 		// constructor.
-		setProperty(IPeerNodeProperties.PROP_INSTANCE, peer);
+		setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, peer);
 		setProperty(ILocatorNode.PROPERTY_STATIC_INSTANCE, isStatic ? peer : null);
 
 		PendingOperationNode pendingNode = new PendingOperationNode();
@@ -92,7 +92,7 @@ public class LocatorNode extends ContainerModelNode implements ILocatorNode {
 	    Protocol.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				isDiscovered.set(getProperty(PROPERTY_STATIC_INSTANCE) != getProperty(IPeerNodeProperties.PROP_INSTANCE));
+				isDiscovered.set(getProperty(PROPERTY_STATIC_INSTANCE) != getProperty(IPeerNodeProperties.PROPERTY_INSTANCE));
 			}
 		});
 	    return isDiscovered.get();
@@ -187,7 +187,7 @@ public class LocatorNode extends ContainerModelNode implements ILocatorNode {
 			return refreshableCtxAdapter;
 		}
 
-		Object peer = getProperty(IPeerNodeProperties.PROP_INSTANCE);
+		Object peer = getProperty(IPeerNodeProperties.PROPERTY_INSTANCE);
 		// Check with adapter.isAssignableFrom(...) to return the peer instance
 		// correctly if adapter is IPeer.class.
 		if (peer != null && adapter.isAssignableFrom(peer.getClass())) {

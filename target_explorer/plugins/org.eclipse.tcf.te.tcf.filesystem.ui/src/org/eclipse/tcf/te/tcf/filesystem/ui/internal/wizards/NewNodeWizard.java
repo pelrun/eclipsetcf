@@ -87,7 +87,7 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	public boolean hasFileSystem(final IPeerNode peer) {
 		if(Protocol.isDispatchThread()) {
 			String services = null;
-			services = peer.getStringProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES);
+			services = peer.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 			if (services != null) {
 				// Lookup each service individually
 				for (String service : services.split(",")) { //$NON-NLS-1$

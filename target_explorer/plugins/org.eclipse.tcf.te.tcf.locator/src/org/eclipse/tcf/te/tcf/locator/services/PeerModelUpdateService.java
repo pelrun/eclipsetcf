@@ -95,8 +95,8 @@ public class PeerModelUpdateService extends AbstractPeerModelService implements 
 		Assert.isNotNull(peerNode);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		peerNode.setProperty(IPeerNodeProperties.PROP_LOCAL_SERVICES, localServices != null ? makeString(localServices) : null);
-		peerNode.setProperty(IPeerNodeProperties.PROP_REMOTE_SERVICES, remoteServices != null ? makeString(remoteServices) : null);
+		peerNode.setProperty(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES, localServices != null ? makeString(localServices) : null);
+		peerNode.setProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES, remoteServices != null ? makeString(remoteServices) : null);
 	}
 
 	/**
