@@ -217,6 +217,14 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 */
 	protected abstract AbstractSection doCreateDetailsSection(IManagedForm form, Composite parent);
 
+	/**
+	 * Creates the additional sections.
+	 *
+	 * @param form The managed form instance. Must not be <code>null</code>.
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 *
+	 * @return The additional sections or an empty array.
+	 */
 	protected AbstractSection[] doCreateAdditionalSections(IManagedForm form, Composite parent) {
 		return new AbstractSection[0];
 	}
