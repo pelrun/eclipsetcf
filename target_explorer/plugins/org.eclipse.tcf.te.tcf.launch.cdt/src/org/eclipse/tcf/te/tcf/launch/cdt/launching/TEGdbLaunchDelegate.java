@@ -69,6 +69,10 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 					.getAttribute(
 							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
 							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
+			String gdbserverPortNumberMappedTo = config
+							.getAttribute(
+									IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
+									(String)null);
 			String gdbserverCommand = config
 					.getAttribute(
 							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
@@ -173,7 +177,7 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 					TEHelper.getCurrentConnection(config).getPeer()
 							.getAttributes().get(IPeer.ATTR_IP_HOST));
 			wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_PORT,
-					gdbserverPortNumber);
+					gdbserverPortNumberMappedTo == null || "".equals(gdbserverPortNumberMappedTo) ? gdbserverPortNumber : gdbserverPortNumberMappedTo); //$NON-NLS-1$
 			wc.doSave();
 			try {
 				super.launch(config, mode, launch, monitor);

@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
+import org.eclipse.tcf.te.ui.controls.validator.PortNumberVerifyListener;
 
 @SuppressWarnings("restriction")
 public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
@@ -38,6 +39,8 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 	protected Text fGDBServerCommandText = null;
 
 	protected Text fGDBServerPortNumberText = null;
+
+	protected Text fPortNumberMappedToText = null;
 
 	private boolean fIsInitializing = false;
 
@@ -59,6 +62,9 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 		configuration.setAttribute(
 				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
 				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
+		configuration.setAttribute(
+						IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
+						(String)null);
 	}
 
 	@Override
@@ -68,6 +74,7 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 
 		String gdbserverCommand = null;
 		String gdbserverPortNumber = null;
+		String portNumberMappedTo = null;
 		try {
 			gdbserverCommand = configuration
 					.getAttribute(
@@ -82,8 +89,16 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
 		} catch (CoreException e) {
 		}
+		try {
+			portNumberMappedTo = configuration
+					.getAttribute(
+							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
+							(String)null);
+		} catch (CoreException e) {
+		}
 		if (fGDBServerCommandText != null) fGDBServerCommandText.setText(gdbserverCommand);
 		if (fGDBServerPortNumberText != null) fGDBServerPortNumberText.setText(gdbserverPortNumber);
+		if (fPortNumberMappedToText != null) fPortNumberMappedToText.setText(portNumberMappedTo != null ? portNumberMappedTo : ""); //$NON-NLS-1$
 		setInitializing(false);
 	}
 
@@ -96,6 +111,10 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 		str = fGDBServerPortNumberText != null ? fGDBServerPortNumberText.getText().trim() : null;
 		configuration.setAttribute(
 				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, str);
+		str = fPortNumberMappedToText != null ? fPortNumberMappedToText.getText().trim() : null;
+		configuration.setAttribute(
+						IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
+						str != null && !"".equals(str) ? str : null); //$NON-NLS-1$
 	}
 
 	protected void createGdbserverSettingsTab(TabFolder tabFolder) {
@@ -103,25 +122,21 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 		tabItem.setText(Messages.Gdbserver_Settings_Tab_Name);
 
 		Composite comp = new Composite(tabFolder, SWT.NULL);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(new GridLayout(1, false));
 		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		((GridLayout) comp.getLayout()).makeColumnsEqualWidth = false;
 		comp.setFont(tabFolder.getFont());
 		tabItem.setControl(comp);
 
 		Composite subComp = new Composite(comp, SWT.NULL);
-		subComp.setLayout(new GridLayout(2, true));
-		subComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		((GridLayout) subComp.getLayout()).makeColumnsEqualWidth = false;
+		subComp.setLayout(new GridLayout(2, false));
+		subComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		subComp.setFont(tabFolder.getFont());
 
 		Label label = new Label(subComp, SWT.LEFT);
 		label.setText(Messages.Gdbserver_name_textfield_label);
-		GridData gd = new GridData();
-		label.setLayoutData(gd);
 
 		fGDBServerCommandText = new Text(subComp, SWT.SINGLE | SWT.BORDER);
-		GridData data = new GridData();
+		GridData data = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		fGDBServerCommandText.setLayoutData(data);
 		fGDBServerCommandText.addModifyListener(new ModifyListener() {
 
@@ -131,13 +146,19 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 				updateLaunchConfigurationDialog();
 			}
 		});
+
 		label = new Label(subComp, SWT.LEFT);
 		label.setText(Messages.Port_number_textfield_label);
-		gd = new GridData();
-		label.setLayoutData(gd);
 
-		fGDBServerPortNumberText = new Text(subComp, SWT.SINGLE | SWT.BORDER);
-		data = new GridData();
+		Composite subsubComp = new Composite(subComp, SWT.NULL);
+		GridLayout layout = new GridLayout(3, false);
+		layout.marginHeight = 0; layout.marginWidth = 0;
+		subsubComp.setLayout(layout);
+		subsubComp.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+		subsubComp.setFont(tabFolder.getFont());
+
+		fGDBServerPortNumberText = new Text(subsubComp, SWT.SINGLE | SWT.BORDER);
+		data = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		fGDBServerPortNumberText.setLayoutData(data);
 		fGDBServerPortNumberText.addModifyListener(new ModifyListener() {
 
@@ -147,14 +168,27 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 				updateLaunchConfigurationDialog();
 			}
 		});
+		fGDBServerPortNumberText.addVerifyListener(new PortNumberVerifyListener(PortNumberVerifyListener.ATTR_DECIMAL | PortNumberVerifyListener.ATTR_HEX));
+
+		label = new Label(subsubComp, SWT.LEFT);
+		label.setText(Messages.Port_number_mapped_to_textfield_label);
+
+		fPortNumberMappedToText = new Text(subsubComp, SWT.SINGLE | SWT.BORDER);
+		data = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		fPortNumberMappedToText.setLayoutData(data);
+		fPortNumberMappedToText.addModifyListener(new ModifyListener() {
+
+			@SuppressWarnings("synthetic-access")
+            @Override
+            public void modifyText(ModifyEvent evt) {
+				updateLaunchConfigurationDialog();
+			}
+		});
+		fPortNumberMappedToText.addVerifyListener(new PortNumberVerifyListener(PortNumberVerifyListener.ATTR_DECIMAL | PortNumberVerifyListener.ATTR_HEX));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.eclipse.cdt.debug.mi.internal.ui.GDBDebuggerPage#createTabs(org.eclipse
-	 * .swt.widgets.TabFolder)
+	/* (non-Javadoc)
+	 * @see org.eclipse.cdt.dsf.gdb.internal.ui.launching.GdbDebuggerPage#createTabs(org.eclipse.swt.widgets.TabFolder)
 	 */
 	@Override
 	public void createTabs(TabFolder tabFolder) {

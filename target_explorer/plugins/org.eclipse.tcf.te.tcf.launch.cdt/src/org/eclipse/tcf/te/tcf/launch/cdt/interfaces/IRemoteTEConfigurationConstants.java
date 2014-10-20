@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2012 PalmSource, Inc. and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0 
- * which accompanies this distribution, and is available at 
- * http://www.eclipse.org/legal/epl-v10.html 
- * 
- * Contributors: 
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
  * Ewa Matejska    (PalmSource) - Adapted from IGDBServerMILaunchConfigurationConstants
  * Anna Dushistova (MontaVista) - [181517][usability] Specify commands to be run before remote application launch
  * Anna Dushistova (MontaVista) - cloned from IRemoteConnectionConfigurationConstants
@@ -23,6 +23,8 @@ public interface IRemoteTEConfigurationConstants extends
 
 	public static final String ATTR_GDBSERVER_PORT = DebugPlugin
 			.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT"; //$NON-NLS-1$
+	public static final String ATTR_GDBSERVER_PORT_MAPPED_TO = DebugPlugin
+					.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT_MAPPED_TO"; //$NON-NLS-1$
 	public static final String ATTR_GDBSERVER_COMMAND = DebugPlugin
 			.getUniqueIdentifier() + ".ATTR_GDBSERVER_COMMAND"; //$NON-NLS-1$
 

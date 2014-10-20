@@ -27,6 +27,7 @@ public class Messages extends NLS {
 	public static String Gdbserver_Settings_Tab_Name;
 
 	public static String Port_number_textfield_label;
+	public static String Port_number_mapped_to_textfield_label;
 
 	public static String Remote_GDB_Debugger_Options;
 
