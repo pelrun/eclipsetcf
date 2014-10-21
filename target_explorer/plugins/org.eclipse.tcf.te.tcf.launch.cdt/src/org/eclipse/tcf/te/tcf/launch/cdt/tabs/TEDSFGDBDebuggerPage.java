@@ -40,7 +40,7 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 
 	protected Text fGDBServerPortNumberText = null;
 
-	protected Text fPortNumberMappedToText = null;
+	protected Text fGDBServerPortNumberMappedToText = null;
 
 	private boolean fIsInitializing = false;
 
@@ -98,7 +98,7 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 		}
 		if (fGDBServerCommandText != null) fGDBServerCommandText.setText(gdbserverCommand);
 		if (fGDBServerPortNumberText != null) fGDBServerPortNumberText.setText(gdbserverPortNumber);
-		if (fPortNumberMappedToText != null) fPortNumberMappedToText.setText(portNumberMappedTo != null ? portNumberMappedTo : ""); //$NON-NLS-1$
+		if (fGDBServerPortNumberMappedToText != null) fGDBServerPortNumberMappedToText.setText(portNumberMappedTo != null ? portNumberMappedTo : ""); //$NON-NLS-1$
 		setInitializing(false);
 	}
 
@@ -111,7 +111,7 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 		str = fGDBServerPortNumberText != null ? fGDBServerPortNumberText.getText().trim() : null;
 		configuration.setAttribute(
 				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, str);
-		str = fPortNumberMappedToText != null ? fPortNumberMappedToText.getText().trim() : null;
+		str = fGDBServerPortNumberMappedToText != null ? fGDBServerPortNumberMappedToText.getText().trim() : null;
 		configuration.setAttribute(
 						IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
 						str != null && !"".equals(str) ? str : null); //$NON-NLS-1$
@@ -150,14 +150,7 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 		label = new Label(subComp, SWT.LEFT);
 		label.setText(Messages.Port_number_textfield_label);
 
-		Composite subsubComp = new Composite(subComp, SWT.NULL);
-		GridLayout layout = new GridLayout(3, false);
-		layout.marginHeight = 0; layout.marginWidth = 0;
-		subsubComp.setLayout(layout);
-		subsubComp.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
-		subsubComp.setFont(tabFolder.getFont());
-
-		fGDBServerPortNumberText = new Text(subsubComp, SWT.SINGLE | SWT.BORDER);
+		fGDBServerPortNumberText = new Text(subComp, SWT.SINGLE | SWT.BORDER);
 		data = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		fGDBServerPortNumberText.setLayoutData(data);
 		fGDBServerPortNumberText.addModifyListener(new ModifyListener() {
@@ -170,13 +163,13 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 		});
 		fGDBServerPortNumberText.addVerifyListener(new PortNumberVerifyListener(PortNumberVerifyListener.ATTR_DECIMAL | PortNumberVerifyListener.ATTR_HEX));
 
-		label = new Label(subsubComp, SWT.LEFT);
+		label = new Label(subComp, SWT.LEFT);
 		label.setText(Messages.Port_number_mapped_to_textfield_label);
 
-		fPortNumberMappedToText = new Text(subsubComp, SWT.SINGLE | SWT.BORDER);
+		fGDBServerPortNumberMappedToText = new Text(subComp, SWT.SINGLE | SWT.BORDER);
 		data = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		fPortNumberMappedToText.setLayoutData(data);
-		fPortNumberMappedToText.addModifyListener(new ModifyListener() {
+		fGDBServerPortNumberMappedToText.setLayoutData(data);
+		fGDBServerPortNumberMappedToText.addModifyListener(new ModifyListener() {
 
 			@SuppressWarnings("synthetic-access")
             @Override
@@ -184,7 +177,7 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 				updateLaunchConfigurationDialog();
 			}
 		});
-		fPortNumberMappedToText.addVerifyListener(new PortNumberVerifyListener(PortNumberVerifyListener.ATTR_DECIMAL | PortNumberVerifyListener.ATTR_HEX));
+		fGDBServerPortNumberMappedToText.addVerifyListener(new PortNumberVerifyListener(PortNumberVerifyListener.ATTR_DECIMAL | PortNumberVerifyListener.ATTR_HEX));
 	}
 
 	/* (non-Javadoc)
