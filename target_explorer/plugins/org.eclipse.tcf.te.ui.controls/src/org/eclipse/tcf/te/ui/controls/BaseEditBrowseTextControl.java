@@ -1296,10 +1296,11 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		}
 
 		// In case, the button is not hidden and the inner panel to use
-		// has only 2 columns, we need an additional inner inner panel to
+		// has only 1 or 2 columns, we need an additional inner inner panel to
 		// squeeze the edit field control and the button into such panel
 		Composite innerInnerPanel = innerPanel;
-		if (((GridLayout)innerInnerPanel.getLayout()).numColumns == 2 && !isHideBrowseButton() && !isHideEditFieldControl()) {
+		int numColumns = ((GridLayout)innerInnerPanel.getLayout()).numColumns;
+		if ((numColumns == 1 || numColumns == 2) && !isHideBrowseButton() && !isHideEditFieldControl()) {
 			innerInnerPanel = toolkit != null ? toolkit.createComposite(innerPanel) : new Composite(innerPanel, SWT.NONE);
 			if (isAdjustBackgroundColor()) {
 				SWTControlUtil.setBackground(innerInnerPanel, innerPanel.getBackground());
