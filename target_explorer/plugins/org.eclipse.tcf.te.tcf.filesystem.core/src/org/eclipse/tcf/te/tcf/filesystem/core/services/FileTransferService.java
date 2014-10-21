@@ -254,14 +254,51 @@ public class FileTransferService {
         final FileAttrs[] attrs = new FileAttrs[1];
 
         // Check the target destination directory
+        for (int i = 0; i < targetPath.segmentCount(); i++) {
+        	IPath tp = i + 1 < targetPath.segmentCount() ? targetPath.removeLastSegments(targetPath.segmentCount() - (i + 1)) : targetPath;
 
-        fileSystem.stat(targetPath.toString(), new IFileSystem.DoneStat() {
-            @Override
-            public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
-                error[0] = e;
-                attrs[0] = a;
+        	error[0] = null;
+        	attrs[0] = null;
+
+            fileSystem.stat(tp.toString(), new IFileSystem.DoneStat() {
+                @Override
+                public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
+                    error[0] = e;
+                    attrs[0] = a;
+                }
+            });
+
+            if (attrs[0] == null && i + 1 < targetPath.segmentCount()) {
+            	error[0] = null;
+            	attrs[0] = null;
+
+            	fileSystem.mkdir(tp.toString(), null, new IFileSystem.DoneMkDir() {
+					@Override
+					public void doneMkDir(IToken token, FileSystemException e) {
+						error[0] = e;
+					}
+				});
+
+            	if (error[0] != null) {
+					result = StatusHelper.getStatus(error[0]);
+			        if (callback != null) callback.done(peer, result);
+			        return;
+            	}
+
+            	// Read the attributes of the created directory
+            	error[0] = null;
+            	attrs[0] = null;
+
+                fileSystem.stat(tp.toString(), new IFileSystem.DoneStat() {
+                    @Override
+                    public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
+                        error[0] = e;
+                        attrs[0] = a;
+                    }
+                });
             }
-        });
+        }
+
         // If we get the attributes back, the name at least exist in the target file system
         if (attrs[0] != null && attrs[0].isDirectory()) {
             targetPath = targetPath.append(item.getHostPath().lastSegment());
