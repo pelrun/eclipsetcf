@@ -255,13 +255,17 @@
 			<Class name="org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FileExtBasedImageUpdater"/>
 			<Class name="~org\.eclipse\.tcf\.te\.tcf\.filesystem\.ui\.internal\.handlers\.OpenFileHandler.*"/>
 			<Package name="~org\.eclipse\.tcf\.te\.tests\..*"/>
+            <Class name="org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesManager"/>
 		</Or>
 	</Match>
 
 	<!-- Ignore NP_LOAD_OF_KNOWN_NULL_VALUE -->
 	<Match>
 		<Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
-		<Class name="~org\.eclipse\.tcf\.te\.tcf\.core\.internal\.ChannelManager.*"/>
+        <Or>
+            <Class name="~org\.eclipse\.tcf\.te\.tcf\.core\.internal\.ChannelManager.*"/>
+            <Class name="org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesDialog"/>
+        </Or>
 	</Match>
 	
 	<!-- Filters for org.eclipse.tcf bundle -->
