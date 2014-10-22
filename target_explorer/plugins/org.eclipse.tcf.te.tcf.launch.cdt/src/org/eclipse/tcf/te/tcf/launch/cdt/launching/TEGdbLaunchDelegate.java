@@ -16,6 +16,7 @@
 package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.concurrent.DsfRunnable;
@@ -23,6 +24,7 @@ import org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor;
 import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -39,12 +41,12 @@ import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 import org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper;
+import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 
 public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 
 	@Override
-	public void launch(ILaunchConfiguration config, String mode,
-			ILaunch launch, IProgressMonitor monitor) throws CoreException {
+	public void launch(ILaunchConfiguration config, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		IPath exePath = checkBinaryDetails(config);
 		if (exePath != null && launch instanceof GdbLaunch) {
 			// -1. Initialize TE
@@ -52,41 +54,26 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 			// 0. Get the peer from the launch configuration
 			IPeer peer = TEHelper.getCurrentConnection(config).getPeer();
 			// 1.Download binary if needed
-			String remoteExePath = config.getAttribute(
-					IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
+			String remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
 			monitor.setTaskName(Messages.RemoteRunLaunchDelegate_2);
-			boolean skipDownload = config
-					.getAttribute(
-							IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET,
-							false);
+			boolean skipDownload = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, false);
 
 			if (!skipDownload) {
-				TEHelper.remoteFileTransfer(peer, exePath.toString(),
-						remoteExePath, new SubProgressMonitor(monitor, 80));
+				TEHelper.remoteFileTransfer(peer, exePath.toString(), remoteExePath, new SubProgressMonitor(monitor, 80));
 			}
-			// 2.Launch gdbserver on target
-			String gdbserverPortNumber = config
-					.getAttribute(
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
-			String gdbserverPortNumberMappedTo = config
-							.getAttribute(
-									IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
-									(String)null);
-			String gdbserverCommand = config
-					.getAttribute(
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND_DEFAULT);
-			String commandArguments = ":" + gdbserverPortNumber + " " //$NON-NLS-1$ //$NON-NLS-2$
-					+ TEHelper.spaceEscapify(remoteExePath);
-			String arguments = getProgramArguments(config);
-			String prelaunchCmd = config.getAttribute(
-					IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
 
-			TEHelper.launchCmd(peer, prelaunchCmd, null,
-					new SubProgressMonitor(monitor, 2), new Callback());
+			// 2.Launch gdbserver on target
+			String gdbserverPortNumber = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
+			String gdbserverPortNumberMappedTo = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO, (String) null);
+			String gdbserverCommand = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND_DEFAULT);
+			String commandArguments = ":" + gdbserverPortNumber + " " + TEHelper.spaceEscapify(remoteExePath); //$NON-NLS-1$ //$NON-NLS-2$
+			String arguments = getProgramArguments(config);
+			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
+
+			TEHelper.launchCmd(peer, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
+
 			if (arguments != null && !arguments.equals("")) //$NON-NLS-1$
-				commandArguments += " " + arguments; //$NON-NLS-1$
+			commandArguments += " " + arguments; //$NON-NLS-1$
 			monitor.setTaskName(Messages.RemoteRunLaunchDelegate_9);
 
 			final GdbLaunch l = (GdbLaunch) launch;
@@ -97,14 +84,14 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 						// Need to shutdown the DSF launch session because it is
 						// partially started already.
 						try {
-							l.getSession().getExecutor()
-									.execute(new DsfRunnable() {
-										@Override
-                                        public void run() {
-											l.shutdownSession(new ImmediateRequestMonitor());
-										}
-									});
-						} catch (RejectedExecutionException e) {
+							l.getSession().getExecutor().execute(new DsfRunnable() {
+								@Override
+								public void run() {
+									l.shutdownSession(new ImmediateRequestMonitor());
+								}
+							});
+						}
+						catch (RejectedExecutionException e) {
 							// Session disposed.
 						}
 
@@ -117,18 +104,24 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 			// could access them at the same time. We need a different
 			// variable for each launch, but we also need it be final.
 			// Use a final array to do that.
-			final boolean gdbServerReady[] = new boolean[1];
-			gdbServerReady[0] = false;
+			final AtomicBoolean gdbServerReady = new AtomicBoolean(false);
+			final AtomicBoolean gdbServerExited = new AtomicBoolean(false);
 
 			final Object lock = new Object();
 
 			StreamsDataReceiver.Listener listener = new StreamsDataReceiver.Listener() {
 
 				@Override
-                public void dataReceived(String data) {
+				public void dataReceived(String data) {
 					if (data.contains("Listening on port")) { //$NON-NLS-1$
+						gdbServerReady.set(true);
 						synchronized (lock) {
-							gdbServerReady[0] = true;
+							lock.notifyAll();
+						}
+					}
+					else if (data.contains("GDBserver exiting")) { //$NON-NLS-1$
+						gdbServerExited.set(true);
+						synchronized (lock) {
 							lock.notifyAll();
 						}
 					}
@@ -136,70 +129,84 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 				}
 			};
 
-			TEHelper.launchCmd(peer, gdbserverCommand, commandArguments,
-					listener, new SubProgressMonitor(monitor, 3), callback);
+			ProcessLauncher launcher = TEHelper.launchCmd(peer, gdbserverCommand, commandArguments, listener, new SubProgressMonitor(monitor, 3), callback);
 
 			// Now wait until gdbserver is up and running on the remote host
-			synchronized (lock) {
-				while (gdbServerReady[0] == false) {
-					if (monitor.isCanceled()) {
-						// gdbserver launch failed
-						// Need to shutdown the DSF launch session because it is
-						// partially started already.
-						try {
-							l.getSession().getExecutor()
-									.execute(new DsfRunnable() {
-										@Override
-                                        public void run() {
-											l.shutdownSession(new ImmediateRequestMonitor());
-										}
-									});
-						} catch (RejectedExecutionException e) {
-							// Session disposed.
-						}
-
-						abort(Messages.RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorMessage,
-								null,
-								ICDTLaunchConfigurationConstants.ERR_DEBUGGER_NOT_INSTALLED);
-					}
+			while (!gdbServerReady.get() && !gdbServerExited.get()) {
+				if (monitor.isCanceled()) {
+					// gdbserver launch failed
+					// Need to shutdown the DSF launch session because it is
+					// partially started already.
+					shutdownSession(l);
+				}
+				synchronized (lock) {
 					try {
 						lock.wait(300);
-					} catch (InterruptedException e) {
+					}
+					catch (InterruptedException e) {
 					}
 				}
 			}
 
+			// If the gdbserver exited, also shutdown the DSF launch session
+			if (gdbServerExited.get()) {
+				shutdownSession(l);
+			}
+
 			// 3. Let debugger know how gdbserver was started on the remote
 			ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
-			wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_REMOTE_TCP,
-					true);
+			wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_REMOTE_TCP, true);
 			wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_HOST,
-					TEHelper.getCurrentConnection(config).getPeer()
-							.getAttributes().get(IPeer.ATTR_IP_HOST));
-			wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_PORT,
-					gdbserverPortNumberMappedTo == null || "".equals(gdbserverPortNumberMappedTo) ? gdbserverPortNumber : gdbserverPortNumberMappedTo); //$NON-NLS-1$
+							TEHelper.getCurrentConnection(config).getPeer().getAttributes().get(IPeer.ATTR_IP_HOST));
+			wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_PORT, gdbserverPortNumberMappedTo == null || "".equals(gdbserverPortNumberMappedTo) ? gdbserverPortNumber : gdbserverPortNumberMappedTo); //$NON-NLS-1$
 			wc.doSave();
 			try {
 				super.launch(config, mode, launch, monitor);
-			} catch (CoreException ex) {
-				// TODO launch failed, need to kill gdbserver
-
+			}
+			catch (CoreException ex) {
+				// Launch failed, need to kill gdbserver
+				launcher.terminate();
 				// report failure further
 				throw ex;
-			} finally {
+			}
+			finally {
 				monitor.done();
 			}
 		}
 	}
 
-	protected String getProgramArguments(ILaunchConfiguration config)
-			throws CoreException {
-		String args = config.getAttribute(
-				ICDTLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS,
-				(String) null);
+	/**
+	 * Shutdown the GDB debug session.
+	 *
+	 * @param launch The GDB launch. Must not be <code>null</code>.
+	 * @throws CoreException If the GDB debug session shutdown failed.
+	 */
+	protected void shutdownSession(final GdbLaunch launch) throws CoreException {
+		Assert.isNotNull(launch);
+		try {
+			launch.getSession().getExecutor().execute(new DsfRunnable() {
+				@Override
+				public void run() {
+					// Avoid an NPE while running the shutdown
+					if (launch.getDsfExecutor() != null) {
+						launch.shutdownSession(new ImmediateRequestMonitor());
+					}
+				}
+			});
+		}
+		catch (RejectedExecutionException e) {
+			// Session disposed.
+		}
+
+		abort(Messages.RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorMessage, null, ICDTLaunchConfigurationConstants.ERR_DEBUGGER_NOT_INSTALLED);
+	}
+
+	protected String getProgramArguments(ILaunchConfiguration config) throws CoreException {
+		String args = config
+		                .getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS, (String) null);
 		if (args != null) {
 			args = VariablesPlugin.getDefault().getStringVariableManager()
-					.performStringSubstitution(args);
+			                .performStringSubstitution(args);
 		}
 		return args;
 	}
