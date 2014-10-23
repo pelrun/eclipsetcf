@@ -101,6 +101,14 @@ public abstract class AbstractWizardConfigurationPanel implements IWizardConfigu
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#getDialogSettingsSectionName()
+	 */
+	@Override
+	public String getDialogSettingsSectionName() {
+	    return null;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#doRestoreWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
 	 */
 	@Override

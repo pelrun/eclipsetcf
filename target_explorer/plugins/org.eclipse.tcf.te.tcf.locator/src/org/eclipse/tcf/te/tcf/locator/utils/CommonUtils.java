@@ -23,6 +23,24 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
  */
 public final class CommonUtils {
 
+	public static String getType(IPeerNode peerNode) {
+		if (peerNode != null) {
+			return peerNode.getPeerType();
+		}
+		return null;
+	}
+
+	public static String getType(IPeer peer) {
+		if (peer != null) {
+			return peer.getAttributes().get(IPeerProperties.PROP_TYPE);
+		}
+		return null;
+	}
+
+	public static String getType(IPropertiesContainer props) {
+		return props != null ? props.getStringProperty(IPeerProperties.PROP_TYPE) : null;
+	}
+
 	public static String getSubType(IPeerNode peerNode) {
 		IPeer peer = peerNode.getPeer();
 		return getSubType(peer);

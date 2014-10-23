@@ -350,14 +350,10 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
      */
     @Override
     public String getPeerType() {
-    	final AtomicReference<String> type = new AtomicReference<String>();
-    	Protocol.invokeAndWait(new Runnable() {
-			@Override
-			public void run() {
-				type.set(getPeer().getAttributes().get(IPeerProperties.PROP_TYPE));
-			}
-		});
-    	return type.get();
+		if (getPeer() != null) {
+			return getPeer().getAttributes().get(IPeerProperties.PROP_TYPE);
+		}
+    	return null;
     }
 
     @Override

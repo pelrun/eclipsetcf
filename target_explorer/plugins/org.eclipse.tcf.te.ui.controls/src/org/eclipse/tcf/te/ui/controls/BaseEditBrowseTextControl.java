@@ -1392,6 +1392,14 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseControl#getDialogSettingsSectionName()
+	 */
+	@Override
+	protected String getDialogSettingsSectionName() {
+	    return null;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.controls.BaseControl#doRestoreWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
 	 */
 	@Override

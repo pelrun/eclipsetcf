@@ -20,10 +20,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.controls.BaseDialogSelectionControl;
 import org.eclipse.tcf.te.ui.controls.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.validator.FileNameValidator;
 import org.eclipse.tcf.te.ui.controls.validator.Validator;
+import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
 import org.osgi.framework.Bundle;
 
 
@@ -33,7 +35,7 @@ import org.osgi.framework.Bundle;
  * The control supports direct editing by the user or browsing for the file. By
  * default, the control has a history of recently selected files.
  */
-public class FileSelectionControl extends BaseDialogSelectionControl {
+public class FileSelectionControl extends BaseDialogSelectionControl implements IDataExchangeNode {
 	private String[] filterExtensions;
 	private String[] filterNames;
 
@@ -219,5 +221,35 @@ public class FileSelectionControl extends BaseDialogSelectionControl {
 		}
 
 		return null;
+	}
+
+	protected String getPropertiesKey() {
+		return "File"; //$NON-NLS-1$
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+	@Override
+	public void setupData(IPropertiesContainer data) {
+		doApplyElementFromDialogControl(data.getStringProperty(getPropertiesKey()));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 */
+	@Override
+	public void extractData(IPropertiesContainer data) {
+		data.setProperty(getPropertiesKey(), new Path(doGetSelectedFile().trim()).toPortableString());
+	}
+
+	public boolean checkDataChanged(IPropertiesContainer data) {
+		IPath path = new Path(doGetSelectedFile());
+		String newValue = path.toPortableString();
+		if ("".equals(newValue)) { //$NON-NLS-1$
+			String oldValue = data.getStringProperty(getPropertiesKey());
+			return oldValue != null && !"".equals(oldValue.trim()); //$NON-NLS-1$
+		}
+		return !data.isProperty(getPropertiesKey(), new Path(newValue).toPortableString());
 	}
 }

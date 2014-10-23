@@ -82,6 +82,14 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	    public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
 	        return false;
 	    }
+
+	    /* (non-Javadoc)
+	     * @see org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel#isValid()
+	     */
+	    @Override
+	    public boolean isValid() {
+	        return false;
+	    }
 	}
 
 	/* (non-Javadoc)
@@ -311,8 +319,10 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 		if (settings != null) {
 			IWizardConfigurationPanel configPanel = getActiveConfigurationPanel();
 			if (configPanel != null && !isEmptyConfigurationPanel(configPanel)) {
-				IDialogSettings configPanelSettings = settings.getSection(activeConfigurationPanelKey);
-				if (configPanelSettings == null) configPanelSettings = settings.addNewSection(activeConfigurationPanelKey);
+				String key = configPanel.getDialogSettingsSectionName();
+				key = key != null ? key : getActiveConfigurationPanelKey();
+				IDialogSettings configPanelSettings = settings.getSection(key);
+				if (configPanelSettings == null) configPanelSettings = settings.addNewSection(key);
 				configPanel.doSaveWidgetValues(configPanelSettings, idPrefix);
 			}
 		}
@@ -325,11 +335,13 @@ public class BaseWizardConfigurationPanelControl extends BaseDialogPageControl {
 	public void doRestoreWidgetValues(IDialogSettings settings, String idPrefix) {
 		super.doRestoreWidgetValues(settings, idPrefix);
 		if (settings != null) {
-			for (String key : configurationPanels.keySet()) {
-				IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
-				if (!isEmptyConfigurationPanel(configPanel)) {
-					IDialogSettings configPanelSettings = settings.getSection(key);
-					if (configPanelSettings == null) configPanelSettings = settings.addNewSection(key);
+			for (String panelKey : configurationPanels.keySet()) {
+				IWizardConfigurationPanel configPanel = getConfigurationPanel(panelKey);
+				if (configPanel != null && !isEmptyConfigurationPanel(configPanel)) {
+					String settingsKey = configPanel.getDialogSettingsSectionName();
+					settingsKey = settingsKey != null ? settingsKey : panelKey;
+					IDialogSettings configPanelSettings = settings.getSection(settingsKey);
+					if (configPanelSettings == null) configPanelSettings = settings.addNewSection(settingsKey);
 					configPanel.doRestoreWidgetValues(configPanelSettings, idPrefix);
 				}
 			}

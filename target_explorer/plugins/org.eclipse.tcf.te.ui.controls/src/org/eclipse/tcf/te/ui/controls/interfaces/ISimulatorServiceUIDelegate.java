@@ -7,10 +7,12 @@
  * Contributors:
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.ui.interfaces.services;
+package org.eclipse.tcf.te.ui.controls.interfaces;
 
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
+import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
 
 /**
  * Simulator service UI delegate.
@@ -36,6 +38,8 @@ public interface ISimulatorServiceUIDelegate {
 	 */
 	public String getName();
 
+	public Image getImage();
+
 	/**
 	 * Get a description fo rthe given config.
 	 * This description is shown i.e. as tooltip of the configure button.
@@ -52,4 +56,6 @@ public interface ISimulatorServiceUIDelegate {
 	 * @return The properties for ui configuartion
 	 */
 	public IPropertiesContainer getProperties(Object context, String config);
+
+	public IWizardConfigurationPanel getConfigPanel(Object context, BaseWizardConfigurationPanelControl parentControl, String mode);
 }

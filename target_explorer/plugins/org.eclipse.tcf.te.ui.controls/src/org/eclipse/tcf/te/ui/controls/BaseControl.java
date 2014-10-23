@@ -196,6 +196,16 @@ public class BaseControl extends PlatformObject implements IValidatable {
 		return IMessageProvider.INFORMATION;
 	}
 
+	protected String getDialogSettingsSectionName() {
+		String sectionName = this.getClass().getSimpleName();
+		Class<?> enclosing = this.getClass().getEnclosingClass();
+        while ((sectionName == null || sectionName.trim().length() == 0) && enclosing != null) {
+            sectionName = enclosing.getSimpleName();
+            enclosing = this.getClass().getEnclosingClass();
+        }
+        return sectionName;
+	}
+
 	/**
 	 * Returns the dialog settings to use to save and restore control specific
 	 * widget values.
@@ -211,12 +221,7 @@ public class BaseControl extends PlatformObject implements IValidatable {
 		Assert.isNotNull(parentSection);
 
 		// Store the settings of the control within it's own section.
-		String sectionName = this.getClass().getSimpleName();
-		Class<?> enclosing = this.getClass().getEnclosingClass();
-        while ((sectionName == null || sectionName.trim().length() == 0) && enclosing != null) {
-            sectionName = enclosing.getSimpleName();
-            enclosing = this.getClass().getEnclosingClass();
-        }
+		String sectionName = getDialogSettingsSectionName();
 		IDialogSettings section = null;
         if (sectionName != null && sectionName.trim().length() > 0) {
 			section = parentSection.getSection(sectionName);

@@ -33,7 +33,7 @@ import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerNodeImageDescriptor;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
-import org.eclipse.tcf.te.ui.interfaces.services.ISimulatorServiceUIDelegate;
+import org.eclipse.tcf.te.ui.controls.interfaces.ISimulatorServiceUIDelegate;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 

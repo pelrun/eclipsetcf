@@ -68,6 +68,8 @@ public interface IWizardConfigurationPanel extends IMessageProvider {
 	 */
 	public boolean dataChanged(IPropertiesContainer data, TypedEvent e);
 
+	public String getDialogSettingsSectionName();
+
 	/**
 	 * Restore the widget values plain from the given dialog settings. This method should
 	 * not fragment the given dialog settings any further.
