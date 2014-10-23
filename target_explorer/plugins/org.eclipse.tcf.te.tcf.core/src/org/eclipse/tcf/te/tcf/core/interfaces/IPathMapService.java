@@ -25,6 +25,19 @@ public interface IPathMapService extends IService {
 	 */
 	public final static String PATHMAP_PROTOCOL_HOST_TO_TARGET = IPathMap.PROTOCOL_TARGET;
 
+	/**
+	 * Name used to label the source path mapping container providing the generated
+	 * source path mapping rules.
+	 */
+	public final static String SOURCE_PATH_MAPPING_CONTAINER_NAME = "Generated Mappings"; //$NON-NLS-1$
+
+	/**
+	 * Generates the source path mappings for the given context.
+	 * <p>
+	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 */
 	public void generateSourcePathMappings(Object context);
 
 	/**

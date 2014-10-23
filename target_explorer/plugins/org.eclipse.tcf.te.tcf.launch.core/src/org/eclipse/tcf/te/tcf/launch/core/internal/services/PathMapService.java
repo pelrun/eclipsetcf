@@ -63,13 +63,14 @@ public class PathMapService extends AbstractService implements IPathMapService {
 	// Lock to handle multi thread access
 	private final Lock lock = new ReentrantLock();
 
-	private final String SOURCE_PATH_MAPPING_CONTAINER_NAME = "Generated Mappings"; //$NON-NLS-1$
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#generateSourcePathMappings(java.lang.Object)
 	 */
 	@Override
 	public void generateSourcePathMappings(Object context) {
+    	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(context);
+
 		// Get the launch configuration for that peer model
 		ILaunchConfiguration config = (ILaunchConfiguration) Platform.getAdapterManager().getAdapter(context, ILaunchConfiguration.class);
 		if (config == null) {
