@@ -21,6 +21,8 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -33,6 +35,8 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.views.editor.Editor;
+import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
 import org.eclipse.tcf.te.ui.views.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -223,7 +227,26 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 * @return The image or <code>null</code> to use no image.
 	 */
 	protected Image getFormImage() {
-		return null;
+		Image image = null;
+		ILabelProvider[] delegates = LabelProviderDelegateExtensionPointManager.getInstance().getDelegates(getEditorInputNode(), false);
+		if (delegates != null && delegates.length > 0) {
+			image = delegates[0].getImage(getEditorInputNode());
+			if (image != null && delegates[0] instanceof ILabelDecorator) {
+				image = ((ILabelDecorator)delegates[0]).decorateImage(image, getEditorInputNode());
+			}
+		}
+		return image;
+	}
+
+	public void setFormTitle(String title) {
+		getManagedForm().getForm().setText(title);
+	}
+
+	public void setFormImage(Image image) {
+		getManagedForm().getForm().setImage(image);
+		if (getEditor() instanceof Editor) {
+			((Editor)getEditor()).setTitleImage(image);
+		}
 	}
 
 	/**

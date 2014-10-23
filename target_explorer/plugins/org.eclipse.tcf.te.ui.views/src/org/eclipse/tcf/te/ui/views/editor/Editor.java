@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBinding;
@@ -91,6 +92,14 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 		else {
 			super.setFocus();
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.WorkbenchPart#setTitleImage(org.eclipse.swt.graphics.Image)
+	 */
+	@Override
+	public void setTitleImage(Image titleImage) {
+	    super.setTitleImage(titleImage);
 	}
 
 	/*
