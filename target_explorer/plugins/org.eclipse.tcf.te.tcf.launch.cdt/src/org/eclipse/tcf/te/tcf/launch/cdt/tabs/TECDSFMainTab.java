@@ -25,10 +25,7 @@
 package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 
 import org.eclipse.cdt.dsf.gdb.internal.ui.launching.CMainTab;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.window.Window;
@@ -43,6 +40,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapResolverService;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.dialogs.FSOpenFileDialog;
 import org.eclipse.tcf.te.tcf.launch.cdt.controls.TCFPeerSelector;
@@ -59,10 +58,6 @@ public class TECDSFMainTab extends CMainTab {
 	private static final String REMOTE_PROG_TEXT_ERROR = Messages.RemoteCMainTab_ErrorNoProgram;
 	private static final String CONNECTION_TEXT_ERROR = Messages.RemoteCMainTab_ErrorNoConnection;
 	private static final String PRE_RUN_LABEL_TEXT = Messages.RemoteCMainTab_Prerun;
-
-	/* Defaults */
-	private static final String REMOTE_PATH_DEFAULT = EMPTY_STRING;
-	private static final boolean SKIP_DOWNLOAD_TO_REMOTE_DEFAULT = false;
 
 	protected Button remoteBrowseButton;
 	protected TCFPeerSelector peerSelector;
@@ -93,8 +88,8 @@ public class TECDSFMainTab extends CMainTab {
 		fProgText.addModifyListener(new ModifyListener() {
 
 			@SuppressWarnings("synthetic-access")
-            @Override
-            public void modifyText(ModifyEvent evt) {
+			@Override
+			public void modifyText(ModifyEvent evt) {
 				setLocalPathForRemotePath();
 			}
 		});
@@ -102,7 +97,6 @@ public class TECDSFMainTab extends CMainTab {
 
 	/*
 	 * isValid
-	 *
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#isValid
 	 */
 	@Override
@@ -131,8 +125,8 @@ public class TECDSFMainTab extends CMainTab {
 		peerSelector.addModifyListener(new ModifyListener() {
 
 			@SuppressWarnings("synthetic-access")
-            @Override
-            public void modifyText(ModifyEvent e) {
+			@Override
+			public void modifyText(ModifyEvent e) {
 				setDirty(true);
 				updateLaunchConfigurationDialog();
 			}
@@ -140,8 +134,7 @@ public class TECDSFMainTab extends CMainTab {
 	}
 
 	/*
-	 * createTargetExePath This creates the remote path user-editable textfield
-	 * on the Main Tab.
+	 * createTargetExePath This creates the remote path user-editable textfield on the Main Tab.
 	 */
 	protected void createTargetExePathGroup(Composite parent) {
 		Composite mainComp = new Composite(parent, SWT.NONE);
@@ -166,18 +159,17 @@ public class TECDSFMainTab extends CMainTab {
 		remoteProgText.addModifyListener(new ModifyListener() {
 
 			@SuppressWarnings("synthetic-access")
-            @Override
-            public void modifyText(ModifyEvent evt) {
+			@Override
+			public void modifyText(ModifyEvent evt) {
 				updateLaunchConfigurationDialog();
 			}
 		});
 
-		remoteBrowseButton = createPushButton(mainComp,
-				Messages.RemoteCMainTab_Remote_Path_Browse_Button, null);
+		remoteBrowseButton = createPushButton(mainComp, Messages.RemoteCMainTab_Remote_Path_Browse_Button, null);
 		remoteBrowseButton.addSelectionListener(new SelectionAdapter() {
 
 			@SuppressWarnings("synthetic-access")
-            @Override
+			@Override
 			public void widgetSelected(SelectionEvent evt) {
 				handleRemoteBrowseSelected();
 				updateLaunchConfigurationDialog();
@@ -198,8 +190,8 @@ public class TECDSFMainTab extends CMainTab {
 		preRunText.addModifyListener(new ModifyListener() {
 
 			@SuppressWarnings("synthetic-access")
-            @Override
-            public void modifyText(ModifyEvent evt) {
+			@Override
+			public void modifyText(ModifyEvent evt) {
 				updateLaunchConfigurationDialog();
 			}
 		});
@@ -218,12 +210,11 @@ public class TECDSFMainTab extends CMainTab {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		mainComp.setLayoutData(gd);
 
-		skipDownloadButton = createCheckButton(mainComp,
-				SKIP_DOWNLOAD_BUTTON_TEXT);
+		skipDownloadButton = createCheckButton(mainComp, SKIP_DOWNLOAD_BUTTON_TEXT);
 		skipDownloadButton.addSelectionListener(new SelectionAdapter() {
 
 			@SuppressWarnings("synthetic-access")
-            @Override
+			@Override
 			public void widgetSelected(SelectionEvent evt) {
 				updateLaunchConfigurationDialog();
 			}
@@ -251,19 +242,18 @@ public class TECDSFMainTab extends CMainTab {
 	protected void updateTargetProgFromConfig(ILaunchConfiguration config) {
 		String targetPath = null;
 		try {
-			targetPath = config.getAttribute(
-					IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH,
-					REMOTE_PATH_DEFAULT);
-		} catch (CoreException e) {
+			targetPath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH_DEFAULT);
+		}
+		catch (CoreException e) {
 			// Ignore
 		}
 		remoteProgText.setText(targetPath);
 
 		String prelaunchCmd = null;
 		try {
-			prelaunchCmd = config.getAttribute(
-					IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
-		} catch (CoreException e) {
+			prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
+		}
+		catch (CoreException e) {
 			// Ignore
 		}
 		preRunText.setText(prelaunchCmd);
@@ -272,77 +262,43 @@ public class TECDSFMainTab extends CMainTab {
 	protected void updateSkipDownloadFromConfig(ILaunchConfiguration config) {
 		boolean downloadToTarget = true;
 		try {
-			downloadToTarget = config
-					.getAttribute(
-							IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET,
-							getDefaultSkipDownload());
-		} catch (CoreException e) {
+			downloadToTarget = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT);
+		}
+		catch (CoreException e) {
 			// Ignore for now
 		}
 		skipDownloadButton.setSelection(downloadToTarget);
 	}
 
 	/*
-	 * setLocalPathForRemotePath This function sets the remote path text field
-	 * with the value of the local executable path.
+	 * setLocalPathForRemotePath This function sets the remote path text field with the value of the
+	 * local executable path.
 	 */
 	private void setLocalPathForRemotePath() {
 		String programName = fProgText.getText().trim();
-		boolean bUpdateRemote = false;
 
-		String remoteName = remoteProgText.getText().trim();
-		String remoteWsRoot = getRemoteWSRoot();
-		if (remoteName.length() == 0) {
-			bUpdateRemote = true;
-		} else if (remoteWsRoot.length() != 0) {
-			bUpdateRemote = remoteName.equals(remoteWsRoot);
-		}
-
-		if (programName.length() != 0 && bUpdateRemote) {
-			IPath exePath = new Path(programName);
-			if (!exePath.isAbsolute()) {
-				IProject project = getCProject().getProject();
-				exePath = project.getFile(programName).getLocation();
-
-				IPath wsRoot = project.getWorkspace().getRoot().getLocation();
-				exePath = makeRelativeToWSRootLocation(exePath, remoteWsRoot,
-						wsRoot);
-			}
-			String path = exePath.toString();
-			remoteProgText.setText(path);
-		}
-	}
-
-	private IPath makeRelativeToWSRootLocation(IPath exePath,
-			String remoteWsRoot, IPath wsRoot) {
-		if (remoteWsRoot.length() != 0) {
-			// use remoteWSRoot instead of Workspace Root
-			if (wsRoot.isPrefixOf(exePath)) {
-				return new Path(remoteWsRoot).append(exePath
-						.removeFirstSegments(wsRoot.segmentCount()).setDevice(
-								null));
+		if (programName != null && !"".equals(programName)) { //$NON-NLS-1$
+			IPeerNode connection = peerSelector.getPeerNode();
+			if (connection != null) {
+				IPathMapResolverService svc = ServiceManager.getInstance().getService(connection, IPathMapResolverService.class);
+				if (svc != null) {
+					String remoteName = svc.findTargetPath(connection, programName);
+					if (remoteName != null) {
+						remoteProgText.setText(remoteName);
+					}
+				}
 			}
 		}
-		return exePath;
-	}
-
-	private String getRemoteWSRoot() {
-		// FIXME
-		return ""; //$NON-NLS-1$
-	}
-
-	private boolean getDefaultSkipDownload() {
-		// FIXME
-		return SKIP_DOWNLOAD_TO_REMOTE_DEFAULT;
 	}
 
 	@Override
 	public void initializeFrom(ILaunchConfiguration config) {
 		String remoteConnection = null;
 		try {
-			remoteConnection = config.getAttribute(
-					IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, ""); //$NON-NLS-1$
-		} catch (CoreException ce) {
+			remoteConnection = config
+			                .getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, ""); //$NON-NLS-1$
+		}
+		catch (CoreException ce) {
 			// Ignore
 		}
 
@@ -355,24 +311,16 @@ public class TECDSFMainTab extends CMainTab {
 
 	/*
 	 * performApply
-	 *
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#performApply
 	 */
 	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy config) {
 
 		String currentSelection = peerSelector.getPeerId();
-		config.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION,
-				currentSelection != null ? currentSelection : null);
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH,
-				remoteProgText.getText());
-		config.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET,
-				skipDownloadButton.getSelection());
-		config.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS,
-				preRunText.getText());
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, currentSelection != null ? currentSelection : null);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, remoteProgText.getText());
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, skipDownloadButton.getSelection());
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, preRunText.getText());
 		super.performApply(config);
 	}
 
@@ -384,17 +332,10 @@ public class TECDSFMainTab extends CMainTab {
 	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy config) {
 		super.setDefaults(config);
-		config.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION,
-				EMPTY_STRING);
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH,
-				REMOTE_PATH_DEFAULT);
-		config.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET,
-				SKIP_DOWNLOAD_TO_REMOTE_DEFAULT);
-		config.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS,
-				EMPTY_STRING);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, EMPTY_STRING);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH_DEFAULT);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, EMPTY_STRING);
 	}
 
 }
