@@ -22,12 +22,18 @@ import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 public interface IPathMapGeneratorService extends IService {
 
 	/**
-	 * Return the generated (object) path mappings for the given context.
+	 * Return the generated object path mappings for the given context.
 	 *
 	 * @param context The context. Must not be <code>null</code>.
-	 * @return The generated path map or <code>null</code>.
+	 * @return The generated object path map or <code>null</code>.
 	 */
 	public IPathMap.PathMapRule[] getPathMap(Object context);
 
+	/**
+	 * Return the generated source path mappings for the given context.
+	 *
+	 * @param context The context. Must not be <code>null</code>.
+	 * @return The generated source path map or <code>null</code>.
+	 */
 	public IPathMap.PathMapRule[] getSourcePathMap(Object context);
 }
