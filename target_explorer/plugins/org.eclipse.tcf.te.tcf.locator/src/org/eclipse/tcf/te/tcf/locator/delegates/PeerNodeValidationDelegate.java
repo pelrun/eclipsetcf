@@ -68,6 +68,12 @@ public class PeerNodeValidationDelegate implements IPeerNode.IDelegate {
 	 */
 	@Override
 	public boolean isVisible(IPeerNode peerNode) {
+		if (SimulatorUtils.isSimulatorEnabled(peerNode)) {
+			SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(peerNode);
+			if (result == null || result.service == null) {
+				return false;
+			}
+		}
 	    return true;
 	}
 }

@@ -26,6 +26,7 @@ import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.events.IHyperlinkListener;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
@@ -34,6 +35,17 @@ import org.eclipse.ui.forms.widgets.ImageHyperlink;
  * AbstractCustomFormToolkitEditorPage
  */
 public abstract class AbstractCustomFormToolkitEditorPage extends org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage {
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setInput(org.eclipse.ui.IEditorInput)
+	 */
+	@Override
+	protected void setInput(IEditorInput input) {
+	    super.setInput(input);
+	    if (getEditorInputNode() instanceof IPeerNode && !((IPeerNode)getEditorInputNode()).isVisible()) {
+	    	getEditor().close(false);
+	    }
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#doCreateLinkContribution(org.eclipse.jface.action.IToolBarManager)
