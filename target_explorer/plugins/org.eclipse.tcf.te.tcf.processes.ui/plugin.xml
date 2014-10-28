@@ -269,21 +269,6 @@
       </menuContribution>
 
    <!-- Editor page toolbar contributions -->
-      <!--menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.connect">
-         <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
-            <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.editor.IConnectable"/>
-            </visibleWhen>
-         </command>
-         <command commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
-            <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.editor.IConnectable"/>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"/>
-      </menuContribution-->
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.processes.ui.ProcessExplorerEditorPage?after=group.additions">
          <command
                commandId="org.eclipse.tcf.te.tcf.processes.ui.command.refreshViewer"
@@ -345,25 +330,53 @@
          <command
                commandId="org.eclipse.tcf.te.launch.command.attach"
                disabledIcon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/dlcl16/attach.gif"
-               icon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/elcl16/attach.gif"
+               icon="icons/elcl16/attach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.attach"
                label="%command.attach.label"
                style="push"
                tooltip="%command.attach.tooltip">
             <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.processes.isProcessTreeNode"/>
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                           <test
+                                 forcePluginActivation="true"
+                                 property="org.eclipse.tcf.te.runtime.services.hasService"
+                                 value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                        </adapt>
+                     </and>
+                  </iterate>
+               </with>
             </visibleWhen>
          </command>
          <command
                commandId="org.eclipse.tcf.te.launch.command.detach"
-               disabledIcon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/dlcl16/detach.gif"
+               disabledIcon="icons/dlcl16/detach.gif"
                icon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/elcl16/detach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.detach"
                label="%command.detach.label"
                style="push"
                tooltip="%command.detach.tooltip">
             <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.processes.isProcessTreeNode"/>
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate operator="and" ifEmpty="false">
+                     <and>
+                        <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                        <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
+                           <test
+                                 forcePluginActivation="true"
+                                 property="org.eclipse.tcf.te.runtime.services.hasService"
+                                 value="org.eclipse.tcf.te.runtime.services.interfaces.IDebugService"/>
+                        </adapt>
+                     </and>
+                  </iterate>
+               </with>
             </visibleWhen>
          </command>
          <command
