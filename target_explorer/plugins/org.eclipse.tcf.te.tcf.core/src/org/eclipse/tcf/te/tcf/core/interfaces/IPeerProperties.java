@@ -124,11 +124,19 @@ public interface IPeerProperties {
 	 */
 	public static String PROP_PING_TIMEOUT = "pingTimeout"; //$NON-NLS-1$
 
+	/**
+	 * Default value for ping timeout property.
+	 */
 	public static String DEFAULT_PING_TIMEOUT = "2"; //$NON-NLS-1$
 
 	/**
 	 * The network port is a "auto port" (automatically determined and read-only to the user).
 	 */
 	public static final String PROP_IP_PORT_IS_AUTO = IWireTypeNetwork.PROPERTY_NETWORK_PORT_IS_AUTO;
+
+	/**
+	 * Property: "Recent Actions" history is supported or not.
+	 */
+	public static final String PROP_SUPPORTS_RECENT_ACTION_HISTORY = "SupportsRecentActionHistory"; //$NON-NLS-1$
 }
 

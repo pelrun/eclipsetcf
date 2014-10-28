@@ -587,31 +587,6 @@
       </menuContribution>
 
    <!-- Editor page toolbar contributions -->
-      <!--menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.connect">
-         <command commandId="org.eclipse.tcf.te.ui.editor.command.connect">
-            <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.editor.IConnectable"/>
-            </visibleWhen>
-         </command>
-         <command commandId="org.eclipse.tcf.te.ui.editor.command.disconnect">
-            <visibleWhen checkEnabled="false">
-               <reference definitionId="te.expressions.editor.IConnectable"/>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-
-      <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.editor.command.debug"/>
-      </menuContribution>
-
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.delete">
-         <command commandId="org.eclipse.ui.edit.delete"/>
-      </menuContribution>
-
-      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.OverviewEditorPage?after=group.additions">
-         <command commandId="org.eclipse.tcf.te.ui.command.showIn.systemManagement"/>
-      </menuContribution-->
-
    <!-- Main toolbar contribution -->
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?before=additions">
          <toolbar
@@ -659,8 +634,32 @@
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.history">
          <dynamic
                class="org.eclipse.tcf.te.tcf.ui.handler.ActionHistoryToolbarContribution"
-               id="org.eclipse.tcf.te.tcf.ui.ActionHistoryToolbarContribution"/>
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"/>
+               id="org.eclipse.tcf.te.tcf.ui.ActionHistoryToolbarContribution">
+            <visibleWhen checkEnabled="false">
+               <with variable="defaultContextSelection">
+                  <and>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                     <or>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasAttribute" args="SupportsRecentActionHistory" value="false"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.isAttribute" args="SupportsRecentActionHistory" value="true"/>
+                     </or>
+                  </and>
+               </with>
+            </visibleWhen>
+         </dynamic>
+         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history">
+            <visibleWhen checkEnabled="false">
+               <with variable="defaultContextSelection">
+                  <and>
+                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                     <or>
+                        <test property="org.eclipse.tcf.te.tcf.locator.hasAttribute" args="SupportsRecentActionHistory" value="false"/>
+                        <test property="org.eclipse.tcf.te.tcf.locator.isAttribute" args="SupportsRecentActionHistory" value="true"/>
+                     </or>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
          <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
