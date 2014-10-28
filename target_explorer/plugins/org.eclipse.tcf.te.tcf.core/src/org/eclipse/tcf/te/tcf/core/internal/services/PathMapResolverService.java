@@ -97,6 +97,7 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 			if (rules != null && rules.length > 0) {
 				for (IPathMap.PathMapRule rule : rules) {
 					if (IPathMapService.PATHMAP_PROTOCOL_HOST_TO_TARGET.equals(rule.getProtocol())) continue;
+					if (rule.getClass().getName().endsWith("TCFLaunchDelegate$PathMapRule")) continue; //$NON-NLS-1$
 	                String query = rule.getContextQuery();
 	                if (query != null && query.length() > 0 && !query.equals("*")) continue; //$NON-NLS-1$
 					String hostPath = map(rule, targetPath);

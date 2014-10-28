@@ -65,6 +65,9 @@ public class TECDSFMainTab extends CMainTab {
 	protected Text remoteProgText;
 	protected Button skipDownloadButton;
 
+	protected boolean progTextFireNotification;
+	protected boolean remoteProgTextFireNotification;
+
 	private Text preRunText;
 	private Label preRunLabel;
 
@@ -90,9 +93,12 @@ public class TECDSFMainTab extends CMainTab {
 			@SuppressWarnings("synthetic-access")
 			@Override
 			public void modifyText(ModifyEvent evt) {
-				setLocalPathForRemotePath();
+				if (progTextFireNotification) {
+					setRemotePathFromLocalPath();
+				}
 			}
 		});
+		progTextFireNotification = true;
 	}
 
 	/*
@@ -161,9 +167,13 @@ public class TECDSFMainTab extends CMainTab {
 			@SuppressWarnings("synthetic-access")
 			@Override
 			public void modifyText(ModifyEvent evt) {
+				if (remoteProgTextFireNotification) {
+					setLocalPathFromRemotePath();
+				}
 				updateLaunchConfigurationDialog();
 			}
 		});
+		remoteProgTextFireNotification = true;
 
 		remoteBrowseButton = createPushButton(mainComp, Messages.RemoteCMainTab_Remote_Path_Browse_Button, null);
 		remoteBrowseButton.addSelectionListener(new SelectionAdapter() {
@@ -247,7 +257,11 @@ public class TECDSFMainTab extends CMainTab {
 		catch (CoreException e) {
 			// Ignore
 		}
+
+		boolean prevRemoteProgTextFireNotification = remoteProgTextFireNotification;
+		remoteProgTextFireNotification = false;
 		remoteProgText.setText(targetPath);
+		remoteProgTextFireNotification = prevRemoteProgTextFireNotification;
 
 		String prelaunchCmd = null;
 		try {
@@ -270,11 +284,11 @@ public class TECDSFMainTab extends CMainTab {
 		skipDownloadButton.setSelection(downloadToTarget);
 	}
 
-	/*
-	 * setLocalPathForRemotePath This function sets the remote path text field with the value of the
-	 * local executable path.
+	/**
+	 * Sets the remote path from the local path. Apply path mappings before
+	 * setting the remote path.
 	 */
-	private void setLocalPathForRemotePath() {
+	private void setRemotePathFromLocalPath() {
 		String programName = fProgText.getText().trim();
 
 		if (programName != null && !"".equals(programName)) { //$NON-NLS-1$
@@ -284,7 +298,34 @@ public class TECDSFMainTab extends CMainTab {
 				if (svc != null) {
 					String remoteName = svc.findTargetPath(connection, programName);
 					if (remoteName != null) {
+						boolean prevRemoteProgTextFireNotification = remoteProgTextFireNotification;
+						remoteProgTextFireNotification = false;
 						remoteProgText.setText(remoteName);
+						remoteProgTextFireNotification = prevRemoteProgTextFireNotification;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Sets the local path from the remote path. Apply path mappings before
+	 * setting the local path.
+	 */
+	private void setLocalPathFromRemotePath() {
+		String remoteName = remoteProgText.getText().trim();
+
+		if (remoteName != null && !"".equals(remoteName)) { //$NON-NLS-1$
+			IPeerNode connection = peerSelector.getPeerNode();
+			if (connection != null) {
+				IPathMapResolverService svc = ServiceManager.getInstance().getService(connection, IPathMapResolverService.class);
+				if (svc != null) {
+					String programName = svc.findHostPath(connection, remoteName);
+					if (programName != null) {
+						boolean prevProgTextFireNotification = progTextFireNotification;
+						progTextFireNotification = false;
+						fProgText.setText(programName);
+						progTextFireNotification = prevProgTextFireNotification;
 					}
 				}
 			}
