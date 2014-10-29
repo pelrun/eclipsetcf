@@ -70,6 +70,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWindowListener;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -504,17 +505,20 @@ public class TCFAnnotationManager {
         WorkbenchWindowInfo win_info = windows.get(window);
         if (win_info == null) return;
         Map<IEditorInput,IEditorPart> editors = new HashMap<IEditorInput,IEditorPart>();
-        for (IEditorReference ref : window.getActivePage().getEditorReferences()) {
-            IEditorPart editor = ref.getEditor(false);
-            if (editor == null) continue;
-            editors.put(editor.getEditorInput(), editor);
-        }
         Map<IViewPart,ITCFDisassemblyPart> views = new HashMap<IViewPart,ITCFDisassemblyPart>();
-        for (IViewReference ref : window.getActivePage().getViewReferences()) {
-            IViewPart view = ref.getView(false);
-            if (view == null) continue;
-            ITCFDisassemblyPart disasm = (ITCFDisassemblyPart)view.getAdapter(ITCFDisassemblyPart.class);
-            if (disasm != null) views.put(view, disasm);
+        IWorkbenchPage page = window.getActivePage();
+        if (page != null) {
+            for (IEditorReference ref : page.getEditorReferences()) {
+                IEditorPart editor = ref.getEditor(false);
+                if (editor == null) continue;
+                editors.put(editor.getEditorInput(), editor);
+            }
+            for (IViewReference ref : page.getViewReferences()) {
+                IViewPart view = ref.getView(false);
+                if (view == null) continue;
+                ITCFDisassemblyPart disasm = (ITCFDisassemblyPart)view.getAdapter(ITCFDisassemblyPart.class);
+                if (disasm != null) views.put(view, disasm);
+            }
         }
         boolean flush_all =
                 node == null ||
