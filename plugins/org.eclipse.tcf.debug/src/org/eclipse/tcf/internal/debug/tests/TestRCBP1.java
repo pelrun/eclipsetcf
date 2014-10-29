@@ -581,6 +581,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     private void iniBreakpoints() {
         assert !bp_set_done;
         assert bp_list.isEmpty();
+        Boolean bp_type_ok = (Boolean)bp_capabilities.get(IBreakpoints.CAPABILITY_BREAKPOINT_TYPE);
         Map<String,Object> m[] = new Map[10];
         for (int i = 0; i < m.length; i++) {
             m[i] = new HashMap<String,Object>();
@@ -606,6 +607,12 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 m[i].put(IBreakpoints.PROP_LOCATION, "(31+1)/16+tcf_test_func1-2");
                 // Condition is always true
                 m[i].put(IBreakpoints.PROP_CONDITION, "tcf_test_func0!=tcf_test_func1");
+                if (bp_type_ok != null && bp_type_ok.booleanValue()) {
+                    switch (rnd.nextInt(4)) {
+                    case 0: m[i].put(IBreakpoints.PROP_TYPE, IBreakpoints.TYPE_SOFTWARE); break;
+                    case 1: m[i].put(IBreakpoints.PROP_TYPE, IBreakpoints.TYPE_AUTO); break;
+                    }
+                }
                 break;
             case 4:
                 // Disabled breakpoint
@@ -619,6 +626,12 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 break;
             case 6:
                 m[i].put(IBreakpoints.PROP_LOCATION, "tcf_test_func3");
+                if (bp_type_ok != null && bp_type_ok.booleanValue()) {
+                    switch (rnd.nextInt(4)) {
+                    case 0: m[i].put(IBreakpoints.PROP_TYPE, IBreakpoints.TYPE_SOFTWARE); break;
+                    case 1: m[i].put(IBreakpoints.PROP_TYPE, IBreakpoints.TYPE_AUTO); break;
+                    }
+                }
                 break;
             case 7:
                 // Data breakpoint
