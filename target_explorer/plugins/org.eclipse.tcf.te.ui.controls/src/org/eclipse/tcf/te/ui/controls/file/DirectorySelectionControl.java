@@ -159,7 +159,7 @@ public class DirectorySelectionControl extends BaseDialogSelectionControl implem
 		return null;
 	}
 
-	protected String getDataKey() {
+	protected String getPropertiesKey() {
 		return "Directory"; //$NON-NLS-1$
 	}
 
@@ -168,7 +168,7 @@ public class DirectorySelectionControl extends BaseDialogSelectionControl implem
 	 */
 	@Override
 	public void setupData(IPropertiesContainer data) {
-		String dir = data.getStringProperty(getDataKey());
+		String dir = data.getStringProperty(getPropertiesKey());
 		IPath path = dir != null ? new Path(dir) : null;
 		setEditFieldControlText(path != null ? path.toOSString() : ""); //$NON-NLS-1$
 	}
@@ -180,14 +180,14 @@ public class DirectorySelectionControl extends BaseDialogSelectionControl implem
 	public void extractData(IPropertiesContainer data) {
 		String dir = doGetSelectedDirectory();
 		IPath path = dir.trim().length() > 0 ? new Path(dir) : null;
-		data.setProperty(getDataKey(), path != null ? path.toPortableString() : null);
+		data.setProperty(getPropertiesKey(), path != null ? path.toPortableString() : null);
 	}
 
 	public boolean checkDataChanged(IPropertiesContainer data) {
 		IPropertiesContainer newData = new PropertiesContainer();
 		extractData(newData);
-		String newValue = newData.getStringProperty(getDataKey());
-		String oldValue = data.getStringProperty(getDataKey());
+		String newValue = newData.getStringProperty(getPropertiesKey());
+		String oldValue = data.getStringProperty(getPropertiesKey());
 		if (oldValue == null) {
 			return newValue != null;
 		}
