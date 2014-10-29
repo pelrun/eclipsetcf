@@ -73,7 +73,7 @@
             class="org.eclipse.tcf.te.tcf.locator.internal.SimulatorPropertyTester"
             id="org.eclipse.tcf.te.tcf.locator.SimulatorPropertyTester"
             namespace="org.eclipse.tcf.te.tcf.locator"
-            properties="isSimulatorState,canStartSimulator"
+            properties="isSimulatorState,canStartSimulator,isSimulator"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
    </extension>

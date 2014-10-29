@@ -19,6 +19,7 @@ import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
  */
 public interface ISimulatorServiceUIDelegate {
 
+	public static final String PROP_NAME_NEW = "NameNew"; //$NON-NLS-1$
 	public static final String PROP_MODES = "Modes"; //$NON-NLS-1$
 	public static final String PROP_MODE_LABEL_X = "ModeLabel"; //$NON-NLS-1$
 	public static final String PROP_MODE_DESCRIPTION_X = "ModeDescription"; //$NON-NLS-1$

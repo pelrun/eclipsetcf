@@ -39,6 +39,12 @@ public class SimulatorPropertyTester extends org.eclipse.core.expressions.Proper
 					State state = result.service.getState(receiver, result.settings);
 					return state.equals(State.Stopped);
 				}
+				if ("isSimulator".equals(property)) { //$NON-NLS-1$
+					if (expectedValue instanceof String) {
+						return ((String)expectedValue).equals(result.id);
+					}
+					return true;
+				}
 			}
 		}
 
