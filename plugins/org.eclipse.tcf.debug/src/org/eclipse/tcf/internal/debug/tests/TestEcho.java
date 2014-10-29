@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -84,7 +84,7 @@ class TestEcho implements ITCFTest, IDiagnostics.DoneEcho {
                 count = 0x400;
             }
         }
-        else if (msgs.isEmpty()){
+        else if (msgs.isEmpty()) {
             test_suite.done(this, null);
         }
     }

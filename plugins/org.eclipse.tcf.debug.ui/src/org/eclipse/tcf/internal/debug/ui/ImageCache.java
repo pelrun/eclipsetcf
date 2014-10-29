@@ -92,7 +92,7 @@ public class ImageCache {
             for (String e : ext) {
                 IPath path = new Path(name).removeFileExtension().addFileExtension(e);
                 Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
-                if (bundle != null){
+                if (bundle != null) {
                     URL url = FileLocator.find(bundle, path, null);
                     if (url != null) {
                         descriptor = ImageDescriptor.createFromURL(url);
@@ -100,7 +100,7 @@ public class ImageCache {
                     }
                 }
                 bundle = Platform.getBundle("org.eclipse.debug.ui");
-                if (bundle != null){
+                if (bundle != null) {
                     URL url = FileLocator.find(bundle, path, null);
                     if (url != null) {
                         descriptor = ImageDescriptor.createFromURL(url);
@@ -108,7 +108,7 @@ public class ImageCache {
                     }
                 }
                 bundle = Platform.getBundle("org.eclipse.cdt.debug.ui");
-                if (bundle != null){
+                if (bundle != null) {
                     URL url = FileLocator.find(bundle, path, null);
                     if (url != null) {
                         descriptor = ImageDescriptor.createFromURL(url);

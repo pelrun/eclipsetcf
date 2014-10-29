@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,19 +37,19 @@ public class ImageCache {
         ImageDescriptor descriptor = desc_cache.get(name);
         if (descriptor == null) {
             Bundle bundle = Activator.getDefault().getBundle();
-            if (bundle != null){
+            if (bundle != null) {
                 URL url = FileLocator.find(bundle, new Path(name), null);
                 if (url != null) descriptor = ImageDescriptor.createFromURL(url);
             }
             if (descriptor == null) {
                 bundle = Platform.getBundle("org.eclipse.tcf.debug.ui");
-                if (bundle != null){
+                if (bundle != null) {
                     URL url = FileLocator.find(bundle, new Path(name), null);
                     if (url != null) descriptor = ImageDescriptor.createFromURL(url);
                 }
                 if (descriptor == null) {
                     bundle = Platform.getBundle("org.eclipse.debug.ui");
-                    if (bundle != null){
+                    if (bundle != null) {
                         URL url = FileLocator.find(bundle, new Path(name), null);
                         if (url != null) descriptor = ImageDescriptor.createFromURL(url);
                     }

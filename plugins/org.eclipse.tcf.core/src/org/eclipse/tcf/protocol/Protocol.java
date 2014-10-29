@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -42,7 +42,7 @@ public final class Protocol {
     private static final String agent_id = UUID.randomUUID().toString();
     private static int timer_cnt;
 
-    private static class Timer implements Comparable<Timer>{
+    private static class Timer implements Comparable<Timer> {
         final int id;
         final long time;
         final Runnable run;
@@ -414,7 +414,7 @@ public final class Protocol {
      * This method can be invoked from any thread.
      * @param provider - IServiceProvider implementation
      */
-    public static void addServiceProvider(IServiceProvider provider){
+    public static void addServiceProvider(IServiceProvider provider) {
         ServiceManager.addServiceProvider(provider);
     }
 
@@ -423,7 +423,7 @@ public final class Protocol {
      * This method can be invoked from any thread.
      * @param provider - IServiceProvider implementation
      */
-    public static void removeServiceProvider(IServiceProvider provider){
+    public static void removeServiceProvider(IServiceProvider provider) {
         ServiceManager.removeServiceProvider(provider);
     }
 
@@ -432,7 +432,7 @@ public final class Protocol {
      * This method can be invoked from any thread.
      * @param provider - ITransportProvider implementation
      */
-    public static void addTransportProvider(ITransportProvider provider){
+    public static void addTransportProvider(ITransportProvider provider) {
         TransportManager.addTransportProvider(provider);
     }
 
@@ -441,7 +441,7 @@ public final class Protocol {
      * This method can be invoked from any thread.
      * @param provider - ITransportProvider implementation
      */
-    public static void removeTransportProvider(ITransportProvider provider){
+    public static void removeTransportProvider(ITransportProvider provider) {
         TransportManager.removeTransportProvider(provider);
     }
 }

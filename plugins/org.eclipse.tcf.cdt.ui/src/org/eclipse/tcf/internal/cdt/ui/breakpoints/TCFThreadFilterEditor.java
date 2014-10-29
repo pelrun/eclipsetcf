@@ -407,7 +407,7 @@ public class TCFThreadFilterEditor {
          }
          final IChannel channel = launch.getChannel();
 
-         if (channel == null){
+         if (channel == null) {
              return Messages.TCFThreadFilterEditorNoOpenChannel;
          }
          String result = new TCFTask<String>() {
