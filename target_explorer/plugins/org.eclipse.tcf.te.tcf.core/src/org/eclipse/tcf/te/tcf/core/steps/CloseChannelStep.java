@@ -46,7 +46,7 @@ public class CloseChannelStep extends AbstractPeerStep {
 	public void execute(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor, ICallback callback) {
 		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
-			Tcf.getChannelManager().closeChannel(channel);
+			Tcf.getChannelManager().closeChannel(channel, monitor);
 		}
 		callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 	}

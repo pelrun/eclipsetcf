@@ -53,7 +53,7 @@ public class OpenChannelStep extends AbstractPeerStep {
 				StepperAttributeUtil.setProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId.getParentId(), data, channel);
 				callback(data, fullQualifiedId, callback, StatusHelper.getStatus(error), null);
 			}
-		});
+		}, monitor);
 	}
 
 	/* (non-Javadoc)
@@ -64,8 +64,16 @@ public class OpenChannelStep extends AbstractPeerStep {
 		IChannel channel = (IChannel)StepperAttributeUtil.getProperty(ITcfStepAttributes.ATTR_CHANNEL, fullQualifiedId, data);
 		if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
 			ProgressHelper.setSubTaskName(monitor, "Closing TCF channel"); //$NON-NLS-1$
-			Tcf.getChannelManager().closeChannel(channel);
+			Tcf.getChannelManager().closeChannel(channel, monitor);
 		}
 		super.rollback(context, data, status, fullQualifiedId, monitor, callback);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#getCancelTimeout()
+	 */
+	@Override
+	public int getCancelTimeout() {
+	    return 500;
 	}
 }

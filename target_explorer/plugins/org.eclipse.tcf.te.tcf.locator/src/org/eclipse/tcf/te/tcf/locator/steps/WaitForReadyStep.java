@@ -165,7 +165,7 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 								ProgressHelper.worked(monitor, 1);
 								Protocol.invokeLater(refreshCount < 20 ? 500 : 1000, thisRunnable);
 							}
-						});
+						}, monitor);
 					}
 				}
 			});

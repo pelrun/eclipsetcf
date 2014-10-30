@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.core.interfaces;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
@@ -90,6 +91,8 @@ public interface IChannelManager extends IAdaptable {
 	 */
 	public void openChannel(IPeer peer, Map<String, Boolean> flags, DoneOpenChannel done);
 
+	public void openChannel(IPeer peer, Map<String, Boolean> flags, DoneOpenChannel done, IProgressMonitor monitor);
+
 	/**
 	 * Returns the shared channel instance for the given peer. Channels retrieved using this
 	 * method cannot be closed by the caller.
@@ -117,6 +120,8 @@ public interface IChannelManager extends IAdaptable {
 	 * @param channel The channel. Must not be <code>null</code>.
 	 */
 	public void closeChannel(IChannel channel);
+
+	public void closeChannel(IChannel channel, IProgressMonitor monitor);
 
 	/**
 	 * Shutdown the communication to the given peer, no matter of the current

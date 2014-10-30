@@ -155,4 +155,12 @@ public class ChainPeerStep extends AbstractPeerStep {
 			super.rollback(context, data, status, fullQualifiedId, monitor, callback);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#getCancelTimeout()
+	 */
+	@Override
+	public int getCancelTimeout() {
+	    return 500;
+	}
 }

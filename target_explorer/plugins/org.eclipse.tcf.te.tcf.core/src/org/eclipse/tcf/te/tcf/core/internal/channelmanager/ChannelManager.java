@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.osgi.util.NLS;
@@ -80,6 +81,14 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 	 */
 	@Override
 	public void openChannel(final IPeer peer, final Map<String, Boolean> flags, final DoneOpenChannel done) {
+		openChannel(peer, flags, done, null);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#openChannel(org.eclipse.tcf.protocol.IPeer, java.util.Map, org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel, org.eclipse.core.runtime.IProgressMonitor)
+	 */
+	@Override
+	public void openChannel(final IPeer peer, final Map<String, Boolean> flags, final DoneOpenChannel done, final IProgressMonitor monitor) {
 		Assert.isNotNull(peer);
 		Assert.isNotNull(done);
 
@@ -280,7 +289,19 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 					job = new StepperJob(name != null ? name : "", stepContext, stepperOperationService.getStepGroupData(peer, IStepperServiceOperations.OPEN_CHANNEL, data), stepGroupId, IStepperServiceOperations.OPEN_CHANNEL, isCancelable, true); //$NON-NLS-1$
 					job.setJobCallback(callback);
 					job.markStatusHandled();
-					job.schedule();
+					if (monitor != null) {
+						final StepperJob finalJob = job;
+						Thread thread = new Thread(new Runnable() {
+							@Override
+							public void run() {
+								finalJob.run(monitor);
+							}
+						}, "Open channel to " + job.getName()); //$NON-NLS-1$
+						thread.start();
+					}
+					else {
+						job.schedule();
+					}
 				}
 
 				// Remember the "open channel" stepper job until finished (shared channels only)
@@ -357,11 +378,19 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 	 */
 	@Override
 	public void closeChannel(final IChannel channel) {
+		closeChannel(channel, null);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#closeChannel(org.eclipse.tcf.protocol.IChannel)
+	 */
+	@Override
+	public void closeChannel(final IChannel channel, final IProgressMonitor monitor) {
 		Runnable runnable = new Runnable() {
 			@Override
             public void run() {
 				Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-				internalCloseChannel(channel);
+				internalCloseChannel(channel, monitor);
 			}
 		};
 		if (Protocol.isDispatchThread()) runnable.run();
@@ -378,7 +407,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 	 *
 	 * @param channel The channel. Must not be <code>null</code>.
 	 */
-	/* default */ void internalCloseChannel(final IChannel channel) {
+	/* default */ void internalCloseChannel(final IChannel channel, final IProgressMonitor monitor) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -525,7 +554,19 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 					job = new StepperJob(name != null ? name : "", stepContext, stepperOperationService.getStepGroupData(peer, IStepperServiceOperations.CLOSE_CHANNEL, data), stepGroupId, IStepperServiceOperations.CLOSE_CHANNEL, isCancelable, true); //$NON-NLS-1$
 					job.setJobCallback(callback);
 					job.markStatusHandled();
-					job.schedule();
+					if (monitor != null) {
+						final StepperJob finalJob = job;
+						Thread thread = new Thread(new Runnable() {
+							@Override
+							public void run() {
+								finalJob.run(monitor);
+							}
+						}, "Close channel to " + job.getName()); //$NON-NLS-1$
+						thread.start();
+					}
+					else {
+						job.schedule();
+					}
 				}
 
 				// Remember the "close channel" stepper job until finished
@@ -605,7 +646,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 			refCounters.remove(channel);
 
 			// Close the channel
-			internalCloseChannel(channel);
+			internalCloseChannel(channel, null);
 		}
 	}
 
@@ -642,7 +683,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 		refCounters.clear();
 		channels.clear();
 
-		for (IChannel channel : openChannels) internalCloseChannel(channel);
+		for (IChannel channel : openChannels) internalCloseChannel(channel, null);
 
 		c2p.clear();
 	}
