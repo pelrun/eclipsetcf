@@ -116,6 +116,12 @@
                   class="org.eclipse.tcf.te.ui.views.navigator.ViewerSorter"
                   id="org.eclipse.tcf.te.ui.views.navigator.sorter"/>
       </navigatorContent>
+      <commonFilter
+            activeByDefault="false"
+            class="org.eclipse.tcf.te.ui.views.navigator.filter.CreateNewConnectionFilter"
+            id="org.eclipse.tcf.te.ui.views.navigator.CreateNewConnectionFilter"
+            name="%CreateNewConnectionFilter.name"
+            visibleInUI="true"/>
 
    <!-- Default navigator action contributions -->
       <actionProvider
