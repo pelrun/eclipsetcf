@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.forms.FormLayoutFactory;
@@ -191,6 +192,9 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 	 */
 	protected Point adjustInitialSize(Point size) {
 		Assert.isNotNull(size);
+    	if (Host.isLinuxHost()) {
+    		size = new Point(size.x, size.y+5);
+    	}
 		return size;
 	}
 
