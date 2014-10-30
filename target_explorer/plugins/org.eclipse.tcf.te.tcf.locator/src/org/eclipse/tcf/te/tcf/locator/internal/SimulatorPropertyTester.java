@@ -30,7 +30,7 @@ public class SimulatorPropertyTester extends org.eclipse.core.expressions.Proper
 			final IPeerNode peerNode = (IPeerNode) receiver;
 			Result result = SimulatorUtils.getSimulatorService(peerNode);
 
-			if (result.service != null) {
+			if (result != null && result.service != null) {
 				if ("isSimulatorState".equals(property) && expectedValue instanceof String) { //$NON-NLS-1$
 					State state = result.service.getState(receiver, result.settings);
 					return state.toString().equalsIgnoreCase((String) expectedValue);
