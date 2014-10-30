@@ -333,9 +333,9 @@ public class NewWizardSelectionPage extends WizardPage {
 			}
 
 			// Create the wizard node for the selected descriptor if not yet done
-			if (selectedWizardDescriptor != null && !wizardNodes.containsKey(selectedWizardDescriptor)) {
-				wizardNodes.put(selectedWizardDescriptor, new NewWizardNode(this, selectedWizardDescriptor));
-			}
+//			if (selectedWizardDescriptor != null && !wizardNodes.containsKey(selectedWizardDescriptor)) {
+//				wizardNodes.put(selectedWizardDescriptor, new NewWizardNode(this, selectedWizardDescriptor));
+//			}
 		}
 
 		// Update the wizard container UI elements
@@ -381,7 +381,10 @@ public class NewWizardSelectionPage extends WizardPage {
 	@Override
 	public boolean canFlipToNextPage() {
 		if (selectedWizardDescriptor != null && selectedWizardDescriptor.hasPages()) {
-			return super.canFlipToNextPage();
+			if (wizardNodes.get(selectedWizardDescriptor) != null) {
+				super.canFlipToNextPage();
+			}
+			return true;
 		}
 		return false;
 	}
@@ -405,6 +408,10 @@ public class NewWizardSelectionPage extends WizardPage {
 		IWizardNode node = null;
 		if (selectedWizardDescriptor != null) {
 			node = wizardNodes.get(selectedWizardDescriptor);
+			if (node == null) {
+				node = new NewWizardNode(this, selectedWizardDescriptor);
+				wizardNodes.put(selectedWizardDescriptor, node);
+			}
 		}
 		return node;
 	}
