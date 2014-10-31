@@ -1514,6 +1514,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             StyledStringBuffer bf, ISymbols.TypeClass type_class,
             byte[] data, boolean big_endian, Runnable done) {
         assert data != null;
+        if (!type.validate(done)) return false;
         bf.append("Hex: ", SWT.BOLD);
         bf.append(toNumberString(16, type_class, data, 0, data.length, big_endian), StyledStringBuffer.MONOSPACED);
         bf.append(", ");
