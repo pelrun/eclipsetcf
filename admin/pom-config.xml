@@ -249,34 +249,6 @@
 				</plugin>
 				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
-					<artifactId>tycho-p2-plugin</artifactId>
-					<version>${tycho-version}</version>
-					<!-- Signing appears to mess with the baseline repository logic.
-					     Disable the baseline repository until we've figured out what is going on. -->
-					<!--					
-					<configuration>
-						<baselineRepositories>
-							<repository>
-								<url>http://download.eclipse.org/tools/tcf/builds/${tcf-stream}/nightly</url>
-							</repository>
-						</baselineRepositories>
-					</configuration>
-					-->
-					<executions>
-						<execution>
-							<id>p2-metadata</id>
-							<phase>package</phase>
-							<goals>
-								<goal>p2-metadata</goal>
-							</goals>
-						</execution>
-					</executions>
-					<configuration>
-						<defaultP2Metadata>false</defaultP2Metadata>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-p2-repository-plugin</artifactId>
 					<version>${tycho-version}</version>
 					<configuration>
@@ -369,6 +341,36 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+                <!-- Keep the tycho-p2-plugin after the tycho-pack200b-plugin -->
+                <!-- Tycho p2 metadata generation shall happen _after_ the JAR has been packed. -->
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-p2-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<!-- Signing appears to mess with the baseline repository logic.
+					     Disable the baseline repository until we've figured out what is going on. -->
+					<!--					
+					<configuration>
+						<baselineRepositories>
+							<repository>
+								<url>http://download.eclipse.org/tools/tcf/builds/${tcf-stream}/nightly</url>
+							</repository>
+						</baselineRepositories>
+					</configuration>
+					-->
+					<executions>
+						<execution>
+							<id>p2-metadata</id>
+							<phase>package</phase>
+							<goals>
+								<goal>p2-metadata</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<defaultP2Metadata>false</defaultP2Metadata>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
