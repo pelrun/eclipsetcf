@@ -265,7 +265,7 @@
 					<executions>
 						<execution>
 							<id>p2-metadata</id>
-							<phase>verify</phase>
+							<phase>package</phase>
 							<goals>
 								<goal>p2-metadata</goal>
 							</goals>
