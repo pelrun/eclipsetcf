@@ -51,5 +51,4 @@ Export-Package: org.eclipse.tcf.te.tests,
  org.eclipse.tcf.te.tests.tcf.filesystem.operations,
  org.eclipse.tcf.te.tests.tcf.filesystem.testers,
  org.eclipse.tcf.te.tests.tcf.filesystem.url,
- org.eclipse.tcf.te.tests.tcf.filesystem.utils,
- org.eclipse.tcf.te.tests.tcf.tests
+ org.eclipse.tcf.te.tests.tcf.filesystem.utils

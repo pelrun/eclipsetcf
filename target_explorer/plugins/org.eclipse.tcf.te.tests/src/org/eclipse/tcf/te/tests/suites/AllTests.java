@@ -21,7 +21,6 @@ import org.eclipse.tcf.te.tests.tcf.launch.TcfLaunchTests;
 import org.eclipse.tcf.te.tests.tcf.locator.LocatorModelTestCase;
 import org.eclipse.tcf.te.tests.tcf.processes.launcher.ProcessLauncherTestCase;
 import org.eclipse.tcf.te.tests.tcf.processes.model.ProcessModelTestCase;
-import org.eclipse.tcf.te.tests.tcf.tests.TcfStepperTests;
 import org.eclipse.tcf.te.tests.utils.UtilityTestCase;
 
 /**
@@ -71,7 +70,6 @@ public class AllTests {
 		suite.addTest(LocatorModelTestCase.getTestSuite());
 
 		suite.addTest(StepperTests.getTestSuite());
-		suite.addTest(TcfStepperTests.getTestSuite());
 		suite.addTest(TcfLaunchTests.getTestSuite());
 		suite.addTest(ProcessModelTestCase.getTestSuite());
 		suite.addTest(ProcessLauncherTestCase.getTestSuite());
