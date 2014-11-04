@@ -17,6 +17,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.utils.CommonUtils;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.ui.interfaces.services.INodePropertiesTableUIDelegate;
@@ -73,5 +74,34 @@ public class NodePropertiesTableUIDelegate implements INodePropertiesTableUIDele
 				}
 			}
 		}
+
+		String[] keysToSplit = new String[]{IPeerNodeProperties.PROPERTY_LOCAL_SERVICES, IPeerNodeProperties.PROPERTY_REMOTE_SERVICES, IPeerProperties.PROP_OFFLINE_SERVICES};
+		for (String key : keysToSplit) {
+			int i = sortedNodes.indexOf(new NodePropertiesTableTableNode(key, "")); //$NON-NLS-1$
+			if (i >= 0) {
+				NodePropertiesTableTableNode node = sortedNodes.get(i);
+				String[] services = node.value.split(","); //$NON-NLS-1$
+				if (services.length > 10) {
+					sortedNodes.remove(i);
+					String list = ""; //$NON-NLS-1$
+					int added = 0;
+					for (int s=0;s<services.length;s++) {
+						list += (added > 0 ? ", " : "") + services[s].trim(); //$NON-NLS-1$ //$NON-NLS-2$
+						added++;
+						if (added == 10) {
+							if (s < 10) {
+								sortedNodes.add(i++, new NodePropertiesTableTableNode(key, list));
+							}
+							else {
+								sortedNodes.add(i++, new NodePropertiesTableTableNode("", list)); //$NON-NLS-1$
+							}
+							added = 0;
+							list = ""; //$NON-NLS-1$
+						}
+					}
+				}
+			}
+		}
+
 	}
 }
