@@ -24,8 +24,16 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 
+import java.io.File;
+import java.net.URI;
+
+import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.dsf.gdb.internal.ui.launching.CMainTab;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.URIUtil;
+import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.window.Window;
@@ -296,7 +304,31 @@ public class TECDSFMainTab extends CMainTab {
 			if (connection != null) {
 				IPathMapResolverService svc = ServiceManager.getInstance().getService(connection, IPathMapResolverService.class);
 				if (svc != null) {
-					String remoteName = svc.findTargetPath(connection, programName);
+					String remoteName = null;
+
+					// The program name may contain variables, resolve them first
+					try {
+		                programName = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(programName);
+	                }
+	                catch (CoreException e) {
+	    				// Silently ignore substitution failure (for consistency with "Arguments" and "Work directory" fields)
+	                }
+
+					// The path might be project relative
+					IPath p = new Path(programName);
+					if (!p.isAbsolute()) {
+						ICProject project = getCProject();
+						if (project != null && project.isOpen()) {
+							URI uri = project.getLocationURI();
+							File f = URIUtil.toFile(uri);
+							if (f != null) {
+								programName = new File(f, p.toString()).getAbsolutePath();
+							}
+						}
+					}
+
+					// Perform the path resolution
+					remoteName = svc.findTargetPath(connection, programName);
 					if (remoteName != null) {
 						boolean prevRemoteProgTextFireNotification = remoteProgTextFireNotification;
 						remoteProgTextFireNotification = false;
