@@ -419,7 +419,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         base_type_data = base_type_cache.getData();
                         if (base_type_data == null) break;
                         size = base_type_data.getSize();
-                        if (size == 0) break;
+                        if (size > 0x1000) break;
+                        if (size <= 0) break;
                         switch (base_type_data.getTypeClass()) {
                         case integer:
                         case cardinal:
