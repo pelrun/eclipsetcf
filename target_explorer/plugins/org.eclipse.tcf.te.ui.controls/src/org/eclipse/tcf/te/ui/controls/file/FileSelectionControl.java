@@ -151,6 +151,15 @@ public class FileSelectionControl extends BaseDialogSelectionControl implements 
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.controls.BaseDialogSelectionControl#doApplyElementFromDialogControl(java.lang.String)
+	 */
+	@Override
+	public void doApplyElementFromDialogControl(String selectedElement) {
+		IPath path = selectedElement != null ? new Path(selectedElement) : null;
+		super.doApplyElementFromDialogControl(path != null ? path.toOSString() : ""); //$NON-NLS-1$
+	}
+
 	/**
 	 * Returns the file from which to set the initial directory. This method
 	 * is called from {@link #configureDialogControl(Dialog)} in case the dialog
@@ -162,7 +171,8 @@ public class FileSelectionControl extends BaseDialogSelectionControl implements 
 	 * @return The file to set the initial directory to the file dialog or <code>null</code> if none.
 	 */
 	protected String doGetSelectedFile() {
-		return getEditFieldControlText();
+		String file = getEditFieldControlText();
+		return file.trim().length() > 0 ? file.trim() : null;
 	}
 
 	/**
@@ -240,11 +250,18 @@ public class FileSelectionControl extends BaseDialogSelectionControl implements 
 	 */
 	@Override
 	public void extractData(IPropertiesContainer data) {
-		data.setProperty(getPropertiesKey(), new Path(doGetSelectedFile().trim()).toPortableString());
+		String file = doGetSelectedFile();
+		if (file != null && file.trim().length() > 0) {
+			data.setProperty(getPropertiesKey(), new Path(file.trim()).toPortableString());
+		}
+		else {
+			data.setProperty(getPropertiesKey(), null);
+		}
 	}
 
 	public boolean checkDataChanged(IPropertiesContainer data) {
-		IPath path = new Path(doGetSelectedFile());
+		String file = doGetSelectedFile();
+		IPath path = new Path(file != null ? file : ""); //$NON-NLS-1$
 		String newValue = path.toPortableString();
 		if ("".equals(newValue)) { //$NON-NLS-1$
 			String oldValue = data.getStringProperty(getPropertiesKey());
