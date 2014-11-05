@@ -20,6 +20,7 @@ import org.eclipse.cdt.utils.pty.PTY;
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.custom.CTabItem;
@@ -99,6 +100,8 @@ public class ProcessConnector extends AbstractStreamsConnector {
 		height = -1;
 
 		try {
+			boolean isAnsiTerminal = false;
+
 			// Try to determine process and PTY instance from the process settings
 			process = settings.getProcess();
 			pty = settings.getPTY();
@@ -140,6 +143,8 @@ public class ProcessConnector extends AbstractStreamsConnector {
 				if (settings.isMergeWithNativeEnvironment()) {
 					envp = Env.getEnvironment(envp, true);
 				}
+
+				isAnsiTerminal = getTermVariable(envp).startsWith("ansi"); //$NON-NLS-1$
 
 				if (pty != null) {
 					// A PTY is available -> can use the ProcessFactory.
@@ -187,7 +192,8 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			setStderrListeners(settings.getStdErrListeners());
 
 			// Enable VT100 line wrapping if we are connected via pty
-			if (pty != null)
+			// And TERM is VT100 compatible
+			if (pty != null && !isAnsiTerminal)
 				control.setVT100LineWrapping(true);
 
 			// connect the streams
@@ -217,6 +223,14 @@ public class ProcessConnector extends AbstractStreamsConnector {
 			StatusHandlerUtil.handleStatus(status, this, msg, Messages.ProcessConnector_error_title, IContextHelpIds.MESSAGE_CREATE_PROCESS_FAILED, this, null);
 		}
 	}
+
+	private static String getTermVariable(String[] envp) {
+		if (envp != null && !Platform.OS_WIN32.equals(Platform.getOS()))
+			for (String var : envp)
+		        if (var.startsWith("TERM=")) //$NON-NLS-1$
+		        	return var.substring(5);
+	    return "xterm"; //$NON-NLS-1$
+    }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.provider.TerminalConnectorImpl#isLocalEcho()
