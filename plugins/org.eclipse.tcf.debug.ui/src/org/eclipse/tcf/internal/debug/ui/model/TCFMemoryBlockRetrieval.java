@@ -135,10 +135,12 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                         return true;
                     }
                     command = exps.create(ctx_id, null, expression, new IExpressions.DoneCreate() {
+                        @Override
                         public void doneCreate(IToken token, Exception error, IExpressions.Expression context) {
                             if (disposed) {
                                 IExpressions exps = channel.getRemoteService(IExpressions.class);
                                 exps.dispose(context.getID(), new IExpressions.DoneDispose() {
+                                    @Override
                                     public void doneDispose(IToken token, Exception error) {
                                         if (error == null) return;
                                         if (channel.getState() != IChannel.STATE_OPEN) return;
@@ -164,6 +166,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                     }
                     IExpressions exps = launch.getService(IExpressions.class);
                     command = exps.evaluate(ctx.getID(), new IExpressions.DoneEvaluate() {
+                        @Override
                         public void doneEvaluate(IToken token, Exception error, IExpressions.Value value) {
                             set(token, error, value);
                         }
@@ -203,6 +206,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                 if (channel.getState() == IChannel.STATE_OPEN) {
                     IExpressions exps = channel.getRemoteService(IExpressions.class);
                     exps.dispose(remote_expression.getData().getID(), new IExpressions.DoneDispose() {
+                        @Override
                         public void doneDispose(IToken token, Exception error) {
                             if (error == null) return;
                             if (channel.getState() != IChannel.STATE_OPEN) return;
@@ -215,21 +219,26 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             mem_blocks.remove(MemoryBlock.this);
         }
 
+        @Override
         public synchronized void connect(Object client) {
             connections.add(client);
         }
 
+        @Override
         public synchronized void disconnect(Object client) {
             connections.remove(client);
         }
 
+        @Override
         public synchronized Object[] getConnections() {
             return connections.toArray(new Object[connections.size()]);
         }
 
+        @Override
         public void dispose() throws DebugException {
             if (disposed) return;
             new TCFDebugTask<Boolean>(exec_ctx.getChannel()) {
+                @Override
                 public void run() {
                     if (!disposed) close();
                     done(Boolean.TRUE);
@@ -237,8 +246,10 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             }.getD();
         }
 
+        @Override
         public int getAddressSize() throws DebugException {
             return new TCFDebugTask<Integer>(exec_ctx.getChannel()) {
+                @Override
                 public void run() {
                     if (exec_ctx.isDisposed()) {
                         error("Context is disposed");
@@ -263,13 +274,16 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             }.getD();
         }
 
+        @Override
         public int getAddressableSize() throws DebugException {
             // TODO: support for addressable size other then 1 byte
             return 1;
         }
 
+        @Override
         public BigInteger getBigBaseAddress() throws DebugException {
             return new TCFDebugTask<BigInteger>(exec_ctx.getChannel()) {
+                @Override
                 public void run() {
                     if (!expression_value.validate()) {
                         expression_value.wait(this);
@@ -302,9 +316,11 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             }.getD();
         }
 
+        @Override
         public MemoryByte[] getBytesFromAddress(final BigInteger address, final long units) throws DebugException {
             return new TCFDebugTask<MemoryByte[]>(exec_ctx.getChannel()) {
                 int offs = 0;
+                @Override
                 public void run() {
                     if (mem_data != null &&
                             address.compareTo(mem_data.addr) >= 0 &&
@@ -340,6 +356,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                     final byte[] buf = new byte[size];
                     final MemoryByte[] res = new MemoryByte[size];
                     mem.get(address, 1, buf, 0, size, mode, new IMemory.DoneMemory() {
+                        @Override
                         public void doneMemory(IToken token, MemoryError error) {
                             int big_endian = 0;
                             if (mem.getProperties().get(IMemory.PROP_BIG_ENDIAN) != null) {
@@ -406,44 +423,55 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             }
         }
 
+        @Override
         public MemoryByte[] getBytesFromOffset(BigInteger offset, long units) throws DebugException {
             return getBytesFromAddress(getBigBaseAddress().add(offset), units);
         }
 
+        @Override
         public String getExpression() {
             return expression;
         }
 
+        @Override
         public IMemoryBlockRetrieval getMemoryBlockRetrieval() {
             return TCFMemoryBlockRetrieval.this;
         }
 
+        @Override
         public long getStartAddress() {
             return 0; // Unbounded
         }
 
+        @Override
         public long getLength() {
             return length;
         }
 
+        @Override
         public BigInteger getMemoryBlockStartAddress() throws DebugException {
             return null; // Unbounded
         }
 
+        @Override
         public BigInteger getMemoryBlockEndAddress() throws DebugException {
             return null; // Unbounded
         }
 
+        @Override
         public BigInteger getBigLength() throws DebugException {
             return BigInteger.valueOf(length);
         }
 
+        @Override
         public void setBaseAddress(BigInteger address) throws DebugException {
         }
 
+        @Override
         public void setValue(BigInteger offset, final byte[] bytes) throws DebugException {
             final BigInteger address = getBigBaseAddress().add(offset);
             new TCFDebugTask<Object>(exec_ctx.getChannel()) {
+                @Override
                 public void run() {
                     if (exec_ctx.isDisposed()) {
                         error("Context is disposed");
@@ -462,6 +490,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                     }
                     final int mode = IMemory.MODE_CONTINUEONERROR | IMemory.MODE_VERIFY;
                     mem.set(address, 1, bytes, 0, bytes.length, mode, new IMemory.DoneMemory() {
+                        @Override
                         public void doneMemory(IToken token, MemoryError error) {
                             if (error != null) {
                                 error(error);
@@ -475,39 +504,48 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             }.getD();
         }
 
+        @Override
         public boolean supportBaseAddressModification() throws DebugException {
             return false;
         }
 
+        @Override
         public boolean supportsChangeManagement() {
             return true;
         }
 
+        @Override
         public byte[] getBytes() throws DebugException {
             if (mem_data == null) return null;
             return mem_data.bytes;
         }
 
+        @Override
         public void setValue(long offset, byte[] bytes) throws DebugException {
             setValue(BigInteger.valueOf(offset), bytes);
         }
 
+        @Override
         public boolean supportsValueModification() {
             return true;
         }
 
+        @Override
         public IDebugTarget getDebugTarget() {
             return null;
         }
 
+        @Override
         public ILaunch getLaunch() {
             return exec_ctx.model.getLaunch();
         }
 
+        @Override
         public String getModelIdentifier() {
             return ITCFConstants.ID_TCF_DEBUG_MODEL;
         }
 
+        @Override
         public IModelProxy createModelProxy(Object element, IPresentationContext context) {
             assert element == this;
             return new ModelProxy(this, context.getWindow().getShell().getDisplay());
@@ -566,6 +604,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             }
         }
 
+        @Override
         public void run() {
             // Note: double posting is necessary to avoid deadlocks
             assert Protocol.isDispatchThread();
@@ -574,6 +613,7 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             synchronized (Device.class) {
                 if (!display.isDisposed()) {
                     display.asyncExec(new Runnable() {
+                        @Override
                         public void run() {
                             fireModelChanged(d);
                         }
@@ -587,8 +627,10 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         this.exec_ctx = exec_ctx;
     }
 
+    @Override
     public IMemoryBlockExtension getExtendedMemoryBlock(final String expression, Object context) throws DebugException {
         return new TCFDebugTask<IMemoryBlockExtension>() {
+            @Override
             public void run() {
                 if (!exec_ctx.getMemoryContext().validate(this)) return;
                 if (exec_ctx.getMemoryContext().getError() != null) {
@@ -601,8 +643,10 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         }.getD();
     }
 
+    @Override
     public IMemoryBlock getMemoryBlock(final long address, final long length) throws DebugException {
         return new TCFDebugTask<IMemoryBlockExtension>() {
+            @Override
             public void run() {
                 if (!exec_ctx.getMemoryContext().validate(this)) return;
                 if (exec_ctx.getMemoryContext().getError() != null) {
@@ -615,11 +659,12 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         }.getD();
     }
 
+    @Override
     public boolean supportsStorageRetrieval() {
         return true;
     }
 
-    public String getMemoryID() {
+    String getMemoryID() {
         return exec_ctx.id;
     }
 
