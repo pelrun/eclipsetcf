@@ -11,6 +11,10 @@
 
 package org.eclipse.tcf.te.tcf.launch.cdt.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Path;
@@ -28,6 +33,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
@@ -56,15 +62,87 @@ import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 
 public class TEHelper {
 
-	public static void remoteFileTransfer(IPeer peer, String localFilePath, String remoteFilePath, SubProgressMonitor monitor) {
-		monitor.beginTask(Messages.RemoteRunLaunchDelegate_2 + " " + localFilePath + " to " + remoteFilePath, 100); //$NON-NLS-1$ //$NON-NLS-2$
+	public static void remoteFileTransfer(IPeer peer, String localFilePath, String remoteFilePath, SubProgressMonitor monitor) throws IOException {
+		// Copy the host side file to a temporary location first before copying to the target,
+		// if the file size of the files are the same. If the remote file system is NFS mounted
+		// from the host, we end up with a truncated file otherwise.
+		boolean copyViaTemp = true;
+		File tempFile = null;
+
+		// Create the file transfer item
 		FileTransferItem item = new FileTransferItem(new Path(localFilePath), new Path(remoteFilePath));
 		item.setProperty(IFileTransferItem.PROPERTY_DIRECTION, "" + IFileTransferItem.HOST_TO_TARGET); //$NON-NLS-1$
+
+		// Get the remote path file attributes
+		IFileSystem.FileAttrs attrs = FileTransferService.getRemoteFileAttrs(peer, null, item);
+		if (attrs != null) {
+			IPath hostPath = item.getHostPath();
+			if (hostPath.toFile().canRead()) {
+				copyViaTemp = attrs.size == hostPath.toFile().length();
+			}
+		}
+
+		// Copy the host file to a temporary location if needed
+		if (copyViaTemp) {
+
+			monitor.beginTask(Messages.RemoteRunLaunchDelegate_2 + " " + localFilePath + " to " + remoteFilePath, 200); //$NON-NLS-1$ //$NON-NLS-2$
+
+			try {
+				IPath hostPath = item.getHostPath();
+				tempFile = File.createTempFile(Long.toString(System.nanoTime()), null);
+
+				long tick = hostPath.toFile().length() / 100;
+
+				FileInputStream in = new FileInputStream(hostPath.toFile());
+				try {
+					FileOutputStream out = new FileOutputStream(tempFile);
+					try {
+						int count;
+						long tickCount = 0;
+						byte[] buf = new byte[4096];
+						while ((count = in.read(buf)) > 0) {
+							out.write(buf, 0, count);
+							tickCount += count;
+							if (tickCount >= tick) {
+								monitor.worked(1);
+								tickCount = 0;
+							}
+						}
+					}
+					finally {
+						out.close();
+					}
+				}
+				finally {
+					in.close();
+				}
+			}
+			catch (IOException e) {
+				// In case of an exception, make sure that the temporary file
+				// is removed before re-throwing the exception
+				if (tempFile != null) tempFile.delete();
+				// Also the monitor needs to be marked done
+				monitor.done();
+				// Re-throw the exception finally
+				throw e;
+			}
+
+			// Recreate the file transfer item to take the temporary file as input
+			item = new FileTransferItem(new Path(tempFile.getAbsolutePath()), new Path(remoteFilePath));
+			item.setProperty(IFileTransferItem.PROPERTY_DIRECTION, "" + IFileTransferItem.HOST_TO_TARGET); //$NON-NLS-1$
+		} else {
+			monitor.beginTask(Messages.RemoteRunLaunchDelegate_2 + " " + localFilePath + " to " + remoteFilePath, 100); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		// Transfer the file to the target
 		final Callback callback = new Callback();
 		FileTransferService.transfer(peer, null, item, monitor, callback);
 		// Wait till the step finished, an execution occurred or the
 		// user hit cancel on the progress monitor.
 		ExecutorsUtil.waitAndExecute(0, callback.getDoneConditionTester(null));
+
+		// Remove the temporary file
+		if (tempFile != null) tempFile.delete();
 	}
 
 	public static IPeerNode getPeerNode(final String peerId) {
@@ -73,9 +151,7 @@ public class TEHelper {
 			final Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					parent.set(ModelManager.getPeerModel()
-					                .getService(IPeerModelLookupService.class)
-					                .lkupPeerModelById(peerId));
+					parent.set(ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId));
 				}
 			};
 			Protocol.invokeAndWait(runnable);
@@ -146,8 +222,10 @@ public class TEHelper {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(peer.getTransportName()) || ITransportTypes.TRANSPORT_TYPE_SSL.equals(peer.getTransportName())) {
-							isLocalhost.set(IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST)));
+						if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(peer.getTransportName()) || ITransportTypes.TRANSPORT_TYPE_SSL
+						                .equals(peer.getTransportName())) {
+							isLocalhost.set(IPAddressUtil.getInstance().isLocalHost(peer
+							                .getAttributes().get(IPeer.ATTR_IP_HOST)));
 						}
 					}
 				};
@@ -156,8 +234,8 @@ public class TEHelper {
 				else Protocol.invokeAndWait(runnable);
 
 				if (isLocalhost.get()) {
-					container.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR,
-										  Host.isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF);
+					container.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, Host
+					                .isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF);
 				}
 			}
 
@@ -241,7 +319,8 @@ public class TEHelper {
 	 * exception, and error code.
 	 *
 	 * @param message the status message
-	 * @param exception lower level exception associated with the error, or <code>null</code> if none
+	 * @param exception lower level exception associated with the error, or <code>null</code> if
+	 *            none
 	 * @param code error code
 	 */
 	public static void abort(String message, Throwable exception, int code) throws CoreException {

@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
@@ -50,6 +51,53 @@ import org.eclipse.tcf.util.TCFFileOutputStream;
  * TCF file transfer service.
  */
 public class FileTransferService {
+
+	/**
+	 * Returns the target path file attribute.
+	 *
+     * @param peer The peer, must not be <code>null</code>.
+     * @param channel The channel or <code>null</code>.
+     * @param item The file transfer item, must not be <code>null</code>.
+     *
+     * @return The target path file attributes or <code>null</code>.
+	 */
+	public static FileAttrs getRemoteFileAttrs(IPeer peer, IChannel channel, IFileTransferItem item) {
+
+        final AtomicReference<FileAttrs> attrs = new AtomicReference<FileAttrs>();
+
+        boolean ownChannel = false;
+        IFileSystem fileSystem;
+        try {
+            if (channel == null) {
+                ownChannel = true;
+                channel = Operation.openChannel(peer);
+            }
+            fileSystem = Operation.getBlockingFileSystem(channel);
+
+            Assert.isNotNull(fileSystem);
+
+            IPath targetPath = item.getTargetPath();
+            if (targetPath != null) {
+            	final AtomicReference<FileSystemException> error = new AtomicReference<FileSystemException>();
+
+            	fileSystem.stat(targetPath.toString(), new IFileSystem.DoneStat() {
+					@Override
+					public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
+						error.set(e);
+						attrs.set(e == null ? a : null);
+					}
+				});
+            }
+            if (ownChannel) {
+                closeChannel(peer, channel);
+            }
+        }
+        catch (Exception e) {
+        	attrs.set(null);
+        }
+
+        return attrs.get();
+	}
 
     /**
      * Transfer a file between host and target depending on the {@link IFileTransferItem} data.

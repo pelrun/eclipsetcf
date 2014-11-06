@@ -48,6 +48,7 @@ public class Messages extends NLS {
 	public static String RemoteCMainTab_Properties_Location;
 	public static String RemoteCMainTab_Properties_Skip_default;
 
+	public static String RemoteGdbLaunchDelegate_filetransferFailed;
 	public static String RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorMessage;
 
 	public static String RemoteRunLaunchDelegate_0;
