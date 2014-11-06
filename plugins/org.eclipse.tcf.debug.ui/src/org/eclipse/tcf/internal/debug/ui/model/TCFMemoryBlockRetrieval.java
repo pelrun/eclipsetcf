@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,6 +61,7 @@ import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IExpressions;
 import org.eclipse.tcf.services.IMemory;
@@ -111,7 +112,6 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
         private final Set<Object> connections = new HashSet<Object>();
         private final TCFDataCache<IExpressions.Expression> remote_expression;
         private final TCFDataCache<IExpressions.Value> expression_value;
-        private final TCFDataCache<ISymbols.Symbol> expression_type;
 
         private boolean disposed;
 
@@ -174,25 +174,6 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                     return false;
                 }
             };
-            expression_type = new TCFDataCache<ISymbols.Symbol>(channel) {
-                @Override
-                protected boolean startDataRetrieval() {
-                    if (!expression_value.validate(this)) return false;
-                    IExpressions.Value val = expression_value.getData();
-                    if (val == null) {
-                        set(null, expression_value.getError(), null);
-                        return true;
-                    }
-                    TCFDataCache<ISymbols.Symbol> type_cache = exec_ctx.model.getSymbolInfoCache(val.getTypeID());
-                    if (type_cache == null) {
-                        set(null, null, null);
-                        return true;
-                    }
-                    if (!type_cache.validate(this)) return false;
-                    set(null, type_cache.getError(), type_cache.getData());
-                    return true;
-                }
-            };
         }
 
         private void close() {
@@ -200,7 +181,6 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
             assert !disposed;
             disposed = true;
             expression_value.dispose();
-            expression_type.dispose();
             if (remote_expression.isValid() && remote_expression.getData() != null) {
                 final IChannel channel = exec_ctx.channel;
                 if (channel.getState() == IChannel.STATE_OPEN) {
@@ -294,22 +274,26 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                     else if (expression_value.getData() == null) {
                         error("Address expression evaluation failed");
                     }
-                    else if (!expression_type.validate()) {
-                        expression_type.wait(this);
-                    }
-                    else if (expression_type.getError() != null) {
-                        error(expression_type.getError());
-                    }
                     else {
                         IExpressions.Value value = expression_value.getData();
-                        byte[] data = value.getValue();
-                        if (data == null || data.length == 0) {
-                            error("Address expression value is empty (void)");
+                        if (value.getTypeClass() == ISymbols.TypeClass.array) {
+                            BigInteger addr = JSON.toBigInteger(value.getAddress());
+                            if (addr == null) {
+                                error("Invalid expression: array without memory address");
+                            }
+                            else {
+                                done(addr);
+                            }
                         }
                         else {
-                            ISymbols.Symbol type = expression_type.getData();
-                            boolean signed = type != null && type.getTypeClass() == ISymbols.TypeClass.integer;
-                            done(TCFNumberFormat.toBigInteger(data, value.isBigEndian(), signed));
+                            byte[] data = value.getValue();
+                            if (data == null || data.length == 0) {
+                                error("Address expression value is empty (void)");
+                            }
+                            else {
+                                boolean signed = value.getTypeClass() == ISymbols.TypeClass.integer;
+                                done(TCFNumberFormat.toBigInteger(data, value.isBigEndian(), signed));
+                            }
                         }
                     }
                 }
