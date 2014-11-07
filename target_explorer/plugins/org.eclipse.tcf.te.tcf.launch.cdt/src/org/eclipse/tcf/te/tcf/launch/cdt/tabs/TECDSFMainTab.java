@@ -80,7 +80,7 @@ public class TECDSFMainTab extends CMainTab {
 	private Label preRunLabel;
 
 	public TECDSFMainTab() {
-		super(CMainTab.INCLUDE_BUILD_SETTINGS);
+		super(0);
 	}
 
 	@Override
