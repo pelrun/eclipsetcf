@@ -108,17 +108,12 @@ public class LaunchValueAddStep extends AbstractPeerStep {
 		final boolean keepalive = StepperAttributeUtil.getBooleanProperty(valueAdd.getId() + POSTFIX_KEEP_ALIVE, fullQualifiedId, data);
 
 		if (useValueAdds && !keepalive) {
-			Runnable runnable = new Runnable() {
-				@SuppressWarnings("synthetic-access")
+			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {
 					valueAdd.shutdown(peerId, callback);
-					LaunchValueAddStep.super.rollback(context, data, status, fullQualifiedId, monitor, callback);
 				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeLater(runnable);
+			});
 		} else {
 			super.rollback(context, data, status, fullQualifiedId, monitor, callback);
 		}

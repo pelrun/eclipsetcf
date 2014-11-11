@@ -163,7 +163,9 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 								// Try again until timed out
 								refreshCount++;
 								ProgressHelper.worked(monitor, 1);
-								Protocol.invokeLater(refreshCount < 20 ? 500 : 1000, thisRunnable);
+								int delay = refreshCount < 20 ? 500 : 1000;
+								monitor.setTaskName(getLabel());
+								Protocol.invokeLater(delay, thisRunnable);
 							}
 						}, monitor);
 					}
