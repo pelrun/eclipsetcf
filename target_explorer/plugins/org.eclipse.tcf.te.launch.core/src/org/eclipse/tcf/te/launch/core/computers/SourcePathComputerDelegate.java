@@ -12,20 +12,13 @@ package org.eclipse.tcf.te.launch.core.computers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.sourcelookup.ISourceContainer;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupDirector;
 import org.eclipse.debug.core.sourcelookup.ISourcePathComputerDelegate;
-import org.eclipse.debug.core.sourcelookup.containers.ProjectSourceContainer;
-import org.eclipse.debug.core.sourcelookup.containers.WorkspaceSourceContainer;
 import org.eclipse.tcf.te.core.cdt.CdtUtils;
-import org.eclipse.tcf.te.launch.core.interfaces.IReferencedProjectItem;
-import org.eclipse.tcf.te.launch.core.persistence.projects.ReferencedProjectsPersistenceDelegate;
 
 /**
  * Computes default source path containers based on the CDT preferences.
@@ -46,35 +39,13 @@ public class SourcePathComputerDelegate implements ISourcePathComputerDelegate {
 			// Get the default source lookup containers
 			ISourceContainer[] candidates = director.getSourceContainers();
 			for (ISourceContainer candidate : candidates) {
-				// CProjectSourceContainer instances does not make sense for our launches
-				// as the container won't be able to identify the correct project. We
-				// are going to replace this source lookup container with ordinary project
-				// source lookup containers based on our referenced projects.
-				if ("CProjectSourceContainer".equals(candidate.getClass().getSimpleName())) { //$NON-NLS-1$
-					IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-
-					// Get the list of referenced projects
-					IReferencedProjectItem[] items = ReferencedProjectsPersistenceDelegate.getReferencedProjects(configuration);
-					for (IReferencedProjectItem item : items) {
-						IProject project = root.getProject(item.getProjectName());
-						if (project != null && project.isAccessible()) {
-							ISourceContainer container = new ProjectSourceContainer(project, true);
-							if (!containers.contains(container)) containers.add(container);
-						}
-					}
-
-					continue;
+				// Bug #440538, WB4-4384: Ignore all default source containers
+				// except "Path Mapping" type containers.
+				if ("MappingSourceContainer".equals(candidate.getClass().getSimpleName())) { //$NON-NLS-1$
+					// Add the source container to the list of containers
+					if (!containers.contains(candidate)) containers.add(candidate);
 				}
-
-				// Just add the source container to the list of containers
-				if (!containers.contains(candidate)) containers.add(candidate);
 			}
-		}
-
-		// Fallback to the whole workspace if there are no default source
-		// lookup containers from the preferences
-		if (containers.size() == 0) {
-			containers.add(new WorkspaceSourceContainer());
 		}
 
 		return containers.toArray(new ISourceContainer[containers.size()]);
