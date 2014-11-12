@@ -36,8 +36,8 @@ public class MapLabelProvider extends LabelProvider implements ITableLabelProvid
 	public String getColumnText(Object element, int columnIndex) {
 		if (element instanceof Entry) {
 			Entry<?, ?> entry = (Entry<?, ?>) element;
+			Object key = entry.getKey();
 			if (columnIndex == 0) {
-				Object key = entry.getKey();
 				return key == null ? "" : key.toString(); //$NON-NLS-1$
 			}
 			Object object = entry.getValue();
@@ -49,6 +49,20 @@ public class MapLabelProvider extends LabelProvider implements ITableLabelProvid
 				} else {
 					object = null;
 				}
+			}
+			if (object instanceof Object[]) {
+				Object[] array = (Object[])object;
+				String value = ""; //$NON-NLS-1$
+				for (Object obj : array) {
+					if (value.length() > 0) {
+						if ("cmdline".equals(key)) //$NON-NLS-1$
+							value += " "; //$NON-NLS-1$
+						else
+							value += ", "; //$NON-NLS-1$
+					}
+	                value += obj.toString();
+                }
+				return value;
 			}
 
 			return object == null ? "" : object.toString(); //$NON-NLS-1$

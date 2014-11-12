@@ -164,8 +164,10 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 	 * @param provider The element node.
 	 */
 	private void installPropertyChangeListener(IPropertyChangeProvider provider) {
-		if (provider != null && !providers.contains(provider) && commonViewerListener != null) {
-			provider.addPropertyChangeListener(commonViewerListener);
+		if (provider != null && !providers.contains(provider)) {
+			if (commonViewerListener != null) {
+				provider.addPropertyChangeListener(commonViewerListener);
+			}
 			provider.addPropertyChangeListener(this);
 			providers.add(provider);
 		}

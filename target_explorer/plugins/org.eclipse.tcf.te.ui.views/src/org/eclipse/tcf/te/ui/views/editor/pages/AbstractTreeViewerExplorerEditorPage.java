@@ -41,6 +41,7 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -54,6 +55,7 @@ import org.eclipse.tcf.te.ui.interfaces.ITreeControlInputChangedListener;
 import org.eclipse.tcf.te.ui.trees.AbstractTreeControl;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
 import org.eclipse.tcf.te.ui.utils.TreeViewerUtil;
+import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.ui.ISources;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
@@ -71,6 +73,8 @@ public abstract class AbstractTreeViewerExplorerEditorPage extends AbstractCusto
 	private TreeControl treeControl;
 	private IToolBarManager toolbarMgr;
 	private PropertyChangeListener pcListener;
+	private ISelectionChangedListener scListener;
+	private FocusListener fListener;
 	private Image formImage;
 
 	/* (non-Javadoc)
@@ -82,8 +86,12 @@ public abstract class AbstractTreeViewerExplorerEditorPage extends AbstractCusto
 		if(provider != null && pcListener != null) {
 			provider.removePropertyChangeListener(pcListener);
 		}
-		if(formImage != null) {
-			formImage.dispose();
+		if (treeControl != null && treeControl.getViewer() != null) {
+			treeControl.getViewer().removeSelectionChangedListener(scListener);
+			if (treeControl.getViewer() instanceof TreeViewer) {
+				((TreeViewer)treeControl.getViewer()).removeDoubleClickListener(this);
+				((TreeViewer)treeControl.getViewer()).getTree().removeFocusListener(fListener);
+			}
 		}
 		if (treeControl != null) { treeControl.dispose(); treeControl = null; }
 		super.dispose();
@@ -117,9 +125,13 @@ public abstract class AbstractTreeViewerExplorerEditorPage extends AbstractCusto
 	    	if(bundle != null) {
 	    		URL iconURL = bundle.getEntry(iconPath);
 	    		if(iconURL != null) {
-	    			ImageDescriptor iconDesc = ImageDescriptor.createFromURL(iconURL);
-	    			if(iconDesc != null) {
-	    				formImage = iconDesc.createImage();
+	    			formImage = UIPlugin.getImage(iconURL.toString());
+	    			if (formImage == null) {
+	    				ImageDescriptor iconDesc = ImageDescriptor.createFromURL(iconURL);
+	    				if(iconDesc != null) {
+	    					formImage = iconDesc.createImage();
+	    					UIPlugin.getDefault().getImageRegistry().put(iconURL.toString(), formImage);
+	    				}
 	    			}
 	    		}
 	    	}
@@ -261,17 +273,20 @@ public abstract class AbstractTreeViewerExplorerEditorPage extends AbstractCusto
 	 */
 	private void addViewerListeners() {
 		TreeViewer viewer = (TreeViewer) treeControl.getViewer();
-		viewer.addSelectionChangedListener(new ISelectionChangedListener(){
+		scListener = new ISelectionChangedListener(){
 			@Override
             public void selectionChanged(SelectionChangedEvent event) {
 				propagateSelection();
-            }});
-		viewer.getTree().addFocusListener(new FocusAdapter(){
+            }
+		};
+        viewer.addSelectionChangedListener(scListener);
+        fListener = new FocusAdapter() {
 			@Override
             public void focusGained(FocusEvent e) {
 				propagateSelection();
             }
-		});
+		};
+        viewer.getTree().addFocusListener(fListener);
 		viewer.addDoubleClickListener(this);
 
 	    IPropertyChangeProvider provider = getPropertyChangeProvider();

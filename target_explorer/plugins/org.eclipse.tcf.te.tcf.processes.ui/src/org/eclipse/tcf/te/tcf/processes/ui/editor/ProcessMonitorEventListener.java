@@ -19,6 +19,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
@@ -56,6 +57,10 @@ public class ProcessMonitorEventListener extends AbstractEventListener {
 			final Object source = changeEvent.getSource();
 
 			if (treeControl.getViewer() != null) {
+				if (treeControl.getViewer().getControl() == null || treeControl.getViewer().getControl().isDisposed()) {
+					EventManager.getInstance().removeEventListener(this);
+					return;
+				}
 				// Property changes for the runtime model refreshes the whole tree.
 				if (source instanceof IRuntimeModel) {
 					treeControl.getViewer().refresh();

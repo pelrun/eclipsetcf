@@ -56,8 +56,8 @@ public class TreeViewerLabelProvider extends PendingAwareLabelProvider implement
 	 */
 	private ColumnDescriptor getColumn(int columnIndex) {
 		Tree tree = viewer.getTree();
-		TreeColumn column = tree.getColumn(columnIndex);
-		ColumnDescriptor descriptor = (ColumnDescriptor) column.getData();
+		TreeColumn column = tree.getColumnCount() > columnIndex ? tree.getColumn(columnIndex) : null;
+		ColumnDescriptor descriptor = column != null ? (ColumnDescriptor) column.getData() : null;
 		return descriptor;
 	}
 

@@ -16,6 +16,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
+import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.tabbed.BaseTitledSection;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
@@ -29,10 +30,14 @@ public class BasicInformationSection extends BaseTitledSection {
 	/* default */ ISysMonitor.SysMonitorContext context;
 	// The process name
 	/* default */ String nodeName;
+	// The node command line
+	/* default */ String[] nodeCmdLine;
 	// The node type
 	/* default */ String nodeType;
 	// The text field for the name of the process.
 	private Text nameText;
+	// The text field for the command line of the process.
+	private Text cmdLineText;
 	// The text field for the type of the process.
 	private Text typeText;
 	// The text field for the state of the process.
@@ -48,7 +53,8 @@ public class BasicInformationSection extends BaseTitledSection {
     public void createControls(Composite parent, TabbedPropertySheetPage aTabbedPropertySheetPage) {
 	    super.createControls(parent, aTabbedPropertySheetPage);
 		nameText = createWrapTextField(null, Messages.BasicInformationSection_Name);
-		typeText = createTextField(nameText, Messages.BasicInformationSection_Type);
+		cmdLineText = createTextField(nameText, Messages.BasicInformationSection_CmdLine);
+		typeText = createTextField(cmdLineText, Messages.BasicInformationSection_Type);
 		stateText = createTextField(typeText, Messages.BasicInformationSection_State);
 		userText = createTextField(stateText, Messages.BasicInformationSection_User);
     }
@@ -68,6 +74,7 @@ public class BasicInformationSection extends BaseTitledSection {
 				context = node.getSysMonitorContext();
 				nodeName = node.getName();
 				nodeType = node.getType().toString();
+				nodeCmdLine = (String[])node.getProperty(IProcessContextNodeProperties.PROPERTY_CMD_LINE);
 			}
 		};
 
@@ -83,6 +90,8 @@ public class BasicInformationSection extends BaseTitledSection {
     public void refresh() {
 		SWTControlUtil.setText(nameText, nodeName != null ? nodeName: ""); //$NON-NLS-1$
 		SWTControlUtil.setText(typeText, nodeType != null ? nodeType : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(cmdLineText, nodeCmdLine != null ? makeString(nodeCmdLine) : ""); //$NON-NLS-1$
+
 		SWTControlUtil.setText(stateText, context != null && context.getState() != null ? context.getState() : ""); //$NON-NLS-1$
 		SWTControlUtil.setText(userText, context != null && context.getUserName() != null ? context.getUserName() : ""); //$NON-NLS-1$
 		super.refresh();
@@ -95,5 +104,17 @@ public class BasicInformationSection extends BaseTitledSection {
 	@Override
 	protected String getText() {
 		return Messages.BasicInformationSection_Title;
+	}
+
+	public final static String makeString(String[] cmdline) {
+		Assert.isNotNull(cmdline);
+
+		StringBuilder buffer = new StringBuilder();
+		for (String arg : cmdline) {
+			buffer.append(arg.contains(" ") ? "\"" + arg + "\"" : arg); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			buffer.append(" "); //$NON-NLS-1$
+		}
+
+		return buffer.toString();
 	}
 }

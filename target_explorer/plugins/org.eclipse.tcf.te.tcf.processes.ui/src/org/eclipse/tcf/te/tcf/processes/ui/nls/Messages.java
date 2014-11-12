@@ -88,6 +88,7 @@ public class Messages extends NLS {
 	public static String BasicInformationSection_State;
 	public static String BasicInformationSection_Title;
 	public static String BasicInformationSection_Type;
+	public static String BasicInformationSection_CmdLine;
 	public static String BasicInformationSection_User;
 
 	public static String ConfigIntervalDynamicContribution_Custom;

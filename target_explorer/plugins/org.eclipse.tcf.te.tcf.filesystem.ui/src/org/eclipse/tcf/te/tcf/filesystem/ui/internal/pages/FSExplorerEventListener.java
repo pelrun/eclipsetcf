@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
@@ -51,6 +52,10 @@ public class FSExplorerEventListener extends AbstractEventListener {
 			final Object source = changeEvent.getSource();
 
 			if (treeControl.getViewer() != null) {
+				if (treeControl.getViewer().getControl() == null || treeControl.getViewer().getControl().isDisposed()) {
+					EventManager.getInstance().removeEventListener(this);
+					return;
+				}
 				// Property changes for the runtime model refreshes the whole tree.
 				if (source instanceof IRuntimeModel) {
 					treeControl.getViewer().refresh();
