@@ -23,4 +23,10 @@ public interface IPreferenceKeys {
 	 * Defaults to 20.
 	 */
 	public final String PREF_MAX_RECENT_ACTION_ENTRIES = PREFIX + "maxRecentActions"; //$NON-NLS-1$
+
+	/**
+	 * Key prefix for auto connect setting in new wizards.
+	 * The key needs to be followed by the connection type id.
+	 */
+	public final String PREF_AUTO_CONNECT = "autoConnect."; //$NON-NLS-1$
 }

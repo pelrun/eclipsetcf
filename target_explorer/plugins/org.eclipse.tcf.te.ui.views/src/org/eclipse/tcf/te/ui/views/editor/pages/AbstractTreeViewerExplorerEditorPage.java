@@ -473,7 +473,7 @@ public abstract class AbstractTreeViewerExplorerEditorPage extends AbstractCusto
 			selectionProvider.setSelection(selection.isEmpty() ? new StructuredSelection(getEditorInputNode()) : selection);
 			if (selectionProvider instanceof MultiPageSelectionProvider) {
 				SelectionChangedEvent changedEvent = new SelectionChangedEvent(selectionProvider, selection);
-				((MultiPageSelectionProvider) selectionProvider).firePostSelectionChanged(changedEvent);
+				((MultiPageSelectionProvider) selectionProvider).fireSelectionChanged(changedEvent);
 			}
 		}
 		catch (SWTException e) {

@@ -310,21 +310,13 @@ public abstract class AbstractSection extends SectionPart implements IAdaptable,
 	 */
 	@Override
 	public void commit(boolean onSave) {
-		// commit is reseting the dirty state
-		boolean hasBeenDirty = isDirty();
-		// Execute the commit
-		super.commit(onSave);
-		// signal the dirty state change to the manager form if
-		// it really has changed
-		if (hasBeenDirty) {
+		if (onSave) {
 			if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_SECTIONS_DIRTY_STATE)) {
 				UIPlugin.getTraceHandler().trace("Commit(" + onSave + ") reseted the dirty state to false.", //$NON-NLS-1$ //$NON-NLS-2$
 												 ITraceIds.TRACE_SECTIONS_DIRTY_STATE, this);
 			}
-			if (onSave)
-				getManagedForm().dirtyStateChanged();
-			else
-				markDirty();
+			super.commit(onSave);
+			getManagedForm().dirtyStateChanged();
 		}
 	}
 

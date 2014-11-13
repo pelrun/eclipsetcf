@@ -148,12 +148,12 @@ public abstract class AbstractEditorPage extends FormPage implements IEditorPage
 	@Override
 	public void setActive(boolean active) {
 		super.setActive(active);
-		if (!active) {
+		if (active) {
 			ISelection selection = getEditorInput() != null ? new StructuredSelection(getEditorInputNode()) : null;
 			getSite().getSelectionProvider().setSelection(selection);
 			if (getSite().getSelectionProvider() instanceof MultiPageSelectionProvider) {
 				SelectionChangedEvent changedEvent = new SelectionChangedEvent(getSite().getSelectionProvider(), selection);
-				((MultiPageSelectionProvider) getSite().getSelectionProvider()).firePostSelectionChanged(changedEvent);
+				((MultiPageSelectionProvider) getSite().getSelectionProvider()).fireSelectionChanged(changedEvent);
 			}
 		}
 	}

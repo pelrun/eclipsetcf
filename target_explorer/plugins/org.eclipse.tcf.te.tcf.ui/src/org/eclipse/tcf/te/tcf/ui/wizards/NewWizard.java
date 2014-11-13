@@ -39,6 +39,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.ui.interfaces.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.ui.wizards.pages.NewTargetWizardPage;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
@@ -80,8 +82,7 @@ public class NewWizard extends AbstractNewConfigWizard {
 						key.equals(IPeer.ATTR_TRANSPORT_NAME) ||
 						key.equals(IPeer.ATTR_IP_HOST) ||
 						key.equals(IPeer.ATTR_IP_PORT) ||
-						key.equals(IPeerProperties.PROP_PROXIES) ||
-						key.equals(IPeerProperties.PROP_AUTO_CONNECT);
+						key.equals(IPeerProperties.PROP_PROXIES);
 	}
 
 	/* (non-Javadoc)
@@ -90,6 +91,8 @@ public class NewWizard extends AbstractNewConfigWizard {
 	@Override
 	protected IPropertiesContainer getInitialData() {
 		IStructuredSelection selection = getSelection();
+		final IPropertiesContainer data = new PropertiesContainer();
+
 		if (selection != null) {
 			final IPeer peer;
 			boolean isPeerNode = false;
@@ -111,7 +114,6 @@ public class NewWizard extends AbstractNewConfigWizard {
 				String selPeerType = peer.getAttributes().get(IPeerProperties.PROP_TYPE);
 				final boolean sameType = getPeerType() == null ? selPeerType == null : getPeerType().equals(selPeerType);
 				final boolean finIsPeerNode = isPeerNode;
-				final IPropertiesContainer data = new PropertiesContainer();
 				Protocol.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
@@ -122,11 +124,15 @@ public class NewWizard extends AbstractNewConfigWizard {
                         }
 					}
 				});
-
-				return data;
 			}
 		}
-		return super.getInitialData();
+
+		String autoConnectValue = UIPlugin.getScopedPreferences().getString(IPreferenceKeys.PREF_AUTO_CONNECT+getPeerType());
+		boolean autoConnect = autoConnectValue != null ? UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_AUTO_CONNECT+getPeerType()) : true;
+		data.setProperty(IPeerProperties.PROP_AUTO_CONNECT, autoConnect);
+		data.setProperty(IPeerProperties.PROP_TYPE, getPeerType());
+
+		return data;
 	}
 
 	/**
