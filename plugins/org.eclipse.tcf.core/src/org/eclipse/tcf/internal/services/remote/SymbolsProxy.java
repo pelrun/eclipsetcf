@@ -109,6 +109,8 @@ public class SymbolsProxy implements ISymbols {
                 case 5: return SymbolClass.comp_unit;
                 case 6: return SymbolClass.block;
                 case 7: return SymbolClass.namespace;
+                case 8: return SymbolClass.variant_part;
+                case 9: return SymbolClass.variant;
                 }
             }
             return SymbolClass.unknown;

@@ -104,15 +104,22 @@ public class TCFChildrenSubExpressions extends TCFChildren {
             else {
                 ISymbols.Symbol sym_data = sym_cache.getData();
                 if (sym_data == null) continue;
-                if (sym_data.getSymbolClass() != ISymbols.SymbolClass.reference) continue;
-                if (sym_data.getFlag(ISymbols.SYM_FLAG_ARTIFICIAL)) continue;
-                if (sym_data.getName() == null && !sym_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
-                    if (!findFields(sym_data, map, deref)) return false;
-                }
-                else {
-                    TCFNodeExpression n = getField(id, deref);
-                    n.setSortPosition(map.size());
-                    map.put(n.id, n);
+                switch (sym_data.getSymbolClass()) {
+                case reference:
+                case variant_part:
+                case variant:
+                    if (sym_data.getFlag(ISymbols.SYM_FLAG_ARTIFICIAL)) continue;
+                    if (sym_data.getName() == null && !sym_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
+                        if (!findFields(sym_data, map, deref)) return false;
+                    }
+                    else {
+                        TCFNodeExpression n = getField(id, deref);
+                        n.setSortPosition(map.size());
+                        map.put(n.id, n);
+                    }
+                    break;
+                default:
+                    break;
                 }
             }
         }

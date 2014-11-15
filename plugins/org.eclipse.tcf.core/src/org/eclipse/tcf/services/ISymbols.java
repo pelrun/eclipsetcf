@@ -35,7 +35,9 @@ public interface ISymbols extends IService {
         type,                   // a type
         comp_unit,              // compilation unit
         block,                  // lexical block
-        namespace               // C++ namespace
+        namespace,              // C++ namespace
+        variant_part,           // a variant part of a structure
+        variant                 // a member of a variant part of a structure
     }
 
     enum TypeClass {
