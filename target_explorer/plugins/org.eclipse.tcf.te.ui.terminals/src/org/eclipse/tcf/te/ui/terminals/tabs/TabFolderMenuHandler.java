@@ -52,6 +52,11 @@ public class TabFolderMenuHandler extends PlatformObject {
 	// The list of actions available within the context menu
 	private final List<AbstractTerminalAction> contextMenuActions = new ArrayList<AbstractTerminalAction>();
 
+	// The list of invalid context menu contributions "startsWith" expressions
+	/* default */ static final String[] INVALID_CONTRIBUTIONS_STARTS_WITH = {
+		"org.eclipse.cdt", "org.eclipse.ui.edit" //$NON-NLS-1$ //$NON-NLS-2$
+	};
+
 	/**
 	 * Default menu listener implementation.
 	 */
@@ -88,8 +93,13 @@ public class TabFolderMenuHandler extends PlatformObject {
 			IContributionItem[] items = manager.getItems();
 			for (IContributionItem item : items) {
 				String id = item.getId();
-				if (id != null && id.startsWith("org.eclipse.cdt")) { //$NON-NLS-1$
-					manager.remove(item);
+				if (id != null) {
+					for (String prefix : INVALID_CONTRIBUTIONS_STARTS_WITH) {
+						if (id.startsWith(prefix)) {
+							manager.remove(item);
+							break;
+						}
+					}
 				}
 			}
 		}
