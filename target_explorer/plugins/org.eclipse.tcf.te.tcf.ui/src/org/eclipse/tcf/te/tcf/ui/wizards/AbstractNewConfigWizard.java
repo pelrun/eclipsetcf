@@ -91,7 +91,7 @@ public abstract class AbstractNewConfigWizard extends AbstractWizard implements 
 			service.generateSourcePathMappings(peerNode);
 		}
 
-		if (connect.get()) {
+		if (connect.get() && peerNode.isValid()) {
 			peerNode.changeConnectState(IConnectable.ACTION_CONNECT, null, null);
 		}
 	}
