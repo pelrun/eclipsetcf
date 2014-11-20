@@ -55,7 +55,26 @@ public class NodePropertiesTableUIDelegate implements INodePropertiesTableUIDele
 	 */
 	@Override
 	public void expandNodesAfterSort(Object context, List<NodePropertiesTableTableNode> sortedNodes) {
-		String[] keysToExpand = new String[]{IPeerProperties.PROP_SIM_PROPERTIES, IPeerProperties.PROP_MODE_PROPERTIES};
+		String[] keysToExpand = new String[]{IPeerNodeProperties.PROPERTY_WARNINGS};
+		for (String key : keysToExpand) {
+			int i = sortedNodes.indexOf(new NodePropertiesTableTableNode(key, "")); //$NON-NLS-1$
+			if (i >= 0) {
+				NodePropertiesTableTableNode node = sortedNodes.get(i);
+				IPropertiesContainer data = DataHelper.decodePropertiesContainer(node.value);
+				if (data != null && !data.isEmpty()) {
+					sortedNodes.remove(i);
+					boolean firstDone = false;
+					for (Entry<String,Object> entry : data.getProperties().entrySet()) {
+						if (entry.getValue() != null) {
+							sortedNodes.add(i++, new NodePropertiesTableTableNode(firstDone ? "" : key, entry.getValue().toString())); //$NON-NLS-1$
+							firstDone = true;
+						}
+					}
+				}
+			}
+		}
+
+		keysToExpand = new String[]{IPeerProperties.PROP_SIM_PROPERTIES, IPeerProperties.PROP_MODE_PROPERTIES};
 		for (String key : keysToExpand) {
 			int i = sortedNodes.indexOf(new NodePropertiesTableTableNode(key, "")); //$NON-NLS-1$
 			if (i >= 0) {
@@ -66,9 +85,7 @@ public class NodePropertiesTableUIDelegate implements INodePropertiesTableUIDele
 					sortedNodes.add(i++, new NodePropertiesTableTableNode(key, "")); //$NON-NLS-1$
 					for (Entry<String,Object> entry : data.getProperties().entrySet()) {
 						if (entry.getValue() != null) {
-							if (!isFiltered(context, entry.getKey(), entry.getValue())) {
-								sortedNodes.add(i++, new NodePropertiesTableTableNode("     " + entry.getKey(), entry.getValue().toString())); //$NON-NLS-1$
-							}
+							sortedNodes.add(i++, new NodePropertiesTableTableNode("     " + entry.getKey(), entry.getValue().toString())); //$NON-NLS-1$
 						}
 					}
 				}

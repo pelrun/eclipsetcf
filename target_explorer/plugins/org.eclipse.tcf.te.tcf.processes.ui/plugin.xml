@@ -705,12 +705,22 @@
             class="org.eclipse.tcf.te.tcf.processes.ui.handler.RefreshHandler"
             commandId="org.eclipse.tcf.te.ui.command.refresh">
          <activeWhen>
-            <with variable="activePartId">
-               <or>
-                  <equals value="org.eclipse.tcf.te.ui.views.View"/>
-                  <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
-               </or>
-            </with>
+            <and>
+               <with variable="activePartId">
+                  <or>
+                     <equals value="org.eclipse.tcf.te.ui.views.View"/>
+                     <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
+                  </or>
+               </with>
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <or>
+                        <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel"/>
+                        <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
+                     </or>
+                  </iterate>
+               </with>
+            </and>
          </activeWhen>
          <enabledWhen>
             <with variable="selection">

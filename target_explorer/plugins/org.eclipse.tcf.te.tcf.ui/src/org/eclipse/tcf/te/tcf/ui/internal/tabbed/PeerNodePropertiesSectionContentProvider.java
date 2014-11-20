@@ -29,10 +29,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
+import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
+import org.eclipse.tcf.te.tcf.locator.utils.CommonUtils;
 import org.eclipse.tcf.te.ui.interfaces.services.INodePropertiesTableUIDelegate;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 import org.eclipse.tcf.te.ui.views.extensions.LabelProviderDelegateExtensionPointManager;
@@ -83,6 +87,16 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 						IPeerNode peerNode = (IPeerNode)inputElement;
 						properties.putAll(peerNode.getPeer().getAttributes());
 						properties.put(IPeerNodeProperties.PROPERTY_CONNECT_STATE, ConnectStateHelper.getConnectState(peerNode.getConnectState()));
+						String error = CommonUtils.getPeerError(peerNode);
+						if (error != null) {
+							properties.put(IPeerNodeProperties.PROPERTY_ERROR, error);
+						}
+						Map<String,String> warnings = CommonUtils.getPeerWarnings(peerNode);
+						if (warnings != null && !warnings.isEmpty()) {
+							IPropertiesContainer container = new PropertiesContainer();
+							container.addProperties(warnings);
+							properties.put(IPeerNodeProperties.PROPERTY_WARNINGS, DataHelper.encodePropertiesContainer(container));
+						}
 						if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
 							properties.put(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES));
 							properties.put(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES, peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES));
@@ -144,7 +158,11 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 				nodes.clear();
 				for (Entry<String, Object> entry : debugProperties.entrySet()) {
 					String name = entry.getKey();
-					if (!name.equals(IPeerNodeProperties.PROPERTY_CONNECT_STATE) && !name.equals(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES) && !name.equals(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES)) {
+					if (!name.equals(IPeerNodeProperties.PROPERTY_CONNECT_STATE) &&
+									!name.equals(IPeerNodeProperties.PROPERTY_ERROR) &&
+									!name.equals(IPeerNodeProperties.PROPERTY_WARNINGS) &&
+									!name.equals(IPeerNodeProperties.PROPERTY_LOCAL_SERVICES) &&
+									!name.equals(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES)) {
 						nodes.add(new NodePropertiesTableTableNode(name, entry.getValue() != null ? entry.getValue().toString() : "")); //$NON-NLS-1$
 					}
 				}

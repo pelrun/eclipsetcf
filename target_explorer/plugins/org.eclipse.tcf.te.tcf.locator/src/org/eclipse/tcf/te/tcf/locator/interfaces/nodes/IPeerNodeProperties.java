@@ -38,12 +38,22 @@ public interface IPeerNodeProperties {
 	public static final String PROPERTY_REMOTE_SERVICES = "RemoteServices"; //$NON-NLS-1$
 
 	/**
-	 * Property: Peer ID of selected real target.
+	 * Property: Peer ID.
 	 */
 	public static final String PROPERTY_PEER_ID = "PeerId"; //$NON-NLS-1$
 
 	/**
-	 * Property: The peer valid state. This is not a property itself, just used to fire change events on valid state change.
+	 * Property: The peer node valid state. This is not a property itself, just used to fire change events on valid state change.
 	 */
 	public static final String PROPERTY_IS_VALID = "isValid"; //$NON-NLS-1$
+
+	/**
+	 * Property: Error if peer node is not valid (String)
+	 */
+	public static final String PROPERTY_ERROR = "Error"; //$NON-NLS-1$
+
+	/**
+	 * Property: Container for warnings (Map<String,String)
+	 */
+	public static final String PROPERTY_WARNINGS = "Warnings"; //$NON-NLS-1$
 }

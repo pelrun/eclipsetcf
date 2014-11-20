@@ -75,7 +75,8 @@ public class OverviewEditorPage extends AbstractCustomFormToolkitEditorPage {
 				public void eventFired(EventObject event) {
 					ChangeEvent changeEvent = (ChangeEvent)event;
 					if ((IPeerNodeProperties.PROPERTY_CONNECT_STATE.equals(changeEvent.getEventId()) ||
-									IPeerNodeProperties.PROPERTY_IS_VALID.equals(changeEvent.getEventId())) &&
+									IPeerNodeProperties.PROPERTY_IS_VALID.equals(changeEvent.getEventId()) ||
+									IPeerNodeProperties.PROPERTY_WARNINGS.equals(changeEvent.getEventId())) &&
 									event.getSource() == getEditorInputNode()) {
 						ExecutorsUtil.executeInUI(new Runnable() {
 							@Override

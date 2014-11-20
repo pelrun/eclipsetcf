@@ -29,6 +29,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.locator.utils.CommonUtils;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerNodeImageDescriptor;
@@ -36,11 +37,12 @@ import org.eclipse.tcf.te.tcf.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.interfaces.ISimulatorServiceUIDelegate;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
+import org.eclipse.ui.navigator.IDescriptionProvider;
 
 /**
  * Label provider implementation.
  */
-public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDecorator, ILabelProviderDelegate {
+public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDecorator, ILabelProviderDelegate, IDescriptionProvider {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)
@@ -140,7 +142,39 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 		return null;
 	}
 
-	/**
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.navigator.IDescriptionProvider#getDescription(java.lang.Object)
+	 */
+    @Override
+    public String getDescription(Object element) {
+    	if (element instanceof IPeerNode) {
+    		IPeerNode peerNode = (IPeerNode)element;
+
+    		if (!peerNode.isValid()) {
+    			String error = CommonUtils.getPeerError(peerNode);
+    			if (error != null) {
+    				return error;
+    			}
+    			return Messages.PeerLabelProviderDelegate_description_invalid;
+    		}
+
+    		Map<String,String> warnings = CommonUtils.getPeerWarnings(peerNode);
+   			if (warnings != null && !warnings.isEmpty()) {
+   				String desc = ""; //$NON-NLS-1$
+   				for (String warning : warnings.values()) {
+   					if (desc.trim().length() > 0) {
+   						desc += "; "; //$NON-NLS-1$
+   					}
+   					desc += warning.replaceAll("\n", "").replaceAll("\t", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+   				}
+   				return desc;
+   			}
+    	}
+	    return null;
+    }
+
+    /**
 	 * Determines if the IP-address and port needs to be appended
 	 * to the given label.
 	 * <p>

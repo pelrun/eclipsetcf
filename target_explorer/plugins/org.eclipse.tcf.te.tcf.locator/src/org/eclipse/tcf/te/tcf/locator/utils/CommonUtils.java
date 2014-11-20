@@ -11,12 +11,17 @@ package org.eclipse.tcf.te.tcf.locator.utils;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 
 /**
  * Common utils
@@ -98,5 +103,80 @@ public final class CommonUtils {
 		} catch (IOException e) { /* ignored on purpose */ }
 
 		return port;
+	}
+
+    public static boolean setPeerError(final IPeerNode peerNode, final String error) {
+		final AtomicBoolean changed = new AtomicBoolean();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				changed.set(peerNode.setProperty(IPeerNodeProperties.PROPERTY_ERROR, error));
+			}
+		});
+		return changed.get();
+	}
+
+    public static String getPeerError(final IPeerNode peerNode) {
+		final AtomicReference<String> error = new AtomicReference<String>();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				error.set(peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_ERROR));
+			}
+		});
+
+		if (error.get() != null && error.get().trim().length() > 0) {
+			return error.get();
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+    public static Map<String,String> getPeerWarnings(final IPeerNode peerNode) {
+		final AtomicReference<Object> warnings = new AtomicReference<Object>();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				warnings.set(peerNode.getProperty(IPeerNodeProperties.PROPERTY_WARNINGS));
+			}
+		});
+
+		if (warnings.get() != null && warnings.get() instanceof Map<?,?>) {
+			return (Map<String,String>)warnings.get();
+		}
+		return null;
+	}
+
+	public static boolean setPeerWarning(final IPeerNode peerNode, final String key, final String value) {
+		final AtomicBoolean changed = new AtomicBoolean();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+                @SuppressWarnings("unchecked")
+                Map<String,String> warnings = (Map<String,String>)peerNode.getProperty(IPeerNodeProperties.PROPERTY_WARNINGS);
+                if (warnings == null) {
+                	if (value == null) {
+                		return;
+                	}
+                	warnings = new HashMap<String,String>();
+                }
+            	if (value != null) {
+            		changed.set(!value.equals(warnings.get(key)));
+            		warnings.put(key, value);
+            	}
+            	else {
+            		changed.set(warnings.get(key) != null);
+            		warnings.remove(key);
+            		if (warnings.isEmpty()) {
+            			warnings = null;
+            		}
+            	}
+            	peerNode.setChangeEventsEnabled(false);
+                peerNode.setProperty(IPeerNodeProperties.PROPERTY_WARNINGS, warnings);
+            	peerNode.setChangeEventsEnabled(true);
+			}
+		});
+		peerNode.fireChangeEvent(IPeerNodeProperties.PROPERTY_WARNINGS, null, null);
+		return changed.get();
 	}
 }

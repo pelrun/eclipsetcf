@@ -294,4 +294,5 @@ public class Messages extends NLS {
 	public static String PeerLabelProviderDelegate_NodePropertiesTable_SubType_real;
 	public static String PeerLabelProviderDelegate_NodePropertiesTable_SubType_sim;
 	public static String PeerLabelProviderDelegate_NodePropertiesTable_Port_0;
+	public static String PeerLabelProviderDelegate_description_invalid;
 }

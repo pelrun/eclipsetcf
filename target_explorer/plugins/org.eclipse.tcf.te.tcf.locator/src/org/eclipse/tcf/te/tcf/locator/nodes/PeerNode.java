@@ -364,6 +364,9 @@ public class PeerNode extends ContainerModelNode implements IPeerNode, IPeerNode
 				@Override
 				public void run() {
 			    	result.set(setProperty(IPeerNodeProperties.PROPERTY_CONNECT_STATE, newState));
+			    	if (newState != IConnectable.STATE_CONNECTED) {
+			    		setProperty(IPeerNodeProperties.PROPERTY_WARNINGS, null);
+			    	}
 				}
 			});
     	}

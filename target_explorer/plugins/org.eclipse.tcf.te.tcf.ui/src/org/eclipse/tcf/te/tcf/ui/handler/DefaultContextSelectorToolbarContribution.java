@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.runtime.Platform;
@@ -39,6 +40,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
@@ -50,6 +52,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.locator.utils.CommonUtils;
 import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.internal.preferences.IPreferenceKeys;
@@ -250,9 +253,35 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				}
 				text.setText(name);
 
-				image.setToolTipText(!fullName.equals(name) ? fullName : Messages.DefaultContextSelectorToolbarContribution_tooltip_button);
-				text.setToolTipText(!fullName.equals(name) ? fullName : Messages.DefaultContextSelectorToolbarContribution_tooltip_button);
-				button.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_button);
+				String tooltipMessage = Messages.DefaultContextSelectorToolbarContribution_tooltip_button;
+				String tooltip = !fullName.equals(name) ? fullName : tooltipMessage;
+				if (!peerNode.isValid()) {
+					String error = CommonUtils.getPeerError(peerNode);
+					tooltip = !fullName.equals(name) ? fullName+"\n" : ""; //$NON-NLS-1$ //$NON-NLS-2$
+					if (error != null) {
+                        tooltip += error;
+					}
+					else {
+						tooltip += Messages.PeerLabelProviderDelegate_description_invalid;
+					}
+				}
+				else if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+					Map<String,String> warnings = CommonUtils.getPeerWarnings(peerNode);
+					if (warnings != null && !warnings.isEmpty()) {
+						tooltip = !fullName.equals(name) ? fullName : ""; //$NON-NLS-1$
+						for (String warning : warnings.values()) {
+							if (tooltip.trim().length() > 0) {
+								tooltip += "\n"; //$NON-NLS-1$
+							}
+	                        tooltip += warning;
+                        }
+					}
+				}
+
+				image.setToolTipText(tooltip);
+				text.setToolTipText(tooltip);
+
+				button.setToolTipText(tooltipMessage);
 			}
 			else {
 				image.setImage(UIPlugin.getImage(ImageConsts.NEW_CONFIG));
@@ -388,6 +417,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
     						(changeEvent.getSource() == peerNode &&
     						(IPeerNodeProperties.PROPERTY_CONNECT_STATE.equals(changeEvent.getEventId()) ||
     										IPeerNodeProperties.PROPERTY_IS_VALID.equals(changeEvent.getEventId()) ||
+    										IPeerNodeProperties.PROPERTY_WARNINGS.equals(changeEvent.getEventId()) ||
     										"properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
     			if (menuMgr != null) menuMgr.markDirty();
     			ExecutorsUtil.executeInUI(new Runnable() {

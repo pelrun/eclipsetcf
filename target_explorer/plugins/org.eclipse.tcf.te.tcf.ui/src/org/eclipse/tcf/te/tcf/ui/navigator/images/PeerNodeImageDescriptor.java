@@ -9,12 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.ui.navigator.images;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.utils.CommonUtils;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 
@@ -33,6 +36,9 @@ public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 
 	// Flags representing the valid state to decorate
 	private boolean valid;
+
+	// Flags representing the warning state to decorate
+	private boolean warning;
 
 
 	/**
@@ -63,6 +69,9 @@ public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 		// deadlock if the initialize(...) where called as a result of an activity
 		// state change event.
 		valid = node.isValid();
+
+		Map<String,String> warnings = CommonUtils.getPeerWarnings(node);
+		warning = warnings != null && !warnings.isEmpty();
 	}
 
 	/**
@@ -74,7 +83,8 @@ public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 		String key = "PNID:" +  //$NON-NLS-1$
 			hashCode + ":" + //$NON-NLS-1$
 			connectState  + ":" + //$NON-NLS-1$
-			valid;
+			valid  + ":" + //$NON-NLS-1$
+			warning;
 
 		setDecriptorKey(key);
 	}
@@ -95,7 +105,12 @@ public class PeerNodeImageDescriptor extends AbstractImageDescriptor {
 			}
 
 			if (connectState == IConnectable.STATE_CONNECTED) {
-				drawBottomRight(ImageConsts.GREEN_OVR);
+				if (warning) {
+					drawBottomRight(ImageConsts.GOLD_OVR);
+				}
+				else {
+					drawBottomRight(ImageConsts.GREEN_OVR);
+				}
 			}
 			else if (connectState == IConnectable.STATE_CONNECTING || connectState == IConnectable.STATE_DISCONNECTING ||
 							connectState == IConnectable.STATE_CONNECTION_LOST || connectState == IConnectable.STATE_CONNECTION_RECOVERING) {
