@@ -6,6 +6,7 @@
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
+ * Michael Jahn       - [452466] Running multiple agents on localhost
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.locator.nodes;
 
@@ -238,8 +239,9 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 		String loopback = IPAddressUtil.getInstance().getIPv4LoopbackAddress();
 		// Get the canonical address
 		String canonical = IPAddressUtil.getInstance().getIPv4CanonicalAddress();
-		// Get the peer IP
+		// Get the peer IP and port
 		String peerIP = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+		String peerPort = peer.getAttributes().get(IPeer.ATTR_IP_PORT);
 
 		// If the new peer IP is not a local host address, we are done checking
 		if (!IPAddressUtil.getInstance().isLocalHost(peerIP)) return result;
@@ -254,9 +256,11 @@ public class LocatorModel extends PlatformObject implements ILocatorModel {
 			if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(candidate.getTransportName()) || ITransportTypes.TRANSPORT_TYPE_SSL.equals(candidate.getTransportName())) {
 				String ip = candidate.getAttributes().get(IPeer.ATTR_IP_HOST);
 				Assert.isNotNull(ip);
+				String port = candidate.getAttributes().get(IPeer.ATTR_IP_PORT);
+				Assert.isNotNull(port);
 
 				// If the IP is for localhost, we have to do additional checking
-				if (IPAddressUtil.getInstance().isLocalHost(ip)) {
+				if (IPAddressUtil.getInstance().isLocalHost(ip) && port.equals(peerPort)) {
 					// If the IP of the peer already in the model is the loopback address,
 					// ignore all other.
 					if (ip.equals(loopback)) { result = null; break; }
