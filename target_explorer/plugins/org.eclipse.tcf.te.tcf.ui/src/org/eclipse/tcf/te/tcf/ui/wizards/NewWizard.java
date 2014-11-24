@@ -29,6 +29,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -119,7 +120,9 @@ public class NewWizard extends AbstractNewConfigWizard {
 					public void run() {
 						for (Entry<String, String> attribute : peer.getAttributes().entrySet()) {
 							if (sameType || (!finIsPeerNode && isAllowedForeignAttribute(attribute.getKey()))) {
-								data.setProperty(attribute.getKey(), attribute.getValue());
+								if (!attribute.getKey().endsWith("transient")) { //$NON-NLS-1$
+									data.setProperty(attribute.getKey(), attribute.getValue());
+								}
 							}
                         }
 					}
@@ -131,6 +134,9 @@ public class NewWizard extends AbstractNewConfigWizard {
 		boolean autoConnect = autoConnectValue != null ? UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_AUTO_CONNECT+getPeerType()) : true;
 		data.setProperty(IPeerProperties.PROP_AUTO_CONNECT, autoConnect);
 		data.setProperty(IPeerProperties.PROP_TYPE, getPeerType());
+
+		data.setProperty(IPersistableNodeProperties.PROPERTY_URI, null);
+		data.setProperty(IPeer.ATTR_ID, UUID.randomUUID());
 
 		return data;
 	}
