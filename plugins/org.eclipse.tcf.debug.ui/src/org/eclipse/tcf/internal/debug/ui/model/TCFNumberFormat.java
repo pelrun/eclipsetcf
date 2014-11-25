@@ -203,6 +203,12 @@ public class TCFNumberFormat {
 
     public static String toFPString(byte[] data, int offs, int size, boolean big_endian) {
         assert offs + size <= data.length;
+
+        if (size == 12) {
+            // padded 80-bit extended precision on IA32
+            size = 10;
+        }
+
         byte[] arr = new byte[size];
         if (big_endian) {
             System.arraycopy(data, offs, arr, 0, size);
