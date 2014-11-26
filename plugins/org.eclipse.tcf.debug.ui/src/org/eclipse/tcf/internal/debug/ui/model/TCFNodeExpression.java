@@ -874,6 +874,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         case real:
             if (size == 0) return null;
             return "<Float-" + (size * 8) + ">";
+        case complex:
+            if (size == 0) return null;
+            return "<Complex-" + (size / 2 * 8) + ">";
         }
         return null;
     }
@@ -1057,7 +1060,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
     @SuppressWarnings("incomplete-switch")
     private String toNumberString(int radix, ISymbols.TypeClass t, byte[] data, int offs, int size, boolean big_endian) {
-        if (size <= 0 || size > 16) return "";
+        if (size <= 0) return "";
+        if (size > (t == ISymbols.TypeClass.complex ? 32: 16)) return "";
         if (radix != 16) {
             switch (t) {
             case array:
@@ -1089,6 +1093,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 return TCFNumberFormat.toBigInteger(data, offs, size, big_endian, true).toString();
             case real:
                 return TCFNumberFormat.toFPString(data, offs, size, big_endian);
+            case complex:
+                return TCFNumberFormat.toComplexFPString(data, offs, size, big_endian);
             }
         }
         String s = TCFNumberFormat.toBigInteger(data, offs, size, big_endian, false).toString(radix);
@@ -1573,7 +1579,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 bf.append(s);
                 bf.append('\n');
             }
-            else if (type_class == ISymbols.TypeClass.integer || type_class == ISymbols.TypeClass.real) {
+            else if (type_class == ISymbols.TypeClass.integer ||
+                    type_class == ISymbols.TypeClass.real ||
+                    type_class == ISymbols.TypeClass.complex) {
                 bf.append(toNumberString(10, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
             }
             else {
@@ -1601,6 +1609,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             case integer:
             case cardinal:
             case real:
+            case complex:
                 if (level == 0) {
                     assert offs == 0 && size == data.length && data_node == this;
                     if (!appendNumericValueText(bf, type_class, data, big_endian, done)) return false;

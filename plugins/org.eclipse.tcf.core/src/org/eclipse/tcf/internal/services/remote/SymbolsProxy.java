@@ -129,6 +129,7 @@ public class SymbolsProxy implements ISymbols {
                 case 7: return TypeClass.enumeration;
                 case 8: return TypeClass.function;
                 case 9: return TypeClass.member_pointer;
+                case 10: return TypeClass.complex;
                 }
             }
             return TypeClass.unknown;

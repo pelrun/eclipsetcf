@@ -304,6 +304,23 @@ public class TCFNumberFormat {
         return s;
     }
 
+    public static String toComplexFPString(byte[] data, boolean big_endian) {
+        return toComplexFPString(data, 0, data.length, big_endian);
+    }
+
+    public static String toComplexFPString(byte[] data, int offs, int size, boolean big_endian) {
+        int fp_size = size / 2;
+        StringBuffer bf = new StringBuffer();
+        bf.append(toFPString(data, offs, fp_size, big_endian));
+        String i = toFPString(data, offs + fp_size, fp_size, big_endian);
+        if (!i.equals("0")) {
+            if (!i.startsWith("-")) bf.append('+');
+            bf.append(i);
+            bf.append('i');
+        }
+        return bf.toString();
+    }
+
     public static BigInteger toBigInteger(byte[] data, boolean big_endian, boolean sign_extension) {
         return toBigInteger(data, 0, data.length, big_endian, sign_extension);
     }

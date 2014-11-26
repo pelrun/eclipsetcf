@@ -177,6 +177,8 @@ public class TCFDebugTextHover extends AbstractDebugTextHover implements ITextHo
             return TCFNumberFormat.toBigInteger(data, value.isBigEndian(), true).toString();
         case real:
             return TCFNumberFormat.toFPString(data, value.isBigEndian());
+        case complex:
+            return TCFNumberFormat.toComplexFPString(data, value.isBigEndian());
         default:
             return "0x" + TCFNumberFormat.toBigInteger(data, value.isBigEndian(), false).toString(16);
         }

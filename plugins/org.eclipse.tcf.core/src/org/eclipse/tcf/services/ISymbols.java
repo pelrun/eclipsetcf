@@ -50,7 +50,8 @@ public interface ISymbols extends IService {
         composite,              // struct, union, or class.
         enumeration,            // enumeration type.
         function,               // function type.
-        member_pointer          // pointer to member type
+        member_pointer,         // pointer to member type
+        complex                 // complex float
     }
 
     static final int
