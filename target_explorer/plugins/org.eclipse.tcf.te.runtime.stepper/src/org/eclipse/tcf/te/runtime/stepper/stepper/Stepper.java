@@ -45,6 +45,7 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepGroupable;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepper;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.runtime.stepper.nls.Messages;
+import org.eclipse.tcf.te.runtime.utils.ProgressHelper;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 
 /**
@@ -311,9 +312,7 @@ public class Stepper implements IStepper {
 	@Override
 	public void cleanup() {
 		// Set the progress monitor done here in any case
-		if (getMonitor() != null) {
-			getMonitor().done();
-		}
+		ProgressHelper.done(getMonitor());
 
 		// Reset the initial stepper attributes
 		context = null;
@@ -439,7 +438,7 @@ public class Stepper implements IStepper {
 		}
 
 		// Initialize the progress monitor
-		getMonitor().beginTask(stepGroup.getLabel(), calculateTotalWork(stepGroup));
+		ProgressHelper.beginTask(getMonitor(), stepGroup.getLabel(), calculateTotalWork(stepGroup));
 
 		IFullQualifiedId fullQualifiedId = getFullQualifiedId().createChildId(ID_TYPE_STEPPER_ID, getId(), null);
 		fullQualifiedId = fullQualifiedId.createChildId(ID_TYPE_STEP_GROUP_ID, stepGroup.getId(), null);
@@ -467,7 +466,7 @@ public class Stepper implements IStepper {
 		Assert.isNotNull(fullQualifiedGroupId);
 
 		// Return immediately if the user canceled the monitor in the meanwhile
-		if (isCancelable() && getMonitor().isCanceled()) {
+		if (isCancelable() && ProgressHelper.isCanceled(getMonitor())) {
 			rollback(executedSteps, Status.CANCEL_STATUS, getMonitor());
 			throw new CoreException(StatusHelper.getStatus(new OperationCanceledException()));
 		}
@@ -523,7 +522,7 @@ public class Stepper implements IStepper {
 		Assert.isNotNull(fullQualifiedParentId);
 
 		// Return immediately if the user canceled the monitor in the meanwhile
-		if (isCancelable() && getMonitor() != null && getMonitor().isCanceled()) {
+		if (isCancelable() && ProgressHelper.isCanceled(getMonitor())) {
 			rollback(executedSteps, Status.CANCEL_STATUS, getMonitor());
 			throw new CoreException(StatusHelper.getStatus(new OperationCanceledException()));
 		}
@@ -752,9 +751,7 @@ public class Stepper implements IStepper {
 		else if (status.getSeverity() == IStatus.CANCEL) {
 			// CANCEL -> Check monitor to be canceled.
 			if (isCancelable()) {
-				if (getMonitor() != null && !getMonitor().isCanceled()) {
-					getMonitor().setCanceled(true);
-				}
+				ProgressHelper.cancel(getMonitor());
 			}
 		}
 		else if (status.getSeverity() == IStatus.WARNING || status.getSeverity() == IStatus.INFO) {

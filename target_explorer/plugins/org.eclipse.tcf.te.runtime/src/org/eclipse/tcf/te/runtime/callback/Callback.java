@@ -209,12 +209,12 @@ public class Callback extends PropertiesContainer implements ICallback {
 		if (isDone()) {
 			if (getProperty(PROPERTY_PROGRESS_MONITOR) instanceof IProgressMonitor) {
 				IProgressMonitor progress = ((IProgressMonitor) getProperty(PROPERTY_PROGRESS_MONITOR));
-				if (!progress.isCanceled() && getStatus().getSeverity() != IStatus.CANCEL) {
+				if (!ProgressHelper.isCanceled(progress) && getStatus().getSeverity() != IStatus.CANCEL) {
 					int ticks = getIntProperty(PROPERTY_PROGRESS_TICKS);
 					if (ticks > 0) {
-						progress.worked(ticks);
+						ProgressHelper.worked(progress, ticks);
 					} else if (ticks == ProgressHelper.PROGRESS_DONE) {
-						progress.done();
+						ProgressHelper.done(progress);
 					}
 				}
 			}
