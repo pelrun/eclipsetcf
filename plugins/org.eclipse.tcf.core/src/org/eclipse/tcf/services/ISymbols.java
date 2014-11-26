@@ -82,7 +82,7 @@ public interface ISymbols extends IService {
         SYM_FLAG_INHERITANCE    = 0x02000000,
         SYM_FLAG_BOOL_TYPE      = 0x04000000,
         SYM_FLAG_INDIRECT       = 0x08000000,
-        SYM_FLAG_LVALUE         = 0x10000000;
+        SYM_FLAG_RVALUE         = 0x10000000;
 
     /**
      * Symbol context interface.
