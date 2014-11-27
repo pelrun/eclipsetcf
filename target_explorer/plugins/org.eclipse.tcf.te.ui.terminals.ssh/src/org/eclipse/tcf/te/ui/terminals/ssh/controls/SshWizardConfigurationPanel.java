@@ -50,10 +50,12 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 @SuppressWarnings("restriction")
 public class SshWizardConfigurationPanel extends AbstractConfigurationPanel implements IDataExchangeNode {
 
+	private static final String SAVE_USER = "saveUser"; //$NON-NLS-1$
 	private static final String SAVE_PASSWORD = "savePassword"; //$NON-NLS-1$
 
     private SshSettings sshSettings;
 	private ISettingsPage sshSettingsPage;
+	private Button userButton;
 	private Button passwordButton;
 
 	/**
@@ -103,8 +105,8 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		// Create the encoding selection combo
 		createEncodingUI(panel, true);
 
-		// if password for host should be saved or no
-		createPasswordUI(panel, true);
+		// if user and password for host should be saved or not
+		createSaveButtonsUI(panel, true);
 
 		setControl(panel);
 	}
@@ -159,8 +161,8 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 			Object element = ((IStructuredSelection) selection).getFirstElement();
 			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
 			if (service != null) {
-				Object user = service.getProperty(element, IPropertiesAccessServiceConstants.PROP_USER);
-				if (user instanceof String) return (String) user;
+				Object user = service.getProperty(element, IPropertiesAccessServiceConstants.PROP_DEFAULT_USER);
+				if (user instanceof String) return ((String) user).trim();
 			}
 		}
 
@@ -192,7 +194,8 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#fillSettingsForHost(java.lang.String)
 	 */
 	@Override
-	protected void fillSettingsForHost(String host){
+	protected void fillSettingsForHost(String host) {
+		boolean saveUser = true;
 		boolean savePassword = false;
 		if (host != null && host.length() != 0){
 			if (hostSettingsMap.containsKey(host)){
@@ -225,15 +228,20 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				}
 
 				String encoding = hostSettings.get(ITerminalsConnectorConstants.PROP_ENCODING);
-				if (encoding == null || "null".equals(encoding)) encoding = "ISO-8859-1"; //$NON-NLS-1$ //$NON-NLS-2$
+				if (encoding == null || "null".equals(encoding)) { //$NON-NLS-1$
+					String defaultEncoding = getSelectionEncoding();
+					encoding = defaultEncoding != null && !"".equals(defaultEncoding.trim()) ? defaultEncoding.trim() : "ISO-8859-1"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
 				setEncoding(encoding);
 			} else {
 				sshSettings.setHost(getSelectionHost());
 				sshSettings.setUser(getDefaultUser());
+				saveUser = true;
 				savePassword = false;
 			}
 			// set settings in page
 			sshSettingsPage.loadSettings();
+			userButton.setSelection(saveUser);
 			passwordButton.setSelection(savePassword);
 		}
 	}
@@ -251,7 +259,8 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#saveSettingsForHost(boolean)
 	 */
 	@Override
-	protected void saveSettingsForHost(boolean add){
+	protected void saveSettingsForHost(boolean add) {
+		boolean saveUser = userButton.getSelection();
 		boolean savePassword = passwordButton.getSelection();
 		String host = getHostFromSettings();
 		if (host != null && host.length() != 0) {
@@ -261,8 +270,27 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(sshSettings.getPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(sshSettings.getTimeout()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, Integer.toString(sshSettings.getKeepalive()));
-				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
-				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				if (saveUser) {
+					String defaultUser = getDefaultUser();
+					if (defaultUser == null || !defaultUser.equals(sshSettings.getUser())) {
+						hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
+					} else {
+						hostSettings.remove(ITerminalsConnectorConstants.PROP_SSH_USER);
+					}
+				}
+				else {
+					hostSettings.remove(ITerminalsConnectorConstants.PROP_SSH_USER);
+				}
+
+				String encoding = getEncoding();
+				if (encoding != null) {
+					String defaultEncoding = getSelectionEncoding();
+					if (defaultEncoding != null && defaultEncoding.trim().equals(encoding)) {
+						encoding = null;
+					}
+				}
+				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, encoding);
+				hostSettings.put(SAVE_USER, Boolean.toString(saveUser));
 				hostSettings.put(SAVE_PASSWORD, Boolean.toString(savePassword));
 
 				if (savePassword && sshSettings.getPassword() != null && sshSettings.getPassword().length() != 0){
@@ -270,17 +298,21 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 				}
 
 				// maybe unchecked the password button - so try to remove a saved password - if any
-				if (!savePassword){
-					removeSecurePassword(host);
-				}
+				if (!savePassword) removeSecurePassword(host);
 			} else if (add) {
 				Map<String, String> hostSettings = new HashMap<String, String>();
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_HOST, sshSettings.getHost());
 				hostSettings.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.toString(sshSettings.getPort()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.toString(sshSettings.getTimeout()));
 				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, Integer.toString(sshSettings.getKeepalive()));
-				hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
+				if (saveUser) {
+					String defaultUser = getDefaultUser();
+					if (defaultUser == null || !defaultUser.equals(sshSettings.getUser())) {
+						hostSettings.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
+					}
+				}
 				hostSettings.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+				hostSettings.put(SAVE_USER, Boolean.toString(saveUser));
 				hostSettings.put(SAVE_PASSWORD, Boolean.toString(savePassword));
 				hostSettingsMap.put(host, hostSettings);
 
@@ -380,7 +412,7 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	    return sshSettings.getHost();
     }
 
-	private void createPasswordUI(final Composite parent, boolean separator) {
+	private void createSaveButtonsUI(final Composite parent, boolean separator) {
 		Assert.isNotNull(parent);
 
 		if (separator) {
@@ -389,14 +421,18 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		}
 
 		Composite panel = new Composite(parent, SWT.NONE);
-		GridLayout layout = new GridLayout(1, false);
+		GridLayout layout = new GridLayout(2, false);
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		panel.setLayout(layout);
 		panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
+		userButton = new Button(panel, SWT.CHECK);
+		userButton.setLayoutData(new GridData(SWT.LEAD, SWT.CENTER, false, false));
+		userButton.setText(Messages.SshWizardConfigurationPanel_saveUser);
+
 		passwordButton = new Button(panel, SWT.CHECK);
-		passwordButton.setLayoutData(new GridData(SWT.FILL, SWT.RIGHT, true, false));
-		passwordButton.setText(Messages.SshWizardConfigurationPanel_savePasword);
+		passwordButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		passwordButton.setText(Messages.SshWizardConfigurationPanel_savePassword);
 	}
 }

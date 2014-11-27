@@ -121,6 +121,25 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		return null;
 	}
 
+	/**
+	 * Returns the default encoding based on the current selection.
+	 *
+	 * @return The default encoding or <code>null</code>.
+	 */
+	public String getSelectionEncoding() {
+		ISelection selection = getSelection();
+		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			Object element = ((IStructuredSelection) selection).getFirstElement();
+			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
+			if (service != null) {
+				Object encoding = service.getProperty(element, IPropertiesAccessServiceConstants.PROP_DEFAULT_ENCODING);
+				if (encoding instanceof String) return ((String) encoding).trim();
+			}
+		}
+
+		return null;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel#doRestoreWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
 	 */
@@ -508,6 +527,12 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		});
 
 		fillEncodingCombo();
+
+		// Apply any default encoding derived from the current selection
+		String defaultEncoding = getSelectionEncoding();
+		if (defaultEncoding != null && !"".equals(defaultEncoding)) { //$NON-NLS-1$
+			setEncoding(defaultEncoding);
+		}
 	}
 
 	/**

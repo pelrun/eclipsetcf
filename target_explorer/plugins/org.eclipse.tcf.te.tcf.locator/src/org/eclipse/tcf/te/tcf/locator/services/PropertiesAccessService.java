@@ -88,7 +88,7 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 	 */
 	@Override
 	public Object getProperty(Object context, String key) {
-	    return super.getProperty(context, IPropertiesAccessServiceConstants.PROP_USER.equals(key) ? IPeer.ATTR_USER_NAME : key);
+	    return super.getProperty(context, IPropertiesAccessServiceConstants.PROP_DEFAULT_USER.equals(key) ? IPeer.ATTR_USER_NAME : key);
 	}
 
 	/* (non-Javadoc)
@@ -96,7 +96,7 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 	 */
 	@Override
 	public boolean setProperty(Object context, String key, Object value) {
-	    return super.setProperty(context, IPropertiesAccessServiceConstants.PROP_USER.equals(key) ? IPeer.ATTR_USER_NAME : key, value);
+	    return super.setProperty(context, IPropertiesAccessServiceConstants.PROP_DEFAULT_USER.equals(key) ? IPeer.ATTR_USER_NAME : key, value);
 	}
 
 	/* (non-Javadoc)
@@ -104,6 +104,6 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 	 */
 	@Override
 	public boolean isProperty(Object context, String key, Object value) {
-	    return super.isProperty(context, IPropertiesAccessServiceConstants.PROP_USER.equals(key) ? IPeer.ATTR_USER_NAME : key, value);
+	    return super.isProperty(context, IPropertiesAccessServiceConstants.PROP_DEFAULT_USER.equals(key) ? IPeer.ATTR_USER_NAME : key, value);
 	}
 }

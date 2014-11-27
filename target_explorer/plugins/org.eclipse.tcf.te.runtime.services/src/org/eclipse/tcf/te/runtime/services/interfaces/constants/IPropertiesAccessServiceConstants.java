@@ -54,7 +54,12 @@ public interface IPropertiesAccessServiceConstants {
 	public static String PROP_PROXIES = "proxies"; //$NON-NLS-1$
 
 	/**
-	 * The user name to use to log into the target.
+	 * The default user name to use to log into the target.
 	 */
-	public static String PROP_USER = "user"; //$NON-NLS-1$
+	public static String PROP_DEFAULT_USER = "defaultUser"; //$NON-NLS-1$
+
+	/**
+	 * The default encoding to use.
+	 */
+	public static String PROP_DEFAULT_ENCODING = "defaultEncoding"; //$NON-NLS-1$
 }
