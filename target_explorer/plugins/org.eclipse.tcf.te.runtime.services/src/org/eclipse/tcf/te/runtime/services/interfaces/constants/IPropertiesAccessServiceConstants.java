@@ -52,4 +52,9 @@ public interface IPropertiesAccessServiceConstants {
 	 * Proxies to connect the target through.
 	 */
 	public static String PROP_PROXIES = "proxies"; //$NON-NLS-1$
+
+	/**
+	 * The user name to use to log into the target.
+	 */
+	public static String PROP_USER = "user"; //$NON-NLS-1$
 }

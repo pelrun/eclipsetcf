@@ -82,4 +82,28 @@ public class PropertiesAccessService extends org.eclipse.tcf.te.tcf.core.model.s
 
 		return !result.isEmpty() ? Collections.unmodifiableMap(result) : null;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.model.services.PropertiesAccessService#getProperty(java.lang.Object, java.lang.String)
+	 */
+	@Override
+	public Object getProperty(Object context, String key) {
+	    return super.getProperty(context, IPropertiesAccessServiceConstants.PROP_USER.equals(key) ? IPeer.ATTR_USER_NAME : key);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.model.services.PropertiesAccessService#setProperty(java.lang.Object, java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public boolean setProperty(Object context, String key, Object value) {
+	    return super.setProperty(context, IPropertiesAccessServiceConstants.PROP_USER.equals(key) ? IPeer.ATTR_USER_NAME : key, value);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.model.services.PropertiesAccessService#isProperty(java.lang.Object, java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public boolean isProperty(Object context, String key, Object value) {
+	    return super.isProperty(context, IPropertiesAccessServiceConstants.PROP_USER.equals(key) ? IPeer.ATTR_USER_NAME : key, value);
+	}
 }

@@ -18,6 +18,8 @@ import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
@@ -27,6 +29,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
+import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
@@ -148,7 +153,17 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	 *
 	 * @return The default user name.
 	 */
-	private String getDefaultUser(){
+	private String getDefaultUser() {
+		ISelection selection = getSelection();
+		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			Object element = ((IStructuredSelection) selection).getFirstElement();
+			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
+			if (service != null) {
+				Object user = service.getProperty(element, IPropertiesAccessServiceConstants.PROP_USER);
+				if (user instanceof String) return (String) user;
+			}
+		}
+
 		return System.getProperty("user.name"); //$NON-NLS-1$
 	}
 
