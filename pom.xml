@@ -76,6 +76,7 @@
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.local</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.process</module>
+        <module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.rse</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.serial</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.ssh</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.terminals.telnet</module>
@@ -87,10 +88,12 @@
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.core.sdk.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.sdk.feature</module>
-        <module>target_explorer/features/org.eclipse.tcf.te.terminals.feature</module>
-        <module>target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature</module>
+        <module>target_explorer/features/org.eclipse.tcf.te.terminals.feature</module>
+        <module>target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature</module>
+        <module>target_explorer/features/org.eclipse.tcf.te.terminals.rse.feature</module>
+        <module>target_explorer/features/org.eclipse.tcf.te.terminals.rse.sdk.feature</module>
       
         <module>features/org.eclipse.tcf.repo</module>
     </modules>

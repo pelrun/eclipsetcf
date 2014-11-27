@@ -54,6 +54,12 @@
    <feature url="features/org.eclipse.tcf.te.terminals.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.terminals.sdk.feature" version="0.0.0">
       <category name="org.eclipse.tcf.te.terminals"/>
    </feature>
+   <feature url="features/org.eclipse.tcf.te.terminals.rse.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.terminals.rse.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te.terminals"/>
+   </feature>
+   <feature url="features/org.eclipse.tcf.te.terminals.rse.sdk.feature_0.0.0.qualifier.jar" id="org.eclipse.tcf.te.terminals.rse.sdk.feature" version="0.0.0">
+      <category name="org.eclipse.tcf.te.terminals"/>
+   </feature>
    <bundle id="com.google.gson" version="2.2.4.v201311231704">
       <category name="org.eclipse.tcf.te"/>
    </bundle>
