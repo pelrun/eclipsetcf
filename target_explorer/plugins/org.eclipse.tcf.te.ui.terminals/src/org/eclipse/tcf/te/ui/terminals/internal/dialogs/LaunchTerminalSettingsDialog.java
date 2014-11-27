@@ -341,7 +341,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     		}
 
     		for (ILauncherDelegate delegate : delegates) {
-    			if (delegate.isHidden()) continue;
+    			if (delegate.isHidden() || isFiltered(selection, delegate)) continue;
     			String label = delegate.getLabel();
     			if (label == null || "".equals(label.trim())) label = delegate.getId(); //$NON-NLS-1$
     			label2delegate.put(label, delegate);
@@ -361,7 +361,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     		}
 
     		for (ILauncherDelegate delegate : delegates) {
-    			if (delegate.isHidden()) continue;
+    			if (delegate.isHidden() || isFiltered(selection, delegate)) continue;
     			String label = delegate.getLabel();
     			if (label == null || "".equals(label.trim())) label = delegate.getId(); //$NON-NLS-1$
     			label2delegate.put(label, delegate);
@@ -370,6 +370,20 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     	}
     	Collections.sort(items);
     	combo.setItems(items.toArray(new String[items.size()]));
+    }
+
+    /**
+     * Hook to allow additional filtering of the applicable launcher delegates.
+     * <p>
+     * <b>Note:</b> The default implementation always returns <code>false</code>.
+     *
+     * @param selection The selection or <code>null</code>.
+     * @param delegate The launcher delegate. Must not be <code>null</code>.
+     *
+     * @return <code>True</code> if the launcher delegate is filtered based on the given selection, <code>false</code> otherwise.
+     */
+    protected boolean isFiltered(ISelection selection, ILauncherDelegate delegate) {
+    	return false;
     }
 
     /* (non-Javadoc)
