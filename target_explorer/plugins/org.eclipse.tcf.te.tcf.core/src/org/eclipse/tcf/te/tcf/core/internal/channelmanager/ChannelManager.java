@@ -45,6 +45,8 @@ import org.eclipse.tcf.te.tcf.core.interfaces.steps.ITcfStepAttributes;
 import org.eclipse.tcf.te.tcf.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.ShutdownValueAddStep;
 import org.eclipse.tcf.te.tcf.core.nls.Messages;
+import org.eclipse.tcf.te.tcf.core.va.ValueAddManager;
+import org.eclipse.tcf.te.tcf.core.va.interfaces.IValueAdd;
 
 /**
  * Channel manager implementation.
@@ -648,6 +650,18 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 			// Close the channel
 			internalCloseChannel(channel, null);
 		}
+
+		try {
+			IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
+			if (valueAdds != null) {
+				for (IValueAdd valueAdd : valueAdds) {
+					valueAdd.shutdown(peer.getID(), new Callback());
+				}
+			}
+		}
+		catch (Exception e) {
+		}
+
 	}
 
 	/* (non-Javadoc)
