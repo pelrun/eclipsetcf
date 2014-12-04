@@ -36,7 +36,7 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -127,8 +127,7 @@ public class DeleteHandler extends AbstractHandler {
 				}
 
 				// Check if there is a delete handler delegate for the element
-				IUIService service = ServiceManager.getInstance().getService(element, IUIService.class);
-				IDeleteHandlerDelegate delegate = service != null ? service.getDelegate(element, IDeleteHandlerDelegate.class) : null;
+				IDeleteHandlerDelegate delegate = ServiceUtils.getUIServiceDelegate(element, element, IDeleteHandlerDelegate.class);
 				// If a delegate is available, ask the handler first if the given element is currently deletable
 				if (delegate != null) canDelete = delegate.canDelete(treePath);
 
@@ -181,8 +180,7 @@ public class DeleteHandler extends AbstractHandler {
 				}
 
 				// Check if there is a delete handler delegate for the element
-				IUIService uiService = ServiceManager.getInstance().getService(node, IUIService.class);
-				IDeleteHandlerDelegate delegate = uiService != null ? uiService.getDelegate(node, IDeleteHandlerDelegate.class) : null;
+				IDeleteHandlerDelegate delegate = ServiceUtils.getUIServiceDelegate(node, node, IDeleteHandlerDelegate.class);
 				// If a delegate is available, signal the execution of the remove
 				if (delegate != null) delegate.postDelete(node);
 			}

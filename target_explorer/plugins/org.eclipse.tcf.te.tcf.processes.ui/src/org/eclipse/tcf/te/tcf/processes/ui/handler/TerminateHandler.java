@@ -22,8 +22,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
@@ -80,9 +79,8 @@ public class TerminateHandler extends AbstractHandler implements IElementUpdater
 										model.getService(IModelRefreshService.class).refresh(process, new Callback() {
 											@Override
                                             protected void internalDone(Object caller, IStatus status) {
-												IPeerNode node = process.getParent(IRuntimeModel.class).getPeerNode();
-												IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-												IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
+												IPeerNode peerNode = process.getParent(IRuntimeModel.class).getPeerNode();
+								    			IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(peerNode, peerNode, IProcessMonitorUIDelegate.class);
 												String text = delegate != null ? delegate.getMessage("TerminateHandler_terminateFailed") : null; //$NON-NLS-1$
 												// Build up the message template
 												String template = NLS.bind(text != null ? text : Messages.TerminateHandler_terminateFailed, process.getName(), Messages.PossibleCause);
@@ -113,11 +111,8 @@ public class TerminateHandler extends AbstractHandler implements IElementUpdater
 			IWorkbenchPart part = site.getPart();
 			if (part instanceof IEditorPart) {
 				IEditorInput editorInput = ((IEditorPart)part).getEditorInput();
-				IPeerNode node = editorInput != null ? (IPeerNode) editorInput.getAdapter(IPeerNode.class) : null;
-
-				IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-				IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
-
+				IPeerNode peerNode = editorInput != null ? (IPeerNode) editorInput.getAdapter(IPeerNode.class) : null;
+    			IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(peerNode, peerNode, IProcessMonitorUIDelegate.class);
 				if (delegate != null) {
 					String text = delegate.getMessage("TerminateHandler_updateElement_text"); //$NON-NLS-1$
 					if (text != null) element.setText(text);

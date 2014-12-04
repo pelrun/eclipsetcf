@@ -16,8 +16,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
@@ -39,12 +38,11 @@ public class ProcessSearchable extends CompositeSearchable {
 	 *
 	 * @param node The peer model node context. Must not be <code>null</code>.
 	 */
-	public ProcessSearchable(IPeerNode node) {
+	public ProcessSearchable(IPeerNode peerNode) {
 		super();
 
-		IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
-		ISearchable[] searchables = delegate != null ? delegate.getSearchables(node) : null;
+		IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(peerNode, peerNode, IProcessMonitorUIDelegate.class);
+		ISearchable[] searchables = delegate != null ? delegate.getSearchables(peerNode) : null;
 		if (searchables == null) {
 			searchables = new ISearchable[] { new GeneralSearchable(), new ProcessUserSearchable(), new ProcessStateSearchable() };
 		}

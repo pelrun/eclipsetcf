@@ -20,8 +20,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.views.editor.EditorInput;
@@ -97,9 +96,8 @@ public class OpenEditorHandler extends AbstractHandler {
 				// Get the active page
 				IWorkbenchPage page = window.getActivePage();
 				// Create the editor input object
-				IUIService service = ServiceManager.getInstance().getService(element, IUIService.class);
-				IEditorHandlerDelegate delegate = service != null ? service.getDelegate(element, IEditorHandlerDelegate.class) : null;
-				IEditorInput input = (delegate != null) ? delegate.getEditorInput(element) : new EditorInput(element);
+				IEditorHandlerDelegate delegate = ServiceUtils.getUIServiceDelegate(element, element, IEditorHandlerDelegate.class);
+				IEditorInput input = delegate != null ? delegate.getEditorInput(element) : new EditorInput(element);
 				try {
 					// Opens the Target Explorer properties editor
 					IEditorPart editor = page.openEditor(input, IUIConstants.ID_EDITOR);

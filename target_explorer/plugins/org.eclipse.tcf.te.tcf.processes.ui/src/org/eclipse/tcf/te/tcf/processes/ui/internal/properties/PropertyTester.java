@@ -9,8 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.properties;
 
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 
 
@@ -25,9 +24,7 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
     @Override
     public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
     	// Get the UI delegate for the context (== receiver)
-		IUIService service = ServiceManager.getInstance().getService(receiver, IUIService.class);
-		IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(receiver, IProcessMonitorUIDelegate.class) : null;
-
+		IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(receiver, receiver, IProcessMonitorUIDelegate.class);
 		if ("isColumnActive".equals(property) || "isFilterActive".equals(property)) { //$NON-NLS-1$ //$NON-NLS-2$
 			// If no delegate is registered for the context, the column or filter are treated as active (== no activation expression)
 			if (delegate == null) return true;

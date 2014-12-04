@@ -22,7 +22,6 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.ILocatorNode;
@@ -34,7 +33,6 @@ import org.eclipse.tcf.te.tcf.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.ui.navigator.images.PeerNodeImageDescriptor;
 import org.eclipse.tcf.te.tcf.ui.nls.Messages;
-import org.eclipse.tcf.te.ui.controls.interfaces.ISimulatorServiceUIDelegate;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 import org.eclipse.tcf.te.ui.tables.properties.NodePropertiesTableTableNode;
 import org.eclipse.ui.navigator.IDescriptionProvider;
@@ -118,19 +116,12 @@ public class PeerLabelProviderDelegate extends LabelProvider implements ILabelDe
 			NodePropertiesTableTableNode node = (NodePropertiesTableTableNode)element;
 
 			if ("SimulatorType".equals(node.name)) { //$NON-NLS-1$
-				String type = null;
-
 				ISimulatorService service = ServiceManager.getInstance().getService(node.value, ISimulatorService.class, false);
 				if (service != null) {
-					// Get the UI service which is associated with the simulator service
-					IUIService uiService = ServiceManager.getInstance().getService(service, IUIService.class);
-					// Get the simulator service UI delegate
-					ISimulatorServiceUIDelegate uiDelegate = uiService != null ? uiService.getDelegate(service, ISimulatorServiceUIDelegate.class) : null;
-					// Get the simulator service name
-					type = uiDelegate != null ? uiDelegate.getName() : null;
+					return service.getName();
 				}
 
-				return type != null && !"".equals(type) ? type : node.value; //$NON-NLS-1$
+				return node.value;
 			}
 
 			String key = "PeerLabelProviderDelegate_NodePropertiesTable_" + node.name.trim() + "_" + node.value.replaceAll("\\.", "_"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$

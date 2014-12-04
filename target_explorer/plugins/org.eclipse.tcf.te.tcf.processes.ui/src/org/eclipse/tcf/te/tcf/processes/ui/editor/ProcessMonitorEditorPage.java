@@ -20,8 +20,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
@@ -153,9 +152,8 @@ public class ProcessMonitorEditorPage extends AbstractTreeViewerExplorerEditorPa
 	    	@Override
 	    	protected int getAutoExpandLevel() {
 	    		if (ProcessMonitorEditorPage.this.getEditorInputNode() instanceof IPeerNode) {
-	    			IPeerNode node = (IPeerNode)ProcessMonitorEditorPage.this.getEditorInputNode();
-					IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-					IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
+	    			IPeerNode peerNode = (IPeerNode)ProcessMonitorEditorPage.this.getEditorInputNode();
+	    			IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(peerNode, peerNode, IProcessMonitorUIDelegate.class);
 					if (delegate != null) {
 						return delegate.getAutoExpandLevel();
 					}

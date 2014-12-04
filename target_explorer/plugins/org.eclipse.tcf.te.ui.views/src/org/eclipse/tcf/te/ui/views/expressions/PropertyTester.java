@@ -9,8 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.views.expressions;
 
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.ui.interfaces.handler.IEditorHandlerDelegate;
 import org.eclipse.tcf.te.ui.views.editor.Editor;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBindingExtensionPointManager;
@@ -29,9 +28,8 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
 
 		if ("hasApplicableEditorBindings".equals(property)) { //$NON-NLS-1$
-			IUIService service = ServiceManager.getInstance().getService(receiver, IUIService.class);
-			IEditorHandlerDelegate delegate = service != null ? service.getDelegate(receiver, IEditorHandlerDelegate.class) : null;
-			IEditorInput input = (delegate != null) ? delegate.getEditorInput(receiver) : null;
+			IEditorHandlerDelegate delegate = ServiceUtils.getUIServiceDelegate(receiver, receiver, IEditorHandlerDelegate.class);
+			IEditorInput input = delegate != null ? delegate.getEditorInput(receiver) : null;
 
 			return (expectedValue != null ? expectedValue : Boolean.TRUE).equals(
 							input != null ? Boolean.valueOf(EditorPageBindingExtensionPointManager.getInstance().getApplicableEditorPageBindings(input).length > 0) : Boolean.FALSE);

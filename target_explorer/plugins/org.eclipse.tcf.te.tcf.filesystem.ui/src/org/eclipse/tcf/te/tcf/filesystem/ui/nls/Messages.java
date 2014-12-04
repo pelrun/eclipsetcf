@@ -13,8 +13,7 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.nls;
 import java.lang.reflect.Field;
 
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.filesystem.ui.interfaces.IFileSystemUIDelegate;
 
 /**
@@ -80,8 +79,7 @@ public class Messages extends NLS {
 	 */
 	public static String getStringDelegated(Object context, String key) {
 		if (key != null) {
-			IUIService service = ServiceManager.getInstance().getService(context, IUIService.class);
-			IFileSystemUIDelegate delegate = service != null ? service.getDelegate(context, IFileSystemUIDelegate.class) : null;
+			IFileSystemUIDelegate delegate = ServiceUtils.getUIServiceDelegate(context, context, IFileSystemUIDelegate.class);
 			return delegate != null ? delegate.getMessage(key) : null;
 		}
 

@@ -20,8 +20,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -85,11 +84,8 @@ public class RefreshProcessListHandler extends AbstractHandler implements IEleme
 			IWorkbenchPart part = site.getPart();
 			if (part instanceof IEditorPart) {
 				IEditorInput editorInput = ((IEditorPart)part).getEditorInput();
-				IPeerNode node = editorInput != null ? (IPeerNode) editorInput.getAdapter(IPeerNode.class) : null;
-
-				IUIService service = ServiceManager.getInstance().getService(node, IUIService.class);
-				IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(node, IProcessMonitorUIDelegate.class) : null;
-
+				IPeerNode peerNode = editorInput != null ? (IPeerNode) editorInput.getAdapter(IPeerNode.class) : null;
+    			IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(peerNode, peerNode, IProcessMonitorUIDelegate.class);
 				if (delegate != null) {
 					String text = delegate.getMessage("RefreshProcessListHandler_updateElement_text"); //$NON-NLS-1$
 					if (text != null) element.setText(text);

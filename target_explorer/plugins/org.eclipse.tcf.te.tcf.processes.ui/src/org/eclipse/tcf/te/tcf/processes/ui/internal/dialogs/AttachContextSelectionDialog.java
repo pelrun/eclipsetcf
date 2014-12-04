@@ -51,8 +51,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.core.interfaces.IContextDataProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.utils.PeerNodeDataHelper;
@@ -219,8 +218,7 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 					String id = pid.get() >= 0 ? Long.toString(pid.get()) : ""; //$NON-NLS-1$
 					if (id.startsWith("P")) id = id.substring(1); //$NON-NLS-1$
 					IPeerNode peerNode = (IPeerNode)((IProcessContextNode)element).getAdapter(IPeerNode.class);
-					IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
-					IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerNode, IProcessMonitorUIDelegate.class) : null;
+	    			IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(peerNode, peerNode, IProcessMonitorUIDelegate.class);
 					String newId = delegate != null ? delegate.getText(element, "PID", id) : null; //$NON-NLS-1$
 					if (newId != null) {
 						text = NLS.bind(Messages.AttachContextSelectionDialog_pid_decoration, text, newId);

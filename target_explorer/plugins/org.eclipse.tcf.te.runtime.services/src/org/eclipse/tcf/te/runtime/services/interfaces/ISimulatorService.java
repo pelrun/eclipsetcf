@@ -35,6 +35,11 @@ public interface ISimulatorService extends IService {
 	public enum State { Stopped, Starting, Started, Stopping }
 
 	/**
+	 * Get the name of the simulator.
+	 */
+	public String getName();
+
+	/**
 	 * Starts the simulator.
 	 *
 	 * @param context The context. Must not be <code>null</code>.

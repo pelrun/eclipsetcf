@@ -32,8 +32,7 @@ import org.eclipse.tcf.te.core.utils.ConnectStateHelper;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.persistence.utils.DataHelper;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.utils.CommonUtils;
@@ -109,8 +108,7 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 				});
 			}
 
-			IUIService service = ServiceManager.getInstance().getService(inputElement, IUIService.class);
-			INodePropertiesTableUIDelegate delegate = service != null ? service.getDelegate(inputElement, INodePropertiesTableUIDelegate.class) : null;
+			INodePropertiesTableUIDelegate delegate = ServiceUtils.getUIServiceDelegate(inputElement, inputElement, INodePropertiesTableUIDelegate.class);
 			List<NodePropertiesTableTableNode> nodes = new ArrayList<NodePropertiesTableTableNode>();
 			for (Entry<String, Object> entry : properties.entrySet()) {
 				String name = entry.getKey();
@@ -129,7 +127,7 @@ public class PeerNodePropertiesSectionContentProvider implements IStructuredCont
 			if (delegate != null) delegate.expandNodesAfterSort(inputElement, nodes);
 
 
-			ILabelProvider provider = service != null ? service.getDelegate(inputElement, ILabelProvider.class) : null;
+			ILabelProvider provider = ServiceUtils.getUIServiceDelegate(inputElement, inputElement, ILabelProvider.class);
 			List<NodePropertiesTableTableNode> result = new ArrayList<NodePropertiesTableTableNode>();
 			for (NodePropertiesTableTableNode node : nodes) {
 				// Possible replacement for the node properties table table node value

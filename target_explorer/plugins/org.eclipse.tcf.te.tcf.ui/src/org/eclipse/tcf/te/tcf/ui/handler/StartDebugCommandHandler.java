@@ -20,9 +20,8 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.runtime.services.interfaces.IDebugService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.steps.StartDebuggerStep.IDelegate;
 
@@ -45,16 +44,9 @@ public class StartDebugCommandHandler extends AbstractPeerNodeCommandHandler {
 					@Override
 	                protected void internalDone(Object caller, IStatus status) {
 						// Check if there is a delegate registered
-						IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
-						for (IService s : services) {
-							if (s instanceof IDelegateService) {
-								IDelegateService service = (IDelegateService) s;
-								IDelegate delegate = service.getDelegate(peerNode, IDelegate.class);
-								if (delegate != null) {
-									delegate.postAttachDebugger(peerNode, monitor, new Callback());
-									break;
-								}
-							}
+						IDelegate delegate = ServiceUtils.getDelegateServiceDelegate(peerNode, peerNode, IDelegate.class);
+						if (delegate != null) {
+							delegate.postAttachDebugger(peerNode, monitor, new Callback());
 						}
 					}
 				});

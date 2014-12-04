@@ -23,6 +23,7 @@ public interface ISimulatorServiceUIDelegate {
 	public static final String PROP_MODES = "Modes"; //$NON-NLS-1$
 	public static final String PROP_MODE_LABEL_X = "ModeLabel"; //$NON-NLS-1$
 	public static final String PROP_MODE_DESCRIPTION_X = "ModeDescription"; //$NON-NLS-1$
+	public static final String PROP_BSPS = "BSPs"; //$NON-NLS-1$
 
 	/**
 	 * Get the simulator service the UI delegate is associated with.
@@ -39,6 +40,10 @@ public interface ISimulatorServiceUIDelegate {
 	 */
 	public String getName();
 
+	/**
+	 * Get the image for the simulator service.
+	 * @return The simulator image.
+	 */
 	public Image getImage();
 
 	/**
@@ -58,5 +63,12 @@ public interface ISimulatorServiceUIDelegate {
 	 */
 	public IPropertiesContainer getProperties(Object context, String config);
 
+	/**
+	 * Get the configuration panel for the given context and mode.
+	 * @param context The context to configure.
+	 * @param parentControl The parent control.
+	 * @param mode The connection mode.
+	 * @return
+	 */
 	public IWizardConfigurationPanel getConfigPanel(Object context, BaseWizardConfigurationPanelControl parentControl, String mode);
 }

@@ -13,8 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
@@ -56,9 +55,7 @@ public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 			if (id.startsWith("P")) id = id.substring(1); //$NON-NLS-1$
 
 			IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
-			IUIService service = peerNode != null ? ServiceManager.getInstance().getService(peerNode, IUIService.class) : null;
-			IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(peerNode, IProcessMonitorUIDelegate.class) : null;
-
+			IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(peerNode, peerNode, IProcessMonitorUIDelegate.class);
 			String newId = delegate != null ? delegate.getText(element, "PID", id) : null; //$NON-NLS-1$
 			return newId != null ? newId : id;
 		}

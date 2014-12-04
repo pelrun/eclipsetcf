@@ -10,8 +10,7 @@
 package org.eclipse.tcf.te.tcf.processes.ui.nls;
 
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IUIService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
 
 /**
@@ -43,8 +42,7 @@ public class Messages extends NLS {
 	 */
 	public static String getStringDelegated(Object context, String key) {
 		if (key != null) {
-			IUIService service = ServiceManager.getInstance().getService(context, IUIService.class);
-			IProcessMonitorUIDelegate delegate = service != null ? service.getDelegate(context, IProcessMonitorUIDelegate.class) : null;
+			IProcessMonitorUIDelegate delegate = ServiceUtils.getUIServiceDelegate(context, context, IProcessMonitorUIDelegate.class);
 			return delegate != null ? delegate.getMessage(key) : null;
 		}
 

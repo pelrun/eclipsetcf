@@ -29,8 +29,7 @@ import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
-import org.eclipse.tcf.te.runtime.services.interfaces.IService;
+import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPeerProperties;
 import org.eclipse.tcf.te.tcf.core.peers.Peer;
@@ -216,12 +215,7 @@ public class PeerModelRefreshService extends AbstractPeerModelService implements
 							}
 							// Construct the peer from the attributes
 							IPeer peer = new Peer(attrs);
-
-							IPeerModelMigrationDelegate delegate = null;
-							for (IService delegateService : ServiceManager.getInstance().getServices(peer, IDelegateService.class, false)) {
-								delegate = ((IDelegateService)delegateService).getDelegate(peer, IPeerModelMigrationDelegate.class);
-								if (delegate != null) break;
-                            }
+							IPeerModelMigrationDelegate delegate = ServiceUtils.getDelegateServiceDelegate(peer, peer, IPeerModelMigrationDelegate.class);
 							if (delegate != null) {
 								Version activeVersion = delegate.getVersion();
 								String version = attrs.get(IPeerProperties.PROP_VERSION);
