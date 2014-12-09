@@ -90,7 +90,10 @@ public abstract class AbstractTreeViewerExplorerEditorPage extends AbstractCusto
 			treeControl.getViewer().removeSelectionChangedListener(scListener);
 			if (treeControl.getViewer() instanceof TreeViewer) {
 				((TreeViewer)treeControl.getViewer()).removeDoubleClickListener(this);
-				((TreeViewer)treeControl.getViewer()).getTree().removeFocusListener(fListener);
+				Tree tree = ((TreeViewer)treeControl.getViewer()).getTree();
+				if (tree != null && !tree.isDisposed()) {
+					tree.removeFocusListener(fListener);
+				}
 			}
 		}
 		if (treeControl != null) { treeControl.dispose(); treeControl = null; }
