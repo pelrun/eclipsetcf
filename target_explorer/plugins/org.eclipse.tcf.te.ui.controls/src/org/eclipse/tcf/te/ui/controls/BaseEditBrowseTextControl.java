@@ -1469,6 +1469,22 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		if (isInitializing) {
 			return true;
 		}
+		boolean valid = internalIsValid();
+
+		if (getControlDecoration() != null) {
+			// Setup and show the control decoration if necessary
+			if (isEnabled() && (!valid || (getMessage() != null && getMessageType() != IMessageProvider.NONE))) {
+				// Update the control decorator
+				updateControlDecoration(getMessage(), getMessageType());
+			} else {
+				updateControlDecoration(null, IMessageProvider.NONE);
+			}
+		}
+
+		return valid;
+	}
+
+	protected boolean internalIsValid() {
 		boolean valid = super.isValid();
 
 		if (getEditFieldValidator() != null &&
@@ -1480,16 +1496,6 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 
 			valid = getEditFieldValidator().isValid(getEditFieldControlTextForValidation());
 			setMessage(getEditFieldValidator().getMessage(), getEditFieldValidator().getMessageType());
-		}
-
-		if (getControlDecoration() != null) {
-			// Setup and show the control decoration if necessary
-			if (isEnabled() && (!valid || (getMessage() != null && getMessageType() != IMessageProvider.NONE))) {
-				// Update the control decorator
-				updateControlDecoration(getMessage(), getMessageType());
-			} else {
-				updateControlDecoration(null, IMessageProvider.NONE);
-			}
 		}
 
 		return valid;

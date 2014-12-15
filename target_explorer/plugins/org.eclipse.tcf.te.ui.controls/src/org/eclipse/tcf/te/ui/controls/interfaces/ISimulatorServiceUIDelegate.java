@@ -9,9 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.controls.interfaces;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.ISimulatorService;
+import org.eclipse.tcf.te.ui.controls.BaseControl;
 import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
 
 /**
@@ -71,4 +74,27 @@ public interface ISimulatorServiceUIDelegate {
 	 * @return
 	 */
 	public IWizardConfigurationPanel getConfigPanel(Object context, BaseWizardConfigurationPanelControl parentControl, String mode);
+
+	/**
+	 * Check if a project can be used to get the kernel image.
+	 * @param project The project to check.
+	 * @return
+	 */
+	public boolean isValidProjectForKernelImage(IProject project);
+
+	/**
+	 * Check if a projects build target path is a valid kernel image.
+	 * @param path The path to check.
+	 * @return
+	 */
+	public boolean isValidBuildTargetPathForKernelImage(IPath path);
+
+	/**
+	 * Do additional validation for a given valid kernel image path.
+	 * I.e. check for further needed files and set message to the messageProvider
+	 * @param path
+	 * @param messageProvider
+	 * @return
+	 */
+	public boolean validateKernelImage(IPath path, BaseControl messageProvider);
 }
