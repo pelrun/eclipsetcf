@@ -503,7 +503,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		}
 
 		// If a console should be associated, a streams listener needs to be created
-		if (properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE)
+		if (streamsProxy != null
+						|| properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE)
 						|| properties.getStringProperty(IProcessLauncher.PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE) != null) {
 			// Create the streams listener
 			streamsListener = createStreamsListener();
@@ -576,68 +577,63 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			}
 		}, new CallbackInvocationDelegate());
 
-		// The streams got subscribed, check if we shall attach the console
-		if (properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE)) {
-			// If no specific streams proxy is set, the output redirection will default
-			// to the standard terminals console view
-			if (streamsProxy == null) {
-				// Register the notification listener to listen to the console disposal
-				eventListener = new ProcessLauncherEventListener(this);
-				EventManager.getInstance().addEventListener(eventListener, DisposedEvent.class);
+		// The streams got subscribed, check what we need to do with them
+		if (streamsProxy != null) {
+			// Publish the streams to the supplied proxy
+			streamsProxy.connectInputStreamMonitor(connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
+			// Create and store the streams the terminal will see as stdout
+			streamsProxy.connectOutputStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, null));
+			// Create and store the streams the terminal will see as stderr
+			streamsProxy.connectErrorStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
+		} else if (properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE)) {
+			// We don't have a streams proxy, we default the output redirection to the standard terminals console view
 
-				// Get the terminal service
-				ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
-				// If not available, we cannot fulfill this request
-				if (terminal != null) {
-					// Create the terminal streams settings
-					PropertiesContainer props = new PropertiesContainer();
-					props.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.streams"); //$NON-NLS-1$
-					props.setProperty(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
-					// Set the terminal tab title
-					String terminalTitle = getTerminalTitle();
-					if (terminalTitle != null) {
-						props.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
-					}
+			// Register the notification listener to listen to the console disposal
+			eventListener = new ProcessLauncherEventListener(this);
+			EventManager.getInstance().addEventListener(eventListener, DisposedEvent.class);
 
-					// Get the process output listener list from the properties
-					Object value = properties.getProperty(PROP_PROCESS_OUTPUT_LISTENER);
-					StreamsDataReceiver.Listener[] listeners = value instanceof StreamsDataReceiver.Listener[] ? (StreamsDataReceiver.Listener[]) value : null;
-
-					// Create and store the streams which will be connected to the terminals stdin
-					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDIN, connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
-					// Create and store the streams the terminal will see as stdout
-					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, listeners));
-					// Create and store the streams the terminal will see as stderr
-					props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
-
-					// Copy the terminal properties
-					props.setProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO));
-					props.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
-					props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW));
-
-					// The custom data object is the process launcher itself
-					props.setProperty(ITerminalsConnectorConstants.PROP_DATA, this);
-
-					// Initialize the process specific terminal state text representations
-					props.setProperty("TabFolderManager_state_connected", Messages.ProcessLauncher_state_connected); //$NON-NLS-1$
-					props.setProperty("TabFolderManager_state_connecting", Messages.ProcessLauncher_state_connecting); //$NON-NLS-1$
-					props.setProperty("TabFolderManager_state_closed", Messages.ProcessLauncher_state_closed); //$NON-NLS-1$
-
-					// Open the console
-					terminal.openConsole(props, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+			// Get the terminal service
+			ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
+			// If not available, we cannot fulfill this request
+			if (terminal != null) {
+				// Create the terminal streams settings
+				PropertiesContainer props = new PropertiesContainer();
+				props.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.streams"); //$NON-NLS-1$
+				props.setProperty(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
+				// Set the terminal tab title
+				String terminalTitle = getTerminalTitle();
+				if (terminalTitle != null) {
+					props.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 				}
-			} else {
-				// Create and connect the streams which will be connected to the terminals stdin
-				streamsProxy.connectInputStreamMonitor(connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
-				// Create and store the streams the terminal will see as stdout
-				streamsProxy.connectOutputStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, null));
-				// Create and store the streams the terminal will see as stderr
-				streamsProxy.connectErrorStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
-			}
-		}
 
-		// The streams got subscribed, check if we shall configure the output redirection to a file
-		if (properties.getStringProperty(IProcessLauncher.PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE) != null) {
+				// Get the process output listener list from the properties
+				Object value = properties.getProperty(PROP_PROCESS_OUTPUT_LISTENER);
+				StreamsDataReceiver.Listener[] listeners = value instanceof StreamsDataReceiver.Listener[] ? (StreamsDataReceiver.Listener[]) value : null;
+
+				// Create and store the streams which will be connected to the terminals stdin
+				props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDIN, connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
+				// Create and store the streams the terminal will see as stdout
+				props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, listeners));
+				// Create and store the streams the terminal will see as stderr
+				props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
+
+				// Copy the terminal properties
+				props.setProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO));
+				props.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
+				props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW));
+
+				// The custom data object is the process launcher itself
+				props.setProperty(ITerminalsConnectorConstants.PROP_DATA, this);
+
+				// Initialize the process specific terminal state text representations
+				props.setProperty("TabFolderManager_state_connected", Messages.ProcessLauncher_state_connected); //$NON-NLS-1$
+				props.setProperty("TabFolderManager_state_connecting", Messages.ProcessLauncher_state_connecting); //$NON-NLS-1$
+				props.setProperty("TabFolderManager_state_closed", Messages.ProcessLauncher_state_closed); //$NON-NLS-1$
+
+				// Open the console
+				terminal.openConsole(props, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+			}
+		} else if (properties.getStringProperty(IProcessLauncher.PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE) != null) {
 			// Get the file name where to redirect the process output to
 			String filename = properties.getStringProperty(IProcessLauncher.PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE);
 			try {

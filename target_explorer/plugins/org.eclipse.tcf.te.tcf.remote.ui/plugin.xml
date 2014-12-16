@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.remote.ui.remoteUIServices">
+      <remoteUIServices
+            class="org.eclipse.tcf.te.tcf.remote.ui.TCFUIServicesFactory"
+            id="org.eclipse.tcf.te.tcf.remote.core.TCFService"
+            name="TCF">
+      </remoteUIServices>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.filesystemSupport">
+      <filesystemContributor
+            class="org.eclipse.tcf.te.tcf.remote.ui.TCFFileSystemContributor"
+            label="TCF"
+            scheme="tcf">
+      </filesystemContributor>
+   </extension>
+
+</plugin>

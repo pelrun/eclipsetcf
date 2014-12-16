@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.remote.core.remoteServices">
+      <remoteServices
+            class="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            id="org.eclipse.tcf.te.tcf.remote.core.TCFService"
+            name="TCF"
+            scheme="tcf">
+      </remoteServices>
+   </extension>
+   <extension point="org.eclipse.core.filesystem.filesystems"
+         id="org.eclipse.tcf.te.tcf.remote.core.filesystem">
+      <filesystem scheme="tcf">
+         <run class="org.eclipse.tcf.te.tcf.remote.core.TCFEclipseFileSystem"/>
+      </filesystem>
+   </extension>
+   
+</plugin>
