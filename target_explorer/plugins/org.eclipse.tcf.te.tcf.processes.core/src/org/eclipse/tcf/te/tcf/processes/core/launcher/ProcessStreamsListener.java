@@ -226,7 +226,7 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 					// An error occurred -> Dump to the error log
 					e = ExceptionUtils.checkAndUnwrapException(e);
 					// Check if the blocking read task got canceled
-					if (!(e instanceof CancellationException)) {
+					if (!isStopped() && !(e instanceof CancellationException)) {
 						// Log the error to the user, might be something serious
 						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
 													NLS.bind(Messages.ProcessStreamReaderRunnable_error_readFailed, streamId, e.getLocalizedMessage()),
@@ -302,7 +302,8 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 						@Override
                         public void doneRead(IToken token, Exception error, int lostSize, byte[] data, boolean eos) {
 							if (error == null) done(new ReadData(lostSize, data, eos));
-							else error(error);
+							else if (!isStopped())
+								error(error);
 						}
 					});
 				}
