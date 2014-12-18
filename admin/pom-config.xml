@@ -34,7 +34,8 @@
 		<maven-resources-version>2.6</maven-resources-version>
 		<maven-antrun-version>1.7</maven-antrun-version>
 		<gmaven-version>1.5</gmaven-version>
-		<findbugs-version>3.0.1-SNAPSHOT</findbugs-version>
+        <!-- Stick to Findbugs 2.5.2 until newer versions are supported by hudson.eclipse.org -->
+		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
 		<jacoco-version>0.7.2.201409121644</jacoco-version>
 		<eclipse-jarsigner-version>1.0.5</eclipse-jarsigner-version>
