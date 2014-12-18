@@ -34,9 +34,9 @@
 		<maven-resources-version>2.6</maven-resources-version>
 		<maven-antrun-version>1.7</maven-antrun-version>
 		<gmaven-version>1.5</gmaven-version>
-		<findbugs-version>2.5.2</findbugs-version>
+		<findbugs-version>3.0.1-SNAPSHOT</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
-		<jacoco-version>0.6.4.201312101107</jacoco-version>
+		<jacoco-version>0.7.2.201409121644</jacoco-version>
 		<eclipse-jarsigner-version>1.0.5</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
@@ -60,7 +60,7 @@
 		<!-- RXTX is unresponsive. Take it out for now -->
 		<!-- <rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site> -->
 		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20140525021250/repository/</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/M20141202175304/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
 
