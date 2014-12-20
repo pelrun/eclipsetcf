@@ -106,8 +106,6 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                 if (sym_data == null) continue;
                 switch (sym_data.getSymbolClass()) {
                 case reference:
-                case variant_part:
-                case variant:
                     if (sym_data.getFlag(ISymbols.SYM_FLAG_ARTIFICIAL)) continue;
                     if (sym_data.getName() == null && !sym_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
                         if (!findFields(sym_data, map, deref)) return false;
@@ -117,6 +115,19 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                         n.setSortPosition(map.size());
                         map.put(n.id, n);
                     }
+                    break;
+                case variant_part:
+                    if (!findFields(sym_data, map, deref)) return false;
+                    break;
+                case variant:
+                    TCFDataCache<Map<String,Object>> sym_loc_cache = node.model.getSymbolLocationCache(id);
+                    if (!sym_loc_cache.validate()) {
+                        pending = sym_loc_cache;
+                        continue;
+                    }
+                    // Map<String,Object> sym_loc_data = sym_loc_cache.getData();
+                    // TODO: filter out fields according to discriminant info
+                    if (!findFields(sym_data, map, deref)) return false;
                     break;
                 default:
                     break;

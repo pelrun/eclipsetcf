@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.model;
 
+import java.util.Map;
+
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ISymbols;
@@ -19,6 +21,7 @@ public class TCFNodeSymbol extends TCFNode {
 
     private final TCFData<ISymbols.Symbol> context;
     private final TCFData<String[]> children;
+    private final TCFData<Map<String,Object>> location;
 
     private int update_policy;
     private ISymbolOwner owner;
@@ -62,6 +65,23 @@ public class TCFNodeSymbol extends TCFNode {
                 command = syms.getChildren(id, new ISymbols.DoneGetChildren() {
                     public void doneGetChildren(IToken token, Exception error, String[] ids) {
                         set(token, error, ids);
+                    }
+                });
+                return false;
+            }
+        };
+        location = new TCFData<Map<String,Object>>(channel) {
+            @Override
+            protected boolean startDataRetrieval() {
+                ISymbols syms = launch.getService(ISymbols.class);
+                if (id == null || syms == null) {
+                    set(null, null, null);
+                    return true;
+                }
+                command = syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
+                    @Override
+                    public void doneGetLocationInfo(IToken token, Exception error, Map<String,Object> props) {
+                        set(token, error, props);
                     }
                 });
                 return false;
@@ -123,7 +143,7 @@ public class TCFNodeSymbol extends TCFNode {
         super.dispose();
     }
 
-    public TCFDataCache<ISymbols.Symbol> getContext() {
+    private void moveUp() {
         if (sym_list != this) {
             prev.next = next;
             next.prev = prev;
@@ -132,19 +152,21 @@ public class TCFNodeSymbol extends TCFNode {
             prev.next = next.prev = this;
             sym_list = this;
         }
+    }
+
+    public TCFDataCache<ISymbols.Symbol> getContext() {
+        moveUp();
         return context;
     }
 
     public TCFDataCache<String[]> getChildren() {
-        if (sym_list != this) {
-            prev.next = next;
-            next.prev = prev;
-            prev = sym_list;
-            next = sym_list.next;
-            prev.next = next.prev = this;
-            sym_list = this;
-        }
+        moveUp();
         return children;
+    }
+
+    public TCFData<Map<String,Object>> getLocation() {
+        moveUp();
+        return location;
     }
 
     private void setUpdatePolicy(String id, int policy) {
@@ -163,11 +185,13 @@ public class TCFNodeSymbol extends TCFNode {
     void onMemoryMapChanged() {
         context.reset();
         children.reset();
+        location.reset();
     }
 
     void onExeStateChange() {
         if (update_policy == ISymbols.UPDATE_ON_MEMORY_MAP_CHANGES) return;
         context.reset();
         children.reset();
+        location.reset();
     }
 }

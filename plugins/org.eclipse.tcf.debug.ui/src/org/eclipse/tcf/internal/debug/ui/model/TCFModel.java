@@ -1318,6 +1318,19 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     }
 
     /**
+     * Get a data cache that contains location info of a symbol.
+     * New cache object is created if it does not exist yet.
+     * @param sym_id - the symbol ID.
+     * @return data cache object.
+     */
+    public TCFDataCache<Map<String,Object>> getSymbolLocationCache(final String sym_id) {
+        if (sym_id == null) return null;
+        TCFNodeSymbol n = (TCFNodeSymbol)getNode(sym_id);
+        if (n == null) n = new TCFNodeSymbol(launch_node, sym_id);
+        return n.getLocation();
+    }
+
+    /**
      * Search memory context that owns the object represented by given node.
      * @return data cache item that holds the memory context node.
      */
