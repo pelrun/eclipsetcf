@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,7 +23,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchPart;
 
 /**
- * Toggles a TCF Scoped breakpoint in a C/C++ editor.
+ * Toggles a TCF Scoped breakpoint in the disassembly view.
  */
 public class TCFDisassemblyToggleBreakpointAdapter extends AbstractDisassemblyBreakpointsTarget {
 
@@ -45,8 +45,6 @@ public class TCFDisassemblyToggleBreakpointAdapter extends AbstractDisassemblyBr
 
     @Override
     protected void createLineBreakpoint( String sourceHandle, IResource resource, int lineNumber ) throws CoreException {
-        CDIDebugModel.createLineBreakpoint(
-                sourceHandle, resource, getBreakpointType(), lineNumber, true, 0, "", true ); //$NON-NLS-1$
         Map<String, Object> attributes = TCFToggleBreakpointAdapter.getDefaultAttributes(fTogglePart, TOGGLE_TYPE);
         ICLineBreakpoint lineBp = CDIDebugModel.createBlankLineBreakpoint();
         CDIDebugModel.setLineBreakpointAttributes(
