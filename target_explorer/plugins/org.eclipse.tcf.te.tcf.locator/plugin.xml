@@ -212,15 +212,15 @@
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup">
          <references>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="connecting" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="connecting">
+            	<parameter name="state" value="connecting"/>
             	<parameter name="stateOnCancel" value="disconnected" />
             	<parameter name="stateOnError" value="disconnected" />
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.locator.startSimulatorStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup"/>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="connected" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="connected">
+            	<parameter name="state" value="connected"/>
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.locator.startPingTimerStep"/>
          </references>
@@ -229,17 +229,17 @@
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.disconnectStepGroup">
          <references>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="disconnecting" />
-            	<parameter name="stateOnError" value="disconnected" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="disconnecting">
+            	<parameter name="state" value="disconnecting"/>
+            	<parameter name="stateOnError" value="disconnected"/>
             </reference>
             <reference id="org.eclipse.tcf.te.runtime.stepper.cancelJobsStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.getChannelStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="disconnected" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="disconnected">
+            	<parameter name="state" value="disconnected"/>
             </reference>
          </references>
       </stepGroup>
@@ -247,15 +247,15 @@
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.connectionLostStepGroup">
          <references>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="connection_lost" />
-            	<parameter name="stateOnError" value="disconnected" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="disconnecting">
+            	<parameter name="state" value="connection_lost"/>
+            	<parameter name="stateOnError" value="disconnected"/>
             </reference>
             <reference id="org.eclipse.tcf.te.runtime.stepper.cancelJobsStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="connection_lost" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="lost">
+            	<parameter name="state" value="connection_lost"/>
             </reference>
          </references>
       </stepGroup>
@@ -263,16 +263,16 @@
       <stepGroup
             id="org.eclipse.tcf.te.tcf.locator.connectionRecoveringStepGroup">
          <references>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="connection_recovering" />
-            	<parameter name="stateOnCancel" value="disconnected" />
-            	<parameter name="stateOnError" value="disconnected" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="recovering">
+            	<parameter name="state" value="connection_recovering"/>
+            	<parameter name="stateOnCancel" value="disconnected"/>
+            	<parameter name="stateOnError" value="disconnected"/>
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep">
-            	<parameter name="noTimeout" value="true" />
+            	<parameter name="noTimeout" value="true"/>
             </reference>
-            <reference id="org.eclipse.tcf.te.core.setConnectStateStep">
-            	<parameter name="state" value="connected" />
+            <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="connected">
+            	<parameter name="state" value="connected"/>
             </reference>
             <reference id="org.eclipse.tcf.te.tcf.locator.startPingTimerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStep">
