@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -62,6 +62,8 @@ public class TerminalService extends AbstractService implements ITerminalService
 		 */
 		public boolean isExecuteAsync() { return true; }
 	}
+
+	private boolean fRestoringView;
 
 	/**
 	 * Executes the given runnable operation and invokes the given callback, if any,
@@ -176,10 +178,32 @@ public class TerminalService extends AbstractService implements ITerminalService
 	@Override
     public void openConsole(final IPropertiesContainer properties, final ICallback callback) {
 		Assert.isNotNull(properties);
+		final boolean restoringView = fRestoringView;
 
 		executeServiceOperation(properties, new TerminalServiceRunnable() {
 			@Override
-			public void run(String id, String secondaryId, String title, ITerminalConnector connector, Object data, ICallback callback) {
+			@SuppressWarnings("synthetic-access")
+			public void run(final String id, final String secondaryId, final String title,
+							final ITerminalConnector connector, final Object data, final ICallback callback) {
+				if (restoringView) {
+					doRun(id, secondaryId, title, connector, data, callback);
+				} else {
+					// First, restore the view. This opens consoles from the memento
+					fRestoringView = true;
+					ConsoleManager.getInstance().showConsoleView(id, secondaryId);
+					fRestoringView = false;
+
+					// After that schedule opening the requested console
+					DisplayUtil.safeAsyncExec(new Runnable() {
+						@Override
+						public void run() {
+							doRun(id, secondaryId, title, connector, data, callback);
+						}
+					});
+				}
+			}
+
+			public void doRun(String id, String secondaryId, String title, ITerminalConnector connector, Object data, ICallback callback) {
 				// Determine the terminal encoding
 				String encoding = properties.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
 				// Create the flags to pass on to openConsole
