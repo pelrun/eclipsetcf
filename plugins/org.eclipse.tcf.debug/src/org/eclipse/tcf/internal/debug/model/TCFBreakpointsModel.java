@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -724,7 +724,13 @@ public class TCFBreakpointsModel {
         }
         else if (p.get(ATTR_FUNCTION) != null) {
             String expr = (String)p.get(ATTR_FUNCTION);
-            if (expr != null && expr.length() != 0) m.put(IBreakpoints.PROP_LOCATION, expr);
+            if (expr != null && expr.length() != 0) {
+                // Strip function parameters
+                int paren = expr.indexOf('(');
+                if (paren > 0)
+                    expr = expr.substring(0, paren);
+                m.put(IBreakpoints.PROP_LOCATION, expr);
+            }
             if (capabilities != null) {
                 Object obj = capabilities.get(IBreakpoints.CAPABILITY_SKIP_PROLOGUE);
                 if (obj instanceof Boolean && ((Boolean)obj).booleanValue()) {
