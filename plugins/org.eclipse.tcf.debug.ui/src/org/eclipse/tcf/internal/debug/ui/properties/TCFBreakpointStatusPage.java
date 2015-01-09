@@ -148,6 +148,8 @@ public class TCFBreakpointStatusPage extends PropertyPage {
                     z.text = z.marker.getAttribute(TCFBreakpointsModel.ATTR_MESSAGE, "");
                     String error = (String)m.get(IBreakpoints.INSTANCE_ERROR);
                     if (error != null) z.add("Error: " + error);
+                    String condition_error = (String)m.get(IBreakpoints.INSTANCE_CONDITION_ERROR);
+                    if (condition_error != null) z.add("Condition evaluation error: " + condition_error);
                     Number addr = (Number)m.get(IBreakpoints.INSTANCE_ADDRESS);
                     z.planted_ok = error == null;
                     if (addr != null) {

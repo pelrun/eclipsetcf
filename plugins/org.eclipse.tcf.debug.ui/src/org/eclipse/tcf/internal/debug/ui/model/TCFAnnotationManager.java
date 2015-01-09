@@ -723,7 +723,6 @@ public class TCFAnnotationManager {
                                             bp_name + " failed to plant" + location + ": " + error,
                                             TYPE_BP_INSTANCE);
                                     set.add(a);
-                                    error = null;
                                 }
                                 else if (area != null && addr != null) {
                                     String location = " planted at 0x" + addr.toString(16) + ", line " + area.start_line;
@@ -740,6 +739,14 @@ public class TCFAnnotationManager {
                                                 TYPE_BP_INSTANCE);
                                         set.add(b);
                                     }
+                                }
+                                error = (String)m.get(IBreakpoints.INSTANCE_CONDITION_ERROR);
+                                if (error != null) {
+                                    TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, org_area,
+                                            ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
+                                            bp_name + " failed to evaluate condition: " + error,
+                                            TYPE_BP_INSTANCE);
+                                    set.add(a);
                                 }
                             }
                         }

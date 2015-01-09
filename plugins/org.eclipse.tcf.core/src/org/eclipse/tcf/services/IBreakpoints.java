@@ -127,6 +127,7 @@ public interface IBreakpoints extends IService {
      */
     static final String
         INSTANCE_ERROR = "Error",               // String
+        INSTANCE_CONDITION_ERROR = "ConditionError", // String
         INSTANCE_CONTEXT = "LocationContext",   // String
         INSTANCE_ADDRESS = "Address",           // Number
         INSTANCE_SIZE = "Size",                 // Number

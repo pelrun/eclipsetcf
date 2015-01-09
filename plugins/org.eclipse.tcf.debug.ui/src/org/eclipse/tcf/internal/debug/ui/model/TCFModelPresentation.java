@@ -118,6 +118,7 @@ public class TCFModelPresentation implements IDebugModelPresentation {
                                 @SuppressWarnings("unchecked")
                                 Collection<Map<String,Object>> list = (Collection<Map<String,Object>>)planted;
                                 for (Map<String,Object> m : list) {
+                                    if (m.get(IBreakpoints.INSTANCE_CONDITION_ERROR) != null) error = true;
                                     if (m.get(IBreakpoints.INSTANCE_ERROR) == null) {
                                         installed = true;
                                         if (!moved) {
