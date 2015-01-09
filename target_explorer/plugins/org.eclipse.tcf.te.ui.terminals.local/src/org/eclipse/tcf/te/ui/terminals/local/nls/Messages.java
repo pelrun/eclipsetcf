@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -38,6 +38,13 @@ public class Messages extends NLS {
 	public static String PreferencePage_executables_button_add_label;
 	public static String PreferencePage_executables_button_edit_label;
 	public static String PreferencePage_executables_button_remove_label;
+	public static String PreferencePage_workingDir_label;
+	public static String PreferencePage_workingDir_userhome_label;
+	public static String PreferencePage_workingDir_eclipsehome_label;
+	public static String PreferencePage_workingDir_eclipsews_label;
+	public static String PreferencePage_workingDir_button_browse;
+	public static String PreferencePage_workingDir_note_label;
+	public static String PreferencePage_workingDir_note_text;
 
 	public static String ExternalExecutablesDialog_title_add;
 	public static String ExternalExecutablesDialog_title_edit;

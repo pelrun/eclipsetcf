@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014 - 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,12 +9,19 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.local.showin.preferences;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -37,17 +44,22 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.tcf.te.ui.swt.widgets.NoteCompositeHelper;
+import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesDialog;
 import org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesManager;
 import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutablesProperties;
+import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IPreferenceKeys;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -59,6 +71,8 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	private Button addButton;
 	private Button editButton;
 	private Button removeButton;
+	/* default */ Combo workingDir;
+	private Button browseButton;
 
 	/* default */ final List<Map<String, Object>> executables = new ArrayList<Map<String, Object>>();
 	/* default */ final Map<String, Image> images = new HashMap<String, Image>();
@@ -76,7 +90,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	 * @see org.eclipse.jface.preference.PreferencePage#createContents(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected Control createContents(Composite parent) {
+	protected Control createContents(final Composite parent) {
 		Composite panel = new Composite(parent, SWT.NONE);
 		panel.setLayout(new GridLayout());
 		GridData layoutData = new GridData(SWT.FILL, SWT.BEGINNING, true, false);
@@ -87,6 +101,93 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
 		Group group = new Group(panel, SWT.NONE);
+		group.setText(Messages.PreferencePage_workingDir_label);
+		group.setLayout(new GridLayout(2, false));
+		group.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+
+		workingDir = new Combo(group, SWT.DROP_DOWN);
+		workingDir.setItems(new String[] { Messages.PreferencePage_workingDir_userhome_label, Messages.PreferencePage_workingDir_eclipsehome_label, Messages.PreferencePage_workingDir_eclipsews_label });
+		workingDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		workingDir.select(0);
+
+		browseButton = new Button(group, SWT.PUSH);
+		browseButton.setText(Messages.PreferencePage_workingDir_button_browse);
+		layoutData = new GridData(SWT.FILL, SWT.CENTER, false, false);
+		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(browseButton, 10);
+		browseButton.setLayoutData(layoutData);
+		browseButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				IPath uh = null;
+				IPath eh = null;
+				IPath ew = null;
+
+				// HOME
+				String home = System.getProperty("user.home"); //$NON-NLS-1$
+				if (home != null && !"".equals(home)) uh = new Path(home); //$NON-NLS-1$
+
+				// ECLIPSE_HOME
+				String eclipseHomeLocation = System.getProperty("eclipse.home.location"); //$NON-NLS-1$
+				if (eclipseHomeLocation != null) {
+					try {
+						URI uri = URIUtil.fromString(eclipseHomeLocation);
+						File f = URIUtil.toFile(uri);
+						eh = new Path(f.getAbsolutePath());
+					} catch (URISyntaxException ex) { /* ignored on purpose */ }
+				}
+
+				// ECLIPSE_WORKSPACE
+		        if (ResourcesPlugin.getWorkspace() != null
+		        	            && ResourcesPlugin.getWorkspace().getRoot() != null
+		        	            && ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
+		        	ew = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+		        }
+
+				DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.OPEN);
+
+				// Determine the filter path
+				String text = workingDir.getText();
+				if (Messages.PreferencePage_workingDir_userhome_label.equals(text)) {
+					dialog.setFilterPath(uh.toOSString());
+				} else if (Messages.PreferencePage_workingDir_eclipsehome_label.equals(text)) {
+					dialog.setFilterPath(eh.toOSString());
+				} else if (Messages.PreferencePage_workingDir_eclipsews_label.equals(text)) {
+					dialog.setFilterPath(ew.toOSString());
+				} else if (text != null && !"".equals(text.trim())) { //$NON-NLS-1$
+					dialog.setFilterPath(text.trim());
+				}
+
+				String selected = dialog.open();
+				if (selected != null) {
+					IPath sp = new Path(selected);
+
+					if (uh.equals(sp)) {
+						workingDir.select(0);
+					} else if (eh.equals(sp)) {
+						workingDir.select(1);
+					} else if (ew.equals(sp)) {
+						workingDir.select(2);
+					} else {
+						workingDir.setText(sp.toOSString());
+					}
+				}
+			}
+		});
+
+		String initialCwd = UIPlugin.getScopedPreferences().getString(IPreferenceKeys.PREF_LOCAL_TERMINAL_INITIAL_CWD);
+		if (initialCwd == null || IPreferenceKeys.PREF_INITIAL_CWD_USER_HOME.equals(initialCwd) || "".equals(initialCwd.trim())) { //$NON-NLS-1$
+			workingDir.select(0);
+		} else if (IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_HOME.equals(initialCwd)) {
+			workingDir.select(1);
+		} else if (IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_WS.equals(initialCwd)) {
+			workingDir.select(2);
+		} else {
+			workingDir.setText(new Path(initialCwd).toOSString());
+		}
+
+		NoteCompositeHelper.createNoteComposite(group.getFont(), group, Messages.PreferencePage_workingDir_note_label, Messages.PreferencePage_workingDir_note_text);
+
+		group = new Group(panel, SWT.NONE);
 		group.setText(Messages.PreferencePage_executables_label);
 		group.setLayout(new GridLayout(2, false));
 		group.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
@@ -318,6 +419,17 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	 */
 	@Override
 	protected void performDefaults() {
+		String initialCwd = UIPlugin.getScopedPreferences().getDefaultString(IPreferenceKeys.PREF_LOCAL_TERMINAL_INITIAL_CWD);
+		if (initialCwd == null || IPreferenceKeys.PREF_INITIAL_CWD_USER_HOME.equals(initialCwd) || "".equals(initialCwd.trim())) { //$NON-NLS-1$
+			workingDir.select(0);
+		} else if (IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_HOME.equals(initialCwd)) {
+			workingDir.select(1);
+		} else if (IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_WS.equals(initialCwd)) {
+			workingDir.select(2);
+		} else {
+			workingDir.setText(new Path(initialCwd).toOSString());
+		}
+
 		executables.clear();
 		List<Map<String, Object>> l = ExternalExecutablesManager.load();
 		if (l != null) executables.addAll(l);
@@ -331,7 +443,20 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	 */
 	@Override
 	public boolean performOk() {
+		String text = workingDir.getText();
+		if (text == null || Messages.PreferencePage_workingDir_userhome_label.equals(text) || "".equals(text.trim())) { //$NON-NLS-1$
+			UIPlugin.getScopedPreferences().putString(IPreferenceKeys.PREF_LOCAL_TERMINAL_INITIAL_CWD, null);
+		} else if (Messages.PreferencePage_workingDir_eclipsehome_label.equals(text)) {
+			UIPlugin.getScopedPreferences().putString(IPreferenceKeys.PREF_LOCAL_TERMINAL_INITIAL_CWD, IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_HOME);
+		} else if (Messages.PreferencePage_workingDir_eclipsews_label.equals(text)) {
+			UIPlugin.getScopedPreferences().putString(IPreferenceKeys.PREF_LOCAL_TERMINAL_INITIAL_CWD, IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_WS);
+		} else {
+			IPath p = new Path(text.trim());
+			UIPlugin.getScopedPreferences().putString(IPreferenceKeys.PREF_LOCAL_TERMINAL_INITIAL_CWD, p.toFile().canRead() && p.toFile().isDirectory() ? p.toString() : null);
+		}
+
 		ExternalExecutablesManager.save(executables);
+
 	    return super.performOk();
 	}
 

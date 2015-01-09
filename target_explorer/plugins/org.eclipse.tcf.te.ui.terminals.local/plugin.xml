@@ -117,6 +117,13 @@
       </page>
    </extension>
 
+<!-- Preferences contributions -->
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.eclipse.tcf.te.ui.terminals.local.showin.preferences.PreferencesInitializer">
+      </initializer>
+   </extension>
+   
 <!-- Startup contributions -->
    <extension point="org.eclipse.ui.startup">
       <startup class="org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesInitializer"/>

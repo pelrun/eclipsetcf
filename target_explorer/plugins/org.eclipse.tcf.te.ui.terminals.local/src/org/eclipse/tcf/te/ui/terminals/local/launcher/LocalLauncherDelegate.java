@@ -9,14 +9,19 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.local.launcher;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Iterator;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -29,7 +34,9 @@ import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
+import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.local.controls.LocalWizardConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IPreferenceKeys;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchEncoding;
@@ -89,10 +96,36 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 			properties.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
 		}
 
-		// Start the local terminal in the users home directory
-		String home = System.getProperty("user.home"); //$NON-NLS-1$
-		if (home != null && !"".equals(home)) { //$NON-NLS-1$
-			properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, home);
+		// Initialize the local terminal working directory.
+		// By default, start the local terminal in the users home directory
+		String initialCwd = UIPlugin.getScopedPreferences().getString(IPreferenceKeys.PREF_LOCAL_TERMINAL_INITIAL_CWD);
+		String cwd = null;
+		if (initialCwd == null || IPreferenceKeys.PREF_INITIAL_CWD_USER_HOME.equals(initialCwd) || "".equals(initialCwd.trim())) { //$NON-NLS-1$
+			cwd = System.getProperty("user.home"); //$NON-NLS-1$
+		} else if (IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_HOME.equals(initialCwd)) {
+			String eclipseHomeLocation = System.getProperty("eclipse.home.location"); //$NON-NLS-1$
+			if (eclipseHomeLocation != null) {
+				try {
+					URI uri = URIUtil.fromString(eclipseHomeLocation);
+					File f = URIUtil.toFile(uri);
+					cwd = f.getAbsolutePath();
+				} catch (URISyntaxException ex) { /* ignored on purpose */ }
+			}
+		} else if (IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_WS.equals(initialCwd)) {
+	        if (ResourcesPlugin.getWorkspace() != null
+	        	            && ResourcesPlugin.getWorkspace().getRoot() != null
+	        	            && ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
+	        	cwd = ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString();
+	        }
+		} else {
+			IPath p = new Path(initialCwd);
+			if (p.toFile().canRead() && p.toFile().isDirectory()) {
+				cwd = p.toOSString();
+			}
+		}
+
+		if (cwd != null && !"".equals(cwd)) { //$NON-NLS-1$
+			properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, cwd);
 		}
 
 		// If the current selection resolved to an folder, default the working directory
