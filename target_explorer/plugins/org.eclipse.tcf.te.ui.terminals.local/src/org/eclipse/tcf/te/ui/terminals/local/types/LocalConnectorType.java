@@ -10,9 +10,16 @@
 package org.eclipse.tcf.te.ui.terminals.local.types;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.cdt.utils.pty.PTY;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
 import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
@@ -117,6 +124,30 @@ public class LocalConnectorType extends AbstractConnectorType {
 						properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) instanceof String[]){
 			envp = (String[])properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT);
 		}
+
+		// Set the ECLIPSE_HOME and ECLIPSE_WORKSPACE environment variables
+		List<String> envpList = new ArrayList<String>();
+		if (envp != null) envpList.addAll(Arrays.asList(envp));
+
+		// ECLIPSE_HOME
+		String eclipseHomeLocation = System.getProperty("eclipse.home.location"); //$NON-NLS-1$
+		if (eclipseHomeLocation != null) {
+			try {
+				URI uri = URIUtil.fromString(eclipseHomeLocation);
+				File f = URIUtil.toFile(uri);
+				envpList.add("ECLIPSE_HOME=" + f.getAbsolutePath()); //$NON-NLS-1$
+			} catch (URISyntaxException e) { /* ignored on purpose */ }
+		}
+
+		// ECLIPSE_WORKSPACE
+        if (ResourcesPlugin.getWorkspace() != null
+        	            && ResourcesPlugin.getWorkspace().getRoot() != null
+        	            && ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
+        	envpList.add("ECLIPSE_WORKSPACE=" + ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString()); //$NON-NLS-1$
+        }
+
+        // Convert back into a string array
+        envp = envpList.toArray(new String[envpList.size()]);
 
 		Assert.isTrue(image != null || process != null);
 
