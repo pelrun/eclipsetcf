@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -114,13 +115,16 @@ public class Env {
 		}
 
 		// Convert into an array of strings
-		Iterator<Map.Entry<String, String>> iter = env.entrySet().iterator();
+		List<String> keys = new ArrayList<String>(env.keySet());
+		// On Windows hosts, sort the environment keys
+		if (Host.isWindowsHost()) Collections.sort(keys);
+		Iterator<String> iter = keys.iterator();
 		List<String> strings = new ArrayList<String>(env.size());
 		StringBuilder buffer = null;
 		while (iter.hasNext()) {
-			Map.Entry<String, String> entry = iter.next();
-			buffer = new StringBuilder(entry.getKey());
-			buffer.append('=').append(entry.getValue());
+			String key = iter.next();
+			buffer = new StringBuilder(key);
+			buffer.append('=').append(env.get(key));
 			strings.add(buffer.toString());
 		}
 
@@ -138,7 +142,7 @@ public class Env {
 				nativeEnvironmentCasePreserved = new LinkedHashMap<String, String>();
 				cacheNativeEnvironment(nativeEnvironmentCasePreserved);
 			}
-			return new HashMap<String, String>(nativeEnvironmentCasePreserved);
+			return new LinkedHashMap<String, String>(nativeEnvironmentCasePreserved);
 		}
 	}
 
