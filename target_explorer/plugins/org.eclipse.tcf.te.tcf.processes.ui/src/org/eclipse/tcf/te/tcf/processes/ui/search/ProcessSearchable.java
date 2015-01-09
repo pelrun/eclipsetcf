@@ -20,10 +20,10 @@ import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.processes.ui.interfaces.IProcessMonitorUIDelegate;
-import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.LabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.processes.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.interfaces.ISearchable;
 import org.eclipse.tcf.te.ui.utils.CompositeSearchable;
+import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 
 /**
  * The ISearchable adapter for a ProcessTreeNode which creates a UI for the user to
@@ -31,7 +31,7 @@ import org.eclipse.tcf.te.ui.utils.CompositeSearchable;
  */
 public class ProcessSearchable extends CompositeSearchable {
 	// The label provider used to get a text for a process.
-	ILabelProvider labelProvider = new LabelProviderDelegate();
+	ILabelProvider labelProvider = new DelegatingLabelProvider();
 
 	/**
 	 * Constructor
