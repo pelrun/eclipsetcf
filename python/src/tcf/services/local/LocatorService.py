@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -630,7 +630,7 @@ class LocatorService(locator.LocatorService):
         """
         cnt = 0
         attrs = {}
-        s = data[8:].decode("UTF-8")
+        s = data[8:size].decode("UTF-8")
         l = len(s)
         i = 0
         while i < l:
@@ -750,7 +750,7 @@ class LocatorService(locator.LocatorService):
                 if i > 8 and i + len(bt) >= PREF_PACKET_SIZE:
                     self.__sendDatagramPacket(subnet, i, addr, port)
                     i = 8
-                self.out_buf[i:len(bt)] = bt
+                self.out_buf[i:i+len(bt)] = bt
                 i += len(bt)
                 self.out_buf[i] = 0
                 i += 1
@@ -783,14 +783,14 @@ class LocatorService(locator.LocatorService):
             remote_port = p.getPort()
             remote_address = p.getAddress()
             if self.__isRemote(remote_address, remote_port):
-                if buf[4] == locator.CONF_PEERS_REMOVED:
+                code = ord(buf[4])
+                if code == locator.CONF_PEERS_REMOVED:
                     self.__handlePeerRemovedPacket(p)
                 else:
                     sl = None
                     if remote_port != DISCOVEY_PORT:
                         sl = self.__addSlave(remote_address, remote_port, tm,
                                              tm)
-                    code = ord(buf[4])
                     if code == locator.CONF_PEER_INFO:
                         self.__handlePeerInfoPacket(p)
                     elif code == locator.CONF_REQ_INFO:
