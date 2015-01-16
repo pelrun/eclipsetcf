@@ -1350,7 +1350,16 @@ public class TCFLaunch extends Launch {
 
     @Override
     public boolean canTerminate() {
-        return false;
+        try {
+            return new TCFTask<Boolean>(8000) {
+                public void run() {
+                    done(!disconnected && process != null && process.canTerminate());
+                }
+            }.get();
+        }
+        catch (Exception x) {
+            return false;
+        }
     }
 
     @Override
@@ -1360,6 +1369,58 @@ public class TCFLaunch extends Launch {
 
     @Override
     public void terminate() throws DebugException {
+        try {
+            new TCFTask<Boolean>(8000) {
+                boolean detached;
+                boolean terminated;
+                public void run() {
+                    if (disconnected || process == null || !process.canTerminate()) {
+                        done(false);
+                        return;
+                    }
+                    if (!detached && process.isAttached()) {
+                        process.detach(new IProcesses.DoneCommand() {
+                            @Override
+                            public void doneCommand(IToken token, Exception error) {
+                                if (error != null) {
+                                    error(error);
+                                }
+                                else {
+                                    detached = true;
+                                    run();
+                                }
+                            }
+                        });
+                        return;
+                    }
+                    if (!terminated) {
+                        process.terminate(new IProcesses.DoneCommand() {
+                            @Override
+                            public void doneCommand(IToken token, Exception error) {
+                                if (error != null) {
+                                    error(error);
+                                }
+                                else {
+                                    terminated = true;
+                                    run();
+                                }
+                            }
+                        });
+                        return;
+                    }
+                    if (channel == null || shutdown) {
+                        done(true);
+                    }
+                    else {
+                        disconnect_wait_list.add(this);
+                        closeChannel();
+                    }
+                }
+            }.get();
+        }
+        catch (Exception x) {
+            throw new DebugException(new TCFError(x));
+        }
     }
 
     public boolean isExited() {
