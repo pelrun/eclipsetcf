@@ -61,7 +61,7 @@
 		<!-- RXTX is unresponsive. Take it out for now -->
 		<!-- <rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site> -->
 		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/M20141202175304/repository/</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/M20150114164045/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
 
