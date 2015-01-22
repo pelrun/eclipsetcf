@@ -152,15 +152,17 @@ public final class SimulatorUtils {
 						result.service.start(peerNode, result.settings, new Callback() {
 							@Override
 							protected void internalDone(Object caller, IStatus status) {
+								setUsedRunningSimulator(peerNode, false);
 								callback.setResult(new Boolean(status.isOK()));
 								callback.done(caller, status);
 							}
 						}, monitor);
 					} else {
-						// Start the simulator
+						// Try to use running simulator
 						result.service.useRunning(peerNode, result.settings, new Callback() {
 							@Override
 							protected void internalDone(Object caller, IStatus status) {
+								setUsedRunningSimulator(peerNode, status.isOK());
 								callback.setResult(new Boolean(status.isOK()));
 								callback.done(caller, status);
 							}
@@ -169,9 +171,30 @@ public final class SimulatorUtils {
 				}
 			}, monitor);
 		} else {
+			setUsedRunningSimulator(peerNode, false);
 			callback.setResult(Boolean.FALSE);
 			callback.done(null, Status.OK_STATUS);
 		}
+	}
+
+	protected static void setUsedRunningSimulator(final IPeerNode peerNode, final boolean usedRunning) {
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				peerNode.setProperty(SimulatorUtils.class.getSimpleName() + ".usedRunning", usedRunning ? new Boolean(usedRunning) : null); //$NON-NLS-1$
+			}
+		});
+	}
+
+	protected static boolean getUsedRunningSimulator(final IPeerNode peerNode) {
+		final AtomicBoolean usedRunning = new AtomicBoolean(false);
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				usedRunning.set(peerNode.getBooleanProperty(SimulatorUtils.class.getSimpleName() + ".usedRunning")); //$NON-NLS-1$
+			}
+		});
+		return usedRunning.get();
 	}
 
 	/**
@@ -189,7 +212,7 @@ public final class SimulatorUtils {
 
 		// Get the associated simulator service
 		final Result result = getSimulatorService(peerNode);
-		if (result != null && result.service != null) {
+		if (result != null && result.service != null && !getUsedRunningSimulator(peerNode)) {
 			// Determine if the simulator is at all running
 			result.service.isRunning(peerNode, result.settings, new Callback() {
 				@Override
