@@ -157,8 +157,14 @@ public final class SimulatorUtils {
 							}
 						}, monitor);
 					} else {
-						callback.setResult(Boolean.FALSE);
-						callback.done(this, Status.OK_STATUS);
+						// Start the simulator
+						result.service.useRunning(peerNode, result.settings, new Callback() {
+							@Override
+							protected void internalDone(Object caller, IStatus status) {
+								callback.setResult(new Boolean(status.isOK()));
+								callback.done(caller, status);
+							}
+						}, monitor);
 					}
 				}
 			}, monitor);
