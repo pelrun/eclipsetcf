@@ -202,7 +202,8 @@
 <!-- Step group contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.stepGroups">
       <stepGroup
-            id="org.eclipse.tcf.te.tcf.locator.connectStepGroup">
+            id="org.eclipse.tcf.te.tcf.locator.connectStepGroup"
+            iterator="org.eclipse.tcf.te.tcf.locator.iterators.ConnectIterator">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.startDebuggerStepGroup"/>
@@ -210,7 +211,8 @@
       </stepGroup>
 
       <stepGroup
-            id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup">
+            id="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup"
+            iterator="org.eclipse.tcf.te.tcf.locator.iterators.ConnectIterator">
          <references>
             <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="connecting">
             	<parameter name="state" value="connecting"/>
