@@ -62,6 +62,8 @@
         <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.log.core</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.processes.core</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.processes.ui</module>
+        <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.remote.core</module>
+        <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.remote.ui</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.services.contexts</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.terminals.core</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.tcf.terminals.ui</module>
@@ -90,6 +92,8 @@
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.sdk.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.launch.cdt.sdk.feature</module>
+        <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.feature</module>
+        <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.sdk.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.terminals.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.terminals.rse.feature</module>
