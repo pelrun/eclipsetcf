@@ -58,6 +58,7 @@
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
         <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
 		<tm-site>http://download.eclipse.org/tm/updates/3.6</tm-site>
+        <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/1.1.1</ptp-remote-site>
 		<!-- RXTX is unresponsive. Take it out for now -->
 		<!-- <rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site> -->
 		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
@@ -94,6 +95,11 @@
 		<repository>
 			<id>swtbot</id>
 			<url>${swtbot-site}</url>
+			<layout>p2</layout>
+		</repository>
+		<repository>
+			<id>ptp-remote</id>
+			<url>${ptp-remote-site}</url>
 			<layout>p2</layout>
 		</repository>
 		<!--
