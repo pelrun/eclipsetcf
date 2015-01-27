@@ -179,6 +179,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                                     set(null, null, prev_value);
                                     return;
                                 }
+                                if (value != null && value.length <= 0) value = null;
                             }
                             set(null, error, value);
                         }
@@ -261,7 +262,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         }
         else {
             byte[] v = value.getData();
-            if (v != null) {
+            if (v != null && v.length > 0) {
                 bf.append("Hex: ", SWT.BOLD);
                 bf.append(toNumberString(16), StyledStringBuffer.MONOSPACED);
                 bf.append(", ");
@@ -529,6 +530,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         byte[] data = value.getData();
         int[] bits = ctx.getBitNumbers();
         if (ctx == null || data == null) return "N/A";
+        if (data.length == 0) return "";
         if (radix == 2) {
             StringBuffer bf = new StringBuffer();
             int i = data.length * 8;
