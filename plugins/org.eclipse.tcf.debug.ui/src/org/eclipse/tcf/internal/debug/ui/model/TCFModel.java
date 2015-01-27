@@ -876,18 +876,20 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             locks.clear();
             for (TCFSnapshot s : arr) s.dispose();
         }
-        IMemory mem = launch.getService(IMemory.class);
-        if (mem != null) mem.removeListener(mem_listener);
-        IRunControl run = launch.getService(IRunControl.class);
-        if (run != null) run.removeListener(run_listener);
-        IMemoryMap mmap = launch.getService(IMemoryMap.class);
-        if (mmap != null) mmap.removeListener(mmap_listener);
-        IPathMap pmap = launch.getService(IPathMap.class);
-        if (pmap != null) pmap.removeListener(pmap_listener);
-        IRegisters reg = launch.getService(IRegisters.class);
-        if (reg != null) reg.removeListener(reg_listener);
-        IProcesses prs = launch.getService(IProcesses.class);
-        if (prs != null) prs.removeListener(prs_listener);
+        if (launch.getChannel() != null) {
+            IMemory mem = launch.getService(IMemory.class);
+            if (mem != null) mem.removeListener(mem_listener);
+            IRunControl run = launch.getService(IRunControl.class);
+            if (run != null) run.removeListener(run_listener);
+            IMemoryMap mmap = launch.getService(IMemoryMap.class);
+            if (mmap != null) mmap.removeListener(mmap_listener);
+            IPathMap pmap = launch.getService(IPathMap.class);
+            if (pmap != null) pmap.removeListener(pmap_listener);
+            IRegisters reg = launch.getService(IRegisters.class);
+            if (reg != null) reg.removeListener(reg_listener);
+            IProcesses prs = launch.getService(IProcesses.class);
+            if (prs != null) prs.removeListener(prs_listener);
+        }
         if (launch_node != null) {
             launch_node.dispose();
             launch_node = null;
