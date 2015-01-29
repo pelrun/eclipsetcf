@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -259,6 +259,8 @@ public interface ISymbols extends IService {
         PROP_LENGTH = "Length",
         PROP_LOWER_BOUND = "LowerBound",
         PROP_UPPER_BOUND = "UpperBound",
+        PROP_BINARY_SCALE = "BinaryScale",
+        PROP_DECIMAL_SCALE = "DecimalScale",
         PROP_OFFSET = "Offset",
         PROP_ADDRESS = "Address",
         PROP_VALUE = "Value",

@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.debug.ui.model;
 
 import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -86,6 +87,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private IExpression platform_expression;
 
     private static int expr_cnt;
+
+    private final static int max_type_chain_length = 256;
 
     private final Runnable post_delta = new Runnable() {
         @Override
@@ -424,7 +427,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         switch (base_type_data.getTypeClass()) {
                         case integer:
                         case cardinal:
-                            if (base_type_data.getSize() != 1) break;
+                            Boolean is_char = isCharType(base_type_data);
+                            if (is_char == null) return false;
+                            if (!is_char) break;
                             // c-string: read until character = 0
                             if (type_data.getTypeClass() == ISymbols.TypeClass.array) {
                                 byte[] data = value_data.getValue();
@@ -444,12 +449,16 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         break;
                     case integer:
                     case cardinal:
-                        if (type_data.getSize() == 1) {
-                            byte[] data = value_data.getValue();
-                            StyledStringBuffer bf = new StyledStringBuffer();
-                            bf.append(toASCIIString(data, 0, data.length, '\''), StyledStringBuffer.MONOSPACED);
-                            set(null, null, bf);
-                            return true;
+                        {
+                            Boolean is_char = isCharType(type_data);
+                            if (is_char == null) return false;
+                            if (is_char) {
+                                byte[] data = value_data.getValue();
+                                StyledStringBuffer bf = new StyledStringBuffer();
+                                bf.append(toASCIIString(data, 0, data.length, '\''), StyledStringBuffer.MONOSPACED);
+                                set(null, null, bf);
+                                return true;
+                            }
                         }
                         break;
                     case enumeration:
@@ -489,6 +498,20 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             public void reset() {
                 super.reset();
                 addr = null;
+            }
+            private Boolean isCharType(ISymbols.Symbol type) {
+                for (int i = 0; i < max_type_chain_length; i++) {
+                    if (type == null) return false;
+                    if (type.getSize() != 1) return false;
+                    if (type.getProperties().get(ISymbols.PROP_BINARY_SCALE) != null) return false;
+                    if (type.getProperties().get(ISymbols.PROP_DECIMAL_SCALE) != null) return false;
+                    String id = type.getTypeID();
+                    if (id == null || id.equals(type.getID())) break;
+                    TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(id);
+                    if (!type_cache.validate(this)) return null;
+                    type = type_cache.getData();
+                }
+                return true;
             }
             private boolean startMemRead(IExpressions.Value value_data) {
                 byte[] data = value_data.getValue();
@@ -884,7 +907,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     @SuppressWarnings("incomplete-switch")
     private boolean getTypeName(StringBuffer bf, TCFDataCache<ISymbols.Symbol> type_cache, boolean qualified, Runnable done) {
         String name = null;
-        for (;;) {
+        for (int i = 0; i < max_type_chain_length; i++) {
             String s = null;
             boolean get_base_type = false;
             if (!type_cache.validate(done)) return false;
@@ -1059,7 +1082,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     @SuppressWarnings("incomplete-switch")
-    private String toNumberString(int radix, ISymbols.TypeClass t, byte[] data, int offs, int size, boolean big_endian) {
+    private String toNumberString(int radix, ISymbols.TypeClass t, byte[] data, int offs, int size,
+            boolean big_endian, Number bin_scale, Number dec_scale) {
         if (size <= 0) return "";
         if (size > (t == ISymbols.TypeClass.complex ? 32: 16)) return "";
         if (radix != 16) {
@@ -1090,7 +1114,28 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         if (radix == 10) {
             switch (t) {
             case integer:
-                return TCFNumberFormat.toBigInteger(data, offs, size, big_endian, true).toString();
+            case cardinal:
+                boolean sign_extend = t == ISymbols.TypeClass.integer;
+                if (bin_scale != null) {
+                    int s = bin_scale.intValue();
+                    BigInteger n = TCFNumberFormat.toBigInteger(data, offs, size, big_endian, sign_extend);
+                    if (s < 0) {
+                        BigDecimal d = new BigDecimal(n);
+                        while (s < 0) {
+                            d = d.divide(BigDecimal.valueOf(2));
+                            s++;
+                        }
+                        return d.toString();
+                    }
+                    return n.shiftLeft(s).toString() + '.';
+                }
+                if (dec_scale != null) {
+                    BigDecimal d = new BigDecimal(TCFNumberFormat.toBigInteger(
+                            data, offs, size, big_endian, sign_extend));
+                    d = d.scaleByPowerOfTen(dec_scale.intValue());
+                    return d.toString();
+                }
+                return TCFNumberFormat.toBigInteger(data, offs, size, big_endian, sign_extend).toString();
             case real:
                 return TCFNumberFormat.toFPString(data, offs, size, big_endian);
             case complex:
@@ -1123,7 +1168,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (data != null) {
                 ISymbols.TypeClass t = val.getTypeClass();
                 if (t == ISymbols.TypeClass.unknown && type.getData() != null) t = type.getData().getTypeClass();
-                s = toNumberString(radix, t, data, 0, data.length, val.isBigEndian());
+                Number bin_scale = (Number)val.getProperties().get(IExpressions.VAL_BINARY_SCALE);
+                Number dec_scale = (Number)val.getProperties().get(IExpressions.VAL_DECIMAL_SCALE);
+                s = toNumberString(radix, t, data, 0, data.length, val.isBigEndian(), bin_scale, dec_scale);
             }
         }
         if (s == null) s = "N/A";
@@ -1517,21 +1564,21 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         return false;
     }
 
-    private boolean appendNumericValueText(
-            StyledStringBuffer bf, ISymbols.TypeClass type_class,
-            byte[] data, boolean big_endian, Runnable done) {
-        assert data != null;
+    private boolean appendNumericValueText( StyledStringBuffer bf, ISymbols.TypeClass type_class, Runnable done) {
         if (!type.validate(done)) return false;
+        IExpressions.Value v = value.getData();
+        Number bin_scale = (Number)v.getProperties().get(IExpressions.VAL_BINARY_SCALE);
+        Number dec_scale = (Number)v.getProperties().get(IExpressions.VAL_DECIMAL_SCALE);
+        boolean big_endian = v.isBigEndian();
+        byte[] data = v.getValue();
         bf.append("Hex: ", SWT.BOLD);
-        bf.append(toNumberString(16, type_class, data, 0, data.length, big_endian), StyledStringBuffer.MONOSPACED);
+        bf.append(toNumberString(16, type_class, data, 0, data.length, big_endian, bin_scale, dec_scale), StyledStringBuffer.MONOSPACED);
         bf.append(", ");
         bf.append("Dec: ", SWT.BOLD);
-        bf.append(toNumberString(10, type_class, data, 0, data.length, big_endian), StyledStringBuffer.MONOSPACED);
+        bf.append(toNumberString(10, type_class, data, 0, data.length, big_endian, bin_scale, dec_scale), StyledStringBuffer.MONOSPACED);
         bf.append(", ");
         bf.append("Oct: ", SWT.BOLD);
-        bf.append(toNumberString(8, type_class, data, 0, data.length, big_endian), StyledStringBuffer.MONOSPACED);
-        IExpressions.Value v = value.getData();
-        assert data == v.getValue();
+        bf.append(toNumberString(8, type_class, data, 0, data.length, big_endian, bin_scale, dec_scale), StyledStringBuffer.MONOSPACED);
         if (v.getTypeClass() == ISymbols.TypeClass.pointer) {
             TCFNode p = parent;
             while (p != null) {
@@ -1568,7 +1615,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (value.getData() != null) type_class = value.getData().getTypeClass();
             if (level == 0) {
                 assert offs == 0 && size == data.length && data_node == this;
-                if (size > 0 && !appendNumericValueText(bf, type_class, data, big_endian, done)) return false;
+                if (size > 0 && !appendNumericValueText(bf, type_class, done)) return false;
                 String s = getTypeName(type_class, size);
                 if (s == null) s = "not available";
                 bf.append("Size: ", SWT.BOLD);
@@ -1582,10 +1629,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             else if (type_class == ISymbols.TypeClass.integer ||
                     type_class == ISymbols.TypeClass.real ||
                     type_class == ISymbols.TypeClass.complex) {
-                bf.append(toNumberString(10, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+                bf.append(toNumberString(10, type_class, data, offs, size, big_endian, null, null), StyledStringBuffer.MONOSPACED);
             }
             else {
-                bf.append(toNumberString(16, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+                bf.append(toNumberString(16, type_class, data, offs, size, big_endian, null, null), StyledStringBuffer.MONOSPACED);
             }
             return true;
         }
@@ -1604,6 +1651,19 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         }
         if (type_data.getSize() > 0) {
             ISymbols.TypeClass type_class = type_data.getTypeClass();
+            Number bin_scale = null;
+            Number dec_scale = null;
+            ISymbols.Symbol base_type = type_data;
+            for (int i = 0; i < max_type_chain_length; i++) {
+                if (base_type == null) break;
+                if ((bin_scale = (Number)base_type.getProperties().get(ISymbols.PROP_BINARY_SCALE)) != null) break;
+                if ((dec_scale = (Number)base_type.getProperties().get(ISymbols.PROP_DECIMAL_SCALE)) != null) break;
+                String id = base_type.getTypeID();
+                if (id == null || id.equals(base_type.getID())) break;
+                TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(id);
+                if (!type_cache.validate(done)) return false;
+                base_type = type_cache.getData();
+            }
             switch (type_class) {
             case enumeration:
             case integer:
@@ -1612,14 +1672,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             case complex:
                 if (level == 0) {
                     assert offs == 0 && size == data.length && data_node == this;
-                    if (!appendNumericValueText(bf, type_class, data, big_endian, done)) return false;
+                    if (!appendNumericValueText(bf, type_class, done)) return false;
                 }
                 else if (type_data.getTypeClass() == ISymbols.TypeClass.cardinal) {
                     bf.append("0x", StyledStringBuffer.MONOSPACED);
-                    bf.append(toNumberString(16, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+                    bf.append(toNumberString(16, type_class, data, offs, size, big_endian, bin_scale, dec_scale), StyledStringBuffer.MONOSPACED);
                 }
                 else {
-                    bf.append(toNumberString(10, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+                    bf.append(toNumberString(10, type_class, data, offs, size, big_endian, bin_scale, dec_scale), StyledStringBuffer.MONOSPACED);
                 }
                 break;
             case pointer:
@@ -1627,11 +1687,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             case member_pointer:
                 if (level == 0) {
                     assert offs == 0 && size == data.length && data_node == this;
-                    if (!appendNumericValueText(bf, type_class, data, big_endian, done)) return false;
+                    if (!appendNumericValueText(bf, type_class, done)) return false;
                 }
                 else {
                     bf.append("0x", StyledStringBuffer.MONOSPACED);
-                    bf.append(toNumberString(16, type_class, data, offs, size, big_endian), StyledStringBuffer.MONOSPACED);
+                    bf.append(toNumberString(16, type_class, data, offs, size, big_endian, null, null), StyledStringBuffer.MONOSPACED);
                 }
                 break;
             case array:
@@ -1688,6 +1748,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             data, 0, data.length, big_endian, done)) return false;
                     }
                 }
+                Number bin_scale = (Number)v.getProperties().get(IExpressions.VAL_BINARY_SCALE);
+                Number dec_scale = (Number)v.getProperties().get(IExpressions.VAL_DECIMAL_SCALE);
+                if (bin_scale != null) {
+                    bf.append("Binary Scale: ", SWT.BOLD);
+                    bf.append(bin_scale.toString(), StyledStringBuffer.MONOSPACED);
+                }
+                if (dec_scale != null) {
+                    if (bin_scale != null) bf.append(", ");
+                    bf.append("Decimal Scale: ", SWT.BOLD);
+                    bf.append(dec_scale.toString(), StyledStringBuffer.MONOSPACED);
+                }
                 ISymbols.Symbol type_data = null;
                 if (type_id != null) {
                     TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(type_id);
@@ -1696,6 +1767,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 }
                 if (type_data != null) {
                     if (!type_name.validate(done)) return false;
+                    if (bin_scale != null || dec_scale != null) bf.append(", ");
                     bf.append("Size: ", SWT.BOLD);
                     bf.append(Integer.toString(type_data.getSize()), StyledStringBuffer.MONOSPACED);
                     bf.append(type_data.getSize() == 1 ? " byte" : " bytes");
@@ -1705,6 +1777,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         bf.append("Type: ", SWT.BOLD);
                         bf.append(nm);
                     }
+                    bf.append('\n');
+                }
+                else if (bin_scale != null || dec_scale != null) {
                     bf.append('\n');
                 }
                 @SuppressWarnings("unchecked")
@@ -2023,6 +2098,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                 boolean signed = false;
                                 if (!node.value.validate(this)) return;
                                 IExpressions.Value eval = node.value.getData();
+                                Number bin_scale = null;
+                                Number dec_scale = null;
                                 if (eval != null) {
                                     switch(eval.getTypeClass()) {
                                     case real:
@@ -2033,6 +2110,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                         signed = true;
                                         break;
                                     }
+                                    bin_scale = (Number)eval.getProperties().get(IExpressions.VAL_BINARY_SCALE);
+                                    dec_scale = (Number)eval.getProperties().get(IExpressions.VAL_DECIMAL_SCALE);
                                     big_endian = eval.isBigEndian();
                                     size = eval.getValue().length;
                                 }
@@ -2044,14 +2123,42 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                     if (error == null) bf = TCFNumberFormat.toByteArray(input, 16, false, size, signed, big_endian);
                                 }
                                 else if (TCFColumnPresentationExpression.COL_DEC_VALUE.equals(property)) {
-                                    error = TCFNumberFormat.isValidDecNumber(is_float, input);
-                                    if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
+                                    if (bin_scale != null) {
+                                        int n = bin_scale.intValue();
+                                        BigDecimal d = new BigDecimal(input);
+                                        while (n < 0) {
+                                            d = d.multiply(BigDecimal.valueOf(2));
+                                            n++;
+                                        }
+                                        bf = TCFNumberFormat.toByteArray(d.toBigInteger().toString(), 10, false, size, signed, big_endian);
+                                    }
+                                    else if (dec_scale != null) {
+                                        BigDecimal d = new BigDecimal(input).scaleByPowerOfTen(-dec_scale.intValue());
+                                        bf = TCFNumberFormat.toByteArray(d.toBigInteger().toString(), 10, false, size, signed, big_endian);
+                                    }
+                                    else {
+                                        error = TCFNumberFormat.isValidDecNumber(is_float, input);
+                                        if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
+                                    }
                                 }
                                 else if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
                                     if (input.startsWith("0x")) {
                                         String s = input.substring(2);
                                         error = TCFNumberFormat.isValidHexNumber(s);
                                         if (error == null) bf = TCFNumberFormat.toByteArray(s, 16, false, size, signed, big_endian);
+                                    }
+                                    else if (bin_scale != null) {
+                                        int n = bin_scale.intValue();
+                                        BigDecimal d = new BigDecimal(input);
+                                        while (n < 0) {
+                                            d = d.multiply(BigDecimal.valueOf(2));
+                                            n++;
+                                        }
+                                        bf = TCFNumberFormat.toByteArray(d.toBigInteger().toString(), 10, false, size, signed, big_endian);
+                                    }
+                                    else if (dec_scale != null) {
+                                        BigDecimal d = new BigDecimal(input).scaleByPowerOfTen(-dec_scale.intValue());
+                                        bf = TCFNumberFormat.toByteArray(d.toBigInteger().toString(), 10, false, size, signed, big_endian);
                                     }
                                     else {
                                         error = TCFNumberFormat.isValidDecNumber(is_float, input);
