@@ -316,8 +316,16 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			return;
 		}
 		// Generate a new proposal
-		final String origProposedName = NLS.bind(template, customID != null ? customID : ""); //$NON-NLS-1$
+		String origProposedName = NLS.bind(template, customID != null ? customID : ""); //$NON-NLS-1$
 		String proposedName = origProposedName;
+
+		if (usedNames.contains(proposedName.trim().toUpperCase()) && proposedName.matches(".* \\([0-9]*\\)")) { //$NON-NLS-1$
+			int index = proposedName.lastIndexOf(' ');
+			if (index > 0) {
+				origProposedName = proposedName.substring(0, index);
+				proposedName = origProposedName;
+			}
+		}
 
 		// Unify the proposed name to avoid duplicated configuration names
 		int count = 0;
