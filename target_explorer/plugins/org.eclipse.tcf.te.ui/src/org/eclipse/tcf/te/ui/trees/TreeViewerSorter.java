@@ -203,6 +203,8 @@ public class TreeViewerSorter extends TreePathViewerSorter {
 				if (!Character.isUpperCase(c1) && Character.isUpperCase(c2)) return 1 * inverter;
 			}
 
+			// If the text to compare is kind of "<text><number>", and the "<text>" part
+			// is the same, compare the numbers as number.
 			Matcher m1 = Pattern.compile("(\\D+)(\\d+)").matcher(text1); //$NON-NLS-1$
 			Matcher m2 = Pattern.compile("(\\D+)(\\d+)").matcher(text2); //$NON-NLS-1$
 			if (m1.matches() && m2.matches()) {
@@ -219,12 +221,26 @@ public class TreeViewerSorter extends TreePathViewerSorter {
 						long l1 = Long.parseLong(p12);
 						long l2 = Long.parseLong(p22);
 
-						if (l1 > l2) result = 1;
-						if (l1 < l2) result = -1;
+						if (l1 > l2) result = 1 * inverter;
+						if (l1 < l2) result = -1 * inverter;
 
 						return result;
 					} catch (NumberFormatException e) { /* ignored on purpose */ }
 				}
+			}
+
+			// If the text to compare represents a number after all, compare it as numbers
+			if (text1.matches("\\d+") && text2.matches("\\d+")) { //$NON-NLS-1$ //$NON-NLS-2$
+				try {
+					int result = 0;
+					long l1 = Long.parseLong(text1);
+					long l2 = Long.parseLong(text2);
+
+					if (l1 > l2) result = 1 * inverter;
+					if (l1 < l2) result = -1 * inverter;
+
+					return result;
+				} catch (NumberFormatException e) { /* ignored on purpose */ }
 			}
 
 			if (text1.matches(".*[A-Z]+.*") || text2.matches(".*[A-Z]+.*")) { //$NON-NLS-1$ //$NON-NLS-2$
