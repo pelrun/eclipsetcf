@@ -3,7 +3,7 @@
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.cdt.sdk.feature.group" version="8.3.0.201402142303"/>
-<repository location="http://download.eclipse.org/tools/cdt/builds/kepler/milestones"/>
+<repository location="http://download.eclipse.org/tools/cdt/releases/kepler"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson.source" version="2.2.4.v201311231704"/>
@@ -40,7 +40,7 @@
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.tm.terminal.core.sdk.feature.group" version="3.3.300.201406060905"/>
-<repository location="http://download.eclipse.org/tm/builds/luna/nightly"/>
+<repository location="http://download.eclipse.org/tm/updates/3.6"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.license.feature.group" version="1.0.1.v20140414-1359"/>
