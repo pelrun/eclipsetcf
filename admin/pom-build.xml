@@ -80,6 +80,72 @@
 			
 			<build>
 				<plugins>
+                    <plugin>
+                        <groupId>org.eclipse.tycho</groupId>
+                        <artifactId>target-platform-configuration</artifactId>
+                        <configuration>
+                            <dependency-resolution>
+                                <extraRequirements>
+                                    <!-- product IU under test -->
+                                    <requirement>
+                                        <type>p2-installable-unit</type>
+                                        <id>org.eclipse.platform.ide</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.sdk</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.remote</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.swtbot.eclipse</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.tcf.core.feature</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.tcf.feature</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.tcf.cdt.feature</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.tcf.te.feature</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.tcf.te.tcf.core.feature</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.tcf.te.tcf.feature</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                    <requirement>
+                                        <type>eclipse-feature</type>
+                                        <id>org.eclipse.tcf.te.tcf.remote.feature</id>
+                                        <versionRange>0.0.0</versionRange>
+                                    </requirement>
+                                </extraRequirements>
+                            </dependency-resolution>
+                        </configuration>
+                    </plugin>
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
@@ -97,51 +163,6 @@
 										<exclude>org.eclipse.tcf.te.tests.*</exclude>
 									</excludes>
 								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		
-		<profile>
-			<id>validate</id>
-			<!-- The validate profile does work only inside the WR network. -->
-			<!-- The profile requires a custom plug-in to generate the validation report -->
-			
-			<pluginRepositories>
-				<pluginRepository>
-					<id>wr</id>
-					<url>http://szg-bld-wb.wrs.com/wb-sd/maven/</url>
-					<snapshots>
-						<enabled>true</enabled>
-					</snapshots>
-					<releases>
-						<enabled>true</enabled>
-					</releases>
-				</pluginRepository>
-			</pluginRepositories>
-			
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.windriver.tycho-ext</groupId>
-						<artifactId>manifest-validation-plugin</artifactId>
-						<version>1.0.3</version>
-						<executions>
-							<execution>
-								<id>clean</id>
-								<phase>clean</phase>
-								<goals>
-									<goal>clean</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>validate</id>
-								<phase>validate</phase>
-								<goals>
-									<goal>validate-required-bundle-versions</goal>
-								</goals>
 							</execution>
 						</executions>
 					</plugin>

@@ -28,31 +28,18 @@
 			<build>
 				<plugins>
                     <plugin>
-                        <groupId>org.eclipse.tycho</groupId>
-                        <artifactId>target-platform-configuration</artifactId>
-                        <configuration>
-                            <dependency-resolution>
-                                <extraRequirements>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.sdk</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                </extraRequirements>
-                            </dependency-resolution>
-                        </configuration>
-                    </plugin>
-
-                    <plugin>
 						<groupId>org.eclipse.tycho</groupId>
 						<artifactId>tycho-surefire-plugin</artifactId>
 						<version>${tycho-version}</version>
 						<configuration>
-							<testSuite>org.eclipse.tcf.te.tests</testSuite>
-							<testClass>org.eclipse.tcf.te.tests.suites.AllTests</testClass>
 							<useUIHarness>true</useUIHarness>
 							<useUIThread>true</useUIThread>
+							<product>org.eclipse.platform.ide</product>
+							<argLine>${tycho.testArgLine} ${ui.test.vmargs}</argLine>
+                            <application>org.eclipse.ui.ide.workbench</application>
+							<testFailureIgnore>true</testFailureIgnore>
 							<showEclipseLog>true</showEclipseLog>
+                            <testRuntime>p2Installed</testRuntime>
 							<!--
 							<debugPort>8003</debugPort>
 							-->
@@ -61,11 +48,10 @@
 						        <osgi.debug>${basedir}/tracing/.options</osgi.debug>
 						        <tcf.agent.path>${basedir}/.agent/agent</tcf.agent.path>
 						    </systemProperties>
-							<product>org.eclipse.platform.ide</product>
-							<argLine>${tycho.testArgLine} ${ui.test.vmargs}</argLine>
-							<testFailureIgnore>true</testFailureIgnore>
-							<application>org.eclipse.ui.ide.workbench</application>
-						</configuration>
+
+                        	<testSuite>org.eclipse.tcf.te.tests</testSuite>
+							<testClass>org.eclipse.tcf.te.tests.suites.AllTests</testClass>
+                        </configuration>
 					</plugin>
 			
 					<plugin>
