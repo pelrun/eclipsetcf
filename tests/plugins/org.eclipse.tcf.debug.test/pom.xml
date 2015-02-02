@@ -46,7 +46,7 @@
 				    
 						    <systemProperties>
 						        <osgi.debug>${basedir}/tracing/.options</osgi.debug>
-						        <tcf.agent.path>${basedir}/.agent/agent</tcf.agent.path>
+						        <tcf.agent.path>${WORKSPACE}/.agent</tcf.agent.path>
 						    </systemProperties>
 
                             <includes>
