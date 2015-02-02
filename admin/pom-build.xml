@@ -80,6 +80,7 @@
 			
 			<build>
 				<plugins>
+                
                     <plugin>
                         <groupId>org.eclipse.tycho</groupId>
                         <artifactId>target-platform-configuration</artifactId>
@@ -105,41 +106,6 @@
                                     <requirement>
                                         <type>eclipse-feature</type>
                                         <id>org.eclipse.swtbot.eclipse</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.tcf.core.feature</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.tcf.feature</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.tcf.cdt.feature</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.tcf.te.feature</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.tcf.te.tcf.core.feature</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.tcf.te.tcf.feature</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.tcf.te.tcf.remote.feature</id>
                                         <versionRange>0.0.0</versionRange>
                                     </requirement>
                                 </extraRequirements>

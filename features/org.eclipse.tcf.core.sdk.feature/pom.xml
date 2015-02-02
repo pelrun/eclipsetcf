@@ -6,9 +6,9 @@
 
 	<parent>
 		<groupId>org.eclipse.tcf</groupId>
-		<artifactId>tcf-parent</artifactId>
+		<artifactId>org.eclipse.tcf.maven-build</artifactId>
 		<version>1.3.0-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../../admin/pom-build.xml</relativePath>
 	</parent>
 
 	<artifactId>org.eclipse.tcf.core.sdk.feature</artifactId>
