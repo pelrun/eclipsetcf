@@ -17,6 +17,7 @@ import junit.framework.TestSuite;
 import org.eclipse.cdt.utils.elf.Elf;
 import org.eclipse.cdt.utils.elf.Elf.ELFhdr;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.core.cdt.elf.ElfUtils;
 import org.eclipse.tcf.te.runtime.utils.Host;
@@ -52,7 +53,13 @@ public class UtilityTestCase extends CoreTestCase {
 		if (!Host.isLinuxHost()) return;
 
 		// Use the Linux agent to test the ELF utilities
-		IPath path =  getDataLocation("agent", true, true); //$NON-NLS-1$
+		IPath path = null;
+		String agentPath = System.getProperty("tcf.agent.path"); //$NON-NLS-1$
+		if (agentPath != null && !"".equals(agentPath.trim())) { //$NON-NLS-1$
+			path = new Path(agentPath);
+		} else {
+			path = getDataLocation("agent", true, true); //$NON-NLS-1$
+		}
 		assertNotNull("Unexpected null value from getDataLocation()", path); //$NON-NLS-1$
 		path = path.append("agent"); //$NON-NLS-1$
 		assertTrue("Test ELF file does not exist or is not readable", path.toFile().canRead()); //$NON-NLS-1$

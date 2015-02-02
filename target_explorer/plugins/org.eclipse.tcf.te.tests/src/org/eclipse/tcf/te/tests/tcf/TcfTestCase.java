@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.tcf.core.TransientPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.JSON;
@@ -48,6 +49,8 @@ public class TcfTestCase extends CoreTestCase {
 	protected IPeer peer;
 	// The peer model instance
 	protected IPeerNode peerNode;
+	// The test agent location
+	private IPath agentLocation;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tests.CoreTestCase#setUp()
@@ -239,7 +242,15 @@ public class TcfTestCase extends CoreTestCase {
 	 * @return The agent location or <code>null</code> if not found.
 	 */
 	protected IPath getAgentLocation() {
-		return getDataLocation("agent", true, true); //$NON-NLS-1$
+		if (agentLocation == null) {
+			String agentPath = System.getProperty("tcf.agent.path"); //$NON-NLS-1$
+			if (agentPath != null && !"".equals(agentPath.trim())) { //$NON-NLS-1$
+				agentLocation = new Path(agentPath);
+			} else {
+				agentLocation = getDataLocation("agent", true, true); //$NON-NLS-1$
+			}
+		}
+		return agentLocation;
 	}
 
 	/**
