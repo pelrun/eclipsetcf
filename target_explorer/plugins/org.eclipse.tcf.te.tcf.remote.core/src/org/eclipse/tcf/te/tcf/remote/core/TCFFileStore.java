@@ -23,11 +23,15 @@ import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.remote.core.IRemoteConnection;
 import org.eclipse.tcf.services.IFileSystem.FileAttrs;
+import org.eclipse.tcf.te.tcf.remote.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationChildStores;
 import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationDelete;
 import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationFetchInfo;
@@ -51,7 +55,7 @@ public final class TCFFileStore extends FileStore {
 		try {
 	        return new TCFFileStore(connection, path, TCFEclipseFileSystem.getURIFor(connection, path.toString()), parent);
         } catch (URISyntaxException e) {
-        	Activator.logError(Messages.TCFFileManager_errorFileStoreForPath, e);
+        	Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), Messages.TCFFileManager_errorFileStoreForPath, e));
         }
 		return EFS.getNullFileSystem().getStore(path);
 	}

@@ -8,23 +8,31 @@
  * Contributors:
  *    Markus Schorn - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.remote.core.operation;
+package org.eclipse.tcf.te.tcf.remote.core.nls;
 
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "org.eclipse.tcf.te.tcf.remote.core.operation.Messages"; //$NON-NLS-1$
-	public static String PeerInfo_errorCannotOpenChannel;
-	public static String PeerInfo_errorNoFileSystemService;
-	public static String PeerInfo_errorPeerNotConnected;
-	public static String TCFFileStoreOperation_errorNotConnected;
-	public static String TCFOperationGetEnvironment_errorNoChannel;
-	public static String TCFOperationGetEnvironment_errorNoProcessesService;
+
+	// The plug-in resource bundle name
+	private static final String BUNDLE_NAME = "org.eclipse.tcf.te.tcf.remote.core.nls.Messages"; //$NON-NLS-1$
+
+	/**
+	 * Static constructor.
+	 */
 	static {
-		// initialize resource bundle
+		// Load message values from bundle file
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
 	}
 
-	private Messages() {
-	}
+	// **** Declare externalized string id's down here *****
+
+	public static String PeerInfo_errorCannotOpenChannel;
+	public static String PeerInfo_errorNoFileSystemService;
+	public static String PeerInfo_errorPeerNotConnected;
+
+	public static String TCFFileStoreOperation_errorNotConnected;
+
+	public static String TCFOperationGetEnvironment_errorNoChannel;
+	public static String TCFOperationGetEnvironment_errorNoProcessesService;
 }

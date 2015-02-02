@@ -10,13 +10,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.remote.ui;
 
-import static java.text.MessageFormat.format;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.remote.core.IRemoteConnection;
 import org.eclipse.remote.core.IRemotePreferenceConstants;
 import org.eclipse.remote.core.IRemoteServices;
@@ -28,6 +30,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.tcf.remote.core.TCFConnection;
 import org.eclipse.tcf.te.tcf.remote.core.TCFEclipseFileSystem;
 import org.eclipse.tcf.te.tcf.remote.core.TCFRemoteServices;
+import org.eclipse.tcf.te.tcf.remote.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.remote.ui.nls.Messages;
 import org.eclipse.ui.ide.fileSystem.FileSystemContributor;
 
 public class TCFFileSystemContributor extends FileSystemContributor {
@@ -49,7 +53,8 @@ public class TCFFileSystemContributor extends FileSystemContributor {
 					try {
 						return TCFEclipseFileSystem.getURIFor(tcfConn, path);
 					} catch (URISyntaxException e) {
-						Activator.logError(format(Messages.TCFFileSystemContributor_errorCreateURIForPath, conn.getName(), path), e);
+						Platform.getLog(UIPlugin.getDefault().getBundle()).log(
+										new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), NLS.bind(Messages.TCFFileSystemContributor_errorCreateURIForPath, conn.getName(), path), e));
 					}
 				}
 			}

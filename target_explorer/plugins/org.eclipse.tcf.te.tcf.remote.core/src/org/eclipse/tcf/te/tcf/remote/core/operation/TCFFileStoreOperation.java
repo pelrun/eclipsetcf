@@ -21,6 +21,7 @@ import org.eclipse.tcf.services.IFileSystem.DoneStat;
 import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.remote.core.TCFFileStore;
+import org.eclipse.tcf.te.tcf.remote.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.remote.core.operation.PeerInfo.DoneGetFileSystem;
 import org.eclipse.tcf.te.tcf.remote.core.operation.PeerInfo.DoneGetUser;
 

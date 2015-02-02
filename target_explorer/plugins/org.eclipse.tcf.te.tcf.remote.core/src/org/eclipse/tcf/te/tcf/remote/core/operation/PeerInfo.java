@@ -35,7 +35,8 @@ import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
-import org.eclipse.tcf.te.tcf.remote.core.Activator;
+import org.eclipse.tcf.te.tcf.remote.core.activator.CoreBundleActivator;
+import org.eclipse.tcf.te.tcf.remote.core.nls.Messages;
 
 public final class PeerInfo implements IChannelListener {
 	private IFileSystem fFileSystem;
@@ -100,7 +101,7 @@ public final class PeerInfo implements IChannelListener {
 	}
 
 	private IStatus errorStatus(String msg, Throwable cause) {
-	    return new Status(IStatus.ERROR, Activator.ID, msg, cause);
+	    return new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), msg, cause);
     }
 
 	@Override

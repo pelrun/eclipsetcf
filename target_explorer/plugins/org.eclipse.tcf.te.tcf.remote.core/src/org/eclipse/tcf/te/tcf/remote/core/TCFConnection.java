@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -37,6 +38,7 @@ import org.eclipse.remote.core.exception.RemoteConnectionException;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.remote.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationGetEnvironment;
 
 public class TCFConnection extends TCFConnectionBase {
@@ -106,7 +108,7 @@ public class TCFConnection extends TCFConnectionBase {
 	            fEnvironment = new TCFOperationGetEnvironment(fPeerNode.getPeer()).execute(SubMonitor.convert(null));
             } catch (OperationCanceledException e) {
             } catch (CoreException e) {
-            	Activator.logError(Messages.TCFConnection_errorNoEnvironment, e);
+            	Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), Messages.TCFConnection_errorNoEnvironment, e));
             }
 		}
 		return fEnvironment;

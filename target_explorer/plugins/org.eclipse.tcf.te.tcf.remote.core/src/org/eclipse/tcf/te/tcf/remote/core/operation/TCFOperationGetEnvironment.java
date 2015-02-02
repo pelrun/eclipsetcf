@@ -21,6 +21,7 @@ import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.DoneGetEnvironment;
 import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.remote.core.nls.Messages;
 
 
 public class TCFOperationGetEnvironment extends TCFOperation<Map<String,String>> {

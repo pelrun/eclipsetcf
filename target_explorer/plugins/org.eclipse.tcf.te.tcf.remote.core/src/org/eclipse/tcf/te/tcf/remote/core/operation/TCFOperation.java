@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.remote.core.Activator;
+import org.eclipse.tcf.te.tcf.remote.core.activator.CoreBundleActivator;
 
 public abstract class TCFOperation <R> {
 	private IStatus fError;
@@ -53,7 +53,7 @@ public abstract class TCFOperation <R> {
 	}
 
 	protected final Status createStatus(String msg, Throwable error) {
-	    return new Status(IStatus.ERROR, Activator.ID, msg, error);
+	    return new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), msg, error);
     }
 
 	protected final void setError(IStatus error) {

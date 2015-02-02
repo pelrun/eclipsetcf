@@ -8,19 +8,25 @@
  * Contributors:
  *    Markus Schorn - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.remote.ui;
+package org.eclipse.tcf.te.tcf.remote.ui.nls;
 
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
-	private static final String BUNDLE_NAME = "org.eclipse.tcf.te.tcf.ui.remote.ui.messages"; //$NON-NLS-1$
-	public static String TCFFileSystemContributor_browseFileSystem_title;
-	public static String TCFFileSystemContributor_errorCreateURIForPath;
+
+	// The plug-in resource bundle name
+	private static final String BUNDLE_NAME = "org.eclipse.tcf.te.tcf.remote.ui.nls.Messages"; //$NON-NLS-1$
+
+	/**
+	 * Static constructor.
+	 */
 	static {
-		// initialize resource bundle
+		// Load message values from bundle file
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
 	}
 
-	private Messages() {
-	}
+	// **** Declare externalized string id's down here *****
+
+	public static String TCFFileSystemContributor_browseFileSystem_title;
+	public static String TCFFileSystemContributor_errorCreateURIForPath;
 }
