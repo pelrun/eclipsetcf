@@ -27,7 +27,6 @@ public interface ISimulatorService extends IService {
 	 * Property: The associated simulator instance.
 	 */
 	public static final String PROP_SIM_INSTANCE = ISimulatorService.class.getName() + ".simInstance"; //$NON-NLS-1$
-	public static final String PROP_EXIT_ERROR = ISimulatorService.class.getName() + ".exitError"; //$NON-NLS-1$
 
 	/**
 	 * The constants for the simulator state.

@@ -596,6 +596,7 @@
             <separator name="group.connect" visible="false"/>
             <separator name="group.actions" visible="true"/>
             <separator name="group.additions" visible="false"/>
+            <separator name="group.global" visible="true"/>
          </toolbar>
       </menuContribution>
 

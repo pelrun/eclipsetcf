@@ -84,7 +84,9 @@ public class ChainPeerStep extends AbstractPeerStep {
 					ChannelEvent event = new ChannelEvent(ChainPeerStep.this, c, ChannelEvent.TYPE_OPENING, eventData);
 					EventManager.getInstance().fireEvent(event);
 				} else {
-					String message = c.getRemotePeer().getID() + " --> " + peer.getID(); //$NON-NLS-1$
+					String id = peer.getAttributes().get(IPeer.ATTR_TRANSPORT_NAME) + ":" + peer.getAttributes().get(IPeer.ATTR_IP_HOST) + ":" + peer.getAttributes().get(IPeer.ATTR_IP_PORT); //$NON-NLS-1$ //$NON-NLS-2$
+					id = id.equalsIgnoreCase(peer.getID()) ? peer.getID() : (id + " (" + peer.getID() + ")");  //$NON-NLS-1$ //$NON-NLS-2$
+					String message = c.getRemotePeer().getID() + " --> " + id; //$NON-NLS-1$
 
 					IPropertiesContainer eventData = new PropertiesContainer();
 					eventData.setProperty(ChannelEvent.PROP_MESSAGE, message);

@@ -129,6 +129,13 @@ public class PeerModelPropertyTester extends PropertyTester {
 			}
 		}
 
+		if ("isOfSubType".equals(property)) { //$NON-NLS-1$
+			String value = peer.getAttributes().get(IPeerProperties.PROP_SUBTYPE);
+			if (expectedValue instanceof String) {
+				return value != null ? ((String)expectedValue).equals(value) : ((String)expectedValue).equalsIgnoreCase("null"); //$NON-NLS-1$
+			}
+		}
+
 		if ("containsPlatform".equals(property)) { //$NON-NLS-1$
 			String value = peer.getAttributes().get(IPeerProperties.PROP_PLATFORMS);
 			if (value != null) {

@@ -56,4 +56,9 @@ public interface IPeerNodeProperties {
 	 * Property: Container for warnings (Map<String,String)
 	 */
 	public static final String PROPERTY_WARNINGS = "Warnings"; //$NON-NLS-1$
+
+	/**
+	 * Property: Exit error if any simulator or other started process died during connect.
+	 */
+	public static final String PROP_EXIT_ERROR = "ExitError"; //$NON-NLS-1$
 }
