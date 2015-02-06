@@ -266,11 +266,15 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 		int result = getDialogResult(key);
 		if (result < 0) {
 			result = super.open();
-			if (getToggleState() && result >= 0 && result != IDialogConstants.CANCEL_ID) {
+			if (getToggleState() && storeResultOnToggleSelected(result)) {
 				setDialogResult(key, result);
 			}
 		}
 		return result;
+	}
+
+	protected boolean storeResultOnToggleSelected(int result) {
+		return result >= 0 && result != IDialogConstants.CANCEL_ID;
 	}
 
 	/* (non-Javadoc)
