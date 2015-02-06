@@ -180,11 +180,13 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 	@Override
 	public void rollback(final IStepContext context, final IPropertiesContainer data, final IStatus status, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IPeer peer = getActivePeerContext(context, data, fullQualifiedId);
+		final IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
 
 		Runnable runnable = new Runnable() {
 			@SuppressWarnings("synthetic-access")
             @Override
 			public void run() {
+				peerNode.setProperty(IPeerNodeProperties.PROP_EXIT_ERROR, null);
 				Tcf.getChannelManager().shutdown(peer);
 				WaitForReadyStep.super.rollback(context, data, status, fullQualifiedId, monitor, callback);
 			}
