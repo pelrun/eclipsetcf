@@ -89,7 +89,7 @@ public class ExternalExecutablesDialog extends TrayDialog {
 			layout.verticalSpacing = 0; layout.horizontalSpacing = 0;
 
 			sc.setLayout(layout);
-			sc.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
+			sc.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
 
 			sc.setExpandHorizontal(true);
 			sc.setExpandVertical(true);
@@ -133,25 +133,24 @@ public class ExternalExecutablesDialog extends TrayDialog {
         layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
         label.setLayoutData(layoutData);
 
-        name = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        name = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE | SWT.BORDER);
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         name.setLayoutData(layoutData);
 
-        Composite panel2 = new Composite(panel, SWT.NONE);
-        layout = new GridLayout(3, false);
-        layout.marginHeight = 0; layout.marginWidth = 0;
-        panel2.setLayout(layout);
-        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        layoutData.horizontalSpan = 2;
-        panel2.setLayoutData(layoutData);
-
-        label = new Label(panel2, SWT.HORIZONTAL);
+        label = new Label(panel, SWT.HORIZONTAL);
         label.setText(Messages.ExternalExecutablesDialog_field_path);
         layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
         label.setLayoutData(layoutData);
 
-        path = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        Composite panel2 = new Composite(panel, SWT.NONE);
+        layout = new GridLayout(2, false);
+        layout.marginHeight = 0; layout.marginWidth = 0;
+        panel2.setLayout(layout);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        panel2.setLayoutData(layoutData);
+
+        path = new Text(panel2, SWT.HORIZONTAL | SWT.SINGLE | SWT.BORDER);
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         path.setLayoutData(layoutData);
@@ -202,25 +201,24 @@ public class ExternalExecutablesDialog extends TrayDialog {
         layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
         label.setLayoutData(layoutData);
 
-        args = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        args = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE | SWT.BORDER);
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         args.setLayoutData(layoutData);
 
-        panel2 = new Composite(panel, SWT.NONE);
-        layout = new GridLayout(3, false);
-        layout.marginHeight = 0; layout.marginWidth = 0;
-        panel2.setLayout(layout);
-        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        layoutData.horizontalSpan = 2;
-        panel2.setLayoutData(layoutData);
-
-        label = new Label(panel2, SWT.HORIZONTAL);
+        label = new Label(panel, SWT.HORIZONTAL);
         label.setText(Messages.ExternalExecutablesDialog_field_icon);
         layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
         label.setLayoutData(layoutData);
 
-        icon = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        panel2 = new Composite(panel, SWT.NONE);
+        layout = new GridLayout(2, false);
+        layout.marginHeight = 0; layout.marginWidth = 0;
+        panel2.setLayout(layout);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        panel2.setLayoutData(layoutData);
+
+        icon = new Text(panel2, SWT.HORIZONTAL | SWT.SINGLE | SWT.BORDER);
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         icon.setLayoutData(layoutData);
