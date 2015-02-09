@@ -60,7 +60,7 @@ public final class TCFOperationMkDir extends TCFFileStoreOperation<Object> {
     			}
     			if (error == null && attrs.isDirectory()) {
     				// Directory exists, ok.
-    				callback.doneMkDir(token, error);
+    				callback.doneMkDir(token, null);
     			} else if (error != null && error.getStatus() != IFileSystem.STATUS_NO_SUCH_FILE) {
     				// Error and file exists
     				callback.doneMkDir(token, error);

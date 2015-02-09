@@ -346,7 +346,7 @@ public class SerialPortAddressDialog extends TitleAreaDialog implements IMessage
 				if (tty != null && tty.trim().length() > 0 && ttyControl.indexOf(tty) == -1) {
 					ttyControl.add(tty.trim());
 				}
-				if (tty.equals(data)) {
+				if (tty != null && tty.equals(data)) {
 					ttyControl.setText(tty.trim());
 				}
 			}

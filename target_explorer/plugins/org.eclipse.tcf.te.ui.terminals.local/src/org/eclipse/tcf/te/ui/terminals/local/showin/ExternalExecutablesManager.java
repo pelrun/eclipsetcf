@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.ui.terminals.local.showin;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,9 +45,12 @@ public class ExternalExecutablesManager {
 		if (stateLocation != null) {
 			File f = stateLocation.append(".executables/data.properties").toFile(); //$NON-NLS-1$
 			if (f.canRead()) {
+				FileReader r = null;
+
 				try {
 					Properties data = new Properties();
-					data.load(new FileReader(f));
+					r= new FileReader(f);
+					data.load(r);
 
 					Map<Integer, Map<String, String>> c = new HashMap<Integer, Map<String, String>>();
 					for (String name : data.stringPropertyNames()) {
@@ -80,6 +84,8 @@ public class ExternalExecutablesManager {
 					if (Platform.inDebugMode()) {
 						e.printStackTrace();
 					}
+				} finally {
+					if (r != null) try { r.close(); } catch (IOException e) { /* ignored on purpose */ }
 				}
 			}
 		}
@@ -100,6 +106,8 @@ public class ExternalExecutablesManager {
 				@SuppressWarnings("unused")
                 boolean s = f.delete();
 			} else {
+				FileWriter w = null;
+
 				try {
 					Properties data = new Properties();
 					for (int i = 0; i < l.size(); i++) {
@@ -115,13 +123,20 @@ public class ExternalExecutablesManager {
 						boolean s = f.getParentFile().mkdirs();
 						s = f.createNewFile();
 					}
-					FileWriter w = new FileWriter(f);
+					w = new FileWriter(f);
 					data.store(w, null);
-					w.flush();
-					w.close();
 				} catch (Exception e) {
 					if (Platform.inDebugMode()) {
 						e.printStackTrace();
+					}
+				} finally {
+					if (w != null) {
+						try {
+							w.flush();
+							w.close();
+						} catch (IOException e) {
+							/* ignored on purpose */
+						}
 					}
 				}
 			}

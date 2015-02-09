@@ -23,7 +23,7 @@ import org.osgi.framework.Bundle;
  * Provides access to the terminal service instance.
  */
 public final class TerminalServiceFactory {
-	public static ITerminalService instance = null;
+	private static ITerminalService instance = null;
 
 	static {
 		// Tries to instantiate the terminal service implementation

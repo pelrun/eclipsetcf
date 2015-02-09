@@ -203,6 +203,7 @@
 		<Or>
 			<Class name="org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread"/>
 			<Class name="org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper"/>
+			<Class name="org.eclipse.tcf.te.tcf.remote.core.TCFConnectionManager"/>
 		</Or>
 	</Match>
 	
@@ -256,6 +257,7 @@
 			<Class name="~org\.eclipse\.tcf\.te\.tcf\.filesystem\.ui\.internal\.handlers\.OpenFileHandler.*"/>
 			<Package name="~org\.eclipse\.tcf\.te\.tests\..*"/>
             <Class name="org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesManager"/>
+            <Class name="org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper"/>
 		</Or>
 	</Match>
 
