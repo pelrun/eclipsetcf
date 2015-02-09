@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.rse.internal;
 
+import java.util.Map;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -24,7 +26,6 @@ import org.eclipse.rse.core.subsystems.ISubSystem;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.internal.dialogs.LaunchTerminalSettingsDialog;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
@@ -70,9 +71,9 @@ public class LaunchTerminalHandler extends AbstractHandler {
 
 					if (dialog.open() == Window.OK) {
 						// Get the terminal settings from the dialog
-						IPropertiesContainer properties = dialog.getSettings();
+						Map<String, Object> properties = dialog.getSettings();
 						if (properties != null) {
-							String delegateId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
+							String delegateId = (String)properties.get(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
 							Assert.isNotNull(delegateId);
 							ILauncherDelegate delegate = LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false);
 							Assert.isNotNull(delegateId);
