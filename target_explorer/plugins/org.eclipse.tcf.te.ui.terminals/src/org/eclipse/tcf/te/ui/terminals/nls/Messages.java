@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -49,6 +49,12 @@ public class Messages extends NLS {
 	}
 
 	// **** Declare externalized string id's down here *****
+
+	public static String Extension_error_missingRequiredAttribute;
+	public static String Extension_error_duplicateExtension;
+	public static String Extension_error_invalidExtensionPoint;
+
+	public static String AbstractTriggerCommandHandler_error_executionFailed;
 
 	public static String AbstractAction_error_commandExecutionFailed;
 
@@ -104,4 +110,6 @@ public class Messages extends NLS {
 	public static String TabFolderManager_state_connected;
 	public static String TabFolderManager_state_connecting;
 	public static String TabFolderManager_state_closed;
+
+	public static String NoteCompositeHelper_note_label;
 }

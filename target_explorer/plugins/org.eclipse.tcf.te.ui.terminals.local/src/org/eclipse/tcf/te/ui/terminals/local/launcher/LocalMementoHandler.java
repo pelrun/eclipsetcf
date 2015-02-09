@@ -9,8 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.local.launcher;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.ui.IMemento;
 
@@ -20,20 +21,19 @@ import org.eclipse.ui.IMemento;
 public class LocalMementoHandler implements IMementoHandler {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#saveState(org.eclipse.ui.IMemento, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#saveState(org.eclipse.ui.IMemento, java.util.Map)
 	 */
 	@Override
-	public void saveState(IMemento memento, IPropertiesContainer properties) {
+	public void saveState(IMemento memento, Map<String, Object> properties) {
 		Assert.isNotNull(memento);
 		Assert.isNotNull(properties);
-
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#restoreState(org.eclipse.ui.IMemento, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#restoreState(org.eclipse.ui.IMemento, java.util.Map)
 	 */
 	@Override
-	public void restoreState(IMemento memento, IPropertiesContainer properties) {
+	public void restoreState(IMemento memento, Map<String, Object> properties) {
 		Assert.isNotNull(memento);
 		Assert.isNotNull(properties);
 	}

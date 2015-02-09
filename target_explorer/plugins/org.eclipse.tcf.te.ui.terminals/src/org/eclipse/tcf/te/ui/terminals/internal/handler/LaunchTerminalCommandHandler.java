@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.terminals.internal.handler;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -21,12 +22,10 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.TerminalContextPropertiesProviderFactory;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalContextPropertiesProvider;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.IContextPropertiesConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.interfaces.tracing.ITraceIds;
@@ -77,9 +76,9 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 			}
 			if (dialog.open() == Window.OK) {
 				// Get the terminal settings from the dialog
-				IPropertiesContainer properties = dialog.getSettings();
+				Map<String, Object> properties = dialog.getSettings();
 				if (properties != null) {
-					String delegateId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
+					String delegateId = (String)properties.get(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
 					Assert.isNotNull(delegateId);
 					ILauncherDelegate delegate = LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false);
 					Assert.isNotNull(delegateId);
@@ -114,9 +113,9 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 				}
 				if (dialog.open() == Window.OK) {
 					// Get the terminal settings from the dialog
-					IPropertiesContainer properties = dialog.getSettings();
+					Map<String, Object> properties = dialog.getSettings();
 					if (properties != null) {
-						String delegateId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
+						String delegateId = (String)properties.get(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
 						Assert.isNotNull(delegateId);
 						ILauncherDelegate delegate = LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false);
 						Assert.isNotNull(delegateId);
@@ -126,12 +125,12 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 			}
 			else if (delegates.length == 1) {
 				ILauncherDelegate delegate = delegates[0];
-				IPropertiesContainer properties = new PropertiesContainer();
+				Map<String, Object> properties = new HashMap<String, Object>();
 
 				// Store the id of the selected delegate
-				properties.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
+				properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
 				// Store the selection
-				properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
+				properties.put(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 
 				// Execute
 				delegate.execute(properties, null);
@@ -144,10 +143,10 @@ public class LaunchTerminalCommandHandler extends AbstractHandler {
 	private boolean isValidSelection(ISelection selection) {
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
-			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
-			if (service != null) {
-				Map<String, String> props = service.getTargetAddress(element);
-				if (props != null && props.containsKey(IPropertiesAccessServiceConstants.PROP_ADDRESS)) {
+			ITerminalContextPropertiesProvider provider = TerminalContextPropertiesProviderFactory.getProvider(element);
+			if (provider != null) {
+				Map<String, String> props = provider.getTargetAddress(element);
+				if (props != null && props.containsKey(IContextPropertiesConstants.PROP_ADDRESS)) {
 					return true;
 				}
 			}

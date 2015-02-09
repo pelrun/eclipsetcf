@@ -21,22 +21,18 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
-import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
-import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
-import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
+import org.eclipse.tcf.te.core.terminals.TerminalContextPropertiesProviderFactory;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalContextPropertiesProvider;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.IContextPropertiesConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
+import org.eclipse.tcf.te.ui.terminals.panels.AbstractExtendedConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.ssh.nls.Messages;
 import org.eclipse.tm.internal.terminal.provisional.api.AbstractSettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
@@ -48,7 +44,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
  * SSH wizard configuration panel implementation.
  */
 @SuppressWarnings("restriction")
-public class SshWizardConfigurationPanel extends AbstractConfigurationPanel implements IDataExchangeNode {
+public class SshWizardConfigurationPanel extends AbstractExtendedConfigurationPanel {
 
 	private static final String SAVE_USER = "saveUser"; //$NON-NLS-1$
 	private static final String SAVE_PASSWORD = "savePassword"; //$NON-NLS-1$
@@ -61,10 +57,10 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	/**
 	 * Constructor.
 	 *
-	 * @param parentControl The parent control. Must not be <code>null</code>!
+	 * @param container The configuration panel container or <code>null</code>.
 	 */
-	public SshWizardConfigurationPanel(BaseDialogPageControl parentControl) {
-	    super(parentControl);
+	public SshWizardConfigurationPanel(IConfigurationPanelContainer container) {
+	    super(container);
     }
 
 	/* (non-Javadoc)
@@ -92,15 +88,12 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		sshSettingsPage.createControl(panel);
 
 		// Add the listener to the settings page
-		if (getParentControl() instanceof IValidatingContainer) {
-			sshSettingsPage.addListener(new ISettingsPage.Listener() {
-
-				@Override
-				public void onSettingsPageChanged(Control control) {
-					((IValidatingContainer)getParentControl()).validate();
-				}
-			});
-		}
+		sshSettingsPage.addListener(new ISettingsPage.Listener() {
+			@Override
+			public void onSettingsPageChanged(Control control) {
+				if (getContainer() != null) getContainer().validate();
+			}
+		});
 
 		// Create the encoding selection combo
 		createEncodingUI(panel, true);
@@ -112,39 +105,34 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
+	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#setupData(java.util.Map)
 	 */
 	@Override
-	public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
-	 */
-	@Override
-    public void setupData(IPropertiesContainer data) {
+	public void setupData(Map<String, Object> data) {
 		if (data == null || sshSettings == null || sshSettingsPage == null) return;
 
-		String value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_HOST);
+		String value = (String)data.get(ITerminalsConnectorConstants.PROP_IP_HOST);
 		if (value != null) sshSettings.setHost(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_PORT);
+		Object v = data.get(ITerminalsConnectorConstants.PROP_IP_PORT);
+		value = v != null ? v.toString() : null;
 		if (value != null) sshSettings.setPort(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		v = data.get(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		value = v != null ? v.toString() : null;
 		if (value != null) sshSettings.setTimeout(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE);
+		v = data.get(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE);
+		value = v != null ? v.toString() : null;
 		if (value != null) sshSettings.setKeepalive(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_PASSWORD);
+		value = (String)data.get(ITerminalsConnectorConstants.PROP_SSH_PASSWORD);
 		if (value != null) sshSettings.setPassword(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_USER);
+		value = (String)data.get(ITerminalsConnectorConstants.PROP_SSH_USER);
 		if (value != null) sshSettings.setUser(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
+		value = (String)data.get(ITerminalsConnectorConstants.PROP_ENCODING);
 		if (value != null) setEncoding(value);
 
 		sshSettingsPage.loadSettings();
@@ -159,9 +147,9 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 		ISelection selection = getSelection();
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
-			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
-			if (service != null) {
-				Object user = service.getProperty(element, IPropertiesAccessServiceConstants.PROP_DEFAULT_USER);
+			ITerminalContextPropertiesProvider provider = TerminalContextPropertiesProviderFactory.getProvider(element);
+			if (provider != null) {
+				Object user = provider.getProperty(element, IContextPropertiesConstants.PROP_DEFAULT_USER);
 				if (user instanceof String) return ((String) user).trim();
 			}
 		}
@@ -170,24 +158,26 @@ public class SshWizardConfigurationPanel extends AbstractConfigurationPanel impl
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#extractData(java.util.Map)
 	 */
 	@Override
-    public void extractData(IPropertiesContainer data) {
+	public void extractData(Map<String, Object> data) {
+		if (data == null) return;
+
     	// set the terminal connector id for ssh
-    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.ssh.SshConnector"); //$NON-NLS-1$
+    	data.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.ssh.SshConnector"); //$NON-NLS-1$
 
     	// set the connector type for ssh
-    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.ssh"); //$NON-NLS-1$
+    	data.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.ssh"); //$NON-NLS-1$
 
     	sshSettingsPage.saveSettings();
-		data.setProperty(ITerminalsConnectorConstants.PROP_IP_HOST,sshSettings.getHost());
-		data.setProperty(ITerminalsConnectorConstants.PROP_IP_PORT, sshSettings.getPort());
-		data.setProperty(ITerminalsConnectorConstants.PROP_TIMEOUT, sshSettings.getTimeout());
-		data.setProperty(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, sshSettings.getKeepalive());
-		data.setProperty(ITerminalsConnectorConstants.PROP_SSH_PASSWORD, sshSettings.getPassword());
-		data.setProperty(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
-		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+		data.put(ITerminalsConnectorConstants.PROP_IP_HOST,sshSettings.getHost());
+		data.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.valueOf(sshSettings.getPort()));
+		data.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.valueOf(sshSettings.getTimeout()));
+		data.put(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE, Integer.valueOf(sshSettings.getKeepalive()));
+		data.put(ITerminalsConnectorConstants.PROP_SSH_PASSWORD, sshSettings.getPassword());
+		data.put(ITerminalsConnectorConstants.PROP_SSH_USER, sshSettings.getUser());
+		data.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
     }
 
 	/* (non-Javadoc)

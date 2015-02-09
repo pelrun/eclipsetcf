@@ -9,13 +9,14 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.local.launcher;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -46,10 +47,10 @@ public class LocalLauncherHandler extends AbstractHandler {
 
 		// Launch the local terminal
 		if (delegate != null) {
-			IPropertiesContainer properties = new PropertiesContainer();
-			properties.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
-	    	properties.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
-			properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
+			Map<String, Object> properties = new HashMap<String, Object>();
+			properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
+	    	properties.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
+			properties.put(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 
 			delegate.execute(properties, null);
 		}

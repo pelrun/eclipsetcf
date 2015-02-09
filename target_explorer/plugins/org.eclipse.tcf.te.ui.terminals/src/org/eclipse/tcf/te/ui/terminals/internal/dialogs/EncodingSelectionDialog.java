@@ -9,24 +9,28 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.internal.dialogs;
 
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.TypedEvent;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
-import org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog;
 import org.eclipse.tcf.te.ui.terminals.help.IContextHelpIds;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
-import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.panels.AbstractExtendedConfigurationPanel;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
  * Encoding selection dialog implementation.
  */
-public class EncodingSelectionDialog extends CustomTrayDialog {
+public class EncodingSelectionDialog extends TrayDialog {
+	private String contextHelpId = null;
+
 	// The selected encoding or null
 	/* default */ String encoding = null;
 
@@ -36,13 +40,15 @@ public class EncodingSelectionDialog extends CustomTrayDialog {
 	/**
 	 * Encodings panel implementation
 	 */
-	protected class EncodingPanel extends AbstractConfigurationPanel {
+	protected class EncodingPanel extends AbstractExtendedConfigurationPanel {
 
 		/**
 		 * Constructor
+		 *
+		 * @param container The configuration panel container or <code>null</code>.
 		 */
-        public EncodingPanel() {
-	        super(new BaseDialogPageControl());
+        public EncodingPanel(IConfigurationPanelContainer container) {
+	        super(container);
         }
 
 		/* (non-Javadoc)
@@ -62,14 +68,6 @@ public class EncodingSelectionDialog extends CustomTrayDialog {
     		}
 
     		setControl(panel);
-        }
-
-		/* (non-Javadoc)
-		 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
-		 */
-        @Override
-        public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
-	        return false;
         }
 
 		/* (non-Javadoc)
@@ -117,15 +115,60 @@ public class EncodingSelectionDialog extends CustomTrayDialog {
 	 * @param shell The parent shell or <code>null</code>.
      */
     public EncodingSelectionDialog(Shell shell) {
-	    super(shell, IContextHelpIds.ENCODING_SELECTION_DIALOG);
+	    super(shell);
+
+		this.contextHelpId = IContextHelpIds.ENCODING_SELECTION_DIALOG;
+		setHelpAvailable(true);
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
-     */
-    @Override
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	protected final Control createDialogArea(Composite parent) {
+		if (contextHelpId != null) {
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, contextHelpId);
+		}
+
+		// Let the super implementation create the dialog area control
+		Control control = super.createDialogArea(parent);
+		// Setup the inner panel as scrollable composite
+		if (control instanceof Composite) {
+			ScrolledComposite sc = new ScrolledComposite((Composite)control, SWT.V_SCROLL);
+
+			GridLayout layout = new GridLayout(1, true);
+			layout.marginHeight = 0; layout.marginWidth = 0;
+			layout.verticalSpacing = 0; layout.horizontalSpacing = 0;
+
+			sc.setLayout(layout);
+			sc.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
+
+			sc.setExpandHorizontal(true);
+			sc.setExpandVertical(true);
+
+			Composite composite = new Composite(sc, SWT.NONE);
+			composite.setLayout(new GridLayout());
+
+			// Setup the dialog area content
+			createDialogAreaContent(composite);
+
+			sc.setContent(composite);
+			sc.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+			// Return the scrolled composite as new dialog area control
+			control = sc;
+		}
+
+		return control;
+	}
+
+	/**
+	 * Creates the dialog area content.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 */
     protected void createDialogAreaContent(Composite parent) {
-        super.createDialogAreaContent(parent);
+    	Assert.isNotNull(parent);
 
     	setDialogTitle(Messages.EncodingSelectionDialog_title);
 
@@ -135,11 +178,22 @@ public class EncodingSelectionDialog extends CustomTrayDialog {
         panel.setLayout(layout);
         panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
 
-        encodingPanel = new EncodingPanel();
+        encodingPanel = new EncodingPanel(null);
         encodingPanel.setupPanel(panel, null);
 
         applyDialogFont(panel);
     }
+
+	/**
+	 * Sets the title for this dialog.
+	 *
+	 * @param title The title.
+	 */
+	public void setDialogTitle(String title) {
+		if (getShell() != null && !getShell().isDisposed()) {
+			getShell().setText(title);
+		}
+	}
 
     /* (non-Javadoc)
      * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#okPressed()

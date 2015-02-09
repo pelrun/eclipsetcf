@@ -13,10 +13,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
-import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalServiceOutputStreamMonitorListener;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.provider.TerminalConnectorImpl;
+import org.eclipse.ui.services.IDisposable;
 
 /**
  * Streams connector implementation.

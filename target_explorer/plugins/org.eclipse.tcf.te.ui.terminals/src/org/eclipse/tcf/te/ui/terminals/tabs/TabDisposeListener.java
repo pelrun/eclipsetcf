@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -13,8 +13,9 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.tcf.te.runtime.events.DisposedEvent;
-import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.core.terminals.TerminalServiceFactory;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
+import org.eclipse.tcf.te.ui.terminals.services.TerminalService;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
 
 /**
@@ -63,7 +64,10 @@ public class TabDisposeListener implements DisposeListener {
 			// Fire selection changed event
 			parentTabFolderManager.fireSelectionChanged();
 			// Fire the terminal console disposed event
-			EventManager.getInstance().fireEvent(new DisposedEvent(e.getSource(), ((CTabItem)e.getSource()).getData("customData"))); //$NON-NLS-1$
+			ITerminalService service = TerminalServiceFactory.getService();
+			if (service instanceof TerminalService) {
+				((TerminalService)service).fireTerminalTabEvent(TerminalService.TAB_DISPOSED, e.getSource(), ((CTabItem)e.getSource()).getData("customData")); //$NON-NLS-1$
+			}
 		}
 	}
 }

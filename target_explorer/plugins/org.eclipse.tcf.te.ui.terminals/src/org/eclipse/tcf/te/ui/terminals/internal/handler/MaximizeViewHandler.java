@@ -9,26 +9,20 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.internal.handler;
 
-import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
  * Maximize view handler implementation.
  */
-public class MaximizeViewHandler extends AbstractHandler {
+public class MaximizeViewHandler extends AbstractTriggerCommandHandler {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		TriggerCommandEvent e = new TriggerCommandEvent(HandlerUtil.getActivePart(event), "org.eclipse.ui.window.maximizePart"); //$NON-NLS-1$
-		EventManager.getInstance().fireEvent(e);
-
+		triggerCommand("org.eclipse.ui.window.maximizePart", null); //$NON-NLS-1$
 		return null;
 	}
 

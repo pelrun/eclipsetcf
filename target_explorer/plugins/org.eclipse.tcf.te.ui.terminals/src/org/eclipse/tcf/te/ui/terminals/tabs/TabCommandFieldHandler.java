@@ -12,9 +12,9 @@ package org.eclipse.tcf.te.ui.terminals.tabs;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tm.internal.terminal.control.CommandInputFieldWithHistory;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
+import org.eclipse.ui.services.IDisposable;
 
 /**
  * Tab command input field handler implementation.
@@ -45,7 +45,7 @@ public class TabCommandFieldHandler implements IDisposable, IAdaptable {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.runtime.interfaces.IDisposable#dispose()
+	 * @see org.eclipse.ui.services.IDisposable#dispose()
 	 */
 	@Override
 	public void dispose() {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.eclipse.tcf.te.runtime.utils.Host;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutablesProperties;
 import org.eclipse.ui.IStartup;
 
@@ -31,7 +31,7 @@ public class ExternalExecutablesInitializer implements IStartup {
 	@Override
 	public void earlyStartup() {
 		// On Windows, initialize the "Git Bash" custom "Show In" menu entry
-		if (Host.isWindowsHost()) {
+		if (Platform.OS_WIN32.equals(Platform.getOS())) {
 			String gitPath = null;
 			String iconPath = null;
 
@@ -59,12 +59,12 @@ public class ExternalExecutablesInitializer implements IStartup {
 
 			if (gitPath != null) {
 				// Load the configured external executables
-				List<Map<String, Object>> l = ExternalExecutablesManager.load();
-				if (l == null) l = new ArrayList<Map<String, Object>>();
+				List<Map<String, String>> l = ExternalExecutablesManager.load();
+				if (l == null) l = new ArrayList<Map<String, String>>();
 				// Find a entry labeled "Git Bash"
-				Map<String, Object> m = null;
-				for (Map<String, Object> candidate : l) {
-					String name = (String) candidate.get(IExternalExecutablesProperties.PROP_NAME);
+				Map<String, String> m = null;
+				for (Map<String, String> candidate : l) {
+					String name = candidate.get(IExternalExecutablesProperties.PROP_NAME);
 					if ("Git Bash".equals(name)) { //$NON-NLS-1$
 						m = candidate;
 						break;
@@ -72,7 +72,7 @@ public class ExternalExecutablesInitializer implements IStartup {
 				}
 
 				if (m == null) {
-					m = new HashMap<String, Object>();
+					m = new HashMap<String, String>();
 					m.put(IExternalExecutablesProperties.PROP_NAME, "Git Bash"); //$NON-NLS-1$
 					m.put(IExternalExecutablesProperties.PROP_PATH, gitPath);
 					m.put(IExternalExecutablesProperties.PROP_ARGS, "--login -i"); //$NON-NLS-1$

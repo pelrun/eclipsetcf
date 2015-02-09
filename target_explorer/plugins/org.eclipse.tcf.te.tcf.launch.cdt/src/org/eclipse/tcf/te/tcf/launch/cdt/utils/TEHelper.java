@@ -34,6 +34,8 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ILineSeparatorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
@@ -42,8 +44,6 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.filetransfer.FileTransferItem;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
@@ -234,8 +234,7 @@ public class TEHelper {
 				else Protocol.invokeAndWait(runnable);
 
 				if (isLocalhost.get()) {
-					container.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, Host
-					                .isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF);
+					container.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, Host.isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF);
 				}
 			}
 

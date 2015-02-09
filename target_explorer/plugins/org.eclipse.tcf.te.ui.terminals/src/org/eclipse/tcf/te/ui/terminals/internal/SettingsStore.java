@@ -9,7 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.internal;
 
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 
 /**
@@ -17,7 +20,8 @@ import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
  * within memory.
  */
 @SuppressWarnings("restriction")
-public class SettingsStore extends PropertiesContainer implements ISettingsStore {
+public class SettingsStore implements ISettingsStore {
+	private final Map<String, Object> settings = new HashMap<String, Object>();
 
 	/**
 	 * Constructor.
@@ -25,12 +29,22 @@ public class SettingsStore extends PropertiesContainer implements ISettingsStore
 	public SettingsStore() {
 	}
 
+	/**
+	 * Returns the map containing the settings.
+	 *
+	 * @return The map containing the settings.
+	 */
+	public final Map<String, Object> getSettings() {
+		return settings;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.ISettingsStore#get(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public String get(String key, String defaultValue) {
-		String value = getStringProperty(key);
+	public final String get(String key, String defaultValue) {
+		Assert.isNotNull(key);
+		String value = settings.get(key) instanceof String ? (String) settings.get(key) : null;
 		return value != null ? value : defaultValue;
 	}
 
@@ -38,15 +52,18 @@ public class SettingsStore extends PropertiesContainer implements ISettingsStore
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.ISettingsStore#get(java.lang.String)
 	 */
 	@Override
-	public String get(String key) {
-		return getStringProperty(key);
+	public final String get(String key) {
+		Assert.isNotNull(key);
+		return settings.get(key) instanceof String ? (String) settings.get(key) : null;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.internal.terminal.provisional.api.ISettingsStore#put(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void put(String key, String value) {
-		setProperty(key, value);
+	public final void put(String key, String value) {
+		Assert.isNotNull(key);
+		if (value == null) settings.remove(key);
+		else settings.put(key, value);
 	}
 }

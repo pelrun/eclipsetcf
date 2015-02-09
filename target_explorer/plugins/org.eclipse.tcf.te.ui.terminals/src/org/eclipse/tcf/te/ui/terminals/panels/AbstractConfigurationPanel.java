@@ -1,87 +1,106 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Wind River Systems - initial API and implementation
+ * Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.panels;
 
-import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.IInputValidator;
-import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.window.Window;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.IPropertiesAccessService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.IPropertiesAccessServiceConstants;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
-import org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel;
-import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
-import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
-import org.eclipse.tcf.te.ui.terminals.nls.Messages;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.WorkbenchEncoding;
-import org.osgi.framework.Bundle;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 
 /**
- * Abstract terminal configuration panel implementation.
+ * Abstract terminal launcher configuration panel implementation.
  */
-public abstract class AbstractConfigurationPanel extends AbstractWizardConfigurationPanel implements IConfigurationPanel {
-	private static final String LAST_HOST_TAG = "lastHost";//$NON-NLS-1$
-	private static final String HOSTS_TAG = "hosts";//$NON-NLS-1$
-	private static final String ENCODINGS_TAG = "encodings"; //$NON-NLS-1$
+public abstract class AbstractConfigurationPanel implements IConfigurationPanel {
+	private final IConfigurationPanelContainer container;
 
-	// The sub-controls
-	/* default */ Combo hostCombo;
-	private Button deleteHostButton;
-	/* default */ Combo encodingCombo;
-
-	// The last selected encoding
-	/* default */ String lastSelectedEncoding;
-	// The last entered custom encodings
-	/* default */ final List<String> encodingHistory = new ArrayList<String>();
+	private Composite topControl = null;
 
 	// The selection
 	private ISelection selection;
-	// A map containing the settings per host
-	protected final Map<String, Map<String, String>> hostSettingsMap = new HashMap<String, Map<String, String>>();
+
+	private String message = null;
+	private int messageType = IMessageProvider.NONE;
+
+	private boolean enabled = true;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param parentControl The parent control. Must not be <code>null</code>!
+	 * @param container The configuration panel container or <code>null</code>.
 	 */
-	public AbstractConfigurationPanel(BaseDialogPageControl parentControl) {
-		super(parentControl);
+	public AbstractConfigurationPanel(IConfigurationPanelContainer container) {
+		super();
+		this.container = container;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#getContainer()
+	 */
+	@Override
+	public IConfigurationPanelContainer getContainer() {
+	    return container;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.IMessageProvider#getMessage()
+	 */
+	@Override
+	public final String getMessage() {
+		return message;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.IMessageProvider#getMessageType()
+	 */
+	@Override
+	public final int getMessageType() {
+		return messageType;
+	}
+
+	/**
+	 * Set the message and the message type to display.
+	 *
+	 * @param message The message or <code>null</code>.
+	 * @param messageType The message type or <code>IMessageProvider.NONE</code>.
+	 */
+	protected final void setMessage(String message, int messageType) {
+		this.message = message;
+		this.messageType = messageType;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#dispose()
+	 */
+	@Override
+	public void dispose() {
+	}
+
+	/**
+	 * Sets the top control.
+	 *
+	 * @param topControl The top control or <code>null</code>.
+	 */
+	protected void setControl(Composite topControl) {
+		this.topControl = topControl;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#getControl()
+	 */
+	@Override
+	public Composite getControl() {
+		return topControl;
 	}
 
 	/* (non-Javadoc)
@@ -100,537 +119,84 @@ public abstract class AbstractConfigurationPanel extends AbstractWizardConfigura
 		return selection;
 	}
 
-	/**
-	 * Returns the host name or IP from the current selection.
-	 *
-	 * @return The host name or IP, or <code>null</code>.
-	 */
-	public String getSelectionHost() {
-		ISelection selection = getSelection();
-		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-			Object element = ((IStructuredSelection) selection).getFirstElement();
-			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
-			if (service != null) {
-				Map<String, String> props = service.getTargetAddress(element);
-				if (props != null && props.containsKey(IPropertiesAccessServiceConstants.PROP_ADDRESS)) {
-					return props.get(IPropertiesAccessServiceConstants.PROP_ADDRESS);
-				}
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the default encoding based on the current selection.
-	 *
-	 * @return The default encoding or <code>null</code>.
-	 */
-	public String getSelectionEncoding() {
-		ISelection selection = getSelection();
-		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-			Object element = ((IStructuredSelection) selection).getFirstElement();
-			IPropertiesAccessService service = ServiceManager.getInstance().getService(element, IPropertiesAccessService.class);
-			if (service != null) {
-				Object encoding = service.getProperty(element, IPropertiesAccessServiceConstants.PROP_DEFAULT_ENCODING);
-				if (encoding instanceof String) return ((String) encoding).trim();
-			}
-		}
-
-		return null;
-	}
-
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel#doRestoreWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#doRestoreWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
 	 */
 	@Override
 	public void doRestoreWidgetValues(IDialogSettings settings, String idPrefix) {
-		Assert.isNotNull(settings);
-
-		String[] hosts = settings.getArray(HOSTS_TAG);
-		if (hosts != null) {
-			for (int i = 0; i < hosts.length; i++) {
-				String hostEntry = hosts[i];
-				String[] hostString = hostEntry.split("\\|");//$NON-NLS-1$
-				String hostName = hostString[0];
-				if (hostString.length == 2) {
-					HashMap<String, String> attr = deSerialize(hostString[1]);
-					hostSettingsMap.put(hostName, attr);
-				}
-				else {
-					hostSettingsMap.put(hostName, new HashMap<String, String>());
-				}
-			}
-		}
-
-		if (!isWithoutSelection()) {
-			String host = getSelectionHost();
-			if (host != null) {
-				fillSettingsForHost(host);
-			}
-		}
-		else {
-			if (hostCombo != null) {
-				fillHostCombo();
-				String lastHost = settings.get(LAST_HOST_TAG);
-				if (lastHost != null) {
-					int index = hostCombo.indexOf(lastHost);
-					if (index != -1) {
-						hostCombo.select(index);
-					}
-					else {
-						hostCombo.select(0);
-					}
-				}
-				else {
-					hostCombo.select(0);
-				}
-				fillSettingsForHost(hostCombo.getText());
-			}
-		}
-
-		encodingHistory.clear();
-		String[] encodings = settings.getArray(ENCODINGS_TAG);
-		if (encodings != null && encodings.length > 0) {
-			encodingHistory.addAll(Arrays.asList(encodings));
-			for (String encoding : encodingHistory) {
-				SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
-			}
-		}
-	}
-
-	/**
-	 * Restore the encodings widget values.
-	 *
-	 * @param settings The dialog settings. Must not be <code>null</code>.
-	 * @param idPrefix The prefix or <code>null</code>.
-	 */
-	protected void doRestoreEncodingsWidgetValues(IDialogSettings settings, String idPrefix) {
-		Assert.isNotNull(settings);
-
-		String encoding = settings.get(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix));
-		if (encoding != null && encoding.trim().length() > 0) {
-			setEncoding(encoding);
-		}
-	}
-
-	/**
-	 * Decode the host settings from the given string.
-	 *
-	 * @param hostString The encoded host settings. Must not be <code>null</code>.
-	 * @return The decoded host settings.
-	 */
-	private HashMap<String, String> deSerialize(String hostString) {
-		Assert.isNotNull(hostString);
-		HashMap<String, String> attr = new HashMap<String, String>();
-
-		if (hostString.length() != 0) {
-			String[] hostAttrs = hostString.split("\\:");//$NON-NLS-1$
-			for (int j = 0; j < hostAttrs.length-1; j = j + 2) {
-				String key = hostAttrs[j];
-				String value = hostAttrs[j + 1];
-				attr.put(key, value);
-			}
-		}
-		return attr;
-	}
-
-	/**
-	 * Encode the host settings to a string.
-	 *
-	 * @param hostEntry The host settings. Must not be <code>null</code>.
-	 * @param hostString The host string to encode to. Must not be <code>null</code>.
-	 */
-	private void serialize(Map<String, String> hostEntry, StringBuilder hostString) {
-		Assert.isNotNull(hostEntry);
-		Assert.isNotNull(hostString);
-
-		if (hostEntry.keySet().size() != 0) {
-			Iterator<Entry<String, String>> nextHostAttr = hostEntry.entrySet().iterator();
-			while (nextHostAttr.hasNext()) {
-				Entry<String, String> entry = nextHostAttr.next();
-				String attrKey = entry.getKey();
-				String attrValue = entry.getValue();
-				hostString.append(attrKey + ":" + attrValue + ":");//$NON-NLS-1$ //$NON-NLS-2$
-			}
-			hostString.deleteCharAt(hostString.length() - 1);
-		}
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.controls.panels.AbstractWizardConfigurationPanel#doSaveWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#doSaveWidgetValues(org.eclipse.jface.dialogs.IDialogSettings, java.lang.String)
 	 */
 	@Override
 	public void doSaveWidgetValues(IDialogSettings settings, String idPrefix) {
-		Iterator<String> nextHost = hostSettingsMap.keySet().iterator();
-		String[] hosts = new String[hostSettingsMap.keySet().size()];
-		int i = 0;
-		while (nextHost.hasNext()) {
-			StringBuilder hostString = new StringBuilder();
-			String host = nextHost.next();
-			hostString.append(host + "|");//$NON-NLS-1$
-			Map<String, String> hostEntry = hostSettingsMap.get(host);
-			serialize(hostEntry, hostString);
-			hosts[i] = hostString.toString();
-			i = i + 1;
-		}
-		settings.put(HOSTS_TAG, hosts);
-		if (isWithoutSelection()) {
-			if (hostCombo != null) {
-				String host = getHostFromSettings();
-				if (host != null) settings.put(LAST_HOST_TAG, host);
-			}
-		}
-
-		if (!encodingHistory.isEmpty()) {
-			settings.put(ENCODINGS_TAG, encodingHistory.toArray(new String[encodingHistory.size()]));
-		}
 	}
 
 	/**
-	 * Save the encodings widget values.
+	 * Returns the correctly prefixed dialog settings slot id. In case the given id
+	 * suffix is <code>null</code> or empty, <code>id</code> is returned as is.
 	 *
-	 * @param settings The dialog settings. Must not be <code>null</code>.
-	 * @param idPrefix The prefix or <code>null</code>.
+	 * @param settingsSlotId The dialog settings slot id to prefix.
+	 * @param prefix The prefix.
+	 * @return The correctly prefixed dialog settings slot id.
 	 */
-	protected void doSaveEncodingsWidgetValues(IDialogSettings settings, String idPrefix) {
-		Assert.isNotNull(settings);
-
-		String encoding = getEncoding();
-		if (encoding != null) {
-			settings.put(getParentControl().prefixDialogSettingsSlotId(ITerminalsConnectorConstants.PROP_ENCODING, idPrefix), encoding);
+	public final String prefixDialogSettingsSlotId(String settingsSlotId, String prefix) {
+		if (settingsSlotId != null && prefix != null && prefix.trim().length() > 0) {
+			settingsSlotId = prefix + "." + settingsSlotId; //$NON-NLS-1$
 		}
+		return settingsSlotId;
 	}
 
-
-	protected abstract void saveSettingsForHost(boolean add);
-
-	protected abstract void fillSettingsForHost(String host);
-
-	protected abstract String getHostFromSettings();
-
-	protected void removeSecurePassword(String host) {
-		// noop by default
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#setEnabled(boolean)
+	 */
+	@Override
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	/**
-	 * Returns the selected host from the hosts combo widget.
-	 *
-	 * @return The selected host or <code>null</code>.
-	 */
-	protected final String getHostFromCombo() {
-		return SWTControlUtil.getText(hostCombo);
-	}
+     * @return Returns the enabled state.
+     */
+    public boolean isEnabled() {
+	    return enabled;
+    }
 
-	protected void removeSettingsForHost(String host) {
-		if (hostSettingsMap.containsKey(host)) {
-			hostSettingsMap.remove(host);
-		}
-	}
-
-	/**
-	 * Returns the list of host names of the persisted hosts.
-	 *
-	 * @return The list of host names.
-	 */
-	private List<String> getHostList() {
-		List<String> hostList = new ArrayList<String>();
-		hostList.addAll(hostSettingsMap.keySet());
-		return hostList;
-	}
-
-	/**
-	 * Fill the host combo with the stored per host setting names.
-	 */
-	protected void fillHostCombo() {
-		if (hostCombo != null) {
-			hostCombo.removeAll();
-			List<String> hostList = getHostList();
-			Collections.sort(hostList);
-			Iterator<String> nextHost = hostList.iterator();
-			while (nextHost.hasNext()) {
-				String host = nextHost.next();
-				hostCombo.add(host);
-			}
-			if (hostList.size() <= 1) {
-				hostCombo.setEnabled(false);
-			}
-			else {
-				hostCombo.setEnabled(true);
-
-			}
-			if (deleteHostButton != null) {
-				if (hostList.size() == 0) {
-					deleteHostButton.setEnabled(false);
-				}
-				else {
-					deleteHostButton.setEnabled(true);
-				}
-			}
-		}
-	}
-
-	public boolean isWithoutSelection() {
-		ISelection selection = getSelection();
-		if (selection == null) {
-			return true;
-		}
-		if (selection instanceof IStructuredSelection && selection.isEmpty()) {
-			return true;
-		}
-		return false;
-	}
-
-	public boolean isWithHostList() {
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#isValid()
+     */
+	@Override
+	public boolean isValid() {
+		setMessage(null, NONE);
 		return true;
 	}
 
-	/**
-	 * Create the host selection combo.
-	 *
-	 * @param parent The parent composite. Must not be <code>null</code>.
-	 * @param separator If <code>true</code>, a separator will be added after the controls.
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#activate()
 	 */
-	protected void createHostsUI(Composite parent, boolean separator) {
-		Assert.isNotNull(parent);
-
-		if (isWithoutSelection() && isWithHostList()) {
-			Composite comboComposite = new Composite(parent, SWT.NONE);
-			GridLayout layout = new GridLayout(3, false);
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			comboComposite.setLayout(layout);
-			comboComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-			Label label = new Label(comboComposite, SWT.HORIZONTAL);
-			label.setText(Messages.AbstractConfigurationPanel_hosts);
-
-			hostCombo = new Combo(comboComposite, SWT.READ_ONLY);
-			hostCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			hostCombo.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					String host = SWTControlUtil.getText(hostCombo);
-					fillSettingsForHost(host);
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					widgetSelected(e);
-				}
-			});
-
-			deleteHostButton = new Button(comboComposite, SWT.NONE);
-			// deleteHostButton.setText(Messages.AbstractConfigurationPanel_delete);
-
-			ISharedImages workbenchImages = UIPlugin.getDefault().getWorkbench().getSharedImages();
-			deleteHostButton.setImage(workbenchImages.getImageDescriptor(ISharedImages.IMG_TOOL_DELETE).createImage());
-
-			deleteHostButton.setToolTipText(Messages.AbstractConfigurationPanel_deleteButtonTooltip);
-			deleteHostButton.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					String host = getHostFromCombo();
-					if (host != null && host.length() != 0) {
-						removeSettingsForHost(host);
-						removeSecurePassword(host);
-						fillHostCombo();
-						SWTControlUtil.select(hostCombo, 0);
-						host = getHostFromCombo();
-						if (host != null && host.length() != 0) {
-							fillSettingsForHost(host);
-						}
-					}
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {
-					widgetSelected(e);
-				}
-			});
-
-			if (separator) {
-				Label sep = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
-				sep.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			}
-		}
+	@Override
+	public void activate() {
 	}
 
-	/**
-	 * Create the encoding selection combo.
-	 *
-	 * @param parent The parent composite. Must not be <code>null</code>.
-	 * @param separator If <code>true</code>, a separator will be added before the controls.
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#extractData(java.util.Map)
 	 */
-	protected void createEncodingUI(final Composite parent, boolean separator) {
-		Assert.isNotNull(parent);
+    @Override
+    public void extractData(Map<String, Object> data) {
+    }
 
-		if (separator) {
-			Label sep = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
-			sep.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		}
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#setupData(java.util.Map)
+     */
+    @Override
+    public void setupData(Map<String, Object> data) {
+    }
 
-		Composite panel = new Composite(parent, SWT.NONE);
-		GridLayout layout = new GridLayout(2, false);
-		layout.marginHeight = 0; layout.marginWidth = 0;
-		panel.setLayout(layout);
-		panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-		Label label = new Label(panel, SWT.HORIZONTAL);
-		label.setText(Messages.AbstractConfigurationPanel_encoding);
-
-		encodingCombo = new Combo(panel, SWT.READ_ONLY);
-		encodingCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		encodingCombo.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (Messages.AbstractConfigurationPanel_encoding_custom.equals(SWTControlUtil.getText(encodingCombo))) {
-					InputDialog dialog = new InputDialog(parent.getShell(),
-														 Messages.AbstractConfigurationPanel_encoding_custom_title,
-														 Messages.AbstractConfigurationPanel_encoding_custom_message,
-														 null,
-														 new IInputValidator() {
-															@Override
-															public String isValid(String newText) {
-																boolean valid = false;
-																try {
-																	if (newText != null && !"".equals(newText)) { //$NON-NLS-1$
-																		valid = Charset.isSupported(newText);
-																	}
-																} catch (IllegalCharsetNameException e) { /* ignored on purpose */ }
-
-																if (!valid) {
-																	return newText != null && !"".equals(newText) ? Messages.AbstractConfigurationPanel_encoding_custom_error : ""; //$NON-NLS-1$ //$NON-NLS-2$
-																}
-																return null;
-															}
-														});
-					if (dialog.open() == Window.OK) {
-						String encoding = dialog.getValue();
-						SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
-						SWTControlUtil.select(encodingCombo, SWTControlUtil.indexOf(encodingCombo, encoding));
-						lastSelectedEncoding = SWTControlUtil.getText(encodingCombo);
-
-						// Remember the last 5 custom encodings entered
-						if (!encodingHistory.contains(encoding)) {
-							if (encodingHistory.size() == 5) encodingHistory.remove(4);
-							encodingHistory.add(encoding);
-						}
-
-					} else {
-						SWTControlUtil.select(encodingCombo, SWTControlUtil.indexOf(encodingCombo, lastSelectedEncoding));
-					}
-				}
-			}
-		});
-
-		fillEncodingCombo();
-
-		// Apply any default encoding derived from the current selection
-		String defaultEncoding = getSelectionEncoding();
-		if (defaultEncoding != null && !"".equals(defaultEncoding)) { //$NON-NLS-1$
-			setEncoding(defaultEncoding);
-		}
-	}
-
-	/**
-	 * Fill the encoding combo.
-	 */
-	protected void fillEncodingCombo() {
-		if (encodingCombo != null) {
-			List<String> encodings = new ArrayList<String>();
-
-			// Some hard-coded encodings
-			encodings.add("Default (ISO-8859-1)"); //$NON-NLS-1$
-			encodings.add("UTF-8"); //$NON-NLS-1$
-
-			// The currently selected IDE encoding from the preferences
-			String ideEncoding = getResourceEncoding();
-			if (ideEncoding != null && !encodings.contains(ideEncoding)) encodings.add(ideEncoding);
-
-			// The default Eclipse Workbench encoding (configured in the preferences)
-			String eclipseEncoding = WorkbenchEncoding.getWorkbenchDefaultEncoding();
-			if (eclipseEncoding != null && !encodings.contains(eclipseEncoding)) encodings.add(eclipseEncoding);
-
-			// The default host (Java VM) encoding
-			//
-			// Note: We do not use Charset.defaultCharset().displayName() here as it returns the bit
-			//       unusual name "windows-1252" on Windows. As there is no access to the "historical"
-			//       name "Cp1252" stored in MS1252.class, stick to the older way of retrieving an encoding.
-			String hostEncoding = new java.io.InputStreamReader(new java.io.ByteArrayInputStream(new byte[0])).getEncoding();
-			if (!encodings.contains(hostEncoding)) encodings.add(hostEncoding);
-
-			// The "Other..." encoding
-			encodings.add(Messages.AbstractConfigurationPanel_encoding_custom);
-
-			SWTControlUtil.setItems(encodingCombo, encodings.toArray(new String[encodings.size()]));
-			SWTControlUtil.select(encodingCombo, 0);
-
-			lastSelectedEncoding = SWTControlUtil.getText(encodingCombo);
-		}
-	}
-
-	/**
-	 * Get the current value of the encoding preference. If the value is not set
-	 * return <code>null</code>.
-	 * <p>
-	 * <b>Note:</b> Copied from <code>org.eclipse.ui.ide.IDEEncoding</code>.
-	 *
-	 * @return String
-	 */
-	@SuppressWarnings("deprecation")
-    private String getResourceEncoding() {
-		String preference = null;
-
-		if (Platform.getBundle("org.eclipse.core.resources") != null //$NON-NLS-1$
-				&& Platform.getBundle("org.eclipse.core.resources").getState() == Bundle.ACTIVE) { //$NON-NLS-1$
-			preference = org.eclipse.core.resources.ResourcesPlugin.getPlugin().getPluginPreferences().getString(org.eclipse.core.resources.ResourcesPlugin.PREF_ENCODING);
-		}
-
-		return preference != null && preference.length() > 0 ? preference : null;
-	}
-
-	/**
-	 * Select the encoding.
-	 *
-	 * @param encoding The encoding. Must not be <code>null</code>.
-	 */
-	protected void setEncoding(String encoding) {
-		Assert.isNotNull(encoding);
-
-		int index = SWTControlUtil.indexOf(encodingCombo, "ISO-8859-1".equals(encoding) ? "Default (ISO-8859-1)" : encoding); //$NON-NLS-1$ //$NON-NLS-2$
-		if (index != -1) SWTControlUtil.select(encodingCombo, index);
-		else {
-			SWTControlUtil.add(encodingCombo, encoding, SWTControlUtil.getItemCount(encodingCombo) - 1);
-			SWTControlUtil.select(encodingCombo, SWTControlUtil.indexOf(encodingCombo, encoding));
-		}
-
-		lastSelectedEncoding = SWTControlUtil.getText(encodingCombo);
-	}
-
-	/**
-	 * Returns the selected encoding.
-	 *
-	 * @return The selected encoding or <code>null</code>.
-	 */
-	protected String getEncoding() {
-		String encoding = SWTControlUtil.getText(encodingCombo);
-		return encoding != null && encoding.startsWith("Default") ? null : encoding; //$NON-NLS-1$
-	}
-
-	/**
-	 * Returns if or if not the selected encoding is supported.
-	 *
-	 * @return <code>True</code> if the selected encoding is supported.
-	 */
-	protected boolean isEncodingValid() {
-		try {
-			String encoding = getEncoding();
-			return Charset.isSupported(encoding != null ? encoding : "ISO-8859-1"); //$NON-NLS-1$
-		} catch (IllegalCharsetNameException e) {
-			return false;
-		}
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#updateData(java.util.Map)
+     */
+    @Override
+    public void updateData(Map<String, Object> data) {
+    }
 }

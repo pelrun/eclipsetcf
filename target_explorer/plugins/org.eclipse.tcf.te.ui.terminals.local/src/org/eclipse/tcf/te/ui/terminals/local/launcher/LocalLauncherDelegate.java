@@ -10,12 +10,13 @@
 package org.eclipse.tcf.te.ui.terminals.local.launcher;
 
 import java.io.File;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.Iterator;
+import java.util.Map;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -24,14 +25,12 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
+import org.eclipse.tcf.te.core.terminals.TerminalServiceFactory;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
@@ -40,6 +39,7 @@ import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IPreferenceKeys;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchEncoding;
+import org.osgi.framework.Bundle;
 
 /**
  * Serial launcher delegate implementation.
@@ -57,24 +57,24 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#getPanel(org.eclipse.tcf.te.ui.controls.BaseDialogPageControl)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#getPanel(org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer)
 	 */
 	@Override
-	public IConfigurationPanel getPanel(BaseDialogPageControl parentControl) {
-		return new LocalWizardConfigurationPanel(parentControl);
+	public IConfigurationPanel getPanel(IConfigurationPanelContainer container) {
+		return new LocalWizardConfigurationPanel(container);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#execute(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#execute(java.util.Map, org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done)
 	 */
 	@Override
-	public void execute(IPropertiesContainer properties, ICallback callback) {
+	public void execute(Map<String, Object> properties, Done done) {
 		Assert.isNotNull(properties);
 
 		// Set the terminal tab title
 		String terminalTitle = getTerminalTitle(properties);
 		if (terminalTitle != null) {
-			properties.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
+			properties.put(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 		}
 
 		// If not configured, set the default encodings for the local terminal
@@ -87,13 +87,13 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 			} else {
 				encoding = WorkbenchEncoding.getWorkbenchDefaultEncoding();
 			}
-			if (encoding != null && !"".equals(encoding)) properties.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, encoding); //$NON-NLS-1$
+			if (encoding != null && !"".equals(encoding)) properties.put(ITerminalsConnectorConstants.PROP_ENCODING, encoding); //$NON-NLS-1$
 		}
 
 		// For local terminals, force a new terminal tab each time it is launched,
 		// if not set otherwise from outside
 		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_FORCE_NEW)) {
-			properties.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
+			properties.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.TRUE);
 		}
 
 		// Initialize the local terminal working directory.
@@ -112,11 +112,14 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 				} catch (URISyntaxException ex) { /* ignored on purpose */ }
 			}
 		} else if (IPreferenceKeys.PREF_INITIAL_CWD_ECLIPSE_WS.equals(initialCwd)) {
-	        if (ResourcesPlugin.getWorkspace() != null
-	        	            && ResourcesPlugin.getWorkspace().getRoot() != null
-	        	            && ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
-	        	cwd = ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString();
-	        }
+			Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+			if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+		        if (org.eclipse.core.resources.ResourcesPlugin.getWorkspace() != null
+		        	            && org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot() != null
+		        	            && org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
+		        	cwd = org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString();
+		        }
+			}
 		} else {
 			IPath p = new Path(initialCwd);
 			if (p.toFile().canRead() && p.toFile().isDirectory()) {
@@ -125,14 +128,14 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 		}
 
 		if (cwd != null && !"".equals(cwd)) { //$NON-NLS-1$
-			properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, cwd);
+			properties.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, cwd);
 		}
 
 		// If the current selection resolved to an folder, default the working directory
 		// to that folder and update the terminal title
 		ISelectionService service = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 		if ((service != null && service.getSelection() != null) || properties.containsKey(ITerminalsConnectorConstants.PROP_SELECTION)) {
-			ISelection selection = (ISelection)properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION);
+			ISelection selection = (ISelection)properties.get(ITerminalsConnectorConstants.PROP_SELECTION);
 			if (selection == null) selection = service.getSelection();
 			if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 				String dir = null;
@@ -140,37 +143,40 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 				while (iter.hasNext()) {
 					Object element = iter.next();
 
-					// If the element is not an IResource, try to adapt to IResource
-					if (!(element instanceof IResource)) {
-						Object adapted = element instanceof IAdaptable ? ((IAdaptable)element).getAdapter(IResource.class) : null;
-						if (adapted == null) adapted = Platform.getAdapterManager().getAdapter(element, IResource.class);
-						if (adapted != null) element = adapted;
-					}
+					Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+					if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+						// If the element is not an IResource, try to adapt to IResource
+						if (!(element instanceof org.eclipse.core.resources.IResource)) {
+							Object adapted = element instanceof IAdaptable ? ((IAdaptable)element).getAdapter(org.eclipse.core.resources.IResource.class) : null;
+							if (adapted == null) adapted = Platform.getAdapterManager().getAdapter(element, org.eclipse.core.resources.IResource.class);
+							if (adapted != null) element = adapted;
+						}
 
-					if (element instanceof IResource && ((IResource)element).exists()) {
-						IPath location = ((IResource)element).getLocation();
-						if (location == null) continue;
-						if (location.toFile().isFile()) location = location.removeLastSegments(1);
-						if (location.toFile().isDirectory() && location.toFile().canRead()) {
-							dir = location.toFile().getAbsolutePath();
-							break;
+						if (element instanceof org.eclipse.core.resources.IResource && ((org.eclipse.core.resources.IResource)element).exists()) {
+							IPath location = ((org.eclipse.core.resources.IResource)element).getLocation();
+							if (location == null) continue;
+							if (location.toFile().isFile()) location = location.removeLastSegments(1);
+							if (location.toFile().isDirectory() && location.toFile().canRead()) {
+								dir = location.toFile().getAbsolutePath();
+								break;
+							}
 						}
 					}
 				}
 				if (dir != null) {
-					properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, dir);
+					properties.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, dir);
 
 					String basename = new Path(dir).lastSegment();
-					properties.setProperty(ITerminalsConnectorConstants.PROP_TITLE, basename + " (" + terminalTitle + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+					properties.put(ITerminalsConnectorConstants.PROP_TITLE, basename + " (" + terminalTitle + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
 		}
 
 		// Get the terminal service
-		ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
+		ITerminalService terminal = TerminalServiceFactory.getService();
 		// If not available, we cannot fulfill this request
 		if (terminal != null) {
-			terminal.openConsole(properties, callback);
+			terminal.openConsole(properties, done);
 		}
 	}
 
@@ -181,11 +187,13 @@ public class LocalLauncherDelegate extends AbstractLauncherDelegate {
 	 *
 	 * @return The terminal title string or <code>null</code>.
 	 */
-	private String getTerminalTitle(IPropertiesContainer properties) {
-		String[] hostNames= IPAddressUtil.getInstance().getCanonicalHostNames();
-		if (hostNames.length != 0){
-			return hostNames[0];
-		}
+	private String getTerminalTitle(Map<String, Object> properties) {
+		try {
+			String hostname = InetAddress.getLocalHost().getHostName();
+			if (hostname != null && !"".equals(hostname.trim())) { //$NON-NLS-1$
+				return hostname;
+			}
+		} catch (UnknownHostException e) { /* ignored on purpose */ }
 		return "Local"; //$NON-NLS-1$
 	}
 

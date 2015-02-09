@@ -9,7 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.local.controls;
 
-import org.eclipse.core.resources.IResource;
+import java.util.Map;
+
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -17,35 +18,33 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
-import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
-import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
+import org.eclipse.tcf.te.ui.terminals.panels.AbstractExtendedConfigurationPanel;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchEncoding;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.osgi.framework.Bundle;
 
 /**
  * Serial wizard configuration panel implementation.
  */
-public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel implements IDataExchangeNode {
+public class LocalWizardConfigurationPanel extends AbstractExtendedConfigurationPanel {
 
-	private IResource resource;
+	private Object resource;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param parentControl The parent control. Must not be <code>null</code>!
+	 * @param container The configuration panel container or <code>null</code>.
 	 */
-	public LocalWizardConfigurationPanel(BaseDialogPageControl parentControl) {
-	    super(parentControl);
+    public LocalWizardConfigurationPanel(IConfigurationPanelContainer container) {
+    	super(container);
     }
 
 	/* (non-Javadoc)
@@ -77,51 +76,47 @@ public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel im
 		layoutData.heightHint = 80;
 		label.setLayoutData(layoutData);
 
-		resource = getSelectionResource();
+		Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+		if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+			resource = getSelectionResource();
+		}
 
     	setControl(panel);
     }
 
-
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
+	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#setupData(java.util.Map)
 	 */
 	@Override
-	public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataWizardPage#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
-	 */
-	@Override
-    public void setupData(IPropertiesContainer data) {
+	public void setupData(Map<String, Object> data) {
 		if (data == null) return;
 
-		String value = data.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
+		String value = (String)data.get(ITerminalsConnectorConstants.PROP_ENCODING);
 		if (value != null) setEncoding(value);
     }
 
-
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataWizardPage#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#extractData(java.util.Map)
 	 */
 	@Override
-    public void extractData(IPropertiesContainer data) {
+	public void extractData(Map<String, Object> data) {
     	// set the terminal connector id for local terminal
-    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tcf.te.ui.terminals.local.LocalConnector"); //$NON-NLS-1$
+    	data.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tcf.te.ui.terminals.local.LocalConnector"); //$NON-NLS-1$
 
     	// set the connector type for local terminal
-    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
+    	data.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
 
     	// Store the encoding
-		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+		data.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
 
-    	// if we have a IResource selection use the location for working directory
-    	if (resource != null){
-    		String dir = resource.getProject().getLocation().toString();
-        	data.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, dir);
-    	}
+		Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+		if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+			// if we have a IResource selection use the location for working directory
+			if (resource instanceof org.eclipse.core.resources.IResource){
+				String dir = ((org.eclipse.core.resources.IResource)resource).getProject().getLocation().toString();
+				data.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, dir);
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -185,17 +180,17 @@ public class LocalWizardConfigurationPanel extends AbstractConfigurationPanel im
 	 *
 	 * @return the IResource, or <code>null</code>.
 	 */
-	private IResource getSelectionResource() {
+	private org.eclipse.core.resources.IResource getSelectionResource() {
 		ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 		ISelection selection = selectionService != null ? selectionService.getSelection() : StructuredSelection.EMPTY;
 
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
-			if (element instanceof IResource){
-				return ((IResource)element);
+			if (element instanceof org.eclipse.core.resources.IResource){
+				return ((org.eclipse.core.resources.IResource)element);
 			}
 			if (element instanceof IAdaptable) {
-				return (IResource) ((IAdaptable) element).getAdapter(IResource.class);
+				return (org.eclipse.core.resources.IResource) ((IAdaptable) element).getAdapter(org.eclipse.core.resources.IResource.class);
 			}
 		}
 		return null;

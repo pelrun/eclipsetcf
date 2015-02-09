@@ -11,11 +11,11 @@ package org.eclipse.tcf.te.ui.terminals.types;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalServiceOutputStreamMonitorListener;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.streams.StreamsSettings;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
@@ -29,24 +29,25 @@ import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtensi
 public class StreamsConnectorType extends AbstractConnectorType {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(java.util.Map)
 	 */
-    @Override
-	public ITerminalConnector createTerminalConnector(IPropertiesContainer properties) {
+	@Override
+	public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
 		Assert.isNotNull(properties);
 
     	// Check for the terminal connector id
-    	String connectorId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+    	String connectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
 		if (connectorId == null) connectorId = "org.eclipse.tcf.te.ui.terminals.StreamsConnector"; //$NON-NLS-1$
 
 		// Extract the streams properties
-		OutputStream stdin = (OutputStream)properties.getProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDIN);
-		InputStream stdout = (InputStream)properties.getProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT);
-		InputStream stderr = (InputStream)properties.getProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR);
-		boolean localEcho = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO);
-		String lineSeparator = properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
-		ITerminalServiceOutputStreamMonitorListener[] stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDOUT_LISTENERS);
-		ITerminalServiceOutputStreamMonitorListener[] stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDERR_LISTENERS);
+		OutputStream stdin = (OutputStream)properties.get(ITerminalsConnectorConstants.PROP_STREAMS_STDIN);
+		InputStream stdout = (InputStream)properties.get(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT);
+		InputStream stderr = (InputStream)properties.get(ITerminalsConnectorConstants.PROP_STREAMS_STDERR);
+		Object value = properties.get(ITerminalsConnectorConstants.PROP_LOCAL_ECHO);
+		boolean localEcho =  value instanceof Boolean ? ((Boolean)value).booleanValue() : false;
+		String lineSeparator = (String)properties.get(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
+		ITerminalServiceOutputStreamMonitorListener[] stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.get(ITerminalsConnectorConstants.PROP_STDOUT_LISTENERS);
+		ITerminalServiceOutputStreamMonitorListener[] stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.get(ITerminalsConnectorConstants.PROP_STDERR_LISTENERS);
 
 		// Construct the terminal settings store
 		ISettingsStore store = new SettingsStore();

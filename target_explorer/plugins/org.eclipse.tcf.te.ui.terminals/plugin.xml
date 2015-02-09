@@ -103,15 +103,6 @@
       </propertyTester>
    </extension>
 
-<!-- Service contributions -->
-   <extension point="org.eclipse.tcf.te.runtime.services.services">
-      <service
-            class="org.eclipse.tcf.te.ui.terminals.services.TerminalService"
-            id="org.eclipse.tcf.te.runtime.services.terminal">
-         <serviceType class="org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService"/>
-      </service>
-   </extension>
-   
 <!-- Terminal connector type contributions -->
    <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
       <connectorType

@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.ui.terminals.tabs;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -38,14 +37,10 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.events.AbstractEventListener;
-import org.eclipse.tcf.te.ui.swt.DisplayUtil;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
-import org.eclipse.tcf.te.ui.terminals.events.SelectionChangedBroadcastEvent;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
@@ -67,8 +62,6 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	private final ITerminalsView parentView;
 	// Reference to the selection listener instance
 	private final SelectionListener selectionListener;
-	// Reference to the broadcasted selection changed event listener instance
-	private final BroadcastedSelectionChangedEventListener broadcastedSelectionChangedEventListener;
 
 	/**
 	 * List of selection changed listeners.
@@ -141,12 +134,18 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 			if (e.button == 1 && selectMode) {
 				selectMode = false;
 				// Fire a selection changed event with the terminal controls selection
-				DisplayUtil.safeAsyncExec(new Runnable() {
-					@Override
-					public void run() {
-						fireSelectionChanged(new StructuredSelection(getTerminal().getSelection()));
-					}
-				});
+		        try {
+		            Display display = PlatformUI.getWorkbench().getDisplay();
+		            display.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							fireSelectionChanged(new StructuredSelection(getTerminal().getSelection()));
+						}
+					});
+		        }
+		        catch (Exception ex) {
+		            // if display is disposed, silently ignore.
+		        }
 			}
 		}
 
@@ -156,67 +155,6 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		@Override
 		public void mouseDoubleClick(MouseEvent e) {
 		}
-	}
-
-	/**
-	 * The event listener to process broadcasted selection changed events
-	 */
-	private class BroadcastedSelectionChangedEventListener extends AbstractEventListener {
-		private final TabFolderManager parent;
-
-		/**
-		 * Constructor.
-		 *
-		 * @param parent The parent tab folder manager. Must not be <code>null</code>.
-		 */
-		public BroadcastedSelectionChangedEventListener(TabFolderManager parent) {
-			super();
-
-			Assert.isNotNull(parent);
-			this.parent = parent;
-		}
-
-		/* (non-Javadoc)
-		 * @see org.eclipse.tcf.te.runtime.interfaces.events.IEventListener#eventFired(java.util.EventObject)
-		 */
-		@Override
-		public void eventFired(EventObject event) {
-			if (event instanceof SelectionChangedBroadcastEvent && !event.getSource().equals(parent)) {
-				// Don't need to do anything if the parent tab folder is disposed or does not have a open tab
-				CTabFolder tabFolder = parent.getTabFolder();
-				if (tabFolder == null || tabFolder.isDisposed() || tabFolder.getItemCount() == 0) return;
-
-				// Received a broadcasted selection changed event from another tab folder manager.
-				SelectionChangedEvent selectionChangedEvent = ((SelectionChangedBroadcastEvent)event).getSelectionChangedEvent();
-				if (selectionChangedEvent != null && selectionChangedEvent.getSelection() instanceof IStructuredSelection && !selectionChangedEvent.getSelection().isEmpty()) {
-					// Extract the selection from the selection changed event
-					IStructuredSelection selection = (IStructuredSelection)selectionChangedEvent.getSelection();
-					// Determine the first element in the selection being a CTabItem
-					CTabItem item = null;
-					Iterator<?> iterator = selection.iterator();
-					while (iterator.hasNext()) {
-						Object candidate = iterator.next();
-						if (candidate instanceof CTabItem) { item = (CTabItem)candidate; break; }
-					}
-					// If we got an CTabItem from the selection, try to find a CTabItem in our own tab folder manager
-					// which is associated with the exact same data object.
-					if (item != null && item.getData("customData") != null) { //$NON-NLS-1$
-						Object data = item.getData("customData"); //$NON-NLS-1$
-
-						CTabItem[] ourItems = tabFolder.getItems();
-						for (CTabItem ourItem : ourItems) {
-							Object ourData = ourItem.getData("customData"); //$NON-NLS-1$
-							if (data.equals(ourData) && !ourItem.equals(parent.getActiveTabItem())) {
-								// Select this item and we are done
-								parent.setSelection(new StructuredSelection(ourItem));
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-
 	}
 
 	/**
@@ -232,13 +170,6 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		// Attach a selection listener to the tab folder
 		selectionListener = doCreateTabFolderSelectionListener(this);
 		if (getTabFolder() != null) getTabFolder().addSelectionListener(selectionListener);
-
-
-		// Create and register the broadcasted selection changed event listener
-		broadcastedSelectionChangedEventListener = doCreateBroadcastedSelectionChangedEventListener(this);
-		if (isListeningToBroadcastedSelectionChangedEvent() && broadcastedSelectionChangedEventListener != null) {
-			EventManager.getInstance().addEventListener(broadcastedSelectionChangedEventListener, SelectionChangedBroadcastEvent.class);
-		}
 	}
 
 	/**
@@ -285,10 +216,6 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	public void dispose() {
 		// Dispose the selection listener
 		if (getTabFolder() != null && !getTabFolder().isDisposed()) getTabFolder().removeSelectionListener(selectionListener);
-		// Remove the broadcasted selection changed event listener from the notification manager
-		if (broadcastedSelectionChangedEventListener != null) {
-			EventManager.getInstance().removeEventListener(broadcastedSelectionChangedEventListener);
-		}
 		// Dispose the tab command field handler
 		for (TabCommandFieldHandler handler : commandFieldHandler.values()) {
 			handler.dispose();
@@ -307,7 +234,7 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 *
 	 * @return The created tab item or <code>null</code> if failed.
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused", "unchecked" })
 	public CTabItem createTabItem(String title, String encoding, ITerminalConnector connector, Object data, Map<String, Boolean> flags) {
 		Assert.isNotNull(title);
 		Assert.isNotNull(connector);
@@ -342,8 +269,9 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 
 			// Create the terminal control
 			ITerminalViewControl terminal = TerminalViewControlFactory.makeControl(doCreateTerminalTabTerminalListener(this, item), composite, new ITerminalConnector[] { connector }, true);
-			if (terminal instanceof ITerminalControl && data instanceof IPropertiesContainer) {
-				boolean noReconnect = ((IPropertiesContainer)data).getBooleanProperty(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT);
+			if (terminal instanceof ITerminalControl && data instanceof Map<?,?>) {
+				Object value = ((Map<String, Object>)data).get(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT);
+				boolean noReconnect = value instanceof Boolean ? ((Boolean)value).booleanValue() : false;
 				((ITerminalControl)terminal).setConnectOnEnterIfClosed(!noReconnect);
 			}
 
@@ -410,13 +338,14 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 * @param oldItem The old dragged tab item. Must not be <code>null</code>.
 	 * @return The new dropped tab item.
 	 */
-	public CTabItem cloneTabItemAfterDrop(CTabItem oldItem) {
+	@SuppressWarnings("unchecked")
+    public CTabItem cloneTabItemAfterDrop(CTabItem oldItem) {
 		Assert.isNotNull(oldItem);
 
 		ITerminalViewControl terminal = (ITerminalViewControl)oldItem.getData();
 		ITerminalConnector connector = terminal.getTerminalConnector();
 		Object data = oldItem.getData("customData"); //$NON-NLS-1$
-		IPropertiesContainer properties = (IPropertiesContainer)oldItem.getData("properties"); //$NON-NLS-1$
+		Map<String, Object> properties = (Map<String, Object>)oldItem.getData("properties"); //$NON-NLS-1$
 		String title = oldItem.getText();
 
 		// The result tab item
@@ -804,63 +733,6 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 		for (ISelectionChangedListener listener : selectionChangedListeners) {
 			listener.selectionChanged(event);
 		}
-
-		// Second, broadcast the event if desired
-		if (isBroadcastSelectionChangedEvent()) onBroadcastSelectionChangedEvent(event);
-	}
-
-	/**
-	 * Controls if or if not a selection changed event, processed by this tab
-	 * folder manager shall be broadcasted to via the global Workbench notification
-	 * mechanism.
-	 *
-	 * @return <code>True</code> to broadcast the selection changed event, <code>false</code> otherwise.
-	 */
-	protected boolean isBroadcastSelectionChangedEvent() {
-		return false;
-	}
-
-	/**
-	 * Broadcasts the given selection changed event via the global Workbench notification mechanism.
-	 *
-	 * @param selectionChangedEvent The selection changed event or <code>null</code>.
-	 */
-	protected void onBroadcastSelectionChangedEvent(SelectionChangedEvent selectionChangedEvent) {
-		SelectionChangedBroadcastEvent event = doCreateSelectionChangedBroadcastEvent(this, selectionChangedEvent);
-		if (event != null) EventManager.getInstance().fireEvent(event);
-	}
-
-	/**
-	 * Creates the selection changed broadcast event.
-	 *
-	 * @param source The event source. Must not be <code>null</code>.
-	 * @param selectionChangedEvent The selection changed event or <code>null</code>.
-	 *
-	 * @return The selection changed broadcast event or <code>null</code>.
-	 */
-	protected SelectionChangedBroadcastEvent doCreateSelectionChangedBroadcastEvent(TabFolderManager source, SelectionChangedEvent selectionChangedEvent) {
-		return new SelectionChangedBroadcastEvent(source, selectionChangedEvent);
-	}
-
-	/**
-	 * Returns if or if not this tab folder manager is listening to broadcasted selection
-	 * changed events. Broadcasted events by the same tab folder manager are ignored independent
-	 * of the methods return value.
-	 *
-	 * @return <code>True</code> to listen to broadcasted selection changed events, <code>false</code> to not listen.
-	 */
-	protected boolean isListeningToBroadcastedSelectionChangedEvent() {
-		return false;
-	}
-
-	/**
-	 * Creates a new broadcasted selection changed event listener instance.
-	 *
-	 * @param parent The parent tab folder manager. Must not be <code>null</code>.
-	 * @return The event listener instance or <code>null</code>.
-	 */
-	protected BroadcastedSelectionChangedEventListener doCreateBroadcastedSelectionChangedEventListener(TabFolderManager parent) {
-		return new BroadcastedSelectionChangedEventListener(parent);
 	}
 
 	/**
@@ -900,19 +772,20 @@ public class TabFolderManager extends PlatformObject implements ISelectionProvid
 	 *
 	 * @return The string representation.
 	 */
-	protected String state2msg(CTabItem item, TerminalState state) {
+	@SuppressWarnings("unchecked")
+    protected String state2msg(CTabItem item, TerminalState state) {
 		Assert.isNotNull(item);
 		Assert.isNotNull(state);
 
 		// Determine the terminal properties of the tab folder
-		IPropertiesContainer properties = (IPropertiesContainer)item.getData("properties"); //$NON-NLS-1$
+		Map<String, Object> properties = (Map<String, Object>)item.getData("properties"); //$NON-NLS-1$
 
 		// Get he current terminal state as string
 		String stateStr = state.toString();
 		// Lookup a matching text representation of the state
 		String key = "TabFolderManager_state_" + stateStr.replaceAll("\\.", " ").trim().toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		String stateMsg = null;
-		if (properties != null) stateMsg = properties.getStringProperty(key);
+		if (properties != null) stateMsg = properties.get(key) instanceof String ? (String) properties.get(key) : null;
 		if (stateMsg == null) stateMsg = Messages.getString(key);
 		if (stateMsg == null) stateMsg = stateStr;
 

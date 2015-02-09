@@ -10,11 +10,11 @@
 package org.eclipse.tcf.te.ui.terminals.local.showin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
@@ -22,10 +22,7 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
 import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutablesProperties;
@@ -63,15 +60,15 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 		List<IContributionItem> items = new ArrayList<IContributionItem>();
 
 		if (delegate != null) {
-			List<Map<String, Object>> l = ExternalExecutablesManager.load();
+			List<Map<String, String>> l = ExternalExecutablesManager.load();
 			if (l != null && !l.isEmpty()) {
-				for (Map<String, Object> executableData : l) {
-					String name = (String) executableData.get(IExternalExecutablesProperties.PROP_NAME);
-					String path = (String) executableData.get(IExternalExecutablesProperties.PROP_PATH);
-					String args = (String) executableData.get(IExternalExecutablesProperties.PROP_ARGS);
-					String icon = (String) executableData.get(IExternalExecutablesProperties.PROP_ICON);
+				for (Map<String, String> executableData : l) {
+					String name = executableData.get(IExternalExecutablesProperties.PROP_NAME);
+					String path = executableData.get(IExternalExecutablesProperties.PROP_PATH);
+					String args = executableData.get(IExternalExecutablesProperties.PROP_ARGS);
+					String icon = executableData.get(IExternalExecutablesProperties.PROP_ICON);
 
-					String strTranslate = (String) executableData.get(IExternalExecutablesProperties.PROP_TRANSLATE);
+					String strTranslate = executableData.get(IExternalExecutablesProperties.PROP_TRANSLATE);
 					boolean translate = strTranslate != null ? Boolean.parseBoolean(strTranslate) : false;
 
 					if (name != null && !"".equals(name) && path != null && !"".equals(path)) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -116,19 +113,15 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 				ISelection selection = service != null ? service.getSelection() : null;
 				if (selection != null && selection.isEmpty()) selection = null;
 
-				IPropertiesContainer properties = new PropertiesContainer();
-				properties.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
-		    	properties.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
-		    	if (selection != null) properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
-		    	properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH, path);
-		    	if (args != null) properties.setProperty(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, args);
-		    	properties.setProperty(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE, translate);
+				Map<String, Object> properties = new HashMap<String, Object>();
+				properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
+		    	properties.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
+		    	if (selection != null) properties.put(ITerminalsConnectorConstants.PROP_SELECTION, selection);
+		    	properties.put(ITerminalsConnectorConstants.PROP_PROCESS_PATH, path);
+		    	if (args != null) properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, args);
+		    	properties.put(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE, Boolean.valueOf(translate));
 
-		    	delegate.execute(properties, new Callback() {
-		    		@Override
-		    		protected void internalDone(Object caller, IStatus status) {
-		    		}
-		    	});
+		    	delegate.execute(properties, null);
 			}
 		};
 

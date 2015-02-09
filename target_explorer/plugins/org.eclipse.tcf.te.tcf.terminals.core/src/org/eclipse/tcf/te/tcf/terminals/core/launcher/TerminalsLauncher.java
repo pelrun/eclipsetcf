@@ -41,17 +41,15 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IStreams;
 import org.eclipse.tcf.services.ITerminals;
 import org.eclipse.tcf.services.ITerminals.TerminalContext;
+import org.eclipse.tcf.te.core.terminals.TerminalServiceFactory;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalTabListener;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.runtime.events.DisposedEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
@@ -92,8 +90,8 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 	private IChannelManager.IStreamsListener streamsListener = null;
 	// The terminals listener instance
 	private ITerminals.TerminalsListener terminalsListener = null;
-	// The event listener instance
-	private IEventListener eventListener = null;
+	// The terminal tab listener instance
+	private ITerminalTabListener terminalTabListener = null;
 
 	/**
 	 * Constructor.
@@ -114,9 +112,9 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 		final IChannel finChannel = channel;
 
 		// Remove the notification listener
-		if (eventListener != null) {
-			EventManager.getInstance().removeEventListener(eventListener);
-			eventListener = null;
+		if (terminalTabListener != null) {
+			TerminalServiceFactory.getService().removeTerminalTabListener(terminalTabListener);
+			terminalTabListener = null;
 		}
 
 		// Create the callback collector
@@ -411,45 +409,57 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 			return;
 		}
 
-		// Register the notification listener to listen to the console disposal
-		eventListener = new TerminalsLauncherEventListener(this);
-		EventManager.getInstance().addEventListener(eventListener, DisposedEvent.class);
+		// Register the terminal tab listener to listen to the terminal events
+		terminalTabListener = new TerminalsLauncherTerminalTabListener(this);
+		TerminalServiceFactory.getService().addTerminalTabListener(terminalTabListener);
 
 		// Get the terminal service
-		ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
+		ITerminalService terminal = TerminalServiceFactory.getService();
 		// If not available, we cannot fulfill this request
 		if (terminal != null) {
 			// Create the terminal streams settings
-			PropertiesContainer props = new PropertiesContainer();
+			Map<String, Object> props = new HashMap<String, Object>();
 			// Copy over the common terminal properties passed in by the global properties
-			props.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID));
-			props.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID));
-			props.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID));
-			props.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, properties.getProperty(ITerminalsConnectorConstants.PROP_ENCODING));
-			props.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION));
+			if (properties.getProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID) != null) {
+				props.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID));
+			}
+			if (properties.getProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID) != null) {
+				props.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID));
+			}
+			if (properties.getProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID) != null) {
+				props.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID));
+			}
+			if (properties.getProperty(ITerminalsConnectorConstants.PROP_ENCODING) != null) {
+				props.put(ITerminalsConnectorConstants.PROP_ENCODING, properties.getProperty(ITerminalsConnectorConstants.PROP_ENCODING));
+			}
+			if (properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION) != null) {
+				props.put(ITerminalsConnectorConstants.PROP_SELECTION, properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION));
+			}
 			// Force creation of new terminal tabs if connecting to the same agent again
-			props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, true);
+			props.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.TRUE);
 			// Show the disconnect button
-			props.setProperty(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, true);
+			props.put(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, Boolean.TRUE);
 			// Set the terminal tab title
 			String terminalTitle = getTerminalTitle();
 			if (terminalTitle != null) {
-				props.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
+				props.put(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 			}
 
 			// Create and store the streams which will be connected to the terminals stdin
-			props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDIN, connectRemoteOutputStream(getStreamsListener(), new String[] { ITerminals.PROP_STDIN_ID }));
+			props.put(ITerminalsConnectorConstants.PROP_STREAMS_STDIN, connectRemoteOutputStream(getStreamsListener(), new String[] { ITerminals.PROP_STDIN_ID }));
 			// Create and store the streams the terminal will see as stdout
-			props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { ITerminals.PROP_STDOUT_ID }));
+			props.put(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { ITerminals.PROP_STDOUT_ID }));
 			// Create and store the streams the terminal will see as stderr
-			props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { ITerminals.PROP_STDERR_ID }));
+			props.put(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { ITerminals.PROP_STDERR_ID }));
 
 			// Copy the terminal properties
-			props.setProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO));
-			props.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
+			props.put(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO)));
+			if (properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR) != null) {
+				props.put(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
+			}
 
 			// The custom data object is the terminal launcher itself
-			props.setProperty(ITerminalsConnectorConstants.PROP_DATA, this);
+			props.put(ITerminalsConnectorConstants.PROP_DATA, this);
 
 			// Open the console
 			terminal.openConsole(props, null);

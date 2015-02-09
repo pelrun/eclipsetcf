@@ -9,17 +9,32 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.interfaces;
 
+import java.util.Map;
+
 import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.extensions.IExecutableExtension;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
+import org.eclipse.core.runtime.IExecutableExtension;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
 
 /**
  * Terminal launcher delegate.
  */
 public interface ILauncherDelegate extends IExecutableExtension, IAdaptable {
+
+	/**
+	 * Returns the unique id of the launcher delegate. The returned
+	 * id must be never <code>null</code> or an empty string.
+	 *
+	 * @return The unique id.
+	 */
+	public String getId();
+
+	/**
+	 * Returns the label or UI name of the launcher delegate.
+	 *
+	 * @return The label or UI name. An empty string if not set.
+	 */
+	public String getLabel();
 
 	/**
 	 * Returns if or if not the launcher delegate is hidden for the user.
@@ -52,16 +67,16 @@ public interface ILauncherDelegate extends IExecutableExtension, IAdaptable {
 	 * configurable settings. In this case, {@link #needsUserConfiguration()} should return
 	 * <code>false</code>.
 	 *
-	 * @param parentControl The parent control. Must not be <code>null</code>.
+	 * @param container The configuration panel container or <code>null</code>.
 	 * @return The configuration panel instance or <code>null</code>
 	 */
-	public IConfigurationPanel getPanel(BaseDialogPageControl parentControl);
+	public IConfigurationPanel getPanel(IConfigurationPanelContainer container);
 
 	/**
 	 * Execute the terminal launch.
 	 *
 	 * @param properties The properties. Must not be <code>null</code>.
-	 * @param callback The callback or <code>null</code>.
+	 * @param done The callback or <code>null</code>.
 	 */
-	public void execute(IPropertiesContainer properties, ICallback callback);
+	public void execute(Map<String, Object> properties, ITerminalService.Done done);
 }

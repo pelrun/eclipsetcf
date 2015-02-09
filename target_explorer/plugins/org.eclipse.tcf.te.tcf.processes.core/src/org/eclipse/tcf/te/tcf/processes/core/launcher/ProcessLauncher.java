@@ -45,17 +45,15 @@ import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
 import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.services.IStreams;
+import org.eclipse.tcf.te.core.terminals.TerminalServiceFactory;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalTabListener;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.runtime.events.DisposedEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
@@ -98,8 +96,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	private IChannelManager.IStreamsListener streamsListener = null;
 	// The process listener instance
 	private IProcesses.ProcessesListener processesListener = null;
-	// The event listener instance
-	private IEventListener eventListener = null;
+	// The terminal tab listener instance
+	private ITerminalTabListener terminalTabListener = null;
 
 	// The streams proxy instance
 	private IProcessStreamsProxy streamsProxy = null;
@@ -139,9 +137,9 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		final IChannel finChannel = channel;
 
 		// Remove the notification listener
-		if (eventListener != null) {
-			EventManager.getInstance().removeEventListener(eventListener);
-			eventListener = null;
+		if (terminalTabListener != null) {
+			TerminalServiceFactory.getService().removeTerminalTabListener(terminalTabListener);
+			terminalTabListener = null;
 		}
 
 		// Create the callback collector
@@ -567,13 +565,6 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
-				if (status.getSeverity() == IStatus.ERROR) {
-					invokeCallback(status, null);
-					return;
-				}
-
-				// Launch the process
-				onAttachStreamsDone();
 			}
 		}, new CallbackInvocationDelegate());
 
@@ -588,22 +579,22 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		} else if (properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE)) {
 			// We don't have a streams proxy, we default the output redirection to the standard terminals console view
 
-			// Register the notification listener to listen to the console disposal
-			eventListener = new ProcessLauncherEventListener(this);
-			EventManager.getInstance().addEventListener(eventListener, DisposedEvent.class);
+			// Register the terminal tab listener to listen to the terminal events
+			terminalTabListener = new ProcessLauncherTerminalTabListener(this);
+			TerminalServiceFactory.getService().addTerminalTabListener(terminalTabListener);
 
 			// Get the terminal service
-			ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
+			ITerminalService terminal = TerminalServiceFactory.getService();
 			// If not available, we cannot fulfill this request
 			if (terminal != null) {
 				// Create the terminal streams settings
-				PropertiesContainer props = new PropertiesContainer();
-				props.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.streams"); //$NON-NLS-1$
-				props.setProperty(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
+				Map<String, Object> props = new HashMap<String, Object>();
+				props.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.streams"); //$NON-NLS-1$
+				props.put(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
 				// Set the terminal tab title
 				String terminalTitle = getTerminalTitle();
 				if (terminalTitle != null) {
-					props.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
+					props.put(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 				}
 
 				// Get the process output listener list from the properties
@@ -611,27 +602,43 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				StreamsDataReceiver.Listener[] listeners = value instanceof StreamsDataReceiver.Listener[] ? (StreamsDataReceiver.Listener[]) value : null;
 
 				// Create and store the streams which will be connected to the terminals stdin
-				props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDIN, connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
+				props.put(ITerminalsConnectorConstants.PROP_STREAMS_STDIN, connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
 				// Create and store the streams the terminal will see as stdout
-				props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, listeners));
+				props.put(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, listeners));
 				// Create and store the streams the terminal will see as stderr
-				props.setProperty(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
+				props.put(ITerminalsConnectorConstants.PROP_STREAMS_STDERR, connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
 
 				// Copy the terminal properties
-				props.setProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO));
-				props.setProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
-				props.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW));
+				props.put(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO)));
+				props.put(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
+				props.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW)));
 
 				// The custom data object is the process launcher itself
-				props.setProperty(ITerminalsConnectorConstants.PROP_DATA, this);
+				props.put(ITerminalsConnectorConstants.PROP_DATA, this);
 
 				// Initialize the process specific terminal state text representations
-				props.setProperty("TabFolderManager_state_connected", Messages.ProcessLauncher_state_connected); //$NON-NLS-1$
-				props.setProperty("TabFolderManager_state_connecting", Messages.ProcessLauncher_state_connecting); //$NON-NLS-1$
-				props.setProperty("TabFolderManager_state_closed", Messages.ProcessLauncher_state_closed); //$NON-NLS-1$
+				props.put("TabFolderManager_state_connected", Messages.ProcessLauncher_state_connected); //$NON-NLS-1$
+				props.put("TabFolderManager_state_connecting", Messages.ProcessLauncher_state_connecting); //$NON-NLS-1$
+				props.put("TabFolderManager_state_closed", Messages.ProcessLauncher_state_closed); //$NON-NLS-1$
 
 				// Open the console
-				terminal.openConsole(props, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+				terminal.openConsole(props, new ITerminalService.Done() {
+					@Override
+					public void done(IStatus status) {
+						if (status.getSeverity() == IStatus.ERROR) {
+							invokeCallback(status, null);
+							return;
+						}
+
+						// Launch the process (from within the TCF event dispatch thread)
+						Protocol.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								onAttachStreamsDone();
+							}
+						});
+					}
+				});
 			}
 		} else if (properties.getStringProperty(IProcessLauncher.PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE) != null) {
 			// Get the file name where to redirect the process output to

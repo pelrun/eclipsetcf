@@ -11,19 +11,19 @@ package org.eclipse.tcf.te.ui.terminals.serial.launcher;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalService;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
+import org.eclipse.tcf.te.core.terminals.TerminalServiceFactory;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
-import org.eclipse.tcf.te.ui.terminals.serial.controls.SerialWizardConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.serial.controls.SerialConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.serial.nls.Messages;
 
 /**
@@ -42,36 +42,36 @@ public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#getPanel(org.eclipse.tcf.te.ui.controls.BaseDialogPageControl)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#getPanel(org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer)
 	 */
 	@Override
-	public IConfigurationPanel getPanel(BaseDialogPageControl parentControl) {
-		return new SerialWizardConfigurationPanel(parentControl);
+	public IConfigurationPanel getPanel(IConfigurationPanelContainer container) {
+		return new SerialConfigurationPanel(container);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#execute(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#execute(java.util.Map, org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done)
 	 */
 	@Override
-	public void execute(IPropertiesContainer properties, ICallback callback) {
+	public void execute(Map<String, Object> properties, Done done) {
 		Assert.isNotNull(properties);
 
 		// Set the terminal tab title
 		String terminalTitle = getTerminalTitle(properties);
 		if (terminalTitle != null) {
-			properties.setProperty(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
+			properties.put(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 		}
 
 		// Serial terminals do have a disconnect button
 		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON)) {
-			properties.setProperty(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, true);
+			properties.put(ITerminalsConnectorConstants.PROP_HAS_DISCONNECT_BUTTON, Boolean.TRUE);
 		}
 
 		// Get the terminal service
-		ITerminalService terminal = ServiceManager.getInstance().getService(ITerminalService.class);
+		ITerminalService terminal = TerminalServiceFactory.getService();
 		// If not available, we cannot fulfill this request
 		if (terminal != null) {
-			terminal.openConsole(properties, callback);
+			terminal.openConsole(properties, done);
 		}
 	}
 
@@ -82,13 +82,13 @@ public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 	 *
 	 * @return The terminal title string or <code>null</code>.
 	 */
-	private String getTerminalTitle(IPropertiesContainer properties) {
-		String port = properties.getStringProperty(ITerminalsConnectorConstants.PROP_SERIAL_DEVICE);
+	private String getTerminalTitle(Map<String, Object> properties) {
+		String device = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_DEVICE);
 
-		if (port != null) {
+		if (device != null) {
 			DateFormat format = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 			String date = format.format(new Date(System.currentTimeMillis()));
-			return NLS.bind(Messages.SerialLauncherDelegate_terminalTitle, new String[]{port, date});
+			return NLS.bind(Messages.SerialLauncherDelegate_terminalTitle, new String[]{device, date});
 		}
 		return Messages.SerialLauncherDelegate_terminalTitle_default;
 	}

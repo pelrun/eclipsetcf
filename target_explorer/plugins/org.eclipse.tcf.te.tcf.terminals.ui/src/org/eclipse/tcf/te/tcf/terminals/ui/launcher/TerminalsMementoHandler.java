@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.terminals.ui.launcher;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
@@ -16,8 +17,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
@@ -31,19 +31,19 @@ import org.eclipse.ui.IMemento;
 public class TerminalsMementoHandler implements IMementoHandler {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#saveState(org.eclipse.ui.IMemento, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#saveState(org.eclipse.ui.IMemento, java.util.Map)
 	 */
 	@Override
-	public void saveState(IMemento memento, IPropertiesContainer properties) {
+	public void saveState(IMemento memento, Map<String, Object> properties) {
 		Assert.isNotNull(memento);
 		Assert.isNotNull(properties);
 
 		// Do not write the terminal title to the memento -> needs to
 		// be recreated at the time of restoration.
-		memento.putString(ITerminalsConnectorConstants.PROP_ENCODING, properties.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING));
+		memento.putString(ITerminalsConnectorConstants.PROP_ENCODING, (String)properties.get(ITerminalsConnectorConstants.PROP_ENCODING));
 
 		// Get the selection from the properties
-		ISelection selection = (ISelection)properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION);
+		ISelection selection = (ISelection)properties.get(ITerminalsConnectorConstants.PROP_SELECTION);
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection)selection).getFirstElement();
 			if (element instanceof IPeerNode) {
@@ -53,16 +53,17 @@ public class TerminalsMementoHandler implements IMementoHandler {
 		}
 	}
 
+
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#restoreState(org.eclipse.ui.IMemento, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler#restoreState(org.eclipse.ui.IMemento, java.util.Map)
 	 */
 	@Override
-	public void restoreState(IMemento memento, IPropertiesContainer properties) {
+	public void restoreState(IMemento memento, Map<String, Object> properties) {
 		Assert.isNotNull(memento);
 		Assert.isNotNull(properties);
 
 		// Restore the terminal properties from the memento
-		properties.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, memento.getString(ITerminalsConnectorConstants.PROP_ENCODING));
+		properties.put(ITerminalsConnectorConstants.PROP_ENCODING, memento.getString(ITerminalsConnectorConstants.PROP_ENCODING));
 
 		final String peerID = memento.getString("peerID"); //$NON-NLS-1$
 		if (peerID != null) {
@@ -87,7 +88,7 @@ public class TerminalsMementoHandler implements IMementoHandler {
 			}
 
 			if (peerNode.get() != null) {
-				properties.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, new StructuredSelection(peerNode.get()));
+				properties.put(ITerminalsConnectorConstants.PROP_SELECTION, new StructuredSelection(peerNode.get()));
 			}
 		}
 	}

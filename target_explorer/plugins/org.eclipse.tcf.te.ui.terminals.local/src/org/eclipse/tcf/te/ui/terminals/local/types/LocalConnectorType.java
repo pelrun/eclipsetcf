@@ -15,22 +15,22 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.cdt.utils.pty.PTY;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.URIUtil;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.ITerminalServiceOutputStreamMonitorListener;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ILineSeparatorConstants;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.runtime.utils.Host;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalServiceOutputStreamMonitorListener;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ILineSeparatorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.process.ProcessSettings;
 import org.eclipse.tcf.te.ui.terminals.types.AbstractConnectorType;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
+import org.osgi.framework.Bundle;
 
 /**
  * Streams terminal connector type implementation.
@@ -46,7 +46,7 @@ public class LocalConnectorType extends AbstractConnectorType {
 	 */
 	private final File defaultShell() {
 		String shell = null;
-		if (Host.isWindowsHost()) {
+		if (Platform.OS_WIN32.equals(Platform.getOS())) {
 			if (System.getenv("ComSpec") != null && !"".equals(System.getenv("ComSpec").trim())) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				shell = System.getenv("ComSpec").trim(); //$NON-NLS-1$
 			} else {
@@ -65,64 +65,64 @@ public class LocalConnectorType extends AbstractConnectorType {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(java.util.Map)
 	 */
 	@Override
-	public ITerminalConnector createTerminalConnector(IPropertiesContainer properties) {
+	public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
 		Assert.isNotNull(properties);
 
 		// Check for the terminal connector id
-		String connectorId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+		String connectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
 		if (connectorId == null) connectorId = "org.eclipse.tcf.te.ui.terminals.local.LocalConnector"; //$NON-NLS-1$
 
 		// Extract the process properties using defaults
 		String image;
 		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_PROCESS_PATH)
-				|| properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH) == null) {
+				|| properties.get(ITerminalsConnectorConstants.PROP_PROCESS_PATH) == null) {
 			File defaultShell = defaultShell();
 			image = defaultShell.isAbsolute() ? defaultShell.getAbsolutePath() : defaultShell.getPath();
 		} else {
-			image = properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_PATH);
+			image = (String)properties.get(ITerminalsConnectorConstants.PROP_PROCESS_PATH);
 		}
 
 		// Determine if a PTY will be used
-		boolean isUsingPTY = (properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_OBJ) == null && PTY.isSupported(PTY.Mode.TERMINAL))
-								|| properties.getProperty(ITerminalsConnectorConstants.PROP_PTY_OBJ) instanceof PTY;
+		boolean isUsingPTY = (properties.get(ITerminalsConnectorConstants.PROP_PROCESS_OBJ) == null && PTY.isSupported(PTY.Mode.TERMINAL))
+								|| properties.get(ITerminalsConnectorConstants.PROP_PTY_OBJ) instanceof PTY;
 
 		boolean localEcho = false;
 		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_LOCAL_ECHO)
-				|| properties.getStringProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO) == null) {
+				|| !(properties.get(ITerminalsConnectorConstants.PROP_LOCAL_ECHO) instanceof Boolean)) {
 			// On Windows, turn on local echo by default if no PTY is used (bug 433645)
-			if (Host.isWindowsHost()) {
+			if (Platform.OS_WIN32.equals(Platform.getOS())) {
 				localEcho = !isUsingPTY;
 			}
 		} else {
-			localEcho = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO);
+			localEcho = ((Boolean)properties.get(ITerminalsConnectorConstants.PROP_LOCAL_ECHO)).booleanValue();
 		}
 
 		String lineSeparator = null;
 		if (!properties.containsKey(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR)
-				|| properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR) == null) {
+				|| !(properties.get(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR) instanceof String)) {
 			// No line separator will be set if a PTY is used
 			if (!isUsingPTY) {
-				lineSeparator = Host.isWindowsHost() ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF;
+				lineSeparator = Platform.OS_WIN32.equals(Platform.getOS()) ? ILineSeparatorConstants.LINE_SEPARATOR_CRLF : ILineSeparatorConstants.LINE_SEPARATOR_LF;
 			}
 		} else {
-			lineSeparator = properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
+			lineSeparator = (String)properties.get(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
 		}
 
-		String arguments = properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_ARGS);
-		Process process = (Process)properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_OBJ);
-		PTY pty = (PTY)properties.getProperty(ITerminalsConnectorConstants.PROP_PTY_OBJ);
-		ITerminalServiceOutputStreamMonitorListener[] stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDOUT_LISTENERS);
-		ITerminalServiceOutputStreamMonitorListener[] stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.getProperty(ITerminalsConnectorConstants.PROP_STDERR_LISTENERS);
-		String workingDir = properties.getStringProperty(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR);
+		String arguments = (String)properties.get(ITerminalsConnectorConstants.PROP_PROCESS_ARGS);
+		Process process = (Process)properties.get(ITerminalsConnectorConstants.PROP_PROCESS_OBJ);
+		PTY pty = (PTY)properties.get(ITerminalsConnectorConstants.PROP_PTY_OBJ);
+		ITerminalServiceOutputStreamMonitorListener[] stdoutListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.get(ITerminalsConnectorConstants.PROP_STDOUT_LISTENERS);
+		ITerminalServiceOutputStreamMonitorListener[] stderrListeners = (ITerminalServiceOutputStreamMonitorListener[])properties.get(ITerminalsConnectorConstants.PROP_STDERR_LISTENERS);
+		String workingDir = (String)properties.get(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR);
 
 		String[] envp = null;
 		if (properties.containsKey(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) &&
-						properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) != null &&
-						properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) instanceof String[]){
-			envp = (String[])properties.getProperty(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT);
+						properties.get(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) != null &&
+						properties.get(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT) instanceof String[]){
+			envp = (String[])properties.get(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT);
 		}
 
 		// Set the ECLIPSE_HOME and ECLIPSE_WORKSPACE environment variables
@@ -140,11 +140,14 @@ public class LocalConnectorType extends AbstractConnectorType {
 		}
 
 		// ECLIPSE_WORKSPACE
-        if (ResourcesPlugin.getWorkspace() != null
-        	            && ResourcesPlugin.getWorkspace().getRoot() != null
-        	            && ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
-        	envpList.add("ECLIPSE_WORKSPACE=" + ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString()); //$NON-NLS-1$
-        }
+		Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+		if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+	        if (org.eclipse.core.resources.ResourcesPlugin.getWorkspace() != null
+	        	            && org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot() != null
+	        	            && org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
+	        	envpList.add("ECLIPSE_WORKSPACE=" + org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString()); //$NON-NLS-1$
+	        }
+		}
 
         // Convert back into a string array
         envp = envpList.toArray(new String[envpList.size()]);
@@ -168,7 +171,8 @@ public class LocalConnectorType extends AbstractConnectorType {
 		processSettings.setEnvironment(envp);
 
 		if (properties.containsKey(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT)) {
-			processSettings.setMergeWithNativeEnvironment(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT));
+			Object value = properties.get(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT);
+			processSettings.setMergeWithNativeEnvironment(value instanceof Boolean ? ((Boolean)value).booleanValue() : false);
 		}
 
 		// And save the settings to the store

@@ -13,10 +13,15 @@ package org.eclipse.tcf.te.ui.terminals.view;
 import java.util.Iterator;
 import java.util.UUID;
 
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.expressions.EvaluationContext;
+import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -41,21 +46,25 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.events.TriggerCommandEvent;
+import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
+import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderManager;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderMenuHandler;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderToolbarHandler;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.ISources;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.IShowInTarget;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.part.ViewPart;
+import org.osgi.framework.Bundle;
 
 /**
  * Terminals view.
@@ -650,19 +659,43 @@ public class TerminalsView extends ViewPart implements ITerminalsView, IShowInTa
 				Iterator<?> iterator = ((IStructuredSelection)selection).iterator();
 				while (iterator.hasNext() && isValid) {
 					Object element = iterator.next();
-					if (element instanceof IResource) continue;
+					Object adapted = null;
 
-					IResource adapted = element instanceof IAdaptable ? (IResource)((IAdaptable)element).getAdapter(IResource.class) : null;
-					if (adapted == null) adapted = (IResource)Platform.getAdapterManager().getAdapter(element, IResource.class);
-					if (adapted == null) adapted = (IResource)Platform.getAdapterManager().loadAdapter(element, IResource.class.getName());
+					Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+					if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+						if (element instanceof org.eclipse.core.resources.IResource) continue;
+
+						adapted = element instanceof IAdaptable ? ((IAdaptable)element).getAdapter(org.eclipse.core.resources.IResource.class) : null;
+						if (adapted == null) adapted = Platform.getAdapterManager().getAdapter(element, org.eclipse.core.resources.IResource.class);
+						if (adapted == null) adapted = Platform.getAdapterManager().loadAdapter(element, org.eclipse.core.resources.IResource.class.getName());
+					}
 
 					isValid = adapted != null;
 				}
 
 				// If the selection is valid, fire the command to open the local terminal
 				if (isValid) {
-					TriggerCommandEvent event = new TriggerCommandEvent(selection, "org.eclipse.tcf.te.ui.terminals.local.command.launch"); //$NON-NLS-1$
-					EventManager.getInstance().fireEvent(event);
+					ICommandService service = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
+					Command command = service != null ? service.getCommand("org.eclipse.tcf.te.ui.terminals.local.command.launch") : null; //$NON-NLS-1$
+					if (command != null && command.isDefined() && command.isEnabled()) {
+						try {
+							ParameterizedCommand pCmd = ParameterizedCommand.generateCommand(command, null);
+							Assert.isNotNull(pCmd);
+							IHandlerService handlerSvc = (IHandlerService)PlatformUI.getWorkbench().getService(IHandlerService.class);
+							Assert.isNotNull(handlerSvc);
+							IEvaluationContext ctx = handlerSvc.getCurrentState();
+							ctx = new EvaluationContext(ctx, selection);
+							ctx.addVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME, selection);
+							handlerSvc.executeCommandInContext(pCmd, null, ctx);
+						} catch (Exception e) {
+							// If the platform is in debug mode, we print the exception to the log view
+							if (Platform.inDebugMode()) {
+								IStatus status = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(),
+															Messages.AbstractTriggerCommandHandler_error_executionFailed, e);
+								UIPlugin.getDefault().getLog().log(status);
+							}
+						}
+					}
 					return true;
 				}
 			}

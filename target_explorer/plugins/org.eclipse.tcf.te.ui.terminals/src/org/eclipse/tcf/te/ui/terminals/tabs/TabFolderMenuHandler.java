@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.ui.terminals.tabs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
@@ -25,8 +26,7 @@ import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.actions.SelectEncodingAction;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ITerminalsView;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
@@ -215,7 +215,8 @@ public class TabFolderMenuHandler extends PlatformObject {
 
 		// Create and add the paste action
 		add(new TerminalActionPaste() {
-			@Override
+			@SuppressWarnings("unchecked")
+            @Override
 			public void run() {
 				// Determine if pasting to the active tab require backslash translation
 				boolean needsTranslation = false;
@@ -225,9 +226,10 @@ public class TabFolderMenuHandler extends PlatformObject {
 					// If we have the active tab item, we can get the active terminal control
 					CTabItem activeTabItem = manager.getActiveTabItem();
 					if (activeTabItem != null) {
-						IPropertiesContainer properties = (IPropertiesContainer)activeTabItem.getData("properties"); //$NON-NLS-1$
+						Map<String, Object> properties = (Map<String, Object>)activeTabItem.getData("properties"); //$NON-NLS-1$
 						if (properties != null && properties.containsKey(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE)) {
-							needsTranslation = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE);
+							Object value = properties.get(ITerminalsConnectorConstants.PROP_TRANSLATE_BACKSLASHES_ON_PASTE);
+							needsTranslation = value instanceof Boolean ? ((Boolean)value).booleanValue() : false;
 						}
 					}
 				}

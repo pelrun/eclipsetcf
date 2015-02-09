@@ -18,11 +18,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.URIUtil;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -39,6 +41,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
@@ -52,8 +55,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
-import org.eclipse.tcf.te.ui.swt.widgets.NoteCompositeHelper;
+import org.eclipse.tcf.te.ui.terminals.controls.NoteCompositeHelper;
 import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.local.showin.ExternalExecutablesDialog;
@@ -62,6 +64,7 @@ import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutab
 import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IPreferenceKeys;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.osgi.framework.Bundle;
 
 /**
  * Terminals top preference page implementation.
@@ -74,7 +77,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	/* default */ Combo workingDir;
 	private Button browseButton;
 
-	/* default */ final List<Map<String, Object>> executables = new ArrayList<Map<String, Object>>();
+	/* default */ final List<Map<String, String>> executables = new ArrayList<Map<String, String>>();
 	/* default */ final Map<String, Image> images = new HashMap<String, Image>();
 
 	/* default */ static final Object[] NO_ELEMENTS = new Object[0];
@@ -91,6 +94,9 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	 */
 	@Override
 	protected Control createContents(final Composite parent) {
+		final GC gc = new GC(parent);
+		gc.setFont(JFaceResources.getDialogFont());
+
 		Composite panel = new Composite(parent, SWT.NONE);
 		panel.setLayout(new GridLayout());
 		GridData layoutData = new GridData(SWT.FILL, SWT.BEGINNING, true, false);
@@ -106,14 +112,19 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		group.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
 
 		workingDir = new Combo(group, SWT.DROP_DOWN);
-		workingDir.setItems(new String[] { Messages.PreferencePage_workingDir_userhome_label, Messages.PreferencePage_workingDir_eclipsehome_label, Messages.PreferencePage_workingDir_eclipsews_label });
+		Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+		if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+			workingDir.setItems(new String[] { Messages.PreferencePage_workingDir_userhome_label, Messages.PreferencePage_workingDir_eclipsehome_label, Messages.PreferencePage_workingDir_eclipsews_label });
+		} else {
+			workingDir.setItems(new String[] { Messages.PreferencePage_workingDir_userhome_label, Messages.PreferencePage_workingDir_eclipsehome_label });
+		}
 		workingDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		workingDir.select(0);
 
 		browseButton = new Button(group, SWT.PUSH);
 		browseButton.setText(Messages.PreferencePage_workingDir_button_browse);
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, false, false);
-		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(browseButton, 10);
+		layoutData.widthHint = Dialog.convertWidthInCharsToPixels(gc.getFontMetrics(), 10);
 		browseButton.setLayoutData(layoutData);
 		browseButton.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -137,11 +148,14 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 				}
 
 				// ECLIPSE_WORKSPACE
-		        if (ResourcesPlugin.getWorkspace() != null
-		        	            && ResourcesPlugin.getWorkspace().getRoot() != null
-		        	            && ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
-		        	ew = ResourcesPlugin.getWorkspace().getRoot().getLocation();
-		        }
+				Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+				if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+			        if (org.eclipse.core.resources.ResourcesPlugin.getWorkspace() != null
+			        	            && org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot() != null
+			        	            && org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation() != null) {
+			        	ew = org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation();
+			        }
+				}
 
 				DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.OPEN);
 
@@ -211,7 +225,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		table.setLayout(tableLayout);
 
 		layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
-		layoutData.heightHint = SWTControlUtil.convertHeightInCharsToPixels(table, 10);
+		layoutData.heightHint = Dialog.convertHeightInCharsToPixels(gc.getFontMetrics(), 10);
 		table.setLayoutData(layoutData);
 
 		Composite buttonsPanel = new Composite(group, SWT.NONE);
@@ -223,7 +237,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		addButton = new Button(buttonsPanel, SWT.PUSH);
 		addButton.setText(Messages.PreferencePage_executables_button_add_label);
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, false, false);
-		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(addButton, 10);
+		layoutData.widthHint = Dialog.convertWidthInCharsToPixels(gc.getFontMetrics(), 10);
 		addButton.setLayoutData(layoutData);
 		addButton.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -231,7 +245,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 				ExternalExecutablesDialog dialog = new ExternalExecutablesDialog(PreferencePage.this.getShell(), false);
 				if (dialog.open() == Window.OK) {
 					// Get the executable properties and add it to the the list
-					Map<String, Object> executableData = dialog.getExecutableData();
+					Map<String, String> executableData = dialog.getExecutableData();
 					if (executableData != null && !executables.contains(executableData)) {
 						executables.add(executableData);
 						viewer.refresh();
@@ -243,7 +257,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		editButton = new Button(buttonsPanel, SWT.PUSH);
 		editButton.setText(Messages.PreferencePage_executables_button_edit_label);
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(editButton, 10);
+		layoutData.widthHint = Dialog.convertWidthInCharsToPixels(gc.getFontMetrics(), 10);
 		editButton.setLayoutData(layoutData);
 		editButton.addSelectionListener(new SelectionAdapter() {
 			@SuppressWarnings("unchecked")
@@ -253,11 +267,11 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 				if (s instanceof IStructuredSelection && !s.isEmpty()) {
 					Object element = ((IStructuredSelection)s).getFirstElement();
 					if (element instanceof Map) {
-						final Map<String, Object> m = (Map<String, Object>)element;
+						final Map<String, String> m = (Map<String, String>)element;
 						ExternalExecutablesDialog dialog = new ExternalExecutablesDialog(PreferencePage.this.getShell(), true);
 						dialog.setExecutableData(m);
 						if (dialog.open() == Window.OK) {
-							Map<String, Object> executableData = dialog.getExecutableData();
+							Map<String, String> executableData = dialog.getExecutableData();
 							if (executableData != null) {
 								m.clear();
 								m.putAll(executableData);
@@ -272,7 +286,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		removeButton = new Button(buttonsPanel, SWT.PUSH);
 		removeButton.setText(Messages.PreferencePage_executables_button_remove_label);
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(removeButton, 10);
+		layoutData.widthHint = Dialog.convertWidthInCharsToPixels(gc.getFontMetrics(), 10);
 		removeButton.setLayoutData(layoutData);
 		removeButton.addSelectionListener(new SelectionAdapter() {
 			@SuppressWarnings("unchecked")
@@ -376,7 +390,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 			}
 		});
 
-		List<Map<String, Object>> l = ExternalExecutablesManager.load();
+		List<Map<String, String>> l = ExternalExecutablesManager.load();
 		if (l != null) executables.addAll(l);
 
 		viewer.setInput(executables);
@@ -390,6 +404,8 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 
 		updateButtons();
 
+		gc.dispose();
+
 		return panel;
 	}
 
@@ -398,19 +414,19 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 	 */
 	protected void updateButtons() {
 		if (viewer != null) {
-			SWTControlUtil.setEnabled(addButton, true);
+			addButton.setEnabled(true);
 
 			ISelection selection = viewer.getSelection();
 
 			boolean hasSelection = selection != null && !selection.isEmpty();
 			int count = selection instanceof IStructuredSelection ? ((IStructuredSelection)selection).size() : 0;
 
-			SWTControlUtil.setEnabled(editButton, hasSelection && count == 1);
-			SWTControlUtil.setEnabled(removeButton, hasSelection && count > 0);
+			editButton.setEnabled(hasSelection && count == 1);
+			removeButton.setEnabled(hasSelection && count > 0);
 		} else {
-			SWTControlUtil.setEnabled(addButton, false);
-			SWTControlUtil.setEnabled(editButton, false);
-			SWTControlUtil.setEnabled(removeButton, false);
+			addButton.setEnabled(false);
+			editButton.setEnabled(false);
+			removeButton.setEnabled(false);
 		}
 	}
 
@@ -431,7 +447,7 @@ public class PreferencePage extends org.eclipse.jface.preference.PreferencePage 
 		}
 
 		executables.clear();
-		List<Map<String, Object>> l = ExternalExecutablesManager.load();
+		List<Map<String, String>> l = ExternalExecutablesManager.load();
 		if (l != null) executables.addAll(l);
 		viewer.refresh();
 

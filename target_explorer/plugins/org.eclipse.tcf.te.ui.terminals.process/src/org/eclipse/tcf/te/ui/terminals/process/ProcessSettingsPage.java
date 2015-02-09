@@ -25,7 +25,6 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
 import org.eclipse.tm.internal.terminal.provisional.api.AbstractSettingsPage;
 import org.eclipse.ui.PlatformUI;
@@ -135,7 +134,7 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 		// the dialog should open within the directory of the currently selected
 		// file. If no file has been currently selected, it should open within the
 		// last browsed directory.
-		String selectedFile = SWTControlUtil.getText(processImageSelectorControl);
+		String selectedFile = processImageSelectorControl.getText();
 		if (selectedFile != null && selectedFile.trim().length() > 0) {
 			IPath filePath = new Path(selectedFile);
 			// If the selected file points to an directory, use the directory as is
@@ -158,7 +157,7 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 		// Open the dialog
 		selectedFile = dialog.open();
 		if (selectedFile != null) {
-			SWTControlUtil.setText(processImageSelectorControl, selectedFile);
+			processImageSelectorControl.setText(selectedFile);
 		}
 	}
 
@@ -167,10 +166,10 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 	 */
 	@Override
 	public void saveSettings() {
-		settings.setImage(SWTControlUtil.getText(processImageSelectorControl));
-		settings.setArguments(SWTControlUtil.getText(processArgumentsControl));
-		settings.setLocalEcho(SWTControlUtil.getSelection(localEchoSelectorControl));
-		settings.setWorkingDir(SWTControlUtil.getText(processWorkingDirControl));
+		settings.setImage(processImageSelectorControl.getText());
+		settings.setArguments(processArgumentsControl.getText());
+		settings.setLocalEcho(localEchoSelectorControl.getSelection());
+		settings.setWorkingDir(processWorkingDirControl.getText());
 		settings.setProcess(null);
 	}
 
@@ -179,10 +178,10 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 	 */
 	@Override
 	public void loadSettings() {
-		SWTControlUtil.setText(processImageSelectorControl, settings.getImage());
-		SWTControlUtil.setText(processArgumentsControl, settings.getArguments());
-		SWTControlUtil.setSelection(localEchoSelectorControl, settings.isLocalEcho());
-		SWTControlUtil.setText(processWorkingDirControl, settings.getWorkingDir());
+		processImageSelectorControl.setText(settings.getImage());
+		processArgumentsControl.setText(settings.getArguments());
+		localEchoSelectorControl.setSelection(settings.isLocalEcho());
+		processWorkingDirControl.setText(settings.getWorkingDir());
 	}
 
 	/* (non-Javadoc)
@@ -191,7 +190,7 @@ public class ProcessSettingsPage extends AbstractSettingsPage {
 	@Override
 	public boolean validateSettings() {
 		// The settings are considered valid if the selected process image can be read.
-		String selectedFile = SWTControlUtil.getText(processImageSelectorControl);
+		String selectedFile = processImageSelectorControl.getText();
 		return selectedFile != null && !"".equals(selectedFile.trim()) && new Path(selectedFile).toFile().canRead(); //$NON-NLS-1$
 	}
 }

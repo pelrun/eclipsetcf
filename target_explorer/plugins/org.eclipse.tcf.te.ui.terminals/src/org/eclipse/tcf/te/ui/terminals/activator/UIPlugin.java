@@ -21,8 +21,8 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
-import org.eclipse.tcf.te.runtime.tracing.TraceHandler;
+import org.eclipse.tcf.te.core.terminals.preferences.ScopedEclipsePreferences;
+import org.eclipse.tcf.te.core.terminals.tracing.TraceHandler;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ImageConsts;
 import org.eclipse.tcf.te.ui.terminals.listeners.WorkbenchWindowListener;
 import org.eclipse.tcf.te.ui.terminals.view.TerminalsView;
@@ -72,7 +72,7 @@ public class UIPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Convenience method which returns the unique identifier of this plugin.
+	 * Convenience method which returns the unique identifier of this plug-in.
 	 */
 	public static String getUniqueIdentifier() {
 		if (getDefault() != null && getDefault().getBundle() != null) {
@@ -82,7 +82,7 @@ public class UIPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Return the scoped preferences for this plugin.
+	 * Return the scoped preferences for this plug-in.
 	 */
 	public static ScopedEclipsePreferences getScopedPreferences() {
 		if (scopedPreferences == null) {

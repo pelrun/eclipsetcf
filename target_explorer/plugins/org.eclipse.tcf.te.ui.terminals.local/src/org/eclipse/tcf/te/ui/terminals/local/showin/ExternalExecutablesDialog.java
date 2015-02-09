@@ -9,42 +9,52 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.local.showin;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
-import org.eclipse.tcf.te.ui.controls.common.NameControl;
-import org.eclipse.tcf.te.ui.controls.file.FileSelectionControl;
-import org.eclipse.tcf.te.ui.controls.validator.FileNameValidator;
-import org.eclipse.tcf.te.ui.controls.validator.RegexValidator;
-import org.eclipse.tcf.te.ui.controls.validator.Validator;
-import org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog;
-import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
-import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.ui.terminals.local.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.terminals.local.nls.Messages;
 import org.eclipse.tcf.te.ui.terminals.local.showin.interfaces.IExternalExecutablesProperties;
+import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.Bundle;
 
 /**
  * External executables dialog implementation.
  */
-public class ExternalExecutablesDialog extends CustomTrayDialog implements IValidatingContainer {
+public class ExternalExecutablesDialog extends TrayDialog {
+	private String contextHelpId = null;
 	private final boolean edit;
-	private NameControl name;
-	private FileSelectionControl path;
-	private BaseEditBrowseTextControl args;
-	private FileSelectionControl icon;
+
+	private Text name;
+	/* default */ Text path;
+	private Text args;
+	/* default */ Text icon;
 	private Button translate;
 
-	private Map<String, Object> executableData;
+	/* default */ String last_filter_path = null;
+	/* default */ String last_filter_icon = null;
+
+	private Map<String, String> executableData;
 
 	/**
      * Constructor.
@@ -52,16 +62,61 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 	 * @param shell The parent shell or <code>null</code>.
      */
 	public ExternalExecutablesDialog(Shell shell, boolean edit) {
-	    super(shell, IContextHelpIds.EXTERNAL_EXECUTABLES_DIALOG);
+	    super(shell);
 	    this.edit = edit;
-    }
+
+		this.contextHelpId = IContextHelpIds.EXTERNAL_EXECUTABLES_DIALOG;
+		setHelpAvailable(true);
+	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
+	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	protected void createDialogAreaContent(Composite parent) {
-	    super.createDialogAreaContent(parent);
+	protected final Control createDialogArea(Composite parent) {
+		if (contextHelpId != null) {
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, contextHelpId);
+		}
+
+		// Let the super implementation create the dialog area control
+		Control control = super.createDialogArea(parent);
+		// Setup the inner panel as scrollable composite
+		if (control instanceof Composite) {
+			ScrolledComposite sc = new ScrolledComposite((Composite)control, SWT.V_SCROLL);
+
+			GridLayout layout = new GridLayout(1, true);
+			layout.marginHeight = 0; layout.marginWidth = 0;
+			layout.verticalSpacing = 0; layout.horizontalSpacing = 0;
+
+			sc.setLayout(layout);
+			sc.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
+
+			sc.setExpandHorizontal(true);
+			sc.setExpandVertical(true);
+
+			Composite composite = new Composite(sc, SWT.NONE);
+			composite.setLayout(new GridLayout());
+
+			// Setup the dialog area content
+			createDialogAreaContent(composite);
+
+			sc.setContent(composite);
+			sc.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+			// Return the scrolled composite as new dialog area control
+			control = sc;
+		}
+
+		return control;
+	}
+
+	/**
+	 * Creates the dialog area content.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 */
+    protected void createDialogAreaContent(Composite parent) {
+    	Assert.isNotNull(parent);
 
 	    setDialogTitle(edit ? Messages.ExternalExecutablesDialog_title_edit : Messages.ExternalExecutablesDialog_title_add);
 
@@ -70,86 +125,146 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
         layout.marginHeight = 0; layout.marginWidth = 0;
         panel.setLayout(layout);
         GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
-        layoutData.widthHint = SWTControlUtil.convertWidthInCharsToPixels(panel, 50);
+        layoutData.widthHint = convertWidthInCharsToPixels(50);
         panel.setLayoutData(layoutData);
 
-        name = new NameControl(null) {
-        	@Override
-        	protected void configureEditFieldValidator(Validator validator) {
-        	    super.configureEditFieldValidator(validator);
-    			validator.setMessageText(RegexValidator.INFO_MISSING_VALUE, Messages.ExternalExecutablesDialog_name_info_missingValue);
-        	}
-        	@Override
-        	public IValidatingContainer getValidatingContainer() {
-        	    return ExternalExecutablesDialog.this;
-        	}
-        };
-        name.setParentControlIsInnerPanel(true);
-        name.setupPanel(panel);
+        Label label = new Label(panel, SWT.HORIZONTAL);
+        label.setText(Messages.ExternalExecutablesDialog_field_name);
+        layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+        label.setLayoutData(layoutData);
 
-        path = new FileSelectionControl(null) {
-        	@Override
-        	protected Validator doCreateEditFieldValidator() {
-        		return new FileNameValidator(Validator.ATTR_MANDATORY |
-	                               FileNameValidator.ATTR_MUST_EXIST |
-	                               FileNameValidator.ATTR_CAN_READ |
-	                               FileNameValidator.ATTR_ABSOLUT);
-        	}
-        	@Override
-        	protected void configureEditFieldValidator(Validator validator) {
-        	    super.configureEditFieldValidator(validator);
-    			validator.setMessageText(FileNameValidator.INFO_MISSING_FILE_NAME, Messages.ExternalExecutablesDialog_path_info_missingFilename);
-    			validator.setMessageText(FileNameValidator.ERROR_MUST_EXIST, Messages.ExternalExecutablesDialog_path_error_mustExist);
-    			validator.setMessageText(FileNameValidator.ERROR_INVALID_FILE_NAME, Messages.ExternalExecutablesDialog_path_error_invalidFilename);
-    			validator.setMessageText(FileNameValidator.ERROR_NO_ACCESS, Messages.ExternalExecutablesDialog_path_error_noAccess);
-    			validator.setMessageText(FileNameValidator.ERROR_IS_RELATIV, Messages.ExternalExecutablesDialog_path_error_isRelativ);
+        name = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        layoutData.widthHint = convertWidthInCharsToPixels(30);
+        name.setLayoutData(layoutData);
 
+        Composite panel2 = new Composite(panel, SWT.NONE);
+        layout = new GridLayout(3, false);
+        layout.marginHeight = 0; layout.marginWidth = 0;
+        panel2.setLayout(layout);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        layoutData.horizontalSpan = 2;
+        panel2.setLayoutData(layoutData);
 
-        	}
-        	@Override
-        	public IValidatingContainer getValidatingContainer() {
-        	    return ExternalExecutablesDialog.this;
-        	}
-        };
-        path.setIsGroup(false);
-        path.setParentControlIsInnerPanel(true);
-        path.setEditFieldLabel(Messages.ExternalExecutablesDialog_field_path);
-        path.setupPanel(panel);
+        label = new Label(panel2, SWT.HORIZONTAL);
+        label.setText(Messages.ExternalExecutablesDialog_field_path);
+        layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+        label.setLayoutData(layoutData);
 
-        args = new BaseEditBrowseTextControl(null) {
-        	@Override
-        	public IValidatingContainer getValidatingContainer() {
-        	    return ExternalExecutablesDialog.this;
-        	}
-        };
-        args.setEditFieldLabel(Messages.ExternalExecutablesDialog_field_args);
-        args.setParentControlIsInnerPanel(true);
-        args.setupPanel(panel);
+        path = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        layoutData.widthHint = convertWidthInCharsToPixels(30);
+        path.setLayoutData(layoutData);
 
-        icon = new FileSelectionControl(null) {
+        Button button = new Button(panel2, SWT.PUSH);
+        button.setText(Messages.ExternalExecutablesDialog_button_browse);
+        layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+        layoutData.widthHint = convertWidthInCharsToPixels(10);
+        button.setLayoutData(layoutData);
+        button.addSelectionListener(new SelectionAdapter() {
         	@Override
-        	protected Validator doCreateEditFieldValidator() {
-        		return new FileNameValidator(FileNameValidator.ATTR_MUST_EXIST | FileNameValidator.ATTR_CAN_READ | FileNameValidator.ATTR_ABSOLUT);
-        	}
-        	@Override
-        	protected void configureEditFieldValidator(Validator validator) {
-        	    super.configureEditFieldValidator(validator);
-    			validator.setMessageText(FileNameValidator.ERROR_MUST_EXIST, Messages.ExternalExecutablesDialog_icon_error_mustExist);
-    			validator.setMessageText(FileNameValidator.ERROR_INVALID_FILE_NAME, Messages.ExternalExecutablesDialog_icon_error_invalidFilename);
-    			validator.setMessageText(FileNameValidator.ERROR_NO_ACCESS, Messages.ExternalExecutablesDialog_icon_error_noAccess);
-    			validator.setMessageText(FileNameValidator.ERROR_IS_RELATIV, Messages.ExternalExecutablesDialog_icon_error_isRelativ);
+        	public void widgetSelected(SelectionEvent e) {
+        		FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
 
+    			String selectedFile = path.getText();
+    			if (selectedFile != null && selectedFile.trim().length() > 0) {
+    				IPath filePath = new Path(selectedFile);
+    				// If the selected file points to an directory, use the directory as is
+    				IPath filterPath = filePath.toFile().isDirectory() ? filePath : filePath.removeLastSegments(1);
+    				while (filterPath != null && filterPath.segmentCount() > 1 && !filterPath.toFile().exists()) {
+    					filterPath = filterPath.removeLastSegments(1);
+    				}
+    				String filterFileName = filePath.toFile().isDirectory() || !filePath.toFile().exists() ? null : filePath.lastSegment();
 
+    				if (filterPath != null && !filterPath.isEmpty()) dialog.setFilterPath(filterPath.toString());
+    				if (filterFileName != null) dialog.setFileName(filterFileName);
+    			} else {
+    				String workspace = null;
+    				Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+    				if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+    					workspace = org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString();
+    				}
+
+    				String filterPath = last_filter_path != null ? last_filter_path : workspace;
+    				dialog.setFilterPath(filterPath);
+    			}
+
+    			selectedFile = dialog.open();
+    			if (selectedFile != null) {
+    				last_filter_path = dialog.getFilterPath();
+    				path.setText(selectedFile);
+    			}
         	}
+		});
+
+        label = new Label(panel, SWT.HORIZONTAL);
+        label.setText(Messages.ExternalExecutablesDialog_field_args);
+        layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+        label.setLayoutData(layoutData);
+
+        args = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        layoutData.widthHint = convertWidthInCharsToPixels(30);
+        args.setLayoutData(layoutData);
+
+        panel2 = new Composite(panel, SWT.NONE);
+        layout = new GridLayout(3, false);
+        layout.marginHeight = 0; layout.marginWidth = 0;
+        panel2.setLayout(layout);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        layoutData.horizontalSpan = 2;
+        panel2.setLayoutData(layoutData);
+
+        label = new Label(panel2, SWT.HORIZONTAL);
+        label.setText(Messages.ExternalExecutablesDialog_field_icon);
+        layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+        label.setLayoutData(layoutData);
+
+        icon = new Text(panel, SWT.HORIZONTAL | SWT.SINGLE);
+        layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        layoutData.widthHint = convertWidthInCharsToPixels(30);
+        icon.setLayoutData(layoutData);
+
+        button = new Button(panel2, SWT.PUSH);
+        button.setText(Messages.ExternalExecutablesDialog_button_browse);
+        layoutData = new GridData(SWT.BEGINNING, SWT.CENTER, false, false);
+        layoutData.widthHint = convertWidthInCharsToPixels(10);
+        button.setLayoutData(layoutData);
+        button.addSelectionListener(new SelectionAdapter() {
         	@Override
-        	public IValidatingContainer getValidatingContainer() {
-        	    return ExternalExecutablesDialog.this;
+        	public void widgetSelected(SelectionEvent e) {
+        		FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
+
+    			String selectedFile = icon.getText();
+    			if (selectedFile != null && selectedFile.trim().length() > 0) {
+    				IPath filePath = new Path(selectedFile);
+    				// If the selected file points to an directory, use the directory as is
+    				IPath filterPath = filePath.toFile().isDirectory() ? filePath : filePath.removeLastSegments(1);
+    				while (filterPath != null && filterPath.segmentCount() > 1 && !filterPath.toFile().exists()) {
+    					filterPath = filterPath.removeLastSegments(1);
+    				}
+    				String filterFileName = filePath.toFile().isDirectory() || !filePath.toFile().exists() ? null : filePath.lastSegment();
+
+    				if (filterPath != null && !filterPath.isEmpty()) dialog.setFilterPath(filterPath.toString());
+    				if (filterFileName != null) dialog.setFileName(filterFileName);
+    			} else {
+    				String workspace = null;
+    				Bundle bundle = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+    				if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+    					workspace = org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString();
+    				}
+
+    				String filterPath = last_filter_icon != null ? last_filter_icon : workspace;
+    				dialog.setFilterPath(filterPath);
+    			}
+
+    			selectedFile = dialog.open();
+    			if (selectedFile != null) {
+    				last_filter_icon = dialog.getFilterPath();
+    				icon.setText(selectedFile);
+    			}
         	}
-        };
-        icon.setIsGroup(false);
-        icon.setParentControlIsInnerPanel(true);
-        icon.setEditFieldLabel(Messages.ExternalExecutablesDialog_field_icon);
-        icon.setupPanel(panel);
+		});
 
         translate = new Button(panel, SWT.CHECK);
         translate.setText(Messages.ExternalExecutablesDialog_field_translate);
@@ -158,15 +273,15 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
         translate.setLayoutData(layoutData);
 
         if (executableData != null) {
-        	String value = (String)executableData.get(IExternalExecutablesProperties.PROP_NAME);
-        	name.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
-        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_PATH);
-        	path.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
-        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_ARGS);
-        	args.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
-        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_ICON);
-        	icon.setEditFieldControlText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
-        	value = (String)executableData.get(IExternalExecutablesProperties.PROP_TRANSLATE);
+        	String value = executableData.get(IExternalExecutablesProperties.PROP_NAME);
+        	name.setText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
+        	value = executableData.get(IExternalExecutablesProperties.PROP_PATH);
+        	path.setText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
+        	value = executableData.get(IExternalExecutablesProperties.PROP_ARGS);
+        	args.setText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
+        	value = executableData.get(IExternalExecutablesProperties.PROP_ICON);
+        	icon.setText(value != null && !"".equals(value.trim()) ? value : ""); //$NON-NLS-1$ //$NON-NLS-2$
+        	value = executableData.get(IExternalExecutablesProperties.PROP_TRANSLATE);
         	translate.setSelection(value != null ? Boolean.parseBoolean(value) : false);
         }
 	}
@@ -199,30 +314,30 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 	protected void okPressed() {
 		if (name != null && path != null) {
 			// Extract the executable properties
-			if (executableData == null) executableData = new HashMap<String, Object>();
+			if (executableData == null) executableData = new HashMap<String, String>();
 
-			String value = name.getEditFieldControlText();
+			String value = name.getText();
 			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 				executableData.put(IExternalExecutablesProperties.PROP_NAME, value);
 			} else {
 				executableData.remove(IExternalExecutablesProperties.PROP_NAME);
 			}
 
-			value = path.getEditFieldControlText();
+			value = path.getText();
 			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 				executableData.put(IExternalExecutablesProperties.PROP_PATH, value);
 			} else {
 				executableData.remove(IExternalExecutablesProperties.PROP_PATH);
 			}
 
-			value = args.getEditFieldControlText();
+			value = args.getText();
 			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 				executableData.put(IExternalExecutablesProperties.PROP_ARGS, value);
 			} else {
 				executableData.remove(IExternalExecutablesProperties.PROP_ARGS);
 			}
 
-			value = icon.getEditFieldControlText();
+			value = icon.getText();
 			if (value != null && !"".equals(value.trim())) { //$NON-NLS-1$
 				executableData.put(IExternalExecutablesProperties.PROP_ICON, value);
 			} else {
@@ -252,7 +367,7 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 	 *
 	 * @return The executable properties or <code>null</code>.
 	 */
-	public Map<String, Object> getExecutableData() {
+	public Map<String, String> getExecutableData() {
 		return executableData;
 	}
 
@@ -262,44 +377,54 @@ public class ExternalExecutablesDialog extends CustomTrayDialog implements IVali
 	 *
 	 * @param data The executable properties or <code>null</code>.
 	 */
-	public void setExecutableData(Map<String, Object> data) {
+	public void setExecutableData(Map<String, String> data) {
 		if (data == null) {
 			executableData = data;
 		} else {
-			executableData = new HashMap<String, Object>(data);
+			executableData = new HashMap<String, String>(data);
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
+	/**
+	 * Validate the dialog.
 	 */
-	@Override
 	public void validate() {
 		boolean valid = true;
 
-		if (name != null) {
-			valid = name.isValid();
+		if (name != null && !name.isDisposed()) {
+			valid = !"".equals(name.getText()); //$NON-NLS-1$
 		}
 
-		if (path != null) {
-			valid |= path.isValid();
+		if (path != null && !path.isDisposed()) {
+			String value = path.getText();
+			if (!"".equals(value)) { //$NON-NLS-1$
+				File f = new File(value);
+				valid |= f.isAbsolute() && f.canRead();
+			} else {
+				valid = false;
+			}
 		}
 
-		if (args != null) {
-			valid |= args.isValid();
+		if (icon != null && !icon.isDisposed()) {
+			String value = icon.getText();
+			if (!"".equals(value)) { //$NON-NLS-1$
+				File f = new File(value);
+				valid |= f.isAbsolute() && f.canRead();
+			}
 		}
 
-		if (icon != null) {
-			valid |= icon.isValid();
-		}
-
-		SWTControlUtil.setEnabled(getButton(IDialogConstants.OK_ID), valid);
+		Button okButton = getButton(IDialogConstants.OK_ID);
+		if (okButton != null) okButton.setEnabled(valid);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#setMessage(java.lang.String, int)
+	/**
+	 * Sets the title for this dialog.
+	 *
+	 * @param title The title.
 	 */
-	@Override
-    public void setMessage(String message, int messageType) {
-    }
+	public void setDialogTitle(String title) {
+		if (getShell() != null && !getShell().isDisposed()) {
+			getShell().setText(title);
+		}
+	}
 }

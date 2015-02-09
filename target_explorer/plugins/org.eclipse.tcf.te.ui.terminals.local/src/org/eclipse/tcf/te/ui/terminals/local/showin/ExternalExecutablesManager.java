@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,8 +12,13 @@ package org.eclipse.tcf.te.ui.terminals.local.showin;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
@@ -21,9 +26,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.tcf.te.ui.terminals.local.activator.UIPlugin;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * External executables manager implementation.
@@ -35,16 +37,45 @@ public class ExternalExecutablesManager {
 	 *
 	 * @return The list of all saved external executables or <code>null</code>.
 	 */
-	public static List<Map<String, Object>> load() {
-		List<Map<String, Object>> l = null;
+	public static List<Map<String, String>> load() {
+		List<Map<String, String>> l = new ArrayList<Map<String, String>>();
 
 		IPath stateLocation = UIPlugin.getDefault().getStateLocation();
 		if (stateLocation != null) {
-			File f = stateLocation.append(".executables/data.json").toFile(); //$NON-NLS-1$
+			File f = stateLocation.append(".executables/data.properties").toFile(); //$NON-NLS-1$
 			if (f.canRead()) {
 				try {
-					Gson g = new GsonBuilder().create();
-					l = g.fromJson(new FileReader(f), List.class);
+					Properties data = new Properties();
+					data.load(new FileReader(f));
+
+					Map<Integer, Map<String, String>> c = new HashMap<Integer, Map<String, String>>();
+					for (String name : data.stringPropertyNames()) {
+						if (name == null || name.indexOf('.') == -1) continue;
+						int ix = name.indexOf('.');
+						String n = name.substring(0, ix);
+						String k = (ix + 1) < name.length() ? name.substring(ix + 1) : null;
+						if (n == null || k == null) continue;
+
+						Integer i = null;
+						try { i = Integer.decode(n); } catch (NumberFormatException e) { /* ignored on purpose */ }
+						if (i == null) continue;
+
+						Map<String, String> m = c.get(i);
+						if (m == null) {
+							m = new HashMap<String, String>();
+							c.put(i, m);
+						}
+						Assert.isNotNull(m);
+
+						m.put(k, data.getProperty(name));
+					}
+
+					List<Integer> k = new ArrayList<Integer>(c.keySet());
+					Collections.sort(k);
+					for (Integer i : k) {
+						Map<String, String> m = c.get(i);
+						if (m != null && !m.isEmpty()) l.add(m);
+					}
 				} catch (Exception e) {
 					if (Platform.inDebugMode()) {
 						e.printStackTrace();
@@ -61,23 +92,31 @@ public class ExternalExecutablesManager {
 	 *
 	 * @param l The list of external executables or <code>null</code>.
 	 */
-	public static void save(List<Map<String, Object>> l) {
+	public static void save(List<Map<String, String>> l) {
 		IPath stateLocation = UIPlugin.getDefault().getStateLocation();
 		if (stateLocation != null) {
-			File f = stateLocation.append(".executables/data.json").toFile(); //$NON-NLS-1$
+			File f = stateLocation.append(".executables/data.properties").toFile(); //$NON-NLS-1$
 			if (f.isFile() && (l == null || l.isEmpty())) {
 				@SuppressWarnings("unused")
                 boolean s = f.delete();
 			} else {
 				try {
-					Gson g = new GsonBuilder().setPrettyPrinting().create();
+					Properties data = new Properties();
+					for (int i = 0; i < l.size(); i++) {
+						Map<String, String> m = l.get(i);
+						for (Entry<String, String> e : m.entrySet()) {
+							String key = Integer.toString(i) + "." + e.getKey(); //$NON-NLS-1$
+							data.setProperty(key, e.getValue());
+						}
+					}
+
 					if (!f.exists()) {
 						@SuppressWarnings("unused")
 						boolean s = f.getParentFile().mkdirs();
 						s = f.createNewFile();
 					}
 					FileWriter w = new FileWriter(f);
-					g.toJson(l, w);
+					data.store(w, null);
 					w.flush();
 					w.close();
 				} catch (Exception e) {

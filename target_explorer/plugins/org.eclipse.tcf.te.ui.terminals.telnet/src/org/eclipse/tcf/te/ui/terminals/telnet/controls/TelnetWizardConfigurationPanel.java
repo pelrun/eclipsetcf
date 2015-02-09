@@ -15,17 +15,13 @@ import java.util.Map;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
-import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
-import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
-import org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
+import org.eclipse.tcf.te.ui.terminals.panels.AbstractExtendedConfigurationPanel;
 import org.eclipse.tm.internal.terminal.provisional.api.AbstractSettingsPage;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsPage;
 import org.eclipse.tm.internal.terminal.telnet.NetworkPortMap;
@@ -37,7 +33,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
  * telnet wizard configuration panel implementation.
  */
 @SuppressWarnings("restriction")
-public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel implements IDataExchangeNode {
+public class TelnetWizardConfigurationPanel extends AbstractExtendedConfigurationPanel {
 
     public TelnetSettings telnetSettings;
 	private ISettingsPage telnetSettingsPage;
@@ -45,10 +41,10 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 	/**
 	 * Constructor.
 	 *
-	 * @param parentControl The parent control. Must not be <code>null</code>!
+	 * @param container The configuration panel container or <code>null</code>.
 	 */
-	public TelnetWizardConfigurationPanel(BaseDialogPageControl parentControl) {
-	    super(parentControl);
+	public TelnetWizardConfigurationPanel(IConfigurationPanelContainer container) {
+	    super(container);
     }
 
 	/* (non-Javadoc)
@@ -77,15 +73,13 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 		telnetSettingsPage.createControl(panel);
 
 		// Add the listener to the settings page
-		if (getParentControl() instanceof IValidatingContainer) {
-			telnetSettingsPage.addListener(new ISettingsPage.Listener() {
+		telnetSettingsPage.addListener(new ISettingsPage.Listener() {
 
-				@Override
-				public void onSettingsPageChanged(Control control) {
-					((IValidatingContainer)getParentControl()).validate();
-				}
-			});
-		}
+			@Override
+			public void onSettingsPageChanged(Control control) {
+				if (getContainer() != null) getContainer().validate();
+			}
+		});
 
 		// Create the encoding selection combo
 		createEncodingUI(panel, true);
@@ -94,51 +88,47 @@ public class TelnetWizardConfigurationPanel extends AbstractConfigurationPanel i
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel#dataChanged(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.swt.events.TypedEvent)
+	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#setupData(java.util.Map)
 	 */
 	@Override
-	public boolean dataChanged(IPropertiesContainer data, TypedEvent e) {
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataExchangeNode#setupData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
-	 */
-	@Override
-    public void setupData(IPropertiesContainer data) {
+	public void setupData(Map<String, Object> data) {
 		if (data == null || telnetSettings == null || telnetSettingsPage == null) return;
 
-		String value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_HOST);
+		String value = (String)data.get(ITerminalsConnectorConstants.PROP_IP_HOST);
 		if (value != null) telnetSettings.setHost(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_IP_PORT);
+		Object v = data.get(ITerminalsConnectorConstants.PROP_IP_PORT);
+		value = v != null ? v.toString() : null;
 		if (value != null) telnetSettings.setNetworkPort(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		v = data.get(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		value = v != null ? v.toString() : null;
 		if (value != null) telnetSettings.setTimeout(value);
 
-		value = data.getStringProperty(ITerminalsConnectorConstants.PROP_ENCODING);
+		value = (String)data.get(ITerminalsConnectorConstants.PROP_ENCODING);
 		if (value != null) setEncoding(value);
 
 		telnetSettingsPage.loadSettings();
     }
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.wizards.interfaces.ISharedDataExchangeNode#extractData(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.panels.AbstractConfigurationPanel#extractData(java.util.Map)
 	 */
 	@Override
-    public void extractData(IPropertiesContainer data) {
+	public void extractData(Map<String, Object> data) {
+		if (data == null) return;
+
     	// set the terminal connector id for ssh
-    	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.telnet.TelnetConnector"); //$NON-NLS-1$
+    	data.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.telnet.TelnetConnector"); //$NON-NLS-1$
 
     	// set the connector type for ssh
-    	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.telnet"); //$NON-NLS-1$
+    	data.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.telnet"); //$NON-NLS-1$
 
     	telnetSettingsPage.saveSettings();
-		data.setProperty(ITerminalsConnectorConstants.PROP_IP_HOST,telnetSettings.getHost());
-		data.setProperty(ITerminalsConnectorConstants.PROP_IP_PORT, telnetSettings.getNetworkPort());
-		data.setProperty(ITerminalsConnectorConstants.PROP_TIMEOUT, telnetSettings.getTimeout());
-		data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
+		data.put(ITerminalsConnectorConstants.PROP_IP_HOST,telnetSettings.getHost());
+		data.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.valueOf(telnetSettings.getNetworkPort()));
+		data.put(ITerminalsConnectorConstants.PROP_TIMEOUT, Integer.valueOf(telnetSettings.getTimeout()));
+		data.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
     }
 
 	/* (non-Javadoc)

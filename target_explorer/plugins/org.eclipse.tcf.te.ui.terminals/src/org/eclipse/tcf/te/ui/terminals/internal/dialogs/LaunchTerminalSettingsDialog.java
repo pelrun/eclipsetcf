@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -19,11 +19,12 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -35,56 +36,51 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.controls.BaseWizardConfigurationPanelControl;
-import org.eclipse.tcf.te.ui.controls.interfaces.IWizardConfigurationPanel;
-import org.eclipse.tcf.te.ui.interfaces.data.IDataExchangeNode;
-import org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog;
-import org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer;
-import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.activator.UIPlugin;
+import org.eclipse.tcf.te.ui.terminals.controls.ConfigurationPanelControl;
 import org.eclipse.tcf.te.ui.terminals.help.IContextHelpIds;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
  * Launch terminal settings dialog implementation.
  */
-public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IValidatingContainer {
+public class LaunchTerminalSettingsDialog extends TrayDialog {
+	private String contextHelpId = null;
+
 	// The parent selection
 	private ISelection selection = null;
 
-	// The subcontrols
+	// The sub controls
 	/* default */ Combo terminals;
 	/* default */ SettingsPanelControl settings;
 
 	private FormToolkit toolkit = null;
 
-	// Map the label added to the combobox to the corresponding launcher delegate.
+	// Map the label added to the combo box to the corresponding launcher delegate.
 	/* default */ final Map<String, ILauncherDelegate> label2delegate = new HashMap<String, ILauncherDelegate>();
 
 	// The data object containing the currently selected settings
-	private IPropertiesContainer data = null;
+	private Map<String, Object> data = null;
+
+	// The dialog settings storage
+	private IDialogSettings dialogSettings;
 
 	/**
 	 * The control managing the terminal setting panels.
 	 */
-	protected class SettingsPanelControl extends BaseWizardConfigurationPanelControl implements IValidatingContainer {
+	protected class SettingsPanelControl extends ConfigurationPanelControl {
 
 		/**
 		 * Constructor.
-		 *
-		 * @param parentPage The parent dialog page this control is embedded in.
-		 *                   Might be <code>null</code> if the control is not associated with a page.
 		 */
-        public SettingsPanelControl(IDialogPage parentPage) {
-	        super(parentPage);
+        public SettingsPanelControl() {
 	        setPanelIsGroup(true);
         }
 
@@ -102,7 +98,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         @Override
         public void showConfigurationPanel(String key) {
         	// Check if we have to create the panel first
-    		IWizardConfigurationPanel configPanel = getConfigurationPanel(key);
+    		IConfigurationPanel configPanel = getConfigurationPanel(key);
     		if (isEmptyConfigurationPanel(configPanel)) {
            		// Get the corresponding delegate
            		ILauncherDelegate delegate = label2delegate.get(key);
@@ -113,7 +109,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
            			// Add it to the settings panel control
                		settings.addConfigurationPanel(key, configPanel);
                 	// Push the selection to the configuration panel
-                	if (configPanel instanceof IConfigurationPanel) ((IConfigurationPanel)configPanel).setSelection(getSelection());
+                	configPanel.setSelection(getSelection());
                 	// Create the panel controls
                 	configPanel.setupPanel(getPanel(), getFormToolkit());
                 	// Restore widget values
@@ -124,21 +120,14 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     		}
 
             super.showConfigurationPanel(key);
-
-            validate();
         }
 
         /* (non-Javadoc)
-         * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
+         * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer#validate()
          */
         @Override
         public void validate() {
         	LaunchTerminalSettingsDialog.this.validate();
-        }
-
-        @Override
-        public IValidatingContainer getValidatingContainer() {
-            return this;
         }
 	}
 
@@ -148,7 +137,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
 	 * @param shell The parent shell or <code>null</code>.
      */
     public LaunchTerminalSettingsDialog(Shell shell) {
-	    super(shell, IContextHelpIds.LAUNCH_TERMINAL_SETTINGS_DIALOG);
+	    this(shell, 0);
     }
 
     private long start = 0;
@@ -159,8 +148,13 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
 	 * @param shell The parent shell or <code>null</code>.
      */
     public LaunchTerminalSettingsDialog(Shell shell, long start) {
-	    super(shell, IContextHelpIds.LAUNCH_TERMINAL_SETTINGS_DIALOG);
+	    super(shell);
 	    this.start = start;
+
+	    initializeDialogSettings();
+
+		this.contextHelpId = IContextHelpIds.LAUNCH_TERMINAL_SETTINGS_DIALOG;
+		setHelpAvailable(true);
     }
 
     /**
@@ -182,14 +176,21 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     }
 
     /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#dispose()
+     * @see org.eclipse.jface.dialogs.Dialog#close()
      */
-    @Override
+	@Override
+	public boolean close() {
+		dispose();
+		return super.close();
+	}
+
+    /**
+     * Dispose the dialog resources.
+     */
     protected void dispose() {
     	if (settings != null) { settings.dispose(); settings = null; }
     	if (toolkit != null) { toolkit.dispose(); toolkit = null; }
-
-        super.dispose();
+    	dialogSettings = null;
     }
 
     /* (non-Javadoc)
@@ -213,12 +214,65 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         return composite;
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#createDialogAreaContent(org.eclipse.swt.widgets.Composite)
-     */
-    @Override
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	protected final Control createDialogArea(Composite parent) {
+		if (contextHelpId != null) {
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, contextHelpId);
+		}
+
+		// Let the super implementation create the dialog area control
+		Control control = super.createDialogArea(parent);
+		// Setup the inner panel as scrollable composite
+		if (control instanceof Composite) {
+			ScrolledComposite sc = new ScrolledComposite((Composite)control, SWT.V_SCROLL);
+
+			GridLayout layout = new GridLayout(1, true);
+			layout.marginHeight = 0; layout.marginWidth = 0;
+			layout.verticalSpacing = 0; layout.horizontalSpacing = 0;
+
+			sc.setLayout(layout);
+			sc.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
+
+			sc.setExpandHorizontal(true);
+			sc.setExpandVertical(true);
+
+			Composite composite = new Composite(sc, SWT.NONE);
+			composite.setLayout(new GridLayout());
+
+			// Setup the dialog area content
+			createDialogAreaContent(composite);
+
+			sc.setContent(composite);
+			sc.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+			// Return the scrolled composite as new dialog area control
+			control = sc;
+		}
+
+		return control;
+	}
+
+	/**
+	 * Sets the title for this dialog.
+	 *
+	 * @param title The title.
+	 */
+	public void setDialogTitle(String title) {
+		if (getShell() != null && !getShell().isDisposed()) {
+			getShell().setText(title);
+		}
+	}
+
+	/**
+	 * Creates the dialog area content.
+	 *
+	 * @param parent The parent composite. Must not be <code>null</code>.
+	 */
     protected void createDialogAreaContent(Composite parent) {
-        super.createDialogAreaContent(parent);
+    	Assert.isNotNull(parent);
 
         if (UIPlugin.getTraceHandler().isSlotEnabled(0, ITraceIds.TRACE_LAUNCH_TERMINAL_COMMAND_HANDLER)) {
 			UIPlugin.getTraceHandler().trace("Creating dialog area after " + (System.currentTimeMillis() - start) + " ms.", //$NON-NLS-1$ //$NON-NLS-2$
@@ -242,22 +296,22 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         	@Override
         	public void widgetSelected(SelectionEvent e) {
         		// Get the old panel
-        		IWizardConfigurationPanel oldPanel = settings.getActiveConfigurationPanel();
+        		IConfigurationPanel oldPanel = settings.getActiveConfigurationPanel();
         		// Extract the current settings in an special properties container
-        		IPropertiesContainer data = new PropertiesContainer();
-        		if (oldPanel instanceof IDataExchangeNode) ((IDataExchangeNode)oldPanel).extractData(data);
+        		Map<String, Object> data = new HashMap<String, Object>();
+        		if (oldPanel != null) oldPanel.extractData(data);
         		// Clean out settings which are never passed between the panels
-        		data.setProperty(ITerminalsConnectorConstants.PROP_IP_PORT, null);
-        		data.setProperty(ITerminalsConnectorConstants.PROP_TIMEOUT, null);
-            	data.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, null);
-            	data.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, null);
-            	data.setProperty(ITerminalsConnectorConstants.PROP_ENCODING, null);
+        		data.remove(ITerminalsConnectorConstants.PROP_IP_PORT);
+        		data.remove(ITerminalsConnectorConstants.PROP_TIMEOUT);
+            	data.remove(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+            	data.remove(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID);
+            	data.remove(ITerminalsConnectorConstants.PROP_ENCODING);
         		// Switch to the new panel
         		settings.showConfigurationPanel(terminals.getText());
         		// Get the new panel
-        		IWizardConfigurationPanel newPanel = settings.getActiveConfigurationPanel();
+        		IConfigurationPanel newPanel = settings.getActiveConfigurationPanel();
         		// Re-setup the relevant data
-        		if (newPanel instanceof IDataExchangeNode) ((IDataExchangeNode)newPanel).setupData(data);
+        		if (newPanel != null) newPanel.setupData(data);
 
         		// resize the dialog if needed to show the complete panel
         		getShell().pack();
@@ -268,11 +322,11 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
         fillCombo(terminals);
 
         // Create the settings panel control
-        settings = new SettingsPanelControl(null);
+        settings = new SettingsPanelControl();
 
 		// Create, initialize and add the first visible panel. All
         // other panels are created on demand only.
-        String terminalLabel = SWTControlUtil.getItem(terminals, 0);
+        String terminalLabel = terminals.getItem(0);
         if (terminalLabel != null) {
        		// Get the corresponding delegate
        		ILauncherDelegate delegate = label2delegate.get(terminalLabel);
@@ -299,7 +353,7 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
 		terminals.select(0);
 		settings.showConfigurationPanel(terminals.getText());
 
-		SWTControlUtil.setEnabled(terminals, terminals.getItemCount() > 1);
+		terminals.setEnabled(terminals.getItemCount() > 1);
 
 		restoreWidgetValues();
 
@@ -386,42 +440,41 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     	return false;
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#validate()
+    /**
+     * Validate the dialog.
      */
-    @Override
     public void validate() {
-    	IWizardConfigurationPanel panel = this.settings.getActiveConfigurationPanel();
+    	IConfigurationPanel panel = this.settings.getActiveConfigurationPanel();
     	Button okButton = getButton(IDialogConstants.OK_ID);
-    	SWTControlUtil.setEnabled(okButton, panel.isValid());
+    	if (okButton != null) okButton.setEnabled(panel.isValid());
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.interfaces.IValidatingContainer#setMessage(java.lang.String, int)
+    /**
+     * Set the given message and message type.
+     *
+     * @param message The message or <code>null</code>.
+     * @param messageType The message type or <code>IMessageProvider.NONE</code>.
      */
-    @Override
     public void setMessage(String message, int messageType) {
     	if (settings != null) {
     		settings.setMessage(message, messageType);
     	}
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#saveWidgetValues()
+    /**
+     * Save the dialog's widget values.
      */
-    @Override
     protected void saveWidgetValues() {
     	IDialogSettings settings = getDialogSettings();
-    	if (settings != null) {
-    		settings.put("terminalLabel", SWTControlUtil.getText(terminals)); //$NON-NLS-1$
+    	if (settings != null && terminals != null) {
+    		settings.put("terminalLabel", terminals.getText()); //$NON-NLS-1$
     		this.settings.saveWidgetValues(settings, null);
     	}
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#restoreWidgetValues()
+    /**
+     * Restore the dialog's widget values.
      */
-    @Override
     protected void restoreWidgetValues() {
     	IDialogSettings settings = getDialogSettings();
     	if (settings != null) {
@@ -437,32 +490,34 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
     }
 
     /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.ui.jface.dialogs.CustomTrayDialog#okPressed()
+     * @see org.eclipse.jface.dialogs.Dialog#okPressed()
      */
     @Override
     protected void okPressed() {
-    	IWizardConfigurationPanel panel = this.settings.getActiveConfigurationPanel();
+    	IConfigurationPanel panel = this.settings.getActiveConfigurationPanel();
+    	Assert.isNotNull(panel);
 
-    	if(!panel.isValid()){
+    	if (!panel.isValid()) {
 			MessageBox mb = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
 			mb.setText(Messages.LaunchTerminalSettingsDialog_error_title);
 			mb.setMessage(NLS.bind(Messages.LaunchTerminalSettingsDialog_error_invalidSettings, panel.getMessage() != null ? panel.getMessage() : Messages.LaunchTerminalSettingsDialog_error_unknownReason));
 			mb.open();
 			return;
     	}
-    	data = new PropertiesContainer();
+    	data = new HashMap<String, Object>();
 
     	// Store the id of the selected delegate
-    	data.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, label2delegate.get(terminals.getText()).getId());
+    	data.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, label2delegate.get(terminals.getText()).getId());
     	// Store the selection
-    	data.setProperty(ITerminalsConnectorConstants.PROP_SELECTION, selection);
+    	data.put(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 
     	// Store the delegate specific settings
-    	if (panel instanceof IDataExchangeNode) {
-    		((IDataExchangeNode)panel).extractData(data);
-    	}
+   		panel.extractData(data);
 
-        super.okPressed();
+   		// Save the current widget values
+		saveWidgetValues();
+
+		super.okPressed();
     }
 
     /**
@@ -473,7 +528,43 @@ public class LaunchTerminalSettingsDialog extends CustomTrayDialog implements IV
      *
      * @return The configured terminal launcher settings or <code>null</code>.
      */
-    public IPropertiesContainer getSettings() {
+    public Map<String, Object> getSettings() {
     	return data;
     }
+
+	/**
+	 * Initialize the dialog settings storage.
+	 */
+	protected void initializeDialogSettings() {
+		IDialogSettings settings = UIPlugin.getDefault().getDialogSettings();
+		Assert.isNotNull(settings);
+		IDialogSettings section = settings.getSection(getClass().getSimpleName());
+		if (section == null) {
+			section = settings.addNewSection(getClass().getSimpleName());
+		}
+		setDialogSettings(section);
+	}
+
+	/**
+	 * Returns the associated dialog settings storage.
+	 *
+	 * @return The dialog settings storage.
+	 */
+	public IDialogSettings getDialogSettings() {
+		// The dialog settings may not been initialized here. Initialize first in this case
+		// to be sure that we do have always the correct dialog settings.
+		if (dialogSettings == null) {
+			initializeDialogSettings();
+		}
+		return dialogSettings;
+	}
+
+	/**
+	 * Sets the associated dialog settings storage.
+	 *
+	 * @return The dialog settings storage.
+	 */
+	public void setDialogSettings(IDialogSettings dialogSettings) {
+		this.dialogSettings = dialogSettings;
+	}
 }

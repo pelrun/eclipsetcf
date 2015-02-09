@@ -10,9 +10,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.ssh.types;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.types.AbstractConnectorType;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
@@ -27,26 +28,30 @@ import org.eclipse.tm.internal.terminal.ssh.SshSettings;
 public class SshConnectorType extends AbstractConnectorType {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(java.util.Map)
 	 */
-    @Override
-	public ITerminalConnector createTerminalConnector(IPropertiesContainer properties) {
+	@Override
+	public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
     	Assert.isNotNull(properties);
 
     	// Check for the terminal connector id
-    	String connectorId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+    	String connectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+		if (connectorId == null) connectorId = "org.eclipse.tm.internal.terminal.ssh.SshConnector"; //$NON-NLS-1$
 
 		// Extract the ssh properties
-		String host = properties.getStringProperty(ITerminalsConnectorConstants.PROP_IP_HOST);
-		String port = properties.getStringProperty(ITerminalsConnectorConstants.PROP_IP_PORT);
-		String timeout = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TIMEOUT);
-		String keepAlive=properties.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE);
-		String password=properties.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_PASSWORD);
-		String user=properties.getStringProperty(ITerminalsConnectorConstants.PROP_SSH_USER);
+		String host = (String)properties.get(ITerminalsConnectorConstants.PROP_IP_HOST);
+		Object value = properties.get(ITerminalsConnectorConstants.PROP_IP_PORT);
+		String port = value != null ? value.toString() : null;
+		value = properties.get(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		String timeout = value != null ? value.toString() : null;
+		value = properties.get(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE);
+		String keepAlive = value != null ? value.toString() : null;
+		String password = (String)properties.get(ITerminalsConnectorConstants.PROP_SSH_PASSWORD);
+		String user = (String)properties.get(ITerminalsConnectorConstants.PROP_SSH_USER);
 
 		int portOffset = 0;
-		if (properties.getProperty(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET) != null) {
-			portOffset = properties.getIntProperty(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET);
+		if (properties.get(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET) instanceof Integer) {
+			portOffset = ((Integer)properties.get(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET)).intValue();
 			if (portOffset < 0) portOffset = 0;
 		}
 
@@ -66,17 +71,16 @@ public class SshConnectorType extends AbstractConnectorType {
 	 * <li>attributes[5] --> ssh user</li>
 	 * </ul>
 	 *
-	 * @param connectorId The terminal connector id or <code>null</code>.
+	 * @param connectorId The terminal connector id. Must not be <code>null</code>.
 	 * @param attributes The ssh server attributes. Must not be <code>null</code>.
 	 * @param portOffset Offset to add to the port.
 	 *
 	 * @return The terminal connector object instance or <code>null</code>.
 	 */
 	protected ITerminalConnector createSshConnector(String connectorId, String[] attributes, int portOffset) {
+		Assert.isNotNull(connectorId);
 		Assert.isNotNull(attributes);
 		Assert.isTrue(attributes.length == 6);
-
-		if (connectorId == null) connectorId = "org.eclipse.tm.internal.terminal.ssh.SshConnector"; //$NON-NLS-1$
 
 		final String serverName = attributes[0];
 		final String serverPort = Integer.toString(Integer.decode(attributes[1]).intValue() + portOffset);

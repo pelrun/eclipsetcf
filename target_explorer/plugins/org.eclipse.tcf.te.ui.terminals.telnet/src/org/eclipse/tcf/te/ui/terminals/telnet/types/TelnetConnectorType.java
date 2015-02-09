@@ -10,9 +10,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.ui.terminals.telnet.types;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.types.AbstractConnectorType;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
@@ -27,23 +28,26 @@ import org.eclipse.tm.internal.terminal.telnet.TelnetSettings;
 public class TelnetConnectorType extends AbstractConnectorType {
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType#createTerminalConnector(java.util.Map)
 	 */
-    @Override
-	public ITerminalConnector createTerminalConnector(IPropertiesContainer properties) {
+	@Override
+	public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
     	Assert.isNotNull(properties);
 
     	// Check for the terminal connector id
-    	String connectorId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+    	String connectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+		if (connectorId == null) connectorId = "org.eclipse.tm.internal.terminal.telnet.TelnetConnector"; //$NON-NLS-1$
 
 		// Extract the telnet properties
-		String host = properties.getStringProperty(ITerminalsConnectorConstants.PROP_IP_HOST);
-		String port = properties.getStringProperty(ITerminalsConnectorConstants.PROP_IP_PORT);
-		String timeout = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		String host = (String)properties.get(ITerminalsConnectorConstants.PROP_IP_HOST);
+		Object value = properties.get(ITerminalsConnectorConstants.PROP_IP_PORT);
+		String port = value != null ? value.toString() : null;
+		value = properties.get(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		String timeout = value != null ? value.toString() : null;
 
 		int portOffset = 0;
-		if (properties.getProperty(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET) != null) {
-			portOffset = properties.getIntProperty(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET);
+		if (properties.get(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET) instanceof Integer) {
+			portOffset = ((Integer)properties.get(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET)).intValue();
 			if (portOffset < 0) portOffset = 0;
 		}
 
@@ -60,17 +64,16 @@ public class TelnetConnectorType extends AbstractConnectorType {
 	 * <li>attributes[2] --> timeout (optional)</li>
 	 * </ul>
 	 *
-	 * @param connectorId The terminal connector id or <code>null</code>.
+	 * @param connectorId The terminal connector id. Must not be <code>null</code>.
 	 * @param attributes The telnet server attributes. Must not be <code>null</code> and must have at least two elements.
 	 * @param portOffset Offset to add to the port.
 	 *
 	 * @return The terminal connector object instance or <code>null</code>.
 	 */
 	protected ITerminalConnector createTelnetConnector(String connectorId, String[] attributes, int portOffset) {
+		Assert.isNotNull(connectorId);
 		Assert.isNotNull(attributes);
 		Assert.isTrue(attributes.length >= 2);
-
-		if (connectorId == null) connectorId = "org.eclipse.tm.internal.terminal.telnet.TelnetConnector"; //$NON-NLS-1$
 
 		final String serverName = attributes[0];
 		final String serverPort = Integer.toString(Integer.decode(attributes[1]).intValue() + portOffset);

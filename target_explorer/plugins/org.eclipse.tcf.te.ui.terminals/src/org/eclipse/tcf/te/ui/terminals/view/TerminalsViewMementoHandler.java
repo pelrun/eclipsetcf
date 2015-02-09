@@ -10,24 +10,23 @@
 package org.eclipse.tcf.te.ui.terminals.view;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
-import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.async.UICallbackInvocationDelegate;
-import org.eclipse.tcf.te.ui.swt.DisplayUtil;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.actions.PinTerminalAction;
 import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
 import org.eclipse.tcf.te.ui.terminals.tabs.TabFolderToolbarHandler;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Take care of the persisted state handling of the "Terminals" view.
@@ -54,7 +53,8 @@ public class TerminalsViewMementoHandler {
 	 * @param view The terminals view. Must not be <code>null</code>.
 	 * @param memento The memento. Must not be <code>null</code>.
 	 */
-	public void saveState(TerminalsView view, IMemento memento) {
+	@SuppressWarnings("unchecked")
+    public void saveState(TerminalsView view, IMemento memento) {
 		Assert.isNotNull(view);
 		Assert.isNotNull(memento);
 
@@ -77,11 +77,11 @@ public class TerminalsViewMementoHandler {
 			if (item.isDisposed()) continue;
 
 			// Get the original terminal properties associated with the tab item
-			IPropertiesContainer properties = (IPropertiesContainer)item.getData("properties"); //$NON-NLS-1$
+			Map<String, Object> properties = (Map<String, Object>)item.getData("properties"); //$NON-NLS-1$
 			if (properties == null) continue;
 
 			// Get the terminal launcher delegate
-			String delegateId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
+			String delegateId = (String)properties.get(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
 			ILauncherDelegate delegate = delegateId != null ? LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false) : null;
 			IMementoHandler mementoHandler = delegate != null ? (IMementoHandler)delegate.getAdapter(IMementoHandler.class) : null;
 			if (mementoHandler != null) {
@@ -91,18 +91,18 @@ public class TerminalsViewMementoHandler {
 				// Store the common attributes
 				connectionMemento.putString(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegateId);
 
-				String terminalConnectorId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+				String terminalConnectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
 				if (terminalConnectorId != null) {
 					connectionMemento.putString(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, terminalConnectorId);
 				}
 
-				String connectorTypeId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID);
+				String connectorTypeId = (String)properties.get(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID);
 				if (connectorTypeId != null) {
 					connectionMemento.putString(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, connectorTypeId);
 				}
 
-				if (properties.getProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW) != null) {
-					connectionMemento.putBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW, properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW));
+				if (properties.get(ITerminalsConnectorConstants.PROP_FORCE_NEW) instanceof Boolean) {
+					connectionMemento.putBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW, ((Boolean)properties.get(ITerminalsConnectorConstants.PROP_FORCE_NEW)).booleanValue());
 				}
 
 				// Pass on to the memento handler
@@ -131,12 +131,11 @@ public class TerminalsViewMementoHandler {
 
 			final IMemento finMemento = memento;
 			// Restore the pinned state of the after all connections completed
-			AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
+			final Runnable runnable = new Runnable() {
 				@Override
-				protected void internalDone(Object caller, IStatus status) {
-					// Restore the pinned state
+				public void run() {
 					if (finMemento.getBoolean("pinned") != null) { //$NON-NLS-1$
-						DisplayUtil.safeAsyncExec(new Runnable() {
+						asyncExec(new Runnable() {
 							@Override
 							public void run() {
 								view.setPinned(finMemento.getBoolean("pinned").booleanValue()); //$NON-NLS-1$
@@ -150,25 +149,31 @@ public class TerminalsViewMementoHandler {
 						});
 					}
 				}
-			}, new UICallbackInvocationDelegate());
+			};
+
+			final AtomicBoolean allProcessed = new AtomicBoolean(false);
+			final List<ITerminalService.Done> callbacks = new ArrayList<ITerminalService.Done>();
+
 			// Get all the "connection" memento's.
 			IMemento[] connections = memento.getChildren("connection"); //$NON-NLS-1$
 			for (IMemento connection : connections) {
 				// Create the properties container that holds the terminal properties
-				IPropertiesContainer properties = new PropertiesContainer();
+				Map<String, Object> properties = new HashMap<String, Object>();
 
 				// Set the view id attributes
-				properties.setProperty(ITerminalsConnectorConstants.PROP_ID, id);
-				properties.setProperty(ITerminalsConnectorConstants.PROP_SECONDARY_ID, secondaryId);
+				properties.put(ITerminalsConnectorConstants.PROP_ID, id);
+				properties.put(ITerminalsConnectorConstants.PROP_SECONDARY_ID, secondaryId);
 
 				// Restore the common attributes
-				properties.setProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID, connection.getString(ITerminalsConnectorConstants.PROP_DELEGATE_ID));
-				properties.setProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, connection.getString(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID));
-				properties.setProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, connection.getString(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID));
-				properties.setProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW, connection.getBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW));
+				properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, connection.getString(ITerminalsConnectorConstants.PROP_DELEGATE_ID));
+				properties.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, connection.getString(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID));
+				properties.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, connection.getString(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID));
+				if (connection.getBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW) != null) {
+					properties.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, connection.getBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW));
+				}
 
                 // Get the terminal launcher delegate
-                String delegateId = properties.getStringProperty(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
+                String delegateId = (String)properties.get(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
                 ILauncherDelegate delegate = delegateId != null ? LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false) : null;
                 IMementoHandler mementoHandler = delegate != null ? (IMementoHandler)delegate.getAdapter(IMementoHandler.class) : null;
                 if (mementoHandler != null) {
@@ -178,11 +183,34 @@ public class TerminalsViewMementoHandler {
 
                 // Restore the terminal connection
                 if (delegate != null && !properties.isEmpty()) {
-                	delegate.execute(properties, new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+                	ITerminalService.Done done = new ITerminalService.Done() {
+                		@Override
+                		public void done(IStatus status) {
+							callbacks.remove(this);
+							if (allProcessed.get() && callbacks.isEmpty()) {
+								asyncExec(runnable);
+							}
+						}
+					};
+					callbacks.add(done);
+                	delegate.execute(properties, done);
                 }
 			}
 
-			collector.initDone();
+			allProcessed.set(true);
+			if (callbacks.isEmpty()) asyncExec(runnable);
+		}
+	}
+
+	/**
+	 * Executes the given runnable asynchronously in the display thread.
+	 *
+	 * @param runnable The runnable. Must not be <code>null</code>.
+	 */
+	/* default */ void asyncExec(Runnable runnable) {
+		Assert.isNotNull(runnable);
+		if (PlatformUI.getWorkbench() != null && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(runnable);
 		}
 	}
 }

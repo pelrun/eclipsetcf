@@ -9,22 +9,26 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.terminals.ui.launcher;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done;
+import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.services.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsLauncher;
 import org.eclipse.tcf.te.tcf.terminals.core.launcher.TerminalsLauncher;
-import org.eclipse.tcf.te.tcf.terminals.ui.controls.TerminalsWizardConfigurationPanel;
-import org.eclipse.tcf.te.ui.controls.BaseDialogPageControl;
+import org.eclipse.tcf.te.tcf.terminals.ui.controls.TerminalsConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
+import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 
@@ -36,11 +40,11 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 	private final IMementoHandler mementoHandler = new TerminalsMementoHandler();
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#getPanel(org.eclipse.tcf.te.ui.controls.BaseDialogPageControl)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#getPanel(org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer)
 	 */
 	@Override
-	public IConfigurationPanel getPanel(BaseDialogPageControl parentControl) {
-	    return new TerminalsWizardConfigurationPanel(parentControl);
+	public IConfigurationPanel getPanel(IConfigurationPanelContainer container) {
+	    return new TerminalsConfigurationPanel(container);
 	}
 
 	/* (non-Javadoc)
@@ -52,14 +56,14 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#execute(org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#execute(java.util.Map, org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done)
 	 */
 	@Override
-	public void execute(IPropertiesContainer properties, ICallback callback) {
+	public void execute(final Map<String, Object> properties, final Done done) {
 		Assert.isNotNull(properties);
 
 		// Get the selection from the properties
-		ISelection selection = (ISelection)properties.getProperty(ITerminalsConnectorConstants.PROP_SELECTION);
+		ISelection selection = (ISelection)properties.get(ITerminalsConnectorConstants.PROP_SELECTION);
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			Object element = ((IStructuredSelection)selection).getFirstElement();
 			if (element instanceof IPeerNode) {
@@ -78,7 +82,14 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 
 				if (peer.get() != null) {
 					ITerminalsLauncher launcher = new TerminalsLauncher();
-					launcher.launch(peer.get(), properties, callback);
+					IPropertiesContainer p = new PropertiesContainer();
+					p.addProperties(properties);
+					launcher.launch(peer.get(), p, new Callback() {
+						@Override
+						protected void internalDone(Object caller, IStatus status) {
+							done.done(status);
+						}
+					});
 				}
 			}
 

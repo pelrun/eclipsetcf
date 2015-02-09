@@ -165,6 +165,19 @@
       </service>
    </extension>
 
+<!-- Terminal context properties provider contributions -->
+   <extension point="org.eclipse.tcf.te.core.terminals.contextPropertiesProviders">
+      <contextPropertiesProvider
+            class="org.eclipse.tcf.te.tcf.locator.services.TerminalContextPropertiesProvider">
+         <enablement>
+            <or>
+               <instanceof value="org.eclipse.tcf.protocol.IPeer"/>
+               <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+            </or>
+         </enablement>
+      </contextPropertiesProvider>
+   </extension>
+ 
 <!-- Step contributions -->
    <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
       <step
