@@ -29,7 +29,7 @@ public final class TerminalServiceFactory {
 		// Tries to instantiate the terminal service implementation
 		// from the o.e.tcf.te.ui.terminals bundle
 		Bundle bundle = Platform.getBundle("org.eclipse.tcf.te.ui.terminals"); //$NON-NLS-1$
-		if (bundle != null && (bundle.getState() == Bundle.RESOLVED || bundle.getState() == Bundle.ACTIVE)) {
+		if (bundle != null && bundle.getState() != Bundle.UNINSTALLED && bundle.getState() != Bundle.STOPPING) {
 			try {
 	            Class<?> clazz = bundle.loadClass("org.eclipse.tcf.te.ui.terminals.services.TerminalService"); //$NON-NLS-1$
 	            instance = (ITerminalService) clazz.newInstance();
