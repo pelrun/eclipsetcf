@@ -20,6 +20,10 @@ import org.eclipse.tcf.protocol.IToken;
 /**
  * IMemory service provides basic operations to read/write memory on a target.
  *
+ * The service represents memory addresses in number of bytes, regardless of actual addressable unit size.
+ * Clients can translate between byte and word addresses using value of "AddressableUnitSize".
+ * Byte is 8 bits.
+ *
  * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IMemory extends IService {
@@ -38,7 +42,9 @@ public interface IMemory extends IService {
         PROP_NAME = "Name",                     /** String, name of the context, can be used for UI purposes */
         PROP_START_BOUND = "StartBound",        /** Number, lowest address (inclusive) which is valid for the context */
         PROP_END_BOUND = "EndBound",            /** Number, highest address (inclusive) which is valid for the context */
-        PROP_ACCESS_TYPES = "AccessTypes";      /** Array of String, the access types allowed for this context */
+        PROP_ACCESS_TYPES = "AccessTypes",      /** Array of String, the access types allowed for this context */
+        PROP_ADDRESSABLE_UNIT_SIZE = "AddressableUnitSize", /** Number, addressable unit size in number of bytes */
+        PROP_DEFAULT_WORD_SIZE = "DefaultWordSize"; /** Number, default word size in number of bytes */
 
     /**
      * Values of "AccessTypes".
@@ -182,6 +188,22 @@ public interface IMemory extends IService {
          * @return collection of access type names.
          */
         Collection<String> getAccessTypes();
+
+        /**
+         * Get this memory context's addressable unit size in number of bytes.
+         * The addressable size indicates the minimum number of bytes that
+         * can be retrieved as a single unit.
+         * @return addressable unit size in bytes.
+         */
+        int getAddressableUnitSize();
+
+        /**
+         * Get default word size in number of bytes.
+         * The size is supposed to be used as the default memory view word representation.
+         * Returns zero is word size is unknown.
+         * @return word size in bytes.
+         */
+        int getDefaultWordSize();
 
         /**
          * Get context properties.

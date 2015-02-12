@@ -205,6 +205,18 @@ public class MemoryProxy implements IMemory {
             return (Number)props.get(PROP_START_BOUND);
         }
 
+        public int getAddressableUnitSize() {
+            Number n = (Number)props.get(PROP_ADDRESSABLE_UNIT_SIZE);
+            if (n == null) return 1;
+            return n.intValue();
+        }
+
+        public int getDefaultWordSize() {
+            Number n = (Number)props.get(PROP_DEFAULT_WORD_SIZE);
+            if (n == null) return 0;
+            return n.intValue();
+        }
+
         public Map<String, Object> getProperties() {
             return props;
         }

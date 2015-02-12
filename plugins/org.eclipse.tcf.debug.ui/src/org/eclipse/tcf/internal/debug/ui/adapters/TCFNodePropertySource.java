@@ -37,6 +37,7 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IExpressions;
+import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IRegisters;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IStackTrace;
@@ -245,10 +246,22 @@ public class TCFNodePropertySource implements IPropertySource {
                     }
 
                     private void getExecContextDescriptors(TCFNodeExecContext exe_node) {
+                        TCFDataCache<IMemory.MemoryContext> mem_cache = exe_node.getMemoryContext();
                         TCFDataCache<IRunControl.RunControlContext> ctx_cache = exe_node.getRunContext();
                         TCFDataCache<TCFContextState> state_cache = exe_node.getState();
                         TCFDataCache<MemoryRegion[]> mem_map_cache = exe_node.getMemoryMap();
-                        if (!validateAll(ctx_cache, state_cache, mem_map_cache)) return;
+                        if (!validateAll(mem_cache, ctx_cache, state_cache, mem_map_cache)) return;
+                        IMemory.MemoryContext mem = mem_cache.getData();
+                        if (mem != null) {
+                            Map<String,Object> props = mem.getProperties();
+                            for (String key : props.keySet()) {
+                                Object value = props.get(key);
+                                if (value instanceof Number) {
+                                    value = toHexAddrString((Number)value);
+                                }
+                                addDescriptor("Memory", key, value);
+                            }
+                        }
                         IRunControl.RunControlContext ctx = ctx_cache.getData();
                         if (ctx != null) {
                             Map<String,Object> props = ctx.getProperties();

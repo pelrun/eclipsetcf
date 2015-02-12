@@ -256,8 +256,30 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
 
         @Override
         public int getAddressableSize() throws DebugException {
-            // TODO: support for addressable size other then 1 byte
-            return 1;
+            return new TCFDebugTask<Integer>(exec_ctx.getChannel()) {
+                @Override
+                public void run() {
+                    if (exec_ctx.isDisposed()) {
+                        error("Context is disposed");
+                    }
+                    else {
+                        TCFDataCache<IMemory.MemoryContext> cache = exec_ctx.getMemoryContext();
+                        if (!cache.validate(this)) return;
+                        if (cache.getError() != null) {
+                            error(cache.getError());
+                        }
+                        else {
+                            IMemory.MemoryContext mem = cache.getData();
+                            if (mem == null) {
+                                error("Context does not provide memory access");
+                            }
+                            else {
+                                done(mem.getAddressableUnitSize());
+                            }
+                        }
+                    }
+                }
+            }.getD();
         }
 
         @Override
