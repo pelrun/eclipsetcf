@@ -24,7 +24,6 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
-import org.eclipse.tcf.te.tests.tcf.launch.TcfLaunchTests;
 
 /**
  * Process launcher test cases.
@@ -72,7 +71,7 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 			assertNotNull("Missing user home directory", tempDir); //$NON-NLS-1$
 		}
 
-		tempDir = tempDir.append(TcfLaunchTests.class.getSimpleName());
+		tempDir = tempDir.append(ProcessLauncherTestCase.class.getSimpleName());
 		assertNotNull("Cannot append test case specific temp directory", tempDir); //$NON-NLS-1$
 		if (!tempDir.toFile().exists()) {
 			assertTrue("Failed to create path " + tempDir.toString(), tempDir.toFile().mkdirs()); //$NON-NLS-1$
