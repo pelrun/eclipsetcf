@@ -1257,31 +1257,33 @@ public class TCFLaunch extends Launch {
                 }
             }));
         }
-        IStreams streams = getService(IStreams.class);
-        IStreams.DoneDisconnect done_disconnect = new IStreams.DoneDisconnect() {
-            public void doneDisconnect(IToken token, Exception error) {
-                cmds.remove(token);
-                if (error != null) channel.terminate(error);
-                else if (cmds.isEmpty()) channel.close();
+        if (channel.getState() == IChannel.STATE_OPEN) {
+            IStreams streams = getService(IStreams.class);
+            IStreams.DoneDisconnect done_disconnect = new IStreams.DoneDisconnect() {
+                public void doneDisconnect(IToken token, Exception error) {
+                    cmds.remove(token);
+                    if (error != null) channel.terminate(error);
+                    else if (cmds.isEmpty()) channel.close();
+                }
+            };
+            for (String id : process_stream_ids.keySet()) {
+                cmds.add(streams.disconnect(id, done_disconnect));
             }
-        };
-        for (String id : process_stream_ids.keySet()) {
-            cmds.add(streams.disconnect(id, done_disconnect));
-        }
-        for (String id : uart_rx_stream_ids.keySet()) {
-            cmds.add(streams.disconnect(id, done_disconnect));
-        }
-        for (String id : uart_tx_stream_ids.keySet()) {
-            cmds.add(streams.disconnect(id, done_disconnect));
-        }
-        process_stream_ids.clear();
-        process_input_stream_id = null;
-        uart_rx_stream_ids.clear();
-        uart_tx_stream_ids.clear();
-        if (dprintf_stream_id != null) {
-            disconnected_stream_ids.add(dprintf_stream_id);
-            cmds.add(streams.disconnect(dprintf_stream_id, done_disconnect));
-            dprintf_stream_id = null;
+            for (String id : uart_rx_stream_ids.keySet()) {
+                cmds.add(streams.disconnect(id, done_disconnect));
+            }
+            for (String id : uart_tx_stream_ids.keySet()) {
+                cmds.add(streams.disconnect(id, done_disconnect));
+            }
+            process_stream_ids.clear();
+            process_input_stream_id = null;
+            uart_rx_stream_ids.clear();
+            uart_tx_stream_ids.clear();
+            if (dprintf_stream_id != null) {
+                disconnected_stream_ids.add(dprintf_stream_id);
+                cmds.add(streams.disconnect(dprintf_stream_id, done_disconnect));
+                dprintf_stream_id = null;
+            }
         }
         if (cmds.isEmpty()) channel.close();
     }
