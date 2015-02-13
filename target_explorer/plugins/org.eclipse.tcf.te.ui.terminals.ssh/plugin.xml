@@ -2,15 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
 
-<!-- Terminal connector type contributions -->
-   <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
-      <connectorType
-            class="org.eclipse.tcf.te.ui.terminals.ssh.types.SshConnectorType"
-            id="org.eclipse.tcf.te.ui.terminals.type.ssh"
-            label="%SshConnectorType.label">
-      </connectorType>
-   </extension>
-   
 <!-- Terminals launcher delegate contributions -->
    <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
       <delegate

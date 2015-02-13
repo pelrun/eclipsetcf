@@ -426,9 +426,6 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 			if (properties.getProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID) != null) {
 				props.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID));
 			}
-			if (properties.getProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID) != null) {
-				props.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, properties.getProperty(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID));
-			}
 			if (properties.getProperty(ITerminalsConnectorConstants.PROP_ENCODING) != null) {
 				props.put(ITerminalsConnectorConstants.PROP_ENCODING, properties.getProperty(ITerminalsConnectorConstants.PROP_ENCODING));
 			}

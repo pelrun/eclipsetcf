@@ -304,7 +304,6 @@ public class LaunchTerminalSettingsDialog extends TrayDialog {
         		data.remove(ITerminalsConnectorConstants.PROP_IP_PORT);
         		data.remove(ITerminalsConnectorConstants.PROP_TIMEOUT);
             	data.remove(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
-            	data.remove(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID);
             	data.remove(ITerminalsConnectorConstants.PROP_ENCODING);
         		// Switch to the new panel
         		settings.showConfigurationPanel(terminals.getText());

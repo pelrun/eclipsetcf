@@ -121,9 +121,6 @@ public class TelnetWizardConfigurationPanel extends AbstractExtendedConfiguratio
     	// set the terminal connector id for ssh
     	data.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.telnet.TelnetConnector"); //$NON-NLS-1$
 
-    	// set the connector type for ssh
-    	data.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.telnet"); //$NON-NLS-1$
-
     	telnetSettingsPage.saveSettings();
 		data.put(ITerminalsConnectorConstants.PROP_IP_HOST,telnetSettings.getHost());
 		data.put(ITerminalsConnectorConstants.PROP_IP_PORT, Integer.valueOf(telnetSettings.getNetworkPort()));

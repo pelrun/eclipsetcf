@@ -103,9 +103,6 @@ public class LocalWizardConfigurationPanel extends AbstractExtendedConfiguration
     	// set the terminal connector id for local terminal
     	data.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tcf.te.ui.terminals.local.LocalConnector"); //$NON-NLS-1$
 
-    	// set the connector type for local terminal
-    	data.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
-
     	// Store the encoding
 		data.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
 

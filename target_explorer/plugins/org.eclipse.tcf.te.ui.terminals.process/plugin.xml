@@ -11,13 +11,14 @@
             name="%TerminalConnector.process"/>
    </extension>
 
-<!-- Terminal connector type contributions -->
-   <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
-      <connectorType
-            class="org.eclipse.tcf.te.ui.terminals.process.ProcessConnectorType"
-            id="org.eclipse.tcf.te.ui.terminals.type.process"
-            label="%ProcessConnectorType.label">
-      </connectorType>
+<!-- Terminals launcher delegate contributions -->
+   <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
+      <delegate
+            class="org.eclipse.tcf.te.ui.terminals.process.ProcessLauncherDelegate"
+            hidden="true"
+            id="org.eclipse.tcf.te.ui.terminals.telnet.launcher.process"
+            label="%ProcessLauncherDelegate.label">
+      </delegate>
    </extension>
-   
+
 </plugin>

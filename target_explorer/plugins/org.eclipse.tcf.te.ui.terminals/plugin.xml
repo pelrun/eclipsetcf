@@ -3,7 +3,6 @@
 <plugin>
 
 <!-- Extension points -->
-   <extension-point id="connectorTypes" name="%ExtensionPoint.connectorTypes.name" schema="schema/connectorTypes.exsd"/>
    <extension-point id="launcherDelegates" name="%ExtensionPoint.launcherDelegates.name" schema="schema/launcherDelegates.exsd"/>
 
 <!-- View contributions -->
@@ -103,13 +102,14 @@
       </propertyTester>
    </extension>
 
-<!-- Terminal connector type contributions -->
-   <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
-      <connectorType
-            class="org.eclipse.tcf.te.ui.terminals.types.StreamsConnectorType"
-            id="org.eclipse.tcf.te.ui.terminals.type.streams"
-            label="%StreamsConnectorType.label">
-      </connectorType>
+<!-- Terminals launcher delegate contributions -->
+   <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
+      <delegate
+            class="org.eclipse.tcf.te.ui.terminals.streams.StreamsLauncherDelegate"
+            hidden="true"
+            id="org.eclipse.tcf.te.ui.terminals.telnet.launcher.streams"
+            label="%StreamsLauncherDelegate.label">
+      </delegate>
    </extension>
 
 <!-- Menu contributions -->

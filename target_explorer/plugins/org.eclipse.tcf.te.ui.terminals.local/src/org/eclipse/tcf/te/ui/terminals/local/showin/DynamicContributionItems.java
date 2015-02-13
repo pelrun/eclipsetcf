@@ -115,7 +115,6 @@ public class DynamicContributionItems extends CompoundContributionItem implement
 
 				Map<String, Object> properties = new HashMap<String, Object>();
 				properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
-		    	properties.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
 		    	if (selection != null) properties.put(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 		    	properties.put(ITerminalsConnectorConstants.PROP_PROCESS_PATH, path);
 		    	if (args != null) properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, args);

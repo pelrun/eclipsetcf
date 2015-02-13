@@ -23,13 +23,19 @@ import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnecto
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
+import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.ssh.controls.SshWizardConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.ssh.nls.Messages;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
+import org.eclipse.tm.internal.terminal.ssh.SshSettings;
 
 /**
  * SSH launcher delegate implementation.
  */
+@SuppressWarnings("restriction")
 public class SshLauncherDelegate extends AbstractLauncherDelegate {
 	// The SSH terminal connection memento handler
 	private final IMementoHandler mementoHandler = new SshMementoHandler();
@@ -110,5 +116,66 @@ public class SshLauncherDelegate extends AbstractLauncherDelegate {
 			return mementoHandler;
 		}
 	    return super.getAdapter(adapter);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#createTerminalConnector(java.util.Map)
+	 */
+    @Override
+	public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
+    	Assert.isNotNull(properties);
+
+    	// Check for the terminal connector id
+    	String connectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+		if (connectorId == null) connectorId = "org.eclipse.tm.internal.terminal.ssh.SshConnector"; //$NON-NLS-1$
+
+		// Extract the ssh properties
+		String host = (String)properties.get(ITerminalsConnectorConstants.PROP_IP_HOST);
+		Object value = properties.get(ITerminalsConnectorConstants.PROP_IP_PORT);
+		String port = value != null ? value.toString() : null;
+		value = properties.get(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		String timeout = value != null ? value.toString() : null;
+		value = properties.get(ITerminalsConnectorConstants.PROP_SSH_KEEP_ALIVE);
+		String keepAlive = value != null ? value.toString() : null;
+		String password = (String)properties.get(ITerminalsConnectorConstants.PROP_SSH_PASSWORD);
+		String user = (String)properties.get(ITerminalsConnectorConstants.PROP_SSH_USER);
+
+		int portOffset = 0;
+		if (properties.get(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET) instanceof Integer) {
+			portOffset = ((Integer)properties.get(ITerminalsConnectorConstants.PROP_IP_PORT_OFFSET)).intValue();
+			if (portOffset < 0) portOffset = 0;
+		}
+
+		// The real port to connect to is port + portOffset
+		port = Integer.toString(Integer.decode(port).intValue() + portOffset);
+
+		// Construct the ssh settings store
+		ISettingsStore store = new SettingsStore();
+
+		// Construct the telnet settings
+		SshSettings sshSettings = new SshSettings();
+		sshSettings.setHost(host);
+		sshSettings.setPort(port);
+		sshSettings.setTimeout(timeout);
+		sshSettings.setKeepalive(keepAlive);
+		sshSettings.setPassword(password);
+		sshSettings.setUser(user);
+
+		// And save the settings to the store
+		sshSettings.save(store);
+
+		// MWE TODO make sure this is NOT passed outside as this is plain text
+		store.put("Password", password); //$NON-NLS-1$
+
+		// Construct the terminal connector instance
+		ITerminalConnector connector = TerminalConnectorExtension.makeTerminalConnector(connectorId);
+		if (connector != null) {
+			// Apply default settings
+			connector.makeSettingsPage();
+			// And load the real settings
+			connector.load(store);
+		}
+
+		return connector;
 	}
 }

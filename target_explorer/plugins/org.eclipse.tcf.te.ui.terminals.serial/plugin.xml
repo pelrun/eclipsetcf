@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-<!-- Terminal connector type contributions -->
-   <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
-      <connectorType
-            class="org.eclipse.tcf.te.ui.terminals.serial.types.SerialConnectorType"
-            id="org.eclipse.tcf.te.ui.terminals.type.serial"
-            label="%SerialConnectorType.label">
-      </connectorType>
-   </extension>
    
 <!-- Terminals launcher delegate contributions -->
    <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">

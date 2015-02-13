@@ -589,7 +589,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			if (terminal != null) {
 				// Create the terminal streams settings
 				Map<String, Object> props = new HashMap<String, Object>();
-				props.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.streams"); //$NON-NLS-1$
+				props.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, "org.eclipse.tcf.te.ui.terminals.telnet.launcher.streams"); //$NON-NLS-1$
 				props.put(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
 				// Set the terminal tab title
 				String terminalTitle = getTerminalTitle();

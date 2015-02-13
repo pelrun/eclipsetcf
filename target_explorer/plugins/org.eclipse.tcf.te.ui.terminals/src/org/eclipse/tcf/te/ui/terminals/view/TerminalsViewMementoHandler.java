@@ -96,11 +96,6 @@ public class TerminalsViewMementoHandler {
 					connectionMemento.putString(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, terminalConnectorId);
 				}
 
-				String connectorTypeId = (String)properties.get(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID);
-				if (connectorTypeId != null) {
-					connectionMemento.putString(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, connectorTypeId);
-				}
-
 				if (properties.get(ITerminalsConnectorConstants.PROP_FORCE_NEW) instanceof Boolean) {
 					connectionMemento.putBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW, ((Boolean)properties.get(ITerminalsConnectorConstants.PROP_FORCE_NEW)).booleanValue());
 				}
@@ -167,7 +162,6 @@ public class TerminalsViewMementoHandler {
 				// Restore the common attributes
 				properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, connection.getString(ITerminalsConnectorConstants.PROP_DELEGATE_ID));
 				properties.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, connection.getString(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID));
-				properties.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, connection.getString(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID));
 				if (connection.getBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW) != null) {
 					properties.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, connection.getBoolean(ITerminalsConnectorConstants.PROP_FORCE_NEW));
 				}

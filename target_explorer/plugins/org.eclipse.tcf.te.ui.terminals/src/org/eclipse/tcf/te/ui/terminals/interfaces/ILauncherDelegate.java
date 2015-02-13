@@ -15,10 +15,12 @@ import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 
 /**
  * Terminal launcher delegate.
  */
+@SuppressWarnings("restriction")
 public interface ILauncherDelegate extends IExecutableExtension, IAdaptable {
 
 	/**
@@ -79,4 +81,13 @@ public interface ILauncherDelegate extends IExecutableExtension, IAdaptable {
 	 * @param done The callback or <code>null</code>.
 	 */
 	public void execute(Map<String, Object> properties, ITerminalService.Done done);
+
+	/**
+	 * Creates the terminal connector for this launcher delegate based on
+	 * the given properties.
+	 *
+	 * @param properties The terminal properties. Must not be <code>null</code>.
+	 * @return The terminal connector or <code>null</code>.
+	 */
+    public ITerminalConnector createTerminalConnector(Map<String, Object> properties);
 }

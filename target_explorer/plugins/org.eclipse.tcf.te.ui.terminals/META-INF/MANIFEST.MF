@@ -32,5 +32,4 @@ Export-Package: org.eclipse.tcf.te.ui.terminals.actions,
  org.eclipse.tcf.te.ui.terminals.services,
  org.eclipse.tcf.te.ui.terminals.streams,
  org.eclipse.tcf.te.ui.terminals.tabs,
- org.eclipse.tcf.te.ui.terminals.types,
  org.eclipse.tcf.te.ui.terminals.view

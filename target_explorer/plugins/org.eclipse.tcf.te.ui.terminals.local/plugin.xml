@@ -12,15 +12,6 @@
             name="%TerminalConnector.local"/>
    </extension>
    
-<!-- Terminal connector type contributions -->
-   <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
-      <connectorType
-            class="org.eclipse.tcf.te.ui.terminals.local.types.LocalConnectorType"
-            id="org.eclipse.tcf.te.ui.terminals.type.local"
-            label="%LocalConnectorType.label">
-      </connectorType>
-   </extension>
-
 <!-- Terminals launcher delegate contributions -->
    <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
       <delegate

@@ -82,13 +82,6 @@ public interface ITerminalsConnectorConstants {
 	public static final String PROP_DELEGATE_ID = "delegateId"; //$NON-NLS-1$
 
 	/**
-	 * Property: Terminals connector type id.
-	 * <p>
-	 * Property Type: {@link String}
-	 */
-	public static final String PROP_CONNECTOR_TYPE_ID = "connector.type.id"; //$NON-NLS-1$
-
-	/**
 	 * Property: Specific terminal connector type id. Allows clients to
 	 *           override the specifically used terminal connector
 	 *           implementation for a given type.

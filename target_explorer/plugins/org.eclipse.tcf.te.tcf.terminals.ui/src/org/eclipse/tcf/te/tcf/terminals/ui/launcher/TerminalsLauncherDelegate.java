@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.terminals.ui.launcher;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -26,15 +28,21 @@ import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsLauncher;
 import org.eclipse.tcf.te.tcf.terminals.core.launcher.TerminalsLauncher;
+import org.eclipse.tcf.te.tcf.terminals.ui.connector.TerminalsSettings;
 import org.eclipse.tcf.te.tcf.terminals.ui.controls.TerminalsConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
+import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
 
 /**
  * Terminals (TCF) launcher delegate implementation.
  */
+@SuppressWarnings("restriction")
 public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 	// The Terminals (TCF) terminal connection memento handler
 	private final IMementoHandler mementoHandler = new TerminalsMementoHandler();
@@ -105,5 +113,51 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 			return mementoHandler;
 		}
 	    return super.getAdapter(adapter);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#createTerminalConnector(java.util.Map)
+	 */
+    @Override
+	public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
+		Assert.isNotNull(properties);
+
+    	// Check for the terminal connector id
+    	String connectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+		if (connectorId == null) connectorId = "org.eclipse.tcf.te.tcf.terminals.ui.TerminalsConnector"; //$NON-NLS-1$
+
+		// Extract the streams properties
+		OutputStream stdin = (OutputStream)properties.get(ITerminalsConnectorConstants.PROP_STREAMS_STDIN);
+		InputStream stdout = (InputStream)properties.get(ITerminalsConnectorConstants.PROP_STREAMS_STDOUT);
+		InputStream stderr = (InputStream)properties.get(ITerminalsConnectorConstants.PROP_STREAMS_STDERR);
+		Object value = properties.get(ITerminalsConnectorConstants.PROP_LOCAL_ECHO);
+		boolean localEcho = value instanceof Boolean ? ((Boolean)value).booleanValue() : false;
+		String lineSeparator = (String)properties.get(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR);
+		ITerminalsLauncher launcher = (ITerminalsLauncher)properties.get(ITerminalsConnectorConstants.PROP_DATA);
+
+		// Construct the terminal settings store
+		ISettingsStore store = new SettingsStore();
+
+		// Construct the terminals settings
+		TerminalsSettings terminalsSettings = new TerminalsSettings();
+		terminalsSettings.setStdinStream(stdin);
+		terminalsSettings.setStdoutStream(stdout);
+		terminalsSettings.setStderrStream(stderr);
+		terminalsSettings.setLocalEcho(localEcho);
+		terminalsSettings.setLineSeparator(lineSeparator);
+		terminalsSettings.setTerminalsLauncher(launcher);
+		// And save the settings to the store
+		terminalsSettings.save(store);
+
+		// Construct the terminal connector instance
+		ITerminalConnector connector = TerminalConnectorExtension.makeTerminalConnector(connectorId);
+		if (connector != null) {
+			// Apply default settings
+			connector.makeSettingsPage();
+			// And load the real settings
+			connector.load(store);
+		}
+
+		return connector;
 	}
 }

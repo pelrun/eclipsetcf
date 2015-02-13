@@ -22,13 +22,19 @@ import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnecto
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
+import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
 import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.serial.controls.SerialConfigurationPanel;
 import org.eclipse.tcf.te.ui.terminals.serial.nls.Messages;
+import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
+import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
+import org.eclipse.tm.internal.terminal.serial.SerialSettings;
 
 /**
  * Serial launcher delegate implementation.
  */
+@SuppressWarnings("restriction")
 public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 	// The serial terminal connection memento handler
 	private final IMementoHandler mementoHandler = new SerialMementoHandler();
@@ -102,5 +108,53 @@ public class SerialLauncherDelegate extends AbstractLauncherDelegate {
 			return mementoHandler;
 		}
 	    return super.getAdapter(adapter);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#createTerminalConnector(java.util.Map)
+	 */
+    @Override
+	public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
+    	Assert.isNotNull(properties);
+
+    	// Check for the terminal connector id
+    	String connectorId = (String)properties.get(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID);
+		if (connectorId == null) connectorId = "org.eclipse.tm.internal.terminal.serial.SerialConnector"; //$NON-NLS-1$
+
+		String port = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_DEVICE);
+		String baud = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_BAUD_RATE);
+		Object value = properties.get(ITerminalsConnectorConstants.PROP_TIMEOUT);
+		String timeout = value instanceof Integer ? ((Integer)value).toString() : null;
+		String databits = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_DATA_BITS);
+		String stopbits = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_STOP_BITS);
+		String parity = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_PARITY);
+		String flowcontrol = (String)properties.get(ITerminalsConnectorConstants.PROP_SERIAL_FLOW_CONTROL);
+
+		// Construct the terminal settings store
+		ISettingsStore store = new SettingsStore();
+
+		// Construct the serial settings
+		SerialSettings serialSettings = new SerialSettings();
+		serialSettings.setSerialPort(port);
+		serialSettings.setBaudRate(baud);
+		serialSettings.setTimeout(timeout);
+		serialSettings.setDataBits(databits);
+		serialSettings.setStopBits(stopbits);
+		serialSettings.setParity(parity);
+		serialSettings.setFlowControl(flowcontrol);
+
+		// And save the settings to the store
+		serialSettings.save(store);
+
+		// Construct the terminal connector instance
+		ITerminalConnector connector = TerminalConnectorExtension.makeTerminalConnector(connectorId);
+		if (connector != null) {
+			// Apply default settings
+			connector.makeSettingsPage();
+			// And load the real settings
+			connector.load(store);
+		}
+
+		return connector;
 	}
 }

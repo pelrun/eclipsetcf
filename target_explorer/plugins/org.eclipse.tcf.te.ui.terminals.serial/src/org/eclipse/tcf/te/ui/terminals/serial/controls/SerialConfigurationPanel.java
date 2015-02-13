@@ -68,9 +68,6 @@ public class SerialConfigurationPanel extends AbstractExtendedConfigurationPanel
     	// set the terminal connector id for serial
     	data.put(ITerminalsConnectorConstants.PROP_TERMINAL_CONNECTOR_ID, "org.eclipse.tm.internal.terminal.serial.SerialConnector"); //$NON-NLS-1$
 
-    	// set the connector type for serial
-    	data.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.serial"); //$NON-NLS-1$
-
     	serialSettingsPage.extractData(data);
 		data.put(ITerminalsConnectorConstants.PROP_ENCODING, getEncoding());
     }

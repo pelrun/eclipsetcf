@@ -49,7 +49,6 @@ public class LocalLauncherHandler extends AbstractHandler {
 		if (delegate != null) {
 			Map<String, Object> properties = new HashMap<String, Object>();
 			properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, delegate.getId());
-	    	properties.put(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID, "org.eclipse.tcf.te.ui.terminals.type.local"); //$NON-NLS-1$
 			properties.put(ITerminalsConnectorConstants.PROP_SELECTION, selection);
 
 			delegate.execute(properties, null);

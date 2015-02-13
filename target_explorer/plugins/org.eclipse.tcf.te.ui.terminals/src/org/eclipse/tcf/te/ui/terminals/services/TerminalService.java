@@ -24,11 +24,11 @@ import org.eclipse.tcf.te.core.terminals.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
 import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalTabListener;
 import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.terminals.interfaces.IConnectorType;
+import org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IUIConstants;
+import org.eclipse.tcf.te.ui.terminals.launcher.LauncherDelegateManager;
 import org.eclipse.tcf.te.ui.terminals.manager.ConsoleManager;
 import org.eclipse.tcf.te.ui.terminals.nls.Messages;
-import org.eclipse.tcf.te.ui.terminals.types.ConnectorManager;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.ui.PlatformUI;
 
@@ -242,14 +242,14 @@ public class TerminalService implements ITerminalService {
 		// The terminal connector result object
 		ITerminalConnector connector = null;
 
-		// Get the connector type id from the properties
-		String connectorTypeId = (String)properties.get(ITerminalsConnectorConstants.PROP_CONNECTOR_TYPE_ID);
-		if (connectorTypeId != null) {
-			// Get the connector type
-			IConnectorType connectorType = ConnectorManager.getInstance().getConnectorType(connectorTypeId, false);
-			if (connectorType != null) {
-				// Create the connector
-				connector = connectorType.createTerminalConnector(properties);
+		// Get the launcher delegate id from the properties
+		String delegateId = (String)properties.get(ITerminalsConnectorConstants.PROP_DELEGATE_ID);
+		if (delegateId != null) {
+			// Get the launcher delegate
+			ILauncherDelegate delegate = LauncherDelegateManager.getInstance().getLauncherDelegate(delegateId, false);
+			if (delegate != null) {
+				// Create the terminal connector
+				connector = delegate.createTerminalConnector(properties);
 			}
 		}
 

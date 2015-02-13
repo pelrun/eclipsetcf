@@ -11,15 +11,6 @@
                  class="org.eclipse.tcf.te.tcf.terminals.ui.connector.TerminalsConnector"/>
    </extension>
 
-<!-- Terminal connector type contributions -->
-   <extension point="org.eclipse.tcf.te.ui.terminals.connectorTypes">
-      <connectorType
-            class="org.eclipse.tcf.te.tcf.terminals.ui.connector.TerminalsConnectorType"
-            id="org.eclipse.tcf.te.ui.terminals.type.terminals"
-            label="%TerminalsConnectorType.label">
-      </connectorType>
-   </extension>
-
 <!-- Terminals launcher delegate contributions -->
    <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
       <delegate
