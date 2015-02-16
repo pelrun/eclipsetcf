@@ -139,7 +139,7 @@
          </command>
          <command
                commandId="org.eclipse.tcf.te.ui.terminals.command.disconnect"
-               icon="platform:/plugin/org.eclipse.tcf.te.ui/icons/elcl16/disconnect.gif"
+               icon="icons/elcl16/disconnect.gif"
                id="org.eclipse.tcf.te.ui.terminals.commands.disconnect"
                label="%command.disconnect.label"
                style="push"
