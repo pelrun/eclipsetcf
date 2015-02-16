@@ -21,6 +21,8 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -137,6 +139,12 @@ public class ExternalExecutablesDialog extends TrayDialog {
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         name.setLayoutData(layoutData);
+        name.addModifyListener(new ModifyListener() {
+        	@Override
+        	public void modifyText(ModifyEvent e) {
+        		validate();
+        	}
+        });
 
         label = new Label(panel, SWT.HORIZONTAL);
         label.setText(Messages.ExternalExecutablesDialog_field_path);
@@ -154,6 +162,12 @@ public class ExternalExecutablesDialog extends TrayDialog {
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         path.setLayoutData(layoutData);
+        path.addModifyListener(new ModifyListener() {
+        	@Override
+        	public void modifyText(ModifyEvent e) {
+        		validate();
+        	}
+        });
 
         Button button = new Button(panel2, SWT.PUSH);
         button.setText(Messages.ExternalExecutablesDialog_button_browse);
@@ -205,6 +219,12 @@ public class ExternalExecutablesDialog extends TrayDialog {
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         args.setLayoutData(layoutData);
+        args.addModifyListener(new ModifyListener() {
+        	@Override
+        	public void modifyText(ModifyEvent e) {
+        		validate();
+        	}
+        });
 
         label = new Label(panel, SWT.HORIZONTAL);
         label.setText(Messages.ExternalExecutablesDialog_field_icon);
@@ -222,6 +242,12 @@ public class ExternalExecutablesDialog extends TrayDialog {
         layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         layoutData.widthHint = convertWidthInCharsToPixels(30);
         icon.setLayoutData(layoutData);
+        icon.addModifyListener(new ModifyListener() {
+        	@Override
+        	public void modifyText(ModifyEvent e) {
+        		validate();
+        	}
+        });
 
         button = new Button(panel2, SWT.PUSH);
         button.setText(Messages.ExternalExecutablesDialog_button_browse);
@@ -269,6 +295,12 @@ public class ExternalExecutablesDialog extends TrayDialog {
         layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
         layoutData.horizontalSpan = 2;
         translate.setLayoutData(layoutData);
+        translate.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        		validate();
+        	}
+		});
 
         if (executableData != null) {
         	String value = executableData.get(IExternalExecutablesProperties.PROP_NAME);
