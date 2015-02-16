@@ -621,9 +621,9 @@ public class TerminalsLauncher extends PlatformObject implements ITerminalsLaunc
 
 		// Get the terminal attributes
 
-		// Terminal Type: Default to "ansi" if not explicitly specified
+		// Terminal Type: Default to "xterm" if not explicitly specified
 		String type = properties.getStringProperty(ITerminalsLauncher.PROP_TERMINAL_TYPE);
-		if (type == null || "".equals(type.trim())) type = "ansi"; //$NON-NLS-1$ //$NON-NLS-2$
+		if (type == null || "".equals(type.trim())) type = "xterm"; //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Terminal Encoding: Default to "null" if not explicitly specified
 		String encoding = properties.getStringProperty(ITerminalsLauncher.PROP_TERMINAL_ENCODING);
