@@ -47,12 +47,20 @@ public class PeerModelPropertyTester extends PropertyTester {
 			final IPeerNode peerNode = (IPeerNode)receiver;
 			final AtomicBoolean result = new AtomicBoolean();
 
-			Protocol.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					result.set(testPeerModel(peerNode, property, args, expectedValue));
-				}
-			});
+			if ("isValid".equals(property) || //$NON-NLS-1$
+				"hasOfflineService".equals(property) || //$NON-NLS-1$
+				"hasRemoteService".equals(property) || //$NON-NLS-1$
+				"hasLocalService".equals(property)) { //$NON-NLS-1$
+				Protocol.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						result.set(testPeerModel(peerNode, property, args, expectedValue));
+					}
+				});
+			}
+			else {
+				result.set(testPeer(peerNode.getPeer(), property, args, expectedValue));
+			}
 
 			return result.get();
 		}
@@ -70,11 +78,8 @@ public class PeerModelPropertyTester extends PropertyTester {
 	 * @return <code>True</code> if the property to test has the expected value, <code>false</code>
 	 *         otherwise.
 	 */
-	protected boolean testPeerModel(IPeerNode peerNode, String property, Object[] args, Object expectedValue) {
-		Assert.isNotNull(peerNode);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		IPeer peer = peerNode.getPeer();
+	protected boolean testPeer(IPeer peer, String property, Object[] args, Object expectedValue) {
+		Assert.isNotNull(peer);
 
 		if ("name".equals(property)) { //$NON-NLS-1$
 			if (peer.getName() != null && peer.getName().equals(expectedValue)) {
@@ -104,13 +109,6 @@ public class PeerModelPropertyTester extends PropertyTester {
 			boolean isProxy = peer.getAttributes().containsKey("Proxy"); //$NON-NLS-1$
 			if (expectedValue instanceof Boolean) {
 				return ((Boolean) expectedValue).booleanValue() == isProxy;
-			}
-		}
-
-		if ("isValid".equals(property)) { //$NON-NLS-1$
-			boolean isValid = peerNode.isValid();
-			if (expectedValue instanceof Boolean) {
-				return ((Boolean) expectedValue).booleanValue() == isValid;
 			}
 		}
 
@@ -171,8 +169,33 @@ public class PeerModelPropertyTester extends PropertyTester {
 			}
 		}
 
+		return false;
+	}
+
+	/**
+	 * Test the specific peer model node properties.
+	 *
+	 * @param node The model node. Must not be <code>null</code>.
+	 * @param property The property to test.
+	 * @param args The property arguments.
+	 * @param expectedValue The expected value.
+	 *
+	 * @return <code>True</code> if the property to test has the expected value, <code>false</code>
+	 *         otherwise.
+	 */
+	protected boolean testPeerModel(IPeerNode peerNode, String property, Object[] args, Object expectedValue) {
+		Assert.isNotNull(peerNode);
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
+		if ("isValid".equals(property)) { //$NON-NLS-1$
+			boolean isValid = peerNode.isValid();
+			if (expectedValue instanceof Boolean) {
+				return ((Boolean) expectedValue).booleanValue() == isValid;
+			}
+		}
+
 		if ("hasOfflineService".equals(property)) { //$NON-NLS-1$
-			String offlineServices = peer.getAttributes().get(IPeerProperties.PROP_OFFLINE_SERVICES);
+			String offlineServices = peerNode.getPeer().getAttributes().get(IPeerProperties.PROP_OFFLINE_SERVICES);
 			String remoteServices = peerNode.getStringProperty(IPeerNodeProperties.PROPERTY_REMOTE_SERVICES);
 			List<String> offline = offlineServices != null ? Arrays.asList(offlineServices.split(",\\s*")) : Collections.EMPTY_LIST; //$NON-NLS-1$
 			List<String> remote = remoteServices != null ? Arrays.asList(remoteServices.split(",\\s*")) : null; //$NON-NLS-1$
