@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+<!-- Persistence delegate contributions -->
+   <extension
+         point="org.eclipse.tcf.te.runtime.persistence.delegates">
+      <delegate
+            class="org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManagerDelegate"
+            id="org.eclipse.tcf.te.tcf.filesystem.core.map">
+      </delegate>
+   </extension>
+
+<!-- Persistence delegate binding contributions -->
+   <extension
+         point="org.eclipse.tcf.te.runtime.persistence.bindings">
+      <binding
+            delegateId="org.eclipse.tcf.te.tcf.filesystem.core.map"
+            id="org.eclipse.tcf.te.tcf.filesystem.core.map.binding">
+         <enablement>
+            <with variable="container">
+               <instanceof
+                     value="java.net.URI">
+               </instanceof>
+            </with>
+            <with variable="context">
+               <instanceof
+                     value="org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManager">
+               </instanceof>
+            </with>
+         </enablement>
+       </binding>
+   </extension>
+
+<!-- Property tester contributions -->
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.FSTreeNodePropertyTester"
+            id="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode"
+            namespace="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode"
+            properties="isFile,isDirectory,isBinaryFile,isReadable,isWritable,isExecutable,isRoot,isReadOnly,isHidden,isWindows,testParent,getCacheState,isSystemRoot"
+            type="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+      </propertyTester>
+      <propertyTester
+            class="org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.TargetPropertyTester"
+            id="org.eclipse.tcf.te.tcf.filesystem.propertytester.peer"
+            namespace="org.eclipse.tcf.te.tcf.filesystem.propertytester.peer"
+            properties="isWindows"
+            type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+      </propertyTester>
+   </extension>
+
+<!-- Launch Step contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.steps">
+      <step
+            id="org.eclipse.tcf.te.tcf.filesystem.core.fileTransferStep"
+            class="org.eclipse.tcf.te.tcf.filesystem.core.steps.FileTransferStep"
+            label="%FileTransferStep.name">
+         <requires id="org.eclipse.tcf.te.tcf.core.openChannelStep"/>
+      </step>
+      
+      <step
+            class="org.eclipse.tcf.te.tcf.filesystem.core.steps.InitializeModelStep"
+            id="org.eclipse.tcf.te.tcf.filesystem.core.initializeModelStep"
+            label="%InitializeModelStep.name">
+      </step>
+      <step
+            class="org.eclipse.tcf.te.tcf.filesystem.core.steps.DisposeModelStep"
+            id="org.eclipse.tcf.te.tcf.filesystem.core.disposeModelStep"
+            label="%DisposeModelStep.name">
+      </step>
+   </extension>
+
+<!-- Step group contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.stepper.stepGroups">
+      <stepGroup id="org.eclipse.tcf.te.tcf.locator.connectStepGroup">
+         <references>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.filesystem.core.initializeModelStep"
+                  insertAfter="org.eclipse.tcf.te.tcf.locator.connectNoAttachStepGroup"/>
+         </references>
+      </stepGroup>
+      
+      <stepGroup id="org.eclipse.tcf.te.tcf.locator.disconnectStepGroup">
+         <references>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.filesystem.core.disposeModelStep"
+                  insertBefore="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
+         </references>
+      </stepGroup>
+
+      <stepGroup id="org.eclipse.tcf.te.tcf.locator.connectionRecoveringStepGroup">
+         <references>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.filesystem.core.initializeModelStep"
+                  insertAfter="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"/>
+         </references>
+      </stepGroup>
+      
+      <stepGroup id="org.eclipse.tcf.te.tcf.locator.connectionLostStepGroup">
+         <references>
+            <reference
+                  id="org.eclipse.tcf.te.tcf.filesystem.core.disposeModelStep"
+                  insertBefore="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
+         </references>
+      </stepGroup>
+   </extension>
+</plugin>
