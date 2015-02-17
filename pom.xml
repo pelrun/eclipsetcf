@@ -75,7 +75,6 @@
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.forms</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.notifications</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.swt</module>
-        <module>target_explorer/plugins/org.eclipse.tcf.te.core.terminals</module>
         <module>target_explorer/plugins/org.eclipse.tcf.te.ui.views</module>
 
         <module>target_explorer/features/org.eclipse.tcf.te.feature</module>
@@ -89,6 +88,7 @@
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.sdk.feature</module>
 
+        <module>terminals/plugins/org.eclipse.tcf.te.core.terminals</module>
         <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals</module>
         <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.local</module>
         <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.process</module>
