@@ -201,6 +201,9 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 final Map<String,String> attrs = new HashMap<String,String>();
+                attrs.put("TransportName", "TCP");
+                attrs.put("Host", "127.0.0.1");
+                attrs.put("Port", "1534");
                 SetupWizardDialog wizard = new SetupWizardDialog(attrs);
                 WizardDialog dialog = new WizardDialog(getShell(), wizard);
                 dialog.create();

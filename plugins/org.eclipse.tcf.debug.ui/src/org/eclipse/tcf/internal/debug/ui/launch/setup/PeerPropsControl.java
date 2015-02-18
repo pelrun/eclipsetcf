@@ -92,7 +92,7 @@ public class PeerPropsControl {
         this.attrs = attrs;
         this.enable_editing = enable_editing;
         this.listener = listener;
-        create_new = attrs.isEmpty();
+        create_new = attrs.get(IPeer.ATTR_ID) == null;
         attr_table_data = new ArrayList<Attribute>();
 
         createTextFields(parent);
