@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
@@ -47,12 +46,7 @@ public class ShutDownStep extends AbstractPeerStep {
 		Assert.isNotNull(monitor);
 		Assert.isNotNull(callback);
 
-		Protocol.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				Tcf.getChannelManager().shutdown(getActivePeerContext(context, data, fullQualifiedId));
-				callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
-			}
-		});
+		Tcf.getChannelManager().shutdown(getActivePeerContext(context, data, fullQualifiedId), true);
+		callback(data, fullQualifiedId, callback, Status.OK_STATUS, null);
 	}
 }

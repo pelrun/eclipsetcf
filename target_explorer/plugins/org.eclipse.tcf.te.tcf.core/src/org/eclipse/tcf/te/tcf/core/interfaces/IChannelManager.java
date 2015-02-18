@@ -138,6 +138,16 @@ public interface IChannelManager extends IAdaptable {
 	public void shutdown(IPeer peer);
 
 	/**
+	 * Shutdown the communication to the given peer, no matter of the current
+	 * reference count. A possible associated value-add is shutdown as well.
+	 *
+	 * @param peer The peer. Must not be <code>null</code>.
+	 * @param wait If <code>true</code> the method will wait until all channels or closed. If <code>false</code>,
+	 *             the method will return immediately.
+	 */
+	public void shutdown(IPeer peer, boolean wait);
+
+	/**
 	 * Close all open channel, no matter of the current reference count.
 	 * <p>
 	 * If <code>wait</code> equals <code>false</code>, the method can be called

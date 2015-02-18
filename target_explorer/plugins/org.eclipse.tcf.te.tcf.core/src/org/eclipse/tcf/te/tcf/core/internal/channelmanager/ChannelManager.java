@@ -602,10 +602,10 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#shutdown(org.eclipse.tcf.protocol.IPeer)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#shutdown(org.eclipse.tcf.protocol.IPeer, boolean)
 	 */
 	@Override
-	public void shutdown(final IPeer peer) {
+	public void shutdown(final IPeer peer, boolean wait) {
 		Runnable runnable = new Runnable() {
 			@Override
             public void run() {
@@ -613,8 +613,18 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 				internalShutdown(peer);
 			}
 		};
+
 		if (Protocol.isDispatchThread()) runnable.run();
+		else if (wait) Protocol.invokeAndWait(runnable);
 		else Protocol.invokeLater(runnable);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager#shutdown(org.eclipse.tcf.protocol.IPeer)
+	 */
+	@Override
+	public void shutdown(final IPeer peer) {
+		shutdown(peer, false);
 	}
 
 	/**
@@ -646,10 +656,20 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 		if (channel != null) {
 			// Reset the reference count (will force a channel close)
 			refCounters.remove(channel);
+			channels.remove(channel.getRemotePeer().getID());
+			c2p.remove(channel);
 
 			// Close the channel
-			internalCloseChannel(channel, null);
+			channel.close();
+
+			// Log closed channels
+			ChannelEvent event = new ChannelEvent(ChannelManager.this, channel, ChannelEvent.TYPE_CLOSE, null);
+			EventManager.getInstance().fireEvent(event);
+
+			event = new ChannelEvent(ChannelManager.this, channel, ChannelEvent.TYPE_CLOSE_WRITER, null);
+			EventManager.getInstance().fireEvent(event);
 		}
+
 
 		try {
 			IValueAdd[] valueAdds = ValueAddManager.getInstance().getValueAdd(peer);
