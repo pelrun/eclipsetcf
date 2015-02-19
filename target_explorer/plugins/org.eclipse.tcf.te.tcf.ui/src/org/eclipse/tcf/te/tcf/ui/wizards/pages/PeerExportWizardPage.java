@@ -36,6 +36,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
@@ -254,6 +256,12 @@ public class PeerExportWizardPage extends WizardPage {
 		if (getDialogSettings().get(OLD_PATH) != null) {
 			fDestinationField.setText(getDialogSettings().get(OLD_PATH));
 		}
+		fDestinationField.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				setPageComplete(isComplete());
+			}
+		});
 
 		fDestinationButton = createButton(destinationSelectionGroup, IDialogConstants.SELECT_ALL_ID, Messages.PeerExportWizardPage_destination_button, false);
 		fDestinationButton.addSelectionListener(new SelectionAdapter() {
@@ -304,8 +312,13 @@ public class PeerExportWizardPage extends WizardPage {
 			setErrorMessage(Messages.PeerExportWizardPage_destinationMissing_error);
 			return false;
 		}
-		if ((new File(path)).isFile()) {
+		File dir = new File(path);
+		if (dir.isFile()) {
 			setErrorMessage(Messages.PeerExportWizardPage_destinationIsFile_error);
+			return false;
+		}
+		if (!dir.isAbsolute()) {
+			setErrorMessage(Messages.PeerExportWizardPage_destinationMissing_error);
 			return false;
 		}
 		setErrorMessage(null);
