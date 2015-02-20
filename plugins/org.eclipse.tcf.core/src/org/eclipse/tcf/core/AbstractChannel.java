@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -335,29 +335,63 @@ public abstract class AbstractChannel implements IChannel {
 
         out_thread = new Thread() {
 
+            private final byte[] out_buf = new byte[0x4000];
+            private int out_buf_pos;
+
+            void writeBytes(byte[] buf)  throws IOException {
+                if (buf.length > out_buf.length) {
+                    write(out_buf, 0, out_buf_pos);
+                    out_buf_pos = 0;
+                    write(buf);
+                }
+                else {
+                    int i = 0;
+                    while (i < buf.length) {
+                        if (out_buf_pos >= out_buf.length) {
+                            write(out_buf);
+                            out_buf_pos = 0;
+                        }
+                        int n = buf.length - i;
+                        if (n > out_buf.length - out_buf_pos) n = out_buf.length - out_buf_pos;
+                        System.arraycopy(buf, i, out_buf, out_buf_pos, n);
+                        out_buf_pos += n;
+                        i += n;
+                    }
+                }
+            }
+
             void writeString(String s) throws IOException {
                 int l = s.length();
                 for (int i = 0; i < l; i++) {
+                    if (out_buf_pos + 4 > out_buf.length) {
+                        write(out_buf, 0, out_buf_pos);
+                        out_buf_pos = 0;
+                    }
                     int ch = s.charAt(i);
                     if (ch < 0x80) {
-                        write(ch);
+                        out_buf[out_buf_pos++] = (byte)ch;
                     }
                     else if (ch < 0x800) {
-                        write((ch >> 6) | 0xc0);
-                        write(ch & 0x3f | 0x80);
+                        out_buf[out_buf_pos++] = (byte)((ch >> 6) | 0xc0);
+                        out_buf[out_buf_pos++] = (byte)(ch & 0x3f | 0x80);
                     }
                     else if (ch < 0x10000) {
-                        write((ch >> 12) | 0xe0);
-                        write((ch >> 6) & 0x3f | 0x80);
-                        write(ch & 0x3f | 0x80);
+                        out_buf[out_buf_pos++] = (byte)((ch >> 12) | 0xe0);
+                        out_buf[out_buf_pos++] = (byte)((ch >> 6) & 0x3f | 0x80);
+                        out_buf[out_buf_pos++] = (byte)(ch & 0x3f | 0x80);
                     }
                     else {
-                        write((ch >> 18) | 0xf0);
-                        write((ch >> 12) & 0x3f | 0x80);
-                        write((ch >> 6) & 0x3f | 0x80);
-                        write(ch & 0x3f | 0x80);
+                        out_buf[out_buf_pos++] = (byte)((ch >> 18) | 0xf0);
+                        out_buf[out_buf_pos++] = (byte)((ch >> 12) & 0x3f | 0x80);
+                        out_buf[out_buf_pos++] = (byte)((ch >> 6) & 0x3f | 0x80);
+                        out_buf[out_buf_pos++] = (byte)(ch & 0x3f | 0x80);
                     }
                 }
+                if (out_buf_pos >= out_buf.length) {
+                    write(out_buf);
+                    out_buf_pos = 0;
+                }
+                out_buf[out_buf_pos++] = 0;
             }
 
             @Override
@@ -393,23 +427,14 @@ public abstract class AbstractChannel implements IChannel {
                                 }
                             });
                         }
-                        write(msg.type);
-                        write(0);
-                        if (msg.token != null) {
-                            write(msg.token.getBytes());
-                            write(0);
-                        }
-                        if (msg.service != null) {
-                            writeString(msg.service);
-                            write(0);
-                        }
-                        if (msg.name != null) {
-                            writeString(msg.name);
-                            write(0);
-                        }
-                        if (msg.data != null) {
-                            write(msg.data);
-                        }
+                        out_buf_pos = 0;
+                        out_buf[out_buf_pos++] = (byte)msg.type;
+                        out_buf[out_buf_pos++] = 0;
+                        if (msg.token != null) writeString(msg.token.getID());
+                        if (msg.service != null) writeString(msg.service);
+                        if (msg.name != null) writeString(msg.name);
+                        if (msg.data != null) writeBytes(msg.data);
+                        write(out_buf, 0, out_buf_pos);
                         write(EOM);
                         int delay = 0;
                         int level = remote_congestion_level;
@@ -1133,5 +1158,18 @@ public abstract class AbstractChannel implements IChannel {
     protected void write(byte[] buf) throws IOException {
         assert Thread.currentThread() == out_thread;
         for (int i = 0; i < buf.length; i++) write(buf[i] & 0xff);
+    }
+
+    /**
+     * Write array of bytes into the channel output stream.
+     * The stream can put bytes into a buffer instead of transmitting it right away.
+     * @param buf
+     * @param pos
+     * @param len
+     * @throws IOException
+     */
+    protected void write(byte[] buf, int pos, int len) throws IOException {
+        assert Thread.currentThread() == out_thread;
+        for (int i = pos; i < pos + len; i++) write(buf[i] & 0xff);
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,9 +31,11 @@ public abstract class StreamChannel extends AbstractChannel {
 
     private int bin_data_size;
 
-    private final byte[] buf = new byte[0x1000];
-    private int buf_pos;
-    private int buf_len;
+    private final byte[] esc_buf = new byte[0x1000];
+
+    private final byte[] inp_buf = new byte[0x4000];
+    private int inp_buf_pos;
+    private int inp_buf_len;
 
     public StreamChannel(IPeer remote_peer) {
         super(remote_peer);
@@ -47,6 +49,7 @@ public abstract class StreamChannel extends AbstractChannel {
     protected abstract void put(int n) throws IOException;
 
     protected int get(byte[] buf) throws IOException {
+        /* Default implementation - it is expected to be overridden */
         int i = 0;
         while (i < buf.length) {
             int b = get();
@@ -61,41 +64,48 @@ public abstract class StreamChannel extends AbstractChannel {
     }
 
     protected void put(byte[] buf) throws IOException {
+        /* Default implementation - it is expected to be overridden */
         for (byte b : buf) put(b & 0xff);
+    }
+
+    protected void put(byte[] buf, int pos, int len) throws IOException {
+        /* Default implementation - it is expected to be overridden */
+        int end = pos + len;
+        while (pos < end) put(buf[pos++] & 0xff);
     }
 
     @Override
     protected final int read() throws IOException {
         for (;;) {
-            while (buf_pos >= buf_len) {
-                buf_len = get(buf);
-                buf_pos = 0;
-                if (buf_len < 0) return EOS;
+            while (inp_buf_pos >= inp_buf_len) {
+                inp_buf_len = get(inp_buf);
+                inp_buf_pos = 0;
+                if (inp_buf_len < 0) return EOS;
             }
-            int res = buf[buf_pos++] & 0xff;
+            int res = inp_buf[inp_buf_pos++] & 0xff;
             if (bin_data_size > 0) {
                 bin_data_size--;
                 return res;
             }
             if (res != ESC) return res;
-            while (buf_pos >= buf_len) {
-                buf_len = get(buf);
-                buf_pos = 0;
-                if (buf_len < 0) return EOS;
+            while (inp_buf_pos >= inp_buf_len) {
+                inp_buf_len = get(inp_buf);
+                inp_buf_pos = 0;
+                if (inp_buf_len < 0) return EOS;
             }
-            int n = buf[buf_pos++] & 0xff;
+            int n = inp_buf[inp_buf_pos++] & 0xff;
             switch (n) {
             case 0: return ESC;
             case 1: return EOM;
             case 2: return EOS;
             case 3:
                 for (int i = 0;; i += 7) {
-                    while (buf_pos >= buf_len) {
-                        buf_len = get(buf);
-                        buf_pos = 0;
-                        if (buf_len < 0) return EOS;
+                    while (inp_buf_pos >= inp_buf_len) {
+                        inp_buf_len = get(inp_buf);
+                        inp_buf_pos = 0;
+                        if (inp_buf_len < 0) return EOS;
                     }
-                    int m = buf[buf_pos++] & 0xff;
+                    int m = inp_buf[inp_buf_pos++] & 0xff;
                     bin_data_size |= (m & 0x7f) << i;
                     if ((m & 0x80) == 0) break;
                 }
@@ -110,36 +120,64 @@ public abstract class StreamChannel extends AbstractChannel {
     @Override
     protected final void write(int n) throws IOException {
         switch (n) {
-        case ESC: put(ESC); put(0); break;
-        case EOM: put(ESC); put(1); break;
-        case EOS: put(ESC); put(2); break;
+        case ESC:
+            esc_buf[0] = ESC;
+            esc_buf[1] = 0;
+            put(esc_buf, 0, 2);
+            break;
+        case EOM:
+            esc_buf[0] = ESC;
+            esc_buf[1] = 1;
+            put(esc_buf, 0, 2);
+            break;
+        case EOS:
+            esc_buf[0] = ESC;
+            esc_buf[1] = 2;
+            put(esc_buf, 0, 2);
+            break;
         default:
             assert n >= 0 && n <= 0xff;
             put(n);
+            break;
         }
     }
 
     @Override
-    protected void write(byte[] buf) throws IOException {
-        if (buf.length > 32 && isZeroCopySupported()) {
-            put(ESC); put(3);
-            int n = buf.length;
+    protected final void write(byte[] buf) throws IOException {
+        write(buf, 0, buf.length);
+    }
+
+    @Override
+    protected final void write(byte[] buf, int pos, int len) throws IOException {
+        if (len > 32 && isZeroCopySupported()) {
+            int n = len;
+            int esc_buf_pos = 0;
+            esc_buf[esc_buf_pos++] = ESC;
+            esc_buf[esc_buf_pos++] = 3;
             for (;;) {
                 if (n <= 0x7f) {
-                    put(n);
+                    esc_buf[esc_buf_pos++] = (byte)n;
                     break;
                 }
-                put((n & 0x7f) | 0x80);
+                esc_buf[esc_buf_pos++] = (byte)((n & 0x7f) | 0x80);
                 n = n >> 7;
             }
-            put(buf);
+            put(esc_buf, 0, esc_buf_pos);
+            put(buf, pos, len);
         }
         else {
-            for (byte b : buf) {
-                int n = b & 0xff;
-                put(n);
-                if (n == ESC) put(0);
+            int esc_buf_pos = 0;
+            int end = pos + len;
+            for (int i = pos; i < end; i++) {
+                if (esc_buf_pos + 2 > esc_buf.length) {
+                    put(esc_buf, 0, esc_buf_pos);
+                    esc_buf_pos = 0;
+                }
+                byte b = buf[i];
+                esc_buf[esc_buf_pos++] = b;
+                if (b == ESC) esc_buf[esc_buf_pos++] = 0;
             }
+            put(esc_buf, 0, esc_buf_pos);
         }
     }
 }
