@@ -53,15 +53,13 @@
 		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git</tycho.scmUrl>
 
 		<!-- P2 repository URL's -->
-		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.6 (Luna) -->
+		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 3.7 (Luna) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
         <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
-		<tm-site>http://download.eclipse.org/tm/updates/3.6</tm-site>
+		<tm-site>http://download.eclipse.org/tm/builds/luna/nightly</tm-site>
         <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/1.1.1</ptp-remote-site>
-		<!-- RXTX is unresponsive. Take it out for now -->
-		<!-- <rxtx-site>http://rxtx.qbang.org/eclipse</rxtx-site> -->
-		<rxtx-backup-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-backup-site>
+		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
@@ -102,16 +100,9 @@
 			<url>${ptp-remote-site}</url>
 			<layout>p2</layout>
 		</repository>
-		<!--
 		<repository>
 			<id>rxtx</id>
 			<url>${rxtx-site}</url>
-			<layout>p2</layout>
-		</repository>
-		-->
-		<repository>
-			<id>rxtx-backup</id>
-			<url>${rxtx-backup-site}</url>
 			<layout>p2</layout>
 		</repository>
 	</repositories>
