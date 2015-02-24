@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tests.tcf.processes.launcher;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -18,11 +19,13 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.tcf.services.IProcesses.ProcessesListener;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
+import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessProcessesListener;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
 
 /**
@@ -93,10 +96,23 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 			assertNull("Failed to copy file from " + helloWorldLocation.toOSString() + " to " + tempHelloWorld.toOSString() + ": " + e, e); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 
+		final AtomicBoolean processExited = new AtomicBoolean();
+
 		// Create the process streams proxy
 		ProcessStreamsProxy proxy = new ProcessStreamsProxy();
 		// Create the process launcher
-		ProcessLauncher launcher = new ProcessLauncher(proxy);
+		ProcessLauncher launcher = new ProcessLauncher(proxy) {
+			@Override
+			protected ProcessesListener createProcessesListener() {
+			    return new ProcessProcessesListener(this) {
+			    	@Override
+			    	public void exited(String processId, int exitCode) {
+			    	    super.exited(processId, exitCode);
+			    	    processExited.set(true);
+			    	}
+			    };
+			}
+		};
 
 		// Create the launch properties
 		IPropertiesContainer properties = new PropertiesContainer();
@@ -113,8 +129,19 @@ public class ProcessLauncherTestCase extends TcfTestCase {
 			}
 		});
 
+		// Wait for the process to terminate
+		int counter = 50;
+		while (counter > 0 && !processExited.get()) {
+			waitAndDispatch(100);
+			counter--;
+		}
+		assertTrue("Test application did not exit in time.", processExited.get()); //$NON-NLS-1$
+
+		// Bug 431347: ProcessOutputReaderThread does not terminate itself on EOF
+		proxy.getOutputReader().interrupt();
+
 		// Wait for the output reader to finish
-		int counter = 240;
+		counter = 240;
 		while (counter > 0) {
 			if (proxy.getOutputReader() != null && proxy.getOutputReader().isFinished()) break;
 			waitAndDispatch(500);

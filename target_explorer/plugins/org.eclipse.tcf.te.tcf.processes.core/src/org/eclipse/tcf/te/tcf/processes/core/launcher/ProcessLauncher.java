@@ -560,14 +560,6 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			return;
 		}
 
-		// The callback collector assure that all necessary work, like opening the terminal
-		// window and terminal tab, is done before the process get launched finally.
-		AsyncCallbackCollector collector = new AsyncCallbackCollector(new Callback() {
-			@Override
-			protected void internalDone(Object caller, IStatus status) {
-			}
-		}, new CallbackInvocationDelegate());
-
 		// The streams got subscribed, check what we need to do with them
 		if (streamsProxy != null) {
 			// Publish the streams to the supplied proxy
@@ -576,17 +568,17 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			streamsProxy.connectOutputStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, null));
 			// Create and store the streams the terminal will see as stderr
 			streamsProxy.connectErrorStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDERR_ID }, null));
+			onAttachStreamsDone();
 		} else if (properties.getBooleanProperty(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE)) {
 			// We don't have a streams proxy, we default the output redirection to the standard terminals console view
-
-			// Register the terminal tab listener to listen to the terminal events
-			terminalTabListener = new ProcessLauncherTerminalTabListener(this);
-			TerminalServiceFactory.getService().addTerminalTabListener(terminalTabListener);
 
 			// Get the terminal service
 			ITerminalService terminal = TerminalServiceFactory.getService();
 			// If not available, we cannot fulfill this request
 			if (terminal != null) {
+				// Register the terminal tab listener to listen to the terminal events
+				terminalTabListener = new ProcessLauncherTerminalTabListener(this);
+				terminal.addTerminalTabListener(terminalTabListener);
 				// Create the terminal streams settings
 				Map<String, Object> props = new HashMap<String, Object>();
 				props.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, "org.eclipse.tcf.te.ui.terminals.telnet.launcher.streams"); //$NON-NLS-1$
@@ -639,6 +631,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 						});
 					}
 				});
+			} else {
+				onAttachStreamsDone();
 			}
 		} else if (properties.getStringProperty(IProcessLauncher.PROP_PROCESS_OUTPUT_REDIRECT_TO_FILE) != null) {
 			// Get the file name where to redirect the process output to
@@ -652,6 +646,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				if (getStreamsListener() instanceof ProcessStreamsListener) {
 					((ProcessStreamsListener)getStreamsListener()).registerDataReceiver(receiver);
 				}
+				onAttachStreamsDone();
 			} catch (IOException e) {
 				// Construct the error message to show to the user
 				String message = NLS.bind(getProcessLaunchFailedMessageTemplate(),
@@ -666,9 +661,6 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				return;
 			}
 		}
-
-		// Mark the collector initialization as done
-		collector.initDone();
 	}
 
 	/**
