@@ -411,6 +411,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                label="%command.refresh.label"
+               mnemonic="%command.refresh.mnemonic"
                style="push"
                tooltip="%command.refresh.tooltip">
             <visibleWhen checkEnabled="false">
@@ -441,6 +442,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                label="%command.refresh.label"
+               mnemonic="%command.refresh.mnemonic"
                style="push"
                tooltip="%command.refresh.tooltip">
             <visibleWhen checkEnabled="false">
@@ -468,7 +470,9 @@
          </command>
       </menuContribution>
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.command.debug">
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.command.debug"
+               mnemonic="%command.debug.mnemonic">
             <visibleWhen checkEnabled="false">
                <with variable="selection">
                   <count value="1"/>
@@ -575,7 +579,9 @@
       </menuContribution>      
 
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?before=group.goto">
-         <command commandId="org.eclipse.tcf.te.ui.command.connect">
+         <command
+               commandId="org.eclipse.tcf.te.ui.command.connect"
+               mnemonic="%command.connect.mnemonic">
             <visibleWhen checkEnabled="false">
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
@@ -616,13 +622,19 @@
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.open">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"
+               mnemonic="%command.open.mnemonic"/>
       </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.delete">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
+               mnemonic="%command.delete.mnemonic"/>
       </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.new">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
+               mnemonic="%command.new.mnemonic"/>
       </menuContribution>
 
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.toolbar?after=group.actions">
@@ -648,7 +660,9 @@
                </with>
             </visibleWhen>
          </dynamic>
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history">
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"
+               mnemonic="%command.history.mnemonic">
             <visibleWhen checkEnabled="false">
                <with variable="defaultContextSelection">
                   <and>
@@ -663,7 +677,9 @@
          </command>
       </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"
+               mnemonic="%command.debug.mnemonic">
             <visibleWhen checkEnabled="false">
                <with variable="defaultContextSelection">
                   <and>
@@ -680,12 +696,18 @@
 
    <!-- System menu contribution -->
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.connect">
-         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"/>
-         <command commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"/>
+         <command
+               commandId="org.eclipse.tcf.te.ui.toolbar.command.connect"
+               mnemonic="%command.connect.mnemonic"/>
+         <command
+               commandId="org.eclipse.tcf.te.ui.toolbar.command.disconnect"
+               mnemonic="%command.disconnect.mnemonic"/>
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug">
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"
+               mnemonic="%command.debug.mnemonic">
             <visibleWhen checkEnabled="false">
                <with variable="defaultContextSelection">
                   <and>
@@ -701,22 +723,34 @@
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.open">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.open"
+               mnemonic="%command.open.mnemonic"/>
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.delete">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
+               mnemonic="%command.delete.mnemonic"/>
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.history">
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"/>
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.history"
+               mnemonic="%command.history.mnemonic"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"
+               mnemonic="%command.historyLast.mnemonic"/>
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.new">
          <separator name="group.connections" visible="true"/>
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.select"/>
-         <command commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.select"
+               mnemonic="%command.select.mnemonic"/>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
+               mnemonic="%command.new.mnemonic"/>
       </menuContribution>
 
    </extension>

@@ -245,12 +245,16 @@
    <extension point="org.eclipse.ui.menus">
 
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.connect">
-         <command commandId="org.eclipse.tcf.te.ui.command.connect">
+         <command
+               commandId="org.eclipse.tcf.te.ui.command.connect"
+               mnemonic="%command.connect.mnemonic">
             <visibleWhen checkEnabled="false">
                <reference definitionId="te.expressions.selection.IConnectable"/>
             </visibleWhen>
          </command>
-         <command commandId="org.eclipse.tcf.te.ui.command.disconnect">
+         <command
+               commandId="org.eclipse.tcf.te.ui.command.disconnect"
+               mnemonic="%command.disconnect.mnemonic">
             <visibleWhen checkEnabled="false">
                <reference definitionId="te.expressions.selection.IConnectable"/>
             </visibleWhen>
@@ -258,8 +262,10 @@
       </menuContribution>
 
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.ui.views.View?after=group.connect">
-         <command commandId="org.eclipse.tcf.te.ui.command.connect"/>
-         <command commandId="org.eclipse.tcf.te.ui.command.disconnect"/>
+         <command
+               commandId="org.eclipse.tcf.te.ui.command.connect"/>
+         <command
+               commandId="org.eclipse.tcf.te.ui.command.disconnect"/>
       </menuContribution>
    </extension>
 

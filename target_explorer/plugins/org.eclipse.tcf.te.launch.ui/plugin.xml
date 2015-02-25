@@ -219,12 +219,14 @@
                visible="true"/>
          <menu
                id="org.eclipse.tcf.te.launch.ui.views.project.menu.showIn"
-               label="%ShowIn.menu.name">
+               label="%ShowIn.menu.name"
+               mnemonic="%ShowIn.menu.mnemonic">
             <command
                   commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
                   id="org.eclipse.tcf.te.launch.ui.views.project.commands.showInProperties"
                   icon="icons/eview16/prop_ps.gif" 
                   label="%Properties.menu.name"
+                  mnemonic="%Properties.menu.mnemonic"
                   style="push">
             </command>
             <visibleWhen>
@@ -392,12 +394,14 @@
                visible="true"/>
          <menu
                id="org.eclipse.tcf.te.launch.ui.editor.menu.showIn"
-               label="%ShowIn.menu.name">
+               label="%ShowIn.menu.name"
+               mnemonic="%ShowIn.menu.mnemonic">
             <command
                   commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
                   id="org.eclipse.tcf.te.launch.ui.editor.commands.showInProperties"
                   icon="icons/eview16/prop_ps.gif" 
                   label="%Properties.menu.name"
+                  mnemonic="%Properties.menu.mnemonic"
                   style="push">
                <visibleWhen>
                   <reference definitionId="launch.expressions.isSingleLaunchConfig"/>

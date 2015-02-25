@@ -188,6 +188,7 @@
                icon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/elcl16/attach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.attach"
                label="%command.attach.label"
+               mnemonic="%command.attach.mnemonic"
                style="push"
                tooltip="%command.attach.tooltip">
             <visibleWhen checkEnabled="false">
@@ -215,6 +216,7 @@
                icon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/elcl16/detach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.detach"
                label="%command.detach.label"
+               mnemonic="%command.detach.mnemonic"
                style="push"
                tooltip="%command.detach.tooltip">
             <visibleWhen checkEnabled="false">
@@ -239,6 +241,7 @@
                icon="platform:/plugin/org.eclipse.debug.ui/icons/full/elcl16/terminate_co.gif"
                id="org.eclipse.tcf.te.launch.menu.terminate"
                label="%command.terminate.label"
+               mnemonic="%command.terminate.mnemonic"
                style="push"
                tooltip="%command.terminate.tooltip">
             <visibleWhen checkEnabled="false">
@@ -251,7 +254,7 @@
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                id="org.eclipse.tcf.te.ui.commands.refresh"
                label="%command.refresh.label"
-               mnemonic="f"
+               mnemonic="%command.refresh.mnemonic"
                style="push"
                tooltip="%command.refresh.tooltip">
             <visibleWhen checkEnabled="false">
@@ -306,12 +309,14 @@
          </separator>
          <menu
                id="org.eclipse.tcf.te.launch.ui.editor.menu.showIn"
-               label="%ShowIn.menu.name">
+               label="%ShowIn.menu.name"
+               mnemonic="%ShowIn.menu.mnemonic">
                <command
                      commandId="org.eclipse.tcf.te.ui.views.command.ShowInProperties"
                      id="org.eclipse.tcf.te.launch.ui.editor.commands.showInProperties"
-                     icon="icons/eview16/prop_ps.gif" 
+                     icon="icons/eview16/prop_ps.gif"
                      label="%Properties.menu.name"
+                     mnemonic="%Properties.menu.mnemonic"
                      style="push">
                   <visibleWhen>
                      <reference definitionId="te.expressions.processes.isProcessTreeNode"/>
@@ -333,6 +338,7 @@
                icon="icons/elcl16/attach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.attach"
                label="%command.attach.label"
+               mnemonic="%command.attach.mnemonic"
                style="push"
                tooltip="%command.attach.tooltip">
             <visibleWhen checkEnabled="false">
@@ -397,6 +403,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                label="%command.refresh.label"
+               mnemonic="%command.refresh.mnemonic"
                style="push"
                tooltip="%command.refresh.tooltip">
             <visibleWhen checkEnabled="false">
@@ -480,7 +487,9 @@
 
    <!-- System menu contributions -->
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.main.menu.system?after=group.launch.rundebug">
-         <command commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach">
+         <command 
+               commandId="org.eclipse.tcf.te.tcf.processes.ui.command.attach"
+               mnemonic="%command.attach.mnemonic">
             <visibleWhen checkEnabled="false">
                <with variable="defaultContextSelection">
                   <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">

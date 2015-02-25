@@ -326,6 +326,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                label="%fsmenu.refresh.label"
+               mnemonic="%command.refresh.mnemonic"
                style="push"
                tooltip="%command.refresh.tooltip">
             <visibleWhen
@@ -733,6 +734,7 @@
          <command
                commandId="org.eclipse.tcf.te.ui.command.refresh"
                label="%fsmenu.refresh.label"
+               mnemonic="%command.refresh.mnemonic"
                style="push"
                tooltip="%command.refresh.tooltip">
             <visibleWhen
