@@ -14,7 +14,9 @@ import java.util.EventObject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventFireDelegate;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -47,7 +49,7 @@ public final class EventListener extends PlatformObject implements IEventListene
 			String type = ((ChannelEvent)event).getType();
 			IPropertiesContainer data = ((ChannelEvent)event).getData();
 
-			String message = data != null ? data.getStringProperty(ChannelEvent.PROP_MESSAGE) : null;
+			final String message = data != null ? data.getStringProperty(ChannelEvent.PROP_MESSAGE) : null;
 			String logname = data != null ? data.getStringProperty(ChannelEvent.PROP_LOG_NAME) : null;
 
 			if (logname != null) logname = LogManager.getInstance().makeValid(logname);
@@ -68,7 +70,22 @@ public final class EventListener extends PlatformObject implements IEventListene
 				ChannelTraceListenerManager.getInstance().onMark(logname, channel, message);
 			}
 			else if (ChannelEvent.TYPE_CLOSE_WRITER.equals(type)) {
-				LogManager.getInstance().closeWriter(logname, channel, message);
+				// Determine the remote peer from the channel
+				final IPeer peer = channel.getRemotePeer();
+				if (peer != null) {
+					final String lognameFinal = logname;
+
+					// This method is called in the TCF event dispatch thread. There
+					// is no need that the logging itself keeps the TCF event dispatch
+					// thread busy. Execute the logging itself in a separate thread but
+					// still maintain the order of the messages.
+					ExecutorsUtil.execute(new Runnable() {
+						@Override
+						public void run() {
+							LogManager.getInstance().closeWriter(lognameFinal, peer, message);
+						}
+					});
+				}
 			}
 			else if (ChannelEvent.TYPE_SERVICS.equals(type)) {
 				ChannelTraceListenerManager.getInstance().onChannelServices(logname, channel, message);

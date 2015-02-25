@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 - 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011 - 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -19,7 +19,10 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.core.AbstractChannel.TraceListener;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IDiagnostics;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.tcf.core.util.JSONUtils;
 import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
@@ -31,7 +34,7 @@ import org.eclipse.tcf.te.tcf.log.core.manager.LogManager;
 /**
  * TCF logging channel trace listener implementation.
  */
-public class ChannelTraceListener implements TraceListener {
+public final class ChannelTraceListener implements TraceListener {
 	/**
 	 * Time format representing time with milliseconds.
 	 */
@@ -43,11 +46,11 @@ public class ChannelTraceListener implements TraceListener {
 	public final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); //$NON-NLS-1$
 
 	// Reference to the channel
-	private final IChannel channel;
+	/* default */ final IChannel channel;
 	// The log name
-	private final String logname;
+	/* default */ final String logname;
 
-	private final boolean reverseReceived;
+	/* default */ final boolean reverseReceived;
 
 	/**
 	 * Constructor.
@@ -77,69 +80,117 @@ public class ChannelTraceListener implements TraceListener {
 	 * @see org.eclipse.tcf.core.AbstractChannel.TraceListener#onChannelClosed(java.lang.Throwable)
 	 */
 	@Override
-	public void onChannelClosed(Throwable error) {
+	public void onChannelClosed(final Throwable error) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("TraceListener.onChannelClosed ( " + error + " )", //$NON-NLS-1$ //$NON-NLS-2$
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
 
-		// Get the current time stamp
-		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+		// Determine the remote peer from the channel
+		final IPeer peer = channel.getRemotePeer();
+		if (peer == null) return;
 
-		String message = NLS.bind(Messages.ChannelTraceListener_channelClosed_message,
-								  new Object[] {
-										date,
-										Integer.toHexString(channel.hashCode()),
-										error
-								  });
+		// Determine the date and time of the message before spawning to the log thread.
+		final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
-		if (writer != null) {
-			try {
-				writer.write(message);
-				writer.write("\n"); //$NON-NLS-1$
-				writer.flush();
-			} catch (IOException e) {
-				/* ignored on purpose */
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				final String message = NLS.bind(Messages.ChannelTraceListener_channelClosed_message,
+												new Object[] {
+													date,
+													Integer.toHexString(channel.hashCode()),
+													error
+												});
+
+				// Get the file writer
+				FileWriter writer = LogManager.getInstance().getWriter(logname, peer);
+				if (writer != null) {
+					try {
+						writer.write(message);
+						writer.write("\n"); //$NON-NLS-1$
+						writer.flush();
+					} catch (IOException e) {
+						/* ignored on purpose */
+					}
+				}
+
+				LogManager.getInstance().monitor(peer, MonitorEvent.Type.CLOSE, new MonitorEvent.Message('F', message));
 			}
-		}
-
-		LogManager.getInstance().monitor(channel, MonitorEvent.Type.CLOSE, new MonitorEvent.Message('F', message));
+		});
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.core.AbstractChannel.TraceListener#onMessageReceived(char, java.lang.String, java.lang.String, java.lang.String, byte[])
 	 */
 	@Override
-	public void onMessageReceived(char type, String token, String service, String name, byte[] data) {
+	public void onMessageReceived(final char type, final String token, final String service, final String name, final byte[] data) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("TraceListener.onMessageReceived ( " + type //$NON-NLS-1$
 														+ ", " + token + ", " + service + ", " + name + ", ... )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
 
-		doLogMessage(type, token, service, name, data, reverseReceived ? false : true);
+		// Determine the remote peer from the channel
+		final IPeer peer = channel.getRemotePeer();
+		if (peer == null) return;
+
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				doLogMessage(peer, type, token, service, name, data, reverseReceived ? false : true);
+			}
+		});
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.core.AbstractChannel.TraceListener#onMessageSent(char, java.lang.String, java.lang.String, java.lang.String, byte[])
 	 */
 	@Override
-	public void onMessageSent(final char type, String token, String service, String name, byte[] data) {
+	public void onMessageSent(final char type, final String token, final String service, final String name, final byte[] data) {
+		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		if (CoreBundleActivator.getTraceHandler().isSlotEnabled(0, ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER)) {
 			CoreBundleActivator.getTraceHandler().trace("TraceListener.onMessageSent ( " + type //$NON-NLS-1$
 														+ ", " + token + ", " + service + ", " + name + ", ... )", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
 
-		doLogMessage(type, token, service, name, data, reverseReceived ? true : false);
+		// Determine the remote peer from the channel
+		final IPeer peer = channel.getRemotePeer();
+		if (peer == null) return;
+
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				doLogMessage(peer, type, token, service, name, data, reverseReceived ? true : false);
+			}
+		});
 	}
 
 	/**
 	 * Helper method to output the message to the logger.
 	 */
-	private void doLogMessage(final char type, String token, String service, String name, byte[] data, boolean received) {
+	/* default */ void doLogMessage(final IPeer peer, final char type, String token, String service, String name, byte[] data, boolean received) {
+		Assert.isNotNull(peer);
+		Assert.isTrue(ExecutorsUtil.isExecutorThread(), "Illegal Thread Access"); //$NON-NLS-1$
+
 		// Filter out the locator service messages
 		boolean locatorEvents =  CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_SHOW_LOCATOR_EVENTS);
 		if (!locatorEvents && service != null && service.toLowerCase().equals("locator")) { //$NON-NLS-1$
@@ -168,7 +219,7 @@ public class ChannelTraceListener implements TraceListener {
 		// Format the message
 		final String message = formatMessage(type, token, service, name, args, received);
 		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
+		FileWriter writer = LogManager.getInstance().getWriter(logname, peer);
 		if (writer != null) {
 			try {
 				writer.write(message);
@@ -178,13 +229,14 @@ public class ChannelTraceListener implements TraceListener {
 				/* ignored on purpose */
 			}
 		}
-		LogManager.getInstance().monitor(channel, MonitorEvent.Type.ACTIVITY, new MonitorEvent.Message(type, message));
+
+		LogManager.getInstance().monitor(peer, MonitorEvent.Type.ACTIVITY, new MonitorEvent.Message(type, message));
 	}
 
 	/**
 	 * Format the trace message.
 	 */
-	protected String formatMessage(char type, String token, String service, String name, String args, boolean received) {
+	private String formatMessage(char type, String token, String service, String name, String args, boolean received) {
 		// Get the current time stamp
 		String time = TIME_FORMAT.format(new Date(System.currentTimeMillis()));
 

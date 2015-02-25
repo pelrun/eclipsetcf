@@ -25,6 +25,7 @@ import org.eclipse.tcf.core.AbstractChannel;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
 import org.eclipse.tcf.te.tcf.log.core.interfaces.IPreferenceKeys;
@@ -35,7 +36,7 @@ import org.eclipse.tcf.te.tcf.log.core.manager.LogManager;
 /**
  * TCF logging channel trace listener manager implementation.
  */
-public class ChannelTraceListenerManager {
+public final class ChannelTraceListenerManager {
 	/**
 	 * Time format representing date and time with milliseconds.
 	 */
@@ -45,7 +46,7 @@ public class ChannelTraceListenerManager {
 	private final Map<IChannel, AbstractChannel.TraceListener> listeners = new HashMap<IChannel, AbstractChannel.TraceListener>();
 
 	// The map of queued messaged per channel
-	private final Map<IChannel, List<String>> queued = new HashMap<IChannel, List<String>>();
+	/* default */ final Map<IChannel, List<String>> queued = new HashMap<IChannel, List<String>>();
 
 	/*
 	 * Thread save singleton instance creation.
@@ -74,7 +75,7 @@ public class ChannelTraceListenerManager {
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelOpened(String logname, IChannel channel, String message) {
+	public void onChannelOpened(final String logname, final IChannel channel, final String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -87,6 +88,10 @@ public class ChannelTraceListenerManager {
 
 		// The trace listeners can be accessed only via AbstractChannel
 		if (!(channel instanceof AbstractChannel)) return;
+
+		// Determine the remote peer from the channel
+		final IPeer peer = channel.getRemotePeer();
+		if (peer == null) return;
 
 		// Get the preference key if or if not logging is enabled
 		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
@@ -103,40 +108,52 @@ public class ChannelTraceListenerManager {
 		// Remember the associated trace listener
 		listeners.put(channel, traceListener);
 
-		// Log the channel opening
-		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+		// Determine the date and time of the message before spawning to the log thread.
+		final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelOpened_message,
-										new Object[] {
-											date,
-											Integer.toHexString(channel.hashCode()),
-											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-								  		});
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelOpened_message,
+												new Object[] {
+													date,
+													Integer.toHexString(channel.hashCode()),
+													message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+										  		});
 
-		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
-		if (writer != null) {
-			try {
-				writer.write("\n\n\n"); //$NON-NLS-1$
+				// Get the file writer
+				FileWriter writer = LogManager.getInstance().getWriter(logname, peer);
+				if (writer != null) {
+					try {
+						writer.write("\n\n\n"); //$NON-NLS-1$
 
-				// Write the queued redirects
-				List<String> queue = queued.remove(channel);
-				if (queue != null) {
-					for (String m : queue) {
-						writer.write(m);
+						// Get the queued messages
+						List<String> queue = queued.remove(channel);
+
+						// Write the queued messages
+						if (queue != null) {
+							for (String m : queue) {
+								writer.write(m);
+								writer.write("\n"); //$NON-NLS-1$
+							}
+						}
+
+						// Write the opened message
+						writer.write(fullMessage);
 						writer.write("\n"); //$NON-NLS-1$
+						writer.flush();
+					} catch (IOException e) {
+						/* ignored on purpose */
 					}
 				}
-
-				// Write the opened message
-				writer.write(fullMessage);
-				writer.write("\n"); //$NON-NLS-1$
-				writer.flush();
-			} catch (IOException e) {
-				/* ignored on purpose */
+				LogManager.getInstance().monitor(peer, MonitorEvent.Type.OPEN, new MonitorEvent.Message('F', fullMessage));
 			}
-		}
-		LogManager.getInstance().monitor(channel, MonitorEvent.Type.OPEN, new MonitorEvent.Message('F', fullMessage));
+		});
+
 	}
 
 	/**
@@ -149,7 +166,7 @@ public class ChannelTraceListenerManager {
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelOpening(String logname, IChannel channel, String message) {
+	public void onChannelOpening(final String logname, final IChannel channel, final String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -163,22 +180,31 @@ public class ChannelTraceListenerManager {
 		// If false, we are done here and wont create any console or trace listener.
 		if (!loggingEnabled) return;
 
-		// Log the channel opening
-		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+		// Determine the date and time of the message before spawning to the log thread.
+		final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelOpening_message,
-										new Object[] {
-											date,
-											Integer.toHexString(channel.hashCode()),
-											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-								  		});
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelOpening_message,
+											  new Object[] {
+												date,
+												Integer.toHexString(channel.hashCode()),
+												message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+											  });
 
-		List<String> queue = queued.get(channel);
-		if (queue == null) {
-			queue = new ArrayList<String>();
-			queued.put(channel, queue);
-		}
-		queue.add(fullMessage);
+				List<String> queue = queued.get(channel);
+				if (queue == null) {
+					queue = new ArrayList<String>();
+					queued.put(channel, queue);
+				}
+				queue.add(fullMessage);
+			}
+		});
 	}
 
 	/**
@@ -188,7 +214,7 @@ public class ChannelTraceListenerManager {
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelRedirected(String logname, IChannel channel, String message) {
+	public void onChannelRedirected(final String logname, final IChannel channel, final String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -202,22 +228,31 @@ public class ChannelTraceListenerManager {
 		// If false, we are done here and wont create any console or trace listener.
 		if (!loggingEnabled) return;
 
-		// Log the channel opening
-		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+		// Determine the date and time of the message before spawning to the log thread.
+		final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelRedirected_message,
-										new Object[] {
-											date,
-											Integer.toHexString(channel.hashCode()),
-											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-								  		});
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelRedirected_message,
+											  new Object[] {
+												date,
+												Integer.toHexString(channel.hashCode()),
+												message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+											  });
 
-		List<String> queue = queued.get(channel);
-		if (queue == null) {
-			queue = new ArrayList<String>();
-			queued.put(channel, queue);
-		}
-		queue.add(fullMessage);
+				List<String> queue = queued.get(channel);
+				if (queue == null) {
+					queue = new ArrayList<String>();
+					queued.put(channel, queue);
+				}
+				queue.add(fullMessage);
+			}
+		});
 	}
 
 	/**
@@ -227,7 +262,7 @@ public class ChannelTraceListenerManager {
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onChannelServices(String logname, IChannel channel, String message) {
+	public void onChannelServices(final String logname, final IChannel channel, final String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -241,22 +276,31 @@ public class ChannelTraceListenerManager {
 		// If false, we are done here and wont create any console or trace listener.
 		if (!loggingEnabled) return;
 
-		// Log the channel opening
-		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+		// Determine the date and time of the message before spawning to the log thread.
+		final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelServices_message,
-										new Object[] {
-											date,
-											Integer.toHexString(channel.hashCode()),
-											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-								  		});
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelServices_message,
+											  new Object[] {
+												date,
+												Integer.toHexString(channel.hashCode()),
+												message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+											  });
 
-		List<String> queue = queued.get(channel);
-		if (queue == null) {
-			queue = new ArrayList<String>();
-			queued.put(channel, queue);
-		}
-		queue.add(fullMessage);
+				List<String> queue = queued.get(channel);
+				if (queue == null) {
+					queue = new ArrayList<String>();
+					queued.put(channel, queue);
+				}
+				queue.add(fullMessage);
+			}
+		});
 	}
 
 	/**
@@ -266,7 +310,7 @@ public class ChannelTraceListenerManager {
 	 * @param channel The channel. Must not be <code>null</code>.
 	 * @param message A message or <code>null</code>.
 	 */
-	public void onMark(String logname, IChannel channel, String message) {
+	public void onMark(final String logname, final IChannel channel, final String message) {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
@@ -277,33 +321,46 @@ public class ChannelTraceListenerManager {
 														ITracing.ID_TRACE_CHANNEL_TRACE_LISTENER, this);
 		}
 
+		// Determine the remote peer from the channel
+		final IPeer peer = channel.getRemotePeer();
+		if (peer == null) return;
+
 		// Get the preference key if or if not logging is enabled
 		boolean loggingEnabled = CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_LOGGING_ENABLED);
 		// If false, we are done here and wont create any console or trace listener.
 		if (!loggingEnabled) return;
 
-		// Log the channel opening
-		String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+		// Determine the date and time of the message before spawning to the log thread.
+		final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
 
-		String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelMark_message,
-										new Object[] {
-											date,
-											Integer.toHexString(channel.hashCode()),
-											message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-								  		});
+		// This method is called in the TCF event dispatch thread. There
+		// is no need that the logging itself keeps the TCF event dispatch
+		// thread busy. Execute the logging itself in a separate thread but
+		// still maintain the order of the messages.
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				String fullMessage = NLS.bind(Messages.ChannelTraceListener_channelMark_message,
+												new Object[] {
+													date,
+													Integer.toHexString(channel.hashCode()),
+													message != null ? "(" + message.trim() + ")" : "" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+										  		});
 
-		// Get the file writer
-		FileWriter writer = LogManager.getInstance().getWriter(logname, channel);
-		if (writer != null) {
-			try {
-				// Write the message
-				writer.write(fullMessage);
-				writer.write("\n"); //$NON-NLS-1$
-				writer.flush();
-			} catch (IOException e) {
-				/* ignored on purpose */
+				// Get the file writer
+				FileWriter writer = LogManager.getInstance().getWriter(logname, peer);
+				if (writer != null) {
+					try {
+						// Write the message
+						writer.write(fullMessage);
+						writer.write("\n"); //$NON-NLS-1$
+						writer.flush();
+					} catch (IOException e) {
+						/* ignored on purpose */
+					}
+				}
 			}
-		}
+		});
 	}
 
 	/**
@@ -316,8 +373,13 @@ public class ChannelTraceListenerManager {
 		Assert.isNotNull(channel);
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
-		// Remove the queued messages
-		queued.remove(channel);
+		ExecutorsUtil.execute(new Runnable() {
+			@Override
+			public void run() {
+				// Remove the queued messages
+				queued.remove(channel);
+			}
+		});
 
 		// The trace listeners can be accessed only via AbstractChannel
 		if (!(channel instanceof AbstractChannel)) return;
@@ -325,6 +387,8 @@ public class ChannelTraceListenerManager {
 		// Remove the trace listener if any
 		final AbstractChannel.TraceListener traceListener = listeners.remove(channel);
 		if (traceListener != null) {
+			// Removal needs to happen asynchronous is another dispatch cycle,
+			// otherwise the closed event is not logged.
 			Protocol.invokeLater(new Runnable() {
 				@Override
 				public void run() {

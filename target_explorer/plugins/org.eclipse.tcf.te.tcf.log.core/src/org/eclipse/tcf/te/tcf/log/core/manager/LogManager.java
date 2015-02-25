@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -22,9 +22,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.tcf.log.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent;
@@ -75,6 +74,8 @@ public final class LogManager {
 
 	/**
 	 * Dispose the log manager instance.
+	 * <p>
+	 * Note: This method is callable from every thread.
 	 */
 	public void dispose() {
 		// Close all still open file writer instances
@@ -126,19 +127,21 @@ public final class LogManager {
 
 	/**
 	 * Returns the file writer instance to use for the given channel.
+	 * <p>
+	 * Note: This method is callable from the executor thread only.
 	 *
 	 * @param logname The log name or <code>null</code>.
-	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param peer The peer. Must not be <code>null</code>.
 	 * @return The file writer instance or <code>null</code>.
 	 */
-	public FileWriter getWriter(String logname, IChannel channel) {
-		Assert.isNotNull(channel);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+	public FileWriter getWriter(String logname, IPeer peer) {
+		Assert.isNotNull(peer);
+		Assert.isTrue(ExecutorsUtil.isExecutorThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Before looking up the writer, check the file limits
-		checkLimits(logname, channel);
+		checkLimits(logname, peer);
 
-		if (logname == null) logname = getLogName(channel);
+		if (logname == null) logname = getLogName(peer);
 		FileWriter writer = logname != null ? fileWriterMap.get(logname) : null;
 		if (writer == null && logname != null) {
 			// Create the writer
@@ -159,17 +162,19 @@ public final class LogManager {
 
 	/**
 	 * Close the writer instance used for the given channel.
+	 * <p>
+	 * Note: This method is callable from the executor thread only.
 	 *
 	 * @param logname The log name or <code>null</code>.
-	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param peer The peer. Must not be <code>null</code>.
 	 * @param message The last message to write or <code>null</code>.
 	 */
-	public void closeWriter(String logname, IChannel channel, String message) {
-		Assert.isNotNull(channel);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+	public void closeWriter(String logname, IPeer peer, String message) {
+		Assert.isNotNull(peer);
+		Assert.isTrue(ExecutorsUtil.isExecutorThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// Remove the writer from the map
-		if (logname == null) logname = getLogName(channel);
+		if (logname == null) logname = getLogName(peer);
 		FileWriter writer = logname != null ? fileWriterMap.remove(logname) : null;
 		if (writer != null) {
 			try {
@@ -192,54 +197,37 @@ public final class LogManager {
 	}
 
 	/**
-	 * Returns the log file base name for the given channel.
-	 *
-	 * @param channel The channel. Must not be <code>null</code>.
-	 * @return The log file base name.
-	 */
-	public String getLogName(IChannel channel) {
-		Assert.isNotNull(channel);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-
-		String logName = null;
-
-		IPeer peer = channel.getRemotePeer();
-		if (peer != null) logName = getLogName(peer);
-
-		return logName;
-	}
-
-	/**
 	 * Returns the log file base name for the given peer.
+	 * <p>
+	 * Note: This method is callable from every thread.
 	 *
-	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param peer The peer. Must not be <code>null</code>.
 	 * @return The log file base name.
 	 */
 	public String getLogName(IPeer peer) {
 		Assert.isNotNull(peer);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		String logName = null;
 
-		// Get the peer name
-		logName = peer.getName();
+			// Get the peer name
+			logName = peer.getName();
 
-		if (logName != null) {
-			// Get the peer host IP address
-			String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
-			// Fallback: The peer id
-			if (ip == null || "".equals(ip.trim())) { //$NON-NLS-1$
-				ip = peer.getID();
+			if (logName != null) {
+				// Get the peer host IP address
+				String ip = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+				// Fallback: The peer id
+				if (ip == null || "".equals(ip.trim())) { //$NON-NLS-1$
+					ip = peer.getID();
+				}
+
+				// Append the peer host IP address
+				if (ip != null && !"".equals(ip.trim())) { //$NON-NLS-1$
+					logName += " " + ip.trim(); //$NON-NLS-1$
+				}
+
+				// Unify name and replace all undesired characters with '_'
+				logName = makeValid(logName);
 			}
-
-			// Append the peer host IP address
-			if (ip != null && !"".equals(ip.trim())) { //$NON-NLS-1$
-				logName += " " + ip.trim(); //$NON-NLS-1$
-			}
-
-			// Unify name and replace all undesired characters with '_'
-			logName = makeValid(logName);
-		}
 
 		return logName;
 	}
@@ -247,6 +235,8 @@ public final class LogManager {
 	/**
 	 * Replaces a set of predefined patterns with underscore to
 	 * make a valid name.
+	 * <p>
+	 * Note: This method is callable from every thread.
 	 *
 	 * @param name The name. Must not be <code>null</code>.
 	 * @return The modified name.
@@ -262,6 +252,8 @@ public final class LogManager {
 
 	/**
 	 * Returns the log directory.
+	 * <p>
+	 * Note: This method is callable from every thread.
 	 *
 	 * @return The log directory.
 	 */
@@ -310,13 +302,13 @@ public final class LogManager {
 	 * Checks the limits set by the preferences.
 	 *
 	 * @param logname The log name or <code>null</code>.
-	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param peer The peer. Must not be <code>null</code>.
 	 * @return The checked file writer instance.
 	 */
-	private void checkLimits(String logname, IChannel channel) {
-		Assert.isNotNull(channel);
+	private void checkLimits(String logname, IPeer peer) {
+		Assert.isNotNull(peer);
 
-		String logName = getLogName(channel);
+		String logName = getLogName(peer);
 		if (logName != null && !"".equals(logName.trim())) { //$NON-NLS-1$
 			IPath path = getLogDir();
 			if (path != null) {
@@ -328,7 +320,7 @@ public final class LogManager {
 						// Max log file size reached -> cycle files
 
 						// If there is an active writer, flush and close the writer
-						closeWriter(logname, channel, null);
+						closeWriter(logname, peer, null);
 
 						// Determine if the maximum number of files in the cycle has been reached
 						File maxFileInCycle = path.append(logName + "_" + maxInCycle + ".log").toFile(); //$NON-NLS-1$ //$NON-NLS-2$
@@ -379,15 +371,15 @@ public final class LogManager {
 	/**
 	 * Sends an event to the monitor signaling the given message and type.
 	 *
-	 * @param channel The channel. Must not be <code>null</code>.
+	 * @param peer The peer. Must not be <code>null</code>.
 	 * @param type The message type. Must not be <code>null</code>.
 	 * @param message The message. Must not be <code>null</code>.
 	 */
-	public void monitor(IChannel channel, MonitorEvent.Type type, MonitorEvent.Message message) {
-		Assert.isNotNull(channel);
+	public void monitor(IPeer peer, MonitorEvent.Type type, MonitorEvent.Message message) {
+		Assert.isNotNull(peer);
 		Assert.isNotNull(type);
 		Assert.isNotNull(message);
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isTrue(ExecutorsUtil.isExecutorThread(), "Illegal Thread Access"); //$NON-NLS-1$
 
 		// If monitoring is not enabled, return immediately
 		if (!CoreBundleActivator.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_MONITOR_ENABLED)) {
@@ -395,11 +387,8 @@ public final class LogManager {
 		}
 
 		// The source of a monitor event is the peer.
-		IPeer peer = channel.getRemotePeer();
-		if (peer != null) {
-			MonitorEvent event = new MonitorEvent(peer, type, message);
-			EventManager.getInstance().fireEvent(event);
-		}
+		MonitorEvent event = new MonitorEvent(peer, type, message);
+		EventManager.getInstance().fireEvent(event);
 	}
 
 }
