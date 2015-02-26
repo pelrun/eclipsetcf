@@ -1210,6 +1210,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         }
         for (TCFMemoryBlockRetrieval b : mem_retrieval.values()) b.flushAllCaches();
         for (TCFNode n : id2node.values()) n.flushAllCaches();
+        launch_node.flushAllCaches();
     }
 
     public IExpressionManager getExpressionManager() {
