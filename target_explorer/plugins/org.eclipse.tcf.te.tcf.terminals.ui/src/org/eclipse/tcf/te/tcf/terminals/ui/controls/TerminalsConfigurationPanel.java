@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
 import org.eclipse.tcf.te.ui.terminals.panels.AbstractExtendedConfigurationPanel;
-import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
  * Terminals (TCF) terminal launcher configuration panel implementation.
@@ -37,10 +36,10 @@ public class TerminalsConfigurationPanel extends AbstractExtendedConfigurationPa
     }
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#setupPanel(org.eclipse.swt.widgets.Composite, org.eclipse.ui.forms.widgets.FormToolkit)
+	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel#setupPanel(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	public void setupPanel(Composite parent, FormToolkit toolkit) {
+	public void setupPanel(Composite parent) {
 		Composite panel = new Composite(parent, SWT.NONE);
 		panel.setLayout(new GridLayout());
 		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
