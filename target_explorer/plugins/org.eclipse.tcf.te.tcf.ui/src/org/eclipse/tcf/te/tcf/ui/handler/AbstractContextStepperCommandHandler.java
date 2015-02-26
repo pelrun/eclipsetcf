@@ -75,6 +75,10 @@ public abstract class AbstractContextStepperCommandHandler extends AbstractStepp
 			}
 		}
 
+		return getDefaultData();
+	}
+
+	protected IPropertiesContainer getDefaultData() {
 		return new PropertiesContainer();
 	}
 
