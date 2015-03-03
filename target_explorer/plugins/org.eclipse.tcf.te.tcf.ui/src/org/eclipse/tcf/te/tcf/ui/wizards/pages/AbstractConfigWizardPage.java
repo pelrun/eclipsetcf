@@ -16,7 +16,6 @@ import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -188,6 +187,13 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 		initializeUsedNameList();
 	}
 
+	public String getConfigName() {
+		if (configName != null) {
+			return configName.getEditFieldControlText();
+		}
+		return null;
+	}
+
 	/**
 	 * Creates the selector section.
 	 *
@@ -255,13 +261,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	protected abstract String getPeerType();
 
 	/**
-	 * Returns the default configuration name template.
-	 *
-	 * @return The default configuration name template. Never <code>null</code>.
-	 */
-	protected abstract String getDefaultConfigNameTemplate();
-
-	/**
 	 * Return the pattern that matches a configuration name with
 	 * the default name. The pattern is used to decide if the user
 	 * modified the configuration name or not.
@@ -269,7 +268,9 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 * @param The default configuration name template. Must not be <code>null</code>.
 	 * @return The default configuration name pattern. Never <code>null</code>.
 	 */
-	protected abstract String getDefaultConfigNamePattern(String template);
+	protected abstract String getConfigNamePattern();
+
+	protected abstract String getNewConfigName();
 
 	/**
 	 * Initialize the used name list.
@@ -303,20 +304,17 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 * @param customID The custom ID to bind with the default configuration name template, or <code>null</code>.
 	 */
 	public void autoGenerateConfigurationName(String customID) {
-		customID = customID.replaceAll("[^0-9a-zA-Z. _()-]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+		customID = customID != null ? customID.replaceAll("[^0-9a-zA-Z. _()-]", "_") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
-		// Get the default configuration name template
-		String template = getDefaultConfigNameTemplate();
-		Assert.isNotNull(template);
 		// If the user modified the configuration name, we have to leave it alone.
-		String pattern = getDefaultConfigNamePattern(template);
+		String pattern = getConfigNamePattern();
 		Assert.isNotNull(pattern);
 		String currentName = configName != null ? configName.getEditFieldControlText().trim() : null;
 		if (currentName != null && !"".equals(currentName.trim()) && !currentName.matches(pattern)) { //$NON-NLS-1$
 			return;
 		}
 		// Generate a new proposal
-		String origProposedName = NLS.bind(template, customID != null ? customID : ""); //$NON-NLS-1$
+		String origProposedName = customID;
 		String proposedName = origProposedName;
 
 		if (usedNames.contains(proposedName.trim().toUpperCase()) && proposedName.matches(".* \\([0-9]*\\)")) { //$NON-NLS-1$
@@ -325,6 +323,10 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 				origProposedName = proposedName.substring(0, index);
 				proposedName = origProposedName;
 			}
+		}
+
+		if (usedNames.contains(proposedName.trim().toUpperCase()) && proposedName.matches(pattern)) {
+			proposedName = getNewConfigName();
 		}
 
 		// Unify the proposed name to avoid duplicated configuration names
@@ -438,11 +440,6 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 	 */
 	@Override
 	public void setupData(IPropertiesContainer data) {
-		if (data.containsKey(IPeer.ATTR_NAME)) {
-			String name = data.getStringProperty(IPeer.ATTR_NAME);
-			name = name.replaceAll("[^0-9a-zA-Z. _()-]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
-			autoGenerateConfigurationName(name);
-		}
 		if (selectorSection instanceof IDataExchangeNode) {
 			((IDataExchangeNode)selectorSection).setupData(data);
 		}
@@ -453,6 +450,12 @@ public abstract class AbstractConfigWizardPage extends AbstractFormsWizardPage i
 			for (AbstractSection additionalSection : additionalSections) {
 				((IDataExchangeNode)additionalSection).setupData(data);
 			}
+		}
+
+		if (data.containsKey(IPeer.ATTR_NAME)) {
+			String name = data.getStringProperty(IPeer.ATTR_NAME);
+			name = name.replaceAll("[^0-9a-zA-Z. _()-]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+			autoGenerateConfigurationName(name);
 		}
 	}
 
