@@ -863,6 +863,22 @@
             </with>
          </enabledWhen>
       </handler>
+      
+      <handler
+            class="org.eclipse.tcf.te.ui.views.handler.EditorRevertHandler"
+            commandId="org.eclipse.ui.file.revert">
+         <activeWhen>
+            <with variable="activePartId">
+               <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
+            </with>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="activeEditor">
+               <test property="org.eclipse.tcf.te.ui.views.isDirty" value="true"/>
+            </with>
+         </enabledWhen>
+      </handler>
+      
     </extension>
 
 <!-- Eclipse core expressions property tester -->

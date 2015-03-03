@@ -34,6 +34,8 @@ import org.eclipse.ui.IPersistable;
 import org.eclipse.ui.IPersistableEditor;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.XMLMemento;
+import org.eclipse.ui.forms.IFormPart;
+import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.internal.part.NullEditorInput;
@@ -429,6 +431,24 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 			}
 		}
 		editorDirtyStateChanged();
+	}
+
+	public void revert() {
+		if (pages != null) {
+			for (int i = 0; i < pages.size(); i++) {
+				Object page = pages.get(i);
+				if (page instanceof IFormPage) {
+					IFormPage fpage = (IFormPage)page;
+					IManagedForm mform = fpage.getManagedForm();
+					if (mform != null && mform.isDirty()) {
+						for (int j = 0; j < mform.getParts().length; j++) {
+							IFormPart part = mform.getParts()[j];
+							part.refresh();
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* (non-Javadoc)
