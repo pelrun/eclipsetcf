@@ -605,6 +605,13 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				props.put(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
 				props.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW)));
 
+				// By default, a launched process cannot be reconnected once terminated.
+				boolean noReconnect = true;
+				if (properties.containsKey(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT)) {
+					noReconnect = properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT);
+				}
+				props.put(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT, Boolean.valueOf(noReconnect));
+
 				// The custom data object is the process launcher itself
 				props.put(ITerminalsConnectorConstants.PROP_DATA, this);
 
