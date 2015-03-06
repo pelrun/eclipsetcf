@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Xilinx, Inc. and others.
+ * Copyright (c) 2013, 2015 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,6 +38,7 @@ class ProfilerSettingsDlg extends Dialog {
 
     static final String PARAM_VIEW_UPDATE_PERIOD = "ViewUpdatePeriod";
     static final String PARAM_AGGREGATE = "Aggregate";
+    static final String PARAM_STACK_TRACE = "StackTrace";
 
     Map<String,Object> conf;
     Map<String,Object> data;
@@ -142,29 +143,23 @@ class ProfilerSettingsDlg extends Dialog {
     }
 
     private void setData() {
-        Boolean b = (Boolean)conf.get(PARAM_AGGREGATE);
-        aggregate_button.setSelection(b != null && b.booleanValue());
-        Number n = (Number)conf.get(IProfiler.PARAM_FRAME_CNT);
-        if (n == null || n.intValue() <= 1) {
-            stack_trace_button.setSelection(false);
-            frame_cnt_text.setText("5");
-        }
-        else {
-            stack_trace_button.setSelection(true);
-            frame_cnt_text.setText(conf.get(IProfiler.PARAM_FRAME_CNT).toString());
-        }
-        view_update_text.setText(conf.get(PARAM_VIEW_UPDATE_PERIOD).toString());
+        Boolean b_ag = (Boolean)conf.get(PARAM_AGGREGATE);
+        aggregate_button.setSelection(b_ag != null && b_ag.booleanValue());
+        Boolean b_st = (Boolean)conf.get(PARAM_STACK_TRACE);
+        stack_trace_button.setSelection(b_st != null && b_st.booleanValue());
+        Number n_fc = (Number)conf.get(IProfiler.PARAM_FRAME_CNT);
+        if (n_fc == null) n_fc = Integer.valueOf(1);
+        frame_cnt_text.setText(n_fc.toString());
+        Number n_vu = (Number)conf.get(PARAM_VIEW_UPDATE_PERIOD);
+        if (n_vu == null) n_vu = Integer.valueOf(1000);
+        view_update_text.setText(n_vu.toString());
     }
 
     private void getData() {
         data = new HashMap<String,Object>();
         data.put(PARAM_AGGREGATE, aggregate_button.getSelection());
-        if (stack_trace_button.getSelection()) {
-            data.put(IProfiler.PARAM_FRAME_CNT, new Integer(frame_cnt_text.getText()));
-        }
-        else {
-            data.put(IProfiler.PARAM_FRAME_CNT, 1);
-        }
+        data.put(PARAM_STACK_TRACE, stack_trace_button.getSelection());
+        data.put(IProfiler.PARAM_FRAME_CNT, new Integer(frame_cnt_text.getText()));
         data.put(PARAM_VIEW_UPDATE_PERIOD, new Integer(view_update_text.getText()));
     }
 

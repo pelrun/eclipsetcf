@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Xilinx, Inc. and others.
+ * Copyright (c) 2013, 2015 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,9 +41,12 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -81,9 +84,10 @@ import org.eclipse.ui.part.ViewPart;
 
 public class ProfilerView extends ViewPart {
 
-    private static final int FRAME_COUNT = 5;
+    private static final int FRAME_COUNT = 8;
     private static final String PARAM_VIEW_UPDATE_PERIOD = ProfilerSettingsDlg.PARAM_VIEW_UPDATE_PERIOD;
     private static final String PARAM_AGGREGATE = ProfilerSettingsDlg.PARAM_AGGREGATE;
+    private static final String PARAM_STACK_TRACE = ProfilerSettingsDlg.PARAM_STACK_TRACE;
 
     private static class ProfileSample {
         int cnt;
@@ -97,6 +101,7 @@ public class ProfilerView extends ViewPart {
     private static class ProfileData {
         final String ctx;
         final Map<String,Object> params;
+        final boolean stack_trace;
 
         boolean stopped;
         boolean unsupported;
@@ -115,8 +120,13 @@ public class ProfilerView extends ViewPart {
         ProfileData(String ctx, Map<String,Object> params) {
             this.ctx = ctx;
             this.params = new HashMap<String,Object>(params);
-            Number n = (Number)params.get(IProfiler.PARAM_FRAME_CNT);
-            int frame_cnt = n.intValue();
+            Boolean b = (Boolean)params.get(PARAM_STACK_TRACE);
+            stack_trace = b != null && b.booleanValue();
+            int frame_cnt = 1;
+            if (stack_trace) {
+                Number n = (Number)params.get(IProfiler.PARAM_FRAME_CNT);
+                if (n != null) frame_cnt = n.intValue();
+            }
             map = new Map[frame_cnt];
             for (int i = 0; i < frame_cnt; i++) {
                 map[i] = new HashMap<BigInteger,List<ProfileSample>>();
@@ -542,6 +552,7 @@ public class ProfilerView extends ViewPart {
             final boolean stopped = node != null && prof_data.stopped;
             final boolean running = node != null && !stopped;
             final boolean unsupported = node != null && prof_data.unsupported;
+            final boolean total_count = prof_data != null && prof_data.stack_trace;
             final int sample_count = prof_data == null ? 0 : prof_data.sample_count;
             final String error_msg = prof_data == null || prof_data.error == null ? null :
                 TCFModel.getErrorMessage(prof_data.error, false);
@@ -553,9 +564,11 @@ public class ProfilerView extends ViewPart {
                     action_start.setEnabled(enable_start);
                     action_stop.setEnabled(enable_stop);
                     profile_node = node;
+                    disposeColors();
                     Object viewer_input = prof_data != null ? prof_data.entries : null;
                     if (viewer_main.getInput() != viewer_input) {
                         ISelection s = viewer_main.getSelection();
+                        ProfilerView.this.total_count = total_count;
                         ProfilerView.this.sample_count = sample_count;
                         viewer_main.setInput(viewer_input);
                         List<ProfileEntry> l = new ArrayList<ProfileEntry>();
@@ -621,8 +634,8 @@ public class ProfilerView extends ViewPart {
             ProfileEntry e = (ProfileEntry)element;
             switch (column) {
             case 0: return toHex(e.addr);
-            case 1: return toPercent(e.count);
-            case 2: return toPercent(e.total);
+            case 1: return "";
+            case 2: return "";
             case 3: return e.name;
             case 4: return e.file_base;
             case 5: return e.line == 0 ? null : Integer.toString(e.line);
@@ -642,29 +655,13 @@ public class ProfilerView extends ViewPart {
             switch (column) {
             case 0: return toHex(e.pe.addr);
             case 1: return "";
-            case 2: return toPercent(e.total);
+            case 2: return "";
             case 3: return e.pe.name;
             case 4: return e.pe.file_base;
             case 5: return e.pe.line == 0 ? null : Integer.toString(e.pe.line);
             }
             return null;
         }
-    }
-
-    private String toHex(BigInteger n) {
-        String s = n.toString(16);
-        if (s.length() >= 8) return s;
-        return "00000000".substring(s.length()) + s;
-    }
-
-    private String toPercent(float x) {
-        float f = x * 100 / sample_count;
-        if (f >= 100) return "100";
-        if (f >= 10) return String.format("%.1f", f);
-        if (f >= 1) return String.format("%.2f", f);
-        String s = String.format("%.3f", f);
-        if (s.charAt(0) == '0') s = s.substring(1);
-        return s;
     }
 
     private final Action action_start = new Action("Start", ImageCache.getImageDescriptor(ImageCache.IMG_THREAD_RUNNNIG)) {
@@ -720,6 +717,8 @@ public class ProfilerView extends ViewPart {
     private Composite main_composite;
     private TCFNode profile_node;
     private int sample_count;
+    private boolean total_count;
+    private HashMap<RGB,Color> colors = new HashMap<RGB,Color>();
 
     private static final String[] column_ids = {
         "Address",
@@ -814,7 +813,7 @@ public class ProfilerView extends ViewPart {
         selectionChanged(active_context);
     }
 
-    public Composite createTable(Composite parent) {
+    private Composite createTable(Composite parent) {
         Font font = parent.getFont();
         final Composite composite = new Composite(parent, SWT.NO_FOCUS);
         final FormLayout layout = new FormLayout();
@@ -889,6 +888,7 @@ public class ProfilerView extends ViewPart {
         table.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                disposeColors();
                 if (e.item == null) return;
                 ProfileEntry pe = (ProfileEntry)viewer_main.getElementAt(table.indexOf((TableItem)e.item));
                 viewer_up.setInput(pe.up);
@@ -899,6 +899,19 @@ public class ProfilerView extends ViewPart {
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
+
+        table.addListener(SWT.PaintItem, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                if (event.index == 1 || event.index == 2 && total_count) {
+                    int index = table.indexOf((TableItem)event.item);
+                    ProfileEntry pe = ((ProfileEntry[])viewer_main.getInput())[index];
+                    float count = event.index == 1 ? (float)pe.count : pe.total;
+                    paintPercent(event, count);
+                }
+            }
+        });
+
         return composite;
     }
 
@@ -933,6 +946,17 @@ public class ProfilerView extends ViewPart {
             }
         });
 
+        table_up.addListener(SWT.PaintItem, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                if (event.index == 2) {
+                    int index = table_up.indexOf((TableItem)event.item);
+                    ProfileEntryRef pe = ((ProfileEntryRef[])viewer_up.getInput())[index];
+                    paintPercent(event, pe.total);
+                }
+            }
+        });
+
         final Label separator = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
         separator.setFont(font);
 
@@ -959,6 +983,17 @@ public class ProfilerView extends ViewPart {
             public void widgetDefaultSelected(SelectionEvent e) {
                 if (e.item == null) return;
                 displayEntry(((ProfileEntryRef)viewer_dw.getElementAt(table_dw.indexOf((TableItem)e.item))).pe);
+            }
+        });
+
+        table_dw.addListener(SWT.PaintItem, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                if (event.index == 2) {
+                    int index = table_dw.indexOf((TableItem)event.item);
+                    ProfileEntryRef pe = ((ProfileEntryRef[])viewer_dw.getInput())[index];
+                    paintPercent(event, pe.total);
+                }
             }
         });
 
@@ -1040,7 +1075,7 @@ public class ProfilerView extends ViewPart {
                     int w = c.getWidth();
                     if (n == column_size.length - 1 && !System.getProperty("os.name", "").startsWith("Windows")) {
                         // Workaround:
-                        // Linux GTK tries to outsmart a user: last column is auto-resized when table size changes.
+                        // Linux GTK tries to outsmart user: last column is auto-resized when table size changes.
                         // This causes infinite recursion and stack overflow.
                         if (w > column_size[n]) w = column_size[n];
                     }
@@ -1059,6 +1094,61 @@ public class ProfilerView extends ViewPart {
                 table.setSortColumn(c);
                 sorting = i;
             }
+        }
+    }
+
+    private String toHex(BigInteger n) {
+        String s = n.toString(16);
+        if (s.length() >= 8) return s;
+        return "00000000".substring(s.length()) + s;
+    }
+
+    private void disposeColors() {
+        for (Color c : colors.values()) c.dispose();
+        colors.clear();
+    }
+
+    private Color getColor(RGB rgb) {
+        Color c = colors.get(rgb);
+        if (c == null) {
+            c = new Color(parent.getDisplay(), rgb);
+            colors.put(rgb, c);
+        }
+        return c;
+    }
+
+    private String toPercent(float x) {
+        float f = x * 100 / sample_count;
+        if (f >= 100) return "100";
+        if (f >= 10) return String.format("%.1f", f);
+        if (f >= 1) return String.format("%.2f", f);
+        String s = String.format("%.3f", f);
+        if (s.charAt(0) == '0') s = s.substring(1);
+        return s;
+    }
+
+    private void paintPercent(Event event, float count) {
+        Table table = (Table)event.widget;
+        int cell_width = table.getColumn(event.index).getWidth() - 1;
+        if (cell_width > 2) {
+            GC gc = event.gc;
+            float percent = count * 100 / sample_count;
+            int width = (int)(cell_width * percent / 100);
+            if (width > cell_width) width = cell_width;
+            if (width >= 2) {
+                Color bg = gc.getBackground();
+                Color fg = gc.getForeground();
+                gc.setBackground(getColor(new RGB(bg.getRed() / 3 + 170, bg.getGreen() / 3 + 170, bg.getBlue() / 3)));
+                gc.setForeground(getColor(new RGB(bg.getRed() / 3 + 170, bg.getGreen() / 3, bg.getBlue() / 3)));
+                gc.fillGradientRectangle(event.x, event.y, width, event.height, true);
+                gc.drawRectangle(new Rectangle(event.x, event.y, width - 1, event.height - 1));
+                gc.setBackground(bg);
+                gc.setForeground(fg);
+            }
+            String text = toPercent(count);
+            Point size = event.gc.textExtent(text);
+            int offset = Math.max(0, (event.height - size.y) / 2);
+            gc.drawText(text, event.x + 2, event.y + offset, true);
         }
     }
 
@@ -1129,6 +1219,8 @@ public class ProfilerView extends ViewPart {
         if (params == null) {
             params = new HashMap<String,Object>();
             params.put(IProfiler.PARAM_FRAME_CNT, FRAME_COUNT);
+            params.put(PARAM_AGGREGATE, Boolean.TRUE);
+            params.put(PARAM_STACK_TRACE, Boolean.FALSE);
             configuration.put(ctx,  params);
         }
         params.put(PARAM_VIEW_UPDATE_PERIOD, node.getModel().getProfilerReadDelay());
@@ -1142,19 +1234,27 @@ public class ProfilerView extends ViewPart {
 
     private void stop(TCFNode node) {
         assert Protocol.isDispatchThread();
-        Map<String,Object> params = new HashMap<String,Object>();
-        configure(node, params);
+        configure(node, null);
     }
 
     private void configure(final TCFNode node, final Map<String,Object> params) {
         TCFModel model = node.getModel();
         Map<String,Object> prf_cfg = model.getProfilerConfiguration(node.getID());
-        Object frame_cnt = params.get(IProfiler.PARAM_FRAME_CNT);
-        if (frame_cnt != null) prf_cfg.put(IProfiler.PARAM_FRAME_CNT, frame_cnt);
-        else prf_cfg.remove(IProfiler.PARAM_FRAME_CNT);
+        if (params != null) {
+            Object frame_cnt = null;
+            Boolean stack_trace = (Boolean)params.get(PARAM_STACK_TRACE);
+            if (stack_trace != null && stack_trace.booleanValue()) {
+                frame_cnt = params.get(IProfiler.PARAM_FRAME_CNT);
+            }
+            if (frame_cnt == null) frame_cnt = Integer.valueOf(1);
+            prf_cfg.put(IProfiler.PARAM_FRAME_CNT, frame_cnt);
+        }
+        else {
+            prf_cfg.remove(IProfiler.PARAM_FRAME_CNT);
+        }
         model.sendProfilerConfiguration(node.getID());
         ProfileModel prf_model = models.get(model);
-        if (frame_cnt == null) {
+        if (params == null) {
             ProfileData prf_data = null;
             if (prf_model != null) prf_data = prf_model.data.get(node.getID());
             if (prf_data != null) prf_data.stopped = true;
@@ -1266,6 +1366,7 @@ public class ProfilerView extends ViewPart {
         IWorkbenchWindow window = getSite().getWorkbenchWindow();
         IDebugContextService dcs = DebugUITools.getDebugContextManager().getContextService(window);
         dcs.removeDebugContextListener(selection_listener);
+        disposeColors();
         super.dispose();
     }
 }
