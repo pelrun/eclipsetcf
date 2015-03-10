@@ -791,7 +791,6 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public void setAdapter(Class<?> adapterType, Object adapter) {
         synchronized (adapters) {
-            assert adapterType.isInstance(adapter);
             adapters.put(adapterType, adapter);
         }
     }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,8 @@
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui;
+
+import java.util.ArrayList;
 
 import org.eclipse.cdt.debug.core.model.IReverseResumeHandler;
 import org.eclipse.cdt.debug.core.model.IReverseStepIntoHandler;
@@ -29,6 +31,7 @@ import org.eclipse.tcf.internal.cdt.ui.commands.TCFReverseStepIntoCommand;
 import org.eclipse.tcf.internal.cdt.ui.commands.TCFReverseStepOverCommand;
 import org.eclipse.tcf.internal.cdt.ui.commands.TCFReverseStepReturnCommand;
 import org.eclipse.tcf.internal.cdt.ui.commands.TCFReverseToggleCommand;
+import org.eclipse.tcf.internal.cdt.ui.commands.TCFStepIntoSelectionHandler;
 import org.eclipse.tcf.internal.cdt.ui.disassembly.TCFDisassemblyBackend;
 import org.eclipse.tcf.internal.cdt.ui.hover.TCFDebugTextHover;
 import org.eclipse.tcf.internal.cdt.ui.sourcelookup.TCFSourceNotFoundPresentation;
@@ -42,7 +45,11 @@ import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
 @SuppressWarnings({ "rawtypes", "restriction" })
 public class TCFNodeAdapterFactory implements IAdapterFactory {
 
-    private static final Class<?>[] CLASSES = {
+    // Not available before CDT 8.2
+    private static final String STEP_INTO_SELECTION =
+        "org.eclipse.cdt.debug.core.model.IStepIntoSelectionHandler";
+
+    private static final Object[] class_names = {
         IDisassemblyBackend.class,
         ISteppingModeTarget.class,
         ISuspendResume.class,
@@ -51,85 +58,95 @@ public class TCFNodeAdapterFactory implements IAdapterFactory {
         IReverseStepIntoHandler.class,
         IReverseStepOverHandler.class,
         IReverseResumeHandler.class,
+        STEP_INTO_SELECTION,
         IUncallHandler.class,
         IPinProvider.class,
         ICWatchpointTarget.class,
         ISourceNotFoundPresentation.class
     };
 
-    private static final TCFSourceNotFoundPresentation fgSourceNotFoundPresentation = new TCFSourceNotFoundPresentation();
+    private static final Class[] class_list;
+
+    static {
+        ArrayList<Class> l = new ArrayList<Class>();
+        for (Object o : class_names) {
+            if (o instanceof Class) {
+                l.add((Class)o);
+            }
+            else {
+                try {
+                    l.add(Class.forName((String)o));
+                }
+                catch (ClassNotFoundException e) {
+                }
+            }
+        }
+        class_list = l.toArray(new Class[l.size()]);
+    }
 
     public Object getAdapter(Object obj, Class type) {
         if (obj instanceof TCFNode) {
             final TCFNode node = (TCFNode)obj;
             TCFModel model = node.getModel();
-            if (IDisassemblyBackend.class == type) {
-                TCFDisassemblyBackend backend = new TCFDisassemblyBackend();
-                if (backend.supportsDebugContext((TCFNode)obj)) return backend;
-            }
-            else if (ISteppingModeTarget.class == type) {
-                ISteppingModeTarget target = (ISteppingModeTarget)model.getAdapter(type, node);
-                if (target == null) model.setAdapter(type, target = new TCFSteppingModeTarget(model));
-                return target;
-            }
-            else if (ISuspendResume.class == type) {
-                TCFNodeExecContext exec = null;
-                if (node instanceof TCFNodeExecContext) {
-                    exec = (TCFNodeExecContext)node;
+            Object handler = model.getAdapter(type, node);
+            if (handler == null) {
+                if (IDisassemblyBackend.class == type) {
+                    TCFDisassemblyBackend backend = new TCFDisassemblyBackend();
+                    if (backend.supportsDebugContext(node)) return backend;
+                    backend.dispose();
                 }
-                else if (node instanceof TCFNodeStackFrame) {
-                    exec = (TCFNodeExecContext)node.getParent();
+                else if (ISteppingModeTarget.class == type) {
+                    model.setAdapter(type, handler = new TCFSteppingModeTarget(model));
                 }
-                if (exec != null) {
-                    return new TCFSuspendResumeAdapter(exec);
+                else if (ISuspendResume.class == type) {
+                    TCFNodeExecContext exec = null;
+                    if (node instanceof TCFNodeExecContext) {
+                        exec = (TCFNodeExecContext)node;
+                    }
+                    else if (node instanceof TCFNodeStackFrame) {
+                        exec = (TCFNodeExecContext)node.getParent();
+                    }
+                    if (exec != null) {
+                        return new TCFSuspendResumeAdapter(exec);
+                    }
+                }
+                else if (ICEditorTextHover.class == type) {
+                    model.setAdapter(type, handler = new TCFDebugTextHover());
+                }
+                else if (IReverseToggleHandler.class == type) {
+                    model.setAdapter(type, handler = new TCFReverseToggleCommand());
+                }
+                else if (IReverseStepIntoHandler.class == type) {
+                    model.setAdapter(type, handler = new TCFReverseStepIntoCommand(model));
+                }
+                else if (IReverseStepOverHandler.class == type) {
+                    model.setAdapter(type, handler = new TCFReverseStepOverCommand(model));
+                }
+                else if (IUncallHandler.class == type) {
+                    model.setAdapter(type, handler = new TCFReverseStepReturnCommand(model));
+                }
+                else if (IReverseResumeHandler.class == type) {
+                    model.setAdapter(type, handler = new TCFReverseResumeCommand(model));
+                }
+                else if (IPinProvider.class == type) {
+                    model.setAdapter(type, handler = new TCFPinViewCommand(model));
+                }
+                else if (ICWatchpointTarget.class == type) {
+                    if (node instanceof TCFNodeExpression) return new TCFWatchpointTarget((TCFNodeExpression)node);
+                }
+                else if (ISourceNotFoundPresentation.class == type) {
+                    model.setAdapter(type, handler = new TCFSourceNotFoundPresentation());
+                }
+                else if (type.getName().equals(STEP_INTO_SELECTION)) {
+                    model.setAdapter(type, handler = new TCFStepIntoSelectionHandler());
                 }
             }
-            else if (ICEditorTextHover.class == type) {
-                ICEditorTextHover hover = (ICEditorTextHover)model.getAdapter(type, node);
-                if (hover == null) model.setAdapter(type, hover = new TCFDebugTextHover());
-                return hover;
-            }
-            else if (IReverseToggleHandler.class == type) {
-                IReverseToggleHandler handler = (IReverseToggleHandler)model.getAdapter(type, node);
-                if (handler == null) model.setAdapter(type, handler = new TCFReverseToggleCommand());
-                return handler;
-            }
-            else if (IReverseStepIntoHandler.class == type) {
-                IReverseStepIntoHandler handler = (IReverseStepIntoHandler)model.getAdapter(type, node);
-                if (handler == null) model.setAdapter(type, handler = new TCFReverseStepIntoCommand(model));
-                return handler;
-            }
-            else if (IReverseStepOverHandler.class == type) {
-                IReverseStepOverHandler handler = (IReverseStepOverHandler)model.getAdapter(type, node);
-                if (handler == null) model.setAdapter(type, handler = new TCFReverseStepOverCommand(model));
-                return handler;
-            }
-            else if (IUncallHandler.class == type) {
-                IUncallHandler handler = (IUncallHandler)model.getAdapter(type, node);
-                if (handler == null) model.setAdapter(type, handler = new TCFReverseStepReturnCommand(model));
-                return handler;
-            }
-            else if (IReverseResumeHandler.class == type) {
-                IReverseResumeHandler handler = (IReverseResumeHandler)model.getAdapter(type, node);
-                if (handler == null) model.setAdapter(type, handler = new TCFReverseResumeCommand(model));
-                return handler;
-            }
-            else if (IPinProvider.class == type) {
-                IPinProvider handler = (IPinProvider)model.getAdapter(type, node);
-                if (handler == null) model.setAdapter(type, handler = new TCFPinViewCommand(model));
-                return handler;
-            }
-            else if (ICWatchpointTarget.class == type) {
-                if (node instanceof TCFNodeExpression) return new TCFWatchpointTarget((TCFNodeExpression)node);
-            }
-            else if (ISourceNotFoundPresentation.class == type) {
-                return fgSourceNotFoundPresentation;
-            }
+            return handler;
         }
         return null;
     }
 
     public Class[] getAdapterList() {
-        return CLASSES;
+        return class_list;
     }
 }
