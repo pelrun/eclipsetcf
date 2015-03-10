@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,6 +39,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.ITCFBreakpointListener;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpoint;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
@@ -253,6 +254,7 @@ class TCFBreakpointStatusListener {
         }
 
         private void createOrUpdateBreakpoint(final String id) {
+            if (id.startsWith(TCFAction.STEP_BREAKPOINT_PREFIX)) return;
             Map<String,Object> properties = status.getProperties(id);
             if (properties == null) return;
             if (TCFBreakpointsModel.isLocal(properties)) return;

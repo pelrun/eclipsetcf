@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.debug.core.model.ISuspendResume;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildren;
 import org.eclipse.tcf.internal.debug.ui.model.TCFDebugTask;
@@ -136,17 +137,16 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                     return;
                 }
                 IRunControl.RunControlContext runCtx = cache.getData();
-                if (runCtx.canResume(IRunControl.RM_RESUME)) {
-                    runCtx.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
-                        public void doneCommand(IToken token, Exception error) {
-                            if (error != null) {
-                                error(error);
-                            } else {
-                                done(null);
-                            }
+                runCtx.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
+                    public void doneCommand(IToken token, Exception error) {
+                        if (error != null) {
+                            error(error);
                         }
-                    });
-                }
+                        else {
+                            done(null);
+                        }
+                    }
+                });
             }
         }.getD();
     }
@@ -169,7 +169,8 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                         public void doneCommand(IToken token, Exception error) {
                             if (error != null) {
                                 error(error);
-                            } else {
+                            }
+                            else {
                                 done(null);
                             }
                         }
@@ -274,10 +275,6 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                     done(null);
                     return;
                 }
-                final TCFDataCache<IRunControl.RunControlContext> cache = fExecCtx.getRunContext();
-                if (!cache.validate(this)) {
-                    return;
-                }
                 final IChannel channel = fExecCtx.getChannel();
                 final IBreakpoints breakpoints = channel.getRemoteService(IBreakpoints.class);
                 if (breakpoints == null) {
@@ -289,13 +286,14 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                 if (location.fFile != null) {
                     properties.put(IBreakpoints.PROP_FILE, location.fFile);
                     properties.put(IBreakpoints.PROP_LINE, location.fLine);
-                } else {
+                }
+                else {
                     properties.put(IBreakpoints.PROP_LOCATION, location.fAddress.toString());
                 }
 //                properties.put(IBreakpoints.PROP_CONTEXTIDS, new String[] { contextId });
                 properties.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
 //                properties.put(IBreakpoints.PROP_TEMPORARY, Boolean.TRUE);
-                final String breakpointId = "runtoline"+location.hashCode();
+                final String breakpointId = TCFAction.STEP_BREAKPOINT_PREFIX + contextId;
                 properties.put(IBreakpoints.PROP_ID, breakpointId);
                 breakpoints.add(properties, new IBreakpoints.DoneCommand() {
                     public void doneCommand(IToken token, Exception error) {
@@ -320,8 +318,8 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                                     removeBreakpoint.run();
                                     return;
                                 }
+                                final TCFDataCache<IRunControl.RunControlContext> cache = fExecCtx.getRunContext();
                                 if (!cache.validate(this)) {
-                                    removeBreakpoint.run();
                                     return;
                                 }
                                 if (cache.getError() != null) {
@@ -330,21 +328,17 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                                     return;
                                 }
                                 runControl.addListener(new RunControlListener() {
-                                    boolean fRunning;
-                                    public void contextSuspended(String context, String pc, String reason,
-                                            Map<String, Object> params) {
-                                        if (contextId.equals(context) && fRunning) {
-                                            finished();
-                                        }
-                                    }
                                     private void finished() {
                                         runControl.removeListener(this);
                                         removeBreakpoint.run();
                                     }
-                                    public void contextResumed(String context) {
-                                        if (contextId.equals(context) && !fRunning) {
-                                            fRunning = true;
+                                    public void contextSuspended(String context, String pc, String reason,
+                                            Map<String, Object> params) {
+                                        if (contextId.equals(context)) {
+                                            finished();
                                         }
+                                    }
+                                    public void contextResumed(String context) {
                                     }
                                     public void contextRemoved(String[] context_ids) {
                                         for (String context : context_ids) {
@@ -362,42 +356,30 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                                     }
                                     public void containerSuspended(String context, String pc, String reason,
                                             Map<String, Object> params, String[] suspended_ids) {
-                                        if (fRunning) {
-                                            for (String context2 : suspended_ids) {
-                                                if (contextId.equals(context2)) {
-                                                    finished();
-                                                }
+                                        for (String context2 : suspended_ids) {
+                                            if (contextId.equals(context2)) {
+                                                finished();
+                                                return;
                                             }
                                         }
                                     }
                                     public void containerResumed(String[] context_ids) {
-                                        if (!fRunning) {
-                                            for (String context2 : context_ids) {
-                                                if (contextId.equals(context2)) {
-                                                    fRunning = true;
-                                                    return;
-                                                }
-                                            }
-                                        }
                                     }
                                 });
                                 IRunControl.RunControlContext runCtx = cache.getData();
-                                if (runCtx.canResume(IRunControl.RM_RESUME)) {
-                                    runCtx.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
-                                        public void doneCommand(IToken token, Exception error) {
-                                            if (error != null) {
-                                                error(error);
-                                            } else {
-                                                done(null);
-                                            }
+                                runCtx.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
+                                    public void doneCommand(IToken token, Exception error) {
+                                        if (error != null) {
+                                            error(error);
                                         }
-                                    });
-                                }
+                                        else {
+                                            done(null);
+                                        }
+                                    }
+                                });
                             }
                         };
-                        if (cache.validate(resume)) {
-                            resume.run();
-                        }
+                        resume.run();
                     }
                 });
             }
@@ -516,23 +498,23 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                                         return;
                                     }
                                     IRunControl.RunControlContext runCtx = cache.getData();
-                                    if (runCtx.canResume(IRunControl.RM_RESUME)) {
-                                        runCtx.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
-                                            public void doneCommand(IToken token, Exception error) {
-                                                if (error != null) {
-                                                    error(error);
-                                                } else {
-                                                    done(null);
-                                                }
+                                    runCtx.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
+                                        public void doneCommand(IToken token, Exception error) {
+                                            if (error != null) {
+                                                error(error);
                                             }
-                                        });
-                                    }
+                                            else {
+                                                done(null);
+                                            }
+                                        }
+                                    });
                                 }
                             };
                             if (cache.validate(resume)) {
                                 resume.run();
                             }
-                        } else {
+                        }
+                        else {
                             done(null);
                         }
                     }

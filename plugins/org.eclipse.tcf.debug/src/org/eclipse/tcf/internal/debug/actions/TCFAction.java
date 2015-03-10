@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,8 @@ import org.eclipse.tcf.protocol.Protocol;
  * When the job is done, client code should call done() method.
  */
 public abstract class TCFAction implements Runnable {
+
+    public static final String STEP_BREAKPOINT_PREFIX = "Step.";
 
     protected final TCFLaunch launch;
     protected final String ctx_id;

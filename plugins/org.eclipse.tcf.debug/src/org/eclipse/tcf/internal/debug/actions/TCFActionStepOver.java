@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -177,7 +177,7 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
                         BigInteger n = JSON.toBigInteger(addr);
                         addr = n.subtract(BigInteger.valueOf(1));
                     }
-                    String id = "Step." + ctx.getID();
+                    String id = STEP_BREAKPOINT_PREFIX + ctx.getID();
                     bp = new HashMap<String,Object>();
                     bp.put(IBreakpoints.PROP_ID, id);
                     bp.put(IBreakpoints.PROP_LOCATION, addr.toString());
