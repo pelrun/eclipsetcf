@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,14 +31,16 @@ public class AddWatchpointHandler extends AbstractHandler {
         IToggleBreakpointsTargetCExtension cToggleTarget = null;
         if (toggleTarget instanceof IToggleBreakpointsTargetCExtension) {
             cToggleTarget = (IToggleBreakpointsTargetCExtension)toggleTarget;
-        } else {
+        }
+        else {
             CDebugUIPlugin.errorDialog("Cannot add watchpoint.", (Throwable) null);
             return null;
         }
 
         try {
             cToggleTarget.createWatchpointsInteractive(part, selection);
-        } catch (CoreException e) {
+        }
+        catch (CoreException e) {
             CDebugUIPlugin.errorDialog("Cannot add watchpoint.", e);
         }
         return null;

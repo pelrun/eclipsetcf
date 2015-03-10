@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,10 +22,10 @@ import org.eclipse.tcf.util.TCFTask;
  */
 public class TCFWatchpointTarget implements ICWatchpointTarget {
 
-    private final TCFNodeExpression fNode;
+    private final TCFNodeExpression node;
 
     public TCFWatchpointTarget(TCFNodeExpression node) {
-        fNode = node;
+        this.node = node;
     }
 
     public void canSetWatchpoint(CanCreateWatchpointRequest request) {
@@ -34,8 +34,8 @@ public class TCFWatchpointTarget implements ICWatchpointTarget {
     }
 
     public String getExpression() {
-        final TCFDataCache<String> expressionText = fNode.getExpressionText();
-        String expr = new TCFTask<String>(fNode.getChannel()) {
+        final TCFDataCache<String> expressionText = node.getExpressionText();
+        String expr = new TCFTask<String>(node.getChannel()) {
             public void run() {
                 if (!expressionText.validate(this)) return;
                 done(expressionText.getData());
@@ -45,7 +45,7 @@ public class TCFWatchpointTarget implements ICWatchpointTarget {
     }
 
     public void getSize(final GetSizeRequest request) {
-        final TCFDataCache<ISymbols.Symbol> expressionType = fNode.getType();
+        final TCFDataCache<ISymbols.Symbol> expressionType = node.getType();
         Protocol.invokeLater(new Runnable() {
             public void run() {
                 if (!expressionType.validate(this)) return;
