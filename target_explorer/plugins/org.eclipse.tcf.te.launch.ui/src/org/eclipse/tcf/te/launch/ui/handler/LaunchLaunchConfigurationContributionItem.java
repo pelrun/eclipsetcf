@@ -82,24 +82,26 @@ public class LaunchLaunchConfigurationContributionItem extends CompoundContribut
 		IHandlerService service = (IHandlerService)serviceLocator.getService(IHandlerService.class);
 		IEvaluationContext state = service.getCurrentState();
 		ISelection selection = (ISelection)state.getVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME);
-		IStructuredSelection iss = (IStructuredSelection)selection;
-		Object obj = iss.getFirstElement();
 		List<IContributionItem> items = new ArrayList<IContributionItem>();
-		if (obj instanceof LaunchNode) {
-			LaunchNode node = (LaunchNode) obj;
-			if (node.getLaunchConfiguration() != null) {
-				try {
-					for (String mode : LaunchConfigHelper.getLaunchConfigTypeModes(node.getLaunchConfigurationType(), false)) {
-						ILaunchMode launchMode = DebugPlugin.getDefault().getLaunchManager().getLaunchMode(mode);
-						IAction action = new LaunchAction(node.getLaunchConfiguration(), mode);
-						action.setText(launchMode.getLabel());
-						action.setImageDescriptor(DebugUITools.getLaunchGroup(node.getLaunchConfiguration(), mode).getImageDescriptor());
-						action.setEnabled(node.isValidFor(mode));
-						items.add(new ActionContributionItem(action));
+		if (selection instanceof IStructuredSelection) {
+			IStructuredSelection iss = (IStructuredSelection)selection;
+			Object obj = iss.getFirstElement();
+			if (obj instanceof LaunchNode) {
+				LaunchNode node = (LaunchNode) obj;
+				if (node.getLaunchConfiguration() != null) {
+					try {
+						for (String mode : LaunchConfigHelper.getLaunchConfigTypeModes(node.getLaunchConfigurationType(), false)) {
+							ILaunchMode launchMode = DebugPlugin.getDefault().getLaunchManager().getLaunchMode(mode);
+							IAction action = new LaunchAction(node.getLaunchConfiguration(), mode);
+							action.setText(launchMode.getLabel());
+							action.setImageDescriptor(DebugUITools.getLaunchGroup(node.getLaunchConfiguration(), mode).getImageDescriptor());
+							action.setEnabled(node.isValidFor(mode));
+							items.add(new ActionContributionItem(action));
+						}
 					}
-				}
-				catch (Exception e) {
-					if (Platform.inDebugMode()) e.printStackTrace();
+					catch (Exception e) {
+						if (Platform.inDebugMode()) e.printStackTrace();
+					}
 				}
 			}
 		}

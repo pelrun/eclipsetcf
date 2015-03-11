@@ -67,21 +67,26 @@ public class NewLaunchConfigurationContributionItem extends CompoundContribution
 
 	/**
 	 * Constructor.
+	 *
 	 * @param id
 	 */
 	public NewLaunchConfigurationContributionItem(String id) {
 		super(id);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.menus.IWorkbenchContribution#initialize(org.eclipse.ui.services.IServiceLocator)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.ui.menus.IWorkbenchContribution#initialize(org.eclipse.ui.services.IServiceLocator
+	 * )
 	 */
 	@Override
 	public void initialize(IServiceLocator serviceLocator) {
 		this.serviceLocator = serviceLocator;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.jface.action.ContributionItem#isEnabled()
 	 */
 	@Override
@@ -89,72 +94,94 @@ public class NewLaunchConfigurationContributionItem extends CompoundContribution
 		return enabled;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.eclipse.ui.actions.CompoundContributionItem#getContributionItems()
 	 */
 	@Override
 	protected IContributionItem[] getContributionItems() {
 		// Get the selected node.
-		IHandlerService service = (IHandlerService)serviceLocator.getService(IHandlerService.class);
+		IHandlerService service = (IHandlerService) serviceLocator
+		                .getService(IHandlerService.class);
 		IEvaluationContext state = service.getCurrentState();
-		ISelection selection = (ISelection)state.getVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME);
-		IStructuredSelection iss = (IStructuredSelection)selection;
-		Object obj = iss.getFirstElement();
+		ISelection selection = (ISelection) state
+		                .getVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME);
 		List<IContributionItem> items = new ArrayList<IContributionItem>();
-		if (obj instanceof LaunchNode) {
-			final LaunchNode node = (LaunchNode) obj;
-			final ILaunchConfigurationType type = node.getLaunchConfigurationType();
-			if (type != null) {
-				try {
-					for (String mode : LaunchConfigHelper.getLaunchConfigTypeModes(type, false)) {
-						ILaunchManagerDelegate delegate = LaunchManager.getInstance().getLaunchManagerDelegate(type, mode);
-						ILaunchSelection launchSelection = null;
-						if (node.getModel().getModelRoot() instanceof ICategory) {
-							launchSelection = LaunchSelectionManager.getInstance().getLaunchSelection(type, mode, LaunchSelectionManager.PART_ID_TE_VIEW);
-						}
-						else if (node.getModel().getModelRoot() instanceof IModelNode) {
-							List<ISelectionContext> selectionContexts = new ArrayList<ISelectionContext>();
-							selectionContexts.add(new RemoteSelectionContext((IModelNode)node.getModel().getModelRoot(), true));
-							selectionContexts.addAll(LaunchSelectionManager.getInstance().getSelectionContextsFor(LaunchSelectionManager.PART_ID_PROJECT_VIEW, type, mode, false));
-							launchSelection = new LaunchSelection(mode, selectionContexts.toArray(new ISelectionContext[selectionContexts.size()]));
-						}
-						else if (node.getModel().getModelRoot() instanceof IProject) {
-							List<ISelectionContext> selectionContexts = new ArrayList<ISelectionContext>();
-							selectionContexts.add(new ProjectSelectionContext((IProject)node.getModel().getModelRoot(), true));
-							selectionContexts.addAll(LaunchSelectionManager.getInstance().getSelectionContextsFor(LaunchSelectionManager.PART_ID_TE_VIEW, type, mode, false));
-							launchSelection = new LaunchSelection(mode, selectionContexts.toArray(new ISelectionContext[selectionContexts.size()]));
-						}
-						if (launchSelection != null) {
-							final ILaunchSpecification launchSpec = delegate.getLaunchSpecification(type.getIdentifier(), launchSelection);
-							final ILaunchGroup launchGroup = DebugUITools.getLaunchGroup(type.newInstance(null, "temp"), mode); //$NON-NLS-1$
-							ILaunchMode launchMode = DebugPlugin.getDefault().getLaunchManager().getLaunchMode(mode);
-							IAction action = new Action() {
-								@Override
-								public void run() {
-									try {
-										ILaunchConfiguration config = LaunchManager.getInstance().createOrUpdateLaunchConfiguration(null, launchSpec);
-										DebugUITools.openLaunchConfigurationDialogOnGroup(
-														UIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(),
-														new StructuredSelection(config),
-														launchGroup.getIdentifier());
+		if (selection instanceof IStructuredSelection) {
+			IStructuredSelection iss = (IStructuredSelection) selection;
+			Object obj = iss.getFirstElement();
+			if (obj instanceof LaunchNode) {
+				final LaunchNode node = (LaunchNode) obj;
+				final ILaunchConfigurationType type = node.getLaunchConfigurationType();
+				if (type != null) {
+					try {
+						for (String mode : LaunchConfigHelper.getLaunchConfigTypeModes(type, false)) {
+							ILaunchManagerDelegate delegate = LaunchManager.getInstance()
+							                .getLaunchManagerDelegate(type, mode);
+							ILaunchSelection launchSelection = null;
+							if (node.getModel().getModelRoot() instanceof ICategory) {
+								launchSelection = LaunchSelectionManager
+								                .getInstance()
+								                .getLaunchSelection(type, mode, LaunchSelectionManager.PART_ID_TE_VIEW);
+							}
+							else if (node.getModel().getModelRoot() instanceof IModelNode) {
+								List<ISelectionContext> selectionContexts = new ArrayList<ISelectionContext>();
+								selectionContexts.add(new RemoteSelectionContext((IModelNode) node
+								                .getModel().getModelRoot(), true));
+								selectionContexts
+								                .addAll(LaunchSelectionManager
+								                                .getInstance()
+								                                .getSelectionContextsFor(LaunchSelectionManager.PART_ID_PROJECT_VIEW, type, mode, false));
+								launchSelection = new LaunchSelection(mode, selectionContexts.toArray(new ISelectionContext[selectionContexts
+								                .size()]));
+							}
+							else if (node.getModel().getModelRoot() instanceof IProject) {
+								List<ISelectionContext> selectionContexts = new ArrayList<ISelectionContext>();
+								selectionContexts.add(new ProjectSelectionContext((IProject) node
+								                .getModel().getModelRoot(), true));
+								selectionContexts
+								                .addAll(LaunchSelectionManager
+								                                .getInstance()
+								                                .getSelectionContextsFor(LaunchSelectionManager.PART_ID_TE_VIEW, type, mode, false));
+								launchSelection = new LaunchSelection(mode, selectionContexts.toArray(new ISelectionContext[selectionContexts
+								                .size()]));
+							}
+							if (launchSelection != null) {
+								final ILaunchSpecification launchSpec = delegate
+								                .getLaunchSpecification(type.getIdentifier(), launchSelection);
+								final ILaunchGroup launchGroup = DebugUITools.getLaunchGroup(type
+								                .newInstance(null, "temp"), mode); //$NON-NLS-1$
+								ILaunchMode launchMode = DebugPlugin.getDefault()
+								                .getLaunchManager().getLaunchMode(mode);
+								IAction action = new Action() {
+									@Override
+									public void run() {
+										try {
+											ILaunchConfiguration config = LaunchManager
+											                .getInstance()
+											                .createOrUpdateLaunchConfiguration(null, launchSpec);
+											DebugUITools.openLaunchConfigurationDialogOnGroup(UIPlugin
+											                .getDefault().getWorkbench()
+											                .getActiveWorkbenchWindow().getShell(), new StructuredSelection(config), launchGroup
+											                .getIdentifier());
+										}
+										catch (Exception e) {
+											e.printStackTrace();
+										}
 									}
-									catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							};
-							action.setText(launchMode.getLabel() + " Configuration"); //$NON-NLS-1$
-							action.setImageDescriptor(launchGroup.getImageDescriptor());
-							items.add(new ActionContributionItem(action));
+								};
+								action.setText(launchMode.getLabel() + " Configuration"); //$NON-NLS-1$
+								action.setImageDescriptor(launchGroup.getImageDescriptor());
+								items.add(new ActionContributionItem(action));
+							}
 						}
 					}
-				}
-				catch (Exception e) {
-					e.printStackTrace();
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
-
 		enabled = !items.isEmpty();
 		return items.toArray(new IContributionItem[items.size()]);
 	}
