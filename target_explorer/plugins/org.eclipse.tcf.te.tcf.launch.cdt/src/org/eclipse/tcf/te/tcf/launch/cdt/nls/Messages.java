@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2006, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -50,6 +50,7 @@ public class Messages extends NLS {
 
 	public static String RemoteGdbLaunchDelegate_filetransferFailed;
 	public static String RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorMessage;
+	public static String RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorWithDetails;
 
 	public static String RemoteRunLaunchDelegate_0;
 
@@ -73,6 +74,8 @@ public class Messages extends NLS {
 	public static String RemoteRunLaunchDelegate_9;
 
 	public static String TCFPeerSelector_0;
+
+	public static String TEGdbLaunchDelegate_canceledMsg;
 
 	static {
 		// initialize resource bundle

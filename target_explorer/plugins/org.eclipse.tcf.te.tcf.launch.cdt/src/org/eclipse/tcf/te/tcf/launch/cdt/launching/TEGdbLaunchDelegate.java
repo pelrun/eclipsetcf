@@ -17,6 +17,7 @@ package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
 import java.io.IOException;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
@@ -82,6 +83,7 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 			commandArguments += " " + arguments; //$NON-NLS-1$
 			monitor.setTaskName(Messages.RemoteRunLaunchDelegate_9);
 
+			final AtomicBoolean gdbServerStarted = new AtomicBoolean(false);
 			final GdbLaunch l = (GdbLaunch) launch;
 			final Callback callback = new Callback() {
 				@Override
@@ -100,7 +102,8 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 						catch (RejectedExecutionException e) {
 							// Session disposed.
 						}
-
+					} else {
+						gdbServerStarted.set(true);
 					}
 					super.internalDone(caller, status);
 				}
@@ -115,17 +118,19 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 
 			final Object lock = new Object();
 
+			final StringBuilder gdbServerOutput = new StringBuilder();
 			StreamsDataReceiver.Listener listener = new StreamsDataReceiver.Listener() {
 
 				@Override
 				public void dataReceived(String data) {
+					gdbServerOutput.append(data);
 					if (data.contains("Listening on port")) { //$NON-NLS-1$
 						gdbServerReady.set(true);
 						synchronized (lock) {
 							lock.notifyAll();
 						}
 					}
-					else if (data.contains("GDBserver exiting")) { //$NON-NLS-1$
+					else if (data.contains("GDBserver exiting") || data.contains("Exiting")) { //$NON-NLS-1$ //$NON-NLS-2$
 						gdbServerExited.set(true);
 						synchronized (lock) {
 							lock.notifyAll();
@@ -143,7 +148,11 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 					// gdbserver launch failed
 					// Need to shutdown the DSF launch session because it is
 					// partially started already.
-					shutdownSession(l);
+					shutdownSession(l, Messages.TEGdbLaunchDelegate_canceledMsg);
+				}
+				if (gdbServerStarted.get() && launcher.getChannel() == null) {
+					// gdbserver died
+					shutdownSession(l, gdbServerOutput.toString());
 				}
 				synchronized (lock) {
 					try {
@@ -156,7 +165,7 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 
 			// If the gdbserver exited, also shutdown the DSF launch session
 			if (gdbServerExited.get()) {
-				shutdownSession(l);
+				shutdownSession(l, gdbServerOutput.toString());
 			}
 
 			// 3. Let debugger know how gdbserver was started on the remote
@@ -188,9 +197,20 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 	 * @throws CoreException If the GDB debug session shutdown failed.
 	 */
 	protected void shutdownSession(final GdbLaunch launch) throws CoreException {
+	    shutdownSession(launch, null);
+	}
+
+	/**
+	 * Shutdown the GDB debug session.
+	 *
+	 * @param launch The GDB launch. Must not be <code>null</code>.
+	 * @param details Error message, may be <code>null</code>
+	 * @throws CoreException If the GDB debug session shutdown failed.
+	 */
+	protected void shutdownSession(final GdbLaunch launch, String details) throws CoreException {
 		Assert.isNotNull(launch);
 		try {
-			launch.getSession().getExecutor().execute(new DsfRunnable() {
+			launch.getSession().getExecutor().submit(new DsfRunnable() {
 				@Override
 				public void run() {
 					// Avoid an NPE while running the shutdown
@@ -198,13 +218,19 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 						launch.shutdownSession(new ImmediateRequestMonitor());
 					}
 				}
-			});
+			}).get(1000, TimeUnit.MILLISECONDS);
 		}
 		catch (RejectedExecutionException e) {
 			// Session disposed.
 		}
+        catch (Exception e) {
+			// Ignore exceptions during shutdown.
+        }
 
-		abort(Messages.RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorMessage, null, ICDTLaunchConfigurationConstants.ERR_DEBUGGER_NOT_INSTALLED);
+		String msg = Messages.RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorMessage;
+		if (details != null && details.length() > 0)
+			msg = NLS.bind(Messages.RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorWithDetails, details);
+		abort(msg, null, ICDTLaunchConfigurationConstants.ERR_DEBUGGER_NOT_INSTALLED);
 	}
 
 	protected String getProgramArguments(ILaunchConfiguration config) throws CoreException {
