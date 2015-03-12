@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -46,6 +46,7 @@ class MemoryMapItemDialog extends Dialog {
     private Text addr_text;
     private Text size_text;
     private Text offset_text;
+    private Text query_text;
     private Text file_text;
     private Button rd_button;
     private Button wr_button;
@@ -77,6 +78,7 @@ class MemoryMapItemDialog extends Dialog {
         Composite composite = (Composite)super.createDialogArea(parent);
         createFileNameFields(composite);
         createPropsFields(composite);
+        createQueryFields(composite);
         setData();
         composite.setSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         return composite;
@@ -210,6 +212,26 @@ class MemoryMapItemDialog extends Dialog {
         ex_button.setEnabled(enable_editing);
     }
 
+    private void createQueryFields(Composite parent) {
+        Font font = parent.getFont();
+
+        Composite composite = new Composite(parent, SWT.NONE);
+        GridLayout layout = new GridLayout(2, false);
+        composite.setFont(font);
+        composite.setLayout(layout);
+        composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        Label query_label = new Label(composite, SWT.WRAP);
+        query_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+        query_label.setFont(font);
+        query_label.setText("Context query:");
+
+        query_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
+        query_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        query_text.setFont(font);
+        query_text.setEditable(enable_editing);
+    }
+
     private String toHex(Number n) {
         if (n == null) return null;
         BigInteger x = JSON.toBigInteger(n);
@@ -234,6 +256,7 @@ class MemoryMapItemDialog extends Dialog {
         else {
             setText(offset_text, toHex((Number)props.get(IMemoryMap.PROP_OFFSET)));
         }
+        setText(query_text, (String)props.get(IMemoryMap.PROP_CONTEXT_QUERY));
         setText(file_text, (String)props.get(IMemoryMap.PROP_FILE_NAME));
         int flags = 0;
         Number n = (Number)props.get(IMemoryMap.PROP_FLAGS);
@@ -279,6 +302,7 @@ class MemoryMapItemDialog extends Dialog {
             getNumber(offset_text, IMemoryMap.PROP_OFFSET);
             props.remove(IMemoryMap.PROP_SECTION_NAME);
         }
+        getText(query_text, IMemoryMap.PROP_CONTEXT_QUERY);
         getText(file_text, IMemoryMap.PROP_FILE_NAME);
         int flags = 0;
         if (rd_button.getSelection()) flags |= IMemoryMap.FLAG_READ;

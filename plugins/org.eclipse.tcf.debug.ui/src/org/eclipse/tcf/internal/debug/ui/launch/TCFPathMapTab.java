@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -89,6 +89,13 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         IPathMap.PROP_CONTEXT_QUERY,
     };
 
+    private static final String[] column_names = {
+        "", //$NON-NLS-1$
+        "Source", //$NON-NLS-1$
+        "Destination", //$NON-NLS-1$
+        "Context query", //$NON-NLS-1$
+    };
+
     protected final static String PROP_ENABLED = "Enabled"; //$NON-NLS-1$
     protected final static String PROP_GENERATED = "Generated"; //$NON-NLS-1$
 
@@ -113,9 +120,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     private class FileCheckStateProvider implements ICheckStateProvider {
 
-        /* (non-Javadoc)
-         * @see org.eclipse.jface.viewers.ICheckStateProvider#isChecked(java.lang.Object)
-         */
         @Override
         public boolean isChecked(Object element) {
             IPathMap.PathMapRule e = (IPathMap.PathMapRule)element;
@@ -125,21 +129,14 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             return true;
         }
 
-        /* (non-Javadoc)
-         * @see org.eclipse.jface.viewers.ICheckStateProvider#isGrayed(java.lang.Object)
-         */
         @Override
         public boolean isGrayed(Object element) {
             return false;
         }
-
     }
 
     private class FileCheckStateListener implements ICheckStateListener {
 
-        /* (non-Javadoc)
-         * @see org.eclipse.jface.viewers.ICheckStateListener#checkStateChanged(org.eclipse.jface.viewers.CheckStateChangedEvent)
-         */
         @Override
         public void checkStateChanged(CheckStateChangedEvent event) {
             IPathMap.PathMapRule rule = (IPathMap.PathMapRule)event.getElement();
@@ -154,7 +151,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
             viewer.refresh();
             updateLaunchConfigurationDialog();
         }
-
     }
 
     private class FileMapLabelProvider extends LabelProvider implements ITableLabelProvider, IColorProvider {
@@ -324,9 +320,8 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         return true;
     }
 
-    protected String getColumnText(int column) {
-        if (column < column_ids.length && column >= 0)
-            return column_ids[column];
+    protected String getColumnText(int c) {
+        if (c < column_names.length && c >= 0) return column_names[c];
         return ""; //$NON-NLS-1$
     }
 
@@ -561,9 +556,6 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         config.removeAttribute(ATTR_PATH_MAP_V1);
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.debug.ui.AbstractLaunchConfigurationTab#updateLaunchConfigurationDialog()
-     */
     @Override
     protected void updateLaunchConfigurationDialog() {
         super.updateLaunchConfigurationDialog();
