@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Mentor Graphics Corporation and others.
+ * Copyright (c) 2010, 2015 Mentor Graphics Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -84,23 +84,20 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 			monitor.setTaskName(Messages.RemoteRunLaunchDelegate_9);
 
 			final AtomicBoolean gdbServerStarted = new AtomicBoolean(false);
+			final AtomicBoolean gdbServerReady = new AtomicBoolean(false);
+			final AtomicBoolean gdbServerExited = new AtomicBoolean(false);
+			final StringBuffer gdbServerOutput = new StringBuffer();
+			final Object lock = new Object();
+
 			final GdbLaunch l = (GdbLaunch) launch;
 			final Callback callback = new Callback() {
 				@Override
 				protected void internalDone(Object caller, IStatus status) {
 					if (!status.isOK()) {
-						// Need to shutdown the DSF launch session because it is
-						// partially started already.
-						try {
-							l.getSession().getExecutor().execute(new DsfRunnable() {
-								@Override
-								public void run() {
-									l.shutdownSession(new ImmediateRequestMonitor());
-								}
-							});
-						}
-						catch (RejectedExecutionException e) {
-							// Session disposed.
+						gdbServerOutput.append(status.getMessage());
+						gdbServerExited.set(true);
+						synchronized (lock) {
+							lock.notifyAll();
 						}
 					} else {
 						gdbServerStarted.set(true);
@@ -109,16 +106,6 @@ public class TEGdbLaunchDelegate extends GdbLaunchDelegate {
 				}
 			};
 
-			// We cannot use a global variable because multiple launches
-			// could access them at the same time. We need a different
-			// variable for each launch, but we also need it be final.
-			// Use a final array to do that.
-			final AtomicBoolean gdbServerReady = new AtomicBoolean(false);
-			final AtomicBoolean gdbServerExited = new AtomicBoolean(false);
-
-			final Object lock = new Object();
-
-			final StringBuilder gdbServerOutput = new StringBuilder();
 			StreamsDataReceiver.Listener listener = new StreamsDataReceiver.Listener() {
 
 				@Override

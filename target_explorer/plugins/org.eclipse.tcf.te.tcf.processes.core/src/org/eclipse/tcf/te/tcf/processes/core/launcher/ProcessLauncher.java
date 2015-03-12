@@ -36,8 +36,10 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IChannel.IChannelListener;
+import org.eclipse.tcf.protocol.IErrorReport;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
@@ -57,6 +59,7 @@ import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
+import org.eclipse.tcf.te.tcf.core.channelmanager.OpenChannelException;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataProvider;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
@@ -393,8 +396,18 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 						onChannelOpenDone(peer);
 					} else {
+						String detail = error.getLocalizedMessage();
+						if (detail == null && error instanceof OpenChannelException) {
+							Throwable inner = ((OpenChannelException) error).getError();
+							if (inner instanceof IErrorReport)
+								detail = Command.toErrorString(((IErrorReport)inner).getAttributes());
+							else
+								detail = inner.getLocalizedMessage();
+						}
+						if (detail == null)
+							detail = "N/A"; //$NON-NLS-1$
 						IStatus status = new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(),
-													NLS.bind(Messages.ProcessLauncher_error_channelConnectFailed, peer.getID(), error.getLocalizedMessage()),
+													NLS.bind(Messages.ProcessLauncher_error_channelConnectFailed, peer.getName(), detail),
 													error);
 						invokeCallback(status, null);
 					}
