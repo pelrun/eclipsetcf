@@ -150,8 +150,6 @@ public class TCFLaunch extends Launch {
 
     private ProcessContext process;
     private Collection<Map<String,Object>> process_signals;
-    private IToken process_start_command;
-    private String process_input_stream_id;
     private boolean process_exited;
     private int process_exit_code;
     private final HashMap<String,String> process_env = new HashMap<String,String>();
@@ -159,6 +157,7 @@ public class TCFLaunch extends Launch {
     private final HashMap<String,TCFAction> active_actions = new HashMap<String,TCFAction>();
     private final HashMap<String,LinkedList<TCFAction>> context_action_queue = new HashMap<String,LinkedList<TCFAction>>();
     private final HashMap<String,Long> context_action_timestamps = new HashMap<String,Long>();
+    private final HashMap<String,ProcessContext> attached_processes = new HashMap<String,ProcessContext>();
     private final HashMap<String,String> process_stream_ids = new HashMap<String,String>();
     private final HashMap<String,String> uart_tx_stream_ids = new HashMap<String,String>();
     private final HashMap<String,String> uart_rx_stream_ids = new HashMap<String,String>();
@@ -190,9 +189,7 @@ public class TCFLaunch extends Launch {
             }
             else {
                 process_stream_ids.put(stream_id, context_id);
-                if (process_start_command == null) {
-                    disconnectStream(stream_id);
-                }
+                disconnectUnusedStreams();
             }
         }
 
@@ -204,10 +201,11 @@ public class TCFLaunch extends Launch {
     private final IProcesses.ProcessesListener prs_listener = new IProcesses.ProcessesListener() {
 
         public void exited(String process_id, int exit_code) {
-            if (process_id.equals(process.getID())) {
+            if (process != null && process_id.equals(process.getID())) {
                 process_exit_code = exit_code;
                 process_exited = true;
             }
+            attached_processes.remove(process_id);
         }
     };
 
@@ -437,6 +435,7 @@ public class TCFLaunch extends Launch {
                 @Override
                 void start() {
                     connecting = false;
+                    disconnectUnusedStreams();
                     for (LaunchListener l : getListeners()) l.onConnected(TCFLaunch.this);
                     fireChanged();
                     if (launch_task != null) launch_task.done(true);
@@ -785,10 +784,9 @@ public class TCFLaunch extends Launch {
                                         }
                                         else {
                                             context_filter = new HashSet<String>();
-                                            context_filter.add(process.getID());
                                             TCFLaunch.this.process = process;
                                             ps.addListener(prs_listener);
-                                            readProcessStreams();
+                                            onAttach(process);
                                             done();
                                         }
                                     }
@@ -848,10 +846,7 @@ public class TCFLaunch extends Launch {
                     }
                     IProcesses.DoneStart done = new IProcesses.DoneStart() {
                         public void doneStart(IToken token, final Exception error, ProcessContext process) {
-                            process_start_command = null;
                             if (error != null) {
-                                for (String id : new HashSet<String>(process_stream_ids.keySet())) disconnectStream(id);
-                                process_stream_ids.clear();
                                 Protocol.sync(new Runnable() {
                                     public void run() {
                                         channel.terminate(error);
@@ -860,10 +855,9 @@ public class TCFLaunch extends Launch {
                             }
                             else {
                                 context_filter = new HashSet<String>();
-                                context_filter.add(process.getID());
                                 TCFLaunch.this.process = process;
                                 ps.addListener(prs_listener);
-                                readProcessStreams();
+                                onAttach(process);
                                 done();
                             }
                         }
@@ -881,11 +875,11 @@ public class TCFLaunch extends Launch {
                             if (dont_pass.length() > 0) params.put(IProcessesV1.START_SIG_DONT_PASS, no_pass);
                         }
                         if (use_terminal) params.put(IProcessesV1.START_USE_TERMINAL, true);
-                        process_start_command = ps_v1.start(dir, file, args_arr, process_env, params, done);
+                        ps_v1.start(dir, file, args_arr, process_env, params, done);
                     }
                     else {
                         boolean attach = mode.equals(ILaunchManager.DEBUG_MODE);
-                        process_start_command = ps.start(dir, file, args_arr, process_env, attach, done);
+                        ps.start(dir, file, args_arr, process_env, attach, done);
                     }
                 }
             };
@@ -896,7 +890,9 @@ public class TCFLaunch extends Launch {
                     void start() {
                         ps.getSignalList(process.getID(), new IProcesses.DoneGetSignalList() {
                             public void doneGetSignalList(IToken token, Exception error, Collection<Map<String,Object>> list) {
-                                if (error != null && !process_exited) Activator.log("Can't get process signal list", error);
+                                if (error != null && attached_processes.get(process.getID()) != null) {
+                                    Activator.log("Can't get process signal list", error);
+                                }
                                 process_signals = list;
                                 done();
                             }
@@ -912,7 +908,7 @@ public class TCFLaunch extends Launch {
                             final IProcesses.DoneCommand done_set_mask = new IProcesses.DoneCommand() {
                                 public void doneCommand(IToken token, Exception error) {
                                     cmds.remove(token);
-                                    if (error != null && !process_exited) channel.terminate(error);
+                                    if (error != null && attached_processes.size() > 0) channel.terminate(error);
                                     else if (cmds.size() == 0) done();
                                 }
                             };
@@ -928,7 +924,7 @@ public class TCFLaunch extends Launch {
                                             }
                                         }
                                         cmds.remove(token);
-                                        if (error != null && !process_exited) channel.terminate(error);
+                                        if (error != null && attached_processes.size() > 0) channel.terminate(error);
                                         else if (cmds.size() == 0) done();
                                     }
                                 };
@@ -941,26 +937,26 @@ public class TCFLaunch extends Launch {
         }
     }
 
-    private void readProcessStreams() {
-        assert process_start_command == null;
-        final IStreams streams = getService(IStreams.class);
+    private void readProcessStreams(ProcessContext ctx) {
+        assert attached_processes.get(ctx.getID()) == ctx;
+        IStreams streams = getService(IStreams.class);
         if (streams == null) return;
-        final String inp_id = (String)process.getProperties().get(IProcesses.PROP_STDIN_ID);
-        final String out_id = (String)process.getProperties().get(IProcesses.PROP_STDOUT_ID);
-        final String err_id = (String)process.getProperties().get(IProcesses.PROP_STDERR_ID);
-        for (final String id : process_stream_ids.keySet().toArray(new String[process_stream_ids.size()])) {
-            if (id.equals(inp_id)) {
-                process_input_stream_id = id;
-            }
-            else if (id.equals(out_id)) {
-                readStream(process.getID(), id, 0);
-            }
-            else if (id.equals(err_id)) {
-                readStream(process.getID(), id, 1);
-            }
-            else {
-                disconnectStream(id);
-            }
+        String out_id = (String)ctx.getProperties().get(IProcesses.PROP_STDOUT_ID);
+        String err_id = (String)ctx.getProperties().get(IProcesses.PROP_STDERR_ID);
+        if (process_stream_ids.get(out_id) != null) readStream(ctx.getID(), out_id, 0);
+        if (process_stream_ids.get(err_id) != null) readStream(ctx.getID(), err_id, 0);
+    }
+
+    private void disconnectUnusedStreams() {
+        if (connecting) return;
+        HashSet<String> set = new HashSet<String>();
+        for (ProcessContext ctx : attached_processes.values()) {
+            set.add((String)ctx.getProperties().get(IProcesses.PROP_STDIN_ID));
+            set.add((String)ctx.getProperties().get(IProcesses.PROP_STDOUT_ID));
+            set.add((String)ctx.getProperties().get(IProcesses.PROP_STDERR_ID));
+        }
+        for (String id : process_stream_ids.keySet().toArray(new String[process_stream_ids.size()])) {
+            if (!set.contains(id)) disconnectStream(id);
         }
     }
 
@@ -999,6 +995,7 @@ public class TCFLaunch extends Launch {
         assert process_stream_ids.get(id) != null;
         process_stream_ids.remove(id);
         if (channel.getState() != IChannel.STATE_OPEN) return;
+        disconnected_stream_ids.add(id);
         IStreams streams = getService(IStreams.class);
         streams.disconnect(id, new IStreams.DoneDisconnect() {
             public void doneDisconnect(IToken token, Exception error) {
@@ -1138,8 +1135,9 @@ public class TCFLaunch extends Launch {
         if (channel.getState() != IChannel.STATE_OPEN) throw new IOException("Connection closed");
         IStreams streams = getService(IStreams.class);
         if (streams == null) throw new IOException("Streams service not available");
-        if (process != null && prs_id.equals(process.getID())) {
-            final String id = process_input_stream_id;
+        ProcessContext ctx = attached_processes.get(prs_id);
+        if (ctx != null) {
+            final String id = (String)ctx.getProperties().get(IProcesses.PROP_STDIN_ID);
             if (process_stream_ids.get(id) == null) throw new IOException("Input stream not available");
             streams.write(id, buf, pos, len, new IStreams.DoneWrite() {
                 public void doneWrite(IToken token, Exception error) {
@@ -1208,24 +1206,14 @@ public class TCFLaunch extends Launch {
         return channel != null && !connecting && !disconnected;
     }
 
+    public void onAttach(ProcessContext ctx) {
+        context_filter.add(ctx.getID());
+        attached_processes.put(ctx.getID(), ctx);
+        readProcessStreams(ctx);
+    }
+
     public void onDetach(String prs_id) {
-        if (disconnecting) return;
-        if (process == null) return;
-        if (process_exited) return;
-        if (!prs_id.equals(process.getID())) return;
-        IProcesses processes = getService(IProcesses.class);
-        processes.removeListener(prs_listener);
-        IStreams streams = getService(IStreams.class);
-        for (String id : process_stream_ids.keySet()) {
-            streams.disconnect(id, new IStreams.DoneDisconnect() {
-                public void doneDisconnect(IToken token, Exception error) {
-                    if (error != null) channel.terminate(error);
-                }
-            });
-        }
-        process_stream_ids.clear();
-        process_input_stream_id = null;
-        process = null;
+        disconnectUnusedStreams();
     }
 
     public void onLastContextRemoved() {
@@ -1248,8 +1236,8 @@ public class TCFLaunch extends Launch {
         if (disconnecting) return;
         disconnecting = true;
         final Set<IToken> cmds = new HashSet<IToken>();
-        if (process != null && !process_exited) {
-            cmds.add(process.terminate(new IProcesses.DoneCommand() {
+        for (ProcessContext ctx : attached_processes.values()) {
+            cmds.add(ctx.terminate(new IProcesses.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     cmds.remove(token);
                     if (error != null) channel.terminate(error);
@@ -1276,7 +1264,6 @@ public class TCFLaunch extends Launch {
                 cmds.add(streams.disconnect(id, done_disconnect));
             }
             process_stream_ids.clear();
-            process_input_stream_id = null;
             uart_rx_stream_ids.clear();
             uart_tx_stream_ids.clear();
             if (dprintf_stream_id != null) {
