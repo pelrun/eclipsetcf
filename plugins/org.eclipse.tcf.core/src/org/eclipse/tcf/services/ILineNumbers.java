@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,8 @@
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.services;
+
+import java.util.Map;
 
 import org.eclipse.tcf.protocol.IService;
 import org.eclipse.tcf.protocol.IToken;
@@ -65,6 +67,35 @@ public interface ILineNumbers extends IService {
             this.basic_block = basic_block;
             this.prologue_end = prologue_end;
             this.epilogue_begin = epilogue_begin;
+        }
+
+        public CodeArea(Map<String,Object> area, CodeArea prev) {
+            this(getString(area, "Dir", prev != null ? prev.directory : null),
+            getString(area, "File", prev != null ? prev.file : null),
+            getInteger(area, "SLine", 0), getInteger(area, "SCol", 0),
+            getInteger(area, "ELine", 0), getInteger(area, "ECol", 0),
+            (Number)area.get("SAddr"), (Number)area.get("EAddr"),
+            getInteger(area, "ISA", 0),
+            getBoolean(area, "IsStmt"), getBoolean(area, "BasicBlock"),
+            getBoolean(area, "PrologueEnd"), getBoolean(area, "EpilogueBegin"));
+        }
+
+        private static int getInteger(Map<String,Object> map, String name, int def) {
+            Number n = (Number)map.get(name);
+            if (n == null) return def;
+            return n.intValue();
+        }
+
+        private static String getString(Map<String,Object> map, String name, String def) {
+            String s = (String)map.get(name);
+            if (s == null) return def;
+            return s;
+        }
+
+        private static boolean getBoolean(Map<String,Object> map, String name) {
+            Boolean b = (Boolean)map.get(name);
+            if (b == null) return false;
+            return b.booleanValue();
         }
 
         @Override

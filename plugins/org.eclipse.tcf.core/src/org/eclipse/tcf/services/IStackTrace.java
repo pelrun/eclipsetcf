@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -98,6 +98,18 @@ public interface IStackTrace extends IService {
      * Number, memory address of function arguments.
      */
     static final String PROP_ARGUMENTS_ADDRESS = "ArgsAddr";
+
+    /**
+     * Stack frame property:
+     * ILineNumbers.CodeArea - call site code area.
+     */
+    static final String PROP_CODE_AREA = "CodeArea";
+
+    /**
+     * Stack frame property:
+     * String - function symbol ID.
+     */
+    static final String PROP_FUNC_ID = "FuncID";
 
     /**
      * Stack frame property:
@@ -234,6 +246,20 @@ public interface IStackTrace extends IService {
          * @return function arguments address or null if not available.
          */
         Number getArgumentsAddress();
+
+        /**
+         * Get code area that describes source code location of the frame.
+         * If null, client should use LineNumbers service to find frame source location.
+         * @return code area or null.
+         */
+        ILineNumbers.CodeArea getCodeArea();
+
+        /**
+         * Get function symbol ID.
+         * If null, client should use Symbols service to find function symbol ID.
+         * @return function symbol ID or null.
+         */
+        String getFuncID();
 
         /**
          * Get complete map of context properties.

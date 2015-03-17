@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,8 @@ import java.util.Map;
 import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.services.ILineNumbers.CodeArea;
+import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.IStackTrace;
 
 
@@ -65,6 +67,17 @@ public class StackTraceProxy implements IStackTrace {
 
         public Number getInstructionAddress() {
             return (Number)props.get(PROP_INSTRUCTION_ADDRESS);
+        }
+
+        public CodeArea getCodeArea() {
+            @SuppressWarnings("unchecked")
+            Map<String,Object> area = (Map<String,Object>)props.get(PROP_CODE_AREA);
+            if (area == null) return null;
+            return new ILineNumbers.CodeArea(area, null);
+        }
+
+        public String getFuncID() {
+            return (String)props.get(PROP_FUNC_ID);
         }
 
         public Map<String, Object> getProperties() {

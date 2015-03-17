@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -698,9 +698,9 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     ref_data.context_id = mem_data.getID();
                     ref_data.address_size = mem_data.getAddressSize();
                 }
+                ref_data.address = addr;
                 command = syms.findByAddr(id, addr, new ISymbols.DoneFind() {
                     public void doneFind(IToken token, Exception error, String symbol_id) {
-                        ref_data.address = addr;
                         ref_data.error = error;
                         ref_data.symbol_id = symbol_id;
                         set(token, null, ref_data);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -65,42 +65,15 @@ public class LineNumbersProxy implements ILineNumbers {
         }.token;
     }
 
-    private static int getInteger(Map<String,Object> map, String name, int def) {
-        Number n = (Number)map.get(name);
-        if (n == null) return def;
-        return n.intValue();
-    }
-
-    private static String getString(Map<String,Object> map, String name, String def) {
-        String s = (String)map.get(name);
-        if (s == null) return def;
-        return s;
-    }
-
-    private static boolean getBoolean(Map<String,Object> map, String name) {
-        Boolean b = (Boolean)map.get(name);
-        if (b == null) return false;
-        return b.booleanValue();
-    }
-
     @SuppressWarnings("unchecked")
     private CodeArea[] toTextAreaArray(Object o) {
         if (o == null) return null;
         Collection<Map<String,Object>> c = (Collection<Map<String,Object>>)o;
         int n = 0;
         CodeArea[] arr = new CodeArea[c.size()];
-        String directory = null;
-        String file = null;
         for (Map<String,Object> area : c) {
-            directory = getString(area, "Dir", directory);
-            file = getString(area, "File", file);
-            arr[n++] = new CodeArea(directory, file,
-                    getInteger(area, "SLine", 0), getInteger(area, "SCol", 0),
-                    getInteger(area, "ELine", 0), getInteger(area, "ECol", 0),
-                    (Number)area.get("SAddr"), (Number)area.get("EAddr"),
-                    getInteger(area, "ISA", 0),
-                    getBoolean(area, "IsStmt"), getBoolean(area, "BasicBlock"),
-                    getBoolean(area, "PrologueEnd"), getBoolean(area, "EpilogueBegin"));
+            arr[n] = new CodeArea(area, n > 0 ? arr[n - 1] : null);
+            n++;
         }
         return arr;
     }

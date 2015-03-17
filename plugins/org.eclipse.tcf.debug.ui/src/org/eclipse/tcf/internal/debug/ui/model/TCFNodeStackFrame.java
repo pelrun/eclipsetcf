@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,8 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IExpressions;
+import org.eclipse.tcf.services.ILineNumbers;
+import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
@@ -96,27 +98,51 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
             @Override
             protected boolean startDataRetrieval() {
                 if (!stack_trace_context.validate(this)) return false;
-                if (!address.validate(this)) return false;
-                BigInteger n = address.getData();
-                if (n == null) {
-                    set(null, address.getError(), null);
+                IStackTrace.StackTraceContext ctx = stack_trace_context.getData();
+                if (ctx == null) {
+                    set(null, stack_trace_context.getError(), null);
                     return true;
                 }
-                assert parent.getStackTrace().isValid();
-                if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
-                TCFDataCache<TCFNodeExecContext> mem_cache = ((TCFNodeExecContext)parent).getMemoryNode();
-                if (!mem_cache.validate(this)) return false;
-                if (mem_cache.getError() != null || mem_cache.getData() == null) {
-                    set(null, mem_cache.getError(), null);
+                TCFDataCache<TCFNodeExecContext> mem_node_cache = ((TCFNodeExecContext)parent).getMemoryNode();
+                if (!mem_node_cache.validate(this)) return false;
+                if (mem_node_cache.getError() != null || mem_node_cache.getData() == null) {
+                    set(null, mem_node_cache.getError(), null);
                     return true;
                 }
-                TCFDataCache<TCFSourceRef> info_cache = mem_cache.getData().getLineInfo(n);
-                if (info_cache == null) {
-                    set(null, null, null);
-                    return true;
+                TCFNodeExecContext mem_node = mem_node_cache.getData();
+                ILineNumbers.CodeArea area = ctx.getCodeArea();
+                if (area != null) {
+                    IMemory.MemoryContext mem_ctx_data = null;
+                    if (mem_node != null) {
+                        TCFDataCache<IMemory.MemoryContext> mem_ctx_cache = mem_node.getMemoryContext();
+                        if (!mem_ctx_cache.validate(this)) return false;
+                        mem_ctx_data = mem_ctx_cache.getData();
+                    }
+                    final TCFSourceRef ref_data = new TCFSourceRef();
+                    if (mem_ctx_data != null) {
+                        ref_data.context_id = mem_ctx_data.getID();
+                        ref_data.address_size = mem_ctx_data.getAddressSize();
+                    }
+                    ref_data.area = area;
+                    set(null, null, ref_data);
                 }
-                if (!info_cache.validate(this)) return false;
-                set(null, info_cache.getError(), info_cache.getData());
+                else {
+                    if (!address.validate(this)) return false;
+                    BigInteger n = address.getData();
+                    if (n == null) {
+                        set(null, address.getError(), null);
+                        return true;
+                    }
+                    assert parent.getStackTrace().isValid();
+                    if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
+                    TCFDataCache<TCFSourceRef> info_cache = mem_node.getLineInfo(n);
+                    if (info_cache == null) {
+                        set(null, null, null);
+                        return true;
+                    }
+                    if (!info_cache.validate(this)) return false;
+                    set(null, info_cache.getError(), info_cache.getData());
+                }
                 return true;
             }
         };
@@ -129,21 +155,47 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     set(null, address.getError(), null);
                     return true;
                 }
-                assert parent.getStackTrace().isValid();
-                if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
-                TCFDataCache<TCFNodeExecContext> mem_cache = ((TCFNodeExecContext)parent).getMemoryNode();
-                if (!mem_cache.validate(this)) return false;
-                if (mem_cache.getError() != null || mem_cache.getData() == null) {
-                    set(null, mem_cache.getError(), null);
+                if (!stack_trace_context.validate(this)) return false;
+                IStackTrace.StackTraceContext ctx = stack_trace_context.getData();
+                if (ctx == null) {
+                    set(null, stack_trace_context.getError(), null);
                     return true;
                 }
-                TCFDataCache<TCFFunctionRef> info_cache = mem_cache.getData().getFuncInfo(n);
-                if (info_cache == null) {
-                    set(null, null, null);
+                TCFDataCache<TCFNodeExecContext> mem_node_cache = ((TCFNodeExecContext)parent).getMemoryNode();
+                if (!mem_node_cache.validate(this)) return false;
+                if (mem_node_cache.getError() != null || mem_node_cache.getData() == null) {
+                    set(null, mem_node_cache.getError(), null);
                     return true;
                 }
-                if (!info_cache.validate(this)) return false;
-                set(null, info_cache.getError(), info_cache.getData());
+                TCFNodeExecContext mem_node = mem_node_cache.getData();
+                String func_id = ctx.getFuncID();
+                if (func_id != null) {
+                    IMemory.MemoryContext mem_ctx_data = null;
+                    if (mem_node != null) {
+                        TCFDataCache<IMemory.MemoryContext> mem_ctx_cache = mem_node.getMemoryContext();
+                        if (!mem_ctx_cache.validate(this)) return false;
+                        mem_ctx_data = mem_ctx_cache.getData();
+                    }
+                    TCFFunctionRef ref = new TCFFunctionRef();
+                    if (mem_ctx_data != null) {
+                        ref.context_id = mem_ctx_data.getID();
+                        ref.address_size = mem_ctx_data.getAddressSize();
+                    }
+                    ref.address = n;
+                    ref.symbol_id = func_id;
+                    set(null, null, ref);
+                }
+                else {
+                    assert parent.getStackTrace().isValid();
+                    if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
+                    TCFDataCache<TCFFunctionRef> info_cache = mem_node.getFuncInfo(n);
+                    if (info_cache == null) {
+                        set(null, null, null);
+                        return true;
+                    }
+                    if (!info_cache.validate(this)) return false;
+                    set(null, info_cache.getError(), info_cache.getData());
+                }
                 return true;
             }
         };
