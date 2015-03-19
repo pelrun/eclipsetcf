@@ -68,7 +68,8 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         ATTR_FILES = ITCFConstants.ID_TCF_DEBUG_MODEL + ".Files",
         ATTR_PATH_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".PathMap",
         ATTR_MEMORY_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".MemoryMap",
-        ATTR_ATTACH_PATH = ITCFConstants.ID_TCF_DEBUG_MODEL + ".Attach";
+        ATTR_ATTACH_PATH = ITCFConstants.ID_TCF_DEBUG_MODEL + ".Attach",
+        ATTR_USE_CONTEXT_FILTER = ITCFConstants.ID_TCF_DEBUG_MODEL + ".UseContextFilter";
 
     public static final String
         FILES_CONTEXT_FULL_NAME = "Context",

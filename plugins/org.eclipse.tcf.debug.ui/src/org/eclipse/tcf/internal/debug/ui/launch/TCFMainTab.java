@@ -56,6 +56,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
     private Button stop_at_main_button;
     private Button disconnect_on_ctx_exit;
     private Button terminal_button;
+    private Button filter_button;
     private Exception init_error;
 
     public void createControl(Composite parent) {
@@ -227,17 +228,17 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
     }
 
     private void createOptionButtons(Composite parent, int col_span) {
-        Composite terminal_comp = new Composite(parent, SWT.NONE);
+        Composite composite = new Composite(parent, SWT.NONE);
         GridLayout terminal_layout = new GridLayout();
         terminal_layout.numColumns = 1;
         terminal_layout.marginHeight = 0;
         terminal_layout.marginWidth = 0;
-        terminal_comp.setLayout(terminal_layout);
+        composite.setLayout(terminal_layout);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = col_span;
-        terminal_comp.setLayoutData(gd);
+        composite.setLayoutData(gd);
 
-        attach_children_button = createCheckButton(terminal_comp, "Auto-attach process children");
+        attach_children_button = createCheckButton(composite, "Auto-attach process children");
         attach_children_button.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent evt) {
@@ -246,7 +247,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         });
         attach_children_button.setEnabled(true);
 
-        stop_at_entry_button = createCheckButton(terminal_comp, "Stop at program entry");
+        stop_at_entry_button = createCheckButton(composite, "Stop at program entry");
         stop_at_entry_button.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent evt) {
@@ -255,7 +256,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         });
         stop_at_entry_button.setEnabled(true);
 
-        stop_at_main_button = createCheckButton(terminal_comp, "Stop at 'main'");
+        stop_at_main_button = createCheckButton(composite, "Stop at 'main'");
         stop_at_main_button.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent evt) {
@@ -264,7 +265,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         });
         stop_at_main_button.setEnabled(true);
 
-        disconnect_on_ctx_exit = createCheckButton(terminal_comp, "Disconnect when last debug context exits");
+        disconnect_on_ctx_exit = createCheckButton(composite, "Disconnect when last debug context exits");
         disconnect_on_ctx_exit.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent evt) {
@@ -273,7 +274,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         });
         disconnect_on_ctx_exit.setEnabled(true);
 
-        terminal_button = createCheckButton(terminal_comp, "Use pseudo-terminal for process standard I/O");
+        terminal_button = createCheckButton(composite, "Use pseudo-terminal for process standard I/O");
         terminal_button.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent evt) {
@@ -281,6 +282,15 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
             }
         });
         terminal_button.setEnabled(true);
+
+        filter_button = createCheckButton(composite, "Hide debug contexts started by other debug sessions");
+        filter_button.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent evt) {
+                updateLaunchConfigurationDialog();
+            }
+        });
+        filter_button.setEnabled(true);
     }
 
     public void initializeFrom(ILaunchConfiguration config) {
@@ -297,6 +307,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
             stop_at_main_button.setSelection(config.getAttribute(TCFLaunchDelegate.ATTR_STOP_AT_MAIN, true));
             disconnect_on_ctx_exit.setSelection(config.getAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, true));
             terminal_button.setSelection(config.getAttribute(TCFLaunchDelegate.ATTR_USE_TERMINAL, true));
+            filter_button.setSelection(config.getAttribute(TCFLaunchDelegate.ATTR_USE_CONTEXT_FILTER, true));
             working_dir_text.setEnabled(!default_dir_button.getSelection());
         }
         catch (Exception e) {
@@ -327,6 +338,12 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         config.setAttribute(TCFLaunchDelegate.ATTR_STOP_AT_MAIN, stop_at_main_button.getSelection());
         config.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, disconnect_on_ctx_exit.getSelection());
         config.setAttribute(TCFLaunchDelegate.ATTR_USE_TERMINAL, terminal_button.getSelection());
+        if (filter_button.getSelection()) {
+            config.removeAttribute(TCFLaunchDelegate.ATTR_USE_CONTEXT_FILTER);
+        }
+        else {
+            config.setAttribute(TCFLaunchDelegate.ATTR_USE_CONTEXT_FILTER, false);
+        }
     }
 
     /**
@@ -496,7 +513,8 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         config.setAttribute(TCFLaunchDelegate.ATTR_STOP_AT_MAIN, true);
         config.setAttribute(TCFLaunchDelegate.ATTR_DISCONNECT_ON_CTX_EXIT, true);
         config.setAttribute(TCFLaunchDelegate.ATTR_USE_TERMINAL, true);
-        config.setAttribute(TCFLaunchDelegate.ATTR_WORKING_DIRECTORY, (String)null);
+        config.removeAttribute(TCFLaunchDelegate.ATTR_USE_CONTEXT_FILTER);
+        config.removeAttribute(TCFLaunchDelegate.ATTR_WORKING_DIRECTORY);
         ITCFLaunchContext launch_context = TCFLaunchContext.getLaunchContext(null);
         if (launch_context != null) launch_context.setDefaults(getLaunchConfigurationDialog(), config);
     }

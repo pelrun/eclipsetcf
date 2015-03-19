@@ -278,10 +278,16 @@ public class TCFLaunch extends Launch {
         else {
             final ILaunchConfiguration cfg = getLaunchConfiguration();
 
+            boolean use_context_filter =
+                getAttribute("attach_to_context") != null ||
+                getAttribute("attach_to_process") != null ||
+                cfg != null && cfg.getAttribute(TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE, "").length() > 0 ||
+                cfg != null && cfg.getAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, "").length() > 0;
+            if (cfg != null) use_context_filter = cfg.getAttribute(TCFLaunchDelegate.ATTR_USE_CONTEXT_FILTER, use_context_filter);
+            if (use_context_filter) context_filter = new HashSet<String>();
+
             final IRunControl rc_service = getService(IRunControl.class);
-            if (rc_service != null) {
-                rc_service.addListener(rc_listener);
-            }
+            if (rc_service != null) rc_service.addListener(rc_listener);
 
             final IPathMap path_map_service = getService(IPathMap.class);
             if (path_map_service != null) {
@@ -336,10 +342,9 @@ public class TCFLaunch extends Launch {
             }
 
             if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-                String attach_to_context = getAttribute("attach_to_context");
-                if (attach_to_context != null) {
-                    context_filter = new HashSet<String>();
-                    context_filter.add(attach_to_context);
+                if (context_filter != null) {
+                    String attach_to_context = getAttribute("attach_to_context");
+                    if (attach_to_context != null) context_filter.add(attach_to_context);
                 }
                 final IMemoryMap mem_map = channel.getRemoteService(IMemoryMap.class);
                 if (mem_map != null) {
@@ -783,7 +788,6 @@ public class TCFLaunch extends Launch {
                                             channel.terminate(error);
                                         }
                                         else {
-                                            context_filter = new HashSet<String>();
                                             TCFLaunch.this.process = process;
                                             ps.addListener(prs_listener);
                                             onAttach(process);
@@ -854,7 +858,6 @@ public class TCFLaunch extends Launch {
                                 });
                             }
                             else {
-                                context_filter = new HashSet<String>();
                                 TCFLaunch.this.process = process;
                                 ps.addListener(prs_listener);
                                 onAttach(process);
@@ -1207,7 +1210,7 @@ public class TCFLaunch extends Launch {
     }
 
     public void onAttach(ProcessContext ctx) {
-        context_filter.add(ctx.getID());
+        if (context_filter != null) context_filter.add(ctx.getID());
         attached_processes.put(ctx.getID(), ctx);
         readProcessStreams(ctx);
     }
