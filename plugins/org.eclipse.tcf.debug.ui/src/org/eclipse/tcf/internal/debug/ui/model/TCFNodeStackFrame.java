@@ -149,12 +149,6 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
         func_info = new TCFData<TCFFunctionRef>(channel) {
             @Override
             protected boolean startDataRetrieval() {
-                if (!address.validate(this)) return false;
-                BigInteger n = address.getData();
-                if (n == null) {
-                    set(null, address.getError(), null);
-                    return true;
-                }
                 if (!stack_trace_context.validate(this)) return false;
                 IStackTrace.StackTraceContext ctx = stack_trace_context.getData();
                 if (ctx == null) {
@@ -181,12 +175,17 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                         ref.context_id = mem_ctx_data.getID();
                         ref.address_size = mem_ctx_data.getAddressSize();
                     }
-                    ref.address = n;
                     ref.symbol_id = func_id;
                     set(null, null, ref);
                 }
                 else {
                     assert parent.getStackTrace().isValid();
+                    if (!address.validate(this)) return false;
+                    BigInteger n = address.getData();
+                    if (n == null) {
+                        set(null, address.getError(), null);
+                        return true;
+                    }
                     if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                     TCFDataCache<TCFFunctionRef> info_cache = mem_node.getFuncInfo(n);
                     if (info_cache == null) {

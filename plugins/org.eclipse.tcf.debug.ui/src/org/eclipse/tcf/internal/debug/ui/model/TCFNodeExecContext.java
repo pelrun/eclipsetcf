@@ -358,7 +358,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     set(null, state.getError(), null);
                     return true;
                 }
-                if (s.suspend_pc == null) {
+                if (!s.is_suspended || s.suspend_pc == null) {
                     set(null, null, null);
                     return true;
                 }

@@ -11,7 +11,6 @@
 package org.eclipse.tcf.internal.services.remote;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.tcf.core.Command;
@@ -31,7 +30,6 @@ public class StackTraceProxy implements IStackTrace {
         private final Map<String,Object> props;
 
         Context(Map<String,Object> props) {
-            if (props == null) props = new HashMap<String,Object>();
             this.props = props;
         }
 
@@ -144,7 +142,9 @@ public class StackTraceProxy implements IStackTrace {
         Collection<Map<String,Object>> c = (Collection<Map<String,Object>>)o;
         int n = 0;
         StackTraceContext[] ctx = new StackTraceContext[c.size()];
-        for (Map<String,Object> m : c) ctx[n++] = new Context(m);
+        for (Map<String,Object> m : c) {
+            ctx[n++] = m != null ? new Context(m) : null;
+        }
         return ctx;
     }
 
