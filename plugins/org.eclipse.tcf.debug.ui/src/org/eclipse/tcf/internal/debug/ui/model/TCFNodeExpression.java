@@ -1838,6 +1838,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         }
                         piece_cnt++;
                     }
+                    bf.append('\n');
                 }
                 else {
                     int cnt = 0;
