@@ -907,9 +907,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     @SuppressWarnings("incomplete-switch")
     private boolean getTypeName(StringBuffer bf, TCFDataCache<ISymbols.Symbol> type_cache, boolean qualified, Runnable done) {
         String name = null;
+        boolean name_left = false;
         for (int i = 0; i < max_type_chain_length; i++) {
             String s = null;
-            boolean get_base_type = false;
+            boolean get_base_left = false;
+            boolean get_base_right = false;
             if (!type_cache.validate(done)) return false;
             ISymbols.Symbol type_symbol = type_cache.getData();
             if (type_symbol != null) {
@@ -942,7 +944,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     case pointer:
                         s = "*";
                         if ((flags & ISymbols.SYM_FLAG_REFERENCE) != 0) s = "&";
-                        get_base_type = true;
+                        get_base_left = true;
                         break;
                     case member_pointer:
                         {
@@ -965,11 +967,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             }
                             if (s == null) s = "::*";
                         }
-                        get_base_type = true;
+                        get_base_left = true;
                         break;
                     case array:
                         s = "[" + type_symbol.getLength() + "]";
-                        get_base_type = true;
+                        get_base_right = true;
                         break;
                     case composite:
                         s = "<Structure>";
@@ -994,7 +996,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                 }
                                 args.append(')');
                                 s = args.toString();
-                                get_base_type = true;
+                                get_base_right = true;
                                 break;
                             }
                         }
@@ -1011,11 +1013,22 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 name = "N/A";
                 break;
             }
-            if (name == null) name = s;
-            else if (!get_base_type) name = s + " " + name;
-            else name = s + name;
+            if (name == null) {
+                name = s;
+            }
+            else if (get_base_left) {
+                name = s + name;
+            }
+            else if (get_base_right) {
+                if (name_left) name = "(" + name + ")" + s;
+                else name = name + s;
+            }
+            else {
+                name = s + " " + name;
+            }
 
-            if (!get_base_type) break;
+            if (!get_base_left && !get_base_right) break;
+            name_left = get_base_left;
 
             if (name.length() > 0x1000) {
                 /* Must be invalid symbols data */
