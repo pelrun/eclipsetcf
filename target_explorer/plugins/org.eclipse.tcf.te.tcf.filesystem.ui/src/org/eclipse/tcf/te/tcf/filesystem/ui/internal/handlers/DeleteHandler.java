@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -22,9 +22,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpDelete;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
@@ -47,27 +46,26 @@ public class DeleteHandler extends AbstractHandler {
 		// Get the current selection
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-			List<FSTreeNode> nodes = ((IStructuredSelection)selection).toList();
+			List<IFSTreeNode> nodes = ((IStructuredSelection)selection).toList();
 			if(confirmDeletion(nodes)) {
-				IOpExecutor executor = new UiExecutor();
-				executor.execute(new OpDelete(nodes, readonlyCallback));
+				UiExecutor.execute(ModelManager.operationDelete(nodes, readonlyCallback));
 			}
 		}
 
 		return null;
 	}
-	
+
 	/**
 	 * Confirm the deletion of the specified nodes.
-	 * 
+	 *
 	 * @param nodes The nodes to be deleted.
 	 * @return true if the user agrees to delete.
 	 */
-    private boolean confirmDeletion(List<FSTreeNode> nodes) {
+    private boolean confirmDeletion(List<IFSTreeNode> nodes) {
 		String question;
 		if (nodes.size() == 1) {
-			FSTreeNode node = nodes.get(0);
-			question = NLS.bind(Messages.DeleteFilesHandler_DeleteOneFileConfirmation, node.name);
+			IFSTreeNode node = nodes.get(0);
+			question = NLS.bind(Messages.DeleteFilesHandler_DeleteOneFileConfirmation, node.getName());
 		}
 		else {
 			question = NLS.bind(Messages.DeleteFilesHandler_DeleteMultipleFilesConfirmation, Integer.valueOf(nodes.size()));
@@ -90,8 +88,8 @@ public class DeleteHandler extends AbstractHandler {
 		 */
 		@Override
         public boolean requires(Object object) {
-			if(object instanceof FSTreeNode) {
-				FSTreeNode node = (FSTreeNode) object;
+			if(object instanceof IFSTreeNode) {
+				IFSTreeNode node = (IFSTreeNode) object;
 				return node.isWindowsNode() && node.isReadOnly() || !node.isWindowsNode() && !node.isWritable();
 			}
 			return false;
@@ -103,7 +101,7 @@ public class DeleteHandler extends AbstractHandler {
 		 */
 		@Override
         public int confirms(Object object) {
-			final FSTreeNode node = (FSTreeNode) object;
+			final IFSTreeNode node = (IFSTreeNode) object;
 			final int[] results = new int[1];
 			Display display = PlatformUI.getWorkbench().getDisplay();
 			display.syncExec(new Runnable() {
@@ -111,7 +109,7 @@ public class DeleteHandler extends AbstractHandler {
 				public void run() {
 					Shell parent = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 					String title = Messages.FSDelete_ConfirmDelete;
-					String message = NLS.bind(Messages.FSDelete_ConfirmMessage, node.name);
+					String message = NLS.bind(Messages.FSDelete_ConfirmMessage, node.getName());
 					final Image titleImage = UIPlugin.getImage(ImageConsts.DELETE_READONLY_CONFIRM);
 					MessageDialog qDialog = new MessageDialog(parent, title, null, message, MessageDialog.QUESTION, new String[] { Messages.FSDelete_ButtonYes, Messages.FSDelete_ButtonYes2All, Messages.FSDelete_ButtonNo, Messages.FSDelete_ButtonCancel }, 0) {
 						@Override

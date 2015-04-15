@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2014 IBM Corporation and others.
+ * Copyright (c) 2005, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,7 +25,7 @@ import org.eclipse.ui.texteditor.IElementStateListener;
  * provider to ensure that the changes are not lost (see
  * {@link #hasBufferedContents()}). In order to avoid a leak, the buffer must
  * either be saved (see
- * {@link #saveDocument(IEditorInput, boolean, IProgressMonitor)}) or released
+ * {@link #saveDocument(IEditorInput, IProgressMonitor)}) or released
  * (see {@link #releaseBuffer()}).
  * <p>
  * This adapter must have a one-to-one correspondence to a typed element.

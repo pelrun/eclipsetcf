@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.search.TreeViewerSearchDialog;
@@ -232,20 +232,20 @@ public class FSModifiedSearchable extends FSBaseSearchable {
 	 */
 	@Override
     public boolean match(Object element) {
-		if (element instanceof FSTreeNode) {
-			FSTreeNode node = (FSTreeNode) element;
+		if (element instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode) element;
 			long now = System.currentTimeMillis();
 			switch (choice) {
 			case OPTION_NOT_REMEMBER:
 				return true;
 			case OPTION_LAST_WEEK:
-				return node.attr.mtime > now - WEEK;
+				return node.getModificationTime() > now - WEEK;
 			case OPTION_LAST_MONTH:
-				return node.attr.mtime > now - MONTH;
+				return node.getModificationTime() > now - MONTH;
 			case OPTION_LAST_YEAR:
-				return node.attr.mtime > now - YEAR;
+				return node.getModificationTime() > now - YEAR;
 			case OPTION_SPECIFIED:
-				return node.attr.mtime >= fromTime && node.attr.mtime < toTime;
+				return node.getModificationTime() >= fromTime && node.getModificationTime() < toTime;
 			}
 		}
 		return false;

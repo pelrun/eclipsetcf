@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -29,11 +29,11 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.compare.EditableSharedDocumentAdapter.ISharedDocumentAdapterListener;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
@@ -42,7 +42,7 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 
 /**
  * A <code>LocalTypedElement</code> extends <code>MergeTypedElement</code> and
- * wraps an <code>FSTreeNode</code> so that it can be used as the left element
+ * wraps an <code>IFSTreeNode</code> so that it can be used as the left element
  * of a <code>MergeEditorInput</code>. It implements the interface
  * <code>IEditableContent</code> so that it is editable.
  */
@@ -58,10 +58,8 @@ public class LocalTypedElement extends MergeTypedElement implements
 	/**
 	 * Creates a <code>LocalTypedElement</code> for the given resource.
 	 *
-	 * @param resource
-	 *            the resource
 	 */
-	public LocalTypedElement(FSTreeNode node) {
+	public LocalTypedElement(IFSTreeNode node) {
 		super(node);
 		setContent(getContent());
 		dirty = false;
@@ -111,8 +109,7 @@ public class LocalTypedElement extends MergeTypedElement implements
 	@Override
 	protected InputStream createStream() throws CoreException {
 		try {
-			IPath cachePath = CacheManager.getCachePath(node);
-			File cacheFile = cachePath.toFile();
+			File cacheFile = node.getCacheFile();
 			return new BufferedInputStream(new FileInputStream(cacheFile));
 		} catch (FileNotFoundException e) {
 			IStatus error = new Status(IStatus.ERROR,
@@ -142,9 +139,6 @@ public class LocalTypedElement extends MergeTypedElement implements
 	 * if the element is connected to a shared document. If the element is not
 	 * connected, <code>false</code> is returned.
 	 *
-	 * @param overwrite
-	 *            indicates whether overwrite should be performed while saving
-	 *            the given element if necessary
 	 * @param monitor
 	 *            a progress monitor
 	 * @throws CoreException
@@ -195,7 +189,7 @@ public class LocalTypedElement extends MergeTypedElement implements
 	 */
 	@Override
 	public String toString() {
-		File cacheFile = CacheManager.getCacheFile(node);
+		File cacheFile = node.getCacheFile();
 		return cacheFile.toString();
 	}
 
@@ -251,7 +245,7 @@ public class LocalTypedElement extends MergeTypedElement implements
 	 * @return The editor input.
 	 */
 	public IEditorInput getEditorInput() {
-		IPath path = CacheManager.getCachePath(node);
+		IPath path = new Path(node.getCacheFile().getAbsolutePath());
 		IFileStore fileStore = EFS.getLocalFileSystem().getStore(path);
 		return new FileStoreEditorInput(fileStore);
 	}
@@ -263,7 +257,7 @@ public class LocalTypedElement extends MergeTypedElement implements
 	 *            The monitor that reports the progress.
 	 */
 	public void store2Cache(IProgressMonitor monitor) throws CoreException {
-		File cacheFile = CacheManager.getCacheFile(node);
+		File cacheFile = node.getCacheFile();
 		monitor.beginTask(NLS.bind(Messages.LocalTypedElement_SavingFile, cacheFile.getName()), 100);
 		InputStream is = getContents();
 		BufferedOutputStream bos = null;

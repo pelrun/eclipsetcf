@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -17,7 +17,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.ui.navigator.CommonDragAdapterAssistant;
 
 /**
- * The drag assistant used by Target Explorer to extend its DnD support to FSTreeNode elements.
+ * The drag assistant used by Target Explorer to extend its DnD support to IFSTreeNode elements.
  */
 public class FSDragAdapterAssistant extends CommonDragAdapterAssistant {
 	// The common dnd operation

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,162 +11,108 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.url.TcfURLConnection;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManager;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
-/**
- * Download multiple files from local system to a remote system.
- */
-public class OpDownload extends OpStreamOp {
-	// The destination files to be downloaded to.
-	protected File[] dstFiles;
-	// The source nodes to be downloaded from.
-	protected FSTreeNode[] srcNodes;
+public class OpDownload extends AbstractOperation {
 
-	/**
-	 * Create a download operation to download a file node
-	 * to a local file.
-	 *
-	 * @param dstFile The local file to be downloaded to.
-	 * @param srcNode The source node to be downloaded from.
-	 */
-	public OpDownload(File dstFile, FSTreeNode srcNode) {
-		this(new File[]{dstFile}, new FSTreeNode[]{srcNode});
+	private final OutputStream fTarget;
+	private final FSTreeNode fSource;
+	private final boolean fResetDigest;
+
+	public OpDownload(FSTreeNode srcNode, OutputStream target) {
+		fTarget = target;
+		fSource = srcNode;
+		fResetDigest = target == null;
 	}
 
-	/**
-	 * Create a download operation to download file nodes
-	 * to local files.
-	 *
-	 * @param dstFiles The local files to be downloaded to.
-	 * @param srcNodes The source nodes to be downloaded from.
-	 */
-	public OpDownload(File[] dstFiles, FSTreeNode[] srcNodes) {
-		this.dstFiles = dstFiles;
-		this.srcNodes = srcNodes;
-	}
-
-	/**
-	 * Create a download operation to download specified nodes
-	 * to its local cache files.
-	 *
-	 * @param srcNodes The source file nodes to be downloaded.
-	 */
-	public OpDownload(FSTreeNode... srcNodes) {
-		this.srcNodes = srcNodes;
-		this.dstFiles = new File[srcNodes.length];
-		for (int i = 0; i < srcNodes.length; i++) {
-			this.dstFiles[i] = CacheManager.getCacheFile(srcNodes[i]);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
-    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		super.run(monitor);
+    public IStatus doRun(IProgressMonitor monitor) {
 		try {
-			downloadFiles(dstFiles, srcNodes);
-			if(monitor.isCanceled()) throw new InterruptedException();
-		} catch (MalformedURLException e) {
-			throw new InvocationTargetException(e, e.getLocalizedMessage());
-		} catch (IOException e) {
-			throw new InvocationTargetException(e, e.getLocalizedMessage());
-		} finally {
-			monitor.done();
-		}
-    }
-
-	/**
-	 * Download the specified file list to the specified locations, reporting the progress
-	 * using the specified monitor.
-	 *
-	 * @param dstFiles The file list to be downloaded to.
-	 * @param srcNodes The node list to be downloaded from.
-	 * @param monitor The monitor that reports progress.
-	 * @throws IOException The exception reported during downloading.
-	 */
-	private void downloadFiles(File[] dstFiles, FSTreeNode[] srcNodes) throws IOException {
-		// The buffer used to download the file.
-		byte[] data = new byte[DEFAULT_CHUNK_SIZE];
-		// Calculate the total size.
-		long totalSize = 0;
-		for (FSTreeNode node:srcNodes) {
-			totalSize += node.attr == null ? 0L : node.attr.size;
-		}
-		// Calculate the chunk size of one percent.
-		int chunk_size = (int) totalSize / 100;
-		// The current reading percentage.
-		int percentRead = 0;
-		// The current length of read bytes.
-		long bytesRead = 0;
-		for (int i = 0; i < srcNodes.length && !monitor.isCanceled(); i++) {
-			FSTreeNode node = srcNodes[i];
-			long size = node.attr == null ? 0L : node.attr.size;
-			MessageDigest digest = null;
-			BufferedInputStream input = null;
-			BufferedOutputStream output = null;
-			try {
-				URL url = node.getLocationURL();
-				TcfURLConnection connection = (TcfURLConnection) url.openConnection();
+			if (fTarget != null) {
+				downloadFile(fSource, fTarget, monitor);
+			} else {
+				OutputStream out = new BufferedOutputStream(new FileOutputStream(fSource.getCacheFile()));
 				try {
-					digest = MessageDigest.getInstance(MD_ALG);
-					input = new BufferedInputStream(new DigestInputStream(connection.getInputStream(), digest));
-				}
-				catch (NoSuchAlgorithmException e) {
-					input = new BufferedInputStream(connection.getInputStream());
-				}
-				output = new BufferedOutputStream(new FileOutputStream(dstFiles[i]));
-
-				// Total size displayed on the progress dialog.
-				String fileLength = formatSize(size);
-				int length;
-				while ((length = input.read(data)) >= 0 && !monitor.isCanceled()) {
-					output.write(data, 0, length);
-					output.flush();
-					bytesRead += length;
-					if (chunk_size != 0) {
-						int percent = (int) bytesRead / chunk_size;
-						if (percent != percentRead) { // Update the progress.
-							monitor.worked(percent - percentRead);
-							percentRead = percent; // Remember the percentage.
-							// Report the progress.
-							monitor.subTask(NLS.bind(Messages.OpDownload_Downloading, new Object[]{node.name, formatSize(bytesRead), fileLength}));
-						}
+					downloadFile(fSource, out, monitor);
+				} finally {
+					try {
+						out.close();
+					} catch(IOException e) {
 					}
 				}
 			}
-			finally {
-				if (output != null) {
-					try {
-						output.close();
-					} catch (Exception e) {
+		} catch (Exception e) {
+			if (fTarget == null) {
+				fSource.getCacheFile().delete();
+			}
+			return StatusHelper.createStatus("Cannot download " + fSource.getName(), e); //$NON-NLS-1$
+		}
+		return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
+    }
+
+	private void downloadFile(FSTreeNode source, OutputStream out, IProgressMonitor monitor) throws IOException {
+		byte[] data = new byte[DEFAULT_CHUNK_SIZE];
+		long size = source.getSize();
+		long percentSize = size / 100;
+		int percentRead = 0;
+		long bytesRead = 0;
+
+		monitor.beginTask(getName(), 100);
+
+		MessageDigest digest = null;
+		BufferedInputStream input = null;
+
+		TcfURLConnection connection = (TcfURLConnection) source.getLocationURL().openConnection();
+		try {
+			try {
+				digest = MessageDigest.getInstance(MD_ALG);
+				input = new BufferedInputStream(new DigestInputStream(connection.getInputStream(), digest));
+			} catch (NoSuchAlgorithmException e) {
+				input = new BufferedInputStream(connection.getInputStream());
+			}
+
+			String fileLength = formatSize(size);
+			int length;
+			while ((length = input.read(data)) >= 0 && !monitor.isCanceled()) {
+				out.write(data, 0, length);
+				bytesRead += length;
+				if (percentSize != 0) {
+					int percent = (int) (bytesRead / percentSize);
+					if (percent != percentRead) { // Update the progress.
+						monitor.worked(percent - percentRead);
+						percentRead = percent; // Remember the percentage.
+						// Report the progress.
+						monitor.subTask(NLS.bind(Messages.OpDownload_Downloading, new Object[]{source.getName(), formatSize(bytesRead), fileLength}));
 					}
 				}
-				if (input != null) {
-					try {
-						input.close();
-					} catch (Exception e) {
-					}
+			}
+			if (!monitor.isCanceled()) {
+				if (digest != null) {
+					updateNodeDigest(source, digest.digest());
 				}
-				if(digest != null) {
-					updateNodeDigest(node, digest.digest());
+			}
+		} finally {
+			out.flush();
+			if (input != null) {
+				try {
+					input.close();
+				} catch (Exception e) {
 				}
 			}
 		}
@@ -179,28 +125,16 @@ public class OpDownload extends OpStreamOp {
 	 * @param digest The digest data.
 	 */
 	protected void updateNodeDigest(FSTreeNode node, byte[] digest) {
+		FileState fileDigest = PersistenceManager.getInstance().getFileDigest(node);
+		if (fResetDigest) {
+			fileDigest.reset(digest);
+		} else {
+			fileDigest.updateTargetDigest(digest);
+		}
     }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getName()
-	 */
 	@Override
     public String getName() {
-		String message;
-		if(dstFiles.length==1)
-			message = NLS.bind(Messages.OpDownload_DownloadingSingleFile, dstFiles[0].getName());
-		else
-			message = NLS.bind(Messages.OpDownload_DownloadingMultipleFiles, Long.valueOf(dstFiles.length));
-		return message;
-    }
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getTotalWork()
-	 */
-	@Override
-    public int getTotalWork() {
-	    return 100;
+		return NLS.bind(Messages.OpDownload_DownloadingSingleFile, fSource.getName());
     }
 }

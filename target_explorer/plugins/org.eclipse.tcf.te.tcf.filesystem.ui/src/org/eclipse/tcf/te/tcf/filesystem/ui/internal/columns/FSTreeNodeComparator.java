@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns;
 import java.io.Serializable;
 import java.util.Comparator;
 
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 
 /**
  * The base comparator for all the file system tree column.
@@ -26,30 +26,19 @@ public abstract class FSTreeNodeComparator implements Comparator<Object>, Serial
 	 */
 	@Override
 	public final int compare(Object o1, Object o2) {
-		if (!(o1 instanceof FSTreeNode) || !(o2 instanceof FSTreeNode)) return 0;
+		if (!(o1 instanceof IFSTreeNode) || !(o2 instanceof IFSTreeNode))
+			return 0;
 
-		FSTreeNode node1 = (FSTreeNode)o1;
-		FSTreeNode node2 = (FSTreeNode)o2;
-
-		// Get the type labels
-		String type1 = node1.type;
-		String type2 = node2.type;
+		IFSTreeNode node1 = (IFSTreeNode)o1;
+		IFSTreeNode node2 = (IFSTreeNode)o2;
 
 		// Group directories and files always together before sorting by name
-		if ((node1.isRoot() || node1.isDirectory()) && !(node2.isRoot() || node2.isDirectory())) {
-			return -1;
-		}
+		boolean d1 = node1.isDirectory();
+		boolean d2 = node2.isDirectory();
+		if (d1 != d2)
+			return d1 ? -1 : 1;
 
-		if ((node2.isRoot() || node2.isDirectory()) && !(node1.isRoot() || node1.isDirectory())) {
-			return 1;
-		}
-
-		// If the nodes are of the same type and one entry starts
-		// with a '.', it comes before the one without a '.'
-		if (type1 != null && type2 != null && type1.equals(type2)) {
-			return doCompare(node1, node2);
-		}
-		return 0;
+		return doCompare(node1, node2);
 	}
 
 	/**
@@ -59,5 +48,5 @@ public abstract class FSTreeNodeComparator implements Comparator<Object>, Serial
 	 * @param node2 The second node.
 	 * @return The comparison result.
 	 */
-	public abstract int doCompare(FSTreeNode node1, FSTreeNode node2);
+	public abstract int doCompare(IFSTreeNode node1, IFSTreeNode node2);
 }

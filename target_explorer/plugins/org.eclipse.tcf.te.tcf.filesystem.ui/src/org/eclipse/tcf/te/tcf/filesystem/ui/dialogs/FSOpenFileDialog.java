@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -25,8 +25,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeContentProvider;
@@ -122,15 +122,15 @@ public class FSOpenFileDialog extends ElementTreeSelectionDialog {
 	    		Object element = null;
 				IRuntimeModel model = ModelManager.getRuntimeModel((IPeerNode)viewer.getInput());
 	    		if (model != null) {
-	    			FSTreeNode root = model.getRoot();
+	    			IFSTreeNode root = model.getRoot();
 	    			ITreeContentProvider contentProvider = (ITreeContentProvider)viewer.getContentProvider();
 	    			Object[] elements = contentProvider.getElements(root);
 	    			String segment = path.getDevice() != null ? path.getDevice() : path.segmentCount() > 0 ? path.segment(0) : null;
 	    			if (segment != null) {
 	    				for (Object elem : elements) {
-	    					if (!(elem instanceof FSTreeNode)) break;
-	    					FSTreeNode child = (FSTreeNode)elem;
-	    					String name = child.name;
+	    					if (!(elem instanceof IFSTreeNode)) break;
+	    					IFSTreeNode child = (IFSTreeNode)elem;
+	    					String name = child.getName();
 	    					if (name.endsWith("\\") || name.endsWith("/")) name = name.substring(0, name.length() - 1); //$NON-NLS-1$ //$NON-NLS-2$
 	    					boolean matches = child.isWindowsNode() ? name.equalsIgnoreCase(segment) : name.equals(segment);
 	    					if (matches) {
@@ -178,11 +178,11 @@ public class FSOpenFileDialog extends ElementTreeSelectionDialog {
 	 *
 	 * @return The matching file system node or <code>null</code>.
 	 */
-	private FSTreeNode findRecursive(FSTreeNode parent, IPath path, int index) {
+	private IFSTreeNode findRecursive(IFSTreeNode parent, IPath path, int index) {
 		Assert.isNotNull(parent);
 		Assert.isNotNull(path);
 
-		FSTreeNode node = null;
+		IFSTreeNode node = null;
 
 		ITreeContentProvider contentProvider = (ITreeContentProvider)viewer.getContentProvider();
 		Object[] elements = contentProvider.getElements(parent);
@@ -196,9 +196,9 @@ public class FSOpenFileDialog extends ElementTreeSelectionDialog {
 		String segment = path.segment(index);
 
 		for (Object element : elements) {
-			if (!(element instanceof FSTreeNode)) break;
-			FSTreeNode child = (FSTreeNode)element;
-			String name = child.name;
+			if (!(element instanceof IFSTreeNode)) break;
+			IFSTreeNode child = (IFSTreeNode)element;
+			String name = child.getName();
 			if (name.endsWith("\\") || name.endsWith("/")) name = name.substring(0, name.length() - 1); //$NON-NLS-1$ //$NON-NLS-2$
 			boolean matches = child.isWindowsNode() ? name.equalsIgnoreCase(segment) : name.equals(segment);
 			if (matches) {
@@ -251,10 +251,10 @@ public class FSOpenFileDialog extends ElementTreeSelectionDialog {
 		if (selection == null || selection.length == 0) {
 			return error;
 		}
-		if (!(selection[0] instanceof FSTreeNode)) {
+		if (!(selection[0] instanceof IFSTreeNode)) {
 			return error;
 		}
-		FSTreeNode target = (FSTreeNode) selection[0];
+		IFSTreeNode target = (IFSTreeNode) selection[0];
 		if(!target.isFile()) {
 			return error;
 		}

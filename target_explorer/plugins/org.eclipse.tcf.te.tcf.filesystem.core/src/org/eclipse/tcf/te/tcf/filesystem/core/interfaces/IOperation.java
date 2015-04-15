@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,9 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.interfaces;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 
 /**
  * A class that implement this interface represents an file system operation,
@@ -24,38 +24,24 @@ public interface IOperation {
 	 */
 	public static final String MD_ALG = "MD5";  //$NON-NLS-1$
 
-    /**
-     * Runs this operation.  Progress should be reported to the given progress monitor.
-     * A request to cancel the operation should be honored and acknowledged
-     * by throwing <code>InterruptedException</code>.
-     *
-     * @param monitor the progress monitor to use to display progress and receive
-     *   requests for cancellation
-     * @exception InvocationTargetException if the run method must propagate a checked exception,
-     * 	it should wrap it inside an <code>InvocationTargetException</code>; runtime exceptions are automatically
-     *  wrapped in an <code>InvocationTargetException</code> by the calling context
-     * @exception InterruptedException if the operation detects a request to cancel,
-     *  using <code>IProgressMonitor.isCanceled()</code>, it should exit by throwing
-     *  <code>InterruptedException</code>
-     *
+	/**
+	 * Returns the name of the operation
+	 */
+	public String getName();
+
+	/**
+     * Runs this operation.
      */
-    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException;
+    public IStatus run(IProgressMonitor monitor);
 
     /**
-     * Get the operation's name. This name will be used as the task name of
-     * the given monitor.
-     *
-     * @see IProgressMonitor#beginTask(String, int)
-     * @return The name of the operation.
+     * Runs the operation in a job and calls the callback after the job has been
+     * completed or cancelled.
      */
-    public String getName();
+	public void runInJob(ICallback callback);
 
     /**
-     * Get the total amount of work which will used by the progress
-     * monitor to set the total work.
-     *
-     * @see IProgressMonitor#beginTask(String, int)
-     * @return The total amount of work or UNKNOWN if it is in-determinant
+     * Runs the operation in a job with user interaction set to true
      */
-    public int getTotalWork();
+	public void runInUserJob(ICallback object);
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,197 +9,262 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
-import java.lang.reflect.InvocationTargetException;
+import static java.text.MessageFormat.format;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
+import org.eclipse.tcf.services.IFileSystem.DoneRemove;
 import org.eclipse.tcf.services.IFileSystem.DoneRename;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
-import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFException;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFFileSystemException;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
  * FSMove moves specified tree nodes to a destination folder.
  */
-public class OpMove extends Operation {
-	// The file/folder nodes to be moved.
-	List<FSTreeNode> nodes;
-	// The destination folder to be moved to.
-	FSTreeNode dest;
-	// The callback
-	IConfirmCallback confirmCallback;
+public class OpMove extends AbstractOperation {
+	private static class WorkItem {
+		final WorkItem fParent;
+		final FSTreeNode fDestination;
+		final FSTreeNode fSource;
+		boolean fContentCleared = false;
+		boolean fContentLeftOK = false;
 
-	/**
-	 * Create a move operation to move the specified nodes to the destination folder.
-	 *
-	 * @param nodes The nodes to be moved.
-	 * @param dest the destination folder to move to.
-	 */
-	public OpMove(List<FSTreeNode> nodes, FSTreeNode dest) {
-		this(nodes, dest, null);
+		WorkItem(FSTreeNode source, FSTreeNode destination) {
+			this(null, source, destination);
+		}
+
+		WorkItem(WorkItem parent, FSTreeNode source, FSTreeNode destination) {
+			fParent = parent;
+			fSource = source;
+			fDestination = destination;
+		}
+
+		void setContentLeftOK() {
+			fContentLeftOK = true;
+			if (fParent != null)
+				fParent.setContentLeftOK();
+		}
+
 	}
 
-	/**
-	 * Create a move operation to move the specified nodes to the destination folder
-	 * and a confirmation callback.
-	 *
-	 * @param nodes The nodes to be moved.
-	 * @param dest the destination folder to move to.
-	 * @param confirmCallback the confirmation callback.
-	 */
-	public OpMove(List<FSTreeNode> nodes, FSTreeNode dest, IConfirmCallback confirmCallback) {
-		super();
-		this.nodes = getAncestors(nodes);
-		this.dest = dest;
-		this.confirmCallback = confirmCallback;
+	IConfirmCallback fConfirmCallback;
+
+	LinkedList<WorkItem> fWork = new LinkedList<WorkItem>();
+	private long fStartTime;
+
+	public OpMove(List<? extends IFSTreeNode> nodes, FSTreeNode dest, IConfirmCallback confirmCallback) {
+		fConfirmCallback = confirmCallback;
+		for (FSTreeNode node : dropNestedNodes(nodes)) {
+			fWork.add(new WorkItem(node, dest));
+		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
-	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		super.run(monitor);
-		// Remove its self from the clipped nodes.
-		nodes.remove(dest);
-		IChannel channel = null;
-		try {
-			if (!nodes.isEmpty()) {
-				FSTreeNode head = nodes.get(0);
-				channel = openChannel(head.peerNode.getPeer());
-				if (channel != null) {
-					IFileSystem service = getBlockingFileSystem(channel);
-					if (service != null) {
-						for (FSTreeNode node : nodes) {
-							// Move each node.
-							moveNode(service, node, dest);
-						}
-					}
-					else {
-						String message = NLS.bind(Messages.Operation_NoFileSystemError, head.peerNode.getPeerId());
-						throw new TCFFileSystemException(IStatus.ERROR, message);
-					}
-				}
-			}
-		}
-		catch (TCFException e) {
-			throw new InvocationTargetException(e, e.getMessage());
-		}
-		finally {
-			if (channel != null) Tcf.getChannelManager().closeChannel(channel);
-			monitor.done();
-		}
-	}
-
-	/**
-	 * Move the file/folder to the destination folder using the specified file system service.
-	 *
-	 * @param monitor The monitor used to report the moving progress.
-	 * @param service The file system service used to move the remote files.
-	 * @param node The file/folder node to be moved.
-	 * @param dest The destination folder.
-	 * @throws TCFFileSystemException The exception thrown during moving.
-	 * @throws InterruptedException Thrown when the operation is canceled.
-	 */
-	void moveNode(IFileSystem service, final FSTreeNode node, FSTreeNode dest) throws TCFFileSystemException, InterruptedException {
-		if (monitor.isCanceled()) throw new InterruptedException();
-		monitor.subTask(NLS.bind(Messages.OpMove_Moving, node.name));
-		FSTreeNode copy = findChild(service, dest, node.name);
-		if (copy == null || !copy.equals(node) && confirmReplace(node, confirmCallback)) {
-			if (copy != null && copy.isDirectory() && node.isDirectory()) {
-				List<FSTreeNode> children = getChildren(node, service);
-				for (FSTreeNode child : children) {
-					moveNode(service, child, copy);
-				}
-				removeFolder(node, service);
-				monitor.worked(1);
-			}
-			else if (copy != null && copy.isFile() && node.isDirectory()) {
-				String error = NLS.bind(Messages.OpMove_FileExistsError, copy.name);
-				throw new TCFFileSystemException(IStatus.ERROR, error);
-			}
-			else if (copy != null && copy.isDirectory() && node.isFile()) {
-				String error = NLS.bind(Messages.OpMove_FolderExistsError, copy.name);
-				throw new TCFFileSystemException(IStatus.ERROR, error);
-			}
-			else {
-				if (copy != null && copy.isFile() && node.isFile()) {
-					removeFile(copy, service);
-				}
-				else if (copy == null) {
-					copy = (FSTreeNode) node.clone();
-				}
-				addChild(service, dest, copy);
-				String dst_path = copy.getLocation(true);
-				String src_path = node.getLocation(true);
-				final FSTreeNode copyNode = copy;
-				final TCFFileSystemException[] errors = new TCFFileSystemException[1];
-				service.rename(src_path, dst_path, new DoneRename() {
-					@Override
-					public void doneRename(IToken token, FileSystemException error) {
-						if (error != null) {
-							String message = NLS.bind(Messages.OpMove_CannotMove, node.name, error);
-							errors[0] = new TCFFileSystemException(IStatus.ERROR, message, error);
-						}
-						else {
-							cleanUpNode(node, copyNode);
-						}
-					}
-				});
-				if (errors[0] != null) {
-					removeChild(service, dest, copy);
-					throw errors[0];
-				}
-				monitor.worked(1);
-			}
-		}
-	}
-
-	/**
-	 * Clean up the node after successful moving.
-	 *
-	 * @param node The node being moved.
-	 * @param copyNode The target node that is moved to.
-	 */
-	void cleanUpNode(FSTreeNode node, FSTreeNode copyNode) {
-		if (node.isFile()) {
-			super.cleanUpFile(node);
-		}
-		else if (node.isDirectory()) {
-			super.cleanUpFolder(node);
-			List<FSTreeNode> children = node.getChildren();
-			copyNode.addChidren(children);
-			for (FSTreeNode child : children) {
-				child.setParent(copyNode);
-			}
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getName()
-	 */
-	@Override
-    public String getName() {
+	public String getName() {
 	    return Messages.OpMove_MovingFile;
-    }
+	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getTotalWork()
-	 */
 	@Override
-    public int getTotalWork() {
-	    return nodes == null ? IProgressMonitor.UNKNOWN : nodes.size();
-    }
+	public IStatus doRun(IProgressMonitor monitor) {
+		if (fWork.isEmpty())
+			return Status.OK_STATUS;
+
+		fStartTime = System.currentTimeMillis();
+		monitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
+
+		List<FSTreeNode> notify = new ArrayList<FSTreeNode>();
+		notify.add(fWork.peek().fDestination);
+		for (WorkItem item : fWork) {
+			notify.add(item.fSource.getParent());
+		}
+
+		IStatus status = Status.OK_STATUS;
+		while (!fWork.isEmpty()) {
+			WorkItem item = fWork.remove();
+			status = runWorkItem(item, monitor);
+			if (!status.isOK())
+				break;
+		}
+
+		for (FSTreeNode node : dropNestedNodes(notify)) {
+			node.notifyChange();
+		}
+		return status;
+	}
+
+	protected IStatus runWorkItem(final WorkItem item, final IProgressMonitor monitor) {
+		if (item.fContentLeftOK)
+			return Status.OK_STATUS;
+
+		if (item.fContentCleared) {
+			return deleteEmptyFolder(item.fSource, monitor);
+		}
+
+		return move(item, monitor);
+	}
+
+	private IStatus move(final WorkItem item, final IProgressMonitor monitor) {
+		monitor.subTask(NLS.bind(Messages.OpMove_Moving, item.fSource.getLocation()));
+
+		final FSTreeNode source = item.fSource;
+		final FSTreeNode destination = item.fDestination;
+		IStatus status = refresh(destination, fStartTime, monitor);
+		if (!status.isOK())
+			return status;
+
+		status = refresh(source, fStartTime, monitor);
+		if (!status.isOK())
+			return status;
+
+		final FSTreeNode existing = destination.findChild(source.getName());
+		if (existing != null) {
+			if (source == existing) {
+				return Status.OK_STATUS;
+			}
+			if (source.isDirectory()) {
+				if (!existing.isDirectory()) {
+					return StatusHelper.createStatus(format(Messages.OpCopy_error_noDirectory, existing.getLocation()), null);
+				}
+				int replace = confirmCallback(existing, fConfirmCallback);
+				if (replace == IConfirmCallback.NO) {
+					item.setContentLeftOK();
+					return Status.OK_STATUS;
+				}
+				if (replace != IConfirmCallback.YES) {
+					return Status.CANCEL_STATUS;
+				}
+
+				item.fContentCleared = true;
+				fWork.addFirst(item);
+				for (FSTreeNode child : source.getChildren()) {
+					fWork.addFirst(new WorkItem(item, child, existing));
+				}
+				return Status.OK_STATUS;
+			} else if (source.isFile()) {
+				if (!existing.isFile()) {
+					return StatusHelper.createStatus(format(Messages.OpCopy_error_noFile, existing.getLocation()), null);
+				}
+				int replace = confirmCallback(existing, fConfirmCallback);
+				if (replace == IConfirmCallback.NO) {
+					item.setContentLeftOK();
+					return Status.OK_STATUS;
+				}
+				if (replace != IConfirmCallback.YES) {
+					return Status.CANCEL_STATUS;
+				}
+			} else {
+				return Status.OK_STATUS;
+			}
+		}
+
+		CacheManager.clearCache(existing);
+		CacheManager.clearCache(source);
+
+		final TCFResult<?> result = new TCFResult<Object>();
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if (existing != null) {
+					tcfMoveReplace(source, destination, existing, result);
+				} else {
+					tcfMove(source, destination, result);
+				}
+			}
+		});
+		return result.waitDone(monitor);
+	}
+
+
+	protected void tcfMoveReplace(final FSTreeNode source, final FSTreeNode destination, final FSTreeNode existing, final TCFResult<?> result) {
+		if (result.checkCancelled())
+			return;
+
+		final IFileSystem fileSystem = destination.getRuntimeModel().getFileSystem();
+		if (fileSystem == null) {
+			result.setCancelled();
+			return;
+		}
+
+		fileSystem.remove(existing.getLocation(true), new DoneRemove() {
+			@Override
+			public void doneRemove(IToken token, FileSystemException error) {
+				if (error != null) {
+					result.setError(format(Messages.OpMove_CannotMove, source.getLocation()), error);
+				} else if (!result.checkCancelled()) {
+					existing.getParent().removeNode(existing, false);
+					tcfMove(source, destination, result);
+				}
+			}
+		});
+	}
+
+	protected void tcfMove(final FSTreeNode source, final FSTreeNode dest, final TCFResult<?> result) {
+		final IFileSystem fileSystem = dest.getRuntimeModel().getFileSystem();
+		if (fileSystem == null) {
+			result.setCancelled();
+			return;
+		}
+
+		final String sourcePath = source.getLocation(true);
+		final String destPath = getPath(dest, source.getName());
+
+		fileSystem.rename(sourcePath, destPath, new DoneRename() {
+			@Override
+			public void doneRename(IToken token, FileSystemException error) {
+				if (error != null) {
+					result.setError(format(Messages.OpMove_CannotMove, sourcePath), error);
+				} else {
+					source.getParent().removeNode(source, false);
+					source.changeParent(dest);
+					dest.addNode(source, false);
+					result.setDone(null);
+				}
+			}
+		});
+	}
+
+	private IStatus deleteEmptyFolder(final FSTreeNode source, IProgressMonitor monitor) {
+		CacheManager.clearCache(source);
+		final TCFResult<?> result = new TCFResult<Object>();
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				tcfDeleteEmptyFolder(source, result);
+			}
+		});
+		return result.waitDone(monitor);
+	}
+
+	protected void tcfDeleteEmptyFolder(final FSTreeNode source, final TCFResult<?> result)  {
+		final IFileSystem fs = source.getRuntimeModel().getFileSystem();
+		if (fs == null) {
+			result.setCancelled();
+			return;
+		}
+		fs.rmdir(source.getLocation(true), new DoneRemove() {
+			@Override
+			public void doneRemove(IToken token, FileSystemException error) {
+				if (error != null) {
+					result.setError(format(Messages.OpDelete_error_delete, source.getLocation()), error);
+				} else if (!result.checkCancelled()) {
+					source.getParent().removeNode(source, false);
+					result.setDone(null);
+				}
+			}
+		});
+	}
 }

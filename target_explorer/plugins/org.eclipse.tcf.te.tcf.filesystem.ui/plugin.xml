@@ -26,16 +26,16 @@
             name="%navigatorContent.name"
             priority="normal">
             <triggerPoints>
-               <instanceof
-                     value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
-               </instanceof>
-                <test
-                      property="org.eclipse.tcf.te.tcf.locator.hasRemoteService"
-                      value="FileSystem">
-                </test>
+               <or>
+                  <and>
+                      <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                      <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="FileSystem"/>
+                  </and>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+               </or>
             </triggerPoints>
             <possibleChildren>
-            	<instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+            	<instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
             </possibleChildren>
             <commonSorter
                   class="org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeViewerSorter"
@@ -46,7 +46,7 @@
                   id="org.eclipse.tcf.te.tcf.filesystem.dropAssistant">
                <possibleDropTargets>
                   <instanceof
-                        value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                        value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                   </instanceof></possibleDropTargets>
             </dropAssistant>
             <commonWizard
@@ -54,7 +54,7 @@
                   wizardId="org.eclipse.tcf.te.tcf.filesystem.wizards.NewFileWizard">
                <enablement>
                   <instanceof
-                        value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                        value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                   </instanceof>
                   <test
                         property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isDirectory">
@@ -68,7 +68,7 @@
                   wizardId="org.eclipse.tcf.te.tcf.filesystem.wizards.NewFolderWizard">
                <enablement>
                   <instanceof
-                        value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                        value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                   </instanceof>
                   <test
                         property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isDirectory">
@@ -138,7 +138,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -169,7 +169,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isReadable">
@@ -195,7 +195,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -237,7 +237,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -260,7 +260,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -283,7 +283,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -313,7 +313,7 @@
                         ifEmpty="false"
                         operator="and">
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -340,7 +340,7 @@
                         ifEmpty="false"
                         operator="and">
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -366,7 +366,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -397,7 +397,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -428,7 +428,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -459,7 +459,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -494,7 +494,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -516,7 +516,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -544,7 +544,7 @@
                      <iterate operator="and" ifEmpty="false">
                         <and>
                            <instanceof
-                                 value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                                 value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                            </instanceof>
                            <not>
                               <test
@@ -568,7 +568,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isReadable">
@@ -594,7 +594,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <test
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -635,7 +635,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <not>
                         <test
@@ -663,7 +663,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <not>
                         <test
@@ -691,7 +691,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <not>
                         <test
@@ -718,7 +718,7 @@
                <with variable="selection">
                   <count value="+"/>
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <not>
                         <test
                               property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot">
@@ -748,7 +748,7 @@
                         ifEmpty="false"
                         operator="and">
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>
@@ -773,7 +773,7 @@
                      </count>
                      <iterate>
                         <instanceof
-                              value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                              value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                         </instanceof>
                         <test
                               property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -804,7 +804,7 @@
                      </count>
                      <iterate>
                         <instanceof
-                              value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                              value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                         </instanceof>
                         <test
                               property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -835,7 +835,7 @@
                      </count>
                      <iterate>
                         <instanceof
-                              value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                              value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                         </instanceof>
                         <test
                               property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -866,7 +866,7 @@
                      </count>
                      <iterate>
                         <instanceof
-                              value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                              value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                         </instanceof>
                         <test
                               property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile">
@@ -900,7 +900,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <not>
                         <test
@@ -927,7 +927,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                      <not>
                         <test
@@ -961,7 +961,7 @@
          <enabledWhen>
             <and>
                <instanceof
-                     value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                     value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                </instanceof>
                <not>
                   <test
@@ -1048,7 +1048,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <test forcePluginActivation="true"
                            property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                      <test forcePluginActivation="true"
@@ -1065,7 +1065,7 @@
             <with variable="selection">
                <count value="1"/>
                <iterate>
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <test forcePluginActivation="true"
                         property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                   <test forcePluginActivation="true"
@@ -1091,7 +1091,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1101,7 +1101,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.getCacheState"
                            value="outdated"/>
@@ -1126,7 +1126,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1136,7 +1136,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.getCacheState"
                            value="modified"/>
@@ -1161,7 +1161,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1171,7 +1171,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.getCacheState"
                            value="conflict"/>
@@ -1196,7 +1196,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1206,7 +1206,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isFile"/>
                      <or>
                         <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.getCacheState"
@@ -1237,7 +1237,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1245,7 +1245,7 @@
          <enabledWhen>
             <with variable="selection">
                <iterate operator="and" ifEmpty="false">
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <not>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isRoot"/>
                   </not>
@@ -1283,7 +1283,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1291,7 +1291,7 @@
          <enabledWhen>
             <with variable="selection">
                <iterate operator="and" ifEmpty="false">
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isReadable"/>
                   <not>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isRoot"/>
@@ -1316,7 +1316,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1325,7 +1325,7 @@
          <and>
             <with variable="selection">
                <iterate operator="and" ifEmpty="false">
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <not>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot"/>
                   </not>
@@ -1348,7 +1348,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1356,7 +1356,7 @@
          <enabledWhen>
             <with variable="selection">
                <iterate operator="and" ifEmpty="false">
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <not>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot"/>
                   </not>
@@ -1394,7 +1394,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1403,7 +1403,7 @@
             <with variable="selection">
                <count value="1"/>
                <iterate>
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <not>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot"/>
                   </not>
@@ -1438,7 +1438,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1447,7 +1447,7 @@
             <with variable="selection">
                <count value="1"/>
                <iterate>
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <or>
                      <and>
                         <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isDirectory"/>
@@ -1473,7 +1473,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1482,7 +1482,7 @@
             <with variable="selection">
                <count value="1"/>
                <iterate>
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <or>
                      <and>
                         <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isDirectory"/>
@@ -1516,7 +1516,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1524,7 +1524,7 @@
          <enabledWhen>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                      <not>
                         <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot"/>
                      </not>
@@ -1562,7 +1562,7 @@
                </with>
                <with variable="selection">
                   <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   </iterate>
                </with>
             </and>
@@ -1570,7 +1570,7 @@
          <enabledWhen>
             <with variable="selection">
                <iterate ifEmpty="false" operator="and">
-                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"/>
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
                   <or>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot"/>
                      <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isRoot"/>
@@ -1672,7 +1672,7 @@
 <!-- Adapter contributions -->   
    <extension point="org.eclipse.core.runtime.adapters">
       <factory
-            adaptableType="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode"
+            adaptableType="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"
             class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory">
          <adapter type="org.eclipse.ui.IActionFilter"/>
          <adapter type="org.eclipse.jface.viewers.ILabelProvider"/>
@@ -1707,7 +1707,7 @@
                   </count>
                   <iterate>
                      <instanceof
-                           value="org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode">
+                           value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode">
                      </instanceof>
                   </iterate>
                </with>

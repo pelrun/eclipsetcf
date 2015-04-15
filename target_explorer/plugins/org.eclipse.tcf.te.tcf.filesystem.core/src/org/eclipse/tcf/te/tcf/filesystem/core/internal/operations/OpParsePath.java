@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,22 +9,25 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
+import static java.text.MessageFormat.format;
+import static org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager.getRuntimeModel;
+
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ISafeRunnable;
-import org.eclipse.core.runtime.SafeRunner;
-import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.utils.Host;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFException;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.TargetPropertyTester;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -32,7 +35,7 @@ import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 /**
  * The operation to parse a platform specific path to a target's node.
  */
-public class OpParsePath extends Operation {
+public class OpParsePath extends AbstractOperation implements IResultOperation<IFSTreeNode> {
 	// The peer on which the file is located.
 	IPeerNode peer;
 	// The path on the target.
@@ -119,109 +122,71 @@ public class OpParsePath extends Operation {
 		}
 	}
 
-	/**
-	 * Get the parsing result, which is a node that representing
-	 * a file on the target system.
-	 *
-	 * @return The file system node.
-	 */
+	@Override
 	public FSTreeNode getResult() {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
-	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		if (peer != null && path != null) {
-			final FSTreeNode root = org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager.getRuntimeModel(peer).getRoot();
-			if (!root.childrenQueried) {
-				new NullOpExecutor().execute(new OpRefreshRoots(root));
-			}
-			Object[] elements = root.getChildren().toArray();
-			if (elements != null && elements.length != 0 && path.length() != 0) {
-				final FSTreeNode[] children = new FSTreeNode[elements.length];
-				System.arraycopy(elements, 0, children, 0, elements.length);
-				SafeRunner.run(new ISafeRunnable() {
-					@Override
-					public void handleException(Throwable e) {
-						// Ignore exception
-					}
+	public IStatus doRun(IProgressMonitor monitor) {
+		monitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
+		if (peer == null || path == null)
+			return Status.OK_STATUS;
 
-					@Override
-					public void run() throws Exception {
-						result = findPath(peer.getPeer(), children, path);
-					}
-				});
-			}
-		}
+		IRuntimeModel rtm = getRuntimeModel(peer);
+		if (rtm == null)
+			return null;
+
+		final FSTreeNode node = (FSTreeNode) rtm.getRoot();
+		return findPath(node, path, monitor);
 	}
 
+	private IStatus findPath(FSTreeNode node, String path, IProgressMonitor monitor) {
+		if (path == null || path.length() == 0) {
+			result = node;
+			return Status.OK_STATUS;
+		}
 
-	/**
-	 * Search the path in the children list. If it exists, then search the children of the found
-	 * node recursively until the whole path is found. Or else return null.
-	 *
-	 * @param children The children nodes to search the path.
-	 * @param path The path to be searched.
-	 * @return The leaf node that has the searched path.
-	 * @throws TCFException Thrown during searching.
-	 */
-	FSTreeNode findPath(IPeer peer, FSTreeNode[] children, String path) throws TCFException, InterruptedException {
-		Assert.isTrue(children != null && children.length != 0);
-		Assert.isTrue(path != null && path.length() != 0);
-		FSTreeNode node = children[0];
+		if (monitor.isCanceled())
+			return Status.CANCEL_STATUS;
+
+		path = path.replace(':', CacheManager.PATH_ESCAPE_CHAR);
+
+		if (node.getChildren() == null) {
+			IStatus status = node.operationRefresh(false).run(new SubProgressMonitor(monitor, 0));
+			if (!status.isOK())
+				return status;
+		}
+
+		if (node.isFileSystem()) {
+			for (FSTreeNode child : node.getChildren()) {
+				if (path.startsWith(child.getName().replace(':', CacheManager.PATH_ESCAPE_CHAR))) {
+					return findPath(child, path.substring(child.getName().length()), monitor);
+				}
+			}
+			return Status.OK_STATUS;
+		}
+
 		String osPathSep = node.isWindowsNode() ? "\\" : "/"; //$NON-NLS-1$ //$NON-NLS-2$
 		int delim = path.indexOf(osPathSep);
-		String segment = null;
-		if (delim != -1) {
-			segment = path.substring(0, delim);
-			path = path.substring(delim + 1);
-			if (node.isRoot()) {
-				// If it is root directory, the name ends with the path separator.
-				segment += osPathSep;
-			}
-		}
-		else {
+		final String segment;
+		if (delim == -1) {
 			segment = path;
 			path = null;
+		} else {
+			segment = path.substring(0, delim);
+			path = path.substring(delim+1);
 		}
-		node = findPathSeg(children, segment);
-		if (path == null || path.trim().length() == 0) {
-			// The end of the path.
-			return node;
-		}
-		else if (node != null) {
-			if (node.isDirectory()) {
-				List<FSTreeNode> nodes= new Operation().getChildren(node);
-				children = nodes.toArray(new FSTreeNode[nodes.size()]);
-			}
-			else {
-				children = null;
-			}
-			if (children != null && children.length != 0) {
-				return findPath(peer, children, path);
-			}
-		}
-		return null;
+
+		node = node.findChild(segment);
+		if (node == null)
+			return Status.OK_STATUS;
+
+		return findPath(node, path, monitor);
 	}
 
-	/**
-	 * Find in the children array the node that has the specified name.
-	 *
-	 * @param children The children array in which to find the node.
-	 * @param name The name of the node to be searched.
-	 * @return The node that has the specified name.
-	 */
-	private FSTreeNode findPathSeg(FSTreeNode[] children, String name) {
-		for (FSTreeNode child : children) {
-			if (child.isWindowsNode()) {
-				if (child.name.equalsIgnoreCase(name)) return child;
-			}
-			else if (child.name.equals(name)) return child;
-		}
-		return null;
+	@Override
+	public String getName() {
+		return format(Messages.OpParsePath_name, path);
 	}
 }

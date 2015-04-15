@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -20,8 +20,8 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.te.tcf.core.concurrent.Rendezvous;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
+import org.eclipse.tcf.te.tcf.filesystem.core.services.Operation;
 
 /**
  * A blocking call proxy for a file system service. All calls to the service method are blocked
@@ -32,8 +32,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
  * blocked forever.
  * <p>
  * This class is used to replace BlockingProxyCall for better debugability.
- * 
- * @see BlockingCallProxy
+ *
  */
 public class BlockingFileSystemProxy implements IFileSystem {
 	// The default timeout waiting for blocked invocations.
@@ -43,7 +42,7 @@ public class BlockingFileSystemProxy implements IFileSystem {
 
 	/**
 	 * Constructor with an delegating service.
-	 * 
+	 *
 	 * @param service The delegating service.
 	 */
 	public BlockingFileSystemProxy(IFileSystem service) {

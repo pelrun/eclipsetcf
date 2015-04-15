@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,224 +9,228 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
-import java.lang.reflect.InvocationTargetException;
+import static java.text.MessageFormat.format;
+
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
-import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.services.IFileSystem.DirEntry;
+import org.eclipse.tcf.services.IFileSystem.DoneRemove;
+import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFException;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFFileSystemException;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
  * FSDelete deletes the selected FSTreeNode list.
  */
-public class OpDelete extends Operation {
-	private static final int RETRY_TIMES = 3;
-	//The nodes to be deleted.
-	List<FSTreeNode> nodes;
-	//The callback invoked to confirm deleting read-only files.
-	IConfirmCallback confirmCallback;
+public class OpDelete extends AbstractOperation {
+	private static class WorkItem {
+		final WorkItem fParent;
+		final FSTreeNode fNode;
+		boolean fContentCleared = false;
+		boolean fContentLeftOK = false;
 
-	/**
-	 * Create a delete operation using the specified nodes.
-	 *
-	 * @param nodes The nodes to be deleted.
-	 */
-	public OpDelete(List<FSTreeNode> nodes, IConfirmCallback confirmCallback) {
-		this.nodes = getAncestors(nodes);
-		this.confirmCallback = confirmCallback;
+		WorkItem(FSTreeNode node) {
+			fParent = null;
+			fNode = node;
+		}
+
+		WorkItem(WorkItem item, FSTreeNode node) {
+			fParent = item;
+			fNode = node;
+		}
+
+		void setContentLeftOK() {
+			fContentLeftOK = true;
+			if (fParent != null)
+				fParent.setContentLeftOK();
+		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	LinkedList<WorkItem> fWork = new LinkedList<WorkItem>();
+	IConfirmCallback fConfirmCallback;
+	private List<FSTreeNode> fNodes;
+
+	public OpDelete(List<? extends IFSTreeNode> nodes, IConfirmCallback confirmCallback) {
+		fNodes = dropNestedNodes(nodes);
+		fConfirmCallback = confirmCallback;
+	}
+
 	@Override
-    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		super.run(monitor);
-		FSTreeNode head = nodes.get(0);
-		IChannel channel = null;
-		try {
-			channel = openChannel(head.peerNode.getPeer());
-			if (channel != null) {
-				IFileSystem service = getBlockingFileSystem(channel);
-				if (service != null) {
-					for (FSTreeNode node : nodes) {
-						remove(node, service);
-					}
-				}
-				else {
-					String message = NLS.bind(Messages.Operation_NoFileSystemError, head.peerNode.getPeerId());
-					throw new TCFFileSystemException(IStatus.ERROR, message);
-				}
-			}
+	protected IStatus doRun(IProgressMonitor monitor) {
+		SubMonitor sm = SubMonitor.convert(monitor, getName(), fNodes.size());
+		for (FSTreeNode node : fNodes) {
+			IStatus status = removeNode(node, sm.newChild(1));
+			node.getParent().notifyChange();
+			if (!status.isOK())
+				return status;
 		}
-		catch (TCFException e) {
-			throw new InvocationTargetException(e, e.getMessage());
-		}
-		finally {
-			if (channel != null) Tcf.getChannelManager().closeChannel(channel);
-			monitor.done();
-		}
+		return Status.OK_STATUS;
 	}
 
-	/**
-	 * Delete the file/folder node using the file system service.
-	 *
-	 * @param monitor The monitor to report the progress.
-	 * @param node The file/folder node to be deleted.
-	 * @param service The file system service.
-	 * @throws TCFFileSystemException The exception thrown during deleting.
-	 * @throws InterruptedException Thrown when the operation is canceled.
-	 */
-	void remove(FSTreeNode node, IFileSystem service) throws TCFFileSystemException, InterruptedException {
-		if (node.isFile()) {
-			removeFile(node, service);
-		}
-		else if (node.isDirectory()) {
-			removeFolder(node, service);
-		}
-	}
 
-	/**
-	 * Delete the folder node and its children using the file system service.
-	 *
-	 * @param monitor The monitor to report the progress.
-	 * @param node The folder node to be deleted.
-	 * @param service The file system service.
-	 * @throws TCFFileSystemException The exception thrown during deleting.
-	 * @throws InterruptedException Thrown when the operation is canceled.
-	 */
-	@Override
-	protected void removeFolder(final FSTreeNode node, IFileSystem service) throws TCFFileSystemException, InterruptedException {
-		List<FSTreeNode> children = getChildren(node, service);
-		if (!children.isEmpty()) {
-			for (FSTreeNode child : children) {
-				// Delete each child node.
-				remove(child, service);
+	private IStatus removeNode(FSTreeNode node, SubMonitor monitor) {
+		fWork.add(new WorkItem(node));
+		while (!fWork.isEmpty()) {
+			IStatus s = runWorkItem(fWork.remove(), monitor);
+			if (!s.isOK()) {
+				node.notifyChange();
+				return s;
 			}
 		}
-		monitor.subTask(NLS.bind(Messages.OpDelete_RemovingFileFolder, node.name));
-		super.removeFolder(node, service);
-		monitor.worked(1);
+		return Status.OK_STATUS;
 	}
 
-	/**
-	 * Delete the file node using the file system service.
-	 *
-	 * @param node The file node to be deleted.
-	 * @param service The file system service.
-	 * @throws TCFFileSystemException The exception thrown during deleting.
-	 * @throws InterruptedException Thrown when the operation is canceled.
-	 */
-	protected void removeFile(final FSTreeNode node, IFileSystem service) throws TCFFileSystemException, InterruptedException {
-		if (monitor.isCanceled()) throw new InterruptedException();
-		monitor.subTask(NLS.bind(Messages.OpDelete_RemovingFileFolder, node.name));
-		// If the file is read only on windows or not writable on unix, then make it deletable.
-		if (confirmCallback != null && confirmCallback.requires(node)) {
-			if (!yes2All) {
-				int result = confirmCallback.confirms(node);
-				if (result == 1) {
-					yes2All = true;
-				}
-				else if (result == 2) {
-					monitor.worked(1);
-					return;
-				}
-				else if (result == 3) {
-					// Cancel the whole operation
-					monitor.setCanceled(true);
-					throw new InterruptedException();
-				}
+	protected IStatus runWorkItem(final WorkItem item, IProgressMonitor monitor) {
+		if (item.fContentLeftOK) {
+			if (item.fParent == null) {
+				return item.fNode.operationRefresh(true).run(monitor);
 			}
-			IStatus status = mkWritable(node);
-			if (!status.isOK()) return;
+			return Status.OK_STATUS;
 		}
-		super.removeFile(node, service);
-		monitor.worked(1);
+
+		if (fConfirmCallback != null && fConfirmCallback.requires(item.fNode)) {
+			int makeWritable = confirmCallback(item.fNode, fConfirmCallback);
+			switch (makeWritable) {
+			case IConfirmCallback.NO:
+				item.setContentLeftOK();
+				return Status.OK_STATUS;
+			case IConfirmCallback.YES:
+				IStatus s = mkWritable(item.fNode, monitor);
+				if (!s.isOK())
+					return s;
+				break;
+			case IConfirmCallback.CANCEL:
+			default:
+				return Status.CANCEL_STATUS;
+			}
+		}
+
+		CacheManager.clearCache(item.fNode);
+
+		final TCFResult<?> result = new TCFResult<Object>();
+		monitor.subTask(NLS.bind(Messages.OpDelete_RemovingFileFolder, item.fNode.getLocation()));
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				tcfRunWorkItem(item, result);
+			}
+		});
+		return result.waitDone(monitor);
 	}
-	
-	/**
-	 * Make the file/folder writable by changing its properties.
-	 * It will try several times before return.
-	 * 
-	 * @param node the file/folder node.
-	 */
-	private IStatus mkWritable(FSTreeNode node) {
-		final FSTreeNode clone = (FSTreeNode) node.clone();
+
+	private IStatus mkWritable(IFSTreeNode node, IProgressMonitor monitor) {
+		final IFSTreeNodeWorkingCopy workingCopy = node.createWorkingCopy();
 		if (node.isWindowsNode()) {
-			clone.setReadOnly(false);
+			workingCopy.setReadOnly(false);
+		} else {
+			workingCopy.setWritable(true);
 		}
-		else {
-			clone.setWritable(true);
-		}
-		// Make the file writable.
-		OpCommitAttr op = new OpCommitAttr(node, clone.attr);
-		IOpExecutor executor = new NullOpExecutor();
-		IStatus status = null;
-		for (int i = 0; i < RETRY_TIMES; i++) {
-			status = executor.execute(op);
-			if (status.isOK()) return status;
-		}
-		return status;
+		return workingCopy.operationCommit().run(new SubProgressMonitor(monitor, 0));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getName()
-	 */
+	protected void tcfRunWorkItem(final WorkItem item, TCFResult<?> result) {
+		if (item.fNode.isFile()) {
+			tcfDeleteFile(item, result);
+		} else if (item.fNode.isDirectory()) {
+			if (item.fContentCleared) {
+				tcfDeleteEmptyFolder(item, result);
+			} else {
+				tcfDeleteFolder(item, result);
+			}
+		} else {
+			result.setDone(null);
+		}
+	}
+
+	private void tcfDeleteFolder(final WorkItem item, final TCFResult<?> result)  {
+		final String path = item.fNode.getLocation(true);
+		final IFileSystem fs = item.fNode.getRuntimeModel().getFileSystem();
+		if (fs == null) {
+			result.setCancelled();
+			return;
+		}
+
+		tcfReadDir(fs, path, new IReadDirDone() {
+			@Override
+			public void error(FileSystemException error) {
+				result.setError(format(Messages.OpDelete_error_readDir, path), error);
+			}
+
+			@Override
+			public boolean checkCancelled() {
+				return result.checkCancelled();
+			}
+
+			@Override
+			public void done(List<DirEntry> entries) {
+				// Add current work item for final deletion
+				item.fContentCleared = true;
+				fWork.addFirst(item);
+				// Create work items for the children
+				for (DirEntry entry : entries) {
+					FSTreeNode node = new FSTreeNode(item.fNode, entry.filename, false, entry.attrs);
+					fWork.addFirst(new WorkItem(item, node));
+				}
+				result.setDone(null);
+			}
+		});
+	}
+
+	private void tcfDeleteFile(final WorkItem item, final TCFResult<?> result) {
+		final IFileSystem fs = item.fNode.getRuntimeModel().getFileSystem();
+		if (fs == null) {
+			result.setCancelled();
+			return;
+		}
+		fs.remove(item.fNode.getLocation(true), new DoneRemove() {
+			@Override
+			public void doneRemove(IToken token, FileSystemException error) {
+				tcfHandleRemoved(item, error, result);
+			}
+		});
+	}
+
+	private void tcfDeleteEmptyFolder(final WorkItem item, final TCFResult<?> result)  {
+		final IFileSystem fs = item.fNode.getRuntimeModel().getFileSystem();
+		if (fs == null) {
+			result.setCancelled();
+			return;
+		}
+		fs.rmdir(item.fNode.getLocation(true), new DoneRemove() {
+			@Override
+			public void doneRemove(IToken token, FileSystemException error) {
+				tcfHandleRemoved(item, error, result);
+			}
+		});
+	}
+
+	protected void tcfHandleRemoved(final WorkItem item, FileSystemException error, final TCFResult<?> result) {
+		if (error != null) {
+			result.setError(format(Messages.OpDelete_error_delete, item.fNode.getLocation()), error);
+		} else if (!result.checkCancelled()) {
+			if (item.fParent == null) {
+				item.fNode.getParent().removeNode(item.fNode, true);
+			}
+			result.setDone(null);
+		}
+	}
+
 	@Override
     public String getName() {
 	    return Messages.OpDelete_Deleting;
-    }
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getTotalWork()
-	 */
-	@Override
-    public int getTotalWork() {
-		if(nodes != null && !nodes.isEmpty()) {
-			final AtomicReference<Integer> ref = new AtomicReference<Integer>();
-			SafeRunner.run(new ISafeRunnable(){
-				@Override
-                public void handleException(Throwable exception) {
-					// Ignore on purpose.
-                }
-				@Override
-                public void run() throws Exception {
-					FSTreeNode head = nodes.get(0);
-					IChannel channel = null;
-					try {
-						channel = openChannel(head.peerNode.getPeer());
-						if (channel != null) {
-							IFileSystem service = getBlockingFileSystem(channel);
-							if (service != null) {
-								ref.set(Integer.valueOf(count(service, nodes)));
-							}
-							else {
-								String message = NLS.bind(Messages.Operation_NoFileSystemError, head.peerNode.getPeerId());
-								throw new TCFFileSystemException(IStatus.ERROR, message);
-							}
-						}
-					}
-					finally {
-						if (channel != null) Tcf.getChannelManager().closeChannel(channel);
-					}
-                }});
-			Integer value = ref.get();
-			return value == null ? IProgressMonitor.UNKNOWN : value.intValue();
-		}
-		return IProgressMonitor.UNKNOWN;
     }
 }

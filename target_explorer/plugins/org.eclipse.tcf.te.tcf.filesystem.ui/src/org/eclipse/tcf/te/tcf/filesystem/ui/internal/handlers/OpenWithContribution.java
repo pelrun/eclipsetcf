@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * William Chen (Wind River)	[360494]Provide an "Open With" action in the pop 
+ * William Chen (Wind River)	[360494]Provide an "Open With" action in the pop
  * 								up menu of file system nodes of Target Explorer.
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers;
@@ -15,7 +15,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.ui.ISources;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
@@ -69,8 +69,8 @@ public class OpenWithContribution extends CompoundContributionItem implements IW
 		                .getVariable(ISources.ACTIVE_CURRENT_SELECTION_NAME);
 		IStructuredSelection iss = (IStructuredSelection) selection;
 		Object obj = iss.getFirstElement();
-		Assert.isTrue(obj instanceof FSTreeNode);
-		FSTreeNode node = (FSTreeNode) obj;
+		Assert.isTrue(obj instanceof IFSTreeNode);
+		IFSTreeNode node = (IFSTreeNode) obj;
 		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		return new IContributionItem[] { new OpenWithMenu(page, node) };
 	}

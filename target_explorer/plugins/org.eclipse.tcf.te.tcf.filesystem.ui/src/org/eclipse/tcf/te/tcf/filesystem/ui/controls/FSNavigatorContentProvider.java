@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,7 +11,7 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 
 
@@ -51,8 +51,8 @@ public class FSNavigatorContentProvider extends NavigatorContentProvider {
 	 */
 	@Override
 	public Object[] getChildren(Object parentElement) {
-		if (parentElement instanceof FSTreeNode) {
-			FSTreeNode node = (FSTreeNode)parentElement;
+		if (parentElement instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode)parentElement;
 			if (node.isFile()) return NO_ELEMENTS;
 		}
 		return super.getChildren(parentElement);
@@ -63,8 +63,8 @@ public class FSNavigatorContentProvider extends NavigatorContentProvider {
 	 */
 	@Override
 	public boolean hasChildren(final Object element) {
-		if (element instanceof FSTreeNode) {
-			FSTreeNode node = (FSTreeNode)element;
+		if (element instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode)element;
 			if(node.isFile()) {
 				return false;
 			}

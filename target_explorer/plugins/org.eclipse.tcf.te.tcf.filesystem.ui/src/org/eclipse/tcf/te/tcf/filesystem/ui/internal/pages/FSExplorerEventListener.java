@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -17,8 +17,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
@@ -62,7 +62,7 @@ public class FSExplorerEventListener extends AbstractEventListener {
 				}
 
 				// Property changes for individual context nodes refreshes the node only
-				else if (source instanceof FSTreeNode) {
+				else if (source instanceof IFSTreeNode) {
 					if ("expanded".equals(changeEvent.getEventId())) { //$NON-NLS-1$
 						// Expansion state of the node changed.
 						boolean expanded = ((Boolean)changeEvent.getNewValue()).booleanValue();
@@ -79,8 +79,10 @@ public class FSExplorerEventListener extends AbstractEventListener {
 						if (changeEvent.getNewValue().equals(Integer.valueOf(IConnectable.STATE_CONNECTED))) {
 							// Get the new runtime model
 							final IRuntimeModel model = ModelManager.getRuntimeModel(getPeerNode());
-							// Update the tree viewer input element
-							treeControl.getViewer().setInput(model.getRoot());
+							if (model != null) {
+								// Update the tree viewer input element
+								treeControl.getViewer().setInput(model.getRoot());
+							}
 						}
 						// Trigger a refresh on the whole viewer to show the "Please connect ..." text
 						treeControl.getViewer().refresh();

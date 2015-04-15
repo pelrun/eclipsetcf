@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -21,13 +21,9 @@ import org.eclipse.core.commands.NotHandledException;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.SafeRunner;
-import org.eclipse.jface.util.SafeRunnable;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUpload;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.ui.IEditorInput;
@@ -44,12 +40,12 @@ import org.eclipse.ui.handlers.HandlerUtil;
  */
 public class SaveAllListener implements IExecutionListener {
 	// Dirty nodes that should be saved and synchronized.
-	List<FSTreeNode> fDirtyNodes;
+	List<IFSTreeNode> fDirtyNodes;
 	/**
 	 * Create the listener listening to command "SAVE ALL".
 	 */
 	public SaveAllListener() {
-		this.fDirtyNodes = new ArrayList<FSTreeNode>();
+		this.fDirtyNodes = new ArrayList<IFSTreeNode>();
 	}
 
 	/* (non-Javadoc)
@@ -59,29 +55,15 @@ public class SaveAllListener implements IExecutionListener {
 	public void postExecuteSuccess(String commandId, Object returnValue) {
 		if (!fDirtyNodes.isEmpty()) {
 			if (UIPlugin.isAutoSaving()) {
-				FSTreeNode[] nodes = fDirtyNodes.toArray(new FSTreeNode[fDirtyNodes.size()]);
-				IOpExecutor executor = new UiExecutor();
-				executor.execute(new OpUpload(nodes));
-			}
-			else {
-				SafeRunner.run(new SafeRunnable(){
-					@Override
-                    public void handleException(Throwable e) {
-						// Ignore exception
-                    }
-					@Override
-                    public void run() throws Exception {
-						for (FSTreeNode dirtyNode : fDirtyNodes) {
-							dirtyNode.refresh();
-						}
-                    }});
+				UiExecutor.execute(ModelManager.operationUpload(fDirtyNodes));
+			} else {
+				for (IFSTreeNode dirtyNode : fDirtyNodes) {
+					dirtyNode.operationRefresh(false).runInJob(null);
+				}
 			}
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.core.commands.IExecutionListener#preExecute(java.lang.String, org.eclipse.core.commands.ExecutionEvent)
-	 */
 	@Override
 	public void preExecute(String commandId, ExecutionEvent event) {
 		fDirtyNodes.clear();
@@ -92,7 +74,7 @@ public class SaveAllListener implements IExecutionListener {
 		IEditorPart[] editors = page.getDirtyEditors();
 		for (IEditorPart editor : editors) {
 			IEditorInput input = editor.getEditorInput();
-			FSTreeNode node = null;
+			IFSTreeNode node = null;
 			if (input instanceof IURIEditorInput) {
 				//Get the file that is being edited.
 				IURIEditorInput fileInput = (IURIEditorInput) input;
@@ -102,15 +84,15 @@ public class SaveAllListener implements IExecutionListener {
 					File localFile = store.toLocalFile(0, new NullProgressMonitor());
 					if (localFile != null) {
 						// Get the file's mapped FSTreeNode.
-						OpParsePath parser = new OpParsePath(localFile.getCanonicalPath());
-						new NullOpExecutor().execute(parser);
+						IResultOperation<IFSTreeNode> parser = ModelManager.operationRestoreFromPath(localFile.getCanonicalPath());
+						parser.run(null);
 						node = parser.getResult();
 						if (node != null) {
 							// If it is a modified node, add it to the dirty node list.
 							fDirtyNodes.add(node);
 						}
 					}
-				}catch(Exception e){}
+				} catch(Exception e){}
 			}
 		}
 	}

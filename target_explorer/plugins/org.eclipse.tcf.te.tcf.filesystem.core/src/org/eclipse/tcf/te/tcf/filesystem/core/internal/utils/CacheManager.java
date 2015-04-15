@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -19,7 +19,8 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.te.tcf.filesystem.core.activator.CorePlugin;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
@@ -41,9 +42,9 @@ public class CacheManager {
 	 * @param node The file/folder node.
 	 * @return The local path of the node's cached file.
 	 */
-	public static IPath getCachePath(FSTreeNode node) {
+	public static IPath getCachePath(IFSTreeNode node) {
 		File location = getCacheRoot();
-		String agentId = node.peerNode.getPeerId();
+		String agentId = node.getRuntimeModel().getPeerNode().getPeerId();
 		// Use Math.abs to avoid negative hash value.
 		String agent = agentId.replace(':', PATH_ESCAPE_CHAR);
 		IPath agentDir = new Path(location.getAbsolutePath()).append(agent);
@@ -77,30 +78,6 @@ public class CacheManager {
 	}
 
 	/**
-	 * Check if the file exists and delete if it does. Record the failure message if deleting fails.
-	 *
-	 * @param file The file to be deleted.
-	 */
-	static void deleteFileChecked(final File file) {
-		if (file.exists()) {
-			SafeRunner.run(new ISafeRunnable() {
-				@Override
-				public void run() throws Exception {
-					if (!file.delete()) {
-						throw new Exception(NLS.bind(Messages.Operation_DeletingFileFailed, file
-						                .getAbsolutePath()));
-					}
-				}
-
-				@Override
-				public void handleException(Throwable exception) {
-					// Ignore on purpose
-				}
-			});
-		}
-	}
-
-	/**
 	 * Check if the file exists and set its read-only attribute if it does. Record the failure
 	 * message if it fails.
 	 *
@@ -112,7 +89,7 @@ public class CacheManager {
 				@Override
 				public void run() throws Exception {
 					if (!file.setReadOnly()) {
-						throw new Exception(NLS.bind(Messages.OpStreamOp_SetReadOnlyFailed, file
+						throw new Exception(NLS.bind(Messages.CacheManager_SetReadOnlyFailed, file
 						                .getAbsolutePath()));
 					}
 				}
@@ -138,7 +115,7 @@ public class CacheManager {
 	 * @param node The file/folder node.
 	 * @return The file object of the node's local cache.
 	 */
-	public static File getCacheFile(FSTreeNode node) {
+	public static File getCacheFile(IFSTreeNode node) {
 		return getCachePath(node).toFile();
 	}
 
@@ -170,18 +147,20 @@ public class CacheManager {
 	 * @param node The file/folder node.
 	 * @return The path to the node.
 	 */
-	private static IPath appendNodePath(IPath path, FSTreeNode node) {
-		if (!node.isRoot() && node.getParent() != null) {
+	private static IPath appendNodePath(IPath path, IFSTreeNode node) {
+		if (!node.isRootDirectory() && node.getParent() != null) {
 			path = appendNodePath(path, node.getParent());
-			return appendPathSegment(node, path, node.name);
+			return appendPathSegment(node, path, node.getName());
 		}
+		String name = node.getName();
 		if (node.isWindowsNode()) {
-			String name = node.name;
-			name = name.substring(0, name.length() - 1);
-			name = name.replace(':', PATH_ESCAPE_CHAR);
-			return appendPathSegment(node, path, name);
+			name = name.replace('\\', '/');
 		}
-		return path;
+		name = name.replace(':', PATH_ESCAPE_CHAR);
+		if (name.endsWith("/")) //$NON-NLS-1$
+			name = name.substring(0, name.length()-1);
+
+		return appendPathSegment(node, path, name);
 	}
 
 	/**
@@ -193,12 +172,33 @@ public class CacheManager {
 	 * @param name The segment's name.
 	 * @return The path with the segment "name" appended.
 	 */
-	private static IPath appendPathSegment(FSTreeNode node, IPath path, String name) {
+	private static IPath appendPathSegment(IFSTreeNode node, IPath path, String name) {
 		IPath newPath = path.append(name);
 		File newFile = newPath.toFile();
 		if (node.isDirectory()) {
 			mkdirChecked(newFile);
 		}
 		return newPath;
+	}
+
+	public static void clearCache(FSTreeNode source) {
+		if (source != null) {
+			File cache = getCacheFile(source);
+			if (cache.exists())
+				deleteFileOrDir(cache);
+		}
+	}
+
+	private static boolean deleteFileOrDir(File file) {
+		File[] children = file.listFiles();
+		boolean ok = true;
+		if (children != null) {
+			for (File child : children) {
+				if (!deleteFileOrDir(child)) {
+					ok = false;
+				}
+			}
+		}
+		return ok && file.delete();
 	}
 }

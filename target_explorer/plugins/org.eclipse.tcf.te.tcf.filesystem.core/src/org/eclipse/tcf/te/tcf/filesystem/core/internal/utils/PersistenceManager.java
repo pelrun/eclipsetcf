@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -22,7 +22,8 @@ import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 
 /**
  * A facility class to load and save persistent data such including resolved content types, file's
@@ -43,7 +44,7 @@ public class PersistenceManager {
 
 	// The persistent properties of the files.
 	Map<URI, Map<QualifiedName, String>> properties;
-	
+
 	// The file used to store persistent properties of each file.
 	private static final String PERSISTENT_FILE = "persistent.ini"; //$NON-NLS-1$
 
@@ -144,7 +145,6 @@ public class PersistenceManager {
 	/**
 	 * Get the time stamp of the FSTreeNode with the specified location.
 	 *
-	 * @param uri The FSTreeNode's location URI.
 	 * @return The FSTreeNode's base time stamp.
 	 */
 	public FileState getFileDigest(FSTreeNode node) {
@@ -164,7 +164,7 @@ public class PersistenceManager {
 	 * @param node The file node.
 	 * @return The file properties object or empty properties object if it does not exist.
 	 */
-	public Map<QualifiedName, String> getPersistentProperties(FSTreeNode node) {
+	public Map<QualifiedName, String> getPersistentProperties(IFSTreeNode node) {
 		Map<QualifiedName, String> nodeProperties = properties.get(node.getLocationURI());
 		if (nodeProperties == null) {
 			nodeProperties = Collections.synchronizedMap(new HashMap<QualifiedName, String>());

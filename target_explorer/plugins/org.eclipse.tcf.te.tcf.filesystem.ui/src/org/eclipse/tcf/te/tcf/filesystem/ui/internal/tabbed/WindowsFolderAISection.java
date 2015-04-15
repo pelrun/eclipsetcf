@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -16,7 +16,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IWindowsFileAttributes;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory.FSTreeNodePeerNodeProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
@@ -31,7 +31,7 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 public class WindowsFolderAISection extends BaseTitledSection {
 
 	// The original node.
-	protected FSTreeNode node;
+	protected IFSTreeNode node;
 
 	// The check box for archive attribute.
 	protected Button archiveButton;
@@ -97,10 +97,10 @@ public class WindowsFolderAISection extends BaseTitledSection {
 	 */
 	@Override
 	public void refresh() {
-		boolean on = node != null ? node.isWin32AttrOn(IWindowsFileAttributes.FILE_ATTRIBUTE_ARCHIVE) : false;
-		SWTControlUtil.setSelection(archiveButton, on);
-		on = node != null ? !node.isWin32AttrOn(IWindowsFileAttributes.FILE_ATTRIBUTE_NOT_CONTENT_INDEXED) : false;
-		SWTControlUtil.setSelection(indexButton, on);
+		SWTControlUtil.setSelection(archiveButton, node != null &&
+						node.getWin32Attr(IWindowsFileAttributes.FILE_ATTRIBUTE_ARCHIVE));
+		SWTControlUtil.setSelection(indexButton, node != null &&
+						!node.getWin32Attr(IWindowsFileAttributes.FILE_ATTRIBUTE_NOT_CONTENT_INDEXED));
 	}
 
 	/*

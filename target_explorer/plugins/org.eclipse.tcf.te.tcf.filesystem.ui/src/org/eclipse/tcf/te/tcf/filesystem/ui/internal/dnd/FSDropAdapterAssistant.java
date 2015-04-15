@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -19,7 +19,7 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.ui.views.interfaces.IUIConstants;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -29,7 +29,7 @@ import org.eclipse.ui.navigator.CommonDropAdapterAssistant;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
- * The drop assistant used by Target Explorer to extend its DnD support to FSTreeNode elements.
+ * The drop assistant used by Target Explorer to extend its DnD support to IFSTreeNode elements.
  */
 public class FSDropAdapterAssistant extends CommonDropAdapterAssistant {
 	// The common dnd operation
@@ -49,7 +49,7 @@ public class FSDropAdapterAssistant extends CommonDropAdapterAssistant {
 	@Override
 	public IStatus validateDrop(Object target, int operation, TransferData transferType) {
 		boolean valid = false;
-		if (target instanceof FSTreeNode) {
+		if (target instanceof IFSTreeNode) {
 			if (LocalSelectionTransfer.getTransfer().isSupportedType(transferType)) {
 				valid = dnd.validateLocalSelectionDrop(target, operation, transferType);
 			}
@@ -58,7 +58,7 @@ public class FSDropAdapterAssistant extends CommonDropAdapterAssistant {
 			}
 		}
 		return valid ? Status.OK_STATUS : Status.CANCEL_STATUS;
-	}	
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -82,21 +82,21 @@ public class FSDropAdapterAssistant extends CommonDropAdapterAssistant {
 		if (LocalSelectionTransfer.getTransfer().isSupportedType(transferType)) {
 			IStructuredSelection selection = (IStructuredSelection) aDropTargetEvent.data;
 			int operations = aDropAdapter.getCurrentOperation();
-			FSTreeNode target = (FSTreeNode) aTarget;
+			IFSTreeNode target = (IFSTreeNode) aTarget;
 			sucess = dnd.dropLocalSelection(target, operations, selection);
 		}
 		else if(FileTransfer.getInstance().isSupportedType(transferType)) {
 			String[] files = (String[]) aDropTargetEvent.data;
 		    int operations = aDropAdapter.getCurrentOperation();
-			FSTreeNode target = (FSTreeNode) aTarget;
+			IFSTreeNode target = (IFSTreeNode) aTarget;
 		    sucess = dnd.dropFiles(getCommonViewer(), files, operations, target);
 		}
 		return sucess ? Status.OK_STATUS : Status.CANCEL_STATUS;
 	}
-	
+
 	/**
 	 * Get the tree viewer of Target Explorer view.
-	 * 
+	 *
 	 * @return The tree viewer of Target Explorer view or null if the view is not found.
 	 */
 	private TreeViewer getCommonViewer() {

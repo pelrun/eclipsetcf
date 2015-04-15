@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -21,18 +21,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 import org.osgi.service.url.AbstractURLStreamHandlerService;
 
 /**
- * The stream handler service used to parse tcf stream protocol. 
+ * The stream handler service used to parse tcf stream protocol.
  */
 public class TcfURLStreamHandlerService extends AbstractURLStreamHandlerService {
 	// The pattern of a windows path.
 	private static final String WINPATH_PATTERN = "[A-Za-z]:.*"; //$NON-NLS-1$
 	private static final char[] WINPATH_FORBIDDEN_CHARS = {':', '*', '?', '"', '<', '>', '|' };
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.osgi.service.url.AbstractURLStreamHandlerService#openConnection(java.net.URL)
@@ -45,14 +45,14 @@ public class TcfURLStreamHandlerService extends AbstractURLStreamHandlerService 
 	/**
 	 * Parse the given spec to the specified URL object. The expected format is:
 	 * <p>
-	 * 
+	 *
 	 * <pre>
-	 * TCF_URL = tcf:/<strong>PEER_ID</strong>/(<strong>URL_PATH</strong>)? 
-	 * PEER_ID = (.^/)+ 
+	 * TCF_URL = tcf:/<strong>PEER_ID</strong>/(<strong>URL_PATH</strong>)?
+	 * PEER_ID = (.^/)+
 	 * URL_PATH = <strong>WIN_PATH</strong> | <strong>RELATIVE_PATH</strong>
-	 * WIN_PATH = <strong>DISK_SEG</strong> / (<strong>RELATIVE_PATH</strong>)? 
-	 * DISK_SEG = [a-zA-Z]: 
-	 * RELATIVE_PATH = <strong>PATH_SEG</strong> | <strong>PATH_SEG</strong>/<strong>RELATIVE_PATH</strong> 
+	 * WIN_PATH = <strong>DISK_SEG</strong> / (<strong>RELATIVE_PATH</strong>)?
+	 * DISK_SEG = [a-zA-Z]:
+	 * RELATIVE_PATH = <strong>PATH_SEG</strong> | <strong>PATH_SEG</strong>/<strong>RELATIVE_PATH</strong>
 	 * Unix/Linux PATH_SEG = (.^[/])+
 	 * Windows PATH_SEG = (.^[\/:*?"<>|])+
 	 * </pre>
@@ -107,11 +107,11 @@ public class TcfURLStreamHandlerService extends AbstractURLStreamHandlerService 
 			setURL(u, TcfURLConnection.PROTOCOL_SCHEMA, peerId, -1, null, null, path, null, null);
 		}
 	}
-	
+
 	/**
-	 * Decode the path from URI compatible path to a 
+	 * Decode the path from URI compatible path to a
 	 * file system path.
-	 * 
+	 *
 	 * @see FSTreeNode#getURLEncodedPath
 	 * @param path The URL whose path is to be decoded.
 	 * @return The file system path.
@@ -130,10 +130,10 @@ public class TcfURLStreamHandlerService extends AbstractURLStreamHandlerService 
 		String relative = builder.toString();
 		return path.startsWith("/") ? "/" + relative : relative;  //$NON-NLS-1$//$NON-NLS-2$
 	}
-	
+
 	/**
 	 * Check the format of the specified windows path.
-	 * 
+	 *
 	 * @param path The relative path to a disk part.
 	 */
 	private void checkWinPath(String path) {
@@ -148,9 +148,9 @@ public class TcfURLStreamHandlerService extends AbstractURLStreamHandlerService 
     }
 
 	/**
-	 * Encode the path from a file system path to 
+	 * Encode the path from a file system path to
 	 * URI compatible path.
-	 * 
+	 *
 	 * @see FSTreeNode#getURLEncodedPath
 	 * @param path The URL whose path is to be decoded.
 	 * @return The file system path.
@@ -178,7 +178,7 @@ public class TcfURLStreamHandlerService extends AbstractURLStreamHandlerService 
 		String relative = builder.toString();
 		return path.startsWith("/") ? "/" + relative : relative;  //$NON-NLS-1$//$NON-NLS-2$
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.osgi.service.url.AbstractURLStreamHandlerService#toExternalForm(java.net.URL)

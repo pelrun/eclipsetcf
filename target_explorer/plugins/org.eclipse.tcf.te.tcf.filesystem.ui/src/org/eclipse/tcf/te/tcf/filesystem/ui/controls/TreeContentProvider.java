@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,8 +9,6 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +33,7 @@ import org.eclipse.tcf.te.ui.trees.Pending;
 /**
  * The base tree content provider that defines several default methods.
  */
-public abstract class TreeContentProvider implements ITreeContentProvider, PropertyChangeListener {
+public abstract class TreeContentProvider implements ITreeContentProvider {
 
 	/**
 	 * Static reference to the return value representing no elements.
@@ -75,13 +73,6 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 		return pending;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -91,7 +82,6 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 	public void dispose() {
 		for(IPropertyChangeProvider provider : providers) {
 			provider.removePropertyChangeListener(commonViewerListener);
-			provider.removePropertyChangeListener(this);
 		}
 		commonViewerListener.cancel();
 		providers.clear();
@@ -144,10 +134,20 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 	 */
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		if (commonViewerListener != null) {
+			for (IPropertyChangeProvider provider : providers) {
+				provider.removePropertyChangeListener(commonViewerListener);
+			}
+		}
+
 		Assert.isTrue(viewer instanceof TreeViewer);
 		this.viewer = (TreeViewer) viewer;
 		this.commonViewerListener = new CommonViewerListener(this.viewer, this);
 		peerNode = getPeerNode(newInput);
+
+		for (IPropertyChangeProvider provider : providers) {
+			provider.addPropertyChangeListener(commonViewerListener);
+		}
 	}
 
     protected IPeerNode getPeerNode(Object input) {
@@ -168,7 +168,6 @@ public abstract class TreeContentProvider implements ITreeContentProvider, Prope
 			if (commonViewerListener != null) {
 				provider.addPropertyChangeListener(commonViewerListener);
 			}
-			provider.addPropertyChangeListener(this);
 			providers.add(provider);
 		}
 	}

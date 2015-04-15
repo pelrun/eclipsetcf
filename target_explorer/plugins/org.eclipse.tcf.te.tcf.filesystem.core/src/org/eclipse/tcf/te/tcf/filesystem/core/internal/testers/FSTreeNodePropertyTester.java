@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -16,10 +16,10 @@ import java.io.File;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.ContentTypeHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.CacheState;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 
 /**
  * The property tester of an FSTreeNode. The properties include "isFile"
@@ -32,7 +32,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
  * <p>
  * "testParent" is a property by which the parent or even the grand parent
  * of a node can be tested. The arguments is a recursive list of the above
- * test property including "testParent". 
+ * test property including "testParent".
  * <p>
  * The following is an example of how it is used.
  * <pre>
@@ -58,7 +58,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
  *         args="testParent,testParent,testParent,...,isWritable"
  *         property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.testParent"&gt;
  *     &lt;/test&gt;
- * </pre> 
+ * </pre>
  */
 public class FSTreeNodePropertyTester extends PropertyTester {
 
@@ -84,9 +84,9 @@ public class FSTreeNodePropertyTester extends PropertyTester {
 		} else if (property.equals("isExecutable")){ //$NON-NLS-1$
 			return node.isExecutable();
 		} else if (property.equals("isRoot")) { //$NON-NLS-1$
-			return node.isRoot();
+			return node.isRootDirectory();
 		} else if (property.equals("isSystemRoot")) { //$NON-NLS-1$
-			return node.isSystemRoot();
+			return node.isFileSystem();
 		} else if (property.equals("isWindows")) { //$NON-NLS-1$
 			return node.isWindowsNode();
 		} else if (property.equals("isReadOnly")) { //$NON-NLS-1$

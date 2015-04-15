@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,23 +11,23 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.wizards;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.validator.Validator;
 
 /**
  * The validator to validate the path of the parent directory in the new file/folder wizard
  * page is valid. It is only when it is not empty and it exists in the target peer.
- * 
+ *
  * @see Validator
  */
 public class FolderValidator extends Validator {
 	// The wizard page to create the new node.
 	private NewNodeWizardPage page;
-	
+
 	/**
 	 * Create a folder validator of the specified wizard page.
-	 * 
+	 *
 	 * @param page The wizard page to create the new file/folder.
 	 */
 	public FolderValidator(NewNodeWizardPage page) {
@@ -45,7 +45,7 @@ public class FolderValidator extends Validator {
 			setMessage(Messages.FolderValidator_SpecifyFolder, IMessageProvider.ERROR);
 			return false;
 		}
-		FSTreeNode folder = page.getInputDir();
+		IFSTreeNode folder = page.getInputDir();
 		if (folder == null) {
 			setMessage(NLS.bind(Messages.FolderValidator_DirNotExist, newText), IMessageProvider.ERROR);
 			return false;

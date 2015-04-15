@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -15,14 +15,14 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions;
  */
 public class TCFException extends Exception {
 	private static final long serialVersionUID = -220092425137980661L;
-	
+
 	// The severity code of this exception, could be used in job status handling.
 	private int severity;
-	
+
 	/**
 	 * Constructor.
 	 *
-	 * @param severity the severity; one of <code>OK</code>, <code>ERROR</code>, 
+	 * @param severity the severity; one of <code>OK</code>, <code>ERROR</code>,
 	 * <code>INFO</code>, <code>WARNING</code>,  or <code>CANCEL</code>
 	 * @param message
 	 *            The exception detail message or <code>null</code>.
@@ -35,7 +35,7 @@ public class TCFException extends Exception {
 	/**
 	 * Constructor.
 	 *
-	 * @param severity the severity; one of <code>OK</code>, <code>ERROR</code>, 
+	 * @param severity the severity; one of <code>OK</code>, <code>ERROR</code>,
 	 * <code>INFO</code>, <code>WARNING</code>,  or <code>CANCEL</code>
 	 * @param message
 	 *            The exception detail message or <code>null</code>.
@@ -46,7 +46,7 @@ public class TCFException extends Exception {
 		super(message, cause);
 		this.severity = severity;
 	}
-	
+
 	/**
 	 * Returns the severity. The severities are as follows (in
 	 * descending order):
@@ -63,9 +63,8 @@ public class TCFException extends Exception {
 	 * no children.
 	 * </p>
 	 *
-	 * @return the severity: one of <code>OK</code>, <code>ERROR</code>, 
+	 * @return the severity: one of <code>OK</code>, <code>ERROR</code>,
 	 * <code>INFO</code>, <code>WARNING</code>,  or <code>CANCEL</code>
-	 * @see #matches(int)
 	 */
 	public int getSeverity() {
 		return severity;

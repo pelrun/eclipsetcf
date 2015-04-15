@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -30,9 +30,7 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUpload;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.compare.EditableSharedDocumentAdapter.ISharedDocumentAdapterListener;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.ui.IEditorInput;
@@ -133,9 +131,8 @@ public class LocalFileSaveable extends Saveable implements
 			saving = false;
 			monitor.done();
 			//Trigger upload action
-			FSTreeNode node = fileElement.getFSTreeNode();
-			IOpExecutor executor = new UiExecutor();
-			executor.execute(new OpUpload(node));
+			IFSTreeNode node = fileElement.getFSTreeNode();
+			UiExecutor.execute(node.operationUploadContent(node.getCacheFile()));
 		}
 	}
 

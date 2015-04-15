@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -17,7 +17,8 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory.FSTreeNodePeerNodeProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
@@ -31,9 +32,9 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  */
 public class LinuxPermissionsSection extends BaseTitledSection {
 	// The original node.
-	protected FSTreeNode node;
+	protected IFSTreeNode node;
 	// The copy node to be edited.
-	protected FSTreeNode clone;
+	protected IFSTreeNodeWorkingCopy clone;
 	// The button of "Permissions"
 	protected Button[] btnPermissions;
 
@@ -112,7 +113,7 @@ public class LinuxPermissionsSection extends BaseTitledSection {
     protected void updateInput(IPeerNodeProvider input) {
         Assert.isTrue(input instanceof FSTreeNodePeerNodeProvider);
         this.node = ((FSTreeNodePeerNodeProvider)input).getFSTreeNode();
-		this.clone = (FSTreeNode) node.clone();
+		this.clone = node.createWorkingCopy();
 	}
 
 	/*
@@ -123,8 +124,7 @@ public class LinuxPermissionsSection extends BaseTitledSection {
 	public void refresh() {
 		for (int i = 0; i < 9; i++) {
 			final int bit = 1 << (8 - i);
-			final boolean on = clone != null ? (clone.attr.permissions & bit) != 0 : false;
-			SWTControlUtil.setSelection(btnPermissions[i], on);
+			SWTControlUtil.setSelection(btnPermissions[i], clone.getPermission(bit));
 		}
 	}
 

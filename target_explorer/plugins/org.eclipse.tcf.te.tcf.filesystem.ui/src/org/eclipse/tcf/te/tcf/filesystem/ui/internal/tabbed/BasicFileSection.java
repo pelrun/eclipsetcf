@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -42,8 +42,8 @@ public class BasicFileSection extends BasicFolderSection {
 	 */
 	@Override
     public void refresh() {
-		SWTControlUtil.setText(sizeText, clone != null ? getSizeText(clone.attr.size) : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(accessedText, clone != null ? getDateText(clone.attr.atime) : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(sizeText, clone != null ? getSizeText(clone.getSize()) : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(accessedText, clone != null ? getDateText(clone.getAccessTime()) : ""); //$NON-NLS-1$
 		super.refresh();
     }
 }

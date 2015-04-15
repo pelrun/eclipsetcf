@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
  * William Chen (Wind River)- [345387]Open the remote files with a proper editor
- * William Chen (Wind River)	  [360494]Provide an "Open With" action in the pop 
+ * William Chen (Wind River)	  [360494]Provide an "Open With" action in the pop
  * 												up menu of file system nodes of Target Explorer.
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.internal.utils;
@@ -22,7 +22,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentType;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 
 /**
  * The content type helper used to provide helping methods about the content
@@ -58,6 +58,8 @@ public class ContentTypeHelper {
 	 * @return The content type of the file node.
 	 */
 	public static IContentType getContentType(FSTreeNode node) {
+		if (!node.isFile())
+			return null;
 		if (PersistenceManager.getInstance().isUnresovled(node))
 			// If it is already known unresolvable.
 			return null;
@@ -67,7 +69,7 @@ public class ContentTypeHelper {
 			return contentType;
 		// First check the content type by its name.
 		contentType = Platform.getContentTypeManager().findContentTypeFor(
-				node.name);
+				node.getName());
 		if (contentType == null) { // Then find the content type by its stream.
 			try {
 				contentType = findContentTypeByStream(node);
@@ -107,7 +109,7 @@ public class ContentTypeHelper {
 				URL url = node.getLocationURL();
 				is = url.openStream();
 			}
-			return Platform.getContentTypeManager().findContentTypeFor(is, node.name);
+			return Platform.getContentTypeManager().findContentTypeFor(is, node.getName());
 		} finally {
 			if (is != null) {
 				try {

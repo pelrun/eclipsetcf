@@ -14,7 +14,6 @@ import junit.framework.TestSuite;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.tests.tcf.filesystem.adapters.AdaptersTests;
-import org.eclipse.tcf.te.tests.tcf.filesystem.callbacks.CallbackTests;
 import org.eclipse.tcf.te.tests.tcf.filesystem.controls.ControlsTests;
 import org.eclipse.tcf.te.tests.tcf.filesystem.dnd.DnDTests;
 import org.eclipse.tcf.te.tests.tcf.filesystem.filters.FiltersTests;
@@ -60,7 +59,6 @@ public class AllFileSystemTests {
 	public static void addTests(TestSuite suite) {
 		Assert.isNotNull(suite);
 
-		suite.addTest(CallbackTests.suite());
 		suite.addTest(OperationTests.suite());
 		suite.addTest(URLTests.suite());
 		suite.addTest(UtilTests.suite());

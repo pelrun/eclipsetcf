@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -17,7 +17,8 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory.FSTreeNodePeerNodeProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
@@ -33,9 +34,9 @@ public class BasicFolderSection extends BaseTitledSection {
 	private static final DecimalFormat SIZE_FORMAT = new DecimalFormat();
 
 	// The original node to be displayed and edited.
-	protected FSTreeNode node;
+	protected IFSTreeNode node;
 	// The copy used to be edited.
-	protected FSTreeNode clone;
+	protected IFSTreeNodeWorkingCopy clone;
 
 	// The text for the name of the node.
 	protected Text nameText;
@@ -66,7 +67,7 @@ public class BasicFolderSection extends BaseTitledSection {
     protected void updateInput(IPeerNodeProvider input) {
          Assert.isTrue(input instanceof FSTreeNodePeerNodeProvider);
          this.node = ((FSTreeNodePeerNodeProvider)input).getFSTreeNode();
-         this.clone = (FSTreeNode) node.clone();
+         this.clone = node.createWorkingCopy();
      }
 
 	 /*
@@ -75,11 +76,11 @@ public class BasicFolderSection extends BaseTitledSection {
 	  */
 	@Override
     public void refresh() {
-		SWTControlUtil.setText(nameText, clone != null ? clone.name : ""); //$NON-NLS-1$
-		SWTControlUtil.setText(typeText, clone != null ? clone.getFileType() : ""); //$NON-NLS-1$
-		String location = clone == null || clone.isRoot() ? Messages.GeneralInformationPage_Computer : clone.getLocation();
+		SWTControlUtil.setText(nameText, clone != null ? clone.getName() : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(typeText, clone != null ? clone.getFileTypeLabel() : ""); //$NON-NLS-1$
+		String location = clone == null || clone.isRootDirectory() ? Messages.GeneralInformationPage_Computer : clone.getLocation();
 		SWTControlUtil.setText(locationText, location);
-		SWTControlUtil.setText(modifiedText, clone != null && clone.attr != null ? getDateText(clone.attr.mtime) : ""); //$NON-NLS-1$
+		SWTControlUtil.setText(modifiedText, clone != null && clone.getModificationTime() != 0 ? getDateText(clone.getModificationTime()) : ""); //$NON-NLS-1$
 		super.refresh();
     }
 

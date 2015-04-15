@@ -92,12 +92,7 @@ public class TcfTestCase extends CoreTestCase {
 	 */
 	protected void launchAgent() {
 		// Get the agent location
-		IPath path = getAgentLocation();
-		assertNotNull("Cannot determine TCF agent location.", path); //$NON-NLS-1$
-		// Add the agent executable name
-		path = path.append("agent"); //$NON-NLS-1$
-		if (Host.isWindowsHost()) path = path.addFileExtension("exe"); //$NON-NLS-1$
-		assertTrue("Invalid agent location: " + path.toString(), path.toFile().isFile()); //$NON-NLS-1$
+		IPath path = getAgentFile();
 
 		Throwable error = null;
 		String message = null;
@@ -235,6 +230,16 @@ public class TcfTestCase extends CoreTestCase {
 		}
 		assertNotNull("Failed to determine the peer to use for the tests.", peer); //$NON-NLS-1$
 	}
+
+	protected IPath getAgentFile() {
+	    IPath path = getAgentLocation();
+		assertNotNull("Cannot determine TCF agent location.", path); //$NON-NLS-1$
+		// Add the agent executable name
+		path = path.append("agent"); //$NON-NLS-1$
+		if (Host.isWindowsHost()) path = path.addFileExtension("exe"); //$NON-NLS-1$
+		assertTrue("Invalid agent location: " + path.toString(), path.toFile().isFile()); //$NON-NLS-1$
+	    return path;
+    }
 
 	/**
 	 * Returns the agent location.

@@ -1,5 +1,5 @@
 /*********************************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IWindowsFileAttributes;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.ImageConsts;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
@@ -35,7 +35,7 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 public class AdvancedAttributesDialog extends Dialog {
 
 	// The file or folder node whose advanced attributes are to be displayed.
-	FSTreeNode node;
+	IFSTreeNodeWorkingCopy node;
 
 	/**
 	 * Create the advanced attributes dialog with the specified node and a
@@ -46,7 +46,7 @@ public class AdvancedAttributesDialog extends Dialog {
 	 * @param node
 	 *            The file or folder node to be displayed.
 	 */
-	public AdvancedAttributesDialog(Shell parentShell, FSTreeNode node) {
+	public AdvancedAttributesDialog(Shell parentShell, IFSTreeNodeWorkingCopy node) {
 		super(parentShell);
 		this.node = node;
 	}
@@ -124,7 +124,7 @@ public class AdvancedAttributesDialog extends Dialog {
 		String label = node.isFile() ? Messages.AdvancedAttributesDialog_IndexFile
 				: (node.isDirectory() ? Messages.AdvancedAttributesDialog_IndexFolder
 						: null);
-		boolean on = !node.isWin32AttrOn(IWindowsFileAttributes.FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
+		boolean on = !node.getWin32Attr(IWindowsFileAttributes.FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
 		createOptionField(group, label, IWindowsFileAttributes.FILE_ATTRIBUTE_NOT_CONTENT_INDEXED, on);
 	}
 
@@ -138,7 +138,7 @@ public class AdvancedAttributesDialog extends Dialog {
 		String label = node.isFile() ? Messages.AdvancedAttributesDialog_FileArchive
 				: (node.isDirectory() ? Messages.AdvancedAttributesDialog_FolderArchive
 						: null);
-		boolean on = node.isWin32AttrOn(IWindowsFileAttributes.FILE_ATTRIBUTE_ARCHIVE);
+		boolean on = node.getWin32Attr(IWindowsFileAttributes.FILE_ATTRIBUTE_ARCHIVE);
 		createOptionField(group, label, IWindowsFileAttributes.FILE_ATTRIBUTE_ARCHIVE, on);
 	}
 
@@ -150,7 +150,7 @@ public class AdvancedAttributesDialog extends Dialog {
 	 */
 	private void createEncrypt(Group group) {
 		String label = Messages.AdvancedAttributesDialog_Encrypt;
-		boolean on = node.isWin32AttrOn(IWindowsFileAttributes.FILE_ATTRIBUTE_ENCRYPTED);
+		boolean on = node.getWin32Attr(IWindowsFileAttributes.FILE_ATTRIBUTE_ENCRYPTED);
 		createOptionField(group, label, IWindowsFileAttributes.FILE_ATTRIBUTE_ENCRYPTED, on);
 	}
 
@@ -162,7 +162,7 @@ public class AdvancedAttributesDialog extends Dialog {
 	 */
 	private void createCompress(Group group) {
 		String label = Messages.AdvancedAttributesDialog_Compress;
-		boolean on = node.isWin32AttrOn(IWindowsFileAttributes.FILE_ATTRIBUTE_COMPRESSED);
+		boolean on = node.getWin32Attr(IWindowsFileAttributes.FILE_ATTRIBUTE_COMPRESSED);
 		createOptionField(group, label, IWindowsFileAttributes.FILE_ATTRIBUTE_COMPRESSED, on);
 	}
 
@@ -208,7 +208,7 @@ public class AdvancedAttributesDialog extends Dialog {
 	 * Get the result.
 	 * @return The result.
 	 */
-	public FSTreeNode getResult() {
+	public IFSTreeNodeWorkingCopy getResult() {
 	    return node;
     }
 }

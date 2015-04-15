@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -20,12 +20,10 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.JobExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRename;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.celleditor.FSCellValidator;
+import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.dialogs.RenameDialog;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -45,7 +43,7 @@ public class RenameFilesHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IStructuredSelection sel = (IStructuredSelection) HandlerUtil.getCurrentSelectionChecked(event);
 		if (!sel.isEmpty()) {
-			FSTreeNode node = (FSTreeNode) sel.getFirstElement();
+			IFSTreeNode node = (IFSTreeNode) sel.getFirstElement();
 			boolean inPlaceEditor = UIPlugin.isInPlaceEditor();
 			if (inPlaceEditor) {
 				// If it is configured to use in-place editor, then invoke the editor.
@@ -62,10 +60,7 @@ public class RenameFilesHandler extends AbstractHandler {
 				int ok = dialog.open();
 				if (ok == Window.OK) {
 					// Do the renaming.
-					String newName = dialog.getNewName();
-					// Rename the node with the new name using an FSRename.
-					IOpExecutor executor = new JobExecutor(new RenameCallback());
-					executor.execute(new OpRename(node, newName));
+					UiExecutor.execute(node.operationRename(dialog.getNewName()));
 				}
 			}
 		}
@@ -79,7 +74,7 @@ public class RenameFilesHandler extends AbstractHandler {
 	 * @param node The file/folder node.
 	 * @return The renaming dialog.
 	 */
-	private RenameDialog createRenameDialog(Shell shell, FSTreeNode node) {
+	private RenameDialog createRenameDialog(Shell shell, IFSTreeNode node) {
 		String[] names = getUsedNames(node);
 		String title;
 		if (node.isFile()) {
@@ -108,7 +103,7 @@ public class RenameFilesHandler extends AbstractHandler {
 		String prompt = Messages.RenameFilesHandler_RenamePromptMessage;
 		String usedError = Messages.FSRenamingAssistant_NameAlreadyExists;
 		String label = Messages.RenameFilesHandler_PromptNewName;
-		return new RenameDialog(shell, title, null, prompt, usedError, error, label, node.name, formatRegex, names, null);
+		return new RenameDialog(shell, title, null, prompt, usedError, error, label, node.getName(), formatRegex, names, null);
 	}
 
 	/**
@@ -117,11 +112,14 @@ public class RenameFilesHandler extends AbstractHandler {
 	 * @param folder The folder.
 	 * @return Used names.
 	 */
-	private String[] getUsedNames(FSTreeNode folder) {
+	private String[] getUsedNames(IFSTreeNode folder) {
+		IFSTreeNode[] nodes = folder.getParent().getChildren();
+		if (nodes == null)
+			return new String[0];
+
 		List<String> usedNames = new ArrayList<String>();
-		List<FSTreeNode> nodes = folder.getParent().getChildren();
-		for (FSTreeNode node : nodes) {
-			usedNames.add(node.name);
+		for (IFSTreeNode node : nodes) {
+			usedNames.add(node.getName());
 		}
 		return usedNames.toArray(new String[usedNames.size()]);
 	}

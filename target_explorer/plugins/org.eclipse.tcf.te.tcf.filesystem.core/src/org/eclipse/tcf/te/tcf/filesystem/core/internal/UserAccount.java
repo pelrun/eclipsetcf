@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,10 +11,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.internal;
 
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IUserAccount;
+
 /**
  * The data model of a user account.
  */
-public class UserAccount {
+public class UserAccount implements IUserAccount {
 	// The user's id.
 	private int uid;
 	// The user's group id.
@@ -71,6 +73,7 @@ public class UserAccount {
 	 *
 	 * @return The user's effective id.
 	 */
+	@Override
 	public int getEUID() {
 		return euid;
 	}
@@ -80,6 +83,7 @@ public class UserAccount {
 	 *
 	 * @return The user's effective group id.
 	 */
+	@Override
 	public int getEGID() {
 		return egid;
 	}

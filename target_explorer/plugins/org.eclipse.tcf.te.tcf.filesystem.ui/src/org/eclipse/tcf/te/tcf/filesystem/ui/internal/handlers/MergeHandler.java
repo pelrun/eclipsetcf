@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -15,7 +15,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.compare.LocalTypedElement;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.compare.MergeEditorInput;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.compare.RemoteTypedElement;
@@ -34,7 +34,7 @@ public class MergeHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelectionChecked(event);
-		FSTreeNode node = (FSTreeNode) selection.getFirstElement();
+		IFSTreeNode node = (IFSTreeNode) selection.getFirstElement();
 		LocalTypedElement local = new LocalTypedElement(node);
 		RemoteTypedElement remote = new RemoteTypedElement(node);
 		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();

@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * William Chen (Wind River)	[360494]Provide an "Open With" action in the pop 
+ * William Chen (Wind River)	[360494]Provide an "Open With" action in the pop
  * 								up menu of file system nodes of Target Explorer.
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers;
@@ -16,14 +16,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.QualifiedName;
-import org.eclipse.core.runtime.content.IContentType;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
@@ -34,12 +31,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCacheUpdate;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.ContentTypeHelper;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
@@ -50,7 +42,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.EditorSelectionDialog;
 import org.eclipse.ui.ide.FileStoreEditorInput;
-import org.eclipse.ui.ide.IDE;
 
 /**
  * A menu for opening files in the target explorer.
@@ -59,7 +50,7 @@ import org.eclipse.ui.ide.IDE;
  * added for each editor which is applicable to the selected file. If the user selects one of these
  * items, the corresponding editor is opened on the file.
  * </p>
- * 
+ *
  * @since 3.7 - Copied and modified based on org.eclipse.ui.actions.OpenWithMenu to avoid
  *        introducing org.eclipse.core.resources
  */
@@ -85,19 +76,19 @@ public class OpenWithMenu extends ContributionItem {
 		}
 	};
 	// The selected tree node.
-	FSTreeNode node;
+	IFSTreeNode node;
 	// The current workbench page.
 	IWorkbenchPage page;
 	// The editor registry.
 	IEditorRegistry registry;
 
 	/**
-	 * Create an instance using the specified page and the specified FSTreeNode.
-	 * 
+	 * Create an instance using the specified page and the specified IFSTreeNode.
+	 *
 	 * @param page The page to open the editor.
-	 * @param node The FSTreeNode to be opened.
+	 * @param node The IFSTreeNode to be opened.
 	 */
-	public OpenWithMenu(IWorkbenchPage page, FSTreeNode node) {
+	public OpenWithMenu(IWorkbenchPage page, IFSTreeNode node) {
 		super(ID);
 		this.node = node;
 		this.page = page;
@@ -106,7 +97,7 @@ public class OpenWithMenu extends ContributionItem {
 
 	/**
 	 * Returns an image to show for the corresponding editor descriptor.
-	 * 
+	 *
 	 * @param editorDesc the editor descriptor, or null for the system editor
 	 * @return the image or null
 	 */
@@ -124,7 +115,7 @@ public class OpenWithMenu extends ContributionItem {
 	private ImageDescriptor getImageDescriptor(IEditorDescriptor editorDesc) {
 		ImageDescriptor imageDesc = null;
 		if (editorDesc == null) {
-			imageDesc = registry.getImageDescriptor(node.name);
+			imageDesc = registry.getImageDescriptor(node.getName());
 			// TODO: is this case valid, and if so, what are the implications for content-simulator
 			// editor bindings?
 		}
@@ -133,7 +124,7 @@ public class OpenWithMenu extends ContributionItem {
 		}
 		if (imageDesc == null) {
 			if (editorDesc != null && editorDesc.getId().equals(IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID)) {
-				imageDesc = registry.getSystemExternalEditorImageDescriptor(node.name);
+				imageDesc = registry.getSystemExternalEditorImageDescriptor(node.getName());
 			}
 		}
 		return imageDesc;
@@ -141,7 +132,7 @@ public class OpenWithMenu extends ContributionItem {
 
 	/**
 	 * Creates the menu item for the editor descriptor.
-	 * 
+	 *
 	 * @param menu the menu to add the item to
 	 * @param descriptor the editor descriptor, or null for the system editor
 	 * @param preferredEditor the descriptor of the preferred editor, or <code>null</code>
@@ -175,7 +166,7 @@ public class OpenWithMenu extends ContributionItem {
 
 	/**
 	 * Creates the Other... menu item
-	 * 
+	 *
 	 * @param menu the menu to add the item to
 	 */
 	@SuppressWarnings("unused")
@@ -190,7 +181,7 @@ public class OpenWithMenu extends ContributionItem {
 				case SWT.Selection:
 					EditorSelectionDialog dialog = new EditorSelectionDialog(menu.getShell());
 					dialog.setMessage(NLS
-					                .bind(Messages.OpenWithMenu_ChooseEditorForOpening, node.name));
+					                .bind(Messages.OpenWithMenu_ChooseEditorForOpening, node.getName()));
 					if (dialog.open() == Window.OK) {
 						IEditorDescriptor editor = dialog.getSelectedEditor();
 						if (editor != null) {
@@ -207,15 +198,14 @@ public class OpenWithMenu extends ContributionItem {
 	}
 
 	/**
-	 * Get the default editor for this FSTreeNode.
-	 * 
+	 * Get the default editor for this IFSTreeNode.
+	 *
 	 * @return The descriptor of the default editor.
 	 */
 	private IEditorDescriptor getDefaultEditor() {
 		// Try file specific editor.
 		try {
-			String editorID = PersistenceManager.getInstance().getPersistentProperties(node)
-			                .get(IDE.EDITOR_KEY);
+			String editorID = node.getPreferredEditorID();
 			if (editorID != null) {
 				IEditorDescriptor desc = registry.findEditor(editorID);
 				if (desc != null) {
@@ -227,10 +217,8 @@ public class OpenWithMenu extends ContributionItem {
 			// do nothing
 		}
 
-		IContentType contentType = null;
-		contentType = ContentTypeHelper.getContentType(node);
 		// Try lookup with filename
-		return registry.getDefaultEditor(node.name, contentType);
+		return registry.getDefaultEditor(node.getName(), node.getContentType());
 	}
 
 	/*
@@ -243,7 +231,7 @@ public class OpenWithMenu extends ContributionItem {
 		IEditorDescriptor defaultEditor = registry.findEditor(DEFAULT_TEXT_EDITOR);
 		IEditorDescriptor preferredEditor = getDefaultEditor();
 
-		IEditorDescriptor[] editors = registry.getEditors(node.name, ContentTypeHelper.getContentType(node));
+		IEditorDescriptor[] editors = registry.getEditors(node.getName(), node.getContentType());
 		Collections.sort(Arrays.asList(editors), comparer);
 
 		boolean defaultFound = false;
@@ -294,7 +282,7 @@ public class OpenWithMenu extends ContributionItem {
 
 	/**
 	 * Creates the menu item for clearing the current selection.
-	 * 
+	 *
 	 * @param menu the menu to add the item to
 	 * @param file the file being edited
 	 */
@@ -309,8 +297,7 @@ public class OpenWithMenu extends ContributionItem {
 				switch (event.type) {
 				case SWT.Selection:
 					if (menuItem.getSelection()) {
-						PersistenceManager.getInstance().getPersistentProperties(node)
-						                .put(IDE.EDITOR_KEY, null);
+						node.setPreferredEditorID(null);
 						try {
 							syncOpen(getEditorDescriptor(), false);
 						}
@@ -329,9 +316,9 @@ public class OpenWithMenu extends ContributionItem {
 	}
 
 	/**
-	 * Get an appropriate editor for the FSTreeNode. If the default editor is not found, it will
+	 * Get an appropriate editor for the IFSTreeNode. If the default editor is not found, it will
 	 * search the in-place editor, the external editor and finally the default text editor.
-	 * 
+	 *
 	 * @return An appropriate editor to open the node using "Default Editor".
 	 * @throws PartInitException
 	 */
@@ -344,12 +331,12 @@ public class OpenWithMenu extends ContributionItem {
 		IEditorDescriptor editorDesc = null;
 
 		// next check the OS for in-place editor (OLE on Win32)
-		if (registry.isSystemInPlaceEditorAvailable(node.name)) {
+		if (registry.isSystemInPlaceEditorAvailable(node.getName())) {
 			editorDesc = registry.findEditor(IEditorRegistry.SYSTEM_INPLACE_EDITOR_ID);
 		}
 
 		// next check with the OS for an external editor
-		if (editorDesc == null && registry.isSystemExternalEditorAvailable(node.name)) {
+		if (editorDesc == null && registry.isSystemExternalEditorAvailable(node.getName())) {
 			editorDesc = registry.findEditor(IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID);
 		}
 
@@ -370,19 +357,14 @@ public class OpenWithMenu extends ContributionItem {
 	 * Synchronize and open the file using the specified editor descriptor. If openUsingDescriptor
 	 * is true, it will try to use an external editor to open it if an eclipse editor is not
 	 * available.
-	 * 
+	 *
 	 * @param editorDescriptor The editor descriptor used to open the node.
 	 * @param openUsingDescriptor If an external editor should be used to open the node.
 	 */
 	protected void syncOpen(IEditorDescriptor editorDescriptor, boolean openUsingDescriptor) {
-		File file = CacheManager.getCacheFile(node);
-		if (!file.exists()) {
-			// If the file node's local cache does not exist yet, download it.
-			IOpExecutor executor = new UiExecutor();
-			IStatus status = executor.execute(new OpCacheUpdate(node));
-			if (!status.isOK()) {
-				return;
-			}
+		File file = node.getCacheFile();
+		if (!file.exists() && !UiExecutor.execute(node.operationDownload(null)).isOK()) {
+			return;
 		}
 		openInEditor(editorDescriptor, openUsingDescriptor);
 	}
@@ -390,13 +372,13 @@ public class OpenWithMenu extends ContributionItem {
 	/**
 	 * Open the editor using the specified editor descriptor. If openUsingDescriptor is true, it
 	 * will try to use an external editor to open it if an eclipse editor is not available.
-	 * 
+	 *
 	 * @param editorDescriptor The editor descriptor used to open the node.
 	 * @param openUsingDescriptor If an external editor should be used to open the node.
 	 */
 	private void openInEditor(IEditorDescriptor editorDescriptor, boolean openUsingDescriptor) {
 		try {
-			IPath path = CacheManager.getCachePath(node);
+			IPath path = new Path(node.getCacheFile().getAbsolutePath());
 			IFileStore fileStore = EFS.getLocalFileSystem().getStore(path);
 			FileStoreEditorInput input = new FileStoreEditorInput(fileStore);
 			if (openUsingDescriptor) {
@@ -407,9 +389,7 @@ public class OpenWithMenu extends ContributionItem {
 				String editorId = IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID;
 				if (editorDescriptor != null) editorId = editorDescriptor.getId();
 				page.openEditor(input, editorId, true, IWorkbenchPage.MATCH_INPUT | IWorkbenchPage.MATCH_ID);
-				Map<QualifiedName, String> properties = PersistenceManager.getInstance()
-				                .getPersistentProperties(node);
-				properties.put(IDE.EDITOR_KEY, editorId);
+				node.setPreferredEditorID(editorId);
 			}
 		}
 		catch (PartInitException e) {

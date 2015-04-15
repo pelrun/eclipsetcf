@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -14,7 +14,7 @@ import java.io.File;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.dnd.DND;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.dnd.CommonDnD;
 import org.eclipse.tcf.te.tests.tcf.filesystem.operations.OperationTestBase;
 
@@ -31,7 +31,7 @@ public class CommonDnDTest extends OperationTestBase {
 		IStructuredSelection selection = new StructuredSelection(testFile);
 		assertTrue(dnd.isDraggable(selection));
 	}
-	
+
 	public void testDropFiles() throws Exception {
 		String targetFile = getTestRoot() + getPathSep() + getTestPath() + getPathSep() + "dnd.txt"; //$NON-NLS-1$
 		if(pathExists(targetFile)) {
@@ -47,8 +47,12 @@ public class CommonDnDTest extends OperationTestBase {
 		assertTrue(dnd.dropFiles(null, new String[]{sourceFile}, DND.DROP_COPY, testFolder));
 		assertTrue(pathExists(targetFile));
 	}
-	
+
 	public void testDropLocalSelection() {
+		FSTreeNode existing = test11Folder.findChild(testFile.getName());
+		if (existing != null) {
+			existing.operationDelete(null).run(null);
+		}
 		assertTrue(dnd.dropLocalSelection(test11Folder, DND.DROP_COPY, new StructuredSelection(testFile)));
 	}
 }

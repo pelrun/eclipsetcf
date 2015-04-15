@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -18,9 +18,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpMove;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.dialogs.FSFolderSelectionDialog;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -29,7 +27,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
  * The handler that moves the selected files or folders to a destination folder.
  */
 public class MoveFilesHandler extends AbstractHandler {
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.core.commands.AbstractHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -39,16 +37,15 @@ public class MoveFilesHandler extends AbstractHandler {
 		Shell shell = HandlerUtil.getActiveShellChecked(event);
 		FSFolderSelectionDialog dialog = new FSFolderSelectionDialog(shell);
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelection(event);
-		List<FSTreeNode> nodes = selection.toList();
-		IPeerNode peer = nodes.get(0).peerNode;
+		List<IFSTreeNode> nodes = selection.toList();
+		IPeerNode peer = nodes.get(0).getPeerNode();
 		dialog.setInput(peer);
 		dialog.setMovedNodes(nodes);
 		if (dialog.open() == Window.OK) {
 			Object obj = dialog.getFirstResult();
-			Assert.isTrue(obj instanceof FSTreeNode);
-			FSTreeNode dest = (FSTreeNode) obj;
-			IOpExecutor executor = new UiExecutor();
-			executor.execute(new OpMove(nodes, dest, new MoveCopyCallback()));
+			Assert.isTrue(obj instanceof IFSTreeNode);
+			IFSTreeNode dest = (IFSTreeNode) obj;
+			UiExecutor.execute(dest.operationDropMove(nodes, new MoveCopyCallback()));
 		}
 		return null;
 	}

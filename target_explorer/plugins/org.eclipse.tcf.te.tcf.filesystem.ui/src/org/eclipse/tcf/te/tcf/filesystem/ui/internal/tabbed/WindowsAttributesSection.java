@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -15,7 +15,8 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeAdapterFactory.FSTreeNodePeerNodeProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
@@ -29,9 +30,9 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
  */
 public class WindowsAttributesSection extends BaseTitledSection {
 	// The original node.
-	protected FSTreeNode node;
+	protected IFSTreeNode fNode;
 	// The copy node.
-	protected FSTreeNode clone;
+	protected IFSTreeNodeWorkingCopy fWorkingCopy;
 	// The check box for "Read Only" attribute.
 	protected Button readOnlyButton;
 	// The check box for "Hidden" attribute.
@@ -67,8 +68,8 @@ public class WindowsAttributesSection extends BaseTitledSection {
 	@Override
     protected void updateInput(IPeerNodeProvider input) {
         Assert.isTrue(input instanceof FSTreeNodePeerNodeProvider);
-        this.node = ((FSTreeNodePeerNodeProvider)input).getFSTreeNode();
-        this.clone = (FSTreeNode) node.clone();
+        fNode = ((FSTreeNodePeerNodeProvider)input).getFSTreeNode();
+        fWorkingCopy = fNode.createWorkingCopy();
     }
 
 	/*
@@ -77,8 +78,8 @@ public class WindowsAttributesSection extends BaseTitledSection {
 	 */
 	@Override
     public void refresh() {
-		SWTControlUtil.setSelection(readOnlyButton, clone != null ? clone.isReadOnly() : false);
-		SWTControlUtil.setSelection(hiddenButton, clone != null ? clone.isHidden(): false);
+		SWTControlUtil.setSelection(readOnlyButton, fWorkingCopy != null && fWorkingCopy.isReadOnly());
+		SWTControlUtil.setSelection(hiddenButton, fWorkingCopy != null && fWorkingCopy.isHidden());
     }
 
 	/*

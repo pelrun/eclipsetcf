@@ -1,5 +1,5 @@
 /*********************************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -16,7 +16,6 @@ import java.util.Date;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -29,12 +28,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.JobExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCommitAttr;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRefresh;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
+import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.ui.dialogs.PropertyPage;
 
@@ -42,14 +38,12 @@ import org.eclipse.ui.dialogs.PropertyPage;
  * The general information page of a file's properties dialog.
  */
 public class GeneralInformationPage extends PropertyPage {
-	// The times of retrying before failure.
-	private static final int RETRY_TIMES = 3;
 	// The formatter for the size of a file.
 	private static final DecimalFormat SIZE_FORMAT = new DecimalFormat();
 	// The original node.
-	FSTreeNode node;
+	IFSTreeNode node;
 	// Cloned node for modification.
-	FSTreeNode clone;
+	IFSTreeNodeWorkingCopy fWorkingCopy;
 	// The button of "Read-Only"
 	Button btnReadOnly;
 	// The button of "Hidden"
@@ -147,8 +141,8 @@ public class GeneralInformationPage extends PropertyPage {
 		btnReadOnly.addSelectionListener(new SelectionAdapter(){
 			@Override
             public void widgetSelected(SelectionEvent e) {
-				if(btnReadOnly.getSelection()!=clone.isReadOnly()){
-					clone.setReadOnly(btnReadOnly.getSelection());
+				if(btnReadOnly.getSelection()!=fWorkingCopy.isReadOnly()){
+					fWorkingCopy.setReadOnly(btnReadOnly.getSelection());
 				}
             }
 		});
@@ -161,9 +155,7 @@ public class GeneralInformationPage extends PropertyPage {
 			@Override
             public void widgetSelected(SelectionEvent e) {
 				Button btnHidden = (Button) e.getSource();
-				if(btnHidden.getSelection()!=clone.isHidden()){
-					clone.setHidden(btnHidden.getSelection());
-				}
+				fWorkingCopy.setHidden(btnHidden.getSelection());
             }
 		});
 		// Advanced Attributes
@@ -183,18 +175,18 @@ public class GeneralInformationPage extends PropertyPage {
 	 * Update the value of attributes section.
 	 */
 	private void updateAttributes() {
-		btnReadOnly.setSelection(clone.isReadOnly());
-		btnHidden.setSelection(clone.isHidden());
+		btnReadOnly.setSelection(fWorkingCopy.isReadOnly());
+		btnHidden.setSelection(fWorkingCopy.isHidden());
 	}
 
 	/**
 	 * Show the advanced attributes dialog for the specified file/folder.
 	 */
 	void showAdvancedAttributes() {
-		AdvancedAttributesDialog dialog = new AdvancedAttributesDialog(this.getShell(), (FSTreeNode)(clone.clone()));
+		AdvancedAttributesDialog dialog = new AdvancedAttributesDialog(this.getShell(), fWorkingCopy.createWorkingCopy());
 		if (dialog.open() == Window.OK) {
-			FSTreeNode result = dialog.getResult();
-			clone.attr = result.attr;
+			IFSTreeNodeWorkingCopy result = dialog.getResult();
+			UiExecutor.execute(result.operationCommit());
 		}
 	}
 
@@ -271,13 +263,7 @@ public class GeneralInformationPage extends PropertyPage {
 			@Override
             public void widgetSelected(SelectionEvent e) {
 				int bit = 1 << (8 - index);
-				boolean on = clone.attr != null && (clone.attr.permissions & bit) != 0;
-				boolean newOn = btnPermissions[index].getSelection();
-				if (newOn != on) {
-					int permissions = clone.attr != null ? clone.attr.permissions : 0;
-					permissions = newOn ? (permissions | bit) : (permissions & ~bit);
-					clone.setPermissions(permissions);
-				}
+				fWorkingCopy.setPermission(bit, btnPermissions[index].getSelection());
             }
 		});
 	}
@@ -288,8 +274,7 @@ public class GeneralInformationPage extends PropertyPage {
 	private void updatePermissions(){
 		for (int i = 0; i < 9; i++) {
 			final int bit = 1 << (8 - i);
-			final boolean on = clone.attr != null && (clone.attr.permissions & bit) != 0;
-			btnPermissions[i].setSelection(on);
+			btnPermissions[i].setSelection(fWorkingCopy.getPermission(bit));
 		}
 	}
 
@@ -299,68 +284,29 @@ public class GeneralInformationPage extends PropertyPage {
 	 */
 	@Override
     protected void performDefaults() {
-		clone = (FSTreeNode) node.clone();
+		fWorkingCopy = node.createWorkingCopy();
 		if (node.isWindowsNode()) {
 			updateAttributes();
-		}
-		else {
+		} else {
 			updatePermissions();
 		}
 	    super.performDefaults();
     }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.jface.preference.PreferencePage#performOk()
-	 */
 	@Override
     public boolean performOk() {
 		if (hasAttrsChanged()) {
-			IStatus status = commitAttr();
-			if(!status.isOK()) {
-				setErrorMessage(status.getMessage());
-				return false;
-			}
+			UiExecutor.execute(fWorkingCopy.operationCommit());
 		}
-		return true;
+		return getErrorMessage() == null;
     }
-
-	/**
-	 * Commit the new attributes of the file and
-	 * return a status. This operation will try
-	 * several times before reporting failure.
-	 *
-	 * @return The committing status.
-	 */
-	private IStatus commitAttr() {
-		OpCommitAttr op = new OpCommitAttr(node, clone.attr);
-		IOpExecutor executor = new NullOpExecutor();
-		IStatus status = null;
-		for (int i = 0; i < RETRY_TIMES; i++) {
-			status = executor.execute(op);
-			if (status.isOK()) {
-				if (!node.isRoot()) {
-					// Refresh the parent so that the filters work!
-					executor = new JobExecutor();
-					executor.execute(new OpRefresh(node.getParent()));
-				}
-				return status;
-			}
-		}
-		return status;
-	}
 
 	/**
 	 * If the attributes has been changed.
 	 * @return If the attributes has been changed.
 	 */
-	private boolean hasAttrsChanged(){
-		if(node.isWindowsNode()){
-			// If it is a Windows file, only check its attributes.
-			return node.getWin32Attrs() != clone.getWin32Attrs();
-		}
-		// If it is not a Windows file, only check its permissions.
-		return node.attr != null && clone.attr != null && node.attr.permissions != clone.attr.permissions;
+	private boolean hasAttrsChanged() {
+		return fWorkingCopy.isDirty();
 	}
 
 	/* (non-Javadoc)
@@ -369,33 +315,38 @@ public class GeneralInformationPage extends PropertyPage {
 	@Override
 	protected Control createContents(Composite parent) {
 		IAdaptable element = getElement();
-		Assert.isTrue(element instanceof FSTreeNode);
+		Assert.isTrue(element instanceof IFSTreeNode);
 
-		node = (FSTreeNode) element;
-		clone = (FSTreeNode) node.clone();
+		node = (IFSTreeNode) element;
+		fWorkingCopy = node.createWorkingCopy();
 		Composite page = new Composite(parent, SWT.NONE);
 		GridLayout gridLayout = new GridLayout(2, false);
 		page.setLayout(gridLayout);
 		// Field "Name"
-		createField(Messages.GeneralInformationPage_Name, clone.name, page);
+		createField(Messages.GeneralInformationPage_Name, fWorkingCopy.getName(), page);
 		// Field "Type"
-		createField(Messages.GeneralInformationPage_Type, clone.getFileType(), page);
+		String fileType = fWorkingCopy.getFileTypeLabel();
+		createField(Messages.GeneralInformationPage_Type, fileType, page);
 		// Field "Location"
-		String location = clone.isSystemRoot() || clone.isRoot() ?
-						Messages.GeneralInformationPage_Computer : clone.getLocation();
+
+		String location = fWorkingCopy.isFileSystem() || fWorkingCopy.isRootDirectory() ?
+						Messages.GeneralInformationPage_Computer : fWorkingCopy.getLocation();
 		createField(Messages.GeneralInformationPage_Location, location, page);
 		// Field "Size"
-		if (clone.isFile()) {
-			createField(Messages.GeneralInformationPage_Size, clone.attr != null ? getSizeText(clone.attr.size) : "", page); //$NON-NLS-1$
+		if (fWorkingCopy.isFile()) {
+			long size = fWorkingCopy.getSize();
+			createField(Messages.GeneralInformationPage_Size, size > 0 ? getSizeText(size) : "", page); //$NON-NLS-1$
 		}
 		// Field "Modified"
-		createField(Messages.GeneralInformationPage_Modified, clone.attr != null ? getDateText(clone.attr.mtime) : "", page); //$NON-NLS-1$
+		long lm = fWorkingCopy.getModificationTime();
+		createField(Messages.GeneralInformationPage_Modified, lm != 0 ? getDateText(lm) : "", page); //$NON-NLS-1$
 		// Field "Accessed"
-		if (clone.isFile()) {
-			createField(Messages.GeneralInformationPage_Accessed, clone.attr != null ? getDateText(clone.attr.atime) : "", page); //$NON-NLS-1$
+		if (fWorkingCopy.isFile()) {
+			long at = fWorkingCopy.getAccessTime();
+			createField(Messages.GeneralInformationPage_Accessed, at != 0 ? getDateText(at) : "", page); //$NON-NLS-1$
 		}
 		createSeparator(page);
-		if (clone.isWindowsNode()) {
+		if (fWorkingCopy.isWindowsNode()) {
 			createAttributesSection(page);
 		} else {
 			createPermissionsSection(page);

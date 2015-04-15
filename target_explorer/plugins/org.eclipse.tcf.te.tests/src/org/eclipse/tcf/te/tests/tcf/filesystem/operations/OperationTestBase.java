@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,31 +9,28 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tests.tcf.filesystem.operations;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCacheUpdate;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopy;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreateFile;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreateFolder;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpDelete;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpMove;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRename;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUpload;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tests.tcf.filesystem.FSPeerTestCase;
 
 public class OperationTestBase extends FSPeerTestCase {
 
 	protected FSTreeNode copy(FSTreeNode file, FSTreeNode folder) throws Exception {
 		printDebugMessage("Copy " + file.getLocation() + " to " + folder.getLocation() + "..."); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		List<FSTreeNode> files = new ArrayList<FSTreeNode>();
-		files.add(file);
-		OpCopy copy = new OpCopy(files, folder);
+		List<IFSTreeNode> files = Collections.<IFSTreeNode>singletonList(file);
+		IOperation copy = folder.operationDropCopy(files, false, false, null);
 		copy.run(new NullProgressMonitor());
 		String location = folder.getLocation();
-		String path = location + getPathSep() + file.name;
+		String path = location + getPathSep() + file.getName();
 		return getFSNode(path);
 	}
 
@@ -57,16 +54,15 @@ public class OperationTestBase extends FSPeerTestCase {
 
 	protected FSTreeNode move(FSTreeNode src, FSTreeNode dest) throws Exception {
 		printDebugMessage("Move " + src.getLocation() + " to " + dest.getLocation()); //$NON-NLS-1$ //$NON-NLS-2$
-		List<FSTreeNode> nodes = new ArrayList<FSTreeNode>();
-		nodes.add(src);
-		OpMove fsmove = new OpMove(nodes, dest);
+		List<IFSTreeNode> nodes = Collections.<IFSTreeNode>singletonList(src);
+		IOperation fsmove = dest.operationDropMove(nodes, null);
 		fsmove.run(new NullProgressMonitor());
-		String path = dest.getLocation() + getPathSep() + src.name;
+		String path = dest.getLocation() + getPathSep() + src.getName();
 		return getFSNode(path);
 	}
 
 	protected FSTreeNode rename(FSTreeNode node, String newName) throws Exception {
-		printDebugMessage("Rename " + node.name + " to " + newName); //$NON-NLS-1$ //$NON-NLS-2$
+		printDebugMessage("Rename " + node.getName() + " to " + newName); //$NON-NLS-1$ //$NON-NLS-2$
 		OpRename fsmove = new OpRename(node, newName);
 		fsmove.run(new NullProgressMonitor());
 		String newPath = node.getParent().getLocation()+getPathSep()+newName;
@@ -74,19 +70,18 @@ public class OperationTestBase extends FSPeerTestCase {
 	}
 
 	protected void updateCache(FSTreeNode testFile) throws Exception {
-		OpCacheUpdate update = new OpCacheUpdate(testFile);
+		IOperation update = testFile.operationDownload(null);
 		update.run(new NullProgressMonitor());
 	}
 
 	protected void commitCache(FSTreeNode testFile) throws Exception {
-		OpUpload commit = new OpUpload(testFile);
+		IOperation commit = testFile.operationUploadContent(null);
 		commit.run(new NullProgressMonitor());
 	}
 
 	protected void delete(FSTreeNode node) throws Exception {
 		printDebugMessage("Delete " + node.getLocation() + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-		List<FSTreeNode> files = new ArrayList<FSTreeNode>();
-		files.add(node);
+		List<IFSTreeNode> files = Collections.<IFSTreeNode>singletonList(node);
 		OpDelete delete = new OpDelete(files, null);
 		delete.run(new NullProgressMonitor());
 	}

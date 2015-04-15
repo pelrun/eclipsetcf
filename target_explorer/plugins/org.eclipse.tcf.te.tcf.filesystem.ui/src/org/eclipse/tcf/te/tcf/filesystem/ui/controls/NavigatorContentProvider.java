@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,15 +9,12 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.AbstractTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
@@ -32,17 +29,18 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 	 */
 	@Override
 	public Object getParent(Object element) {
-		if (element instanceof AbstractTreeNode) {
-			AbstractTreeNode node = (AbstractTreeNode) element;
-			AbstractTreeNode parent = node.getParent();
+		if (element instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode) element;
+			IFSTreeNode parent = node.getParent();
 			if (parent != null) {
-				if (parent.isSystemRoot()) {
+				if (parent.isFileSystem()) {
 					if (isRootNodeVisible()) return parent;
 					return null;
 				}
 				return parent;
 			}
-			if (isRootNodeVisible()) return node.peerNode;
+			if (isRootNodeVisible())
+				return node.getPeerNode();
 		}
 		return null;
 	}
@@ -61,13 +59,14 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 	 */
 	@Override
     public void treeExpanded(TreeExpansionEvent event) {
-		Object object = event.getElement();
-	    if(object instanceof AbstractTreeNode) {
-	    	AbstractTreeNode parent = (AbstractTreeNode) object;
-			if (parent.childrenQueried && !parent.childrenQueryRunning) {
-				parent.refreshChildren();
-			}
-		}
+//		Object object = event.getElement();
+//	    if(object instanceof IFSTreeNode) {
+//	    	IFSTreeNode parent = (IFSTreeNode) object;
+//	    	IFSTreeNode[] children = parent.getChildren();
+//	    	if (children == null) {
+//	    		parent.operationRefresh(false).runInJob(null);
+//	    	}
+//		}
     }
 
 	/*
@@ -100,55 +99,48 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 		if (parentElement instanceof IPeerNode) {
 			final IPeerNode peerNode = (IPeerNode)parentElement;
 			IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
+			if (model == null)
+				return NO_ELEMENTS;
+
 			if (isRootNodeVisible()) {
-				AbstractTreeNode root = model.getRoot();
-				if(!root.childrenQueried && !root.childrenQueryRunning) {
-					root.queryChildren();
-				}
+				IFSTreeNode root = model.getRoot();
 				return new Object[] { root };
 			}
 			return getChildren(model.getRoot());
-		} else if (parentElement instanceof AbstractTreeNode) {
-			AbstractTreeNode node = (AbstractTreeNode)parentElement;
-			List<Object> current = new ArrayList<Object>(node.getChildren());
-			if (!node.childrenQueried) {
-				current.add(getPending(node));
-				if (!node.childrenQueryRunning) {
-					node.queryChildren();
-				}
+		} else if (parentElement instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode)parentElement;
+			if (!(node.isDirectory() || node.isFileSystem()))
+				return NO_ELEMENTS;
+
+			IFSTreeNode[] children = node.getChildren();
+			if (children == null) {
+				node.operationRefresh(false).runInJob(null);
+				return new Object[] {getPending(node)};
 			}
-			return current.toArray();
+			return children;
 		}
 
 		return NO_ELEMENTS;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
-	 */
 	@Override
 	public boolean hasChildren(final Object element) {
 		Assert.isNotNull(element);
 
-		boolean hasChildren = false;
-
-		if (element instanceof AbstractTreeNode) {
-			AbstractTreeNode node = (AbstractTreeNode)element;
-			if(node.isSystemRoot()) {
-				hasChildren = true;
+		if (element instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode)element;
+			if (node.isFileSystem() || node.isDirectory()) {
+				return node.getChildren() == null || super.hasChildren(element);
 			}
-			else {
-				hasChildren = !node.childrenQueried || super.hasChildren(element);
-			}
+			return false;
 		}
-		else if (element instanceof IPeerNode) {
+
+		if (element instanceof IPeerNode) {
 			IPeerNode peerNode = (IPeerNode) element;
 			IRuntimeModel model = ModelManager.getRuntimeModel(peerNode);
-			AbstractTreeNode root = model.getRoot();
-			hasChildren = root != null ? hasChildren(root) : true;
+			return model != null;
 		}
-
-		return hasChildren;
+		return false;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,51 +9,50 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
-import java.lang.reflect.InvocationTargetException;
+import static java.text.MessageFormat.format;
+
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DoneCopy;
+import org.eclipse.tcf.services.IFileSystem.DoneMkDir;
+import org.eclipse.tcf.services.IFileSystem.DoneStat;
+import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
-import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFException;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFFileSystemException;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
  * The operation class that copies selected FSTreeNodes to a specify destination folder.
  */
-public class OpCopy extends Operation {
-	// The nodes to be copied.
-	List<FSTreeNode> nodes;
-	// The destination folder to be copied to.
-	FSTreeNode dest;
-	// The callback invoked to confirm overwriting when there're files with same names.
-	IConfirmCallback confirmCallback;
-	// If it is required to copy the permissions.
-	boolean cpPermission;
-	// If it is required to copy the ownership.
-	boolean cpOwnership;
-	
-	/**
-	 * Create a copy operation using the specified nodes and destination folder.
-	 * 
-	 * @param nodes The file/folder nodes to be copied.
-	 * @param dest The destination folder to be copied to.
-	 */
-	public OpCopy(List<FSTreeNode> nodes, FSTreeNode dest) {
-		this(nodes, dest, false, false, null);
+public class OpCopy extends AbstractOperation {
+	private static class WorkItem {
+		final boolean fTop;
+		final FSTreeNode fDestination;
+		final FSTreeNode[] fSources;
+		WorkItem(FSTreeNode[] sources, FSTreeNode destination, boolean top) {
+			fSources = sources;
+			fDestination = destination;
+			fTop = top;
+		}
 	}
+
+	IConfirmCallback fConfirmCallback;
+	boolean fCopyPermissions;
+	boolean fCopyOwnership;
+
+	LinkedList<WorkItem> fWork = new LinkedList<WorkItem>();
+	private long fStartTime;
 
 	/**
 	 * Create a copy operation using the specified nodes and destination folder,
@@ -63,196 +62,208 @@ public class OpCopy extends Operation {
 	 * @param nodes The file/folder nodes to be copied.
 	 * @param dest The destination folder to be copied to.
 	 */
-	public OpCopy(List<FSTreeNode> nodes, FSTreeNode dest, boolean cpPerm, boolean cpOwn, IConfirmCallback confirmCallback) {
+	public OpCopy(List<? extends IFSTreeNode> nodes, FSTreeNode dest, boolean cpPerm, boolean cpOwn, IConfirmCallback confirmCallback) {
 		super();
-		this.nodes = getAncestors(nodes);
-		this.dest = dest;
-		this.cpOwnership = cpOwn;
-		this.cpPermission = cpPerm;
-		this.confirmCallback = confirmCallback;
+		fCopyOwnership = cpOwn;
+		fCopyPermissions = cpPerm;
+		fConfirmCallback = confirmCallback;
+		nodes = dropNestedNodes(nodes);
+		fWork.add(new WorkItem(nodes.toArray(new FSTreeNode[nodes.size()]), dest, true));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
-    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		super.run(monitor);
-		FSTreeNode head = nodes.get(0);
-		IChannel channel = null;
-		try {
-			channel = openChannel(head.peerNode.getPeer());
-			if (channel != null) {
-				IFileSystem service = getBlockingFileSystem(channel);
-				if (service != null) {
-					for (FSTreeNode node : nodes) {
-						// Iterate the nodes and copy each of them to the destination folder.
-						copyNode(service, node, dest);
-					}
-				}
-				else {
-					String message = NLS.bind(Messages.Operation_NoFileSystemError, head.peerNode.getPeerId());
-					throw new TCFFileSystemException(IStatus.ERROR, message);
-				}
+	public IStatus doRun(IProgressMonitor monitor) {
+		fStartTime = System.currentTimeMillis();
+		monitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
+		WorkItem lastTop = null;
+		while (!fWork.isEmpty()) {
+			WorkItem item = fWork.remove();
+			if (item.fTop) {
+				if (lastTop != null)
+					lastTop.fDestination.notifyChange();
+				lastTop = item;
+			}
+			IStatus s = runWorkItem(item, monitor);
+			if (!s.isOK()) {
+				lastTop.fDestination.notifyChange();
+				return s;
 			}
 		}
-		catch (TCFException e) {
-			throw new InvocationTargetException(e, e.getMessage());
-		}
-		finally {
-			if (channel != null) Tcf.getChannelManager().closeChannel(channel);
-			monitor.done();
-		}
+		if (lastTop != null)
+			lastTop.fDestination.notifyChange();
+		return Status.OK_STATUS;
 	}
 
-	/**
-	 * Copy the file/folder represented by the specified node to the destination folder.
-	 *
-	 * @param service The file system service to do the remote copying.
-	 * @param node The file/folder node to be copied.
-	 * @param dest The destination folder.
-	 * @throws TCFFileSystemException The exception thrown during copying
-	 * @throws InterruptedException The exception thrown when the operation is canceled.
-	 */
-	void copyNode(IFileSystem service, FSTreeNode node, FSTreeNode dest) throws TCFFileSystemException, InterruptedException {
-		if (node.isFile()) {
-			copyFile(service, node, dest);
+	protected IStatus runWorkItem(final WorkItem item, IProgressMonitor monitor) {
+		final FSTreeNode destination = item.fDestination;
+		IStatus status = refresh(destination, fStartTime, monitor);
+		if (!status.isOK()) {
+			return status;
 		}
-		else if (node.isDirectory()) {
-			copyFolder(service, node, dest);
+
+		for (FSTreeNode source : item.fSources) {
+			status = refresh(source, fStartTime, monitor);
+			if (!status.isOK()) {
+				return status;
+			}
+
+			status = performCopy(source, destination, monitor);
+			if (!status.isOK())
+				return status;
 		}
+		return Status.OK_STATUS;
 	}
 
-	/**
-	 * Copy the folder represented by the specified node to the destination folder.
-	 *
-	 * @param service The file system service to do the remote copying.
-	 * @param node The folder node to be copied.
-	 * @param dest The destination folder.
-	 * @throws TCFFileSystemException The exception thrown during copying
-	 * @throws InterruptedException The exception thrown when the operation is canceled.
-	 */
-	private void copyFolder(IFileSystem service, FSTreeNode node, FSTreeNode dest) throws TCFFileSystemException, InterruptedException {
-		if (monitor.isCanceled()) throw new InterruptedException();
-		FSTreeNode copy = findChild(service, dest, node.name);
-		if (copy == null) {
-			// If no existing directory with the same name, create it.
-			copy = (FSTreeNode) node.clone();
-			addChild(service, dest, copy);
-			mkdir(service, copy);
-			copyChildren(service, node, copy);
+	private IStatus performCopy(FSTreeNode source, FSTreeNode destination, IProgressMonitor monitor) {
+		String newName = source.getName();
+		FSTreeNode existing = destination.findChild(newName);
+		if (existing != null) {
+			if (source == existing) {
+				newName = createNewNameForCopy(destination, newName);
+				existing = null;
+			} else if (source.isDirectory()) {
+				if (!existing.isDirectory()) {
+					return StatusHelper.createStatus(format(Messages.OpCopy_error_noDirectory, existing.getLocation()), null);
+				}
+				int replace = confirmCallback(existing, fConfirmCallback);
+				if (replace == IConfirmCallback.NO) {
+					return Status.OK_STATUS;
+				}
+				if (replace != IConfirmCallback.YES) {
+					return Status.CANCEL_STATUS;
+				}
+
+				fWork.addFirst(new WorkItem(source.getChildren(), existing, false));
+				return Status.OK_STATUS;
+			} else if (source.isFile()) {
+				if (!existing.isFile()) {
+					return StatusHelper.createStatus(format(Messages.OpCopy_error_noFile, existing.getLocation()), null);
+				}
+				int replace = confirmCallback(existing, fConfirmCallback);
+				if (replace == IConfirmCallback.NO) {
+					return Status.OK_STATUS;
+				}
+				if (replace != IConfirmCallback.YES) {
+					return Status.CANCEL_STATUS;
+				}
+			} else {
+				return Status.OK_STATUS;
+			}
 		}
-		else if (node.equals(copy)) {
-			copy = createCopyDestination(service, node, dest);
-			mkdir(service, copy);
-			copyChildren(service, node, copy);
-		}
-		else if (confirmReplace(node, confirmCallback)) {
-			copyChildren(service, node, copy);
-		}
-		monitor.worked(1);
+		return performCopy(source, destination, newName, existing, monitor);
 	}
 
-	/**
-	 * Copy the children of the node to the destination folder.
-	 *
-	 * @param service The file system service to do the remote copying.
-	 * @param node The folder node to be copied.
-	 * @param dest The destination folder.
-	 * @throws TCFFileSystemException The exception thrown during copying
-	 * @throws InterruptedException The exception thrown when the operation is canceled.
-	 */
-	private void copyChildren(IFileSystem service, FSTreeNode node, FSTreeNode dest) throws TCFFileSystemException, InterruptedException {
-	    List<FSTreeNode> children = getChildren(node, service);
-	    if (!children.isEmpty()) {
-	    	for (FSTreeNode child : children) {
-	    		// Iterate and copy its children nodes.
-	    		copyNode(service, child, dest);
-	    	}
-	    }
-    }
 
-	/**
-	 * Copy the file represented by the specified node to the destination folder.
-	 *
-	 * @param service The file system service to do the remote copying.
-	 * @param node The file node to be copied.
-	 * @param dest The destination folder.
-	 * @throws TCFFileSystemException The exception thrown during copying
-	 * @throws InterruptedException The exception thrown when the operation is canceled.
-	 */
-	private void copyFile(IFileSystem service, FSTreeNode node, FSTreeNode dest) throws TCFFileSystemException, InterruptedException {
-		if (monitor.isCanceled()) throw new InterruptedException();
-		monitor.subTask(NLS.bind(Messages.OpCopy_Copying, node.name));
-		// Create the copy target file
-		final FSTreeNode copy = createCopyDestination(service, node, dest);
-		String src_path = node.getLocation(true);
-		String dst_path = copy.getLocation(true);
-		final TCFFileSystemException[] errors = new TCFFileSystemException[1];
-		// Get the options of copy permission and ownership.
-		service.copy(src_path, dst_path, cpPermission, cpOwnership, new DoneCopy() {
+	private String createNewNameForCopy(FSTreeNode node, String origName) {
+		String name = origName;
+		int n = 0;
+		while (node.findChild(name) != null) {
+			if (n > 0) {
+				name = NLS.bind(Messages.Operation_CopyNOfFile, Integer.valueOf(n), origName);
+			} else {
+				name = NLS.bind(Messages.Operation_CopyOfFile, origName);
+			}
+			n++;
+		}
+		return name;
+	}
+
+	private IStatus performCopy(final FSTreeNode source, final FSTreeNode destination, final String newName, final FSTreeNode existing, IProgressMonitor monitor) {
+		final TCFResult<?> result = new TCFResult<Object>();
+		monitor.subTask(NLS.bind(Messages.OpCopy_Copying, source.getLocation()));
+		Protocol.invokeLater(new Runnable() {
 			@Override
-			public void doneCopy(IToken token, FileSystemException error) {
+			public void run() {
+				tcfPerformCopy(source, destination, newName, existing, result);
+			}
+		});
+		return result.waitDone(monitor);
+	}
+
+
+	protected void tcfPerformCopy(FSTreeNode source, FSTreeNode destination, String newName, FSTreeNode existing, TCFResult<?> result) {
+		if (result.checkCancelled())
+			return;
+
+		if (source.isFile()) {
+			tcfCopyFile(source, destination, newName, existing, result);
+		} else if (source.isDirectory()) {
+			tcfCopyFolder(source, destination, newName, result);
+		} else {
+			result.setDone(null);
+		}
+	}
+
+	private void tcfCopyFolder(final FSTreeNode source, final FSTreeNode dest, final String newName, final TCFResult<?> result) {
+		final IFileSystem fileSystem = dest.getRuntimeModel().getFileSystem();
+		if (fileSystem == null) {
+			result.setCancelled();
+			return;
+		}
+
+		final String path = getPath(dest, newName);
+		fileSystem.mkdir(path, source.getAttributes(), new DoneMkDir() {
+			@Override
+			public void doneMkDir(IToken token, FileSystemException error) {
 				if (error != null) {
-					String message = NLS.bind(Messages.OpCopy_CannotCopyFile, copy.name, error);
-					errors[0] = new TCFFileSystemException(IStatus.ERROR, message, error);
+					result.setError(format(Messages.Operation_CannotCreateDirectory, newName), error);
+				} else if (!result.checkCancelled()) {
+					fileSystem.lstat(path, new DoneStat() {
+						@Override
+						public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
+							if (error != null) {
+								result.setError(format(Messages.Operation_CannotCreateDirectory, newName), error);
+							} else if (!result.checkCancelled()) {
+								FSTreeNode copy = new FSTreeNode(dest, newName, false, attrs);
+								copy.setContent(new FSTreeNode[0], false);
+								dest.addNode(copy, false);
+								fWork.addFirst(new WorkItem(source.getChildren(), copy, false));
+								result.setDone(null);
+							}
+						}
+					});
 				}
 			}
 		});
-		if (errors[0] != null) {
-			removeChild(service, dest, copy);
-			throw errors[0];
-		}
-		monitor.worked(1);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getName()
-	 */
+	private void tcfCopyFile(final FSTreeNode source, final FSTreeNode dest, final String newName, final FSTreeNode existing, final TCFResult<?> result) {
+		final IFileSystem fileSystem = dest.getRuntimeModel().getFileSystem();
+		if (fileSystem == null) {
+			result.setCancelled();
+			return;
+		}
+
+		String sourcePath = source.getLocation(true);
+		final String path = getPath(dest, newName);
+		fileSystem.copy(sourcePath, path, fCopyPermissions, fCopyOwnership, new DoneCopy() {
+			@Override
+			public void doneCopy(IToken token, FileSystemException error) {
+				if (error != null) {
+					result.setError(format(Messages.OpCopy_CannotCopyFile, source.getName()), error);
+				} else if (!result.checkCancelled()) {
+					fileSystem.stat(path, new DoneStat() {
+						@Override
+						public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
+							if (error != null) {
+								result.setError(format(Messages.OpCopy_CannotCopyFile, source.getName()), error);
+							} else if (!result.checkCancelled()) {
+								if (existing != null) {
+									existing.setAttributes(attrs, false);
+								} else {
+									dest.addNode(new FSTreeNode(dest, newName, false, attrs), false);
+								}
+								result.setDone(null);
+							}
+						}
+					});
+				}
+			}
+		});
+	}
+
 	@Override
     public String getName() {
 	    return Messages.OpCopy_CopyingFile;
-    }
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getTotalWork()
-	 */
-	@Override
-    public int getTotalWork() {
-		if(nodes != null && !nodes.isEmpty()) {
-			final AtomicReference<Integer> ref = new AtomicReference<Integer>();
-			SafeRunner.run(new ISafeRunnable(){
-				@Override
-                public void handleException(Throwable exception) {
-					// Ignore on purpose.
-                }
-				@Override
-                public void run() throws Exception {
-					FSTreeNode head = nodes.get(0);
-					IChannel channel = null;
-					try {
-						channel = openChannel(head.peerNode.getPeer());
-						if (channel != null) {
-							IFileSystem service = getBlockingFileSystem(channel);
-							if (service != null) {
-								ref.set(Integer.valueOf(count(service, nodes)));
-							}
-							else {
-								String message = NLS.bind(Messages.Operation_NoFileSystemError, head.peerNode.getPeerId());
-								throw new TCFFileSystemException(IStatus.ERROR, message);
-							}
-						}
-					}
-					finally {
-						if (channel != null) Tcf.getChannelManager().closeChannel(channel);
-					}
-                }});
-			Integer value = ref.get();
-			return value == null ? IProgressMonitor.UNKNOWN : value.intValue();
-		}
-		return IProgressMonitor.UNKNOWN;
     }
 }

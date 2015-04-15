@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -38,8 +38,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeContentProvider;
@@ -65,7 +65,7 @@ import org.eclipse.ui.dialogs.ISelectionStatusValidator;
  * ElementTreeSelectionDialog.setInput</code> to specify the peer model of the remote target. In
  * order to validate the destination folder, you should also specify the nodes to be moved. The file
  * selection dialog is of single selection. You can get the selected result by calling
- * <code>getFirstResult</code>. The type of selected folder is an instance of FSTreeNode.
+ * <code>getFirstResult</code>. The type of selected folder is an instance of IFSTreeNode.
  * </p>
  * <p>
  * The following is a snippet of example code:
@@ -76,17 +76,17 @@ import org.eclipse.ui.dialogs.ISelectionStatusValidator;
  * dialog.setMovedNodes(nodes);
  * if (dialog.open() == Window.OK) {
  * 	Object obj = dialog.getFirstResult();
- * 	Assert.isTrue(obj instanceof FSTreeNode);
- * 	FSTreeNode folder = (FSTreeNode) obj;
+ * 	Assert.isTrue(obj instanceof IFSTreeNode);
+ * 	IFSTreeNode folder = (IFSTreeNode) obj;
  * 	// Use folder ...
  * }
  * </pre>
  *
  * @see MoveFilesHandler
  */
-public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
+public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	// The nodes that are being moved.
-	private List<FSTreeNode> movedNodes;
+	private List<IFSTreeNode> movedNodes;
 	private final int mode;
 
 	public static final int MODE_ALL = 0;
@@ -144,8 +144,8 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	static class DirectoryFilter extends ViewerFilter {
 		@Override
 		public boolean select(Viewer viewer, Object parentElement, Object element) {
-			if (element instanceof FSTreeNode) {
-				FSTreeNode node = (FSTreeNode) element;
+			if (element instanceof IFSTreeNode) {
+				IFSTreeNode node = (IFSTreeNode) element;
 				if(node.isFile()) return false;
 			}
 			return true;
@@ -186,7 +186,7 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	 *
 	 * @param movedNodes The nodes.
 	 */
-	public void setMovedNodes(List<FSTreeNode> movedNodes) {
+	public void setMovedNodes(List<IFSTreeNode> movedNodes) {
 		this.movedNodes = movedNodes;
 	}
 
@@ -251,8 +251,8 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 			Iterator<Object> it = ((IStructuredSelection)sel).iterator();
 			while (it.hasNext()) {
 				Object node = it.next();
-				if (node instanceof FSTreeNode) {
-					refreshNode((FSTreeNode)node);
+				if (node instanceof IFSTreeNode) {
+					refreshNode((IFSTreeNode)node);
 				}
 				else {
 					refreshModel();
@@ -265,34 +265,20 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 		}
 	}
 
-	protected void refreshNode(final FSTreeNode treeNode) {
-		if (!treeNode.childrenQueryRunning) {
-			treeNode.childrenQueried = false;
-			treeNode.clearChildren();
-			treeNode.refresh(new Callback() {
-				@Override
-	            protected void internalDone(Object caller, IStatus status) {
-					getShell().getDisplay().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							getTreeViewer().refresh(treeNode, true);
-							getTreeViewer().setSelection(getTreeViewer().getSelection());
-						}
-					});
-				}
-			});
-		}
+	protected void refreshNode(final IFSTreeNode treeNode) {
+		treeNode.operationRefresh(true).runInJob(null);
 	}
 
 	protected void refreshModel() {
 		Object input = getTreeViewer().getInput();
 		if (input instanceof IPeerNode) {
-			refreshNode(ModelManager.getRuntimeModel((IPeerNode)input).getRoot());
+			IRuntimeModel rtm = ModelManager.getRuntimeModel((IPeerNode)input);
+			if (rtm != null)
+				refreshNode(rtm.getRoot());
 		}
 	}
 
 
-	private final static IStatus ok = new Status(IStatus.OK, UIPlugin.getUniqueIdentifier(), null);
 	private final static IStatus error = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), null);
 	private final static IStatus errorNotWritable = new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), Messages.FSFolderSelectionDialog_notWritable_error);
 	private final static IStatus warningNotWritable = new Status(IStatus.WARNING, UIPlugin.getUniqueIdentifier(), Messages.FSFolderSelectionDialog_notWritable_warning);
@@ -307,23 +293,20 @@ public class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 		if (selection == null || selection.length == 0) {
 			return error;
 		}
-		if (!(selection[0] instanceof FSTreeNode)) {
+		if (!(selection[0] instanceof IFSTreeNode)) {
 			return error;
 		}
-		FSTreeNode target = (FSTreeNode) selection[0];
+		IFSTreeNode target = (IFSTreeNode) selection[0];
 		if (movedNodes != null) {
-			for (FSTreeNode node : movedNodes) {
+			for (IFSTreeNode node : movedNodes) {
 				if (node == target || node.isAncestorOf(target)) {
 					return error;
 				}
 			}
 		}
 		if(mode != MODE_ALL && !target.isWritable()) {
-			if (target.attr == null) {
-				refreshNode(target);
-			}
 			return mode == MODE_ONLY_WRITABLE ? errorNotWritable : warningNotWritable;
 		}
-		return ok;
+		return Status.OK_STATUS;
 	}
 }

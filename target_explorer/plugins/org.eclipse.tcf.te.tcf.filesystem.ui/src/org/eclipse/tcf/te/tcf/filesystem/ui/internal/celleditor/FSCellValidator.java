@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,13 +9,11 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.celleditor;
 
-import java.util.List;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 
 /**
@@ -48,12 +46,12 @@ public class FSCellValidator implements ICellEditorValidator {
 	public String isValid(Object value) {
 		IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
 		Object element = selection.getFirstElement();
-		Assert.isTrue(element instanceof FSTreeNode);
-		FSTreeNode node = (FSTreeNode) element;
+		Assert.isTrue(element instanceof IFSTreeNode);
+		IFSTreeNode node = (IFSTreeNode) element;
 		if (value == null) return Messages.FSRenamingAssistant_SpecifyNonEmptyName;
 		String text = value.toString().trim();
 		if (text.length() == 0) return Messages.FSRenamingAssistant_SpecifyNonEmptyName;
-		if (hasChild(node, text)) {
+		if (hasSibbling(node, text)) {
 			return Messages.FSRenamingAssistant_NameAlreadyExists;
 		}
 		String formatRegex = node.isWindowsNode() ? WIN_FILENAME_REGEX : UNIX_FILENAME_REGEX;
@@ -69,13 +67,19 @@ public class FSCellValidator implements ICellEditorValidator {
 	 * @param name The name.
 	 * @return true if it has a child with the name.
 	 */
-	private boolean hasChild(FSTreeNode folder, String name) {
-		List<FSTreeNode> nodes = folder.getParent().getChildren();
-		for (FSTreeNode node : nodes) {
+	private boolean hasSibbling(IFSTreeNode folder, String name) {
+		IFSTreeNode[] nodes = folder.getParent().getChildren();
+		if (nodes == null) {
+			return false;
+		}
+		for (IFSTreeNode node : nodes) {
 			if (node.isWindowsNode()) {
-				if (node.name.equalsIgnoreCase(name)) return true;
+				if (node.getName().equalsIgnoreCase(name)) {
+					return true;
+				}
+			} else if (node.getName().equals(name)) {
+				return true;
 			}
-			else if (node.name.equals(name)) return true;
 		}
 		return false;
 	}

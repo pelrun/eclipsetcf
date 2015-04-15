@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,7 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tests.tcf.filesystem.operations;
 
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 
 
 public class FSCopyTests extends OperationTestBase {
@@ -18,7 +18,7 @@ public class FSCopyTests extends OperationTestBase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		String path = test1Folder + getPathSep() + test22File.name;
+		String path = test1Folder + getPathSep() + test22File.getName();
 		FSTreeNode node = getFSNode(path);
 		if (node != null) {
 			delete(node);
@@ -27,7 +27,7 @@ public class FSCopyTests extends OperationTestBase {
 
 	public void testCopy() throws Exception {
 		newFile = copy(test22File, test1Folder);
-		String path = test1Folder.getLocation() + getPathSep() + test22File.name;
+		String path = test1Folder.getLocation() + getPathSep() + test22File.getName();
 		assertTrue(pathExists(path));
 	}
 

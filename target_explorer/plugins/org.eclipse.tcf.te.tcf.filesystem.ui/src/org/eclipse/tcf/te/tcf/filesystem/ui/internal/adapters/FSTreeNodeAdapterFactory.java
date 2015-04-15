@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -17,7 +17,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementLabelProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.search.FSTreeNodeSearchable;
@@ -29,20 +29,20 @@ import org.eclipse.ui.IActionFilter;
 import org.eclipse.ui.IPersistableElement;
 
 /**
- * The adapter factory of <code>FSTreeNode</code> over <code>IActionFilter</code>
+ * The adapter factory of <code>IFSTreeNode</code> over <code>IActionFilter</code>
  */
 public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 	private static ILabelProvider nodeLabelProvider = new FSTreeElementLabelProvider();
 	// The fFilters map caching fFilters for FS nodes.
-	private Map<FSTreeNode, NodeStateFilter> filters;
+	private Map<IFSTreeNode, NodeStateFilter> filters;
 
 	public static class FSTreeNodePeerNodeProvider extends PlatformObject implements IPeerNodeProvider {
-		private final FSTreeNode node;
+		private final IFSTreeNode node;
 
 		/**
 		 * Constructor
 		 */
-		public FSTreeNodePeerNodeProvider(FSTreeNode node) {
+		public FSTreeNodePeerNodeProvider(IFSTreeNode node) {
 			Assert.isNotNull(node);
 			this.node = node;
 		}
@@ -52,7 +52,7 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 		 *
 		 * @return The associated file system tree node.
 		 */
-		public final FSTreeNode getFSTreeNode() {
+		public final IFSTreeNode getFSTreeNode() {
 			return node;
 		}
 
@@ -61,7 +61,7 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 		 */
 		@Override
 		public final IPeerNode getPeerNode() {
-			return node.peerNode;
+			return node.getPeerNode();
 		}
 	}
 
@@ -69,7 +69,7 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 	 * Constructor.
 	 */
 	public FSTreeNodeAdapterFactory() {
-		this.filters = Collections.synchronizedMap(new HashMap<FSTreeNode, NodeStateFilter>());
+		this.filters = Collections.synchronizedMap(new HashMap<IFSTreeNode, NodeStateFilter>());
 	}
 
 	/*
@@ -78,8 +78,8 @@ public class FSTreeNodeAdapterFactory implements IAdapterFactory {
 	 */
 	@Override
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
-		if (adaptableObject instanceof FSTreeNode) {
-			FSTreeNode node = (FSTreeNode) adaptableObject;
+		if (adaptableObject instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode) adaptableObject;
 			if (adapterType == IActionFilter.class) {
 				NodeStateFilter filter = filters.get(node);
 				if (filter == null) {

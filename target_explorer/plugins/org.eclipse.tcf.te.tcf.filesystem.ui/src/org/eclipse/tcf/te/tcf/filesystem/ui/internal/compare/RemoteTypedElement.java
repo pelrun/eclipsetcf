@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -21,15 +21,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.osgi.util.NLS;
-import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpOutStreamOp;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 
 /**
- * A <code>RemoteTypedElement</code> wraps an <code>FSTreeNode</code> so that it
+ * A <code>RemoteTypedElement</code> wraps an <code>IFSTreeNode</code> so that it
  * can be used as input for the differencing engine (<code>ITypedElement</code>)
  * as the right element of the comparison editor.
  *
@@ -42,7 +38,7 @@ public class RemoteTypedElement extends MergeTypedElement {
 	 * @param node
 	 *            the tree node.
 	 */
-	public RemoteTypedElement(FSTreeNode node) {
+	public RemoteTypedElement(IFSTreeNode node) {
 		super(node);
 	}
 
@@ -78,16 +74,16 @@ public class RemoteTypedElement extends MergeTypedElement {
 	 */
 	public void cacheContents(IProgressMonitor monitor)
 			throws InvocationTargetException, InterruptedException {
-		monitor.beginTask(NLS.bind(Messages.RemoteTypedElement_DowloadingFile, node.name), 100);
 		OutputStream output = null;
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		output = new BufferedOutputStream(baos);
-		monitor.beginTask(Messages.RemoteTypedElement_GettingRemoteContent + node.name, 100);
-		IOperation operation = new OpOutStreamOp(node, output);
-		operation.run(monitor);
-		if (!monitor.isCanceled()) {
+		if (node.operationDownload(output).run(monitor).isOK()) {
 			setContent(baos.toByteArray());
 		}
+		try {
+	        baos.close();
+        } catch (IOException e) {
+        }
 	}
 
 	/**

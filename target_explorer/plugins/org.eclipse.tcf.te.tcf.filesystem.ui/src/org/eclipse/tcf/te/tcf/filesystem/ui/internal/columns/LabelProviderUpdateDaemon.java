@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -30,8 +30,8 @@ import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.ImageConsts;
 
@@ -46,7 +46,7 @@ public class LabelProviderUpdateDaemon extends Thread {
 		{"windows 8", "win8_rootdrive.png"}  //$NON-NLS-1$//$NON-NLS-2$
 	};
 	private static String root_drive = createRootImage(getOSEntry());
-	
+
 	private static int getOSEntry() {
 		String osName = System.getProperty("os.name").toLowerCase(); //$NON-NLS-1$
 		for(int i = 0; i < os_drives.length;i++) {
@@ -54,18 +54,18 @@ public class LabelProviderUpdateDaemon extends Thread {
 		}
 		return 0;
 	}
-	
+
 	private static String createRootImage(int i) {
 		UIPlugin plugin = UIPlugin.getDefault();
 		URL url = plugin.getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OBJ + os_drives[i][1]);
 		plugin.getImageRegistry().put(os_drives[i][0], ImageDescriptor.createFromURL(url));
 		return os_drives[i][0];
 	}
-	
+
 	// The dummy AWT component used to render the icon.
 	Component dummyComponent = new JComponent(){private static final long serialVersionUID = 5926798769323111209L;};
 	//The queue that caches the current file nodes to be updated.
-	BlockingQueue<FSTreeNode> queueNodes;
+	BlockingQueue<IFSTreeNode> queueNodes;
 	// The image update adapter for a file which has a local cache copy.
 	ImageUpdateAdapter cacheAdapter;
 	// The image update adapter for a file which does not has a local cache copy.
@@ -77,17 +77,17 @@ public class LabelProviderUpdateDaemon extends Thread {
 	public LabelProviderUpdateDaemon() {
 		super("Image Updater Daemon"); //$NON-NLS-1$
 		setDaemon(true);
-		this.queueNodes = new LinkedBlockingQueue<FSTreeNode>();
+		this.queueNodes = new LinkedBlockingQueue<IFSTreeNode>();
 		this.cacheAdapter = new CacheFileImageUpdater();
 		this.extAdapter = new FileExtBasedImageUpdater(this);
 	}
 
 	/**
 	 * Cache the node which is to be updated with its icon in the file tree.
-	 * 
+	 *
 	 * @param node The node to be enqueued
 	 */
-	public void enqueue(final FSTreeNode node) {
+	public void enqueue(final IFSTreeNode node) {
 		SafeRunner.run(new ISafeRunnable() {
 			@Override
 			public void handleException(Throwable exception) {
@@ -103,10 +103,10 @@ public class LabelProviderUpdateDaemon extends Thread {
 
 	/**
 	 * Take next node to be processed.
-	 * 
+	 *
 	 * @return The next node.
 	 */
-	private FSTreeNode take() {
+	private IFSTreeNode take() {
 		while (true) {
 			try {
 				return queueNodes.take();
@@ -123,7 +123,7 @@ public class LabelProviderUpdateDaemon extends Thread {
 	@Override
 	public void run() {
 		while (true) {
-			FSTreeNode node = take();
+			IFSTreeNode node = take();
 			ImageUpdateAdapter adapter = getUpdateAdapter(node);
 			String imgKey = adapter.getImageKey(node);
 			ImageDescriptor image = UIPlugin.getImageDescriptor(imgKey);
@@ -133,19 +133,19 @@ public class LabelProviderUpdateDaemon extends Thread {
 				image = createImage(imgKey, mrrFile, imgFile);
 			}
 			if (image != null) {
-				sendNotification(node, node.name, null, image);
+				sendNotification(node, node.getName(), null, image);
 			}
 		}
 	}
-	
+
 	/**
 	 * Select an image update adapter for the specified node.
-	 * 
-	 * @param node The FSTreeNode.
+	 *
+	 * @param node The IFSTreeNode.
 	 * @return an image update adapter, either cache based or extension based.
 	 */
-	private ImageUpdateAdapter getUpdateAdapter(FSTreeNode node) {
-		File cacheFile = CacheManager.getCacheFile(node);
+	private ImageUpdateAdapter getUpdateAdapter(IFSTreeNode node) {
+		File cacheFile = node.getCacheFile();
 		if (cacheFile.exists()) {
 			return cacheAdapter;
 		}
@@ -155,11 +155,11 @@ public class LabelProviderUpdateDaemon extends Thread {
 	/**
 	 * Get the image for the specified node from its
 	 * image update adapter.
-	 * 
+	 *
 	 * @param node The file system tree node.
 	 * @return The image or null if there's no image yet.
 	 */
-	public Image getImage(FSTreeNode node) {
+	public Image getImage(IFSTreeNode node) {
 		ImageUpdateAdapter adapter = getUpdateAdapter(node);
 		String key = adapter.getImageKey(node);
 		return UIPlugin.getImage(key);
@@ -168,7 +168,7 @@ public class LabelProviderUpdateDaemon extends Thread {
 	/**
 	 * Create an Image Descriptor based on the mirror file and store
 	 * it in the imgFile and store it using the specified image key.
-	 * 
+	 *
 	 * @param imgKey The image key.
 	 * @param mrrFile The mirror file used to create the image.
 	 * @param imgFile The image file used to store the image data.
@@ -194,19 +194,19 @@ public class LabelProviderUpdateDaemon extends Thread {
 	    }
 	    return image;
     }
-	
+
 	/**
 	 * Get the image of disk drivers on Windows platform.
-	 * 
+	 *
 	 * @return The disk driver image.
 	 */
 	public Image getDiskImage() {
 		return UIPlugin.getImage(root_drive);
 	}
-	
+
 	/**
 	 * Get the folder image on Windows platform.
-	 * 
+	 *
 	 * @return The folder image.
 	 */
 	public Image getFolderImage() {
@@ -223,24 +223,24 @@ public class LabelProviderUpdateDaemon extends Thread {
 		}
 		return UIPlugin.getImage(key);
 	}
-	
+
 	/**
 	 * Get the temporary directory store the images and temporary mirror files.
 	 * @return
 	 */
 	protected File getTempDir() {
-		File cacheRoot = CacheManager.getCacheRoot();
+		File cacheRoot = ModelManager.getCacheRoot();
 		File tempDir = new File(cacheRoot, ".tmp"); //$NON-NLS-1$
 		if (!tempDir.exists() && !tempDir.mkdirs()) {
 			tempDir = cacheRoot;
 		}
 		return tempDir;
 	}
-	
+
 	/**
 	 * Get the an image file named "imgName" in the temporary image
 	 * directory.
-	 * 
+	 *
 	 * @param imgName The image's file name.
 	 * @return The file object of this image file.
 	 */
@@ -254,9 +254,9 @@ public class LabelProviderUpdateDaemon extends Thread {
 	}
 
 	/**
-	 * Create an image file using "png" format 
+	 * Create an image file using "png" format
 	 * for the specified temporary file.
-	 * 
+	 *
 	 * @param icon The icon that is used for the temporary file.
 	 * @param tmpfile The temporary file.
 	 */
@@ -274,15 +274,15 @@ public class LabelProviderUpdateDaemon extends Thread {
 
 	/**
 	 * Send a notification to inform the file tree for changed images.
-	 * 
+	 *
 	 * @param node The node whose image has changed.
 	 * @param key The key used to store the images.
 	 * @param oldImg The old image descriptor.
 	 * @param newImg The new image descriptor.
 	 */
-	private void sendNotification(FSTreeNode node, String key, ImageDescriptor oldImg, ImageDescriptor newImg) {
-		if (node.peerNode != null) {
-			IPropertyChangeProvider viewerInput = (IPropertyChangeProvider) node.peerNode.getAdapter(IPropertyChangeProvider.class);
+	private void sendNotification(IFSTreeNode node, String key, ImageDescriptor oldImg, ImageDescriptor newImg) {
+		if (node.getPeerNode() != null) {
+			IPropertyChangeProvider viewerInput = (IPropertyChangeProvider) node.getPeerNode().getAdapter(IPropertyChangeProvider.class);
 			viewerInput.firePropertyChange(new PropertyChangeEvent(node, key, oldImg, newImg));
 		}
 	}

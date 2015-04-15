@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -21,11 +21,9 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.util.SafeRunnable;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.IOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUpload;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.ui.IEditorInput;
@@ -38,7 +36,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
  */
 public class SaveListener implements IExecutionListener {
 	// Dirty node that should be committed or merged.
-	FSTreeNode dirtyNode;
+	IFSTreeNode dirtyNode;
 
 	/**
 	 * Create a SaveListener listening to command "SAVE".
@@ -53,8 +51,7 @@ public class SaveListener implements IExecutionListener {
 	public void postExecuteSuccess(String commandId, Object returnValue) {
 		if (dirtyNode != null) {
 			if (UIPlugin.isAutoSaving()) {
-				IOpExecutor executor = new UiExecutor();
-				executor.execute(new OpUpload(dirtyNode));
+				UiExecutor.execute(dirtyNode.operationUploadContent(dirtyNode.getCacheFile()));
 			}
 			else {
 				SafeRunner.run(new SafeRunnable(){
@@ -64,7 +61,8 @@ public class SaveListener implements IExecutionListener {
                     }
 					@Override
                     public void run() throws Exception {
-						if (dirtyNode != null) dirtyNode.refresh();
+						if (dirtyNode != null)
+							dirtyNode.operationRefresh(false).runInJob(null);
                     }
 				});
 			}
@@ -85,8 +83,8 @@ public class SaveListener implements IExecutionListener {
 				IFileStore store = EFS.getStore(uri);
 				File localFile = store.toLocalFile(0, new NullProgressMonitor());
 				if (localFile != null) {
-					OpParsePath parser = new OpParsePath(localFile.getCanonicalPath());
-					new NullOpExecutor().execute(parser);
+					IResultOperation<IFSTreeNode> parser = ModelManager.operationRestoreFromPath(localFile.getCanonicalPath());
+					parser.run(null);
 					dirtyNode = parser.getResult();
 				}
 			}catch(Exception e){

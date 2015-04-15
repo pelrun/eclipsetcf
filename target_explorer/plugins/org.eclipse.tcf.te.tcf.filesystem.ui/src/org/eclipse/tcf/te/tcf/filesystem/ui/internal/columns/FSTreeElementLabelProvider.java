@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,7 +12,7 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.utils.Host;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.trees.PendingAwareLabelProvider;
 
@@ -41,8 +41,8 @@ public class FSTreeElementLabelProvider extends PendingAwareLabelProvider {
 	 */
 	@Override
 	public String getText(Object element) {
-		if (element instanceof FSTreeNode) {
-			return ((FSTreeNode) element).name;
+		if (element instanceof IFSTreeNode) {
+			return ((IFSTreeNode) element).getName();
 		}
 		else if (element instanceof IModelNode) {
 			return ((IModelNode)element).getName();
@@ -57,8 +57,8 @@ public class FSTreeElementLabelProvider extends PendingAwareLabelProvider {
 	 */
 	@Override
 	public Image getImage(Object element) {
-		if (element instanceof FSTreeNode) {
-			FSTreeNode node = (FSTreeNode) element;
+		if (element instanceof IFSTreeNode) {
+			IFSTreeNode node = (IFSTreeNode) element;
 			return imgProvider.getImage(node);
 		}
 		else if (element instanceof IModelNode) {

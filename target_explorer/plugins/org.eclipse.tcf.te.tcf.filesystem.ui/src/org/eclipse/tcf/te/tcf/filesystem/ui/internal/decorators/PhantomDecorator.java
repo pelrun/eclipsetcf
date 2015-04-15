@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,11 +12,11 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.decorators;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.ui.jface.images.AbstractImageDescriptor;
 /**
- * The label decorator to decorate the FSTreeNodes that are cut or hidden. 
+ * The label decorator to decorate the FSTreeNodes that are cut or hidden.
  */
 public class PhantomDecorator extends LabelProvider implements ILabelDecorator {
 	/*
@@ -25,7 +25,7 @@ public class PhantomDecorator extends LabelProvider implements ILabelDecorator {
 	 */
 	@Override
 	public Image decorateImage(Image image, Object element) {
-		if (element instanceof FSTreeNode && image != null) {
+		if (element instanceof IFSTreeNode && image != null) {
 			// Create the cut image for the image to be decorated.
 			AbstractImageDescriptor descriptor = new PhantomImageDescriptor(image);
 			return UIPlugin.getSharedImage(descriptor);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,18 +12,18 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpClipboard;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.CacheState;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
+import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.FsClipboard;
 import org.eclipse.ui.IActionFilter;
 
 /**
- * This action filter wraps an FSTreeNode and test its attribute of "cache.state".
+ * This action filter wraps an IFSTreeNode and test its attribute of "cache.state".
  * It serves as the expression filter of decorations of Target Explorer.
  */
 public class NodeStateFilter implements IActionFilter {
-	private FSTreeNode node;
+	private IFSTreeNode node;
 
 	/**
 	 * Constructor.
@@ -31,7 +31,7 @@ public class NodeStateFilter implements IActionFilter {
 	 * @param node
 	 *            The wrapped tree node. Must not be <code>null</code>.
 	 */
-	public NodeStateFilter(FSTreeNode node) {
+	public NodeStateFilter(IFSTreeNode node) {
 		Assert.isNotNull(node);
 		this.node = node;
 	}
@@ -50,11 +50,11 @@ public class NodeStateFilter implements IActionFilter {
 			return value.equals(state.name());
 		}
 		else if (name.equals("edit.cut")) { //$NON-NLS-1$
-			OpClipboard cb = UIPlugin.getClipboard();
+			FsClipboard cb = UIPlugin.getClipboard();
 			if (!cb.isEmpty()) {
 				if (cb.isCutOp()) {
-					List<FSTreeNode> files = cb.getFiles();
-					for (FSTreeNode file : files) {
+					List<IFSTreeNode> files = cb.getFiles();
+					for (IFSTreeNode file : files) {
 						if (node == file) return true;
 					}
 				}
@@ -63,12 +63,12 @@ public class NodeStateFilter implements IActionFilter {
 		else if (name.equals("hidden")) { //$NON-NLS-1$
 			if (value == null) value = "true"; //$NON-NLS-1$
 			boolean result = false;
-			if (!node.isRoot()) {
+			if (!node.isRootDirectory()) {
 				if (node.isWindowsNode()) {
 					result = node.isHidden();
 				}
 				else {
-					result = node.name.startsWith("."); //$NON-NLS-1$
+					result = node.getName().startsWith("."); //$NON-NLS-1$
 				}
 			}
 			return Boolean.toString(result).equals(value);

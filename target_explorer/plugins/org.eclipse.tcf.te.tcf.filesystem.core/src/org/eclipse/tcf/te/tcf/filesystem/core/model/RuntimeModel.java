@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,71 +9,87 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.model;
 
+import static org.eclipse.tcf.te.tcf.locator.model.ModelManager.getPeerModel;
+
+import java.beans.PropertyChangeEvent;
+import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IChannel.IChannelListener;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.model.interfaces.factory.IFactory;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelService;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.UserAccount;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
 /**
  * The file system model implementation.
  */
-public final class RuntimeModel extends ContainerModelNode implements IRuntimeModel {
-    // Flag to mark the model disposed
-    private boolean disposed;
+public final class RuntimeModel extends ContainerModelNode implements IRuntimeModel, IChannelListener {
 
-    // Reference to the model node factory
-    private IFactory factory = null;
-
-    // The root node of the peer model
-	private FSTreeNode root;
-	private IPeerNode peerNode;
+	private final IPeerNode fPeerNode;
+	private final FSTreeNode fRoot;
+	private final UserAccount fUserAccount;
+	private IChannel fChannel;
+	private IFileSystem fFileSystem;
 
     /**
 	 * Create a File System ModelManager.
 	 */
-	public RuntimeModel(IPeerNode peerNode) {
-	    disposed = false;
-		this.peerNode = peerNode;
+	public RuntimeModel(IPeerNode peerNode, IChannel channel, IFileSystem fileSystem, UserAccount userAccount) {
+		fPeerNode = peerNode;
+		fChannel = channel;
+		fFileSystem = fileSystem;
+		fUserAccount = userAccount;
+		fRoot = new FSTreeNode(this, Messages.FSTreeNodeContentProvider_rootNodeLabel);
+		channel.addChannelListener(this);
 	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.runtime.nodes.PropertiesContainer#checkThreadAccess()
-     */
     @Override
     protected boolean checkThreadAccess() {
         return Protocol.isDispatchThread();
     }
 
-    /* (non-Javadoc)
-     * @see com.windriver.te.tcf.core.model.interfaces.IModel#dispose()
-     */
+    @Override
+    public void onChannelOpened() {
+    }
+
+    @Override
+    public void congestionLevel(int level) {
+    }
+
+    @Override
+    public void onChannelClosed(Throwable error) {
+    	ModelManager.disposeRuntimeModel(fPeerNode);
+    }
+
     @Override
     public void dispose() {
         Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-        disposed = true;
+        fFileSystem = null;
     }
 
-    /* (non-Javadoc)
-     * @see com.windriver.te.tcf.core.model.interfaces.IModel#isDisposed()
-     */
     @Override
     public boolean isDisposed() {
         Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-        return disposed;
+        return fFileSystem == null;
     }
 
 
-    /* (non-Javadoc)
-     * @see com.windriver.te.tcf.core.model.interfaces.IModel#getService(java.lang.Class)
-     */
     @Override
     @SuppressWarnings("unchecked")
     public <V extends IModelService> V getService(Class<V> serviceInterface) {
@@ -81,10 +97,6 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
         return (V)getAdapter(serviceInterface);
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
-     */
-    @SuppressWarnings("rawtypes")
     @Override
     public Object getAdapter(Class adapter) {
         if (IPeerNode.class.isAssignableFrom(adapter) || IConnectable.class.isAssignableFrom(adapter)) {
@@ -101,31 +113,18 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
         return super.getAdapter(adapter);
     }
 
-    /* (non-Javadoc)
-     * @see com.windriver.te.tcf.core.model.interfaces.IModel#setFactory(com.windriver.te.tcf.core.model.interfaces.IModelNodeFactory)
-     */
     @Override
     public void setFactory(IFactory factory) {
-        Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-        this.factory = factory;
     }
 
-    /* (non-Javadoc)
-     * @see com.windriver.te.tcf.core.model.interfaces.IModel#getFactory()
-     */
     @Override
     public IFactory getFactory() {
-        Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-        return factory != null ? factory : Factory.getInstance();
+        return Factory.getInstance();
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
-     */
     @Override
     public IPeerNode getPeerNode() {
-        Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
-        return peerNode;
+        return fPeerNode;
     }
 
     /* (non-Javadoc)
@@ -133,96 +132,58 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
      */
     @Override
     public String toString() {
-        if (disposed) {
+        if (isDisposed()) {
             return "*DISPOSED* : " + super.toString(); //$NON-NLS-1$
         }
         return super.toString();
     }
 
-    /**
-	 * Get the root node of the peer model.
-	 *
-	 * @return The root node.
-	 */
 	@Override
 	public FSTreeNode getRoot() {
-		if(root == null) {
-			root = createRoot();
-		}
-		return root;
+		return fRoot;
 	}
 
-	/**
-	 * Create a root node for the specified peer.
-	 *
-	 * @param peerNode The peer.
-	 */
-	/* default */ FSTreeNode createRoot() {
-		if (Protocol.isDispatchThread()) {
-			return createRootNode(peerNode);
-		}
-		else {
-			final AtomicReference<FSTreeNode> ref = new AtomicReference<FSTreeNode>();
-			Protocol.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					ref.set(createRoot());
-				}
-			});
-			return ref.get();
-		}
+	public UserAccount getUserAccount() {
+		return fUserAccount;
 	}
 
-	/**
-	 * Create a root node for the peer.
-	 *
-	 * @param peerNode The peer.
-	 * @return The root file system node.
-	 */
-	public static FSTreeNode createRootNode(IPeerNode peerNode) {
-		FSTreeNode node = new FSTreeNode();
-		node.type = "FSRootNode"; //$NON-NLS-1$
-		node.peerNode = peerNode;
-		node.name = Messages.FSTreeNodeContentProvider_rootNode_label;
-	    return node;
-    }
+	public void firePropertyChanged(PropertyChangeEvent propertyChangeEvent) {
+		IPropertyChangeProvider provider = (IPropertyChangeProvider) fPeerNode.getAdapter(IPropertyChangeProvider.class);
+		if (provider != null)
+			provider.firePropertyChange(propertyChangeEvent);
+	}
 
-	/**
-	 * Create a file node under the folder specified folder using the new name.
-	 *
-	 * @param name The file's name.
-	 * @param folder The parent folder.
-	 * @return The file tree node.
-	 */
-	public static FSTreeNode createFileNode(String name, FSTreeNode folder) {
-		return createTreeNode(name, "FSFileNode", folder); //$NON-NLS-1$
-    }
+	@Override
+	public IResultOperation<IFSTreeNode> operationRestoreFromPath(String path) {
+		return new OpParsePath(fPeerNode, path);
+	}
 
-	/**
-	 * Create a folder node under the folder specified folder using the new name.
-	 *
-	 * @param name The folder's name.
-	 * @param folder The parent folder.
-	 * @return The folder tree node.
-	 */
-	public static FSTreeNode createFolderNode(String name, FSTreeNode folder) {
-		return createTreeNode(name, "FSDirNode", folder); //$NON-NLS-1$
-    }
+	public static IPeerNode getPeerFromPath(String path) {
+		String cacheRoot = CacheManager.getCacheRoot().getAbsolutePath();
+		if (!path.startsWith(cacheRoot))
+			return null;
 
-	/**
-	 * Create a tree node under the folder specified folder using the new name.
-	 *
-	 * @param name The tree node's name.
-	 * @param type The new node's type.
-	 * @param folder The parent folder.
-	 * @return The tree node.
-	 */
-	private static FSTreeNode createTreeNode(String name, String type, FSTreeNode folder) {
-	    FSTreeNode node = new FSTreeNode();
-		node.name = name;
-		node.parent = folder;
-		node.peerNode = folder.peerNode;
-		node.type = type;
-	    return node;
-    }
+		path = path.substring(cacheRoot.length() + 1);
+		int slash = path.indexOf(File.separator);
+		if (slash == -1)
+			return null;
+
+		String peerId = path.substring(0, slash);
+		peerId = peerId.replace(CacheManager.PATH_ESCAPE_CHAR, ':');
+
+		for (IPeerNode peer : getPeerModel().getPeerNodes()) {
+			if (peerId.equals(peer.getPeerId()))
+				return peer;
+		}
+		return null;
+	}
+
+	@Override
+	public IChannel getChannel() {
+		return fChannel;
+	}
+
+	public IFileSystem getFileSystem() {
+		return fFileSystem;
+	}
 }

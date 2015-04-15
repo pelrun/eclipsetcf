@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -32,10 +32,10 @@ public class TargetPropertyTester extends PropertyTester {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Test if the target represented by the peer model is a windows target.
-	 * 
+	 *
 	 * @param peerNode The peer model of the target.
 	 * @return true if it is a windows target.
 	 */
@@ -43,10 +43,10 @@ public class TargetPropertyTester extends PropertyTester {
 		final String osName = getOSName(peerNode);
 		return osName == null ? false : (osName.startsWith("Windows")); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Get the OS name from the peer model.
-	 * 
+	 *
 	 * @param peerNode The peer model.
 	 * @return OS name.
 	 */
@@ -64,5 +64,5 @@ public class TargetPropertyTester extends PropertyTester {
 			});
 		}
 	    return osName[0];
-    }	
+    }
 }

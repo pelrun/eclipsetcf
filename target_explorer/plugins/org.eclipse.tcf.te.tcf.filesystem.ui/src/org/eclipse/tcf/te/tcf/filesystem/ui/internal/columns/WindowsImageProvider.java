@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -10,11 +10,11 @@
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns;
 
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 
 /**
  * Windows specific image provider extending the default image provider
- * to retrieve the file's images based on file extension or cached file. 
+ * to retrieve the file's images based on file extension or cached file.
  */
 public class WindowsImageProvider extends DefaultImageProvider {
 	// The background daemons that updates the images of the file system nodes.
@@ -26,11 +26,11 @@ public class WindowsImageProvider extends DefaultImageProvider {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.internal.columns.DefaultImageProvider#getImage(org.eclipse.tcf.te.tcf.filesystem.model.FSTreeNode)
+	 * @see org.eclipse.tcf.te.tcf.filesystem.internal.columns.DefaultImageProvider#getImage(org.eclipse.tcf.te.tcf.filesystem.model.IFSTreeNode)
 	 */
 	@Override
-    public Image getImage(FSTreeNode node) {
-		if (node.isRoot()) {
+    public Image getImage(IFSTreeNode node) {
+		if (node.isRootDirectory()) {
             return node.isWindowsNode() ? updateDaemon.getDiskImage() : super.getImage(node);
 		}
 		else if (node.isDirectory()) {

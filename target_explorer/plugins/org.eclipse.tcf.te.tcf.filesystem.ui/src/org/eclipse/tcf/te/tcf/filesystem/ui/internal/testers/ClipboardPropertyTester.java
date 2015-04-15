@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.FileTransfer;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.FsClipboard;
 /**
@@ -40,18 +40,18 @@ public class ClipboardPropertyTester extends PropertyTester {
 		if (property.equals("canPaste")) { //$NON-NLS-1$
 			FsClipboard cb = UIPlugin.getClipboard();
 			if (!cb.isEmpty()) {
-				List<FSTreeNode> nodes = cb.getFiles();
+				List<IFSTreeNode> nodes = cb.getFiles();
 				boolean moving = cb.isCutOp();
 				boolean copying = cb.isCopyOp();
-				List<FSTreeNode> selection = ((IStructuredSelection) receiver).toList();
-				FSTreeNode hovered = null;
+				List<IFSTreeNode> selection = ((IStructuredSelection) receiver).toList();
+				IFSTreeNode hovered = null;
 				Assert.isTrue(!selection.isEmpty());
 				if (selection.size() == 1) {
-					FSTreeNode node = selection.get(0);
+					IFSTreeNode node = selection.get(0);
 					if (node.isDirectory() && moving) {
 						hovered = node;
 					}
-					else if (node.isRoot()) {
+					else if (node.isRootDirectory()) {
 						hovered = node;
 					}
 					else {
@@ -59,17 +59,17 @@ public class ClipboardPropertyTester extends PropertyTester {
 					}
 				}
 				else {
-					for (FSTreeNode node : selection) {
+					for (IFSTreeNode node : selection) {
 						if (hovered == null) hovered = node.getParent();
 						else if (hovered != node.getParent()) return false;
 					}
 				}
 				if (hovered != null && hovered.isDirectory() && hovered.isWritable() && (moving || copying)) {
-					FSTreeNode head = nodes.get(0);
-					String hid = head.peerNode.getPeerId();
-					String tid = hovered.peerNode.getPeerId();
+					IFSTreeNode head = nodes.get(0);
+					String hid = head.getPeerNode().getPeerId();
+					String tid = hovered.getPeerNode().getPeerId();
 					if (hid.equals(tid)) {
-						for (FSTreeNode node : nodes) {
+						for (IFSTreeNode node : nodes) {
 							if (moving && node.getParent() == hovered || node.isAncestorOf(hovered)) {
 								return false;
 							}
@@ -82,11 +82,11 @@ public class ClipboardPropertyTester extends PropertyTester {
 				Clipboard clipboard = cb.getSystemClipboard();
 				Object contents = clipboard.getContents(FileTransfer.getInstance());
 				if (contents != null) {
-					List<FSTreeNode> selection = ((IStructuredSelection) receiver).toList();
-					FSTreeNode hovered = null;
+					List<IFSTreeNode> selection = ((IStructuredSelection) receiver).toList();
+					IFSTreeNode hovered = null;
 					Assert.isTrue(!selection.isEmpty());
 					if (selection.size() == 1) {
-						FSTreeNode node = selection.get(0);
+						IFSTreeNode node = selection.get(0);
 						if (node.isFile()) {
 							hovered = node.getParent();
 						}
@@ -95,7 +95,7 @@ public class ClipboardPropertyTester extends PropertyTester {
 						}
 					}
 					else {
-						for (FSTreeNode node : selection) {
+						for (IFSTreeNode node : selection) {
 							if (hovered == null) hovered = node.getParent();
 							else if (hovered != node.getParent()) return false;
 						}

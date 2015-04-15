@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,14 +12,16 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.wizards;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreate;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractTreeViewerExplorerEditorPage;
@@ -38,7 +40,7 @@ import org.eclipse.ui.navigator.CommonNavigator;
  */
 public abstract class NewNodeWizard extends AbstractWizard implements INewWizard {
 	// The folder in which the new node is created.
-	private FSTreeNode folder;
+	private IFSTreeNode folder;
 	// The target peer where the new node is created.
 	private IPeerNode peer;
 	// The wizard page used to create the new node.
@@ -62,13 +64,13 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 		setWindowTitle(getTitle());
 		if (!selection.isEmpty()) {
 			Object element = selection.getFirstElement();
-			if (element instanceof FSTreeNode) {
-				folder = (FSTreeNode) element;
+			if (element instanceof IFSTreeNode) {
+				folder = (IFSTreeNode) element;
 				if (folder.isFile()) {
 					// If the selected is a file, then create the node in the parent folder.
 					folder = folder.getParent();
 				}
-				peer = folder.peerNode;
+				peer = folder.getPeerNode();
 			}
 			else if (element instanceof IPeerNode) {
 				if(hasFileSystem((IPeerNode) element)) {
@@ -130,27 +132,30 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 			newPage.saveWidgetValues();
 			// Get the new name and create the node.
 			String name = newPage.getNodeName();
-			FSTreeNode dest = newPage.getInputDir();
-			final OpCreate create = getCreateOp(dest, name);
+			IFSTreeNode dest = newPage.getInputDir();
+			final IResultOperation<? extends IFSTreeNode> create = getCreateOp(dest, name);
+			final IStatus[] status = {Status.CANCEL_STATUS};
 			IRunnableWithProgress runnable = new IRunnableWithProgress() {
 				@Override
-                public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					create.run(monitor);
-                }};
+                public void run(IProgressMonitor monitor) {
+					status[0] = create.run(monitor);
+                }
+			};
 			try {
 	            getContainer().run(false, false, runnable);
-				final FSTreeNode newNode = create.getNode();
-				getShell().getDisplay().asyncExec(new Runnable(){
-					@Override
-	                public void run() {
-						selectNewNode(newNode);
-	                }});
-				return true;
-            }
-            catch (InvocationTargetException e) {
-    			newPage.setErrorMessage(e.getMessage());
-            }
-            catch (InterruptedException e) {
+	            if (status[0].isOK()) {
+					final IFSTreeNode newNode = create.getResult();
+					getShell().getDisplay().asyncExec(new Runnable(){
+						@Override
+		                public void run() {
+							selectNewNode(newNode);
+		                }});
+					return true;
+	            }
+	            newPage.setErrorMessage(status[0].getMessage());
+            } catch (InvocationTargetException e) {
+	            newPage.setErrorMessage(e.getMessage());
+            } catch (InterruptedException e) {
             }
 		}
 		return false;
@@ -161,7 +166,7 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	 *
 	 * @param node The node to be selected.
 	 */
-	void selectNewNode(FSTreeNode node) {
+	void selectNewNode(IFSTreeNode node) {
 		TreeViewer viewer = getFocusedViewer();
 		if(viewer != null) {
 			viewer.refresh(folder);
@@ -211,7 +216,7 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	 * @param name The name of the new node.
 	 * @return a FSCreate instance to do the creation.
 	 */
-	protected abstract OpCreate getCreateOp(FSTreeNode folder, String name);
+	protected abstract IResultOperation<? extends IFSTreeNode> getCreateOp(IFSTreeNode folder, String name);
 
 	/**
 	 * The wizard's title to be used.
@@ -244,7 +249,7 @@ public abstract class NewNodeWizard extends AbstractWizard implements INewWizard
 	 *
 	 * @return the current selected folder.
 	 */
-	public FSTreeNode getFolder() {
+	public IFSTreeNode getFolder() {
 		return folder;
 	}
 }

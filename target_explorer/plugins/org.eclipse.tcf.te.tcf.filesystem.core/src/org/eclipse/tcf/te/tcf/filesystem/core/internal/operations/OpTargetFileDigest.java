@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,54 +9,71 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
+import static java.text.MessageFormat.format;
+
 import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
+import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.tcf.protocol.IToken;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IFileSystem;
+import org.eclipse.tcf.services.IFileSystem.DoneOpen;
+import org.eclipse.tcf.services.IFileSystem.FileSystemException;
+import org.eclipse.tcf.services.IFileSystem.IFileHandle;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
+import org.eclipse.tcf.util.TCFFileInputStream;
 
 /**
  * The operation that computes the digest of the cache file in the background.
  */
-public class OpTargetFileDigest implements IOperation {
-	// The digest of which is going to be computed.
+public class OpTargetFileDigest extends AbstractOperation {
 	FSTreeNode node;
-	// The computing result
 	byte[] digest;
 
-	/**
-	 * Create an operation to compute the digest of its target file.
-	 * 
-	 * @param node The file system node.
-	 */
 	public OpTargetFileDigest(FSTreeNode node) {
 	    this.node = node;
     }
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+
 	@Override
-	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-		BufferedInputStream input = null;
+	public IStatus doRun(IProgressMonitor monitor) {
+		long totalSize = node.getSize();
+		monitor.beginTask(getName(), 100);
+
+		final String path = node.getLocation(true);
+		final TCFResult<InputStream> result = new TCFResult<InputStream>();
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				IFileSystem fs = node.getRuntimeModel().getFileSystem();
+				if (fs == null) {
+					result.setCancelled();
+				} else {
+					tcfGetInputStream(fs, path, result);
+				}
+			}
+		});
+		IStatus status = result.waitDone(monitor);
+		if (!status.isOK())
+			return status;
+
+		InputStream in = new BufferedInputStream(result.getValue());
 		try {
-			long totalSize = node.attr.size;
 			int chunk_size = (int) totalSize / 100;
 			int percentRead = 0;
 			long bytesRead = 0;
-			URL url = node.getLocationURL();
 			MessageDigest digest = MessageDigest.getInstance(MD_ALG);
-			input = new BufferedInputStream(new DigestInputStream(url.openStream(), digest));
+			in = new DigestInputStream(in, digest);
 			// The buffer used to download the file.
-			byte[] data = new byte[OpStreamOp.DEFAULT_CHUNK_SIZE];
+			byte[] data = new byte[DEFAULT_CHUNK_SIZE];
 			int length;
-			while ((length = input.read(data)) >= 0){
+			while ((length = in.read(data)) >= 0){
 				bytesRead += length;
 				if (chunk_size != 0) {
 					int percent = (int) bytesRead / chunk_size;
@@ -65,46 +82,46 @@ public class OpTargetFileDigest implements IOperation {
 						percentRead = percent; // Remember the percentage.
 					}
 				}
+				if (monitor.isCanceled())
+					return Status.CANCEL_STATUS;
 			}
 			this.digest = digest.digest();
-		}
-        catch (NoSuchAlgorithmException e) {
-			throw new InvocationTargetException(e);
-        }
-        catch (IOException e) {
-			throw new InvocationTargetException(e);
-        }
-		finally {
-			if (input != null) {
-				try {input.close();} catch (Exception e) {}
+			return Status.OK_STATUS;
+		} catch (Exception e) {
+			return StatusHelper.createStatus(format(Messages.OpTargetFileDigest_error_download, path), e);
+        } finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (Exception e) {
+				}
 			}
 		}
 	}
-	
-	/**
-	 * Get the computing result.
-	 * 
-	 * @return The message digest of this cache file.
-	 */
+
+	protected void tcfGetInputStream(IFileSystem fileSystem, final String path, final TCFResult<InputStream> result) {
+		int flags = IFileSystem.TCF_O_READ;
+		if (!result.checkCancelled()) {
+			fileSystem.open(path, flags, null, new DoneOpen() {
+				@Override
+				public void doneOpen(IToken token, FileSystemException error, IFileHandle handle) {
+					if (error != null) {
+						result.setError(format(Messages.OpTargetFileDigest_error_openFile, path), error);
+					} else {
+						result.setDone(new TCFFileInputStream(handle));
+					}
+				}
+			});
+		}
+	}
+
+
 	public byte[] getDigest() {
 		return digest;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getName()
-	 */
 	@Override
 	public String getName() {
 		return "Update target digest"; //$NON-NLS-1$
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getTotalWork()
-	 */
-	@Override
-	public int getTotalWork() {
-		return 100;
 	}
 }

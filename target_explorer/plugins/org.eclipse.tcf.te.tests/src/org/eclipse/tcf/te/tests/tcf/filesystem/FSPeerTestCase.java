@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tests.tcf.filesystem;
 
 import java.io.File;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
@@ -18,14 +19,15 @@ import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DoneStat;
 import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.tcf.core.Tcf;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreateFile;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreateFolder;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRefresh;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.services.Operation;
 import org.eclipse.tcf.te.tests.tcf.TcfTestCase;
 
 public class FSPeerTestCase extends TcfTestCase {
@@ -53,8 +55,23 @@ public class FSPeerTestCase extends TcfTestCase {
 		assertNotNull(peerNode);
 		assertNotNull(peer);
 
+		if (peerNode.getConnectState() != IConnectable.STATE_CONNECTED) {
+			final Object lock = new Object();
+			synchronized (lock) {
+				peerNode.changeConnectState(IConnectable.ACTION_CONNECT, new Callback() {
+					@Override
+                    protected void internalDone(Object caller, IStatus status) {
+						synchronized (lock) {
+							lock.notifyAll();
+						}
+					}
+				}, null);
+				lock.wait(60000);
+			}
+		}
+
 		OpParsePath parser = new OpParsePath(peerNode, getTestRoot());
-		new NullOpExecutor().execute(parser);
+		parser.run(null);
 		testRoot = parser.getResult();
 		if(testRoot == null) {
 			File file = new File(getTestRoot());
@@ -62,7 +79,7 @@ public class FSPeerTestCase extends TcfTestCase {
 				file.mkdirs();
 			}
 			parser = new OpParsePath(peerNode, getTestRoot());
-			new NullOpExecutor().execute(parser);
+			parser.run(null);
 			testRoot = parser.getResult();
 		}
 
@@ -128,16 +145,14 @@ public class FSPeerTestCase extends TcfTestCase {
 
 	protected FSTreeNode getFSNode(String path) {
 		OpParsePath parser = new OpParsePath(peerNode, path);
-		new NullOpExecutor().execute(parser);
+		parser.run(null);
 		FSTreeNode node = parser.getResult();
 		if (node == null) {
-			OpRefresh refresh = new OpRefresh(testRoot);
-			try {
-				refresh.run(new NullProgressMonitor());
-			} catch (Exception e) {}
-			
+			OpRefresh refresh = new OpRefresh(testRoot, true);
+			refresh.run(null);
+
 			parser = new OpParsePath(peerNode, path);
-			new NullOpExecutor().execute(parser);
+			parser.run(null);
 			node = parser.getResult();
 		}
 		return node;

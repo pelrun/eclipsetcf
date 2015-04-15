@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -85,7 +86,12 @@ public class FSExplorerEditorPage extends AbstractTreeViewerExplorerEditorPage {
 		if (peerNode == null && element instanceof IAdaptable) {
 			peerNode = (IPeerNode)((IAdaptable)element).getAdapter(IPeerNode.class);
 		}
-		return peerNode != null ? ModelManager.getRuntimeModel(peerNode).getRoot() : null;
+		if (peerNode != null) {
+			IRuntimeModel rtModel = ModelManager.getRuntimeModel(peerNode);
+			if (rtModel != null)
+				return rtModel.getRoot();
+		}
+		return null;
     }
 
 	/* (non-Javadoc)

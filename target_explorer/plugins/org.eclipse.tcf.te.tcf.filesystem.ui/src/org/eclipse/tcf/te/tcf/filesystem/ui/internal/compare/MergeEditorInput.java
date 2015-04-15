@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -147,7 +147,7 @@ public class MergeEditorInput extends CompareEditorInput implements
 	 */
 	@Override
 	public String getToolTipText() {
-		return NLS.bind(Messages.MergeEditorInput_CompareLeftAndRight, left, right); 
+		return NLS.bind(Messages.MergeEditorInput_CompareLeftAndRight, left, right);
 	}
 
 	/* (non-Javadoc)
@@ -155,7 +155,7 @@ public class MergeEditorInput extends CompareEditorInput implements
 	 */
 	@Override
 	public String getTitle() {
-		return NLS.bind(Messages.MergeEditorInput_CompareWithLocalCache, left.getName()); 
+		return NLS.bind(Messages.MergeEditorInput_CompareWithLocalCache, left.getName());
 	}
 
 	/**
@@ -279,11 +279,11 @@ public class MergeEditorInput extends CompareEditorInput implements
 
 	/**
 	 * Get the fSaveable that provides the save behavior for this compare editor
-	 * input. The {@link #createSaveable()} is called to create the fSaveable if
+	 * input. The {@link #getSaveable()} is called to create the fSaveable if
 	 * it does not yet exist. This method cannot be called until after the input
 	 * is prepared (i.e. until after the {@link #run(IProgressMonitor)} method
 	 * is called which will in turn will invoke
-	 * {@link #prepareCompareInput(IProgressMonitor)}.
+	 * {@link #prepareInput(IProgressMonitor)}.
 	 *
 	 * @return fSaveable that provides the save behavior for this compare editor
 	 *         input.

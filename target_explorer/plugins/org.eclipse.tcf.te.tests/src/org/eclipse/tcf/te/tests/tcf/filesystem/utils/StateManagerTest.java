@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -15,10 +15,8 @@ import java.io.FileWriter;
 import java.util.concurrent.TimeoutException;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.tcf.core.concurrent.Rendezvous;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCacheUpdate;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManager;
@@ -29,8 +27,7 @@ public class StateManagerTest extends UtilsTestBase {
 	public void testCacheStateConsistent() throws Exception {
 		cleanUp();
 		writeFileContent("hello,world!"); //$NON-NLS-1$
-	    OpCacheUpdate update = new OpCacheUpdate(testFile);
-	    update.run(new NullProgressMonitor());
+		updateCache(testFile);
 		CacheState cacheState = testFile.getCacheState();
 		assertEquals(CacheState.consistent, cacheState);
 		Thread.sleep(5000L);
@@ -39,8 +36,7 @@ public class StateManagerTest extends UtilsTestBase {
 	public void testCacheStateModified() throws Exception {
 		cleanUp();
 		writeFileContent("hello,world!"); //$NON-NLS-1$
-	    OpCacheUpdate update = new OpCacheUpdate(testFile);
-	    update.run(new NullProgressMonitor());
+		updateCache(testFile);
 	    File file = CacheManager.getCacheFile(testFile);
 	    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
 	    writer.write("hello, test!"); //$NON-NLS-1$
@@ -65,7 +61,7 @@ public class StateManagerTest extends UtilsTestBase {
 
 	private void refreshCacheState() throws TimeoutException {
 		final Rendezvous rendezvous = new Rendezvous();
-		testFile.refresh(new Callback(){
+		testFile.operationRefresh(true).runInJob(new Callback(){
 			@Override
             protected void internalDone(Object caller, IStatus status) {
 				rendezvous.arrive();
@@ -78,8 +74,7 @@ public class StateManagerTest extends UtilsTestBase {
 	public void testCacheStateOutdated() throws Exception {
 		cleanUp();
 		writeFileContent("hello,world!"); //$NON-NLS-1$
-	    OpCacheUpdate update = new OpCacheUpdate(testFile);
-	    update.run(new NullProgressMonitor());
+		updateCache(testFile);
 		Thread.sleep(2000L);
 		writeFileContent("hello,test!"); //$NON-NLS-1$
 		refreshCacheState();
@@ -99,8 +94,7 @@ public class StateManagerTest extends UtilsTestBase {
 	public void testCacheStateConflict() throws Exception {
 		cleanUp();
 		writeFileContent("hello,world!"); //$NON-NLS-1$
-	    OpCacheUpdate update = new OpCacheUpdate(testFile);
-	    update.run(new NullProgressMonitor());
+		updateCache(testFile);
 		writeFileContent("hello,test!"); //$NON-NLS-1$
 		refreshCacheState();
 		Thread.sleep(2000L);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -26,9 +26,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.NullOpExecutor;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
 import org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeContentProvider;
 import org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeViewerSorter;
 import org.eclipse.tcf.te.tcf.filesystem.ui.help.IContextHelpIds;
@@ -159,7 +160,7 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 		folderControl.setupPanel(client);
 		folderControl.setEditFieldValidator(new FolderValidator(this));
 		NewNodeWizard wizard = getWizard();
-		FSTreeNode folder = wizard.getFolder();
+		IFSTreeNode folder = wizard.getFolder();
 		if (folder != null) folderControl.setEditFieldControlText(folder.getLocation());
 
 		treeViewer = new TreeViewer(client, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
@@ -207,8 +208,8 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 	static class DirectoryFilter extends ViewerFilter {
 		@Override
 		public boolean select(Viewer viewer, Object parentElement, Object element) {
-			if (element instanceof FSTreeNode) {
-				FSTreeNode node = (FSTreeNode) element;
+			if (element instanceof IFSTreeNode) {
+				IFSTreeNode node = (IFSTreeNode) element;
 				if(node.isFile()) return false;
 			}
 			return true;
@@ -250,8 +251,8 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 	protected void onSelectionChanged() {
 		if (treeViewer.getSelection() instanceof IStructuredSelection) {
 			IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-			if (selection.getFirstElement() instanceof FSTreeNode) {
-				FSTreeNode folder = (FSTreeNode) selection.getFirstElement();
+			if (selection.getFirstElement() instanceof IFSTreeNode) {
+				IFSTreeNode folder = (IFSTreeNode) selection.getFirstElement();
 				folderControl.setEditFieldControlText(folder.getLocation());
 			}
 			else {
@@ -343,16 +344,19 @@ public abstract class NewNodeWizardPage extends AbstractValidatingWizardPage {
 	 *
 	 * @return The directory node if it exists or else null.
 	 */
-	public FSTreeNode getInputDir() {
+	public IFSTreeNode getInputDir() {
 		NewNodeWizard wizard = getWizard();
 		IPeerNode peer = wizard.getPeer();
 		if (peer == null) return null;
 		final String text = folderControl.getEditFieldControlText();
 		if (text != null) {
 			String path = text.trim();
-			OpParsePath parser = new OpParsePath(peer, path);
-			new NullOpExecutor().execute(parser);
-			return parser.getResult();
+			IRuntimeModel rtm = ModelManager.getRuntimeModel(peer);
+			if (rtm != null) {
+				IResultOperation<IFSTreeNode> operation = rtm.operationRestoreFromPath(path);
+				operation.run(null);
+				return operation.getResult();
+			}
 		}
 		return null;
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -14,15 +14,15 @@ import org.eclipse.compare.BufferedContent;
 import org.eclipse.compare.CompareUI;
 import org.eclipse.compare.ITypedElement;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 
 /**
- * A <code>MergeTypedElement</code> wraps an <code>FSTreeNode</code> so that it
+ * A <code>MergeTypedElement</code> wraps an <code>IFSTreeNode</code> so that it
  * can be used as input for the differencing engine (<code>ITypedElement</code>).
  */
 public abstract class MergeTypedElement extends BufferedContent implements ITypedElement {
 	// The File System tree node to be wrapped.
-	protected FSTreeNode node;
+	protected IFSTreeNode node;
 
 	/**
 	 * Create a MergeTypedElement for the given node.
@@ -30,7 +30,7 @@ public abstract class MergeTypedElement extends BufferedContent implements IType
 	 * @param node
 	 *            The node.
 	 */
-	public MergeTypedElement(FSTreeNode node) {
+	public MergeTypedElement(IFSTreeNode node) {
 		this.node = node;
 	}
 
@@ -47,7 +47,7 @@ public abstract class MergeTypedElement extends BufferedContent implements IType
 	 *
 	 * @return The tree node of the file
 	 */
-	public FSTreeNode getFSTreeNode() {
+	public IFSTreeNode getFSTreeNode() {
 		return node;
 	}
 
@@ -60,7 +60,7 @@ public abstract class MergeTypedElement extends BufferedContent implements IType
 			if (node.isDirectory()) {
 				return ITypedElement.FOLDER_TYPE;
 			}
-			String s = node.name;
+			String s = node.getName();
 			int dot = s.lastIndexOf('.');
 			if (dot != -1) s = s.substring(dot + 1);
 			return s;
@@ -84,7 +84,7 @@ public abstract class MergeTypedElement extends BufferedContent implements IType
 	 */
 	@Override
 	public String getName() {
-		return node.name;
+		return node.getName();
 	}
 
 	/* (non-Javadoc)

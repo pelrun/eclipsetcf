@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.BaseEditBrowseTextControl;
 import org.eclipse.tcf.te.ui.interfaces.ISearchMatcher;
@@ -69,14 +69,14 @@ public class FSGeneralSearchable extends AbstractSearchable {
 	// The current selected target type index.
 	private int fTargetType;
 	// The root directory node.
-	private FSTreeNode rootNode;
+	private IFSTreeNode rootNode;
 
 	/**
 	 * Constructor
 	 *
 	 * @param node the node whose sub tree will be searched.
 	 */
-	public FSGeneralSearchable(FSTreeNode node) {
+	public FSGeneralSearchable(IFSTreeNode node) {
 		rootNode = node;
 	}
 

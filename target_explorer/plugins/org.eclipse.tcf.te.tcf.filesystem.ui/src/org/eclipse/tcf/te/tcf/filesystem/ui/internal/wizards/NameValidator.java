@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,21 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.wizards;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.util.SafeRunnable;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.Operation;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.celleditor.FSCellValidator;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.validator.Validator;
 
 /**
  * The validator to validate the name of a file/folder in the file system of Target Explorer.
- * 
+ *
  * @see Validator
  */
 public class NameValidator extends Validator {
@@ -32,7 +26,7 @@ public class NameValidator extends Validator {
 
 	/**
 	 * Create a NameValidator with the folder in which the file/folder is created.
-	 * 
+	 *
 	 * @param wizard The parent folder in which the file/folder is created.
 	 */
 	public NameValidator(NewNodeWizardPage wizard) {
@@ -46,7 +40,7 @@ public class NameValidator extends Validator {
 	 */
 	@Override
 	public boolean isValid(String newText) {
-		FSTreeNode folder = wizard.getInputDir();
+		IFSTreeNode folder = wizard.getInputDir();
 		if(folder == null) {
 			setMessage(Messages.NameValidator_SpecifyFolder, IMessageProvider.INFORMATION);
 			return false;
@@ -71,42 +65,25 @@ public class NameValidator extends Validator {
 
 	/**
 	 * To test if the folder has a child with the specified name.
-	 * 
+	 *
 	 * @param name The name.
 	 * @return true if it has a child with the name.
 	 */
 	private boolean hasChild(String name) {
-		List<FSTreeNode> nodes = getChildren();
-		for (FSTreeNode node : nodes) {
+		final IFSTreeNode folder = wizard.getInputDir();
+		IFSTreeNode[] nodes = folder.getChildren();
+		if (nodes == null)
+			return false;
+
+		for (IFSTreeNode node : nodes) {
 			if (node.isWindowsNode()) {
-				if (node.name.equalsIgnoreCase(name)) return true;
+				if (node.getName().equalsIgnoreCase(name)) {
+					return true;
+				}
+			} else if (node.getName().equals(name)) {
+				return true;
 			}
-			else if (node.name.equals(name)) return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Get the folder's current children. If the children has not yet been loaded, then load it.
-	 * 
-	 * @return The current children of the folder.
-	 */
-	private List<FSTreeNode> getChildren() {
-		final FSTreeNode folder = wizard.getInputDir();
-		if (folder.childrenQueried) {
-			return folder.getChildren();
-		}
-		final List<FSTreeNode> result = new ArrayList<FSTreeNode>();
-		SafeRunner.run(new SafeRunnable() {
-			@Override
-            public void handleException(Throwable e) {
-				// Ignore exception
-            }
-			@Override
-			public void run() throws Exception {
-				result.addAll(new Operation().getChildren(folder));
-			}
-		});
-		return result;
 	}
 }

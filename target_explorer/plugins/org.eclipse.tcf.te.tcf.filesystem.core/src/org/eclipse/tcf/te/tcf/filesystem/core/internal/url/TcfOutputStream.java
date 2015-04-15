@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -42,10 +42,6 @@ public class TcfOutputStream extends OutputStream {
 	 * Create a TCF output stream connected the specified peer with specified
 	 * path to the remote resource.
 	 *
-	 * @param peer
-	 *            The TCF agent peer.
-	 * @param path
-	 *            The path to the remote resource.
 	 */
 	public TcfOutputStream(TcfURLConnection connection) {
 		this(connection, DEFAULT_CHUNK_SIZE);
@@ -55,10 +51,6 @@ public class TcfOutputStream extends OutputStream {
 	 * Create a TCF output stream connected the specified peer with specified
 	 * path to the remote resource using the specified buffer size.
 	 *
-	 * @param peer
-	 *            The TCF agent peer.
-	 * @param path
-	 *            The path to the remote resource.
 	 * @param chunk_size
 	 *            The buffer size.
 	 */

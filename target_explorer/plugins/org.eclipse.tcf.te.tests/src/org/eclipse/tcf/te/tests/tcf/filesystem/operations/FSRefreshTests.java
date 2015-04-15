@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -12,8 +12,8 @@ package org.eclipse.tcf.te.tests.tcf.filesystem.operations;
 import java.io.File;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRefresh;
-import org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode;
 
 public class FSRefreshTests extends OperationTestBase {
 
@@ -27,7 +27,7 @@ public class FSRefreshTests extends OperationTestBase {
     }
 
 	public void testRefresh() throws Exception {
-		OpRefresh refresh = new OpRefresh(testRoot);
+		OpRefresh refresh = new OpRefresh(testRoot, true);
 		refresh.run(new NullProgressMonitor());
 	    String path = getTestRoot() + getPathSep() + getTestPath()+getPathSep()+"newdir"; //$NON-NLS-1$
 		FSTreeNode node = getFSNode(path);
