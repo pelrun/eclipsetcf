@@ -78,6 +78,10 @@ public class SymbolsProxy implements ISymbols {
             return (Number)props.get(PROP_UPPER_BOUND);
         }
 
+        public Number getBitStride() {
+            return (Number)props.get(PROP_BIT_STRIDE);
+        }
+
         public String getName() {
             return (String)props.get(PROP_NAME);
         }

@@ -192,6 +192,12 @@ public interface ISymbols extends IService {
         Number getUpperBound();
 
         /**
+         * If symbol is an array type - return array stride in bits.
+         * @return stride in bits.
+         */
+        Number getBitStride();
+
+        /**
          * Return offset from 'this' for member of class, struct or union.
          * @return offset in bytes.
          */
@@ -259,6 +265,7 @@ public interface ISymbols extends IService {
         PROP_LENGTH = "Length",
         PROP_LOWER_BOUND = "LowerBound",
         PROP_UPPER_BOUND = "UpperBound",
+        PROP_BIT_STRIDE = "BitStride",
         PROP_BINARY_SCALE = "BinaryScale",
         PROP_DECIMAL_SCALE = "DecimalScale",
         PROP_OFFSET = "Offset",

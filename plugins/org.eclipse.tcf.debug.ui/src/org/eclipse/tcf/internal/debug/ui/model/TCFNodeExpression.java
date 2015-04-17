@@ -1481,17 +1481,33 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             byte[] data, int offs, int size, boolean big_endian, Runnable done) {
         assert offs + size <= data.length;
         int length = type.getLength();
+        Number stride = type.getBitStride();
         bf.append('[');
         if (length > 0) {
-            int elem_size = size / length;
             for (int n = 0; n < length; n++) {
                 if (n >= 100) {
                     bf.append("...");
                     break;
                 }
                 if (n > 0) bf.append(", ");
-                if (!appendValueText(bf, level + 1, type.getBaseTypeID(), null,
-                        data, offs + n * elem_size, elem_size, big_endian, done)) return false;
+                if (stride != null) {
+                    int bits = stride.intValue();
+                    byte[] buf = new byte[(bits + 7) / 8];
+                    for (int i = 0; i < bits; i++) {
+                        int j = n * bits + i;
+                        int k = j / 8;
+                        if (k < size && offs + k < data.length && (data[offs + k] & (1 << (j % 8))) != 0) {
+                            buf[i / 8] |= 1 << (i % 8);
+                        }
+                    }
+                    if (!appendValueText(bf, level + 1, type.getBaseTypeID(), null,
+                            buf, 0, buf.length, big_endian, done)) return false;
+                }
+                else {
+                    int elem_size = size / length;
+                    if (!appendValueText(bf, level + 1, type.getBaseTypeID(), null,
+                            data, offs + n * elem_size, elem_size, big_endian, done)) return false;
+                }
             }
         }
         bf.append(']');
