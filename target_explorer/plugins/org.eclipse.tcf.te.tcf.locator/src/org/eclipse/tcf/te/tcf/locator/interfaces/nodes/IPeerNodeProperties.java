@@ -48,6 +48,11 @@ public interface IPeerNodeProperties {
 	public static final String PROPERTY_IS_VALID = "isValid"; //$NON-NLS-1$
 
 	/**
+	 * Property: The peer node deleted state. Set to "true" if the peer node got deleted.
+	 */
+	public static final String PROPERTY_IS_DELETED = "isDeleted"; //$NON-NLS-1$
+
+	/**
 	 * Property: Error if peer node is not valid (String)
 	 */
 	public static final String PROPERTY_ERROR = "Error"; //$NON-NLS-1$

@@ -33,13 +33,16 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IURIPersistenceService;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.runtime.statushandler.StatusHandlerUtil;
 import org.eclipse.tcf.te.runtime.utils.StatusHelper;
+import org.eclipse.tcf.te.tcf.core.events.DeletedEvent;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelRefreshService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.ui.help.IContextHelpIds;
@@ -147,6 +150,8 @@ public class DeleteHandler extends AbstractHandler {
 		// The operation types
 		public enum TYPE { Remove, Unlink }
 
+		// The parent delete handler
+		public DeleteHandler parentHandler;
 		// The element to operate on
 		public IPeerNode node;
 		// The operation type to perform
@@ -179,10 +184,22 @@ public class DeleteHandler extends AbstractHandler {
 					ViewsUtil.setSelection(IUIConstants.ID_EXPLORER, new StructuredSelection(parentCategory));
 				}
 
+				// Mark the peer node as deleted
+				Protocol.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						node.setProperty(IPeerNodeProperties.PROPERTY_IS_DELETED, true);
+					}
+				});
+
 				// Check if there is a delete handler delegate for the element
 				IDeleteHandlerDelegate delegate = ServiceUtils.getUIServiceDelegate(node, node, IDeleteHandlerDelegate.class);
 				// If a delegate is available, signal the execution of the remove
 				if (delegate != null) delegate.postDelete(node);
+
+				// Send the peer node deleted event to also delete the launch configuration
+				DeletedEvent event = new DeletedEvent(parentHandler, node);
+				EventManager.getInstance().fireEvent(event);
 			}
 			else if (TYPE.Unlink.equals(type)) {
 				Assert.isNotNull(parentCategory);
@@ -310,6 +327,7 @@ public class DeleteHandler extends AbstractHandler {
 			}
 			op.node = node;
 			op.parentCategory = category;
+			op.parentHandler = this;
 			operations.add(op);
 		}
 

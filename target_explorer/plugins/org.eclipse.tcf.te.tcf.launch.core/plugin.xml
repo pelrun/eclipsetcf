@@ -41,6 +41,22 @@
          <serviceType class="org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService"/>
       </service>
    </extension>
+
+<!-- Event listener contributions -->
+   <extension point="org.eclipse.tcf.te.runtime.eventListeners">
+      <eventListener
+            class="org.eclipse.tcf.te.tcf.launch.core.internal.EventListener"
+            forcePluginActivation="true">
+            <eventSourceType
+                  class="org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler"
+                  bundleId="org.eclipse.tcf.te.tcf.ui">
+            </eventSourceType>
+            <eventType
+                  class="org.eclipse.tcf.te.tcf.core.events.DeletedEvent"
+                  bundleId="org.eclipse.tcf.te.tcf.core">
+            </eventType>
+      </eventListener>
+   </extension>
    
 <!-- Launch Configuration Type contributions -->
    <extension point="org.eclipse.debug.core.launchConfigurationTypes">
