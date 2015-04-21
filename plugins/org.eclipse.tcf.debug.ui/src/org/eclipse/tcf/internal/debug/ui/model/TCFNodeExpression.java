@@ -1492,7 +1492,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 if (n > 0) bf.append(", ");
                 if (stride != null) {
                     int bits = stride.intValue();
-                    byte[] buf = new byte[(bits + 7) / 8];
+                    String base_type_id = type.getBaseTypeID();
+                    ISymbols.Symbol base_type_data = null;
+                    if (base_type_id != null) {
+                        TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(base_type_id);
+                        if (!type_cache.validate(done)) return false;
+                        base_type_data = type_cache.getData();
+                    }
+                    int base_type_size = 0;
+                    if (base_type_data != null) base_type_size = base_type_data.getSize();
+                    if (base_type_size * 8 < bits) base_type_size = (bits + 7) / 8;
+                    byte[] buf = new byte[base_type_size];
                     for (int i = 0; i < bits; i++) {
                         int j = n * bits + i;
                         int k = j / 8;
@@ -1500,7 +1510,15 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             buf[i / 8] |= 1 << (i % 8);
                         }
                     }
-                    if (!appendValueText(bf, level + 1, type.getBaseTypeID(), null,
+                    if (base_type_data != null && base_type_data.getTypeClass() == ISymbols.TypeClass.integer) {
+                        /* Sign extension */
+                        int sign_offs = bits - 1;
+                        boolean sign = (buf[sign_offs / 8] & (1 << (sign_offs % 8))) != 0;
+                        if (sign) {
+                            for (int i = bits; i < base_type_size * 8; i++) buf[i / 8] |= 1 << (i % 8);
+                        }
+                    }
+                    if (!appendValueText(bf, level + 1, base_type_id, null,
                             buf, 0, buf.length, big_endian, done)) return false;
                 }
                 else {
@@ -1800,6 +1818,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     bf.append("Size: ", SWT.BOLD);
                     bf.append(Integer.toString(type_data.getSize()), StyledStringBuffer.MONOSPACED);
                     bf.append(type_data.getSize() == 1 ? " byte" : " bytes");
+                    Number stride = type_data.getBitStride();
+                    if (stride != null) {
+                        bf.append(", ");
+                        bf.append("Stride: ", SWT.BOLD);
+                        bf.append(stride.toString(), StyledStringBuffer.MONOSPACED);
+                        bf.append(stride.longValue() == 1 ? " bit" : " bits");
+                    }
                     String nm = type_name.getData();
                     if (nm != null) {
                         bf.append(", ");
