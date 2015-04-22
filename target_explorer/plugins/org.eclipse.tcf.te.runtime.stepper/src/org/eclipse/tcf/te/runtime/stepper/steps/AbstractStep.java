@@ -144,7 +144,7 @@ public abstract class AbstractStep extends ExecutableExtension implements IStep 
 	 * Invoke the specified callback and pass on the status and user defined data object.
 	 *
 	 * @param data The data giving object. Must not be <code>null</code>.
-	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
+	 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
 	 * @param callback The callback.
 	 * @param status The status.
 	 * @param data The callback data.
@@ -164,7 +164,7 @@ public abstract class AbstractStep extends ExecutableExtension implements IStep 
 	 *
 	 * @param context The step context. Must not be <code>null</code>.
 	 * @param data The data giving object. Must not be <code>null</code>.
-	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
+	 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
 	 * @return The active context or <code>null</code>.
 	 */
 	protected Object getActiveContext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId) {
@@ -191,5 +191,9 @@ public abstract class AbstractStep extends ExecutableExtension implements IStep 
 	 */
 	@Override
 	public void cancel(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId, IProgressMonitor monitor) {
+		Assert.isNotNull(context);
+		Assert.isNotNull(data);
+		Assert.isNotNull(fullQualifiedId);
+		Assert.isNotNull(monitor);
 	}
 }

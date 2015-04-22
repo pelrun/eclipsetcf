@@ -100,7 +100,7 @@ public abstract class AbstractStepGroupIterator extends ExecutableExtension impl
 	 *
 	 * @param activeContext The new active context.
 	 * @param data The data giving object. Must not be <code>null</code>.
-	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
+	 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
 	 */
 	protected void setActiveContext(Object activeContext, IPropertiesContainer data, IFullQualifiedId fullQualifiedId) {
 		Assert.isNotNull(data);
@@ -113,7 +113,7 @@ public abstract class AbstractStepGroupIterator extends ExecutableExtension impl
 	 *
 	 * @param context The step context. Must not be <code>null</code>.
 	 * @param data The data giving object. Must not be <code>null</code>.
-	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
+	 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
 	 *
 	 * @return The active context or <code>null</code>.
 	 */

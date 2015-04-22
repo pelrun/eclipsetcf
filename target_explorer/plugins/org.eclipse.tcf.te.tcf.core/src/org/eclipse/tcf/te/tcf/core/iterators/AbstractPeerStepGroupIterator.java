@@ -28,7 +28,7 @@ public abstract class AbstractPeerStepGroupIterator extends AbstractStepGroupIte
 	 *
 	 * @param context The step context. Must not be <code>null</code>.
 	 * @param data The data giving object. Must not be <code>null</code>.
-	 * @param fullQualifiedId The full qualfied id for this step. Must not be <code>null</code>.
+	 * @param fullQualifiedId The full qualified id for this step. Must not be <code>null</code>.
 	 * @return The active peer context.
 	 */
 	protected IPeer getActivePeerContext(IStepContext context, IPropertiesContainer data, IFullQualifiedId fullQualifiedId) {
