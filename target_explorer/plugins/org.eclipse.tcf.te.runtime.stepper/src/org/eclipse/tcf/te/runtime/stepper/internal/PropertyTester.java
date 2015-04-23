@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -10,7 +10,6 @@
 package org.eclipse.tcf.te.runtime.stepper.internal;
 
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -35,12 +34,10 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 		if ("isRunning".equals(property)) { //$NON-NLS-1$
 			if (operation != null) {
-				Map<String,List<Job>> jobs = StepperJob.getJobs(receiver);
-				if (jobs != null && jobs.containsKey(operation)) {
-					for (Job job : jobs.get(operation)) {
-						if (job instanceof StepperJob && !((StepperJob)job).isCanceled() && !((StepperJob)job).isFinished()) {
-							return true;
-						}
+				List<Job> jobs = StepperJob.getJobsForOperation(receiver, operation);
+				for (Job job : jobs) {
+					if (job instanceof StepperJob && !((StepperJob)job).isCanceled() && !((StepperJob)job).isFinished()) {
+						return true;
 					}
 				}
 			}
@@ -48,12 +45,10 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 		if ("isRunningOrCanceled".equals(property)) { //$NON-NLS-1$
 			if (operation != null) {
-				Map<String,List<Job>> jobs = StepperJob.getJobs(receiver);
-				if (jobs != null && jobs.containsKey(operation)) {
-					for (Job job : jobs.get(operation)) {
-						if (job instanceof StepperJob && !((StepperJob)job).isFinished()) {
-							return true;
-						}
+				List<Job> jobs = StepperJob.getJobsForOperation(receiver, operation);
+				for (Job job : jobs) {
+					if (job instanceof StepperJob && !((StepperJob)job).isFinished()) {
+						return true;
 					}
 				}
 			}

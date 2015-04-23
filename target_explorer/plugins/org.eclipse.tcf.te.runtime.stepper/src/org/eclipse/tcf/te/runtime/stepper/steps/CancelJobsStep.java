@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -10,6 +10,8 @@
 
 package org.eclipse.tcf.te.runtime.stepper.steps;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -57,46 +59,43 @@ public class CancelJobsStep extends AbstractStep {
 		Job thisJob = (StepperJob)StepperAttributeUtil.getProperty(IStepAttributes.ATTR_STEPPER_JOB, fullQualifiedId, data);
 
 		final AsyncCallbackCollector collector = new AsyncCallbackCollector();
-		Map<String,List<Job>> jobs = StepperJob.getJobs(context.getContextObject());
-		final AtomicInteger numJobsToCancel = new AtomicInteger(0);
+		Map<String,List<Job>> jobs = new HashMap<String, List<Job>>(StepperJob.getJobs(context.getContextObject()));
 		final AtomicInteger canceledJobs = new AtomicInteger(0);
-		for (String op : jobs.keySet()) {
-			for (Job job : jobs.get(op)) {
-            	if (job != thisJob &&
-            					(!(job instanceof StepperJob) || ((StepperJob)job).isCancelable())) {
-            		numJobsToCancel.set(numJobsToCancel.get()+1);
-            	}
+		final List<Job> jobsToCancel = new ArrayList<Job>();
+		synchronized (jobs) {
+			for (String op : jobs.keySet()) {
+				for (Job job : jobs.get(op)) {
+					if (job != thisJob &&
+									(!(job instanceof StepperJob) || ((StepperJob)job).isCancelable())) {
+						jobsToCancel.add(job);
+					}
+				}
 			}
 		}
-		for (String op : jobs.keySet()) {
-			for (Job job : jobs.get(op)) {
-	            if (job != thisJob) {
-	            	if (job instanceof StepperJob && ((StepperJob)job).isCancelable()) {
-	            		Callback jobCb = new Callback(((StepperJob)job).getJobCallback()) {
-	            			@Override
-	            			protected void internalDone(Object caller, IStatus status) {
-	            				canceledJobs.set(canceledJobs.get()+1);
-	            				ProgressHelper.worked(monitor, getTotalWork(context, data) / numJobsToCancel.get());
-	            				ProgressHelper.setSubTaskName(monitor, canceledJobs.get() + " of " + numJobsToCancel.get() + " Jobs canceled."); //$NON-NLS-1$ //$NON-NLS-2$
-	            				collector.removeCallback(this);
-	            			}
-	            		};
-	            		if (job.getState() == Job.RUNNING) {
-	            			collector.addCallback(jobCb);
-	            			((StepperJob)job).setJobCallback(jobCb);
-	            		}
-	            		else {
-            				canceledJobs.set(canceledJobs.get()+1);
-	            		}
-            		}
-	            	else {
-        				canceledJobs.set(canceledJobs.get()+1);
-	            	}
-            		job.cancel();
-	            }
-            }
-
-        }
+		for (Job job : jobsToCancel) {
+			if (job instanceof StepperJob && ((StepperJob)job).isCancelable()) {
+				Callback jobCb = new Callback(((StepperJob)job).getJobCallback()) {
+					@Override
+					protected void internalDone(Object caller, IStatus status) {
+						canceledJobs.incrementAndGet();
+						ProgressHelper.worked(monitor, getTotalWork(context, data) / jobsToCancel.size());
+						ProgressHelper.setSubTaskName(monitor, canceledJobs.get() + " of " + jobsToCancel.size() + " Jobs canceled."); //$NON-NLS-1$ //$NON-NLS-2$
+						collector.removeCallback(this);
+					}
+				};
+				if (job.getState() == Job.RUNNING) {
+					collector.addCallback(jobCb);
+					((StepperJob)job).setJobCallback(jobCb);
+				}
+				else {
+					canceledJobs.incrementAndGet();
+				}
+			}
+			else {
+				canceledJobs.incrementAndGet();
+			}
+			job.cancel();
+		}
 
 		collector.initDone();
 

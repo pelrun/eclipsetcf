@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.runtime.stepper.job;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ProgressMonitorWrapper;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
@@ -56,68 +58,85 @@ public final class StepperJob extends Job {
 	private boolean isCanceled = false;
 	private boolean statusHandled = false;
 
-	private class NotCancelableProgressMonitor implements IProgressMonitor {
+	/**
+	 * A progress monitor wrapper which blocks any access to a JobMonitor
+	 * after the job has finished. This prevents creation of stale progress
+	 * items in the ProgressManager.
+	 */
+	private static class StepperProgressMonitor extends ProgressMonitorWrapper {
 
-		private final IProgressMonitor monitor;
+		private final boolean cancelable;
+		private volatile boolean jobDone;
+		private volatile boolean canceled;
 
-        public NotCancelableProgressMonitor(IProgressMonitor monitor) {
-        	this.monitor = monitor;
+        public StepperProgressMonitor(IProgressMonitor monitor, boolean isCancelable) {
+        	super(monitor);
+        	this.cancelable = isCancelable;
+        }
+
+        void jobDone(boolean canceled) {
+        	// Job has finished - block any access to the JobMonitor
+        	jobDone = true;
+        	this.canceled = canceled;
         }
 
         @Override
         public void beginTask(String name, int totalWork) {
-        	monitor.beginTask(name, totalWork);
+        	if (!jobDone) super.beginTask(name, totalWork);
         }
 
         @Override
         public void done() {
-        	monitor.done();
+        	if (!jobDone) super.done();
         }
 
         @Override
         public void internalWorked(double work) {
-        	monitor.internalWorked(work);
+        	if (!jobDone) super.internalWorked(work);
         }
 
         @Override
         public boolean isCanceled() {
-	        return false;
+    		if (cancelable && !jobDone) return super.isCanceled();
+	        return canceled;
         }
 
         @Override
         public void setCanceled(boolean value) {
-        	monitor.setCanceled(false);
+        	canceled = cancelable && value;
+        	if (!jobDone) super.setCanceled(canceled);
         }
 
         @Override
         public void setTaskName(String name) {
-        	monitor.setTaskName(name);
+        	if (!jobDone) super.setTaskName(name);
         }
 
         @Override
         public void subTask(String name) {
-        	monitor.subTask(name);
+        	if (!jobDone) super.subTask(name);
         }
 
         @Override
         public void worked(int work) {
-        	monitor.worked(work);
+        	if (!jobDone) super.worked(work);
         }
 	}
 
 	private class JobChangeListener extends JobChangeAdapter {
 
+		private final StepperProgressMonitor jobMonitor;
+
 		/**
 		 * Constructor.
 		 */
-        public JobChangeListener() {
+        public JobChangeListener(StepperProgressMonitor monitor) {
+        	this.jobMonitor = monitor;
         }
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.core.runtime.jobs.JobChangeAdapter#done(org.eclipse.core.runtime.jobs.IJobChangeEvent)
-		 */
 		@Override
 		public void done(IJobChangeEvent event) {
+			jobMonitor.jobDone(isCanceled());
 			handleStatus(event.getResult());
 
 		    removeJobChangeListener(this);
@@ -132,7 +151,7 @@ public final class StepperJob extends Job {
 	 * @param data The stepper data.
 	 * @param stepGroupId The step group id to execute.
 	 * @param operation The operation to execute.
-	 * @param isCancelable <code>true</code> if the job can be canceled.
+	 * @param cancelable <code>true</code> if the job can be canceled.
 	 * @param handleStatus <code>true</code> if the job should handle the status itself and return always <code>Status.OK_STATUS</code>.
 	 */
     public StepperJob(String name, IStepContext stepContext, IPropertiesContainer data, String stepGroupId, String operation, boolean isCancelable, boolean handleStatus) {
@@ -182,20 +201,34 @@ public final class StepperJob extends Job {
 		return jobs;
     }
 
+    public static List<Job> getJobsForOperation(Object context, String operation) {
+    	Map<String, List<Job>> jobs = getJobs(context);
+    	synchronized (jobs) {
+			List<Job> jobsForOperation = jobs.get(operation);
+			if (jobsForOperation == null)
+				return Collections.emptyList();
+			return new ArrayList<Job>(jobsForOperation);
+    	}
+    }
+
     public static void addJob(Map<String,List<Job>> jobs, Job job, String operation) {
-		List<Job> jobsForOperation = jobs.get(operation);
-		if (jobsForOperation == null) {
-			jobsForOperation = new ArrayList<Job>();
-			jobs.put(operation, jobsForOperation);
-		}
-		jobsForOperation.add(job);
+    	synchronized (jobs) {
+			List<Job> jobsForOperation = jobs.get(operation);
+			if (jobsForOperation == null) {
+				jobsForOperation = new ArrayList<Job>();
+				jobs.put(operation, jobsForOperation);
+			}
+			jobsForOperation.add(job);
+    	}
     }
 
     public static void removeJob(Map<String,List<Job>> jobs, Job job, String operation) {
-		List<Job> jobsForOperation = jobs.get(operation);
-		if (jobsForOperation != null) {
-			jobsForOperation.remove(job);
-		}
+    	synchronized (jobs) {
+			List<Job> jobsForOperation = jobs.get(operation);
+			if (jobsForOperation != null) {
+				jobsForOperation.remove(job);
+			}
+    	}
     }
 
     public static void setJobs(Map<String,List<Job>> jobs, Object context) {
@@ -234,11 +267,10 @@ public final class StepperJob extends Job {
 	@Override
 	public final IStatus run(IProgressMonitor monitor) {
 
-		if (!isCancelable) {
-			monitor = new NotCancelableProgressMonitor(monitor);
-		}
+		StepperProgressMonitor stepperMonitor = new StepperProgressMonitor(monitor, isCancelable);
+		monitor = stepperMonitor;
 
-		IJobChangeListener listener = new JobChangeListener();
+		IJobChangeListener listener = new JobChangeListener(stepperMonitor);
 		addJobChangeListener(listener);
 
 		// The stepper instance to be used
