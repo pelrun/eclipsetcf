@@ -70,4 +70,28 @@ public final class ElfUtils {
 		return elfclass;
 	}
 
+	/**
+	 * Returns the ELF machine type if the specified file is an ELF file at all.
+	 *
+	 * @param file The file representation of the physical file to test. Must not be <code>null</code>!
+	 * @return The ELF address class as defined within <code>org.eclipse.cdt.utils.elf.Elf.ELFhdr.ELFCLASS*</code>. <code>ELFCLASSNONE</code> (0) if the ELF address class is not set.
+	 */
+	public static int getELFMachine(File file) throws IOException {
+		int elfclass = Elf.ELFhdr.EM_NONE;
+
+		if (file != null) {
+			Elf elfFile = null;
+			try {
+				elfFile = new Elf(file.getAbsolutePath());
+				elfclass = elfFile.getELFhdr().e_machine;
+			}
+			finally {
+				if (elfFile != null) {
+					elfFile.dispose();
+				}
+				elfFile = null;
+			}
+		}
+		return elfclass;
+	}
 }

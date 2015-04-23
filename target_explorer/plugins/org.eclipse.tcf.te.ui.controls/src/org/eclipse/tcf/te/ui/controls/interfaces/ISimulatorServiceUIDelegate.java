@@ -51,15 +51,6 @@ public interface ISimulatorServiceUIDelegate {
 	public Image getImage();
 
 	/**
-	 * Get a description for the given config.
-	 * This description is shown i.e. as tooltip of the configure button.
-     * @param context The context for which the simulator should be configured.
-     * @param config The configuration or <code>null</code>.
-	 * @return The description of the given config.
-	 */
-	public String getDescription(Object context, String config);
-
-	/**
 	 * Get properties for ui configuration.
 	 * @param context The context.
 	 * @param config The current config.
@@ -95,10 +86,9 @@ public interface ISimulatorServiceUIDelegate {
 	 * I.e. check for further needed files and set message to the messageProvider
 	 *
 	 * @param path The path. Must not be <code>null</code>.
-	 * @param path The BSP. Must not be <code>null</code>.
 	 * @param messageProvider The message provider. Must not be <code>null</code>:
 	 *
 	 * @return <code>True</code> if the given kernel image path is valid, <code>false</code> otherwise.
 	 */
-	public boolean validateKernelImage(IPath path, String bsp, BaseControl messageProvider);
+	public boolean validateKernelImage(IPath path, BaseControl messageProvider);
 }
