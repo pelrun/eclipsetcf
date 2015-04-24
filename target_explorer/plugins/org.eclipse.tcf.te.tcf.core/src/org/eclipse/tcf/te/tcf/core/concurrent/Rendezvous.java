@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -19,14 +19,14 @@ import java.util.concurrent.TimeoutException;
  * <p>
  * The following is an example:
  * <p>
- * 
+ *
  * <pre>
- * final Rendezvous rendezvous = new Rendezvous(); 
- * service.open(path, IFileSystem.TCF_O_READ, null, new DoneOpen() { 
+ * final Rendezvous rendezvous = new Rendezvous();
+ * service.open(path, IFileSystem.TCF_O_READ, null, new DoneOpen() {
  *     public void doneOpen(IToken token, FileSystemException error, IFileHandle hdl) {
  *         ...
- *         rendezvous.arrive(); 
- *     } 
+ *         rendezvous.arrive();
+ *     }
  * });
  * try{
  *     renderzvous.waiting(1000); //Waiting for 1 second.
@@ -35,20 +35,20 @@ import java.util.concurrent.TimeoutException;
  *     ...
  * }
  * </pre>
- * 
+ *
  * The call renderzvous.waiting(1000) won't return until renderzvous.arrive() is
  * called in the doneOpen(), or the waiting has timed out.
  * <p>
  * A rendezvous can be reused once it is reset:
  * <p>
- * 
+ *
  * <pre>
- * renderzvous.reset(); 
- * service.open(path, IFileSystem.TCF_O_READ, null, new DoneOpen() { 
+ * renderzvous.reset();
+ * service.open(path, IFileSystem.TCF_O_READ, null, new DoneOpen() {
  *     public void doneOpen(IToken token, FileSystemException error, IFileHandle hdl) {
  *         ...
- *         rendezvous.arrive(); 
- *     } 
+ *         rendezvous.arrive();
+ *     }
  * });
  * try{
  *     renderzvous.waiting(2000); //Waiting for 2 seconds.
@@ -57,7 +57,7 @@ import java.util.concurrent.TimeoutException;
  *     ...
  * }
  * </pre>
- * 
+ *
  */
 public class Rendezvous {
 	// Flag indicating if the other thread has arrived.
@@ -74,7 +74,7 @@ public class Rendezvous {
 	/**
 	 * Called to block the current thread until it is woken up by
 	 * another thread or until it is timed out.
-	 * 
+	 *
 	 * @param timeout The timeout time.
 	 * @throws TimeoutException The waiting has timed out.
 	 */
@@ -89,12 +89,10 @@ public class Rendezvous {
 		if (!arrived)
 			throw new TimeoutException();
 	}
-	
+
 	/**
-	 * Called to block the current thread until it is woken up by another 
-	 * thread. 
-	 * 
-	 * @throws InterruptedException The waiting has timed out.
+	 * Called to block the current thread until it is woken up by another
+	 * thread.
 	 */
 	public synchronized void waiting() throws TimeoutException {
 		waiting(0);

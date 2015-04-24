@@ -43,13 +43,18 @@ public class OpDownload extends AbstractOperation {
 
 	@Override
     public IStatus doRun(IProgressMonitor monitor) {
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance(MD_ALG);
+		} catch (NoSuchAlgorithmException e) {
+		}
 		try {
 			if (fTarget != null) {
-				downloadFile(fSource, fTarget, monitor);
+				downloadFile(fSource, fTarget, digest, monitor);
 			} else {
 				OutputStream out = new BufferedOutputStream(new FileOutputStream(fSource.getCacheFile()));
 				try {
-					downloadFile(fSource, out, monitor);
+					downloadFile(fSource, out, digest, monitor);
 				} finally {
 					try {
 						out.close();
@@ -63,10 +68,14 @@ public class OpDownload extends AbstractOperation {
 			}
 			return StatusHelper.createStatus("Cannot download " + fSource.getName(), e); //$NON-NLS-1$
 		}
+
+		if (!monitor.isCanceled() && digest != null) {
+			updateNodeDigest(fSource, digest.digest());
+		}
 		return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
     }
 
-	private void downloadFile(FSTreeNode source, OutputStream out, IProgressMonitor monitor) throws IOException {
+	private void downloadFile(FSTreeNode source, OutputStream out, MessageDigest digest, IProgressMonitor monitor) throws IOException {
 		byte[] data = new byte[DEFAULT_CHUNK_SIZE];
 		long size = source.getSize();
 		long percentSize = size / 100;
@@ -75,15 +84,13 @@ public class OpDownload extends AbstractOperation {
 
 		monitor.beginTask(getName(), 100);
 
-		MessageDigest digest = null;
 		BufferedInputStream input = null;
 
 		TcfURLConnection connection = (TcfURLConnection) source.getLocationURL().openConnection();
 		try {
-			try {
-				digest = MessageDigest.getInstance(MD_ALG);
+			if (digest != null) {
 				input = new BufferedInputStream(new DigestInputStream(connection.getInputStream(), digest));
-			} catch (NoSuchAlgorithmException e) {
+			} else {
 				input = new BufferedInputStream(connection.getInputStream());
 			}
 
@@ -100,11 +107,6 @@ public class OpDownload extends AbstractOperation {
 						// Report the progress.
 						monitor.subTask(NLS.bind(Messages.OpDownload_Downloading, new Object[]{source.getName(), formatSize(bytesRead), fileLength}));
 					}
-				}
-			}
-			if (!monitor.isCanceled()) {
-				if (digest != null) {
-					updateNodeDigest(source, digest.digest());
 				}
 			}
 		} finally {
@@ -127,9 +129,9 @@ public class OpDownload extends AbstractOperation {
 	protected void updateNodeDigest(FSTreeNode node, byte[] digest) {
 		FileState fileDigest = PersistenceManager.getInstance().getFileDigest(node);
 		if (fResetDigest) {
-			fileDigest.reset(digest);
+			fileDigest.reset(digest, fSource.getCacheFile().lastModified(), fSource.getModificationTime());
 		} else {
-			fileDigest.updateTargetDigest(digest);
+			fileDigest.updateTargetDigest(digest, fSource.getModificationTime());
 		}
     }
 

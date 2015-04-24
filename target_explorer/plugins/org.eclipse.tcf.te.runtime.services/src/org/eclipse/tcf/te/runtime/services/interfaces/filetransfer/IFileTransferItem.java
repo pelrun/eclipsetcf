@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -21,7 +21,12 @@ public interface IFileTransferItem extends IPropertiesContainer {
 	public static final String PROPERTY_ENABLED = "enabled"; //$NON-NLS-1$
 	public static final String PROPERTY_DIRECTION = "direction"; //$NON-NLS-1$
 	public static final String PROPERTY_HOST = "host"; //$NON-NLS-1$
-	public static final String PROPERTY_TARGET = "target"; //$NON-NLS-1$
+	/**
+	 * @deprecated use {@value #PROPERTY_TARGET_STRING}, instead
+	 */
+	@Deprecated
+    public static final String PROPERTY_TARGET = "target"; //$NON-NLS-1$
+	public static final String PROPERTY_TARGET_STRING = "target-string"; //$NON-NLS-1$
 	public static final String PROPERTY_OPTIONS = "options"; //$NON-NLS-1$
 
 	public static final int HOST_TO_TARGET = 1;
@@ -40,11 +45,16 @@ public interface IFileTransferItem extends IPropertiesContainer {
 	public IPath getHostPath();
 
 	/**
-	 * Return the target (remote) path. Must not be <code>null</code>.
-	 * The target path needs to be a file for transfer from target to host.
-	 * For a transfer from host to target, the path can be a file or directory.
+	 * @deprecated use {@link #getTargetPathString()}, instead
 	 */
+	@Deprecated
 	public IPath getTargetPath();
+
+	/**
+	 * Returns the target path. Cannot use IPath, because the target path may use ':' for
+	 * the first segment. E.g.: '/sd0:1/file.txt
+	 */
+	public String getTargetPathString();
 
 	/**
 	 * Return the transfer direction.

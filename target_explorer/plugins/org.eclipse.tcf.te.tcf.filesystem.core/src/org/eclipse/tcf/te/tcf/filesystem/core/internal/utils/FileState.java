@@ -11,15 +11,8 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.utils;
 
 import java.beans.PropertyChangeEvent;
 import java.io.File;
-import java.io.OutputStream;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
-import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCacheFileDigest;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.CacheState;
 
 /**
@@ -45,6 +38,11 @@ public class FileState {
 	 * The cache file's modification time.
 	 */
 	private long cache_mtime;
+
+	/**
+	 * The cache file's modification time.
+	 */
+	private long target_mtime;
 
 	/**
 	 * If the job that computes the local cache's digest is running.
@@ -78,8 +76,9 @@ public class FileState {
 	 * @param target_digest The target file's digest.
 	 * @param base_digest The baseline digest.
 	 */
-	public FileState(long mtime, byte[] cache_digest, byte[] target_digest, byte[]base_digest) {
+	public FileState(long mtime, long target_mtime, byte[] cache_digest, byte[] target_digest, byte[]base_digest) {
 		this.cache_mtime = mtime;
+		this.target_mtime = target_mtime;
 		this.cache_digest = cache_digest;
 		this.target_digest = target_digest;
 		this.base_digest = base_digest;
@@ -121,6 +120,10 @@ public class FileState {
 		return cache_mtime;
 	}
 
+	public long getTargetMTime() {
+		return target_mtime;
+	}
+
 	/**
 	 * Get the node's cache file digest.
 	 *
@@ -131,70 +134,14 @@ public class FileState {
 	}
 
 	/**
-	 * Update the cache state of this file and invoke callback once the update is done.
-	 * If the callback is null, then do not invoke any callback.
-	 *
-	 * @param callback Callback invoked after updating.
-	 */
-	public synchronized void updateState(final ICallback callback) {
-		File file = CacheManager.getCacheFile(node);
-		if (file.exists()) {
-			long cache_mtime = file.lastModified();
-			if (!cache_digest_running && (cache_digest == null || this.cache_mtime != cache_mtime)) {
-				cache_digest_running = true;
-				this.cache_mtime = cache_mtime;
-				final OpCacheFileDigest op = new OpCacheFileDigest(node);
-				op.runInJob(new Callback() {
-					@Override
-					protected void internalDone(Object caller, IStatus status) {
-						if (status.isOK()) {
-							updateCacheDigest(op.getDigest());
-						}
-						cache_digest_running = false;
-						if (status.isOK()) {
-							updateState(callback);
-						}
-						else if(callback != null){
-							callback.done(this, status);
-						}
-					}
-				});
-			}
-			else if (!target_digest_running && target_digest == null) {
-				target_digest_running = true;
-				final IOperation op = node.operationDownload(new OutputStream() {
-					@Override
-					public void write(int b) {
-					}
-				});
-				op.runInJob(new Callback() {
-					@Override
-                    protected void internalDone(Object caller, IStatus status) {
-						target_digest_running = false;
-						if (status.isOK()) {
-							updateState(callback);
-						} else if(callback != null){
-							callback.done(this, status);
-						}
-                    }
-				});
-			} else if (callback != null) {
-				callback.done(this, Status.OK_STATUS);
-			}
-		} else if (callback != null) {
-			callback.done(this, Status.OK_STATUS);
-		}
-	}
-
-	/**
 	 * Get this node's cache state using the current state data.
 	 *
 	 * @return The state expressed in a CacheState enum value.
 	 */
 	public synchronized CacheState getCacheState() {
 		File file = CacheManager.getCacheFile(node);
-		if (!file.exists()) return CacheState.consistent;
-		updateState(null);
+		if (!file.exists())
+			return CacheState.consistent;
 		if (cache_digest == null || target_digest == null)
 			return CacheState.consistent;
 		if (isUnchanged(target_digest, cache_digest)) {
@@ -215,8 +162,11 @@ public class FileState {
 	 *
 	 * @param target_digest The new target digest data.
 	 */
-	public void updateTargetDigest(byte[] target_digest) {
+	public void updateTargetDigest(byte[] target_digest, long mtime) {
+//		System.out.println("targt: " + mtime + " " + PersistenceManagerDelegate.digest2string(target_digest));
+
 		this.target_digest = target_digest;
+		this.target_mtime = mtime;
 		PropertyChangeEvent event = new PropertyChangeEvent(this, "target_digest", null, target_digest); //$NON-NLS-1$
 		node.getRuntimeModel().firePropertyChanged(event);
 	}
@@ -243,9 +193,11 @@ public class FileState {
 	 *
 	 * @param cache_digest The new cache file digest data.
 	 */
-	public void updateCacheDigest(byte[] cache_digest) {
+	public void updateCacheDigest(byte[] cache_digest, long mtime) {
+//		System.out.println("cache: " + mtime + " " + PersistenceManagerDelegate.digest2string(cache_digest));
 		byte[] old_digest = cache_digest;
 		this.cache_digest = cache_digest;
+		this.cache_mtime = mtime;
 		PropertyChangeEvent event = new PropertyChangeEvent(node, "cache_digest", old_digest, cache_digest); //$NON-NLS-1$
 		node.getRuntimeModel().firePropertyChanged(event);
     }
@@ -255,10 +207,13 @@ public class FileState {
 	 *
 	 * @param digest The new digest data.
 	 */
-	public void reset(byte[] digest) {
+	public void reset(byte[] digest, long cache_mtime, long target_mtime) {
+//		System.out.println("reset: " + cache_mtime + " " + target_mtime + " " + PersistenceManagerDelegate.digest2string(digest));
 		cache_digest = digest;
 		target_digest = digest;
 		base_digest = digest;
+		this.cache_mtime = cache_mtime;
+		this.target_mtime = target_mtime;
 		PropertyChangeEvent event = new PropertyChangeEvent(node, "reset_digest", null, digest); //$NON-NLS-1$
 		node.getRuntimeModel().firePropertyChanged(event);
     }

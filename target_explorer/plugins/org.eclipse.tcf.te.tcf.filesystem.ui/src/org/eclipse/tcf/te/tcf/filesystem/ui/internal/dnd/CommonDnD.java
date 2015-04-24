@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.dnd;
 import static java.util.Arrays.asList;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
@@ -114,80 +113,6 @@ public class CommonDnD implements IConfirmCallback {
 		}
 		return status.isOK();
 	}
-
-//	private ICallback getCopyCallback(final TreeViewer viewer, final String[] files, final IFSTreeNode target) {
-//		return new Callback() {
-//			@Override
-//			protected void internalDone(Object caller, IStatus status) {
-//				// mstodo handle via notifications
-//				if (status.isOK()) {
-//					IOpExecutor executor = new JobExecutor(getSelectionCallback(viewer, files, target));
-//					executor.execute(new OpRefresh(target));
-//				}
-//			}
-//		};
-//	}
-
-//	private ICallback getMoveCallback(final TreeViewer viewer, final String[] files, final IFSTreeNode target) {
-//		return new Callback() {
-//			@Override
-//			protected void internalDone(Object caller, IStatus status) {
-//				if (status.isOK()) {
-//					for (String path : files) {
-//						File file = new File(path);
-//						if (!file.delete()) {
-//						}
-//					}
-					// mstodo handle via notifications
-//					if (successful) {
-//						IRuntimeModel model = ModelManager.getRuntimeModel(target.getPeerNode());
-//						IOpExecutor executor = new JobExecutor(getSelectionCallback(viewer, files, target));
-//						executor.execute(new OpRefresh(model.getRoot()));
-//					}
-//				}
-//			}
-//		};
-//	}
-
-//	ICallback getSelectionCallback(final TreeViewer viewer, final String[] paths, final IFSTreeNode target) {
-//		return new Callback() {
-//			@Override
-//			protected void internalDone(Object caller, IStatus status) {
-//				if(status.isOK()) {
-//					List<IFSTreeNode> nodes = new ArrayList<IFSTreeNode>();
-//					IFSTreeNode[] children = target.getChildren(true);
-//					for (String path : paths) {
-//						File file = new File(path);
-//						String name = file.getName();
-//						for (IFSTreeNode child : children) {
-//							if (name.equals(child.getName())) {
-//								nodes.add(child);
-//								break;
-//							}
-//						}
-//					}
-//					if (viewer != null) {
-//						updateViewer(viewer, target, nodes);
-//					}
-//				}
-//			}
-//		};
-//	}
-
-//	protected void updateViewer(final TreeViewer viewer, final IFSTreeNode target, final List<IFSTreeNode> nodes) {
-//		if (Display.getCurrent() != null) {
-//			viewer.refresh(target);
-//			IStructuredSelection selection = new StructuredSelection(nodes.toArray());
-//			viewer.setSelection(selection, true);
-//		}
-//		else {
-//			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable(){
-//				@Override
-//                public void run() {
-//					updateViewer(viewer, target, nodes);
-//                }});
-//		}
-//    }
 
 	/**
 	 * Perform the drop operation over dragged selection.
@@ -356,19 +281,6 @@ public class CommonDnD implements IConfirmCallback {
 	    if (LocalSelectionTransfer.getTransfer().isSupportedType(anEvent.dataType)) {
 			anEvent.data = LocalSelectionTransfer.getTransfer().getSelection();
 			return true;
-		}
-		else if (FileTransfer.getInstance().isSupportedType(anEvent.dataType)) {
-			IStructuredSelection selection = (IStructuredSelection) LocalSelectionTransfer.getTransfer().getSelection();
-			List<IFSTreeNode> nodes = selection.toList();
-			List<String> paths = new ArrayList<String>();
-			for(IFSTreeNode node : nodes) {
-				File file = node.getCacheFile();
-				if(file.exists()) {
-					paths.add(file.getAbsolutePath());
-				}
-			}
-			if (!paths.isEmpty()) anEvent.data = paths.toArray(new String[paths.size()]);
-			return !paths.isEmpty();
 		}
 		return false;
     }

@@ -9,8 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime;
 
+import java.io.File;
+import java.util.List;
+
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 
@@ -34,4 +39,9 @@ public interface IRuntimeModel extends IModel, IPeerNodeProvider {
      * Returns an operation for restoring nodes from a path
      */
 	public IResultOperation<IFSTreeNode> operationRestoreFromPath(String path);
+
+    /**
+     * Returns an operation for downloading multiple nodes to a destination
+     */
+	public IOperation operationDownload(List<IFSTreeNode> nodes, File destination, IConfirmCallback confirmCallback);
 }

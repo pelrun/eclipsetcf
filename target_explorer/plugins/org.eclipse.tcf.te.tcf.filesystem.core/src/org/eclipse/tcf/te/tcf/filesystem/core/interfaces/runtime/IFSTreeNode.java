@@ -41,6 +41,11 @@ public interface IFSTreeNode extends IFSTreeNodeBase, IAdaptable {
 	IFSTreeNode getParent();
 
 	/**
+	 * Returns the child with the given name, or <code>null</code>.
+	 */
+	IFSTreeNode findChild(String name);
+
+	/**
 	 * Returns the children of this node, may be <code>null</code> in case the children
 	 * have not been queried.
 	 */
@@ -123,6 +128,12 @@ public interface IFSTreeNode extends IFSTreeNodeBase, IAdaptable {
 	 * downloading it to the local cache.
 	 */
 	IOperation operationDownload(OutputStream output);
+
+	/**
+	 * Returns an operation for downloading the remote file or directory to the local file system.
+	 * @param destinationFolder folder where to store the downloaded files and folders.
+	 */
+	IOperation operationDownload(File destinationFolder, IConfirmCallback confirmCallback);
 
 	/**
 	 * Returns an operation for uploading the given files into this remote directory

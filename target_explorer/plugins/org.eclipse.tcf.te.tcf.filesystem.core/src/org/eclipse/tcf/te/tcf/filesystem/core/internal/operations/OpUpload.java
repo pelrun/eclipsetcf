@@ -36,6 +36,7 @@ import org.eclipse.tcf.services.IFileSystem.DoneStat;
 import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState;
@@ -148,7 +149,7 @@ public class OpUpload extends AbstractOperation {
 			path = destination.getLocation(true);
 		}
 
-		final TCFResult<OutputStream> result = new TCFResult<OutputStream>();
+		final TCFOperationMonitor<OutputStream> result = new TCFOperationMonitor<OutputStream>();
 		monitor.subTask(NLS.bind(Messages.OpUpload_UploadSingleFile, item.fSource));
 		Protocol.invokeLater(new Runnable() {
 			@Override
@@ -182,7 +183,7 @@ public class OpUpload extends AbstractOperation {
 
 	private IStatus updateNode(final String path, final String name,
 			final FSTreeNode destination, final FSTreeNode existing, IProgressMonitor monitor) {
-		final TCFResult<?> r2 = new TCFResult<Object>();
+		final TCFOperationMonitor<?> r2 = new TCFOperationMonitor<Object>();
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -211,7 +212,7 @@ public class OpUpload extends AbstractOperation {
 		return r2.waitDone(monitor);
 	}
 
-	protected void tcfGetOutputStream(IFileSystem fileSystem, final String path, final TCFResult<OutputStream> result) {
+	protected void tcfGetOutputStream(IFileSystem fileSystem, final String path, final TCFOperationMonitor<OutputStream> result) {
 		int flags = IFileSystem.TCF_O_WRITE | IFileSystem.TCF_O_CREAT | IFileSystem.TCF_O_TRUNC;
 		if (!result.checkCancelled()) {
 			fileSystem.open(path, flags, null, new DoneOpen() {
@@ -246,7 +247,6 @@ public class OpUpload extends AbstractOperation {
 					digest = MessageDigest.getInstance(MD_ALG);
 					input = new DigestInputStream(input, digest);
 				} catch (NoSuchAlgorithmException e) {
-					digest = null;
 				}
 			}
 
@@ -271,8 +271,9 @@ public class OpUpload extends AbstractOperation {
 			}
 
 			if (digest != null && existing != null) {
+				statFile(existing, monitor);
 				FileState filedigest = PersistenceManager.getInstance().getFileDigest(existing);
-				filedigest.reset(digest.digest());
+				filedigest.reset(digest.digest(), existing.getCacheFile().lastModified(), existing.getModificationTime());
 			}
 			return Status.OK_STATUS;
 		} catch (IOException e) {
@@ -284,6 +285,39 @@ public class OpUpload extends AbstractOperation {
 				} catch (Exception e) {
 				}
 			}
+		}
+	}
+
+	private void statFile(final FSTreeNode node, IProgressMonitor monitor) {
+		final TCFOperationMonitor<?> result = new TCFOperationMonitor<Object>();
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				tcfStat(node, result);
+			}
+		});
+		result.waitDone(monitor);
+	}
+
+	protected void tcfStat(final FSTreeNode node, final TCFOperationMonitor<?> result) {
+		if (!result.checkCancelled()) {
+			final IFileSystem fs = node.getRuntimeModel().getFileSystem();
+			if (fs == null) {
+				result.setCancelled();
+				return;
+			}
+
+			fs.stat(node.getLocation(true), new DoneStat() {
+				@Override
+				public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
+					if (error != null) {
+						handleFSError(node, Messages.OpRefresh_errorReadAttributes, error, result);
+					} else {
+						node.setAttributes(attrs, false);
+						result.setDone(null);
+					}
+				}
+			});
 		}
 	}
 

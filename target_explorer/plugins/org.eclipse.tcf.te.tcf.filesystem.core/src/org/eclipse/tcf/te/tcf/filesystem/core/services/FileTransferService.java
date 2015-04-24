@@ -75,7 +75,7 @@ public class FileTransferService {
 
             Assert.isNotNull(fileSystem);
 
-            IPath targetPath = item.getTargetPath();
+            String targetPath = item.getTargetPathString();
             if (targetPath != null) {
             	final AtomicReference<FileSystemException> error = new AtomicReference<FileSystemException>();
 
@@ -173,7 +173,7 @@ public class FileTransferService {
         IStatus result = Status.OK_STATUS;
 
         IPath hostPath = item.getHostPath();
-        IPath targetPath = item.getTargetPath();
+        String targetPath = item.getTargetPathString();
 
         BufferedOutputStream outStream = null;
         TCFFileInputStream inStream = null;
@@ -195,7 +195,7 @@ public class FileTransferService {
         }
         // If the host file is a directory, append the remote file name
         if (hostPath.toFile().isDirectory()) {
-            hostPath = item.getHostPath().append(targetPath.lastSegment());
+            hostPath = item.getHostPath().append(lastSegment(targetPath));
         }
 
         // Remember the modification time of the remote file.
@@ -205,7 +205,7 @@ public class FileTransferService {
 
         try {
             // Open the remote file
-            fileSystem.open(targetPath.toString(), IFileSystem.TCF_O_READ, null, new IFileSystem.DoneOpen() {
+            fileSystem.open(targetPath, IFileSystem.TCF_O_READ, null, new IFileSystem.DoneOpen() {
                 @Override
                 public void doneOpen(IToken token, FileSystemException e, IFileHandle h) {
                     error[0] = e;
@@ -286,11 +286,18 @@ public class FileTransferService {
         if (callback != null) callback.done(peer, result);
     }
 
-    protected static void transferToTarget(IPeer peer, IFileSystem fileSystem, IFileTransferItem item, IProgressMonitor monitor, ICallback callback) {
+    private static String lastSegment(String targetPath) {
+    	int idx = targetPath.lastIndexOf('/');
+    	if (idx > 0)
+    		return targetPath.substring(idx+1);
+    	return targetPath;
+	}
+
+	protected static void transferToTarget(IPeer peer, IFileSystem fileSystem, IFileTransferItem item, IProgressMonitor monitor, ICallback callback) {
 
         IStatus result = Status.OK_STATUS;
 
-        IPath targetPath = item.getTargetPath();
+        String targetPath = item.getTargetPathString();
         IPath hostPath = item.getHostPath();
 
         BufferedInputStream inStream = null;
@@ -300,60 +307,65 @@ public class FileTransferService {
         final FileSystemException[] error = new FileSystemException[1];
         final FileAttrs[] attrs = new FileAttrs[1];
 
-        // Check the target destination directory
-        for (int i = 0; i < targetPath.segmentCount(); i++) {
-        	IPath tp = i + 1 < targetPath.segmentCount() ? targetPath.removeLastSegments(targetPath.segmentCount() - (i + 1)) : targetPath;
 
-        	error[0] = null;
-        	attrs[0] = null;
-
-            fileSystem.stat(tp.toString(), new IFileSystem.DoneStat() {
-                @Override
-                public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
-                    error[0] = e;
-                    attrs[0] = a;
-                }
-            });
-
-            if (attrs[0] == null && i + 1 < targetPath.segmentCount()) {
-            	error[0] = null;
-            	attrs[0] = null;
-
-            	fileSystem.mkdir(tp.toString(), null, new IFileSystem.DoneMkDir() {
-					@Override
-					public void doneMkDir(IToken token, FileSystemException e) {
-						error[0] = e;
-					}
-				});
-
-            	if (error[0] != null) {
-					result = StatusHelper.getStatus(error[0]);
-			        if (callback != null) callback.done(peer, result);
-			        return;
-            	}
-
-            	// Read the attributes of the created directory
-            	error[0] = null;
-            	attrs[0] = null;
-
-                fileSystem.stat(tp.toString(), new IFileSystem.DoneStat() {
-                    @Override
-                    public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
-                        error[0] = e;
-                        attrs[0] = a;
-                    }
-                });
-            }
-        }
+		// Read the attributes of the target
+		error[0] = null;
+		attrs[0] = null;
+		fileSystem.stat(targetPath, new IFileSystem.DoneStat() {
+			@Override
+			public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
+				error[0] = e;
+				attrs[0] = a;
+			}
+		});
 
         // If we get the attributes back, the name at least exist in the target file system
-        if (attrs[0] != null && attrs[0].isDirectory()) {
-            targetPath = targetPath.append(item.getHostPath().lastSegment());
+        if (attrs[0] != null) {
+        	if (attrs[0].isDirectory()) {
+        		targetPath = targetPath + '/' + item.getHostPath().lastSegment();
+        	}
+        } else {
+        	// Try to create the parent directory
+        	for (int i = targetPath.indexOf('/'); i>=0; i = targetPath.indexOf('/', i+1)) {
+        		if (i > 0) {
+        			String path = targetPath.substring(0, i);
+
+        			error[0] = null;
+        			attrs[0] = null;
+
+        			fileSystem.stat(path, new IFileSystem.DoneStat() {
+        				@Override
+        				public void doneStat(IToken token, FileSystemException e, FileAttrs a) {
+        					error[0] = e;
+        					attrs[0] = a;
+        				}
+        			});
+
+        			if (attrs[0] == null) {
+        				error[0] = null;
+        				attrs[0] = null;
+
+        				fileSystem.mkdir(path, null, new IFileSystem.DoneMkDir() {
+        					@Override
+        					public void doneMkDir(IToken token, FileSystemException e) {
+        						error[0] = e;
+        					}
+        				});
+
+        				if (error[0] != null) {
+        					result = StatusHelper.getStatus(error[0]);
+        					if (callback != null)
+        						callback.done(peer, result);
+        					return;
+        				}
+        			}
+        		}
+        	}
         }
 
         try {
             // Open the remote file
-            fileSystem.open(targetPath.toString(), IFileSystem.TCF_O_CREAT | IFileSystem.TCF_O_WRITE | IFileSystem.TCF_O_TRUNC, null, new IFileSystem.DoneOpen() {
+            fileSystem.open(targetPath, IFileSystem.TCF_O_CREAT | IFileSystem.TCF_O_WRITE | IFileSystem.TCF_O_TRUNC, null, new IFileSystem.DoneOpen() {
                 @Override
                 public void doneOpen(IToken token, FileSystemException e, IFileHandle h) {
                     error[0] = e;

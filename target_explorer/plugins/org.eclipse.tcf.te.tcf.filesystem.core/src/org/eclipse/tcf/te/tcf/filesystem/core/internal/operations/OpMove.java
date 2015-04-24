@@ -25,6 +25,7 @@ import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DoneRemove;
 import org.eclipse.tcf.services.IFileSystem.DoneRename;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
@@ -174,7 +175,7 @@ public class OpMove extends AbstractOperation {
 		CacheManager.clearCache(existing);
 		CacheManager.clearCache(source);
 
-		final TCFResult<?> result = new TCFResult<Object>();
+		final TCFOperationMonitor<?> result = new TCFOperationMonitor<Object>();
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -189,7 +190,7 @@ public class OpMove extends AbstractOperation {
 	}
 
 
-	protected void tcfMoveReplace(final FSTreeNode source, final FSTreeNode destination, final FSTreeNode existing, final TCFResult<?> result) {
+	protected void tcfMoveReplace(final FSTreeNode source, final FSTreeNode destination, final FSTreeNode existing, final TCFOperationMonitor<?> result) {
 		if (result.checkCancelled())
 			return;
 
@@ -212,7 +213,7 @@ public class OpMove extends AbstractOperation {
 		});
 	}
 
-	protected void tcfMove(final FSTreeNode source, final FSTreeNode dest, final TCFResult<?> result) {
+	protected void tcfMove(final FSTreeNode source, final FSTreeNode dest, final TCFOperationMonitor<?> result) {
 		final IFileSystem fileSystem = dest.getRuntimeModel().getFileSystem();
 		if (fileSystem == null) {
 			result.setCancelled();
@@ -239,7 +240,7 @@ public class OpMove extends AbstractOperation {
 
 	private IStatus deleteEmptyFolder(final FSTreeNode source, IProgressMonitor monitor) {
 		CacheManager.clearCache(source);
-		final TCFResult<?> result = new TCFResult<Object>();
+		final TCFOperationMonitor<?> result = new TCFOperationMonitor<Object>();
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -249,7 +250,7 @@ public class OpMove extends AbstractOperation {
 		return result.waitDone(monitor);
 	}
 
-	protected void tcfDeleteEmptyFolder(final FSTreeNode source, final TCFResult<?> result)  {
+	protected void tcfDeleteEmptyFolder(final FSTreeNode source, final TCFOperationMonitor<?> result)  {
 		final IFileSystem fs = source.getRuntimeModel().getFileSystem();
 		if (fs == null) {
 			result.setCancelled();

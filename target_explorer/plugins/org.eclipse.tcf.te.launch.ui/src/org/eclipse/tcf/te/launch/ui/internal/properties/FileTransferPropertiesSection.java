@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -63,7 +63,7 @@ public class FileTransferPropertiesSection extends BaseTitledSection {
 				return (((IFileTransferItem)element).getDirection() == IFileTransferItem.TARGET_TO_HOST ?
 								Messages.FileTransferSection_toHost_text : Messages.FileTransferSection_toTarget_text);
 			case 2:
-				return ((IFileTransferItem)element).getTargetPath().toPortableString();
+				return ((IFileTransferItem)element).getTargetPathString();
 			case 3:
 				return ((IFileTransferItem)element).getOptions();
 			}

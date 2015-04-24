@@ -12,7 +12,6 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.dnd;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.dnd.DragSourceEvent;
-import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.ui.navigator.CommonDragAdapterAssistant;
 
@@ -46,7 +45,7 @@ public class FSDragAdapterAssistant extends CommonDragAdapterAssistant {
 	 */
 	@Override
 	public Transfer[] getSupportedTransferTypes() {
-		return new Transfer[] {FileTransfer.getInstance()};
+		return new Transfer[] {};
 	}
 
 	/*

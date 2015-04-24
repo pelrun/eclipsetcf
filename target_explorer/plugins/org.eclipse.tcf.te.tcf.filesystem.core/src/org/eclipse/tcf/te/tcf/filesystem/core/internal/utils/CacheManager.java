@@ -63,7 +63,7 @@ public class CacheManager {
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void run() throws Exception {
-					if (!dir.mkdir()) {
+					if (!dir.mkdirs()) {
 						throw new Exception(NLS.bind(Messages.CacheManager_MkdirFailed, dir
 						                .getAbsolutePath()));
 					}

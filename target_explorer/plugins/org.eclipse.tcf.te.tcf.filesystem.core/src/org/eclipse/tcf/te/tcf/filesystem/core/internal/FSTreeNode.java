@@ -42,6 +42,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopy;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopyLocal;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreateFile;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreateFolder;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpDelete;
@@ -69,7 +70,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
  * event dispatch thread.
  */
 @SuppressWarnings("deprecation")
-public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, IFSTreeNode, org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode {
+public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org.eclipse.tcf.te.tcf.filesystem.core.model.FSTreeNode {
 	private static final QualifiedName EDITOR_KEY = new QualifiedName("org.eclipse.ui.internal.registry.ResourceEditorRegistry", "EditorProperty");//$NON-NLS-2$//$NON-NLS-1$
 	static final String KEY_WIN32_ATTRS = "Win32Attrs"; //$NON-NLS-1$
 	private static final Comparator<FSTreeNode> CMP_WIN = new Comparator<FSTreeNode>() {
@@ -477,6 +478,11 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, IFS
 	}
 
 	@Override
+	public IOperation operationDownload(File destinationFolder, IConfirmCallback confirmCallback) {
+		return new OpCopyLocal(singletonList(this), destinationFolder, confirmCallback);
+	}
+
+	@Override
 	public IOperation operationDropFiles(List<String> files, IConfirmCallback confirmCallback) {
 		OpUpload upload =  new OpUpload(confirmCallback);
 		for (String file : files) {
@@ -514,6 +520,7 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, IFS
 		fName = newName;
 	}
 
+	@Override
 	public FSTreeNode findChild(String name) {
 		return binarySearch(fChildren, name);
 	}

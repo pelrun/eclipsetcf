@@ -61,7 +61,7 @@ public class UiExecutor {
 	        	}
 	        });
         } catch (InvocationTargetException e) {
-        	ref.set(StatusHelper.getStatus(e));
+        	ref.set(StatusHelper.getStatus(e.getTargetException()));
         } catch (InterruptedException e) {
         	return Status.CANCEL_STATUS;
         }

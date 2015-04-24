@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -35,12 +35,32 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 		setProperty(PROPERTY_ENABLED, enabled);
 	}
 
-	public FileTransferItem(IPath fromHost, IPath toTarget) {
+	/**
+	 * @deprecated use {@link FileTransferItem#FileTransferItem(IPath, String)}, instead.
+	 */
+	@Deprecated
+    public FileTransferItem(IPath fromHost, IPath toTarget) {
 		this();
 		if (fromHost != null)
 			setProperty(PROPERTY_HOST, fromHost.toPortableString());
-		if (toTarget != null)
+		if (toTarget != null) {
 			setProperty(PROPERTY_TARGET, toTarget.toPortableString());
+			setProperty(PROPERTY_TARGET_STRING, toTarget.toString());
+		}
+	}
+
+	public FileTransferItem(IPath fromHost, String toTarget) {
+		this();
+		if (fromHost != null)
+			setProperty(PROPERTY_HOST, fromHost.toPortableString());
+		if (toTarget != null) {
+			// Replace multiple slashes with a single slash
+			toTarget = toTarget.replaceAll("/+", "/"); //$NON-NLS-1$ //$NON-NLS-2$
+			// Remove trailing slash
+			if (toTarget.endsWith("/") && toTarget.length() > 1) //$NON-NLS-1$
+				toTarget = toTarget.substring(0, toTarget.length()-1);
+			setProperty(PROPERTY_TARGET_STRING, toTarget);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -62,9 +82,21 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IFileTransferItem#getTargetPath()
 	 */
-	@Override
+	@Deprecated
+    @Override
 	public IPath getTargetPath() {
-		return getStringProperty(PROPERTY_TARGET) != null ? new Path(getStringProperty(PROPERTY_TARGET)) : null;
+		if (getStringProperty(PROPERTY_TARGET) != null) {
+			return new Path(getStringProperty(PROPERTY_TARGET));
+		}
+		if (getStringProperty(PROPERTY_TARGET_STRING) != null) {
+			return new Path(getStringProperty(PROPERTY_TARGET_STRING));
+		}
+		return null;
+	}
+
+	@Override
+	public String getTargetPathString() {
+		return getStringProperty(PROPERTY_TARGET_STRING);
 	}
 
 	/* (non-Javadoc)
@@ -90,7 +122,7 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 	@Override
 	public int hashCode() {
 		int hc = getHostPath() != null ? getHostPath().hashCode() : 0;
-		hc = hc << 8 + (getTargetPath() != null ? getTargetPath().hashCode() : 0);
+		hc = hc << 8 + (getTargetPathString() != null ? getTargetPathString().hashCode() : 0);
 		hc = hc << 8 + getDirection();
 	    return hc;
 	}
@@ -103,7 +135,7 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 		boolean equals = super.equals(obj);
 		if (!equals && obj instanceof IFileTransferItem) {
 			boolean hostPathEqual = getHostPath() != null ? getHostPath().equals(((IFileTransferItem)obj).getHostPath()) : ((IFileTransferItem)obj).getHostPath() == null;
-			boolean targetPathEqual = getTargetPath() != null ? getTargetPath().equals(((IFileTransferItem)obj).getTargetPath()) : ((IFileTransferItem)obj).getTargetPath() == null;
+			boolean targetPathEqual = getTargetPathString() != null ? getTargetPathString().equals(((IFileTransferItem)obj).getTargetPathString()) : ((IFileTransferItem)obj).getTargetPathString() == null;
 			boolean directionEqual = getDirection() == ((IFileTransferItem)obj).getDirection();
 			return hostPathEqual && targetPathEqual && directionEqual;
 		}

@@ -25,6 +25,7 @@ import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DoneOpen;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
@@ -47,7 +48,7 @@ public class OpTargetFileDigest extends AbstractOperation {
 		monitor.beginTask(getName(), 100);
 
 		final String path = node.getLocation(true);
-		final TCFResult<InputStream> result = new TCFResult<InputStream>();
+		final TCFOperationMonitor<InputStream> result = new TCFOperationMonitor<InputStream>();
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -99,7 +100,7 @@ public class OpTargetFileDigest extends AbstractOperation {
 		}
 	}
 
-	protected void tcfGetInputStream(IFileSystem fileSystem, final String path, final TCFResult<InputStream> result) {
+	protected void tcfGetInputStream(IFileSystem fileSystem, final String path, final TCFOperationMonitor<InputStream> result) {
 		int flags = IFileSystem.TCF_O_READ;
 		if (!result.checkCancelled()) {
 			fileSystem.open(path, flags, null, new DoneOpen() {

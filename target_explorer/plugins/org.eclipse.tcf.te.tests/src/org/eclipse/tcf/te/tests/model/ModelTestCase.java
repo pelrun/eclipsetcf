@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -158,11 +158,11 @@ public class ModelTestCase extends CoreTestCase {
 		FileTransferItem item1 = new FileTransferItem();
 		assertNotNull("Failed to create empty file transfer item!", item1); //$NON-NLS-1$
 
-		FileTransferItem item2 = new FileTransferItem(new Path("/folk/uwe/tmp/cobble.out"), new Path("/root/cobble.out")); //$NON-NLS-1$ //$NON-NLS-2$
+		FileTransferItem item2 = new FileTransferItem(new Path("/folk/uwe/tmp/cobble.out"), "/root/cobble.out"); //$NON-NLS-1$ //$NON-NLS-2$
 		assertNotNull("Failed to create file transfer item from pathes!", item2); //$NON-NLS-1$
 
-		assertNotNull("Unexpected value 'null' for item2.getTargetPath()!", item2.getTargetPath()); //$NON-NLS-1$
-		assertEquals("Invalid target path!", "/root/cobble.out", item2.getTargetPath().toString()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertNotNull("Unexpected value 'null' for item2.getTargetPath()!", item2.getTargetPathString()); //$NON-NLS-1$
+		assertEquals("Invalid target path!", "/root/cobble.out", item2.getTargetPathString().toString()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertNotNull("Unexpected value 'null' for item2.getHostPath()!", item2.getHostPath()); //$NON-NLS-1$
 		assertEquals("Invalid host path!", "/folk/uwe/tmp/cobble.out", item2.getHostPath().toString()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue("Unexpected value 'false' for item2.isEnabled()!",item2.isEnabled()); //$NON-NLS-1$

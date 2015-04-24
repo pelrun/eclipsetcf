@@ -26,6 +26,7 @@ import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DirEntry;
 import org.eclipse.tcf.services.IFileSystem.DoneRemove;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
@@ -121,7 +122,7 @@ public class OpDelete extends AbstractOperation {
 
 		CacheManager.clearCache(item.fNode);
 
-		final TCFResult<?> result = new TCFResult<Object>();
+		final TCFOperationMonitor<?> result = new TCFOperationMonitor<Object>();
 		monitor.subTask(NLS.bind(Messages.OpDelete_RemovingFileFolder, item.fNode.getLocation()));
 		Protocol.invokeLater(new Runnable() {
 			@Override
@@ -142,7 +143,7 @@ public class OpDelete extends AbstractOperation {
 		return workingCopy.operationCommit().run(new SubProgressMonitor(monitor, 0));
 	}
 
-	protected void tcfRunWorkItem(final WorkItem item, TCFResult<?> result) {
+	protected void tcfRunWorkItem(final WorkItem item, TCFOperationMonitor<?> result) {
 		if (item.fNode.isFile()) {
 			tcfDeleteFile(item, result);
 		} else if (item.fNode.isDirectory()) {
@@ -156,7 +157,7 @@ public class OpDelete extends AbstractOperation {
 		}
 	}
 
-	private void tcfDeleteFolder(final WorkItem item, final TCFResult<?> result)  {
+	private void tcfDeleteFolder(final WorkItem item, final TCFOperationMonitor<?> result)  {
 		final String path = item.fNode.getLocation(true);
 		final IFileSystem fs = item.fNode.getRuntimeModel().getFileSystem();
 		if (fs == null) {
@@ -190,7 +191,7 @@ public class OpDelete extends AbstractOperation {
 		});
 	}
 
-	private void tcfDeleteFile(final WorkItem item, final TCFResult<?> result) {
+	private void tcfDeleteFile(final WorkItem item, final TCFOperationMonitor<?> result) {
 		final IFileSystem fs = item.fNode.getRuntimeModel().getFileSystem();
 		if (fs == null) {
 			result.setCancelled();
@@ -204,7 +205,7 @@ public class OpDelete extends AbstractOperation {
 		});
 	}
 
-	private void tcfDeleteEmptyFolder(final WorkItem item, final TCFResult<?> result)  {
+	private void tcfDeleteEmptyFolder(final WorkItem item, final TCFOperationMonitor<?> result)  {
 		final IFileSystem fs = item.fNode.getRuntimeModel().getFileSystem();
 		if (fs == null) {
 			result.setCancelled();
@@ -218,7 +219,7 @@ public class OpDelete extends AbstractOperation {
 		});
 	}
 
-	protected void tcfHandleRemoved(final WorkItem item, FileSystemException error, final TCFResult<?> result) {
+	protected void tcfHandleRemoved(final WorkItem item, FileSystemException error, final TCFOperationMonitor<?> result) {
 		if (error != null) {
 			result.setError(format(Messages.OpDelete_error_delete, item.fNode.getLocation()), error);
 		} else if (!result.checkCancelled()) {

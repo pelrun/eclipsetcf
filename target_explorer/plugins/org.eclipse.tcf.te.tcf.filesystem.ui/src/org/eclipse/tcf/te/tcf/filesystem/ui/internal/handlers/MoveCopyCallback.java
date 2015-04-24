@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers;
 
+import java.io.File;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
@@ -41,15 +43,16 @@ public class MoveCopyCallback implements IConfirmCallback {
 	 */
 	@Override
 	public int confirms(Object object) {
-		final IFSTreeNode node = (IFSTreeNode) object;
+		final boolean isDirectory = isDirectory(object);
+		final String name = getName(object);
 		final int[] results = new int[1];
 		Display display = PlatformUI.getWorkbench().getDisplay();
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
 				Shell parent = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-				String title = node.isDirectory() ? Messages.FSOperation_ConfirmFolderReplaceTitle : Messages.FSOperation_ConfirmFileReplace;
-				String message = NLS.bind(node.isDirectory() ? Messages.FSOperation_ConfirmFolderReplaceMessage : Messages.FSOperation_ConfirmFileReplaceMessage, node.getName());
+				String title = isDirectory ? Messages.FSOperation_ConfirmFolderReplaceTitle : Messages.FSOperation_ConfirmFileReplace;
+				String message = NLS.bind(isDirectory ? Messages.FSOperation_ConfirmFolderReplaceMessage : Messages.FSOperation_ConfirmFileReplaceMessage, name);
 				final Image titleImage = UIPlugin.getImage(ImageConsts.REPLACE_FOLDER_CONFIRM);
 				MessageDialog qDialog = new MessageDialog(parent, title, null, message, MessageDialog.QUESTION, new String[] { Messages.FSOperation_ConfirmDialogYes, Messages.FSOperation_ConfirmDialogYesToAll, Messages.FSOperation_ConfirmDialogNo, Messages.FSOperation_ConfirmDialogCancel }, 0) {
 					@Override
@@ -62,5 +65,21 @@ public class MoveCopyCallback implements IConfirmCallback {
 		});
 		return results[0];
 	}
+
+	private String getName(Object object) {
+		if (object instanceof IFSTreeNode)
+			return ((IFSTreeNode) object).getName();
+		if (object instanceof File)
+			return ((File) object).getName();
+	    return String.valueOf(object);
+    }
+
+	private boolean isDirectory(Object object) {
+		if (object instanceof IFSTreeNode)
+			return ((IFSTreeNode) object).isDirectory();
+		if (object instanceof File)
+			return ((File) object).isDirectory();
+	    return false;
+    }
 
 }

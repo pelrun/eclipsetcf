@@ -34,6 +34,7 @@ import org.eclipse.tcf.services.IFileSystem.DoneReadDir;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
@@ -41,6 +42,8 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 public abstract class AbstractOperation implements IOperation {
+	protected static final FSTreeNode[] NO_CHILDREN = {};
+
 	public interface IReadDirDone {
 
 		void error(FileSystemException error);
@@ -136,7 +139,7 @@ public abstract class AbstractOperation implements IOperation {
 	}
 
 
-	protected int confirmCallback(final FSTreeNode node, IConfirmCallback confirmCallback) {
+	protected int confirmCallback(final Object node, IConfirmCallback confirmCallback) {
 		if (confirmCallback == null)
 			return IConfirmCallback.YES;
 
@@ -182,6 +185,17 @@ public abstract class AbstractOperation implements IOperation {
 		return SIZE_FORMAT.format(mbSize) + Messages.OpStreamOp_MBs;
 	}
 
+
+	protected void handleFSError(final FSTreeNode node, String msg, FileSystemException error, final TCFOperationMonitor<?> result) {
+		int status = error.getStatus();
+		if (status == IFileSystem.STATUS_NO_SUCH_FILE) {
+			node.getParent().removeNode(node, true);
+			result.setDone(null);
+		} else {
+			node.setContent(NO_CHILDREN, false);
+			result.setError(msg, error);
+		}
+	}
 
 	protected void tcfReadDir(final IFileSystem fs, String path, final IReadDirDone callback) {
 		fs.opendir(path, new DoneOpen() {

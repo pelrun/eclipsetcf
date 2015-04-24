@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
@@ -51,7 +52,7 @@ public abstract class OpCreate extends AbstractOperation implements IResultOpera
 			return StatusHelper.createStatus(format(Messages.OpCreate_error_existingFile, existing.getLocation()), null);
 		}
 
-		final TCFResult<FSTreeNode> result = new TCFResult<FSTreeNode>();
+		final TCFOperationMonitor<FSTreeNode> result = new TCFOperationMonitor<FSTreeNode>();
 		Protocol.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -64,7 +65,7 @@ public abstract class OpCreate extends AbstractOperation implements IResultOpera
 		return status;
 	}
 
-	protected abstract void tcfCreate(FSTreeNode destination, String name, TCFResult<FSTreeNode> result);
+	protected abstract void tcfCreate(FSTreeNode destination, String name, TCFOperationMonitor<FSTreeNode> result);
 
 	@Override
     public String getName() {

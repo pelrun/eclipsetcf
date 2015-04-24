@@ -11,12 +11,12 @@ package org.eclipse.tcf.te.tcf.filesystem.core.internal.operations;
 
 import static java.text.MessageFormat.format;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -31,7 +31,8 @@ import org.eclipse.tcf.services.IFileSystem.DoneStat;
 import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.te.runtime.callback.Callback;
-import org.eclipse.tcf.te.tcf.core.concurrent.Rendezvous;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState;
@@ -42,8 +43,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
  * FSRefresh refreshes a specified tree node and its children and grand children recursively.
  */
 public class OpRefresh extends AbstractOperation {
-	static final FSTreeNode[] NO_CHILDREN = {};
-	private static Map<FSTreeNode, TCFResult<?>> fPendingResults = new HashMap<FSTreeNode, TCFResult<?>>();
+	private static Map<FSTreeNode, TCFOperationMonitor<?>> fPendingResults = new HashMap<FSTreeNode, TCFOperationMonitor<?>>();
 
 	final LinkedList<FSTreeNode> fWork = new LinkedList<FSTreeNode>();
 	final boolean fRecursive;
@@ -108,32 +108,15 @@ public class OpRefresh extends AbstractOperation {
 		if (!node.isFileSystem() && !isDir && !isFile)
 			return Status.OK_STATUS;
 
-		final Rendezvous rendezvous;
-		if (!isTop) {
-			rendezvous = null;
-			if (isFile || node.getChildren() == null)
-				return Status.OK_STATUS;
-		} else {
-			if (isFile) {
-			    FileState digest = PersistenceManager.getInstance().getFileDigest(node);
-				rendezvous = new Rendezvous();
-				digest.updateState(new Callback(){
-					@Override
-		            protected void internalDone(Object caller, IStatus status) {
-						rendezvous.arrive();
-		            }
-				});
-			} else {
-				rendezvous = null;
-			}
-		}
+		if (!isTop && !isFile && node.getChildren() == null)
+			return Status.OK_STATUS;
 
 		monitor.subTask(format(Messages.OpRefresh_name, node.getLocation()));
 		IStatus status;
 		synchronized (fPendingResults) {
-			TCFResult<?> result = fPendingResults.get(node);
+			TCFOperationMonitor<?> result = fPendingResults.get(node);
 			if (result == null) {
-				result = new TCFResult<Object>(false);
+				result = new TCFOperationMonitor<Object>(false);
 				fPendingResults.put(node, result);
 				scheduleTcfRefresh(node, isTop, result);
 			}
@@ -143,67 +126,27 @@ public class OpRefresh extends AbstractOperation {
 				fPendingResults.remove(node);
 			}
 		}
-
-		if (rendezvous != null) {
-			try {
-				rendezvous.waiting(10000);
-			} catch (TimeoutException e) {
-			}
-		}
 		return status;
 	}
 
-	private void scheduleTcfRefresh(final FSTreeNode node, final boolean isTop, final TCFResult<?> result) {
-		Protocol.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				if (node.isFileSystem()) {
-					tcfRefreshRoots(node, result);
-				} else if (isTop && !node.isRootDirectory()) {
-					tcfStatAndRefresh(node, result);
-				} else {
-					tcfRefreshDir(node, result);
-				}
-			}
-		});
-	}
-
-	protected void tcfStatAndRefresh(final FSTreeNode node, final TCFResult<?> result) {
+	private void scheduleTcfRefresh(final FSTreeNode node, final boolean isTop, final TCFOperationMonitor<?> result) {
 		if (!result.checkCancelled()) {
-			final IFileSystem fs = node.getRuntimeModel().getFileSystem();
-			if (fs == null) {
-				result.setCancelled();
-				return;
-			}
-
-			fs.stat(node.getLocation(true), new DoneStat() {
+			Protocol.invokeLater(new Runnable() {
 				@Override
-				public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
-					if (error != null) {
-						handleFSError(node, Messages.OpRefresh_errorReadAttributes, error, result);
+				public void run() {
+					if (node.isFileSystem()) {
+						tcfRefreshRoots(node, result);
+					} else if (isTop && !node.isRootDirectory()) {
+						tcfStatAndRefresh(node, result);
 					} else {
-						node.setAttributes(attrs, false);
-						if (!attrs.isDirectory()) {
-							node.operationDownload(new OutputStream() {
-								@Override
-								public void write(int b) {}
-							}).runInJob(new Callback() {
-								@Override
-								protected void internalDone(Object caller, IStatus status) {
-									result.setDone(null);
-								}
-							});
-							result.setDone(null);
-						} else if (!result.checkCancelled()){
-							tcfRefreshDir(node, result);
-						}
+						tcfRefresh(node, result);
 					}
 				}
 			});
 		}
 	}
 
-	protected void tcfRefreshRoots(final FSTreeNode node, final TCFResult<?> result) {
+	protected void tcfRefreshRoots(final FSTreeNode node, final TCFOperationMonitor<?> result) {
 		if (!result.checkCancelled()) {
 			final IFileSystem fs = node.getRuntimeModel().getFileSystem();
 			if (fs == null) {
@@ -223,8 +166,8 @@ public class OpRefresh extends AbstractOperation {
 							nodes[i++] = new FSTreeNode(node, entry.filename, true, entry.attrs);
 						}
 						node.setContent(nodes, false);
-						if (fRecursive) {
-							for (FSTreeNode node : nodes) {
+						for (FSTreeNode node : nodes) {
+							if (fRecursive || node.isFile()) {
 								fWork.addFirst(node);
 							}
 						}
@@ -235,52 +178,115 @@ public class OpRefresh extends AbstractOperation {
 		}
 	}
 
-	protected void tcfRefreshDir(final FSTreeNode node, final TCFResult<?> result) {
+	protected void tcfStatAndRefresh(final FSTreeNode node, final TCFOperationMonitor<?> result) {
 		if (!result.checkCancelled()) {
-			final String path = node.getLocation(true);
 			final IFileSystem fs = node.getRuntimeModel().getFileSystem();
 			if (fs == null) {
 				result.setCancelled();
 				return;
 			}
 
-			tcfReadDir(fs, path, new IReadDirDone() {
+			fs.stat(node.getLocation(true), new DoneStat() {
 				@Override
-				public void error(FileSystemException error) {
-					result.setError(format(Messages.OpRefresh_errorOpenDir, path), error);
-				}
-
-				@Override
-				public boolean checkCancelled() {
-					return result.checkCancelled();
-				}
-
-				@Override
-				public void done(List<DirEntry> entries) {
-					int i = 0;
-					FSTreeNode[] nodes = new FSTreeNode[entries.size()];
-					for (DirEntry entry : entries) {
-						nodes[i++] = new FSTreeNode(node, entry.filename, false, entry.attrs);
+				public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
+					if (error != null) {
+						handleFSError(node, Messages.OpRefresh_errorReadAttributes, error, result);
+					} else {
+						node.setAttributes(attrs, false);
+						tcfRefresh(node, result);
 					}
-					node.setContent(nodes, false);
-					if (fRecursive) {
-						for (FSTreeNode node : nodes) {
-							fWork.addFirst(node);
-						}
-					}
-					result.setDone(null);
 				}
 			});
 		}
 	}
 
-	protected void handleFSError(final FSTreeNode node, String msg, FileSystemException error, final TCFResult<?> result) {
-		int status = error.getStatus();
-		if (status == IFileSystem.STATUS_NO_SUCH_FILE) {
-			node.getParent().removeNode(node, true);
+	protected void tcfRefresh(final FSTreeNode node, final TCFOperationMonitor<?> result) {
+		if (!result.checkCancelled()) {
+			if (node.isFile()) {
+				tcfUpdateCacheDigest(node, result);
+			} else if (node.isDirectory()) {
+				final String path = node.getLocation(true);
+				final IFileSystem fs = node.getRuntimeModel().getFileSystem();
+				if (fs == null) {
+					result.setCancelled();
+					return;
+				}
+
+				tcfReadDir(fs, path, new IReadDirDone() {
+					@Override
+					public void error(FileSystemException error) {
+						result.setError(format(Messages.OpRefresh_errorOpenDir, path), error);
+					}
+
+					@Override
+					public boolean checkCancelled() {
+						return result.checkCancelled();
+					}
+
+					@Override
+					public void done(List<DirEntry> entries) {
+						int i = 0;
+						FSTreeNode[] nodes = new FSTreeNode[entries.size()];
+						for (DirEntry entry : entries) {
+							nodes[i++] = new FSTreeNode(node, entry.filename, false, entry.attrs);
+						}
+						node.setContent(nodes, false);
+						for (FSTreeNode node : nodes) {
+							if (fRecursive || node.isFile()) {
+								fWork.addFirst(node);
+							}
+						}
+						result.setDone(null);
+					}
+				});
+			} else {
+				result.setDone(null);
+			}
+		}
+	}
+
+	protected void tcfUpdateCacheDigest(final FSTreeNode node, final TCFOperationMonitor<?> result) {
+		File cacheFile = node.getCacheFile();
+		if (!cacheFile.exists()) {
 			result.setDone(null);
+			return;
+		}
+
+		final FileState digest = PersistenceManager.getInstance().getFileDigest(node);
+		final long cacheMTime = cacheFile.lastModified();
+		if (digest.getCacheDigest() == null || digest.getCacheMTime() != cacheMTime) {
+			final OpCacheFileDigest op = new OpCacheFileDigest(node);
+			op.runInJob(new Callback() {
+				@Override
+				protected void internalDone(Object caller, IStatus status) {
+					if (status.isOK()) {
+						digest.updateCacheDigest(op.getDigest(), cacheMTime);
+						tcfUpdateTargetDigest(digest, node, result);
+					} else {
+						result.setDone(status, null);
+					}
+				}
+			});
 		} else {
-			node.setContent(NO_CHILDREN, false);
+			tcfUpdateTargetDigest(digest, node, result);
+		}
+	}
+
+
+	protected void tcfUpdateTargetDigest(FileState digest, final FSTreeNode node, final TCFOperationMonitor<?> result) {
+		if (digest.getTargetDigest() == null || digest.getTargetMTime() != node.getModificationTime()) {
+			final IOperation op = node.operationDownload(new OutputStream() {
+				@Override
+				public void write(int b) {
+				}
+			});
+			op.runInJob(new Callback() {
+				@Override
+                protected void internalDone(Object caller, IStatus status) {
+					result.setDone(status, null);
+                }
+			});
+		} else {
 			result.setDone(null);
 		}
 	}

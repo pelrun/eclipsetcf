@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -30,6 +30,7 @@ import org.eclipse.tcf.te.runtime.persistence.delegates.GsonMapPersistenceDelega
 public class PersistenceManagerDelegate extends GsonMapPersistenceDelegate {
 
     private static final String MAP_KEY_MTIME = "mtime"; //$NON-NLS-1$
+    private static final String MAP_KEY_TARGET_MTIME = "target_mtime"; //$NON-NLS-1$
     private static final String MAP_KEY_TARGET = "target"; //$NON-NLS-1$
     private static final String MAP_KEY_CACHE = "cache"; //$NON-NLS-1$
     private static final String MAP_KEY_BASE = "base"; //$NON-NLS-1$
@@ -116,7 +117,7 @@ public class PersistenceManagerDelegate extends GsonMapPersistenceDelegate {
 
     /**
      * Translate the specified map whose keys are QualifiedNames to a map whose keys are strings.
-     * 
+     *
      * @param map The map to be translated.
      * @return a map with string keys.
      */
@@ -196,7 +197,9 @@ public class PersistenceManagerDelegate extends GsonMapPersistenceDelegate {
         byte[] target_digest = string2digest((String) value.get(MAP_KEY_TARGET));
         Number number = (Number) value.get(MAP_KEY_MTIME);
         long mtime = number.longValue();
-        return new FileState(mtime, cache_digest, target_digest, base_digest);
+        number = (Number) value.get(MAP_KEY_TARGET_MTIME);
+        long target_mtime = number == null ? 0 : number.longValue();
+        return new FileState(mtime, target_mtime, cache_digest, target_digest, base_digest);
     }
 
     private Map<String, Object> digest2map(FileState digest) {
@@ -205,10 +208,11 @@ public class PersistenceManagerDelegate extends GsonMapPersistenceDelegate {
         map.put(MAP_KEY_CACHE, digest2string(digest.getCacheDigest()));
         map.put(MAP_KEY_TARGET, digest2string(digest.getTargetDigest()));
         map.put(MAP_KEY_MTIME, Long.valueOf(digest.getCacheMTime()));
+        map.put(MAP_KEY_TARGET_MTIME, Long.valueOf(digest.getTargetMTime()));
         return map;
     }
 
-    private String digest2string(byte[] digest) {
+    static String digest2string(byte[] digest) {
         if (digest != null && digest.length > 0) {
             StringBuilder buffer = new StringBuilder();
             for (byte element : digest) {
@@ -245,7 +249,7 @@ public class PersistenceManagerDelegate extends GsonMapPersistenceDelegate {
 
     /**
      * Translate the specified map with string keys to a map whose keys are qualified names.
-     * 
+     *
      * @param strMap The map with string keys.
      * @return A map with qualified names as keys.
      */
@@ -267,7 +271,7 @@ public class PersistenceManagerDelegate extends GsonMapPersistenceDelegate {
 
     /**
      * Convert the string to a URI.
-     * 
+     *
      * @param string The string to be converted.
      * @return the URI or null if there're issues when parsing.
      */

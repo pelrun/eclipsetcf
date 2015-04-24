@@ -522,6 +522,22 @@
                </with>
             </visibleWhen>
          </command>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.filesystem.ui.download"
+               helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Download"
+               id="download"
+               label="%command.label.download"
+               mnemonic="%command.download.mnemonic"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
          <separator
                name="group.search"
                visible="true">
@@ -938,6 +954,25 @@
                </with>
             </visibleWhen>
          </command>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.filesystem.ui.download"
+               helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Download"
+               id="download"
+               label="%command.label.download"
+               mnemonic="%command.download.mnemonic"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="+"/>
+                  <iterate>
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                     <not>
+                        <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot"/>
+                     </not>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
       
       <menuContribution
@@ -1027,6 +1062,10 @@
       <command
             id="org.eclipse.tcf.te.tcf.filesystem.commands.refreshViewer"
             name="%command.refreshViewer.name">
+      </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.filesystem.ui.download"
+            name="%command.download.name">
       </command>
    </extension>
 
@@ -1377,6 +1416,35 @@
                         <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isWritable"/>
                      </and>
                   </or>
+               </iterate>
+            </with>
+         </enabledWhen>
+      </handler>
+      <handler
+            class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.DownloadFilesHandler"
+            commandId="org.eclipse.tcf.te.tcf.filesystem.ui.download">
+         <activeWhen>
+            <and>
+               <with variable="activePartId">
+                  <or>
+                     <equals value="org.eclipse.tcf.te.ui.views.View"/>
+                     <equals value="org.eclipse.tcf.te.ui.views.Editor"/>
+                  </or>
+               </with>
+               <with variable="selection">
+                  <iterate operator="and" ifEmpty="false">
+                     <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                  </iterate>
+               </with>
+            </and>
+         </activeWhen>
+         <enabledWhen>
+            <with variable="selection">
+               <iterate operator="and" ifEmpty="false">
+                  <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                  <not>
+                     <test property="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode.isSystemRoot"/>
+                  </not>
                </iterate>
             </with>
          </enabledWhen>

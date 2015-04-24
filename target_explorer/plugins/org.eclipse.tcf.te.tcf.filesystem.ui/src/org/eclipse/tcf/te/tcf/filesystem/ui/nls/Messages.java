@@ -114,6 +114,8 @@ public class Messages extends NLS {
 	public static String DeleteFilesHandler_DeleteMultipleFilesConfirmation;
 	public static String DeleteFilesHandler_DeleteOneFileConfirmation;
 	public static String DeleteFilesHandler_ConfirmDialogTitle;
+	public static String DownloadFilesHandler_folderDlg_message;
+	public static String DownloadFilesHandler_folderDlg_text;
 	public static String FSRenamingAssistant_NameAlreadyExists;
 	public static String FSRenamingAssistant_SpecifyNonEmptyName;
 	public static String FSRenamingAssistant_UnixIllegalCharacters;

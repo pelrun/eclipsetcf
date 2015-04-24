@@ -13,6 +13,7 @@ import static org.eclipse.tcf.te.tcf.locator.model.ModelManager.getPeerModel;
 
 import java.beans.PropertyChangeEvent;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
@@ -26,11 +27,14 @@ import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.model.interfaces.factory.IFactory;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelService;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.UserAccount;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopyLocal;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
@@ -151,6 +155,11 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 		IPropertyChangeProvider provider = (IPropertyChangeProvider) fPeerNode.getAdapter(IPropertyChangeProvider.class);
 		if (provider != null)
 			provider.firePropertyChange(propertyChangeEvent);
+	}
+
+	@Override
+	public IOperation operationDownload(List<IFSTreeNode> nodes, File destination, IConfirmCallback confirmCallback) {
+		return new OpCopyLocal(nodes, destination, confirmCallback);
 	}
 
 	@Override

@@ -21,6 +21,7 @@ import org.eclipse.tcf.services.IFileSystem.DoneStat;
 import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
@@ -34,7 +35,7 @@ public class OpCreateFile extends OpCreate {
 	}
 
 	@Override
-	protected void tcfCreate(final FSTreeNode destination, final String name, final TCFResult<FSTreeNode> result) {
+	protected void tcfCreate(final FSTreeNode destination, final String name, final TCFOperationMonitor<FSTreeNode> result) {
 		Assert.isTrue(Protocol.isDispatchThread());
 		if (result.checkCancelled())
 			return;

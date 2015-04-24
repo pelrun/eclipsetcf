@@ -19,6 +19,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DoneRename;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
@@ -41,7 +42,7 @@ public class OpRename extends AbstractOperation {
 		monitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
 
 		CacheManager.clearCache(node);
-		final TCFResult<?> result = new TCFResult<Object>();
+		final TCFOperationMonitor<?> result = new TCFOperationMonitor<Object>();
 		monitor.subTask(NLS.bind(Messages.OpMove_Moving, node.getLocation()));
 		Protocol.invokeLater(new Runnable() {
 			@Override
@@ -53,7 +54,7 @@ public class OpRename extends AbstractOperation {
 	}
 
 
-	protected void tcfRename(final TCFResult<?> result) {
+	protected void tcfRename(final TCFOperationMonitor<?> result) {
 		if (result.checkCancelled())
 			return;
 

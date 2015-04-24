@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -27,9 +27,9 @@ import org.eclipse.tcf.te.tcf.core.nls.Messages;
 /**
  * A helper class used to synchronize multiple threads. It is used
  * to join multiple threads which collaborate to create the pre-condition
- * of the callback code. 
+ * of the callback code.
  * <p>
- * A callback monitor maintains a map containing a set of locks. 
+ * A callback monitor maintains a map containing a set of locks.
  * The collaborating threads should unlock one of its own lock in
  * it and wake up the callback if all the locks in the map is opened.
  * <p>
@@ -84,8 +84,8 @@ import org.eclipse.tcf.te.tcf.core.nls.Messages;
  * in the method will be invoked and do the thing which requires to be done
  * after the end of these threads.
  * <p>
- * <b>Note:</b><em>The threads which require collaboration on the callback 
- * monitor should be started only after all the locks corresponding to them 
+ * <b>Note:</b><em>The threads which require collaboration on the callback
+ * monitor should be started only after all the locks corresponding to them
  * are added. </em>
  * <p>
  * For example, the above threads are started after the monitor locks all the threads:
@@ -103,20 +103,20 @@ public class CallbackMonitor {
 	private ICallback callback;
 	// The lock map containing the keys and the corresponding running results.
 	private Map<Object, IStatus> locks;
-	
+
 	/**
 	 * Create a callback monitor with the specified callback with a default timeout.
-	 * 
+	 *
 	 * @param callback The callback to be invoked after all the locks being unlocked.
 	 */
 	public CallbackMonitor(ICallback callback) {
 		this(callback, DEFAULT_TIMEOUT);
 	}
-	
+
 	/**
 	 * Create a callback monitor with the specified callback with a timeout. If
 	 * the timeout is zero, then it will block forever until all locks are released.
-	 * 
+	 *
 	 * @param callback The callback to be invoked after all the locks being unlocked.
 	 * @param timeout The timeout value.
 	 */
@@ -128,23 +128,22 @@ public class CallbackMonitor {
 			new Timer().schedule(new MonitorTask(callback, timeout), timeout, timeout);
 		}
 	}
-	
+
 	/**
 	 * Create a callback monitor with the specified callback and the keys with a default
 	 * timeout.
-	 * 
+	 *
 	 * @param callback The callback to be invoked after all the locks being unlocked.
 	 * @param keys The keys to lock and unlock the locks.
-	 * @param timeout The timeout value.
 	 */
 	public CallbackMonitor(ICallback callback, Object...keys) {
 		this(callback, DEFAULT_TIMEOUT, keys);
 	}
-	
+
 	/**
 	 * Create a callback monitor with the specified callback and the keys and a timeout. If
 	 * the timeout is zero, then it will block forever until all locks are released.
-	 * 
+	 *
 	 * @param callback The callback to be invoked after all the locks being unlocked.
 	 * @param keys The keys to lock and unlock the locks.
 	 * @param timeout The timeout value.
@@ -161,7 +160,7 @@ public class CallbackMonitor {
 
 	/**
 	 * Add multiple locks with the specified keys.
-	 * 
+	 *
 	 * @param keys The keys whose locks are added.
 	 */
 	public void lock(Object... keys) {
@@ -170,10 +169,10 @@ public class CallbackMonitor {
 			this.locks.put(key, null);
 		}
 	}
-	
+
 	/**
 	 * Add a lock with the specified key.
-	 * 
+	 *
 	 * @param key The key whose lock is added.
 	 */
 	public void lock(Object key) {
@@ -182,10 +181,10 @@ public class CallbackMonitor {
 	}
 
 	/**
-	 * Unlock the lock with the specified key and status 
-	 * check if all the locks have been unlocked. If all the 
+	 * Unlock the lock with the specified key and status
+	 * check if all the locks have been unlocked. If all the
 	 * locks have been unlocked, then invoke the callback.
-	 * 
+	 *
 	 * @param key The key to unlock its lock.
 	 */
 	public void unlock(Object key, IStatus status) {
@@ -202,7 +201,7 @@ public class CallbackMonitor {
 
 	/**
 	 * Check if all the locks are unlocked and return a running status.
-	 * 
+	 *
 	 * @return a MultiStatus object describing running result or null if not completed yet.
 	 */
 	private synchronized IStatus getCurrentStatus() {
@@ -214,7 +213,7 @@ public class CallbackMonitor {
 				list.add(status);
 			}
 		}
-		IStatus[] children = list.toArray(new IStatus[list.size()]); 
+		IStatus[] children = list.toArray(new IStatus[list.size()]);
 		return new MultiStatus(CoreBundleActivator.getUniqueIdentifier(), 0, children, Messages.CallbackMonitor_AllTasksFinished, null);
 	}
 }

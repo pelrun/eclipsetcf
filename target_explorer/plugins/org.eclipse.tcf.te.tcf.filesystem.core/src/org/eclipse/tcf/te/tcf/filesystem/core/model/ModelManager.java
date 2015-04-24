@@ -26,6 +26,7 @@ import org.eclipse.tcf.services.IFileSystem.DoneUser;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager.DoneOpenChannel;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
@@ -39,7 +40,6 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpDelete;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRefresh;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpUpload;
-import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.TCFResult;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -69,7 +69,7 @@ public class ModelManager {
 			return null;
 
 
-		final TCFResult<IRuntimeModel> result = new TCFResult<IRuntimeModel>();
+		final TCFOperationMonitor<IRuntimeModel> result = new TCFOperationMonitor<IRuntimeModel>();
 		// Create the runnable to execute
 		Runnable runnable = new Runnable() {
 			@Override
@@ -95,12 +95,12 @@ public class ModelManager {
 		return result.getValue();
 	}
 
-	protected static void createRuntimeModel(final IPeerNode peerNode, final TCFResult<IRuntimeModel> result) {
+	protected static void createRuntimeModel(final IPeerNode peerNode, final TCFOperationMonitor<IRuntimeModel> result) {
 		Assert.isTrue(Protocol.isDispatchThread());
 		Map<String, Boolean> flags = new HashMap<String, Boolean>();
 		flags.put(IChannelManager.FLAG_FORCE_NEW, Boolean.TRUE);
 		flags.put(IChannelManager.FLAG_NO_PATH_MAP, Boolean.TRUE);
-		flags.put(IChannelManager.FLAG_NO_VALUE_ADD, Boolean.FALSE);
+		flags.put(IChannelManager.FLAG_NO_VALUE_ADD, Boolean.TRUE);
 
 		Tcf.getChannelManager().openChannel(peerNode.getPeer(), flags, new DoneOpenChannel() {
 			@Override

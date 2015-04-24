@@ -16,6 +16,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.DoneSetStat;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
+import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
@@ -36,7 +37,7 @@ public class OpCommitAttr extends AbstractOperation {
 	public IStatus doRun(IProgressMonitor monitor) {
 		monitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
 
-		final TCFResult<?> result = new TCFResult<Object>();
+		final TCFOperationMonitor<?> result = new TCFOperationMonitor<Object>();
 		final IFileSystem fileSystem = fNode.getRuntimeModel().getFileSystem();
 		if (fileSystem == null) {
 			return result.setCancelled();
