@@ -338,7 +338,9 @@
 <!-- Event listener contributions -->
    <extension point="org.eclipse.tcf.te.runtime.eventListeners">
       <eventListener class="org.eclipse.tcf.te.ui.events.TriggerCommandEventListener">
-         <eventType class="org.eclipse.tcf.te.runtime.events.TriggerCommandEvent"/>
+         <eventType
+               bundleId="org.eclipse.tcf.te.runtime"
+               class="org.eclipse.tcf.te.runtime.events.TriggerCommandEvent"/>
       </eventListener>
    </extension>
    

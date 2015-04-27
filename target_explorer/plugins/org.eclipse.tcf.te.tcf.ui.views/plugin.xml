@@ -178,6 +178,7 @@
             class="org.eclipse.tcf.te.tcf.ui.views.scriptpad.events.EventListener"
             forcePluginActivation="true">
             <eventType
+                  bundleId="org.eclipse.tcf.te.tcf.core.scripting"
                   class="org.eclipse.tcf.te.tcf.core.scripting.events.ScriptEvent">
             </eventType>
       </eventListener>
@@ -189,6 +190,7 @@
             class="org.eclipse.tcf.te.tcf.ui.views.monitor.events.EventListener"
             forcePluginActivation="true">
             <eventType
+                  bundleId="org.eclipse.tcf.te.tcf.log.core"
                   class="org.eclipse.tcf.te.tcf.log.core.events.MonitorEvent">
             </eventType>
       </eventListener>

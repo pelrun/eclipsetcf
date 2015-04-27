@@ -85,7 +85,7 @@
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="bundleId" type="string">
+         <attribute name="bundleId" type="string" use="required">
             <annotation>
                <documentation>
                   The unique id of the bundle which contains the class loader required to load the event type class. If not specified, the extension points declaring bundle class loader is used.
@@ -107,7 +107,7 @@
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="bundleId" type="string">
+         <attribute name="bundleId" type="string" use="required">
             <annotation>
                <documentation>
                   The unique id of the bundle which contains the class loader required to load the event source type class. If not specified, the extension points declaring bundle class loader is used.
