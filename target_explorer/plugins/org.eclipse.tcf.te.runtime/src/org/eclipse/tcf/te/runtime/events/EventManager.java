@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventListener;
 import java.util.EventObject;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
@@ -73,20 +74,20 @@ public final class EventManager {
 	 * Each entry contains a reference to the listener and a list of valid source classes.
 	 * If an event source can be casted to one of the classes the listener is invoked.
 	 */
-	private class ListenerListEntry {
+	private static class ListenerListEntry {
 		private final IEventListener listener;
-		private final Object[] eventSources;
-		private final Class<?>[] eventTypes;
+		private Object[] eventSources;
+		private ClassNotLoadedItem[] eventSourcesNotLoaded;
+		private Class<?>[] eventTypes;
+		private ClassNotLoadedItem[] eventTypesNotLoaded;
 
 		/**
 		 * Constructor.
 		 *
 		 * @param listener The listener.
-		 * @param eventType The event type the listener is interested in.
-		 * @param eventSource The source type for which events should be fired to the listener.
 		 */
-		protected ListenerListEntry(IEventListener listener, Class<?> eventType, Object eventSource) {
-			this(listener, eventType == null ? null : new Class[] { eventType }, eventSource == null ? null : new Object[] { eventSource });
+		protected ListenerListEntry(IEventListener listener) {
+			this(listener, null, null, null, null);
 		}
 
 		/**
@@ -94,19 +95,31 @@ public final class EventManager {
 		 *
 		 * @param listener The listener.
 		 * @param eventTypes The event types the listener is interested in.
+		 * @param eventTypesNotLoaded The event types this listener wants to be invoked but could not be loaded.
 		 * @param eventSources The source types for which events should be fired to the listener.
+		 * @param eventSourceNotLoaded The event types this listener wants to be invoked but could not be loaded.
 		 */
-		protected ListenerListEntry(IEventListener listener, Class<?>[] eventTypes, Object[] eventSources) {
+		protected ListenerListEntry(IEventListener listener, Class<?>[] eventTypes, ClassNotLoadedItem[] eventTypesNotLoaded, Object[] eventSources, ClassNotLoadedItem[] eventSourcesNotLoaded) {
 			this.listener = listener;
 			if (eventTypes == null || eventTypes.length == 0) {
 				this.eventTypes = null;
 			} else {
 				this.eventTypes = eventTypes;
 			}
+			if (eventTypesNotLoaded == null || eventTypesNotLoaded.length == 0) {
+				this.eventTypesNotLoaded = null;
+			} else {
+				this.eventTypesNotLoaded = eventTypesNotLoaded;
+			}
 			if (eventSources == null || eventSources.length == 0) {
 				this.eventSources = null;
 			} else {
 				this.eventSources = eventSources;
+			}
+			if (eventSourcesNotLoaded == null || eventSourcesNotLoaded.length == 0) {
+				this.eventSourcesNotLoaded = null;
+			} else {
+				this.eventSourcesNotLoaded = eventSourcesNotLoaded;
 			}
 		}
 
@@ -118,6 +131,103 @@ public final class EventManager {
 		}
 
 		/**
+		 * Attempts to load the class specified by the given class
+		 * not found item.
+		 *
+		 * @param item The class not found item. Must not be <code>null</code>.
+		 * @return The class object or <code>null</code>.
+		 */
+		private Class<?> loadClass(ClassNotLoadedItem item, String type) {
+			Assert.isNotNull(item);
+			Assert.isNotNull(type);
+
+			Class<?> clazz = null;
+
+			// If a bundle id got specified, use the specified bundle to load the service class
+			Bundle bundle = Platform.getBundle(item.bundleId);
+			// If we don't have a bundle to load from yet, fallback to the declaring bundle
+			if (bundle == null) bundle = Platform.getBundle(item.declaringBundleId);
+			// And finally, use our own bundle to load the class. This fallback is expected
+			// to never be used.
+			if (bundle == null) bundle = CoreBundleActivator.getContext().getBundle();
+
+			// If the specified bundle is active, or "forceBundleActivation" is true, the class can be loaded
+			if (bundle != null && bundle.getState() == Bundle.ACTIVE) {
+				try {
+					clazz = bundle.loadClass(item.className);
+				} catch (Exception ex) {
+					if (isTracingEnabled())
+						CoreBundleActivator.getTraceHandler().trace("Error instantiating event listener " + type + " object instance: " + item.className, //$NON-NLS-1$ //$NON-NLS-2$
+										0, ITraceIds.TRACE_EVENTS, IStatus.ERROR, this);
+				}
+			}
+
+			return clazz;
+		}
+
+		/**
+		 * Attempt to load event type class objects which could not be loaded
+		 * before because the parent plug-in's are not activated.
+		 */
+		private void loadNotLoadedEventTypes() {
+			if (eventTypesNotLoaded == null || eventTypesNotLoaded.length == 0) return;
+
+			List<Class<?>> types = new ArrayList<Class<?>>();
+			if (eventTypes != null && eventTypes.length > 0) types.addAll(Arrays.asList(eventTypes));
+
+			List<ClassNotLoadedItem> notLoaded = new ArrayList<ClassNotLoadedItem>(Arrays.asList(eventTypesNotLoaded));
+
+			boolean changed = false;
+
+			Iterator<ClassNotLoadedItem> it = notLoaded.iterator();
+			while (it.hasNext()) {
+				ClassNotLoadedItem item = it.next();
+				Class<?> clazz = loadClass(item, "event type"); //$NON-NLS-1$
+				if (clazz != null) {
+					it.remove();
+					changed = true;
+					if (!types.contains(clazz)) types.add(clazz);
+				}
+			}
+
+			if (changed) {
+				eventTypes = types.toArray(new Class<?>[types.size()]);
+				eventTypesNotLoaded = notLoaded.toArray(new ClassNotLoadedItem[notLoaded.size()]);
+			}
+		}
+
+		/**
+		 * Attempt to load event source class objects which could not be loaded
+		 * before because the parent plug-in's are not activated.
+		 */
+		private void loadNotLoadedEventSources() {
+			if (eventSourcesNotLoaded == null || eventSourcesNotLoaded.length == 0) return;
+
+			List<Object> sources = new ArrayList<Object>();
+			if (eventSources != null && eventSources.length > 0) sources.addAll(Arrays.asList(eventSources));
+
+			List<ClassNotLoadedItem> notLoaded = new ArrayList<ClassNotLoadedItem>(Arrays.asList(eventSourcesNotLoaded));
+
+			boolean changed = false;
+
+			Iterator<ClassNotLoadedItem> it = notLoaded.iterator();
+			while (it.hasNext()) {
+				ClassNotLoadedItem item = it.next();
+				Class<?> clazz = loadClass(item, "event source type"); //$NON-NLS-1$
+				if (clazz != null) {
+					it.remove();
+					changed = true;
+					if (!sources.contains(clazz)) sources.add(clazz);
+				}
+			}
+
+			if (changed) {
+				eventSources = sources.toArray(new Object[sources.size()]);
+				eventSourcesNotLoaded = notLoaded.toArray(new ClassNotLoadedItem[notLoaded.size()]);
+			}
+		}
+
+		/**
 		 * Check whether the listener wants to be called for changes of the source.
 		 * The check is made through <code>instanceof</code>.
 		 *
@@ -126,14 +236,18 @@ public final class EventManager {
 		 * 		   or no event sources are registered.
 		 */
 		protected boolean listensTo(EventObject event) {
-			boolean types = (eventTypes == null || eventTypes.length == 0);
-			boolean sources = (eventSources == null || eventSources.length == 0);
+			boolean types = ((eventTypes == null || eventTypes.length == 0) && (eventTypesNotLoaded == null || eventTypesNotLoaded.length == 0));
+			boolean sources = ((eventSources == null || eventSources.length == 0) && (eventSourcesNotLoaded == null || eventSourcesNotLoaded.length == 0));
+
+			if (!types) loadNotLoadedEventTypes();
 
 			int t = 0;
 			while (!types && eventTypes != null && t < eventTypes.length) {
 				types = eventTypes[t].isInstance(event);
 				t++;
 			}
+
+			if (!sources) loadNotLoadedEventSources();
 
 			int s = 0;
 			while (!sources && eventSources != null && s < eventSources.length) {
@@ -181,9 +295,66 @@ public final class EventManager {
 			return getClass().getName() + "{" + //$NON-NLS-1$
 											"listener=" + listener + //$NON-NLS-1$
 											",eventTypes=" + Arrays.deepToString(eventTypes) + //$NON-NLS-1$
+											",eventTypesNotLoaded=" + Arrays.deepToString(eventTypesNotLoaded) + //$NON-NLS-1$
 											",eventSources=" + Arrays.deepToString(eventSources) + //$NON-NLS-1$
+											",eventSourcesNotLoaded=" + Arrays.deepToString(eventSourcesNotLoaded) + //$NON-NLS-1$
 										  "}"; //$NON-NLS-1$
 		}
+	}
+
+	/**
+	 * eventType or eventSourceType extension elements which could not be loaded.
+	 */
+	private static class ClassNotLoadedItem {
+		public final String bundleId;
+		public final String className;
+		public final String declaringBundleId;
+
+		/**
+         * Constructor
+         *
+         */
+        public ClassNotLoadedItem(String bundleId, String className, String declaringBundleId) {
+        	Assert.isNotNull(bundleId);
+        	this.bundleId = bundleId;
+        	Assert.isNotNull(className);
+        	this.className = className;
+        	Assert.isNotNull(declaringBundleId);
+        	this.declaringBundleId = declaringBundleId;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        public boolean equals(Object obj) {
+        	if (obj instanceof ClassNotLoadedItem) {
+        		return bundleId.equals(((ClassNotLoadedItem)obj).bundleId)
+        					&& className.equals(((ClassNotLoadedItem)obj).className)
+        					&& declaringBundleId.equals(((ClassNotLoadedItem)obj).declaringBundleId);
+        	}
+            return false;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+        public int hashCode() {
+            return bundleId.hashCode() ^ className.hashCode() ^ declaringBundleId.hashCode();
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+			return getClass().getName() + "{" + //$NON-NLS-1$
+							"bundleId=" + bundleId + //$NON-NLS-1$
+							",className=" + className + //$NON-NLS-1$
+							",declaringBundleId=" + declaringBundleId + //$NON-NLS-1$
+						  "}"; //$NON-NLS-1$
+        }
 	}
 
 	/*
@@ -214,7 +385,7 @@ public final class EventManager {
 	 * @param eventType The event type this listeners wants to be invoked.
 	 */
 	public void addEventListener(IEventListener listener, Class<?> eventType) {
-		addEventListener(listener, eventType != null ? new Class[] { eventType } : null, null);
+		addEventListener(listener, eventType != null ? new Class[] { eventType } : null, null, null, null);
 	}
 
 	/**
@@ -224,7 +395,7 @@ public final class EventManager {
 	 * @param eventTypes The event types this listeners wants to be invoked.
 	 */
 	public void addEventListener(IEventListener listener, Class<?>[] eventTypes) {
-		addEventListener(listener, eventTypes, null);
+		addEventListener(listener, eventTypes, null, null, null);
 	}
 
 	/**
@@ -237,7 +408,7 @@ public final class EventManager {
 	 * @param eventSource The event source type this listeners wants to be invoked.
 	 */
 	public void addEventListener(IEventListener listener, Class<?> eventType, Object eventSource) {
-		addEventListener(listener, eventType != null ? new Class[] { eventType } : null, eventSource != null ? new Object[] { eventSource } : null);
+		addEventListener(listener, eventType != null ? new Class[] { eventType } : null, null, eventSource != null ? new Object[] { eventSource } : null, null);
 	}
 
 	/**
@@ -250,7 +421,7 @@ public final class EventManager {
 	 * @param eventSources The event sources type this listeners wants to be invoked.
 	 */
 	public void addEventListener(IEventListener listener, Class<?> eventType, Object[] eventSources) {
-		addEventListener(listener, eventType != null ? new Class[] { eventType } : null, eventSources);
+		addEventListener(listener, eventType != null ? new Class[] { eventType } : null, null, eventSources, null);
 	}
 
 	/**
@@ -259,11 +430,13 @@ public final class EventManager {
 	 * event sources are updated
 	 *
 	 * @param listener The listener to add.
-	 * @param eventTypes The event types this listeners wants to be invoked.
-	 * @param eventSources The event source types this listeners wants to be invoked.
+	 * @param eventTypes The event types this listener wants to be invoked.
+	 * @param eventTypesNotLoaded The event types this listener wants to be invoked but could not be loaded.
+	 * @param eventSources The event source types this listener wants to be invoked.
+	 * @param eventSourceTypesNotLoaded The event source types this listener wants to be invoked but could not be loaded.
 	 */
-	public void addEventListener(IEventListener listener, Class<?>[] eventTypes, Object[] eventSources) {
-		ListenerListEntry listEntry = new ListenerListEntry(listener, eventTypes, eventSources);
+	public void addEventListener(IEventListener listener, Class<?>[] eventTypes, ClassNotLoadedItem[] eventTypesNotLoaded, Object[] eventSources, ClassNotLoadedItem[] eventSourcesNotLoaded) {
+		ListenerListEntry listEntry = new ListenerListEntry(listener, eventTypes, eventTypesNotLoaded, eventSources, eventSourcesNotLoaded);
 		// We must assure that the existing list entries can _never_ change!
 		synchronized (listeners) {
 			if (listeners.contains(listEntry)) {
@@ -279,7 +452,7 @@ public final class EventManager {
 	 * @param listener The listener to remove.
 	 */
 	public void removeEventListener(IEventListener listener) {
-		ListenerListEntry listEntry = new ListenerListEntry(listener, (Class<?>)null, (Object)null);
+		ListenerListEntry listEntry = new ListenerListEntry(listener);
 		listeners.remove(listEntry);
 	}
 
@@ -368,73 +541,82 @@ public final class EventManager {
 								List<Class<?>> eventTypes = new ArrayList<Class<?>>();
 								List<Class<?>> eventSourceTypes = new ArrayList<Class<?>>();
 
+								List<ClassNotLoadedItem> eventTypesNotLoaded = new ArrayList<ClassNotLoadedItem>();
+								List<ClassNotLoadedItem> eventSourceTypesNotLoaded = new ArrayList<ClassNotLoadedItem>();
+
 								IConfigurationElement[] children = configElement.getChildren();
 								for (IConfigurationElement child : children) {
 									if ("eventType".equals(child.getName())) { //$NON-NLS-1$
-										// The event types, we have to instantiate here as we need the class object!
-										try {
-											// First we try to instantiate the class using our own local class loader.
-											// This trick can avoid activating the contributing plugin if we can load
-											// the class ourself.
-											// First we try to instantiate the class using our own context
-											String className = child.getAttribute("class"); //$NON-NLS-1$
-											if (className == null || className.trim().length() == 0) {
-												continue;
+										String className = child.getAttribute("class"); //$NON-NLS-1$
+										if (className == null || className.trim().length() == 0) {
+											continue;
+										}
+
+										String bundleId = child.getAttribute("bundleId"); //$NON-NLS-1$
+
+										// If a bundle id got specified, use the specified bundle to load the service class
+										Bundle bundle = bundleId != null ? Platform.getBundle(bundleId) : null;
+										// If we don't have a bundle to load from yet, fallback to the declaring bundle
+										if (bundle == null) bundle = Platform.getBundle(child.getDeclaringExtension().getNamespaceIdentifier());
+										// And finally, use our own bundle to load the class. This fallback is expected
+										// to never be used.
+										if (bundle == null) bundle = CoreBundleActivator.getContext().getBundle();
+
+										// If the specified bundle is active, or "forceBundleActivation" is true, the class can be loaded
+										if (bundle != null && bundle.getState() == Bundle.ACTIVE) {
+											try {
+												Class<?> eventType = bundle.loadClass(className);
+												if (eventType != null && !eventTypes.contains(eventType)) {
+													eventTypes.add(eventType);
+												}
+											} catch (Exception ex) {
+												if (isTracingEnabled())
+													CoreBundleActivator.getTraceHandler().trace("Error instantiating event listener event type object instance: " + child.getAttribute("class"), //$NON-NLS-1$ //$NON-NLS-2$
+																	0, ITraceIds.TRACE_EVENTS, IStatus.ERROR, this);
 											}
-
-											String bundleId = child.getAttribute("bundleId"); //$NON-NLS-1$
-
-											// If a bundle id got specified, use the specified bundle to load the service class
-											Bundle bundle = bundleId != null ? bundle = Platform.getBundle(bundleId) : null;
-											// If we don't have a bundle to load from yet, fallback to the declaring bundle
-											if (bundle == null) bundle = Platform.getBundle(child.getDeclaringExtension().getNamespaceIdentifier());
-											// And finally, use our own bundle to load the class. This fallback is expected
-											// to never be used.
-											if (bundle == null) bundle = CoreBundleActivator.getContext().getBundle();
-
-											// Try to load the event type class now
-											Class<?> eventType = bundle != null ? bundle.loadClass(className) : Class.forName(className);
-											if (!eventTypes.contains(eventType)) {
-												eventTypes.add(eventType);
+										}
+										// If the bundle could not be found or is not yet active, don't try to load the class
+										else {
+											if (!eventTypesNotLoaded.contains(className)) {
+												eventTypesNotLoaded.add(new ClassNotLoadedItem(bundleId, className, child.getDeclaringExtension().getNamespaceIdentifier()));
 											}
-										} catch (Exception ex) {
-											if (isTracingEnabled())
-												CoreBundleActivator.getTraceHandler().trace("Error instantiating event listener event type object instance: " + child.getAttribute("class"), //$NON-NLS-1$ //$NON-NLS-2$
-												                                            0, ITraceIds.TRACE_EVENTS, IStatus.ERROR, this);
 										}
 									}
 
 									if ("eventSourceType".equals(child.getName())) { //$NON-NLS-1$
-										// The event source types, we have to instantiate here as we need the class object!
-										try {
-											// First we try to instantiate the class using our own local class loader.
-											// This trick can avoid activating the contributing plugin if we can load
-											// the class ourself.
-											// First we try to instantiate the class using our own context
-											String className = child.getAttribute("class"); //$NON-NLS-1$
-											if (className == null || className.trim().length() == 0) {
-												continue;
+										String className = child.getAttribute("class"); //$NON-NLS-1$
+										if (className == null || className.trim().length() == 0) {
+											continue;
+										}
+
+										String bundleId = child.getAttribute("bundleId"); //$NON-NLS-1$
+
+										// If a bundle id got specified, use the specified bundle to load the service class
+										Bundle bundle = bundleId != null ? Platform.getBundle(bundleId) : null;
+										// If we don't have a bundle to load from yet, fallback to the declaring bundle
+										if (bundle == null) bundle = Platform.getBundle(child.getDeclaringExtension().getNamespaceIdentifier());
+										// And finally, use our own bundle to load the class. This fallback is expected
+										// to never be used.
+										if (bundle == null) bundle = CoreBundleActivator.getContext().getBundle();
+
+										// If the specified bundle is active, the class can be loaded
+										if (bundle != null && bundle.getState() == Bundle.ACTIVE) {
+											try {
+												Class<?> eventSourceType = bundle.loadClass(className);
+												if (eventSourceType != null && !eventSourceTypes.contains(eventSourceType)) {
+													eventSourceTypes.add(eventSourceType);
+												}
+											} catch (Exception ex) {
+												if (isTracingEnabled())
+													CoreBundleActivator.getTraceHandler().trace("Error instantiating event listener event source type object instance: " + child.getAttribute("class"), //$NON-NLS-1$ //$NON-NLS-2$
+																	0, ITraceIds.TRACE_EVENTS, IStatus.ERROR, this);
 											}
-
-											String bundleId = child.getAttribute("bundleId"); //$NON-NLS-1$
-
-											// If a bundle id got specified, use the specified bundle to load the service class
-											Bundle bundle = bundleId != null ? bundle = Platform.getBundle(bundleId) : null;
-											// If we don't have a bundle to load from yet, fallback to the declaring bundle
-											if (bundle == null) bundle = Platform.getBundle(child.getDeclaringExtension().getNamespaceIdentifier());
-											// And finally, use our own bundle to load the class. This fallback is expected
-											// to never be used.
-											if (bundle == null) bundle = CoreBundleActivator.getContext().getBundle();
-
-											// Try to load the event source type class now
-											Class<?> eventSourceType = bundle != null ? bundle.loadClass(className) : Class.forName(className);
-											if (!eventSourceTypes.contains(eventSourceType)) {
-												eventSourceTypes.add(eventSourceType);
+										}
+										// If the bundle could not be found or is not yet active, don't try to load the class
+										else {
+											if (!eventSourceTypesNotLoaded.contains(className)) {
+												eventSourceTypesNotLoaded.add(new ClassNotLoadedItem(bundleId, className, child.getDeclaringExtension().getNamespaceIdentifier()));
 											}
-										} catch (Exception ex) {
-											if (isTracingEnabled())
-												CoreBundleActivator.getTraceHandler().trace("Error instantiating event listener event source type object instance: " + child.getAttribute("class"), //$NON-NLS-1$ //$NON-NLS-2$
-												                                            0, ITraceIds.TRACE_EVENTS, IStatus.ERROR, this);
 										}
 									}
 								}
@@ -444,7 +626,9 @@ public final class EventManager {
 								IEventListener listener = new EventListenerProxy(configElement);
 								addEventListener(listener,
 								                 !eventTypes.isEmpty() ? eventTypes.toArray(new Class[eventTypes.size()]) : null,
-								                 !eventSourceTypes.isEmpty() ? eventSourceTypes.toArray(new Class[eventSourceTypes.size()]) : null
+								                 !eventTypesNotLoaded.isEmpty() ? eventTypesNotLoaded.toArray(new ClassNotLoadedItem[eventTypesNotLoaded.size()]) : null,
+								                 !eventSourceTypes.isEmpty() ? eventSourceTypes.toArray(new Class[eventSourceTypes.size()]) : null,
+												 !eventSourceTypesNotLoaded.isEmpty() ? eventSourceTypesNotLoaded.toArray(new ClassNotLoadedItem[eventSourceTypesNotLoaded.size()]) : null
 								                );
 
 								if (isTracingEnabled())
@@ -459,7 +643,7 @@ public final class EventManager {
 	}
 
 	/**
-	 * Internal class used to delay the instantiation and plugin activation of
+	 * Internal class used to delay the instantiation and plug-in activation of
 	 * event listeners which are contributed via extension point till they
 	 * are really fired.
 	 */
@@ -493,7 +677,7 @@ public final class EventManager {
 					Bundle bundle = Platform.getBundle(configElement.getContributor().getName());
 					forcePluginActivation = bundle != null ? bundle.getState() == Bundle.ACTIVE : false;
 				}
-				// Load the event listener implementation class if plugin activations is allowed.
+				// Load the event listener implementation class if plug-in activations is allowed.
 				if (forcePluginActivation) {
 					try {
 						Object executable = configElement.createExecutableExtension("class"); //$NON-NLS-1$
