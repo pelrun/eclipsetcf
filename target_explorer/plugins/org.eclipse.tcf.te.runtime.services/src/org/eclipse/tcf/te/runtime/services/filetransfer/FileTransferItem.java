@@ -10,6 +10,9 @@
 
 package org.eclipse.tcf.te.runtime.services.filetransfer;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -19,6 +22,8 @@ import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransfer
  * FileTransferItem
  */
 public class FileTransferItem extends PropertiesContainer implements IFileTransferItem {
+
+	private boolean fPatchingSetProperty;
 
 	/**
 	 * Constructor.
@@ -45,7 +50,6 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 			setProperty(PROPERTY_HOST, fromHost.toPortableString());
 		if (toTarget != null) {
 			setProperty(PROPERTY_TARGET, toTarget.toPortableString());
-			setProperty(PROPERTY_TARGET_STRING, toTarget.toString());
 		}
 	}
 
@@ -54,13 +58,71 @@ public class FileTransferItem extends PropertiesContainer implements IFileTransf
 		if (fromHost != null)
 			setProperty(PROPERTY_HOST, fromHost.toPortableString());
 		if (toTarget != null) {
-			// Replace multiple slashes with a single slash
-			toTarget = toTarget.replaceAll("/+", "/"); //$NON-NLS-1$ //$NON-NLS-2$
-			// Remove trailing slash
-			if (toTarget.endsWith("/") && toTarget.length() > 1) //$NON-NLS-1$
-				toTarget = toTarget.substring(0, toTarget.length()-1);
 			setProperty(PROPERTY_TARGET_STRING, toTarget);
 		}
+	}
+
+	private String normalizeTargetPath(Object tgtPath) {
+		if (tgtPath == null)
+			return null;
+
+		String path = String.valueOf(tgtPath);
+		// Replace multiple slashes with a single slash
+		path = path.replaceAll("/+", "/"); //$NON-NLS-1$ //$NON-NLS-2$
+		// Remove trailing slash
+		if (path.endsWith("/") && path.length() > 1) //$NON-NLS-1$
+			path = path.substring(0, path.length()-1);
+
+	    return path;
+    }
+
+	@SuppressWarnings("deprecation")
+    @Override
+	public boolean setProperty(String key, Object value) {
+		if (!fPatchingSetProperty) {
+			try {
+				fPatchingSetProperty = true;
+				if (PROPERTY_TARGET.equals(key)) {
+					setProperty(PROPERTY_TARGET_STRING, pathToString(value));
+					return setProperty(PROPERTY_TARGET, value);
+				}
+				if (PROPERTY_TARGET_STRING.equals(key)) {
+					value = normalizeTargetPath(value);
+					setProperty(PROPERTY_TARGET, stringToPath(value));
+					return setProperty(PROPERTY_TARGET_STRING, value);
+				}
+			} finally {
+				fPatchingSetProperty = false;
+			}
+		}
+		return super.setProperty(key, value);
+	}
+
+	@SuppressWarnings("deprecation")
+    @Override
+	public final void setProperties(Map<String, Object> properties) {
+		if (properties.containsKey(PROPERTY_TARGET)) {
+			if (!properties.containsKey(PROPERTY_TARGET_STRING)) {
+				properties = new HashMap<String, Object>(properties);
+				properties.put(PROPERTY_TARGET_STRING, pathToString(properties.get(PROPERTY_TARGET)));
+			}
+		} else if (properties.containsKey(PROPERTY_TARGET_STRING)) {
+			properties = new HashMap<String, Object>(properties);
+			properties.put(PROPERTY_TARGET, stringToPath(properties.get(PROPERTY_TARGET_STRING)));
+		}
+		super.setProperties(properties);
+	}
+
+	private String pathToString(Object value) {
+		if (value == null)
+			return null;
+		return Path.fromPortableString(String.valueOf(value)).toString();
+	}
+
+	private String stringToPath(Object value) {
+		if (value == null)
+			return null;
+		return new Path(String.valueOf(value)).toPortableString();
 	}
 
 	/* (non-Javadoc)

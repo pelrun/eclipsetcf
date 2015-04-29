@@ -236,10 +236,10 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 			host.updateControlDecoration(null, IMessageProvider.NONE);
 		}
 
-		if (invalid != null && invalid.containsKey(IFileTransferItem.PROPERTY_TARGET)) {
-			target.updateControlDecoration(invalid.get(IFileTransferItem.PROPERTY_TARGET), IMessageProvider.ERROR);
+		if (invalid != null && invalid.containsKey(IFileTransferItem.PROPERTY_TARGET_STRING)) {
+			target.updateControlDecoration(invalid.get(IFileTransferItem.PROPERTY_TARGET_STRING), IMessageProvider.ERROR);
 			if (valid) {
-				setErrorMessage(invalid.get(IFileTransferItem.PROPERTY_TARGET));
+				setErrorMessage(invalid.get(IFileTransferItem.PROPERTY_TARGET_STRING));
 			}
 			valid = false;
 		}
@@ -256,7 +256,7 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 
 	private void saveWidgetValues(IFileTransferItem wc) {
 		wc.setProperty(IFileTransferItem.PROPERTY_HOST, new Path(host.getEditFieldControlText()).toPortableString());
-		wc.setProperty(IFileTransferItem.PROPERTY_TARGET, new Path(target.getEditFieldControlText()).toPortableString());
+		wc.setProperty(IFileTransferItem.PROPERTY_TARGET_STRING, target.getEditFieldControlText().trim());
 		wc.setProperty(IFileTransferItem.PROPERTY_OPTIONS, options.getEditFieldControlText());
 
 		int direction = toTarget.getSelection() ? IFileTransferItem.HOST_TO_TARGET : IFileTransferItem.TARGET_TO_HOST;
@@ -271,8 +271,8 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 		String hostPath = item.getStringProperty(IFileTransferItem.PROPERTY_HOST);
 		host.setEditFieldControlText(hostPath != null ? new Path(hostPath).toOSString() : ""); //$NON-NLS-1$
 
-		String targetPath = item.getStringProperty(IFileTransferItem.PROPERTY_TARGET);
-		target.setEditFieldControlText(targetPath != null ? new Path(targetPath).toPortableString() : ""); //$NON-NLS-1$
+		String targetPath = item.getStringProperty(IFileTransferItem.PROPERTY_TARGET_STRING);
+		target.setEditFieldControlText(targetPath != null ? targetPath : ""); //$NON-NLS-1$
 		target.getButtonControl().setEnabled(launchContext != null);
 
 		String optionsString = item.getStringProperty(IFileTransferItem.PROPERTY_OPTIONS);

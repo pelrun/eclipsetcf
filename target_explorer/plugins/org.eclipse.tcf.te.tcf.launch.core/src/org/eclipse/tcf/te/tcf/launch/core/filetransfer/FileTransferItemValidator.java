@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -31,7 +31,7 @@ public class FileTransferItemValidator {
 		Map<String,String> invalid = new HashMap<String,String>();
 
 		String host = item.getStringProperty(IFileTransferItem.PROPERTY_HOST);
-		String target = item.getStringProperty(IFileTransferItem.PROPERTY_TARGET);
+		String target = item.getStringProperty(IFileTransferItem.PROPERTY_TARGET_STRING);
 		int direction = (item.getProperty(IFileTransferItem.PROPERTY_DIRECTION) != null ?
 						item.getIntProperty(IFileTransferItem.PROPERTY_DIRECTION) : IFileTransferItem.HOST_TO_TARGET);
 
@@ -60,22 +60,22 @@ public class FileTransferItemValidator {
 
 		if (target == null || target.trim().length() == 0) {
 			if (direction == IFileTransferItem.HOST_TO_TARGET) {
-				invalid.put(IFileTransferItem.PROPERTY_TARGET, Messages.FileTransferItemValidator_missingFileOrDirectory);
+				invalid.put(IFileTransferItem.PROPERTY_TARGET_STRING, Messages.FileTransferItemValidator_missingFileOrDirectory);
 			}
 			else {
-				invalid.put(IFileTransferItem.PROPERTY_TARGET, Messages.FileTransferItemValidator_missingFile);
+				invalid.put(IFileTransferItem.PROPERTY_TARGET_STRING, Messages.FileTransferItemValidator_missingFile);
 			}
 		}
 		else {
 			IPath targetPath = new Path(target);
 			if (direction == IFileTransferItem.HOST_TO_TARGET) {
 				if (!targetPath.isValidPath(target)) {
-					invalid.put(IFileTransferItem.PROPERTY_TARGET, Messages.FileTransferItemValidator_invalidFileOrDirectory);
+					invalid.put(IFileTransferItem.PROPERTY_TARGET_STRING, Messages.FileTransferItemValidator_invalidFileOrDirectory);
 				}
 			}
 			else {
 				if (!targetPath.isValidPath(target)) {
-					invalid.put(IFileTransferItem.PROPERTY_TARGET, Messages.FileTransferItemValidator_invalidFile);
+					invalid.put(IFileTransferItem.PROPERTY_TARGET_STRING, Messages.FileTransferItemValidator_invalidFile);
 				}
 			}
 		}

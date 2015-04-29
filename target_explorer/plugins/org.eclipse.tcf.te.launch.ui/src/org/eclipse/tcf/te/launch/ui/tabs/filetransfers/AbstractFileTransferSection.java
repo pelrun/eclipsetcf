@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -289,11 +289,10 @@ public abstract class AbstractFileTransferSection extends AbstractTableSection i
 				if (element instanceof IFileTransferItem) {
 					IFileTransferItem item = (IFileTransferItem)element;
 					Map<String,String> invalid = (Map<String,String>)item.getProperty(PROPERTY_VALIDATION_RESULT);
-					if (invalid != null && invalid.containsKey(IFileTransferItem.PROPERTY_TARGET)) {
-						return invalid.get(IFileTransferItem.PROPERTY_TARGET);
+					if (invalid != null && invalid.containsKey(IFileTransferItem.PROPERTY_TARGET_STRING)) {
+						return invalid.get(IFileTransferItem.PROPERTY_TARGET_STRING);
 					}
-					String target = item.getStringProperty(IFileTransferItem.PROPERTY_TARGET);
-					return target != null ? new Path(target).toPortableString() : target;
+					return item.getStringProperty(IFileTransferItem.PROPERTY_TARGET_STRING);
 				}
 				return super.getText(element);
 			}
@@ -302,8 +301,7 @@ public abstract class AbstractFileTransferSection extends AbstractTableSection i
 			public String getText(Object element) {
 				if (element instanceof IFileTransferItem) {
 					IFileTransferItem item = (IFileTransferItem)element;
-					String target = item.getStringProperty(IFileTransferItem.PROPERTY_TARGET);
-					return target != null ? new Path(target).toPortableString() : target;
+					return item.getStringProperty(IFileTransferItem.PROPERTY_TARGET_STRING);
 				}
 				return super.getText(element);
 			}
@@ -396,7 +394,7 @@ public abstract class AbstractFileTransferSection extends AbstractTableSection i
 								}
 								break;
 							case 3:
-								if (invalid.containsKey(IFileTransferItem.PROPERTY_TARGET)) {
+								if (invalid.containsKey(IFileTransferItem.PROPERTY_TARGET_STRING)) {
 									return STATE_ERROR;
 								}
 								break;

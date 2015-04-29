@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -378,7 +378,7 @@ public class PropertiesContainer extends PlatformObject implements IPropertiesCo
 	 * @see org.eclipse.tcf.te.runtime.interfaces.IPropertiesContainer#setProperties(java.util.Map)
 	 */
 	@Override
-	public final void setProperties(Map<String, Object> properties) {
+	public void setProperties(Map<String, Object> properties) {
 		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(properties);
 
