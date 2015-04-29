@@ -88,20 +88,6 @@
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.sdk.feature</module>
 
-        <module>terminals/plugins/org.eclipse.tcf.te.core.terminals</module>
-        <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals</module>
-        <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.local</module>
-        <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.process</module>
-        <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.rse</module>
-        <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.serial</module>
-        <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.ssh</module>
-        <module>terminals/plugins/org.eclipse.tcf.te.ui.terminals.telnet</module>
-
-        <module>terminals/features/org.eclipse.tcf.te.terminals.feature</module>
-        <module>terminals/features/org.eclipse.tcf.te.terminals.sdk.feature</module>
-        <module>terminals/features/org.eclipse.tcf.te.terminals.rse.feature</module>
-        <module>terminals/features/org.eclipse.tcf.te.terminals.rse.sdk.feature</module>
-        
         <module>features/org.eclipse.tcf.repo</module>
     </modules>
 
