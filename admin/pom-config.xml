@@ -57,10 +57,11 @@
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
         <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
-		<tm-site>http://download.eclipse.org/tm/builds/luna/nightly</tm-site>
+		<tm-site>http://download.eclipse.org/tm/updates/4.0milestones</tm-site>
+		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0milestones</tm-site>
         <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/1.1.1</ptp-remote-site>
 		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository/</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20150428165605/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
 
@@ -83,6 +84,11 @@
 		<repository>
 			<id>cdt</id>
 			<url>${cdt-site}</url>
+			<layout>p2</layout>
+		</repository>
+		<repository>
+			<id>terminal</id>
+			<url>${terminal-site}</url>
 			<layout>p2</layout>
 		</repository>
 		<repository>

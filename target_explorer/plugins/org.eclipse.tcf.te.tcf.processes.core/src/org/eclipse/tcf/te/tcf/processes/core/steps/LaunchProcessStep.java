@@ -23,8 +23,6 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcessesV1;
-import org.eclipse.tcf.te.core.terminals.interfaces.constants.ILineSeparatorConstants;
-import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
@@ -42,6 +40,8 @@ import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ILineSeparatorConstants;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
 
 /**
  * Launch process step implementation.

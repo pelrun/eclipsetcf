@@ -10,7 +10,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.launch.setup;
 
-import java.io.*;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
 
 class TimeOutInputStream extends FilterInputStream {
 

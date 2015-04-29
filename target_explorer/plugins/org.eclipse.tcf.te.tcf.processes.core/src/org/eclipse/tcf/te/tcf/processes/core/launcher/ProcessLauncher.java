@@ -47,10 +47,6 @@ import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
 import org.eclipse.tcf.services.IProcessesV1;
 import org.eclipse.tcf.services.IStreams;
-import org.eclipse.tcf.te.core.terminals.TerminalServiceFactory;
-import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService;
-import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalTabListener;
-import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.callback.AsyncCallbackCollector;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.EventManager;
@@ -69,6 +65,10 @@ import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLaunche
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessStreamsProxy;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.tracing.ITraceIds;
 import org.eclipse.tcf.te.tcf.processes.core.nls.Messages;
+import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
+import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
+import org.eclipse.tm.terminal.view.core.interfaces.ITerminalTabListener;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
 
 /**
  * Remote process launcher.
@@ -594,8 +594,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				terminal.addTerminalTabListener(terminalTabListener);
 				// Create the terminal streams settings
 				Map<String, Object> props = new HashMap<String, Object>();
-				props.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, "org.eclipse.tcf.te.ui.terminals.telnet.launcher.streams"); //$NON-NLS-1$
-				props.put(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tcf.te.ui.terminals.TerminalsView"); //$NON-NLS-1$
+				props.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, "org.eclipse.tm.terminal.connector.streams.launcher.streams"); //$NON-NLS-1$
+				props.put(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tm.terminal.view.ui.TerminalsView"); //$NON-NLS-1$
 				// Set the terminal tab title
 				String terminalTitle = getTerminalTitle();
 				if (terminalTitle != null) {

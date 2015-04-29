@@ -11,7 +11,7 @@
 		<relativePath>../../admin/pom-build.xml</relativePath>
 	</parent>
 
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.1-SNAPSHOT</version>
 	<artifactId>org.eclipse.tcf.repo</artifactId>
 	<packaging>eclipse-repository</packaging>
 

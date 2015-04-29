@@ -21,8 +21,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl.PeerInfo;
 import org.eclipse.tcf.internal.debug.ui.launch.ContextListControl.ContextInfo;
+import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl.PeerInfo;
 
 /**
  * Dialog to select a peer and context.

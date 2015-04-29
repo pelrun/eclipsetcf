@@ -34,8 +34,6 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
-import org.eclipse.tcf.te.core.terminals.interfaces.constants.ILineSeparatorConstants;
-import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
@@ -59,6 +57,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupServic
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ILineSeparatorConstants;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
 
 public class TEHelper {
 
@@ -70,7 +70,7 @@ public class TEHelper {
 		File tempFile = null;
 
 		// Create the file transfer item
-		FileTransferItem item = new FileTransferItem(new Path(localFilePath), new Path(remoteFilePath));
+		FileTransferItem item = new FileTransferItem(new Path(localFilePath), remoteFilePath);
 		item.setProperty(IFileTransferItem.PROPERTY_DIRECTION, "" + IFileTransferItem.HOST_TO_TARGET); //$NON-NLS-1$
 
 		// Get the remote path file attributes
@@ -128,7 +128,7 @@ public class TEHelper {
 			}
 
 			// Recreate the file transfer item to take the temporary file as input
-			item = new FileTransferItem(new Path(tempFile.getAbsolutePath()), new Path(remoteFilePath));
+			item = new FileTransferItem(new Path(tempFile.getAbsolutePath()), remoteFilePath);
 			item.setProperty(IFileTransferItem.PROPERTY_DIRECTION, "" + IFileTransferItem.HOST_TO_TARGET); //$NON-NLS-1$
 		} else {
 			monitor.beginTask(Messages.RemoteRunLaunchDelegate_2 + " " + localFilePath + " to " + remoteFilePath, 100); //$NON-NLS-1$ //$NON-NLS-2$

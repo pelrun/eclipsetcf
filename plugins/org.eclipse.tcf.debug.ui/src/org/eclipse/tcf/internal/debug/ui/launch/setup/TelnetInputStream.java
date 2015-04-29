@@ -10,8 +10,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.launch.setup;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 class TelnetInputStream extends FilterInputStream {

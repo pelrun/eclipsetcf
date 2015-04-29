@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -15,10 +15,10 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ITerminals;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
 import org.eclipse.tcf.te.tcf.terminals.core.launcher.TerminalsLauncher;
-import org.eclipse.tcf.te.ui.terminals.streams.AbstractStreamsConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
+import org.eclipse.tm.terminal.view.ui.streams.AbstractStreamsConnector;
 
 /**
  * Terminals connector implementation.

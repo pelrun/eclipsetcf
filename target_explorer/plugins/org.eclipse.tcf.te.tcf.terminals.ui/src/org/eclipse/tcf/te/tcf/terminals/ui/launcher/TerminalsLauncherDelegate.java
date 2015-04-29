@@ -20,8 +20,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
-import org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done;
-import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -30,14 +28,16 @@ import org.eclipse.tcf.te.tcf.terminals.core.interfaces.launcher.ITerminalsLaunc
 import org.eclipse.tcf.te.tcf.terminals.core.launcher.TerminalsLauncher;
 import org.eclipse.tcf.te.tcf.terminals.ui.connector.TerminalsSettings;
 import org.eclipse.tcf.te.tcf.terminals.ui.controls.TerminalsConfigurationPanel;
-import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanel;
-import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
-import org.eclipse.tcf.te.ui.terminals.interfaces.IMementoHandler;
-import org.eclipse.tcf.te.ui.terminals.internal.SettingsStore;
-import org.eclipse.tcf.te.ui.terminals.launcher.AbstractLauncherDelegate;
 import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalConnectorExtension;
+import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tm.terminal.view.ui.interfaces.IConfigurationPanel;
+import org.eclipse.tm.terminal.view.ui.interfaces.IConfigurationPanelContainer;
+import org.eclipse.tm.terminal.view.ui.interfaces.IMementoHandler;
+import org.eclipse.tm.terminal.view.ui.internal.SettingsStore;
+import org.eclipse.tm.terminal.view.ui.launcher.AbstractLauncherDelegate;
 
 /**
  * Terminals (TCF) launcher delegate implementation.
@@ -67,7 +67,7 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 	 * @see org.eclipse.tcf.te.ui.terminals.interfaces.ILauncherDelegate#execute(java.util.Map, org.eclipse.tcf.te.core.terminals.interfaces.ITerminalService.Done)
 	 */
 	@Override
-	public void execute(final Map<String, Object> properties, final Done done) {
+	public void execute(final Map<String, Object> properties, final ITerminalService.Done done) {
 		Assert.isNotNull(properties);
 
 		// Get the selection from the properties
@@ -153,7 +153,7 @@ public class TerminalsLauncherDelegate extends AbstractLauncherDelegate {
 		ITerminalConnector connector = TerminalConnectorExtension.makeTerminalConnector(connectorId);
 		if (connector != null) {
 			// Apply default settings
-			connector.makeSettingsPage();
+			connector.setDefaultSettings();
 			// And load the real settings
 			connector.load(store);
 		}

@@ -10,8 +10,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.model;
 
-import java.math.BigInteger;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

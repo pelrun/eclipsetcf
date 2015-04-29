@@ -220,10 +220,9 @@ class TCFConsole extends AbstractConsole {
         }
 
         @Override
-        public ISettingsPage makeSettingsPage() {
-            return null;
+        public void setDefaultSettings() {
         }
-
+        
         @Override
         public void load(ISettingsStore store) {
         }

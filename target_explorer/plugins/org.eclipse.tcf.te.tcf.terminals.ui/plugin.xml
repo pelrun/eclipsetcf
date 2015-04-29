@@ -3,16 +3,16 @@
 <plugin>
 
 <!-- Terminal connector contributions -->
-   <extension point="org.eclipse.tm.terminal.terminalConnectors">
+   <extension point="org.eclipse.tm.terminal.control.connectors">
       <connector 
-                 name="%TerminalConnector.terminals"
-                 id="org.eclipse.tcf.te.tcf.terminals.ui.TerminalsConnector"
-                 hidden="true"
-                 class="org.eclipse.tcf.te.tcf.terminals.ui.connector.TerminalsConnector"/>
+            name="%TerminalConnector.terminals"
+            id="org.eclipse.tcf.te.tcf.terminals.ui.TerminalsConnector"
+            hidden="true"
+            class="org.eclipse.tcf.te.tcf.terminals.ui.connector.TerminalsConnector"/>
    </extension>
 
 <!-- Terminals launcher delegate contributions -->
-   <extension point="org.eclipse.tcf.te.ui.terminals.launcherDelegates">
+   <extension point="org.eclipse.tm.terminal.view.ui.launcherDelegates">
       <delegate
             class="org.eclipse.tcf.te.tcf.terminals.ui.launcher.TerminalsLauncherDelegate"
             id="org.eclipse.tcf.te.ui.terminals.launcher.tcf"

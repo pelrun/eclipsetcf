@@ -17,9 +17,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tcf.te.core.terminals.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tcf.te.ui.terminals.interfaces.IConfigurationPanelContainer;
-import org.eclipse.tcf.te.ui.terminals.panels.AbstractExtendedConfigurationPanel;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tm.terminal.view.ui.interfaces.IConfigurationPanelContainer;
+import org.eclipse.tm.terminal.view.ui.panels.AbstractExtendedConfigurationPanel;
 
 /**
  * Terminals (TCF) terminal launcher configuration panel implementation.

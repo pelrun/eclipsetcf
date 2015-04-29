@@ -166,7 +166,7 @@
    </extension>
 
 <!-- Terminal context properties provider contributions -->
-   <extension point="org.eclipse.tcf.te.core.terminals.contextPropertiesProviders">
+   <extension point="org.eclipse.tm.terminal.view.core.contextPropertiesProviders">
       <contextPropertiesProvider
             class="org.eclipse.tcf.te.tcf.locator.services.TerminalContextPropertiesProvider">
          <enablement>
