@@ -18,8 +18,6 @@
    <extension-point id="presentation_provider" name="TCF Presentation Provider" schema="schema/presentation_provider.exsd"/>
    <extension-point id="pretty_expression_provider" name="TCF Pretty Expression Provider" schema="schema/pretty_expression_provider.exsd"/>
 
-   <extension point="org.eclipse.tcf.startup"/>
-
    <extension
         id="org.eclipse.tcf.debug.ui.adapters"
         point="org.eclipse.core.runtime.adapters">

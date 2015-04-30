@@ -156,7 +156,8 @@ public class TCFModelManager {
         assert Protocol.isDispatchThread();
         try {
             PlatformUI.getWorkbench().addWorkbenchListener(workbench_listener);
-        } catch (IllegalStateException e) {
+        }
+        catch (IllegalStateException e) {
             // In headless environments the plug-in load can be still triggered.
             // Should not trigger an "Unhandled exception in TCF event dispatch thread"
         }
@@ -168,7 +169,8 @@ public class TCFModelManager {
         assert Protocol.isDispatchThread();
         try {
             PlatformUI.getWorkbench().removeWorkbenchListener(workbench_listener);
-        } catch (IllegalStateException e) {
+        }
+        catch (IllegalStateException e) {
             // In headless environments the plug-in load can be still triggered.
             // Should not trigger an "Unhandled exception in TCF event dispatch thread"
         }

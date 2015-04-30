@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -40,6 +41,7 @@ import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.util.TCFPathMapRule;
 import org.eclipse.tcf.util.TCFTask;
+import org.osgi.framework.Bundle;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -83,6 +85,9 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         FILES_DOWNLOAD = "Download",
         FILES_SET_PC = "SetPC",
         FILES_ENABLE_OSA = "EnableOSA";
+
+    private static Boolean is_headless;
+    private static boolean ui_activation_done;
 
     public static class PathMapRule extends TCFPathMapRule {
 
@@ -334,6 +339,23 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         return new TCFTask<ILaunch>() {
             int cnt;
             public void run() {
+                if (is_headless == null) {
+                    Bundle b = Platform.getBundle("org.eclipse.ui.workbench");
+                    is_headless = new Boolean(b == null || b.getState() != Bundle.ACTIVE);
+                }
+
+                if (!is_headless && !ui_activation_done) {
+                    /* Make sure UI bundle is activated and is listening for launch events */
+                    try {
+                        Bundle bundle = Platform.getBundle("org.eclipse.tcf.debug.ui");
+                        bundle.start(Bundle.START_TRANSIENT);
+                    }
+                    catch (Throwable x) {
+                        Protocol.log("TCF debugger UI startup error", x); //$NON-NLS-1$
+                    }
+                    ui_activation_done = true;
+                }
+
                 // Need to delay at least one dispatch cycle to work around
                 // a possible racing between thread that calls getLaunch() and
                 // the process of activation of other TCF plug-ins.
