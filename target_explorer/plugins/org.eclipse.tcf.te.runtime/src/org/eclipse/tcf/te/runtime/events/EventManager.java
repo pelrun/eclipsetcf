@@ -577,9 +577,8 @@ public final class EventManager {
 										}
 										// If the bundle could not be found or is not yet active, don't try to load the class
 										else {
-											if (!eventTypesNotLoaded.contains(className)) {
-												eventTypesNotLoaded.add(new ClassNotLoadedItem(bundleId, className, child.getDeclaringExtension().getNamespaceIdentifier()));
-											}
+											ClassNotLoadedItem item = new ClassNotLoadedItem(bundleId, className, child.getDeclaringExtension().getNamespaceIdentifier());
+											if (!eventTypesNotLoaded.contains(item)) eventTypesNotLoaded.add(item);
 										}
 									}
 
@@ -614,9 +613,8 @@ public final class EventManager {
 										}
 										// If the bundle could not be found or is not yet active, don't try to load the class
 										else {
-											if (!eventSourceTypesNotLoaded.contains(className)) {
-												eventSourceTypesNotLoaded.add(new ClassNotLoadedItem(bundleId, className, child.getDeclaringExtension().getNamespaceIdentifier()));
-											}
+											ClassNotLoadedItem item = new ClassNotLoadedItem(bundleId, className, child.getDeclaringExtension().getNamespaceIdentifier());
+											if (!eventSourceTypesNotLoaded.contains(item)) eventSourceTypesNotLoaded.add(item);
 										}
 									}
 								}
