@@ -88,6 +88,9 @@
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.feature</module>
         <module>target_explorer/features/org.eclipse.tcf.te.tcf.remote.sdk.feature</module>
 
+        <module>target_explorer/features/org.eclipse.tcf.te.terminals.feature</module>
+        <module>target_explorer/features/org.eclipse.tcf.te.terminals.sdk.feature</module>
+
         <module>features/org.eclipse.tcf.repo</module>
     </modules>
 
