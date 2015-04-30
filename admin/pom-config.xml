@@ -124,9 +124,13 @@
 				<enabled>true</enabled>
 			</releases>
 		</pluginRepository>
-		<pluginRepository>                                                                                         
-			<id>cbi</id>                                                                                         
-			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>                                             
+		<pluginRepository>
+			<id>cbi</id>
+			<url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>cbi-snapshots</id>
+			<url>https://repo.eclipse.org/content/repositories/cbi-snapshots/</url>
 		</pluginRepository>
 	</pluginRepositories>
 
