@@ -219,10 +219,9 @@ class TCFConsole extends AbstractConsole {
         public void save(ISettingsStore store) {
         }
 
-        @Override
         public void setDefaultSettings() {
         }
-        
+
         @Override
         public void load(ISettingsStore store) {
         }
@@ -309,6 +308,10 @@ class TCFConsole extends AbstractConsole {
 
         @Override
         public void setTerminalTitle(String title) {
+        }
+
+        public ISettingsPage makeSettingsPage() {
+            return null;
         }
     }
 
