@@ -26,6 +26,9 @@ import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.runtime.model.ContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.factory.Factory;
 import org.eclipse.tcf.te.runtime.model.interfaces.factory.IFactory;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelService;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
@@ -36,6 +39,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.UserAccount;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopyLocal;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpParsePath;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpRestoreFavorites;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -50,6 +54,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	private final UserAccount fUserAccount;
 	private IChannel fChannel;
 	private IFileSystem fFileSystem;
+	private Delegate fDelegate;
 
     /**
 	 * Create a File System ModelManager.
@@ -61,9 +66,21 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 		fUserAccount = userAccount;
 		fRoot = new FSTreeNode(this, Messages.FSTreeNodeContentProvider_rootNodeLabel);
 		channel.addChannelListener(this);
+
+		fDelegate = findDelegate();
 	}
 
-    @Override
+    private Delegate findDelegate() {
+		IService[] services = ServiceManager.getInstance().getServices(fPeerNode, IDelegateService.class, false);
+		for (IService service : services) {
+			Delegate cand = ((IDelegateService) service).getDelegate(this, Delegate.class);
+			if (cand != null)
+				return cand;
+		}
+		return new Delegate();
+	}
+
+	@Override
     protected boolean checkThreadAccess() {
         return Protocol.isDispatchThread();
     }
@@ -85,6 +102,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
     public void dispose() {
         Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
         fFileSystem = null;
+        fRoot.setContent(new FSTreeNode[0], false);
     }
 
     @Override
@@ -99,6 +117,11 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
     public <V extends IModelService> V getService(Class<V> serviceInterface) {
         Assert.isNotNull(serviceInterface);
         return (V)getAdapter(serviceInterface);
+    }
+
+    @Override
+	public Delegate getDelegate() {
+    	return fDelegate;
     }
 
     @Override
@@ -185,6 +208,11 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 				return peer;
 		}
 		return null;
+	}
+
+	@Override
+	public IResultOperation<IFSTreeNode[]> operationRestoreFavorites() {
+		return new OpRestoreFavorites(this);
 	}
 
 	@Override

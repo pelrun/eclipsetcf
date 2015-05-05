@@ -27,7 +27,8 @@ Require-Bundle: org.eclipse.compare;bundle-version="3.5.300",
  org.eclipse.tcf.te.ui.views;bundle-version="1.3.1",
  org.eclipse.tcf.te.ui.controls;bundle-version="1.3.1",
  org.eclipse.tcf.te.runtime.services;bundle-version="1.3.1",
- org.eclipse.tcf.te.tcf.core.model;bundle-version="1.3.1"
+ org.eclipse.tcf.te.tcf.core.model;bundle-version="1.3.1",
+ org.eclipse.core.resources;bundle-version="3.8.1";resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-Localization: plugin

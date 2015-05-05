@@ -35,7 +35,10 @@
                </or>
             </triggerPoints>
             <possibleChildren>
-            	<instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                <or>
+            	    <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                    <adapt type="org.eclipse.core.resources.IResource"/>
+                </or>
             </possibleChildren>
             <commonSorter
                   class="org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeViewerSorter"
@@ -523,7 +526,7 @@
             </visibleWhen>
          </command>
          <command
-               commandId="org.eclipse.tcf.te.tcf.filesystem.ui.download"
+               commandId="org.eclipse.tcf.te.tcf.filesystem.commands.download"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Download"
                id="download"
                label="%command.label.download"
@@ -547,6 +550,17 @@
                label="%command.search.label"
                style="push">
          </command>
+         <dynamic
+               class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.ToggleRevealOnConnectContributionItem"
+               id="toggleRevealOnConnect">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate ifEmpty="false" operator="and">
+                      <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                  </iterate>
+              </with>
+            </visibleWhen>
+         </dynamic>
          <separator name="group.properties" visible="true"/>
          <command
                commandId="org.eclipse.ui.file.properties"
@@ -631,6 +645,19 @@
                   id="openWithMenu">
             </dynamic>
          </menu>
+      </menuContribution>
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.search">
+         <dynamic
+               class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.ToggleRevealOnConnectContributionItem"
+               id="toggleRevealOnConnect">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate ifEmpty="false" operator="and">
+                      <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                  </iterate>
+              </with>
+            </visibleWhen>
+         </dynamic>
       </menuContribution>
       <menuContribution
             locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.edit">
@@ -955,7 +982,7 @@
             </visibleWhen>
          </command>
          <command
-               commandId="org.eclipse.tcf.te.tcf.filesystem.ui.download"
+               commandId="org.eclipse.tcf.te.tcf.filesystem.commands.download"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Download"
                id="download"
                label="%command.label.download"
@@ -1064,7 +1091,7 @@
             name="%command.refreshViewer.name">
       </command>
       <command
-            id="org.eclipse.tcf.te.tcf.filesystem.ui.download"
+            id="org.eclipse.tcf.te.tcf.filesystem.commands.download"
             name="%command.download.name">
       </command>
    </extension>
@@ -1422,7 +1449,7 @@
       </handler>
       <handler
             class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.DownloadFilesHandler"
-            commandId="org.eclipse.tcf.te.tcf.filesystem.ui.download">
+            commandId="org.eclipse.tcf.te.tcf.filesystem.commands.download">
          <activeWhen>
             <and>
                <with variable="activePartId">
@@ -1720,6 +1747,17 @@
             </objectState>
          </enablement>
       </decorator>
+      <decorator
+            icon="icons/ovr/ovr_revealOnConnect.png"
+            id="revealOnConnect"
+            label="%decorator.revealOnConnect.label"
+            lightweight="true"
+            location="TOP_LEFT"
+            state="true">
+         <enablement>
+            <objectState name="isRevealOnConnect" value="true"/>
+         </enablement>
+      </decorator>
    </extension>
    
 <!-- Preference contributions -->
@@ -1837,7 +1875,8 @@
              autoExpandLevel="0"
              contentProvider="org.eclipse.tcf.te.tcf.filesystem.ui.controls.FSTreeContentProvider"
              id="org.eclipse.tcf.te.ui.controls.viewer.fs"
-             persistent="true">
+             persistent="true"
+             useLabelDecorator="true">
           <creation>
              <style name="SWT.FULL_SELECTION" />
              <style name="SWT.MULTI" />
@@ -1876,7 +1915,7 @@
                alignment="SWT.LEFT"
                comparator="org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementComparator"
                id="name"
-               labelProvider="org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.FSTreeElementLabelProvider"
+               labelProvider="org.eclipse.tcf.te.tcf.filesystem.ui.internal.columns.DecoratingFSTreeElementLabelProvider"
                moveable="true"
                name="%column.name.name"
                resizable="true"
@@ -2041,13 +2080,6 @@
                tab="org.eclipse.tcf.te.tcf.filesystem.propertytab.advanced">
          </propertySection>
       </propertySections>
-   </extension>
-   <extension
-         point="org.eclipse.ui.elementFactories">
-      <factory
-            class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.adapters.FSTreeNodeFactory"
-            id="org.eclipse.tcf.te.tcf.filesystem.ui.nodeFactory">
-      </factory>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">

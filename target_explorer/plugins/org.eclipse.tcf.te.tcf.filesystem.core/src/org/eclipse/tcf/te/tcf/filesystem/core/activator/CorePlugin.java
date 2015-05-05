@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,14 +9,20 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.activator;
 
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.url.TcfURLConnection;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.url.TcfURLStreamHandlerService;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.url.URLConstants;
 import org.osgi.service.url.URLStreamHandlerService;
 
@@ -25,12 +31,18 @@ import org.osgi.service.url.URLStreamHandlerService;
  */
 public class CorePlugin extends Plugin {
 
+	private static final String PREFKEY_REVEAL_ON_CONNECT = "revealOnConnect"; //$NON-NLS-1$
+
+	private static final String PLUGIN_ID = "org.eclipse.tcf.te.tcf.filesystem.core"; //$NON-NLS-1$
+
 	// The bundle context of this plugin.
 	private static BundleContext context;
 	// The shared instance of this plug-in.
 	private static CorePlugin plugin;
 	// The service registration for the "tcf" URL stream handler.
 	private ServiceRegistration<?> regURLStreamHandlerService;
+
+	private Set<String> fRevealOnConnect;
 
 	/**
 	 * Get the bundle context of this plugin.
@@ -85,9 +97,62 @@ public class CorePlugin extends Plugin {
 	 * Convenience method which returns the unique identifier of this plugin.
 	 */
 	public static String getUniqueIdentifier() {
-		if (getContext() != null && getContext().getBundle() != null) {
-			return getContext().getBundle().getSymbolicName();
+		return PLUGIN_ID;
+	}
+
+
+	public boolean addToRevealOnConnect(String location) {
+		if (unsafeGetRevealOnConnect().add(location)) {
+			storeRevealOnConnect();
+			return true;
 		}
-		return "org.eclipse.tcf.te.tcf.filesystem.core"; //$NON-NLS-1$
+		return false;
+	}
+
+	public boolean removeFromRevealOnConnect(String location) {
+		if (unsafeGetRevealOnConnect().remove(location)) {
+			storeRevealOnConnect();
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isRevealOnConnect(String location) {
+		return unsafeGetRevealOnConnect().contains(location);
+	}
+
+	public Set<String> getRevealOnConnect() {
+		return new HashSet<String>(unsafeGetRevealOnConnect());
+	}
+
+	private void storeRevealOnConnect() {
+		if (fRevealOnConnect == null)
+			return;
+
+		StringBuilder buf = new StringBuilder();
+		for (String reveal : fRevealOnConnect) {
+			if (buf.length() > 0)
+				buf.append("\0"); //$NON-NLS-1$
+			buf.append(reveal);
+		}
+		IEclipsePreferences node = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+		node.put(PREFKEY_REVEAL_ON_CONNECT, buf.toString());
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+		}
+	}
+
+	private Set<String> unsafeGetRevealOnConnect() {
+		if (fRevealOnConnect == null) {
+			HashSet<String> favorites = new HashSet<String>();
+			String favs = Platform.getPreferencesService().getString(PLUGIN_ID, PREFKEY_REVEAL_ON_CONNECT, "", null); //$NON-NLS-1$
+			for (String fav : favs.split("\0")) { //$NON-NLS-1$
+				if (fav.length() > 0)
+					favorites.add(fav);
+			}
+			fRevealOnConnect = favorites;
+		}
+		return fRevealOnConnect;
 	}
 }

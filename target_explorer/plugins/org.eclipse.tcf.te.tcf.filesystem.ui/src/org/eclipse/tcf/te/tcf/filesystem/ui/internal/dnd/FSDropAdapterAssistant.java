@@ -51,7 +51,11 @@ public class FSDropAdapterAssistant extends CommonDropAdapterAssistant {
 		boolean valid = false;
 		if (target instanceof IFSTreeNode) {
 			if (LocalSelectionTransfer.getTransfer().isSupportedType(transferType)) {
-				valid = dnd.validateLocalSelectionDrop(target, operation, transferType);
+				int op = dnd.validateLocalSelectionDrop(target, operation, transferType);
+				valid = op != 0;
+				if (valid && op != operation) {
+					getCommonDropAdapter().overrideOperation(op);
+				}
 			}
 			else if(FileTransfer.getInstance().isSupportedType(transferType)) {
 				valid = dnd.validateFilesDrop(target, operation, transferType);

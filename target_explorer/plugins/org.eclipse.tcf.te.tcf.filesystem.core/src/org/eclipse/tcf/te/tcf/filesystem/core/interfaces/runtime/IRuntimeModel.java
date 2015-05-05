@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.List;
 
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.services.IFileSystem.DirEntry;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.IModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
@@ -21,9 +22,15 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 
 
 /**
- * A model dealing with the filesystem at runtime.
+ * A model dealing with the file system at runtime.
  */
 public interface IRuntimeModel extends IModel, IPeerNodeProvider {
+
+	static class Delegate {
+		public boolean filterRoot(DirEntry entry) {
+			return true;
+		}
+	}
 
 	/**
 	 * Returns the channel of this runtime model
@@ -36,6 +43,11 @@ public interface IRuntimeModel extends IModel, IPeerNodeProvider {
     public IFSTreeNode getRoot();
 
     /**
+     * Returns the delegate that is used for customized behavior.
+     */
+    public Delegate getDelegate();
+
+    /**
      * Returns an operation for restoring nodes from a path
      */
 	public IResultOperation<IFSTreeNode> operationRestoreFromPath(String path);
@@ -44,4 +56,9 @@ public interface IRuntimeModel extends IModel, IPeerNodeProvider {
      * Returns an operation for downloading multiple nodes to a destination
      */
 	public IOperation operationDownload(List<IFSTreeNode> nodes, File destination, IConfirmCallback confirmCallback);
+
+    /**
+     * Returns an operation for restoring nodes from a path
+     */
+	public IResultOperation<IFSTreeNode[]> operationRestoreFavorites();
 }

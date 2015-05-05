@@ -38,7 +38,7 @@
             class="org.eclipse.tcf.te.tcf.filesystem.core.internal.testers.FSTreeNodePropertyTester"
             id="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode"
             namespace="org.eclipse.tcf.te.tcf.filesystem.propertytester.treenode"
-            properties="isFile,isDirectory,isBinaryFile,isReadable,isWritable,isExecutable,isRoot,isReadOnly,isHidden,isWindows,testParent,getCacheState,isSystemRoot"
+            properties="isFile,isDirectory,isBinaryFile,isReadable,isWritable,isExecutable,isRoot,isReadOnly,isHidden,isWindows,testParent,getCacheState,isSystemRoot,isRevealOnConnect"
             type="org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode">
       </propertyTester>
       <propertyTester

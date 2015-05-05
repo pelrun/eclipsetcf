@@ -95,6 +95,13 @@
                </documentation>
             </annotation>
          </attribute>
+         <attribute name="useLabelDecorator" type="boolean">
+            <annotation>
+               <documentation>
+                  Whether to use a decorating label provider.
+               </documentation>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 

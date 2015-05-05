@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -28,6 +28,7 @@ public class ViewerDescriptor {
 	private boolean persistent = false;
 	// The auto expand level.
 	private int autoExpandLevel = 2;
+	private boolean labelDecorator;
 
 	public IConfigurationElement getStyleConfig() {
 		return styleConfig;
@@ -76,4 +77,12 @@ public class ViewerDescriptor {
 	public void setAutoExpandLevel(int autoExpandLevel) {
 		this.autoExpandLevel = autoExpandLevel;
 	}
+
+	public void setUseLabelDecorator(boolean useDecorator) {
+		this.labelDecorator = useDecorator;
+	}
+
+	public boolean getUseLabelDecorator() {
+	    return labelDecorator;
+    }
 }

@@ -24,6 +24,7 @@ import org.eclipse.tcf.services.IFileSystem.DirEntry;
 import org.eclipse.tcf.services.IFileSystem.DoneClose;
 import org.eclipse.tcf.services.IFileSystem.DoneOpen;
 import org.eclipse.tcf.services.IFileSystem.DoneReadDir;
+import org.eclipse.tcf.services.IFileSystem.DoneRoots;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 import org.eclipse.tcf.te.tcf.remote.core.TCFFileStore;
@@ -65,19 +66,36 @@ public class TCFOperationChildStores extends TCFFileStoreOperation<IFileStore[]>
 					return;
 
 				setFileSystem(fileSystem);
-				fileSystem.opendir(getPath(), new DoneOpen() {
+				final String path = getPath();
+				fileSystem.opendir(path, new DoneOpen() {
 					@Override
 					public void doneOpen(IToken token, FileSystemException error, IFileHandle handle) {
-						if (shallAbort(error))
-							return;
-
-						setFileHandle(handle);
-						readDir();
+						if (error != null && (path.length() == 0 || path.equals("/"))) { //$NON-NLS-1$
+							readRoots();
+						} else if (!shallAbort(error)) {
+							setFileHandle(handle);
+							readDir();
+						}
 					}
 				});
 			}
 		});
 	}
+
+	protected void readRoots() {
+		fFileSystem.roots(new DoneRoots() {
+			@Override
+			public void doneRoots(IToken token, FileSystemException error, DirEntry[] entries) {
+				if (shallAbort(error)) {
+					return;
+				}
+				for (DirEntry dirEntry : entries) {
+					createFileStore(dirEntry);
+				}
+				setResult();
+			}
+		});
+    }
 
 	protected void readDir() {
 		fFileSystem.readdir(fFileHandle, new DoneReadDir() {

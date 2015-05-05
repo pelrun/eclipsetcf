@@ -160,4 +160,13 @@ public interface IFSTreeNode extends IFSTreeNodeBase, IAdaptable {
 	 */
 	IResultOperation<? extends IFSTreeNode> operationNewFolder(String name);
 
+	/**
+	 * Stores whether this file or folder shall be revealed when the target is connected.
+	 */
+	void setRevealOnConnect(boolean value);
+
+	/**
+	 * Returns whether this file or folder is revealed when the target is connected.
+	 */
+	boolean isRevealOnConnect();
 }

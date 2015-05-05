@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -203,17 +203,6 @@ public class UIPlugin extends AbstractUIPlugin implements IPreferenceKeys {
 		IPreferenceStore preferenceStore = getDefault().getPreferenceStore();
 		boolean autoSaving = preferenceStore.getBoolean(PREF_AUTOSAVING);
 		return autoSaving;
-	}
-
-	/**
-	 * If the option of "expanded_persisted" is set to on.
-	 *
-	 * @return true if the expanded state should be persisted or else false.
-	 */
-	public static boolean isExpandedPersisted() {
-		IPreferenceStore preferenceStore = getDefault().getPreferenceStore();
-		boolean persisted = preferenceStore.getBoolean(PREF_EXPANDED_PERSISTED);
-		return persisted;
 	}
 
 	/**

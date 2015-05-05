@@ -31,11 +31,10 @@ public class TCFFileManager implements IRemoteFileManager {
 
 	@Override
 	public IFileStore getResource(String pathStr) {
-		IPath path = new Path(pathStr);
-		if (!path.isAbsolute()) {
-			path = new Path(fConnection.getWorkingDirectory()).append(path);
+		if (!pathStr.startsWith("/")) { //$NON-NLS-1$
+			pathStr = fConnection.getWorkingDirectory() + "/" + pathStr; //$NON-NLS-1$
 		}
-		return TCFFileStore.getInstance(fConnection, path, null);
+		return TCFFileStore.getInstance(fConnection, pathStr, null);
 	}
 
 	@Override

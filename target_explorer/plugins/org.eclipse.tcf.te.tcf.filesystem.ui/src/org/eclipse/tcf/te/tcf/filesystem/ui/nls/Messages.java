@@ -245,6 +245,7 @@ public class Messages extends NLS {
 	public static String TargetSelectionPage_Description;
 	public static String TargetSelectionPage_Targets;
 	public static String TargetSelectionPage_Title;
+	public static String ToggleRevealOnConnectContributionItem_text;
 	public static String TreeViewerSearchDialog_LblCancelText;
 	public static String TreeViewerSearchDialog_GrpOptionsText;
 	public static String TreeViewerSearchDialog_BtnCaseText;

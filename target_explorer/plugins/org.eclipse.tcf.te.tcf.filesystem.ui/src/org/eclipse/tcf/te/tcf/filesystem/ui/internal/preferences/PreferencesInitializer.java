@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -45,6 +45,5 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer implem
 		preferenceStore.setDefault(PREF_RENAMING_IN_PLACE_EDITOR, DEFAULT_RENAMING_IN_PLACE_EDITOR);
 		preferenceStore.setDefault(PREF_COPY_PERMISSION, DEFAULT_COPY_PERMISSION);
 		preferenceStore.setDefault(PREF_COPY_OWNERSHIP, DEFAULT_COPY_OWNERSHIP);
-		preferenceStore.setDefault(PREF_EXPANDED_PERSISTED, DEFAULT_EXPANDED_PERSISTED);
 	}
 }

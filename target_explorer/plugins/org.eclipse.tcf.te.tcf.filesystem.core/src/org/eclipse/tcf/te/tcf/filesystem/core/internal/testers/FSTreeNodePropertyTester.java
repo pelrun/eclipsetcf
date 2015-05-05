@@ -61,6 +61,10 @@ import org.eclipse.tcf.te.tcf.filesystem.core.model.CacheState;
  * </pre>
  */
 public class FSTreeNodePropertyTester extends PropertyTester {
+	private enum Property {
+		isFile, isDirectory, isBinaryFile, isReadable, isWritable, isExecutable, isRoot,
+		isSystemRoot, isWindows, isReadOnly, isHidden, testParent, getCacheState, isRevealOnConnect
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String, java.lang.Object[], java.lang.Object)
@@ -69,38 +73,48 @@ public class FSTreeNodePropertyTester extends PropertyTester {
 	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
 		if(receiver == null)
 			return false;
+		Property prop;
+		try {
+			prop = Property.valueOf(property);
+		} catch (Exception e) {
+			return false;
+		}
+
 		Assert.isTrue(receiver instanceof FSTreeNode);
 		FSTreeNode node = (FSTreeNode) receiver;
-		if (property.equals("isFile")) { //$NON-NLS-1$
-			return node.isFile();
-		} else if (property.equals("isDirectory")) { //$NON-NLS-1$
-			return node.isDirectory();
-		} else if (property.equals("isBinaryFile")) { //$NON-NLS-1$
-			return ContentTypeHelper.isBinaryFile(node);
-		} else if (property.equals("isReadable")){ //$NON-NLS-1$
-			return node.isReadable();
-		} else if (property.equals("isWritable")){ //$NON-NLS-1$
-			return node.isWritable();
-		} else if (property.equals("isExecutable")){ //$NON-NLS-1$
-			return node.isExecutable();
-		} else if (property.equals("isRoot")) { //$NON-NLS-1$
-			return node.isRootDirectory();
-		} else if (property.equals("isSystemRoot")) { //$NON-NLS-1$
-			return node.isFileSystem();
-		} else if (property.equals("isWindows")) { //$NON-NLS-1$
-			return node.isWindowsNode();
-		} else if (property.equals("isReadOnly")) { //$NON-NLS-1$
-			return node.isReadOnly();
-		} else if (property.equals("isHidden")) { //$NON-NLS-1$
-			return node.isHidden();
-		} else if (property.equals("testParent")) { //$NON-NLS-1$
-			return testParent(node, args, expectedValue);
-		} else if (property.equals("getCacheState")){ //$NON-NLS-1$
+		switch (prop) {
+		case getCacheState:
 			File file = CacheManager.getCacheFile(node);
 			if(!file.exists())
 				return false;
 			CacheState state = node.getCacheState();
 			return state.name().equals(expectedValue);
+		case isBinaryFile:
+			return ContentTypeHelper.isBinaryFile(node);
+		case isDirectory:
+			return node.isDirectory();
+		case isExecutable:
+			return node.isExecutable();
+		case isRevealOnConnect:
+			return node.isRevealOnConnect();
+		case isFile:
+			return node.isFile();
+		case isHidden:
+			return node.isHidden();
+		case isReadOnly:
+			return node.isReadOnly();
+		case isReadable:
+			return node.isReadable();
+		case isRoot:
+			return node.isRootDirectory();
+		case isSystemRoot:
+			return node.isFileSystem();
+		case isWindows:
+			return node.isWindowsNode();
+		case isWritable:
+			return node.isWritable();
+		case testParent:
+			return testParent(node, args, expectedValue);
 		}
 		return false;
 	}

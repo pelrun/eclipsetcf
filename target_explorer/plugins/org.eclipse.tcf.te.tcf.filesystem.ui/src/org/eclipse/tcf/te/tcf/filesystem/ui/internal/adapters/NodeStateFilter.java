@@ -48,8 +48,7 @@ public class NodeStateFilter implements IActionFilter {
 			if (value == null)
 				value = CacheState.consistent.name();
 			return value.equals(state.name());
-		}
-		else if (name.equals("edit.cut")) { //$NON-NLS-1$
+		} else if (name.equals("edit.cut")) { //$NON-NLS-1$
 			FsClipboard cb = UIPlugin.getClipboard();
 			if (!cb.isEmpty()) {
 				if (cb.isCutOp()) {
@@ -59,8 +58,7 @@ public class NodeStateFilter implements IActionFilter {
 					}
 				}
 			}
-		}
-		else if (name.equals("hidden")) { //$NON-NLS-1$
+		} else if (name.equals("hidden")) { //$NON-NLS-1$
 			if (value == null) value = "true"; //$NON-NLS-1$
 			boolean result = false;
 			if (!node.isRootDirectory()) {
@@ -72,6 +70,9 @@ public class NodeStateFilter implements IActionFilter {
 				}
 			}
 			return Boolean.toString(result).equals(value);
+		} else if (name.equals("isRevealOnConnect")) { //$NON-NLS-1$
+			boolean expect = value == null || Boolean.parseBoolean(value);
+			return expect == node.isRevealOnConnect();
 		}
 		return false;
 	}

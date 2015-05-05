@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -24,7 +24,7 @@ public interface IPreferenceKeys {
 	 */
 	public static final String PREF_FEATURE_ENABLE_EDITOR_CONTENT_CONTRIBUTION = PREFIX + "feature.editor.content.enable"; //$NON-NLS-1$
 	// The default value for editor content contribution
-	public static final boolean DEFAULT_FEATURE_ENABLE_EDITOR_CONTENT_CONTRIBUTION = true; 
+	public static final boolean DEFAULT_FEATURE_ENABLE_EDITOR_CONTENT_CONTRIBUTION = true;
 	// The preference key to access the option of auto saving
 	public static final String PREF_AUTOSAVING = "PrefAutoSaving"; //$NON-NLS-1$
 	// The default value of the option of auto saving.
@@ -41,8 +41,4 @@ public interface IPreferenceKeys {
 	public static final String PREF_COPY_OWNERSHIP = "PrefCopyOwnership"; //$NON-NLS-1$
 	// The default value of the option of copy ownership
 	public static final boolean DEFAULT_COPY_OWNERSHIP = true;
-	// The preference key to access the option that if expanded nodes should be persisted
-	public static final String PREF_EXPANDED_PERSISTED = "PrefExpandedPersisted"; //$NON-NLS-1$
-	// The default value of the option that if expanded nodes should be persisted
-	public static final boolean DEFAULT_EXPANDED_PERSISTED = false;
 }

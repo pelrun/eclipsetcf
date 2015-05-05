@@ -13,6 +13,7 @@ import static java.text.MessageFormat.format;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel.Delegate;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.FileState;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.PersistenceManager;
@@ -160,12 +162,13 @@ public class OpRefresh extends AbstractOperation {
 					if (error != null) {
 						result.setError(format(Messages.OpRefresh_errorGetRoots, node.getRuntimeModel().getName()), error);
 					} else if (!result.checkCancelled()) {
-						int i = 0;
-						FSTreeNode[] nodes = new FSTreeNode[entries.length];
+						Delegate delegate = node.getRuntimeModel().getDelegate();
+						List<FSTreeNode> nodes = new ArrayList<FSTreeNode>(entries.length);
 						for (DirEntry entry : entries) {
-							nodes[i++] = new FSTreeNode(node, entry.filename, true, entry.attrs);
+							if (delegate.filterRoot(entry))
+								nodes.add(new FSTreeNode(node, entry.filename, true, entry.attrs));
 						}
-						node.setContent(nodes, false);
+						node.setContent(nodes.toArray(new FSTreeNode[nodes.size()]), false);
 						for (FSTreeNode node : nodes) {
 							if (fRecursive || node.isFile()) {
 								fWork.addFirst(node);
@@ -215,6 +218,7 @@ public class OpRefresh extends AbstractOperation {
 				tcfReadDir(fs, path, new IReadDirDone() {
 					@Override
 					public void error(FileSystemException error) {
+						node.setContent(NO_CHILDREN, false);
 						result.setError(format(Messages.OpRefresh_errorOpenDir, path), error);
 					}
 

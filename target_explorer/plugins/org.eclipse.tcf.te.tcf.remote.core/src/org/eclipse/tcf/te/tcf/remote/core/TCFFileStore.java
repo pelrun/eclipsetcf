@@ -21,7 +21,6 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileInfo;
 import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -43,33 +42,31 @@ import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationPutInfo;
 public final class TCFFileStore extends FileStore {
 
 	public static IFileStore getInstance(URI uri) {
-		Path path = new Path(uri.getPath());
 		IRemoteConnection connection = TCFEclipseFileSystem.getConnection(uri);
 		if (connection instanceof TCFConnection)
-			return new TCFFileStore((TCFConnection) connection, path, uri, null);
+			return new TCFFileStore((TCFConnection) connection, uri, null);
 
-		return EFS.getNullFileSystem().getStore(path);
+		return EFS.getNullFileSystem().getStore(new Path(uri.getPath()));
 	}
 
-	public static IFileStore getInstance(TCFConnection connection, IPath path, TCFFileStore parent) {
+	public static IFileStore getInstance(TCFConnection connection, String path, TCFFileStore parent) {
 		try {
-	        return new TCFFileStore(connection, path, TCFEclipseFileSystem.getURIFor(connection, path.toString()), parent);
+	        URI uri = TCFEclipseFileSystem.getURIFor(connection, path);
+			return new TCFFileStore(connection, uri, parent);
         } catch (URISyntaxException e) {
         	Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), Messages.TCFFileManager_errorFileStoreForPath, e));
         }
-		return EFS.getNullFileSystem().getStore(path);
+		return EFS.getNullFileSystem().getStore(new Path(path));
 	}
 
 	private final URI fURI;
 	private final TCFConnection fConnection;
-	private final IPath fRemotePath;
 	private FileAttrs fAttributes;
 	private IFileStore fParent;
 
-	private TCFFileStore(TCFConnection connection, IPath path, URI uri, TCFFileStore parent) {
+	private TCFFileStore(TCFConnection connection, URI uri, TCFFileStore parent) {
 		fURI = uri;
 		fConnection = connection;
-		fRemotePath = new Path(uri.getPath());
 		fParent = parent;
 	}
 
@@ -82,8 +79,8 @@ public final class TCFFileStore extends FileStore {
 	    return fConnection;
 	}
 
-	public IPath getPath() {
-		return fRemotePath;
+	public String getPath() {
+		return fURI.getPath();
 	}
 
 	public void setAttributes(FileAttrs attrs) {
@@ -96,15 +93,20 @@ public final class TCFFileStore extends FileStore {
 
 	@Override
 	public IFileStore getChild(String name) {
-		return getInstance(fConnection, fRemotePath.append(name), this);
+		String path = getPath() + '/' + name;
+		path = path.replaceAll("/+", "/"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (path.length() > 1 && path.endsWith("/")) //$NON-NLS-1$
+			path = path.substring(0, path.length()-1);
+		return getInstance(fConnection, path, this);
 	}
 
 	@Override
 	public String getName() {
-		if (fRemotePath.isRoot()) {
-			return fRemotePath.toString();
-		}
-		return fRemotePath.lastSegment();
+		String path = getPath();
+		int idx = path.lastIndexOf('/');
+		if (idx > 0)
+			return path.substring(idx + 1);
+		return path;
 	}
 
 	@Override
@@ -112,10 +114,12 @@ public final class TCFFileStore extends FileStore {
 		if (fParent != null)
 			return fParent;
 
-		if (fRemotePath.isRoot())
+		String path = getPath();
+		int idx = path.lastIndexOf('/');
+		if (idx < 1)
 			return null;
 
-		fParent = getInstance(fConnection, fRemotePath.removeLastSegments(1), null);
+		fParent = getInstance(fConnection, path.substring(0, idx-1), null);
 		return fParent;
 	}
 

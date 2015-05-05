@@ -59,7 +59,13 @@ public class FSDropTargetListener extends ViewerDropAdapter {
 	public boolean validateDrop(Object target, int operation, TransferData transferType) {
 		if (target instanceof IFSTreeNode) {
 			if (LocalSelectionTransfer.getTransfer().isSupportedType(transferType)) {
-				return dnd.validateLocalSelectionDrop(target, operation, transferType);
+				int op = dnd.validateLocalSelectionDrop(target, operation, transferType);
+				if (op == 0)
+					return false;
+				if (op != operation) {
+					overrideOperation(op);
+				}
+				return true;
 			}
 			else if (FileTransfer.getInstance().isSupportedType(transferType)) {
 				return dnd.validateFilesDrop(target, operation, transferType);

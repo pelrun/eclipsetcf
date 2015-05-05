@@ -36,6 +36,7 @@ import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.te.core.interfaces.IFilterable;
 import org.eclipse.tcf.te.core.interfaces.IPropertyChangeProvider;
 import org.eclipse.tcf.te.core.interfaces.IViewerInput;
+import org.eclipse.tcf.te.tcf.filesystem.core.activator.CorePlugin;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IConfirmCallback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
@@ -640,5 +641,23 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 				return midVal;
 		}
 		return null;
+	}
+
+	@Override
+	public void setRevealOnConnect(boolean value) {
+		if (value) {
+			if (CorePlugin.getDefault().addToRevealOnConnect(getLocation(true))) {
+				notifyChange("favorites", Boolean.FALSE, Boolean.TRUE); //$NON-NLS-1$
+			}
+		} else {
+			if (CorePlugin.getDefault().removeFromRevealOnConnect(getLocation(true))) {
+				notifyChange("favorites", Boolean.TRUE, Boolean.FALSE); //$NON-NLS-1$
+			}
+		}
+	}
+
+	@Override
+	public boolean isRevealOnConnect() {
+		return CorePlugin.getDefault().isRevealOnConnect(getLocation(true));
 	}
 }

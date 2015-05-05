@@ -12,9 +12,13 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.dnd;
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -36,6 +40,7 @@ import org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.MoveCopyCallback;
 import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.Bundle;
 /**
  * Common DnD operations shared by File Explorer and Target Explorer.
  */
@@ -123,16 +128,25 @@ public class CommonDnD implements IConfirmCallback {
 	 * @return true if the dropping is successful.
 	 */
 	public boolean dropLocalSelection(IFSTreeNode target, int operations, IStructuredSelection selection) {
-		List<IFSTreeNode> nodes = selection.toList();
+		List<IFSTreeNode> nodes = toNodes(selection);
 		IOperation operation;
 		boolean move = (operations & DND.DROP_MOVE) != 0;
-		if (move) {
+		if (move && nodes != null) {
 			operation = target.operationDropMove(nodes, new MoveCopyCallback());
 		} else if ((operations & DND.DROP_COPY) != 0) {
-			IFSTreeNode dest = getCopyDestination(target, nodes);
-			boolean cpPerm = UIPlugin.isCopyPermission();
-			boolean cpOwn = UIPlugin.isCopyOwnership();
-			operation = dest.operationDropCopy(nodes, cpPerm, cpOwn, new MoveCopyCallback());
+			if (nodes != null) {
+				IFSTreeNode dest = getCopyDestination(target, nodes);
+				boolean cpPerm = UIPlugin.isCopyPermission();
+				boolean cpOwn = UIPlugin.isCopyOwnership();
+				operation = dest.operationDropCopy(nodes, cpPerm, cpOwn, new MoveCopyCallback());
+			} else {
+				List<String> files = toFiles(selection);
+				if (files != null) {
+					operation = target.operationDropFiles(files, new MoveCopyCallback());
+				} else {
+					return false;
+				}
+			}
 		} else {
 			return false;
 		}
@@ -198,32 +212,73 @@ public class CommonDnD implements IConfirmCallback {
 	 * @param transferType The transfered data simulator.
 	 * @return true if it is valid for dropping.
 	 */
-	public boolean validateLocalSelectionDrop(Object target, int operation, TransferData transferType) {
+	public int validateLocalSelectionDrop(Object target, int operation, TransferData transferType) {
 		IFSTreeNode hovered = (IFSTreeNode) target;
 		LocalSelectionTransfer transfer = LocalSelectionTransfer.getTransfer();
 		IStructuredSelection selection = (IStructuredSelection) transfer.getSelection();
-		List<IFSTreeNode> nodes = selection.toList();
 		boolean moving = (operation & DND.DROP_MOVE) != 0;
 		boolean copying = (operation & DND.DROP_COPY) != 0;
-		if (hovered.isDirectory() && hovered.isWritable() && (moving || copying)) {
-			IFSTreeNode head = nodes.get(0);
-			String hid = head.getPeerNode().getPeerId();
-			String tid = hovered.getPeerNode().getPeerId();
-			if (hid.equals(tid)) {
-				for (IFSTreeNode node : nodes) {
-					if (moving && node == hovered || node.getParent() == hovered || node.isAncestorOf(hovered)) {
-						return false;
+		if (!moving && !copying)
+			return 0;
+
+		List<IFSTreeNode> nodes = toNodes(selection);
+		if (nodes != null) {
+			if (hovered.isDirectory() && hovered.isWritable() && (moving || copying)) {
+				IFSTreeNode head = nodes.get(0);
+				String hid = head.getPeerNode().getPeerId();
+				String tid = hovered.getPeerNode().getPeerId();
+				if (hid.equals(tid)) {
+					for (IFSTreeNode node : nodes) {
+						if (moving && node == hovered || node.getParent() == hovered || node.isAncestorOf(hovered)) {
+							return 0;
+						}
 					}
+					return operation;
 				}
-				return true;
+			} else if (hovered.isFile() && (copying || moving)) {
+				hovered = hovered.getParent();
+				return validateLocalSelectionDrop(hovered, operation, transferType);
 			}
+			return 0;
 		}
-		else if (hovered.isFile() && copying) {
-			hovered = hovered.getParent();
-			return validateLocalSelectionDrop(hovered, operation, transferType);
+		List<String> files = toFiles(selection);
+		if (files != null) {
+			if (hovered.isDirectory() && hovered.isWritable()) {
+				return DND.DROP_COPY;
+			}
+			return 0;
 		}
-		return false;
+		return 0;
 	}
+
+	private List<IFSTreeNode> toNodes(IStructuredSelection selection) {
+	    List<IFSTreeNode> nodes = new ArrayList<IFSTreeNode>();
+	    for (Object o : selection.toList()) {
+			if (!(o instanceof IFSTreeNode))
+				return null;
+			nodes.add((IFSTreeNode) o);
+		}
+	    return nodes;
+    }
+
+	private List<String> toFiles(IStructuredSelection selection) {
+		// Dependency to org.eclipse.core.resources is optional
+		Bundle rb = Platform.getBundle("org.eclipse.core.resources"); //$NON-NLS-1$
+		if (rb == null || rb.getState() != Bundle.ACTIVE)
+			return null;
+
+		List<String> files = new ArrayList<String>();
+		for (Object o : selection.toList()) {
+			IResource res = (IResource) Platform.getAdapterManager().getAdapter(o, IResource.class);
+			if (res == null)
+				return null;
+			IPath location = res.getLocation();
+			if (location == null)
+				return null;
+			files.add(location.toFile().getAbsolutePath());
+		}
+		return files;
+    }
 
 	/*
 	 * (non-Javadoc)

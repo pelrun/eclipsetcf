@@ -47,6 +47,8 @@ public class Messages extends NLS {
 	public static String Operation_CannotCreateDirectory;
 	public static String Operation_TimeoutOpeningChannel;
 
+	public static String OpCacheFileDigest_error_updatingDigest;
+	public static String OpCacheFileDigest_name;
 	public static String OpCommitAttr_error_cannotSetAttributes;
 	public static String OpCommitAttr_name;
 	public static String OpCopy_Copying;
@@ -84,6 +86,7 @@ public class Messages extends NLS {
 	public static String OpRefresh_name;
 
 	public static String OpRename_TitleRename;
+	public static String OpRestoreFavorites_name;
 
 	public static String CacheManager_SetReadOnlyFailed;
 	public static String OpStreamOp_Bytes;

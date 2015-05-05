@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.tcf.filesystem.core.activator.CorePlugin;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.CacheManager;
+import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
  * The operation to calculate the message digest of a cache file.
@@ -62,7 +63,7 @@ public class OpCacheFileDigest extends AbstractOperation {
 			this.digest = digest.digest();
 			return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
 		} catch (Exception e) {
-			return new Status(IStatus.ERROR, CorePlugin.getUniqueIdentifier(), "Failed to update digest", e); //$NON-NLS-1$
+			return new Status(IStatus.ERROR, CorePlugin.getUniqueIdentifier(), Messages.OpCacheFileDigest_error_updatingDigest, e);
         } finally {
 			if (input != null) {
 				try {
@@ -82,12 +83,8 @@ public class OpCacheFileDigest extends AbstractOperation {
 		return digest;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation#getName()
-	 */
 	@Override
 	public String getName() {
-		return "Update cache digest"; //$NON-NLS-1$
+		return Messages.OpCacheFileDigest_name;
 	}
 }

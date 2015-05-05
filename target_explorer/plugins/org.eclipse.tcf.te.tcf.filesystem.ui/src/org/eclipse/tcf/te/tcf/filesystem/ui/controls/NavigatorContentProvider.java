@@ -9,10 +9,14 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.viewers.ITreeViewerListener;
-import org.eclipse.jface.viewers.TreeExpansionEvent;
-import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.ModelManager;
@@ -22,7 +26,9 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 /**
  * The base navigator content provider for File System and Process Monitor
  */
-public abstract class NavigatorContentProvider extends TreeContentProvider  implements ITreeViewerListener {
+public abstract class NavigatorContentProvider extends TreeContentProvider {
+
+	private Set<IRuntimeModel> fModelsWithOpenFavorites = new HashSet<IRuntimeModel>();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
@@ -45,53 +51,35 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeViewerListener#treeCollapsed(org.eclipse.jface.viewers.TreeExpansionEvent)
-	 */
-	@Override
-    public void treeCollapsed(TreeExpansionEvent event) {
+	private void checkOpenFavorites(IRuntimeModel rtm) {
+		if (!fModelsWithOpenFavorites.add(rtm))
+			return;
+
+		final IResultOperation<IFSTreeNode[]> operation = rtm.operationRestoreFavorites();
+		operation.runInJob(new Callback() {
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				IFSTreeNode[] nodes = operation.getResult();
+				if (nodes != null) {
+					final Set<IFSTreeNode> expandMe = new LinkedHashSet<IFSTreeNode>();
+					for (IFSTreeNode node : nodes) {
+						while ((node = node.getParent()) != null) {
+							expandMe.add(node);
+						}
+					}
+					viewer.getControl().getDisplay().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							for (IFSTreeNode n : expandMe) {
+								viewer.setExpandedState(n, true);
+							}
+						}
+					});
+				}
+			}
+		});
     }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeViewerListener#treeExpanded(org.eclipse.jface.viewers.TreeExpansionEvent)
-	 */
-	@Override
-    public void treeExpanded(TreeExpansionEvent event) {
-//		Object object = event.getElement();
-//	    if(object instanceof IFSTreeNode) {
-//	    	IFSTreeNode parent = (IFSTreeNode) object;
-//	    	IFSTreeNode[] children = parent.getChildren();
-//	    	if (children == null) {
-//	    		parent.operationRefresh(false).runInJob(null);
-//	    	}
-//		}
-    }
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.trees.TreeContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-    public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-	    super.inputChanged(viewer, oldInput, newInput);
-	    this.viewer.addTreeListener(this);
-    }
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.tcf.te.ui.trees.TreeContentProvider#dispose()
-	 */
-	@Override
-    public void dispose() {
-	    this.viewer.removeTreeListener(this);
-	    super.dispose();
-    }
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
-	 */
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		super.getChildren(parentElement);
@@ -102,6 +90,7 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 			if (model == null)
 				return NO_ELEMENTS;
 
+			checkOpenFavorites(model);
 			if (isRootNodeVisible()) {
 				IFSTreeNode root = model.getRoot();
 				return new Object[] { root };
@@ -109,6 +98,8 @@ public abstract class NavigatorContentProvider extends TreeContentProvider  impl
 			return getChildren(model.getRoot());
 		} else if (parentElement instanceof IFSTreeNode) {
 			IFSTreeNode node = (IFSTreeNode)parentElement;
+			checkOpenFavorites(node.getRuntimeModel());
+
 			if (!(node.isDirectory() || node.isFileSystem()))
 				return NO_ELEMENTS;
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -28,6 +28,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
+import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -49,8 +50,11 @@ import org.eclipse.tcf.te.core.interfaces.IViewerInput;
 import org.eclipse.tcf.te.ui.WorkbenchPartControl;
 import org.eclipse.tcf.te.ui.forms.CustomFormToolkit;
 import org.eclipse.tcf.te.ui.interfaces.ITreeControlInputChangedListener;
+import org.eclipse.ui.IDecoratorManager;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 
 
 /**
@@ -86,7 +90,7 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	/**
 	 * Constructor.
 	 *
-	 * @param parentPart The parent workbench part this control is embedded in or <code>null</code>.
+	 * @param parent The parent workbench part this control is embedded in or <code>null</code>.
 	 */
 	public AbstractTreeControl(IWorkbenchPart parent) {
 		super(parent);
@@ -561,6 +565,13 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	}
 
 	/**
+	 * Whether to use a decorating label provider.
+	 */
+	protected boolean useLabelDecorator() {
+		return false;
+	}
+
+	/**
 	 * Creates the tree viewer layout data instance.
 	 *
 	 * @param viewer The tree viewer. Must not be <code>null</code>.
@@ -583,12 +594,12 @@ public abstract class AbstractTreeControl extends WorkbenchPartControl implement
 	 */
 	protected ILabelProvider doCreateTreeViewerLabelProvider(AbstractTreeControl parentTreeControl, TreeViewer viewer) {
 		TreeViewerLabelProvider labelProvider = new TreeViewerLabelProvider(parentTreeControl, viewer);
-		// do not use a decorating label provider to avoid decoration when system management view element is visible
-		// in this case, the decoration is done also on the editor tab element!!
-		//		IWorkbench workbench = PlatformUI.getWorkbench();
-		//		IDecoratorManager manager = workbench.getDecoratorManager();
-		//		ILabelDecorator decorator = manager.getLabelDecorator();
-		//		return new TreeViewerDecoratingLabelProvider(viewer, labelProvider,decorator);
+		if (useLabelDecorator()) {
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IDecoratorManager manager = workbench.getDecoratorManager();
+			ILabelDecorator decorator = manager.getLabelDecorator();
+			return new TreeViewerDecoratingLabelProvider(viewer, labelProvider,decorator);
+		}
 		return labelProvider;
 	}
 
