@@ -129,7 +129,6 @@ public class TCFBreakpointActions {
                         done(false);
                         return;
                     }
-                    resumed = true;
                     String rc_grp = ctx_data.getRCGroup();
                     if (rc_grp != null) {
                         List<BreakpointActionAdapter> l = new ArrayList<BreakpointActionAdapter>();
@@ -140,10 +139,19 @@ public class TCFBreakpointActions {
                             if (!a_ctx_cache.validate(this)) return;
                             IRunControl.RunControlContext a_ctx_data = a_ctx_cache.getData();
                             if (a_ctx_data == null) continue;
-                            if (rc_grp.equals(a_ctx_data.getRCGroup())) l.add(a);
+                            if (rc_grp.equals(a_ctx_data.getRCGroup())) {
+                                if (a.resumed) resumed = true;
+                                else l.add(a);
+                            }
                         }
                         for (BreakpointActionAdapter a : l) a.abort();
                     }
+                    if (resumed) {
+                        // resume for same RCGroup already pending
+                        done(false);
+                        return;
+                    }
+                    resumed = true;
                     ctx_data.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
                         public void doneCommand(IToken token, Exception error) {
                             if (error != null && !aborted) error(error);
