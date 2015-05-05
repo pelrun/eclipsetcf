@@ -19,8 +19,11 @@
       %license
    </license>
 
+   <includes
+         id="org.eclipse.tcf.te.terminals.feature"
+         version="0.0.0"/>
+
    <requires>
-      <import feature="org.eclipse.tcf.te.terminals.feature" version="1.3.1" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.sdk.feature" version="4.0.0" match="greaterOrEqual"/>
    </requires>
 
