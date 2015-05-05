@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -265,7 +265,6 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
             else if (!done) {
                 done = true;
                 /* Don't call setUpdatePending() if pending state was reset by the view */
-                if (context_cnt != fContextCount) return;
                 if (!fCallback.getUpdatePending()) return;
                 fCallback.setUpdatePending(false);
             }
