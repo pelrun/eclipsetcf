@@ -275,8 +275,7 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
         try {
             String id = getPeerNode().getPeerId();
             String path = getLocation(true);
-            String location = TcfURLConnection.PROTOCOL_SCHEMA + ":/" + id + (path.startsWith("/") ? path : "/" + path); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            return new URL(location);
+            return new URL(TcfURLConnection.PROTOCOL_SCHEMA, id, path);
         } catch (MalformedURLException e) {
             assert false;
             return null;
@@ -294,8 +293,7 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
         try {
             String id = getPeerNode().getPeerId();
             String path = getLocation('/', true);
-            String location = TcfURLConnection.PROTOCOL_SCHEMA + ":/" + id + (path.startsWith("/") ? path : "/" + path); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            return new URI(location);
+            return new URI(TcfURLConnection.PROTOCOL_SCHEMA, id, path, null);
         }
         catch (URISyntaxException e) {
             assert false;

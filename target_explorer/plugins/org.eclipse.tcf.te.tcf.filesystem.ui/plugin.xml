@@ -219,6 +219,17 @@
                   id="openWithMenu">
             </dynamic>
          </menu>
+         <dynamic
+               class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.ToggleRevealOnConnectContributionItem"
+               id="toggleRevealOnConnect">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <iterate ifEmpty="false" operator="and">
+                      <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
+                  </iterate>
+              </with>
+            </visibleWhen>
+         </dynamic>
          <separator
                name="group.edit"
                visible="true">
@@ -550,17 +561,6 @@
                label="%command.search.label"
                style="push">
          </command>
-         <dynamic
-               class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.ToggleRevealOnConnectContributionItem"
-               id="toggleRevealOnConnect">
-            <visibleWhen checkEnabled="false">
-               <with variable="selection">
-                  <iterate ifEmpty="false" operator="and">
-                      <instanceof value="org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode"/>
-                  </iterate>
-              </with>
-            </visibleWhen>
-         </dynamic>
          <separator name="group.properties" visible="true"/>
          <command
                commandId="org.eclipse.ui.file.properties"
@@ -646,7 +646,7 @@
             </dynamic>
          </menu>
       </menuContribution>
-      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.search">
+      <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.showIn">
          <dynamic
                class="org.eclipse.tcf.te.tcf.filesystem.ui.internal.handlers.ToggleRevealOnConnectContributionItem"
                id="toggleRevealOnConnect">
