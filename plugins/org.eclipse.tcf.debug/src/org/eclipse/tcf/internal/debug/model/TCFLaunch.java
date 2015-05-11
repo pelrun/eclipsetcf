@@ -27,6 +27,7 @@ import java.util.Set;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -840,8 +841,20 @@ public class TCFLaunch extends Launch {
             // Start the process
             new LaunchStep() {
                 @Override
-                void start() {
-                    if (env != null) process_env.putAll(env);
+                void start() throws Exception  {
+                    if (env != null) {
+                        for (Map.Entry<String,String> e : env.entrySet()) {
+                            String key = e.getKey();
+                            String val = e.getValue();
+                            if (val == null) {
+                                process_env.remove(key);
+                            }
+                            else {
+                                val = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(val);
+                                process_env.put(key, val);
+                            }
+                        }
+                    }
                     String file = remote_file;
                     if (file == null || file.length() == 0) file = TCFLaunchDelegate.getProgramPath(project, local_file);
                     if (file == null || file.length() == 0) {
@@ -866,7 +879,8 @@ public class TCFLaunch extends Launch {
                         }
                     };
                     if (launch_monitor != null) launch_monitor.subTask("Starting: " + file);
-                    String[] args_arr = toArgsArray(file, args);
+                    String cmd = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(args);
+                    String[] args_arr = toArgsArray(file, cmd);
                     if (ps_v1 != null) {
                         Map<String,Object> params = new HashMap<String,Object>();
                         if (mode.equals(ILaunchManager.DEBUG_MODE)) {
