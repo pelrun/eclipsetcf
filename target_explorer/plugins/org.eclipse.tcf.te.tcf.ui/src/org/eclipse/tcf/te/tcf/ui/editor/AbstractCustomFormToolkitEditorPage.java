@@ -11,6 +11,7 @@
 package org.eclipse.tcf.te.tcf.ui.editor;
 
 import java.util.EventObject;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jface.action.ControlContribution;
 import org.eclipse.jface.action.IContributionItem;
@@ -18,6 +19,8 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
@@ -108,5 +111,37 @@ public abstract class AbstractCustomFormToolkitEditorPage extends org.eclipse.tc
 				return hyperlink;
 			}
 		};
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage#getFormTitleStateDecoration()
+	 */
+	@SuppressWarnings("restriction")
+    @Override
+	public String getFormTitleStateDecoration() {
+		String stateStr = null;
+
+		if (getEditorInputNode() instanceof IPeerNode) {
+			final AtomicInteger state = new AtomicInteger(IConnectable.STATE_UNKNOWN);
+
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					state.set(((IPeerNode)getEditorInputNode()).getConnectState());
+				}
+			};
+
+			if (Protocol.isDispatchThread()) runnable.run();
+			else Protocol.invokeAndWait(runnable);
+
+			final int s = state.get();
+			if (s == IConnectable.STATE_CONNECTED || s == IConnectable.STATE_CONNECTING || s == IConnectable.STATE_CONNECTION_LOST
+					|| s == IConnectable.STATE_CONNECTION_RECOVERING || s == IConnectable.STATE_DISCONNECTING) {
+				String candidate = org.eclipse.tcf.te.core.nls.Messages.getConnectStateString(s);
+				if (candidate != null) stateStr = "(" + candidate + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+
+	    return stateStr;
 	}
 }

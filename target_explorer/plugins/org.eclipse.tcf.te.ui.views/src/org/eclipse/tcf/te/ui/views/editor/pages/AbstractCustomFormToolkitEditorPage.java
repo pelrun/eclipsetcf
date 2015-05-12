@@ -175,8 +175,12 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 
 		// Decorate the form header
 		getFormToolkit().getFormToolkit().decorateFormHeading(managedForm.getForm().getForm());
-		// And set the header text and image
-		if (getFormTitle() != null) managedForm.getForm().getForm().setText(getFormTitle());
+
+		// Set the header text
+		String title = getFormTitle();
+		if (title != null) setFormTitle(title);
+
+		// Set the header image
 		managedForm.getForm().getForm().setImage(getFormImage());
 
 		// Add the toolbar items which will appear in the form header
@@ -199,6 +203,7 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 //		}
 //		// Trigger an update of the menu widget
 //		menuManager.update(true);
+
 		// Trigger an update of the toolbar widget
 		toolBarManager.update(true);
 	}
@@ -215,9 +220,18 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	/**
 	 * Returns the form title to set to the top form header.
 	 *
-	 * @return The form title.
+	 * @return The form title or <code>null</code>.
 	 */
 	protected String getFormTitle() {
+		return null;
+	}
+
+	/**
+	 * Returns the form title state decoration.
+	 *
+	 * @return The form title state decoration or <code>null</code>.
+	 */
+	public String getFormTitleStateDecoration() {
 		return null;
 	}
 
@@ -238,16 +252,44 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 		return image;
 	}
 
+	/**
+	 * Update the form header title.
+	 *
+	 * @param title The title text. Must not be <code>null</code>:
+	 */
 	public void setFormTitle(String title) {
-		getManagedForm().getForm().setText(title);
+		Assert.isNotNull(title);
+
+		String fullTitle = title;
+		String titleStateDecoration = getFormTitleStateDecoration();
+		if (titleStateDecoration != null) fullTitle += " " + titleStateDecoration; //$NON-NLS-1$
+
+		String oldTitle = getManagedForm().getForm().getText();
+		if (!fullTitle.equals(oldTitle)) {
+			getManagedForm().getForm().setText(fullTitle);
+		}
 	}
 
+	/**
+	 * Update the form header image.
+	 *
+	 * @param image The image or <code>null</code>.
+	 */
 	public void setFormImage(Image image) {
 		getManagedForm().getForm().setImage(image);
 		if (getEditor() instanceof Editor) {
 			((Editor)getEditor()).setTitleImage(image);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage#setActive(boolean)
+	 */
+//	@Override
+//	public void setActive(boolean active) {
+//		if (active) setFormTitle(getFormTitle());
+//	    super.setActive(active);
+//	}
 
 	/**
 	 * Create the toolbar contribution items.

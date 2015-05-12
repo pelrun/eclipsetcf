@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tcf.te.ui.views.editor.pages.AbstractCustomFormToolkitEditorPage;
 import org.eclipse.tcf.te.ui.views.editor.pages.AbstractEditorPage;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBinding;
 import org.eclipse.tcf.te.ui.views.extensions.EditorPageBindingExtensionPointManager;
@@ -98,10 +99,26 @@ public final class Editor extends FormEditor implements IPersistableEditor, ITab
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#setTitleImage(org.eclipse.swt.graphics.Image)
+	 *
+	 * Re-export the method as public!
 	 */
 	@Override
 	public void setTitleImage(Image titleImage) {
 	    super.setTitleImage(titleImage);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.EditorPart#getTitleToolTip()
+	 */
+	@Override
+	public String getTitleToolTip() {
+		String fullToolTip = super.getTitleToolTip();
+		IFormPage page = getActivePageInstance();
+		if (page instanceof AbstractCustomFormToolkitEditorPage) {
+			String titleStateDecoration = ((AbstractCustomFormToolkitEditorPage)page).getFormTitleStateDecoration();
+			if (titleStateDecoration != null) fullToolTip += " " + titleStateDecoration; //$NON-NLS-1$
+		}
+	    return fullToolTip;
 	}
 
 	/*

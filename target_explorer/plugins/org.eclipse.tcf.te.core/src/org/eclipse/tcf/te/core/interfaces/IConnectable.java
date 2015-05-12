@@ -69,7 +69,7 @@ public interface IConnectable {
 	 * Check whether a state change to the given state is allowed.
 	 *
 	 * @param state The new state to check.
-	 * @return <code>true</code> if a state change to the given state is currently allwoed.
+	 * @return <code>true</code> if a state change to the given state is currently allowed.
 	 */
 	public boolean isConnectStateChangeAllowed(int state);
 
@@ -77,7 +77,7 @@ public interface IConnectable {
 	 * Check whether a state change action is allowed.
 	 *
 	 * @param action The action to execute.
-	 * @return <code>true</code> if a state change action is currently allwoed.
+	 * @return <code>true</code> if a state change action is currently allowed.
 	 */
     public boolean isConnectStateChangeActionAllowed(int action);
 

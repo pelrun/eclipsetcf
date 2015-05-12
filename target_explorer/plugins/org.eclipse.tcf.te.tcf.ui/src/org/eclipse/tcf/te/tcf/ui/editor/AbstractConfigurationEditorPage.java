@@ -73,6 +73,7 @@ public abstract class AbstractConfigurationEditorPage extends AbstractCustomForm
 							@Override
 							public void run() {
 								if (!getManagedForm().getForm().isDisposed()) {
+									setFormTitle(getFormTitle());
 									setFormImage(getFormImage());
 								}
 							}
