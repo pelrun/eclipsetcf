@@ -90,6 +90,7 @@ public class FSExplorerEditorPage extends AbstractTreeViewerExplorerEditorPage {
 			IRuntimeModel rtModel = ModelManager.getRuntimeModel(peerNode);
 			if (rtModel != null)
 				return rtModel.getRoot();
+			return peerNode;
 		}
 		return null;
     }

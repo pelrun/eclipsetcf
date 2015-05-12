@@ -83,6 +83,8 @@ public class FSExplorerEventListener extends AbstractEventListener {
 								// Update the tree viewer input element
 								treeControl.getViewer().setInput(model.getRoot());
 							}
+						} else {
+							treeControl.getViewer().setInput(getPeerNode());
 						}
 						// Trigger a refresh on the whole viewer to show the "Please connect ..." text
 						treeControl.getViewer().refresh();
