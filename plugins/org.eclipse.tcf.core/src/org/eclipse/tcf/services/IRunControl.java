@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.services;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.eclipse.tcf.protocol.IService;
@@ -77,7 +78,12 @@ public interface IRunControl extends IService {
         /** Context ID of a symbols group that contains the context.
          * Members of a symbols group share same symbol reader configuration settings,
          * like user defined memory map entries and source lookup info */
-        PROP_SYMBOLS_GROUP = "SymbolsGroup";
+        PROP_SYMBOLS_GROUP = "SymbolsGroup",
+
+        /** Array of String, the access types allowed for this context
+         * when accessing context registers.
+         */
+        PROP_REG_ACCESS_TYPES = "RegAccessTypes";
 
     /**
      * Context resume modes.
@@ -221,6 +227,13 @@ public interface IRunControl extends IService {
         /** Context suspended because of an error in execution environment */
         REASON_ERROR = "Error";
 
+
+    /**
+     * Values of "RegAccessTypes".
+     */
+    static final String
+        REG_ACCESS_RD_RUNNING = "rd-running",       /** Context supports reading registers while running */
+        REG_ACCESS_WR_RUNNUNG = "wr-running";       /** Context supports writing registers while running */
 
     /* Optional parameters of context state -------------------------------- */
 
@@ -493,6 +506,12 @@ public interface IRunControl extends IService {
          * @return value of PROP_SYMBOLS_GROUP or null if the context is not a member of a symbols group.
          */
         String getSymbolsGroup();
+
+        /**
+         * Get the register access types allowed for this context.
+         * @return collection of access type names.
+         */
+        Collection<String> getRegAccessTypes();
 
         /**
          * Send a command to retrieve current state of a context.

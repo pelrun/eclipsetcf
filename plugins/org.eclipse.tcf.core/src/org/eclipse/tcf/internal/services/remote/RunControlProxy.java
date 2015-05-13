@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -113,6 +113,11 @@ public class RunControlProxy implements IRunControl {
 
         public String getSymbolsGroup() {
             return (String)props.get(PROP_SYMBOLS_GROUP);
+        }
+
+        @SuppressWarnings("unchecked")
+        public Collection<String> getRegAccessTypes() {
+            return (Collection<String>)props.get(PROP_REG_ACCESS_TYPES);
         }
 
         public IToken getState(final DoneGetState done) {

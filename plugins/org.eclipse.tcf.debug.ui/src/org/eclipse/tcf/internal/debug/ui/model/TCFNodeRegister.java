@@ -13,6 +13,7 @@ package org.eclipse.tcf.internal.debug.ui.model;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -234,10 +235,13 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             if (!ctx_cache.validate(done)) return null;
             IRunControl.RunControlContext ctx_data = ctx_cache.getData();
             if (ctx_data != null && ctx_data.hasState()) {
-                TCFDataCache<TCFContextState> state_cache = exe.getState();
-                if (!state_cache.validate(done)) return null;
-                TCFContextState state_data = state_cache.getData();
-                if (state_data == null || !state_data.is_suspended) return true;
+                Collection<String> access_types = ctx_data.getRegAccessTypes();
+                if (access_types == null || !access_types.contains(IRunControl.REG_ACCESS_RD_RUNNING)) {
+                    TCFDataCache<TCFContextState> state_cache = exe.getState();
+                    if (!state_cache.validate(done)) return null;
+                    TCFContextState state_data = state_cache.getData();
+                    if (state_data == null || !state_data.is_suspended) return true;
+                }
             }
         }
         return false;
