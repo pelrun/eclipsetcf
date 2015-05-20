@@ -101,13 +101,15 @@ public interface IStackTrace extends IService {
 
     /**
      * Stack frame property:
-     * ILineNumbers.CodeArea - call site code area.
+     * ILineNumbers.CodeArea - source code location of the frame.
+     * @since 1.3
      */
     static final String PROP_CODE_AREA = "CodeArea";
 
     /**
      * Stack frame property:
      * String - function symbol ID.
+     * @since 1.3
      */
     static final String PROP_FUNC_ID = "FuncID";
 
@@ -251,6 +253,7 @@ public interface IStackTrace extends IService {
          * Get code area that describes source code location of the frame.
          * If null, client should use LineNumbers service to find frame source location.
          * @return code area or null.
+         * @since 1.3
          */
         ILineNumbers.CodeArea getCodeArea();
 
@@ -258,6 +261,7 @@ public interface IStackTrace extends IService {
          * Get function symbol ID.
          * If null, client should use Symbols service to find function symbol ID.
          * @return function symbol ID or null.
+         * @since 1.3
          */
         String getFuncID();
 

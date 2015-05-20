@@ -38,6 +38,11 @@
         <td>2013-07-12
         <td>New command: getChildrenRange.
         Stack frame property "Level" is replaced with "Index".
+    <tr>
+        <td>1.3
+        <td>2015-05-20
+        <td>Fixed description of getChildrenRange.
+        New properties: CodeArea and FuncID.
 </table>
 
 <h2><a name='Overview'>Overview</a></h2>
@@ -134,7 +139,11 @@ Cached context data should by flushed when parent thread is resumed.</p>
     <li><code><b><font face="Courier New" size=2 color=#333399>"ArgsAddr" : <i>&lt;number&gt;</i></font></b></code>
     - memory address of function arguments
 
+    <li><code><b><font face="Courier New" size=2 color=#333399>"CodeArea" : <i>&lt;number&gt;</i></font></b></code>
+    - source code location of the frame
 
+    <li><code><b><font face="Courier New" size=2 color=#333399>"FuncID" : <i>&lt;number&gt;</i></font></b></code>
+    - function symbol ID.
 </ul>
 
 <h3><a name='CmdGetChildren'>Get Children</a></h3>
@@ -171,7 +180,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
 <h3><a name='CmdGetChildrenRange'>Get Children Range</a></h3>
 
 <pre><b><font face="Courier New" size=2 color=#333399>
-C &bull; <i>&lt;token&gt;</i> &bull; StackTrace &bull; getChildrenRange &bull; <i>&lt;int: range start&gt;</i> &bull; <i>&lt;int: range end&gt;</i> &bull; <i>&lt;string: parent context ID&gt;</i> &bull;
+C &bull; <i>&lt;token&gt;</i> &bull; StackTrace &bull; getChildrenRange &bull; <i>&lt;string: parent context ID&gt;</i> &bull; <i>&lt;int: range start&gt;</i> &bull; <i>&lt;int: range end&gt;</i> &bull;
 </font></b></pre>
 
 <p>The command retrieves a range of stack trace context IDs.
@@ -211,7 +220,9 @@ Client can use Run Control service to suspend a thread.</p>
         PROP_RETURN_ADDRESS = "RP",             <font color=#3F5FBF>/** Number, return address */</font>
         PROP_INSTRUCTION_ADDRESS = "IP",        <font color=#3F5FBF>/** Number, instruction pointer */</font>
         PROP_ARGUMENTS_COUNT = "ArgsCnt",       <font color=#3F5FBF>/** Integer, number of function arguments */</font>
-        PROP_ARGUMENTS_ADDRESS = "ArgsAddr";    <font color=#3F5FBF>/** Number, memory address of function arguments */</font>
+        PROP_ARGUMENTS_ADDRESS = "ArgsAddr",    <font color=#3F5FBF>/** Number, memory address of function arguments */</font>
+        PROP_CODE_AREA = "CodeArea",            <font color=#3F5FBF>/** ILineNumbers.CodeArea, source code location of the frame */</font>
+        PROP_FUNC_ID = "FuncID";                <font color=#3F5FBF>/** String, function symbol ID */</font>
 
     <font color=#3F5FBF>/**
      * Retrieve context info for given context IDs.
@@ -265,10 +276,11 @@ Client can use Run Control service to suspend a thread.</p>
      * The command will fail if parent thread is not suspended.
      * Client can use Run Control service to suspend a thread.
      *
-     * <font color=#7F9FBF>@param</font> parent_context_id – parent context ID.
+     * <font color=#7F9FBF>@param</font> parent_context_id - parent context ID.
      * <font color=#7F9FBF>@param</font> range_start - start of the range (inclusive).
      * <font color=#7F9FBF>@param</font> range_end - end of the range (inclusive).
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@since 1.2</font>
      */</font>
     IToken getChildrenRange(String parent_context_id, int range_start, int range_end, DoneGetChildren done);
 
@@ -339,6 +351,22 @@ Client can use Run Control service to suspend a thread.</p>
          * <font color=#7F9FBF>@return</font> function arguments address or null if not available.
          */</font>
         Number getArgumentsAddress();
+
+        <font color=#3F5FBF>/**
+         * Get code area that describes source code location of the frame.
+         * If null, client should use LineNumbers service to find frame source location.
+         * <font color=#7F9FBF>@return</font> code area or null.
+         * <font color=#7F9FBF>@since 1.3</font>
+         */</font>
+        ILineNumbers.CodeArea getCodeArea();
+
+        <font color=#3F5FBF>/**
+         * Get function symbol ID.
+         * If null, client should use Symbols service to find function symbol ID.
+         * <font color=#7F9FBF>@return</font> function symbol ID or null.
+         * <font color=#7F9FBF>@since 1.3</font>
+         */</font>
+        String getFuncID();
 
         <font color=#3F5FBF>/**
          * Get complete map of context properties.
