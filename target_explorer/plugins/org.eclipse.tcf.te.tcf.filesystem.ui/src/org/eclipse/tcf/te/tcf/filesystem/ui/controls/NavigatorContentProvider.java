@@ -9,8 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.controls;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
@@ -61,17 +63,20 @@ public abstract class NavigatorContentProvider extends TreeContentProvider {
 			protected void internalDone(Object caller, IStatus status) {
 				IFSTreeNode[] nodes = operation.getResult();
 				if (nodes != null) {
-					final Set<IFSTreeNode> expandMe = new LinkedHashSet<IFSTreeNode>();
+					final List<IFSTreeNode> expandMe = new ArrayList<IFSTreeNode>();
 					for (IFSTreeNode node : nodes) {
 						while ((node = node.getParent()) != null) {
 							expandMe.add(node);
 						}
 					}
+					Collections.reverse(expandMe);
 					viewer.getControl().getDisplay().asyncExec(new Runnable() {
 						@Override
 						public void run() {
+							Set<IFSTreeNode> handled = new HashSet<IFSTreeNode>();
 							for (IFSTreeNode n : expandMe) {
-								viewer.setExpandedState(n, true);
+								if (handled.add(n))
+									viewer.setExpandedState(n, true);
 							}
 						}
 					});
