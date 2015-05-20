@@ -1,26 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2015 PalmSource, Inc. and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * Copyright (c) 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * This program and the accompanying materials are made available under the terms
+ * of the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * Ewa Matejska          (PalmSource) - initial API and implementation
- * Martin Oberhuber      (Wind River) - [186773] split ISystemRegistryUI from ISystemRegistry
- * Martin Oberhuber      (Wind River) - [196934] hide disabled system types in remotecdt combo
- * Yu-Fen Kuo            (MontaVista) - [190613] Fix NPE in Remotecdt when RSEUIPlugin has not been loaded
- * Martin Oberhuber      (Wind River) - [cleanup] Avoid using SystemStartHere in production code
- * Johann Draschwandtner (Wind River) - [231827][remotecdt]Auto-compute default for Remote path
- * Johann Draschwandtner (Wind River) - [233057][remotecdt]Fix button enablement
- * Anna Dushistova       (MontaVista) - [181517][usability] Specify commands to be run before remote application launch
- * Anna Dushistova       (MontaVista) - [223728] [remotecdt] connection combo is not populated until RSE is activated
- * Anna Dushistova       (MontaVista) - [267951] [remotecdt] Support systemTypes without files subsystem
- * Anna Dushistova  (Mentor Graphics) - adapted from RemoteCMainTab
- * Anna Dushistova  (Mentor Graphics) - moved to org.eclipse.cdt.launch.remote.tabs
- * Anna Dushistova  (Mentor Graphics) - [318052] [remote launch] Properties are not saved/used
- * Anna Dushistova       (MontaVista) - [375067] [remote] Automated remote launch does not support project-less debug
- * Anna Dushistova       (MontaVista) - adapted from RemoteCDSFMainTab
+ * Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 
@@ -57,8 +42,11 @@ import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConsta
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
+/**
+ * Abstract custom main tab implementation.
+ */
 @SuppressWarnings("restriction")
-public class TECDSFMainTab extends CMainTab {
+public class TEAbstractMainTab extends CMainTab {
 
 	/* Labels and Error Messages */
 	private static final String REMOTE_PROG_LABEL_TEXT = Messages.RemoteCMainTab_Program;
@@ -72,15 +60,42 @@ public class TECDSFMainTab extends CMainTab {
 	protected Label remoteProgLabel;
 	protected Text remoteProgText;
 	protected Button skipDownloadButton;
+	protected boolean skipDownloadButtonVisible = true;
 
 	protected boolean progTextFireNotification;
 	protected boolean remoteProgTextFireNotification;
+	protected boolean remoteProgValidation = true;
 
 	private Text preRunText;
 	private Label preRunLabel;
+	private boolean preRunVisible = true;
 
-	public TECDSFMainTab() {
-		super(0);
+	public static final int NO_DOWNLOAD_GROUP = 2 << 8;
+	public static final int NO_PRERUN_GROUP = 4 << 8;
+
+	/**
+	 * Constructor
+	 */
+	public TEAbstractMainTab() {
+		super();
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * @param flags The flags to configure the main tab.
+	 */
+	public TEAbstractMainTab(int flags) {
+		super(flags);
+		if ((flags & DONT_CHECK_PROGRAM) != 0) {
+			remoteProgValidation = false;
+		}
+		if ((flags & NO_DOWNLOAD_GROUP) != 0) {
+			skipDownloadButtonVisible = false;
+		}
+		if ((flags & NO_PRERUN_GROUP) != 0) {
+			preRunVisible = false;
+		}
 	}
 
 	@Override
@@ -93,7 +108,7 @@ public class TECDSFMainTab extends CMainTab {
 		/* The remote binary location and skip download option */
 		createVerticalSpacer(comp, 1);
 		createTargetExePathGroup(comp);
-		createDownloadOption(comp);
+		if (skipDownloadButtonVisible) createDownloadOption(comp);
 
 		/* If the local binary path changes, modify the remote binary location */
 		fProgText.addModifyListener(new ModifyListener() {
@@ -122,7 +137,7 @@ public class TECDSFMainTab extends CMainTab {
 				setErrorMessage(CONNECTION_TEXT_ERROR);
 				retVal = false;
 			}
-			if (retVal) {
+			if (retVal && remoteProgValidation) {
 				String name = remoteProgText.getText().trim();
 				if (name.length() == 0) {
 					setErrorMessage(REMOTE_PROG_TEXT_ERROR);
@@ -194,26 +209,27 @@ public class TECDSFMainTab extends CMainTab {
 			}
 		});
 
-		// Commands to run before execution
-		preRunLabel = new Label(mainComp, SWT.NONE);
-		preRunLabel.setText(PRE_RUN_LABEL_TEXT);
-		gd = new GridData();
-		gd.horizontalSpan = 2;
-		preRunLabel.setLayoutData(gd);
+		if (preRunVisible) {
+			// Commands to run before execution
+			preRunLabel = new Label(mainComp, SWT.NONE);
+			preRunLabel.setText(PRE_RUN_LABEL_TEXT);
+			gd = new GridData();
+			gd.horizontalSpan = 2;
+			preRunLabel.setLayoutData(gd);
 
-		preRunText = new Text(mainComp, SWT.MULTI | SWT.BORDER);
-		gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = 2;
-		preRunText.setLayoutData(gd);
-		preRunText.addModifyListener(new ModifyListener() {
+			preRunText = new Text(mainComp, SWT.MULTI | SWT.BORDER);
+			gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 2;
+			preRunText.setLayoutData(gd);
+			preRunText.addModifyListener(new ModifyListener() {
 
-			@SuppressWarnings("synthetic-access")
-			@Override
-			public void modifyText(ModifyEvent evt) {
-				updateLaunchConfigurationDialog();
-			}
-		});
-
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void modifyText(ModifyEvent evt) {
+					updateLaunchConfigurationDialog();
+				}
+			});
+		}
 	}
 
 	/*
@@ -271,25 +287,29 @@ public class TECDSFMainTab extends CMainTab {
 		remoteProgText.setText(targetPath);
 		remoteProgTextFireNotification = prevRemoteProgTextFireNotification;
 
-		String prelaunchCmd = null;
-		try {
-			prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
+		if (preRunText != null) {
+			String prelaunchCmd = null;
+			try {
+				prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
+			}
+			catch (CoreException e) {
+				// Ignore
+			}
+			if (prelaunchCmd != null) preRunText.setText(prelaunchCmd);
 		}
-		catch (CoreException e) {
-			// Ignore
-		}
-		preRunText.setText(prelaunchCmd);
 	}
 
 	protected void updateSkipDownloadFromConfig(ILaunchConfiguration config) {
-		boolean downloadToTarget = true;
-		try {
-			downloadToTarget = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT);
+		if (skipDownloadButton != null) {
+			boolean downloadToTarget = true;
+			try {
+				downloadToTarget = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT);
+			}
+			catch (CoreException e) {
+				// Ignore for now
+			}
+			skipDownloadButton.setSelection(downloadToTarget);
 		}
-		catch (CoreException e) {
-			// Ignore for now
-		}
-		skipDownloadButton.setSelection(downloadToTarget);
 	}
 
 	/**
@@ -368,8 +388,7 @@ public class TECDSFMainTab extends CMainTab {
 	public void initializeFrom(ILaunchConfiguration config) {
 		String remoteConnection = null;
 		try {
-			remoteConnection = config
-			                .getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, ""); //$NON-NLS-1$
+			remoteConnection = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, ""); //$NON-NLS-1$
 		}
 		catch (CoreException ce) {
 			// Ignore
@@ -392,14 +411,13 @@ public class TECDSFMainTab extends CMainTab {
 		String currentSelection = peerSelector.getPeerId();
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, currentSelection != null ? currentSelection : null);
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, remoteProgText.getText());
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, skipDownloadButton.getSelection());
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, preRunText.getText());
+		if (skipDownloadButton != null) {
+			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, skipDownloadButton.getSelection());
+		}
+		if (preRunText != null) {
+			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, preRunText.getText());
+		}
 		super.performApply(config);
-	}
-
-	@Override
-	public String getId() {
-		return "org.eclipse.tcf.te.remotecdt.dsf.gdb.mainTab"; //$NON-NLS-1$
 	}
 
 	@Override

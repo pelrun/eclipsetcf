@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2014 PalmSource, Inc. and others.
+ * Copyright (c) 2006, 2015 PalmSource, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,7 +34,7 @@ import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 import org.eclipse.tcf.te.ui.controls.validator.PortNumberVerifyListener;
 
 @SuppressWarnings("restriction")
-public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
+public class TEGdbDebuggerPage extends GdbDebuggerPage {
 
 	protected Text fGDBServerCommandText = null;
 
@@ -44,7 +44,7 @@ public class TEDSFGDBDebuggerPage extends GdbDebuggerPage {
 
 	private boolean fIsInitializing = false;
 
-	public TEDSFGDBDebuggerPage() {
+	public TEGdbDebuggerPage() {
 		super();
 	}
 

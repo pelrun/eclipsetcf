@@ -1,16 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2012 Mentor Graphics Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * Copyright (c) 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * This program and the accompanying materials are made available under the terms
+ * of the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- * Anna Dushistova (Mentor Graphics) - initial API and implementation
- * Anna Dushistova (Mentor Graphics) - moved to org.eclipse.cdt.launch.remote.tabs
- * Anna Dushistova (MontaVista)      - adapted from TEDSFDebuggerTab
+ * Wind River Systems - initial API and implementation
  *******************************************************************************/
-
 package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 
 import org.eclipse.cdt.debug.ui.ICDebuggerPage;
@@ -22,13 +18,19 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+/**
+ * Abstract custom debugger tab implementation.
+ */
 @SuppressWarnings("restriction")
-public class TEDSFDebuggerTab extends CDebuggerTab {
-
+public class TEAbstractDebuggerTab extends CDebuggerTab {
+	// Do not change the ID. We want to maintain compatibility
 	private final static String DEFAULTS_SET = "org.eclipse.cdt.launch.remote.te.TEDSFDebuggerTab.DEFAULTS_SET"; //$NON-NLS-1$
 
-	public TEDSFDebuggerTab() {
-		super(SessionType.REMOTE, false);
+	/**
+	 * Constructor
+	 */
+	public TEAbstractDebuggerTab(SessionType sessionType, boolean attach) {
+		super(sessionType, attach);
 	}
 
 	/*
@@ -61,6 +63,18 @@ public class TEDSFDebuggerTab extends CDebuggerTab {
 		super.initializeFrom(config);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.cdt.dsf.gdb.internal.ui.launching.CDebuggerTab#initDebuggerTypes(java.lang.String)
+	 */
+	@Override
+	protected void initDebuggerTypes(String selection) {
+		// Workaround to fix NPE in CDebuggerTab#initializeCommonControl
+		if ("gdb".equals(selection) || "gdbserver".equals(selection)) { //$NON-NLS-1$ //$NON-NLS-2$
+			setDebuggerId(selection);
+		}
+	    super.initDebuggerTypes(selection);
+	}
+
 	@Override
 	protected void loadDynamicDebugArea() {
 		Composite dynamicTabHolder = getDynamicTabHolder();
@@ -69,24 +83,18 @@ public class TEDSFDebuggerTab extends CDebuggerTab {
 		for (int i = 0; i < children.length; i++) {
 			children[i].dispose();
 		}
-		setDynamicTab(new TEDSFGDBDebuggerPage());
+		setDynamicTab(new TEGdbDebuggerPage());
 
 		ICDebuggerPage debuggerPage = getDynamicTab();
 		if (debuggerPage == null) {
 			return;
 		}
 		// Ask the dynamic UI to create its Control
-		debuggerPage
-				.setLaunchConfigurationDialog(getLaunchConfigurationDialog());
+		debuggerPage.setLaunchConfigurationDialog(getLaunchConfigurationDialog());
 		debuggerPage.createControl(dynamicTabHolder);
 		debuggerPage.getControl().setVisible(true);
 		dynamicTabHolder.layout(true);
 		contentsChanged();
-	}
-
-	@Override
-	public String getId() {
-		return "org.eclipse.tcf.te.remotecdt.dsf.debug.TEDSFDebuggerTab"; //$NON-NLS-1$
 	}
 
 }
