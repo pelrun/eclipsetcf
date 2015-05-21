@@ -9,11 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
-import org.eclipse.cdt.dsf.gdb.launching.GdbAttachLaunchDelegate;
 
 /**
  * Attach to a remotely running process and launch the necessary gdbserver via TCF/TE.
  */
-public class TEGdbAttachLaunchDelegate extends GdbAttachLaunchDelegate {
+public class TEGdbAttachLaunchDelegate extends TEGdbAbstractLaunchDelegate {
 
 }

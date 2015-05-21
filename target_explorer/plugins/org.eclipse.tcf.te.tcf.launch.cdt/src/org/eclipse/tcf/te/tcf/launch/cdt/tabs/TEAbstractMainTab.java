@@ -46,7 +46,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
  * Abstract custom main tab implementation.
  */
 @SuppressWarnings("restriction")
-public class TEAbstractMainTab extends CMainTab {
+public abstract class TEAbstractMainTab extends CMainTab {
 
 	/* Labels and Error Messages */
 	private static final String REMOTE_PROG_LABEL_TEXT = Messages.RemoteCMainTab_Program;

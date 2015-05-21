@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2014 PalmSource, Inc. and others.
+ * Copyright (c) 2006, 2015 PalmSource, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,11 +26,17 @@ public interface IRemoteTEConfigurationConstants {
 	public static final String ATTR_GDBSERVER_COMMAND_DEFAULT = "gdbserver"; //$NON-NLS-1$
 
 	/*
-	 * Generic Remote Path and Download options ATTR_REMOTE_PATH: Path of the binary on the remote.
-	 * ATTR_SKIP_DOWNLOAD_TO_TARGET: true if download to remote is not desired.
+	 * Generic Remote Path and Download options:
+	 *     ATTR_REMOTE_PATH: Path of the binary on the remote.
+	 *     ATTR_SKIP_DOWNLOAD_TO_TARGET: true if download to remote is not desired.
 	 */
 	public static final String ATTR_REMOTE_PATH = DebugPlugin.getUniqueIdentifier() + ".ATTR_TARGET_PATH"; //$NON-NLS-1$
 	public static final String ATTR_SKIP_DOWNLOAD_TO_TARGET = DebugPlugin.getUniqueIdentifier() + ".ATTR_SKIP_DOWNLOAD_TO_TARGET"; //$NON-NLS-1$
+
+	/*
+	 * The remote PID to attach to.
+	 */
+	public static final String ATTR_REMOTE_PID = DebugPlugin.getUniqueIdentifier() + ".ATTR_REMOTE_PID"; //$NON-NLS-1$
 
 	public static final String ATTR_PRERUN_COMMANDS = DebugPlugin.getUniqueIdentifier() + ".ATTR_PRERUN_CMDS"; //$NON-NLS-1$
 

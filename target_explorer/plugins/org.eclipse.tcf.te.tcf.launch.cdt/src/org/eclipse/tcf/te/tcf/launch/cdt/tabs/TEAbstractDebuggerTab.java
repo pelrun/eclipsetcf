@@ -22,7 +22,7 @@ import org.eclipse.swt.widgets.Control;
  * Abstract custom debugger tab implementation.
  */
 @SuppressWarnings("restriction")
-public class TEAbstractDebuggerTab extends CDebuggerTab {
+public abstract class TEAbstractDebuggerTab extends CDebuggerTab {
 	// Do not change the ID. We want to maintain compatibility
 	private final static String DEFAULTS_SET = "org.eclipse.cdt.launch.remote.te.TEDSFDebuggerTab.DEFAULTS_SET"; //$NON-NLS-1$
 

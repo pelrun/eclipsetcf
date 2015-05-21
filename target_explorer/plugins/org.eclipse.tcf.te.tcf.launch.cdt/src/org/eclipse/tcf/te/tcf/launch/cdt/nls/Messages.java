@@ -23,7 +23,6 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages"; //$NON-NLS-1$
 
 	public static String Gdbserver_name_textfield_label;
-
 	public static String Gdbserver_Settings_Tab_Name;
 
 	public static String Port_number_textfield_label;
@@ -32,50 +31,28 @@ public class Messages extends NLS {
 	public static String Remote_GDB_Debugger_Options;
 
 	public static String RemoteCMainTab_Prerun;
-
 	public static String RemoteCMainTab_Program;
-
 	public static String RemoteCMainTab_Remote_Path_Browse_Button;
-
-	public static String RemoteCMainTab_Remote_Path_Browse_Button_Title;
 	public static String RemoteCMainTab_SkipDownload;
 	public static String RemoteCMainTab_ErrorNoProgram;
 	public static String RemoteCMainTab_ErrorNoConnection;
-	public static String RemoteCMainTab_Connection;
-	public static String RemoteCMainTab_New;
-	public static String RemoteCMainTab_Properties;
-	public static String RemoteCMainTab_Properties_title;
-	public static String RemoteCMainTab_Properties_Location;
-	public static String RemoteCMainTab_Properties_Skip_default;
-
-	public static String RemoteGdbLaunchDelegate_filetransferFailed;
-	public static String RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorMessage;
-	public static String RemoteGdbLaunchDelegate_gdbserverFailedToStartErrorWithDetails;
-
-	public static String RemoteRunLaunchDelegate_0;
 
 	public static String RemoteRunLaunchDelegate_RemoteShell;
-	public static String RemoteRunLaunchDelegate_1;
 
-	public static String RemoteRunLaunchDelegate_10;
-
-	public static String RemoteRunLaunchDelegate_12;
-
-	public static String RemoteRunLaunchDelegate_13;
-
-	public static String RemoteRunLaunchDelegate_2;
-	public static String RemoteRunLaunchDelegate_3;
-	public static String RemoteRunLaunchDelegate_4;
-	public static String RemoteRunLaunchDelegate_5;
-	public static String RemoteRunLaunchDelegate_6;
-	public static String RemoteRunLaunchDelegate_7;
-	public static String RemoteRunLaunchDelegate_8;
-
-	public static String RemoteRunLaunchDelegate_9;
+	public static String TEHelper_executing;
+	public static String TEHelper_connection_not_found;
 
 	public static String TCFPeerSelector_0;
 
-	public static String TEGdbLaunchDelegate_canceledMsg;
+	public static String TEGdbAbstractLaunchDelegate_no_program_or_pid;
+	public static String TEGdbAbstractLaunchDelegate_downloading;
+	public static String TEGdbAbstractLaunchDelegate_attaching_program;
+	public static String TEGdbAbstractLaunchDelegate_starting_program;
+	public static String TEGdbAbstractLaunchDelegate_starting_debugger;
+	public static String TEGdbAbstractLaunchDelegate_canceledMsg;
+	public static String TEGdbAbstractLaunchDelegate_filetransferFailed;
+	public static String TEGdbAbstractLaunchDelegate_gdbserverFailedToStartErrorMessage;
+	public static String TEGdbAbstractLaunchDelegate_gdbserverFailedToStartErrorWithDetails;
 
 	static {
 		// initialize resource bundle

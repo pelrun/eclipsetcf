@@ -85,7 +85,7 @@ public class TEHelper {
 		// Copy the host file to a temporary location if needed
 		if (copyViaTemp) {
 
-			monitor.beginTask(Messages.RemoteRunLaunchDelegate_2 + " " + localFilePath + " to " + remoteFilePath, 200); //$NON-NLS-1$ //$NON-NLS-2$
+			monitor.beginTask(Messages.TEGdbAbstractLaunchDelegate_downloading + " " + localFilePath + " to " + remoteFilePath, 200); //$NON-NLS-1$ //$NON-NLS-2$
 
 			try {
 				IPath hostPath = item.getHostPath();
@@ -131,7 +131,7 @@ public class TEHelper {
 			item = new FileTransferItem(new Path(tempFile.getAbsolutePath()), remoteFilePath);
 			item.setProperty(IFileTransferItem.PROPERTY_DIRECTION, "" + IFileTransferItem.HOST_TO_TARGET); //$NON-NLS-1$
 		} else {
-			monitor.beginTask(Messages.RemoteRunLaunchDelegate_2 + " " + localFilePath + " to " + remoteFilePath, 100); //$NON-NLS-1$ //$NON-NLS-2$
+			monitor.beginTask(Messages.TEGdbAbstractLaunchDelegate_downloading + " " + localFilePath + " to " + remoteFilePath, 100); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		// Transfer the file to the target
@@ -164,7 +164,7 @@ public class TEHelper {
 		String peerId = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, ""); //$NON-NLS-1$
 		IPeerNode connection = getPeerNode(peerId);
 		if (connection == null) {
-			abort(Messages.RemoteRunLaunchDelegate_13, null, ICDTLaunchConfigurationConstants.ERR_INTERNAL_ERROR);
+			abort(Messages.TEHelper_connection_not_found, null, ICDTLaunchConfigurationConstants.ERR_INTERNAL_ERROR);
 		}
 		return connection;
 	}
@@ -191,7 +191,7 @@ public class TEHelper {
 
 	public static ProcessLauncher launchCmd(final IPeer peer, String remoteCommandPath, String[] args, Listener listener, SubProgressMonitor monitor, ICallback callback) throws CoreException {
 		if (remoteCommandPath != null && !remoteCommandPath.trim().equals("")) { //$NON-NLS-1$
-			monitor.beginTask(NLS.bind(Messages.RemoteRunLaunchDelegate_8, remoteCommandPath, args), 10);
+			monitor.beginTask(NLS.bind(Messages.TEHelper_executing, remoteCommandPath, args), 10);
 
 			// Construct the launcher object
 			ProcessLauncher launcher = new ProcessLauncher();
@@ -260,7 +260,7 @@ public class TEHelper {
 	public static String launchCmdReadOutput(final IPeer peer, String remoteCommandPath, String[] args, final SubProgressMonitor monitor, ICallback callback) throws CoreException {
 		String output = null;
 		if (remoteCommandPath != null && !remoteCommandPath.trim().equals("")) { //$NON-NLS-1$
-			monitor.beginTask(NLS.bind(Messages.RemoteRunLaunchDelegate_8, remoteCommandPath, args), 10);
+			monitor.beginTask(NLS.bind(Messages.TEHelper_executing, remoteCommandPath, args), 10);
 
 			// Construct the launcher object
 			final ProcessStreamsProxy proxy = new ProcessStreamsProxy();

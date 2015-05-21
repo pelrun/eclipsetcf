@@ -44,19 +44,19 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate {
 			IPeer peer = TEHelper.getCurrentConnection(config).getPeer();
 			// 1.Download binary if needed
 			String remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
-			monitor.setTaskName(Messages.RemoteRunLaunchDelegate_2);
+			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_downloading);
 			boolean skipDownload = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, false);
 
 			if (!skipDownload) {
 				try {
 					TEHelper.remoteFileTransfer(peer, exePath.toString(), remoteExePath, new SubProgressMonitor(monitor, 80));
 				} catch (IOException e) {
-					abort(NLS.bind(Messages.RemoteGdbLaunchDelegate_filetransferFailed, e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+					abort(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_filetransferFailed, e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
 				}
 			}
 
 			// 2. Run the binary
-			monitor.setTaskName(Messages.RemoteRunLaunchDelegate_12);
+			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_starting_debugger);
 			String arguments = getProgramArguments(config);
 			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
 
