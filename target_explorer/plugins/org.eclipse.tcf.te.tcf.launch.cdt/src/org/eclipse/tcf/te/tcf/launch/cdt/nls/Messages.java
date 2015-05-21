@@ -44,7 +44,9 @@ public class Messages extends NLS {
 
 	public static String TCFPeerSelector_0;
 
-	public static String TEGdbAbstractLaunchDelegate_no_program_or_pid;
+	public static String TEGdbAbstractLaunchDelegate_no_program;
+	public static String TEGdbAbstractLaunchDelegate_no_remote_path;
+	public static String TEGdbAbstractLaunchDelegate_no_pid;
 	public static String TEGdbAbstractLaunchDelegate_downloading;
 	public static String TEGdbAbstractLaunchDelegate_attaching_program;
 	public static String TEGdbAbstractLaunchDelegate_starting_program;

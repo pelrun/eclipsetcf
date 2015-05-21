@@ -75,19 +75,29 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		// Get the peer from the launch configuration
 		IPeer peer = TEHelper.getCurrentConnection(config).getPeer();
 
+		// Determine if the launch is an attach launch
+		final boolean isAttachLaunch = ICDTLaunchConfigurationConstants.ID_LAUNCH_C_ATTACH.equals(config.getType().getIdentifier());
+
 		// Get the executable path (run/debug application) or the PID (attach to application)
 		IPath exePath = checkBinaryDetails(config);
-		String remoteExePath = null;
+		String remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, (String)null);
 		String remotePID = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PID, (String)null);
 
-		// If neither executable not PID is given --> abort
-		if (exePath == null && remotePID == null) {
-			abort(Messages.TEGdbAbstractLaunchDelegate_no_program_or_pid, null, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+		// Not an attach launch and the executable is not specified --> abort
+		if (!isAttachLaunch && exePath == null) {
+			abort(Messages.TEGdbAbstractLaunchDelegate_no_program, null, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+		}
+		// Not an attach launch and the remote executable is not specified --> abort
+		if (!isAttachLaunch && remoteExePath == null) {
+			abort(Messages.TEGdbAbstractLaunchDelegate_no_remote_path, null, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+		}
+		// Attach launch and the remote PID is not specified --> abort
+		if (isAttachLaunch && remotePID == null) {
+			abort(Messages.TEGdbAbstractLaunchDelegate_no_pid, null, ICDTLaunchConfigurationConstants.ERR_NO_PROCESSID);
 		}
 
 		// If an executable path is specified, download the binary if needed
-		if (exePath != null) {
-			remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
+		if (!isAttachLaunch && exePath != null && remoteExePath != null) {
 			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_downloading);
 			boolean skipDownload = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, false);
 
@@ -101,15 +111,16 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 			}
 		}
 
-		// 2.Launch gdbserver on target
+		// Launch gdbserver on target
 		String gdbserverPortNumber = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
 		String gdbserverPortNumberMappedTo = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO, (String) null);
 		String gdbserverCommand = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND_DEFAULT);
+
 		String commandArguments = ""; //$NON-NLS-1$
-		if (remotePID != null && !"".equals(remotePID)) { //$NON-NLS-1$
+		if (isAttachLaunch) {
 			commandArguments = "--attach :" + gdbserverPortNumber + " " + remotePID; //$NON-NLS-1$ //$NON-NLS-2$
 			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_attaching_program);
-		} else if (remoteExePath != null && !"".equals(remoteExePath)) { //$NON-NLS-1$
+		} else {
 			commandArguments = ":" + gdbserverPortNumber + " " + TEHelper.spaceEscapify(remoteExePath); //$NON-NLS-1$ //$NON-NLS-2$
 
 			String arguments = getProgramArguments(config);
