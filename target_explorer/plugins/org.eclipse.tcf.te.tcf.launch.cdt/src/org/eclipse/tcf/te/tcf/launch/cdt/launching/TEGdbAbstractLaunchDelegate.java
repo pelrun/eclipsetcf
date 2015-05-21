@@ -15,11 +15,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
+import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
+import org.eclipse.cdt.dsf.concurrent.DsfExecutor;
 import org.eclipse.cdt.dsf.concurrent.DsfRunnable;
+import org.eclipse.cdt.dsf.concurrent.ImmediateDataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor;
+import org.eclipse.cdt.dsf.concurrent.RequestMonitor;
+import org.eclipse.cdt.dsf.datamodel.IDMContext;
 import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
+import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
+import org.eclipse.cdt.dsf.mi.service.IMICommandControl;
+import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
+import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
+import org.eclipse.cdt.dsf.service.DsfServicesTracker;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -207,7 +217,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 			shutdownSession(l, gdbServerOutput.toString());
 		}
 
-		// 3. Let debugger know how gdbserver was started on the remote
+		// Let debugger know how gdbserver was started on the remote
 		ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
 		wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_REMOTE_TCP, true);
 		wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_HOST, TEHelper.getCurrentConnection(config).getPeer().getAttributes().get(IPeer.ATTR_IP_HOST));
@@ -225,6 +235,40 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		finally {
 			monitor.done();
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate#launchDebugSession(org.eclipse.debug.core.ILaunchConfiguration, org.eclipse.debug.core.ILaunch, org.eclipse.core.runtime.IProgressMonitor)
+	 */
+    @Override
+	protected void launchDebugSession(ILaunchConfiguration config, ILaunch l, IProgressMonitor monitor) throws CoreException {
+	    super.launchDebugSession(config, l, monitor);
+
+		// Determine if the launch is an attach launch
+		final boolean isAttachLaunch = ICDTLaunchConfigurationConstants.ID_LAUNCH_C_ATTACH.equals(config.getType().getIdentifier());
+		if (!isAttachLaunch) return;
+
+		final IPath exePath = checkBinaryDetails(config);
+
+	    if (l instanceof GdbLaunch && exePath != null) {
+	    	final GdbLaunch launch = (GdbLaunch) l;
+	    	final DsfExecutor executor = launch.getDsfExecutor();
+	        final DsfServicesTracker tracker = new DsfServicesTracker(Activator.getDefault().getBundle().getBundleContext(), launch.getSession().getId());
+
+	        final RequestMonitor rm = new DataRequestMonitor<IDMContext>(executor, null);
+
+	    	executor.execute(new DsfRunnable() {
+	    		@Override
+	    		public void run() {
+	    	        IGDBControl commandControl = tracker.getService(IGDBControl.class);
+	    			CommandFactory commandFactory = tracker.getService(IMICommandControl.class).getCommandFactory();
+
+	    			commandControl.queueCommand(
+	    							commandFactory.createMIFileSymbolFile(commandControl.getContext(), exePath.toString()),
+	    							new ImmediateDataRequestMonitor<MIInfo>(rm));
+	    		}
+	    	});
+	    }
 	}
 
 	/**
