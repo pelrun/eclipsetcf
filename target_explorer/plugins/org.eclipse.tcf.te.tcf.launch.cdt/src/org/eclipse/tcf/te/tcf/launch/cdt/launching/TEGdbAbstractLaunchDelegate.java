@@ -15,13 +15,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
-import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.DsfExecutor;
 import org.eclipse.cdt.dsf.concurrent.DsfRunnable;
 import org.eclipse.cdt.dsf.concurrent.ImmediateDataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor;
-import org.eclipse.cdt.dsf.concurrent.RequestMonitor;
-import org.eclipse.cdt.dsf.datamodel.IDMContext;
 import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
@@ -255,8 +252,6 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 	    	final DsfExecutor executor = launch.getDsfExecutor();
 	        final DsfServicesTracker tracker = new DsfServicesTracker(Activator.getDefault().getBundle().getBundleContext(), launch.getSession().getId());
 
-	        final RequestMonitor rm = new DataRequestMonitor<IDMContext>(executor, null);
-
 	    	executor.execute(new DsfRunnable() {
 	    		@Override
 	    		public void run() {
@@ -265,7 +260,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 	    			commandControl.queueCommand(
 	    							commandFactory.createMIFileSymbolFile(commandControl.getContext(), exePath.toString()),
-	    							new ImmediateDataRequestMonitor<MIInfo>(rm));
+	    							new ImmediateDataRequestMonitor<MIInfo>());
 	    		}
 	    	});
 	    }
