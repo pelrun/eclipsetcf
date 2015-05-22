@@ -38,7 +38,7 @@
 		<findbugs-version>2.5.2</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
 		<jacoco-version>0.7.4.201502262128</jacoco-version>
-		<eclipse-jarsigner-version>1.1.2-SNAPSHOT</eclipse-jarsigner-version>
+		<eclipse-jarsigner-version>1.1.2</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
 		<adminDir>${env.WORKSPACE}/admin</adminDir>
