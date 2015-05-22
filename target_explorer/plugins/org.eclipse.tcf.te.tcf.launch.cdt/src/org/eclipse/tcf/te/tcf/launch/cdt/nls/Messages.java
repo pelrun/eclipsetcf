@@ -37,8 +37,6 @@ public class Messages extends NLS {
 	public static String RemoteCMainTab_ErrorNoProgram;
 	public static String RemoteCMainTab_ErrorNoConnection;
 
-	public static String RemoteRunLaunchDelegate_RemoteShell;
-
 	public static String TEHelper_executing;
 	public static String TEHelper_connection_not_found;
 

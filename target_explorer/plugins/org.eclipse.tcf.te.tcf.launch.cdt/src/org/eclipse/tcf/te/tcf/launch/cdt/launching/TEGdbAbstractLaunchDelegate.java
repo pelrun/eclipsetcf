@@ -234,6 +234,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		}
 	}
 
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate#launchDebugSession(org.eclipse.debug.core.ILaunchConfiguration, org.eclipse.debug.core.ILaunch, org.eclipse.core.runtime.IProgressMonitor)
 	 */
@@ -250,19 +251,25 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 	    if (l instanceof GdbLaunch && exePath != null) {
 	    	final GdbLaunch launch = (GdbLaunch) l;
 	    	final DsfExecutor executor = launch.getDsfExecutor();
-	        final DsfServicesTracker tracker = new DsfServicesTracker(Activator.getDefault().getBundle().getBundleContext(), launch.getSession().getId());
 
 	    	executor.execute(new DsfRunnable() {
 	    		@Override
 	    		public void run() {
-	    	        IGDBControl commandControl = tracker.getService(IGDBControl.class);
-	    			CommandFactory commandFactory = tracker.getService(IMICommandControl.class).getCommandFactory();
+	    	        DsfServicesTracker tracker = new DsfServicesTracker(Activator.getDefault().getBundle().getBundleContext(), launch.getSession().getId());
 
-	    			commandControl.queueCommand(
-	    							commandFactory.createMIFileSymbolFile(commandControl.getContext(), exePath.toString()),
-	    							new ImmediateDataRequestMonitor<MIInfo>());
+	    	        try {
+	    	        	IGDBControl commandControl = tracker.getService(IGDBControl.class);
+	    	        	CommandFactory commandFactory = tracker.getService(IMICommandControl.class).getCommandFactory();
+
+	    	        	commandControl.queueCommand(
+	    	        					commandFactory.createMIFileSymbolFile(commandControl.getContext(), exePath.toString()),
+	    	        					new ImmediateDataRequestMonitor<MIInfo>());
+	    	        } finally {
+	    	        	tracker.dispose();
+	    	        }
 	    		}
 	    	});
+
 	    }
 	}
 
