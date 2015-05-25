@@ -597,10 +597,9 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				props.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, "org.eclipse.tm.terminal.connector.streams.launcher.streams"); //$NON-NLS-1$
 				props.put(ITerminalsConnectorConstants.PROP_ID, "org.eclipse.tm.terminal.view.ui.TerminalsView"); //$NON-NLS-1$
 				// Set the terminal tab title
-				String terminalTitle = getTerminalTitle();
-				if (terminalTitle != null) {
-					props.put(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
-				}
+				String terminalTitle = properties.getStringProperty(ITerminalsConnectorConstants.PROP_TITLE);
+				if (terminalTitle == null) terminalTitle = getTerminalTitle();
+				if (terminalTitle != null) props.put(ITerminalsConnectorConstants.PROP_TITLE, terminalTitle);
 
 				// Get the process output listener list from the properties
 				Object value = properties.getProperty(PROP_PROCESS_OUTPUT_LISTENER);

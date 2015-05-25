@@ -39,7 +39,6 @@ import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
-import org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.filetransfer.FileTransferItem;
 import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
@@ -198,6 +197,33 @@ public class TEHelper {
 
 			Map<String, Object> launchAttributes = new HashMap<String, Object>();
 
+			// Compute the terminal title if possible
+			if (args != null && args.length > 0) {
+				StringBuilder title = new StringBuilder();
+				IPath p = new Path(remoteCommandPath);
+				// Avoid very long terminal title's by shortening the path if it has more than 3 segments
+				if (p.segmentCount() > 3) {
+					title.append(".../"); //$NON-NLS-1$
+					title.append(p.lastSegment());
+				} else {
+					title.append(p.toString());
+				}
+
+				for (String arg : args) {
+					if (arg.matches(":[0-9]+")) { //$NON-NLS-1$
+						title.append(arg);
+						break;
+					}
+				}
+
+				String name = peer.getName();
+				if (name != null && !"".equals(name)) { //$NON-NLS-1$
+					title.append(" [" + name + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+
+				if (title.length() > 0) launchAttributes.put(ITerminalsConnectorConstants.PROP_TITLE, title.toString());
+			}
+
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_PATH, spaceEscapify(remoteCommandPath));
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ARGS, args);
 
@@ -222,10 +248,8 @@ public class TEHelper {
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(peer.getTransportName()) || ITransportTypes.TRANSPORT_TYPE_SSL
-						                .equals(peer.getTransportName())) {
-							isLocalhost.set(IPAddressUtil.getInstance().isLocalHost(peer
-							                .getAttributes().get(IPeer.ATTR_IP_HOST)));
+						if (ITransportTypes.TRANSPORT_TYPE_TCP.equals(peer.getTransportName()) || ITransportTypes.TRANSPORT_TYPE_SSL.equals(peer.getTransportName())) {
+							isLocalhost.set(IPAddressUtil.getInstance().isLocalHost(peer.getAttributes().get(IPeer.ATTR_IP_HOST)));
 						}
 					}
 				};
@@ -255,62 +279,6 @@ public class TEHelper {
 			return launcher;
 		}
 		return null;
-	}
-
-	public static String launchCmdReadOutput(final IPeer peer, String remoteCommandPath, String[] args, final SubProgressMonitor monitor, ICallback callback) throws CoreException {
-		String output = null;
-		if (remoteCommandPath != null && !remoteCommandPath.trim().equals("")) { //$NON-NLS-1$
-			monitor.beginTask(NLS.bind(Messages.TEHelper_executing, remoteCommandPath, args), 10);
-
-			// Construct the launcher object
-			final ProcessStreamsProxy proxy = new ProcessStreamsProxy();
-			ProcessLauncher launcher = new ProcessLauncher(proxy);
-
-			Map<String, Object> launchAttributes = new HashMap<String, Object>();
-
-			launchAttributes.put(IProcessLauncher.PROP_PROCESS_PATH, spaceEscapify(remoteCommandPath));
-			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ARGS, args);
-
-			launchAttributes.put(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, Boolean.FALSE);
-			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ASSOCIATE_CONSOLE, Boolean.TRUE);
-
-			// Fill in the launch attributes
-			IPropertiesContainer container = new PropertiesContainer();
-			container.setProperties(launchAttributes);
-			final boolean processDone[] = new boolean[1];
-			processDone[0] = false;
-
-			// Launch the process
-			launcher.launch(peer, container, new Callback(callback) {
-				@Override
-				protected void internalDone(Object caller, IStatus status) {
-					super.internalDone(caller, status);
-					processDone[0] = true;
-				}
-			});
-
-			final Object lock = new Object();
-
-			synchronized (lock) {
-				while (processDone[0] == false) {
-					if (monitor.isCanceled()) {
-						break;
-					}
-				}
-				try {
-					lock.wait(300);
-				}
-				catch (InterruptedException e) {
-				}
-			}
-			ProcessOutputReaderThread reader = proxy.getOutputReader();
-			while (!reader.isFinished()) {
-				reader.waitForFinish();
-			}
-			output = reader.getOutput();
-		}
-		monitor.done();
-		return output;
 	}
 
 	/**
