@@ -56,7 +56,8 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             class="org.eclipse.tcf.te.tcf.launch.cdt.tabs.TEApplicationMainTab">
          <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.run"/>
       </tab>         
-      <tab id="org.eclipse.tcf.te.remotecdt.run.argumentsTab"
+      <tab 
+            id="org.eclipse.tcf.te.remotecdt.run.argumentsTab"
             group="org.eclipse.cdt.launch.remoteApplicationRunLaunchTabGroup"
             name="Arguments"
             class="org.eclipse.cdt.dsf.gdb.internal.ui.launching.CArgumentsTab">
@@ -88,12 +89,13 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
          <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
          <placement after="org.eclipse.tcf.te.remotecdt.debug.mainTab"/>
       </tab>
-      <tab id="org.eclipse.tcf.te.remotecdt.debug.debuggerTab"
+      <tab
+            id="org.eclipse.tcf.te.remotecdt.debug.debuggerTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="Debugger"
             class="org.eclipse.tcf.te.tcf.launch.cdt.tabs.TEApplicationDebuggerTab">
         <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
-        <placement after="org.eclipse.tcf.te.remotecdt.debug.argumentsTab"/>
+        <placement after="org.eclipse.cdt.dsf.gdb.launch.argumentsTab"/>
       </tab>
       <tab
             id="org.eclipse.tcf.te.remotecdt.debug.sourceLookupTab"
@@ -109,7 +111,7 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             name="Common"
             class="org.eclipse.debug.ui.CommonTab">
         <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
-        <placement after="org.eclipse.tcf.te.remotecdt.debug.sourceLookupTab"/>                
+        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>                
       </tab>         
 
       <!-- Attach Launch -->
@@ -142,7 +144,7 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             name="Common"
             class="org.eclipse.debug.ui.CommonTab">
         <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.attach"/>
-        <placement after="org.eclipse.tcf.te.remotecdt.attach.sourceLookupTab"/>
+        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
       </tab>
 
    </extension>
