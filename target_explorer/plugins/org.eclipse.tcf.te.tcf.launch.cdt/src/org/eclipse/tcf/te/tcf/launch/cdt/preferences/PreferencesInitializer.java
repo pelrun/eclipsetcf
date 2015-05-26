@@ -29,7 +29,7 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		/**
 		 * Gdbserver default command: gdbserver
 		 */
-		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT, "gdbserver"); //$NON-NLS-1$
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_COMMAND, "gdbserver"); //$NON-NLS-1$
 
 		/**
 		 * Gdbserver default (remote) port: 2345
@@ -54,7 +54,7 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		/**
 		 * Gdbserver default command (attach): gdbserver
 		 */
-		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH, "gdbserver"); //$NON-NLS-1$
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_COMMAND_ATTACH, "gdbserver"); //$NON-NLS-1$
 
 		/**
 		 * Gdbserver default (remote) port (attach): 2345
@@ -64,7 +64,7 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		/**
 		 * Gdbserver (remote) port alternatives (attach): N/A
 		 */
-		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_ALTERNATIVES, "2345"); //$NON-NLS-1$
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_ALTERNATIVES, null);
 
 		/**
 		 * Gdbserver default (local) port (attach): N/A
