@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.activator;
 
+import org.eclipse.tcf.te.runtime.preferences.ScopedEclipsePreferences;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -19,11 +20,10 @@ import org.osgi.framework.BundleContext;
  */
 public class Activator extends AbstractUIPlugin {
 
-	// The plug-in ID
-	public static final String PLUGIN_ID = "org.eclipse.tcf.te.tcf.launch.cdt"; //$NON-NLS-1$
-
 	// The shared instance
 	private static Activator plugin;
+	// The scoped preferences instance
+	private static volatile ScopedEclipsePreferences scopedPreferences;
 
 	private boolean isTEInitialized = false;
 
@@ -31,6 +31,35 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
+	}
+
+	/**
+	 * Returns the shared instance
+	 *
+	 * @return the shared instance
+	 */
+	public static Activator getDefault() {
+		return plugin;
+	}
+
+	/**
+	 * Convenience method which returns the unique identifier of this plugin.
+	 */
+	public static String getUniqueIdentifier() {
+		if (getDefault() != null && getDefault().getBundle() != null) {
+			return getDefault().getBundle().getSymbolicName();
+		}
+		return "org.eclipse.tcf.te.tcf.launch.cdt"; //$NON-NLS-1$
+	}
+
+	/**
+	 * Return the scoped preferences for this plug-in.
+	 */
+	public static ScopedEclipsePreferences getScopedPreferences() {
+		if (scopedPreferences == null) {
+			scopedPreferences = new ScopedEclipsePreferences(getUniqueIdentifier());
+		}
+		return scopedPreferences;
 	}
 
 	/* (non-Javadoc)
@@ -51,14 +80,6 @@ public class Activator extends AbstractUIPlugin {
 		super.stop(context);
 	}
 
-	/**
-	 * Returns the shared instance
-	 *
-	 * @return the shared instance
-	 */
-	public static Activator getDefault() {
-		return plugin;
-	}
 
 	public void initializeTE() {
 		if(!isTEInitialized ){

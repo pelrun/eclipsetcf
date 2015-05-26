@@ -24,9 +24,6 @@ public interface IRemoteTEConfigurationConstants {
 	public static final String ATTR_GDBSERVER_PORT_ALTERNATIVES = DebugPlugin.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT_ALTERNATIVES"; //$NON-NLS-1$
 	public static final String ATTR_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES = DebugPlugin.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES"; //$NON-NLS-1$
 
-	public static final String ATTR_GDBSERVER_PORT_DEFAULT = "2345"; //$NON-NLS-1$
-	public static final String ATTR_GDBSERVER_COMMAND_DEFAULT = "gdbserver"; //$NON-NLS-1$
-
 	/*
 	 * Generic Remote Path and Download options:
 	 *     ATTR_REMOTE_PATH: Path of the binary on the remote.

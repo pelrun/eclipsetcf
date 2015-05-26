@@ -148,4 +148,12 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
       </tab>
 
    </extension>
+
+<!-- Preference contributions -->
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.eclipse.tcf.te.tcf.launch.cdt.preferences.PreferencesInitializer">
+      </initializer>
+   </extension>
+
 </plugin>

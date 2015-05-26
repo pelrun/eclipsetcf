@@ -51,6 +51,7 @@ import org.eclipse.tcf.te.tcf.filesystem.core.services.FileTransferService;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
+import org.eclipse.tcf.te.tcf.launch.cdt.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -293,13 +294,13 @@ public class TEHelper {
 	public static void abort(String message, Throwable exception, int code) throws CoreException {
 		IStatus status;
 		if (exception != null) {
-			MultiStatus multiStatus = new MultiStatus(Activator.PLUGIN_ID, code, message, exception);
-			multiStatus.add(new Status(IStatus.ERROR, Activator.PLUGIN_ID, code, exception
+			MultiStatus multiStatus = new MultiStatus(Activator.getUniqueIdentifier(), code, message, exception);
+			multiStatus.add(new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), code, exception
 			                .getLocalizedMessage(), exception));
 			status = multiStatus;
 		}
 		else {
-			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, code, message, null);
+			status = new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), code, message, null);
 		}
 		throw new CoreException(status);
 	}
@@ -308,6 +309,22 @@ public class TEHelper {
 		if (inputString == null) return null;
 
 		return inputString.replaceAll(" ", "\\\\ "); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * Returns the preference value for the given key. The method
+	 * allows overwriting the preference value via a system property.
+	 *
+	 * @return The preference value or <code>null</code> if the preference key does not exist.
+	 */
+	public static String getPreferenceValue(String key) {
+		// Try system properties first
+		String value = System.getProperty(key, null);
+		// If not set, try the preferences
+		if (value == null || "".equals(value)) { //$NON-NLS-1$
+			value = Activator.getScopedPreferences().getString(IPreferenceKeys.PREF_GDBSERVER_PORT);
+		}
+		return value;
 	}
 
 }

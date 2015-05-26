@@ -75,9 +75,12 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate {
 		return exePath;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.cdt.launch.AbstractCLaunchDelegate#getPluginID()
+	 */
 	@Override
 	protected String getPluginID() {
-		return Activator.PLUGIN_ID;
+		return Activator.getUniqueIdentifier();
 	}
 
 }

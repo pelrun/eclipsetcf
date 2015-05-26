@@ -50,6 +50,7 @@ import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IGdbserverLaunchHandlerDelegate;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
+import org.eclipse.tcf.te.tcf.launch.cdt.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
@@ -134,9 +135,9 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		}
 
 		// Launch gdbserver on target
-		final AtomicReference<String> gdbserverPortNumber = new AtomicReference<String>(config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT));
+		final AtomicReference<String> gdbserverPortNumber = new AtomicReference<String>(config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT)));
 		final AtomicReference<String> gdbserverPortNumberMappedTo = new AtomicReference<String>(config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO, (String) null));
-		final String gdbserverCommand = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND_DEFAULT);
+		final String gdbserverCommand = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_COMMAND));
 		final List<String> gdbserverPortNumberAlternatives = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_ALTERNATIVES, (List<String>) null);
 		final List<String> gdbserverPortNumberMappedToAlternatives = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES, (List<String>) null);
 
@@ -441,9 +442,12 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		return args;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate#getPluginID()
+	 */
 	@Override
 	protected String getPluginID() {
-		return Activator.PLUGIN_ID;
+		return Activator.getUniqueIdentifier();
 	}
 
 }

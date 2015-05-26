@@ -31,6 +31,8 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
+import org.eclipse.tcf.te.tcf.launch.cdt.preferences.IPreferenceKeys;
+import org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper;
 import org.eclipse.tcf.te.ui.controls.validator.PortNumberVerifyListener;
 
 @SuppressWarnings("restriction")
@@ -56,15 +58,12 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 		super.setDefaults(configuration);
-		configuration.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
-				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND_DEFAULT);
-		configuration.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
-				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
-		configuration.setAttribute(
-						IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
-						(String)null);
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
+								   TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_COMMAND));
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
+						   		   TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT));
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
+				   		   		   TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
 	}
 
 	@Override
@@ -76,26 +75,18 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 		String gdbserverPortNumber = null;
 		String portNumberMappedTo = null;
 		try {
-			gdbserverCommand = configuration
-					.getAttribute(
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND_DEFAULT);
-		} catch (CoreException e) {
-		}
+			gdbserverCommand = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
+							   							  TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_COMMAND));
+		} catch (CoreException e) {}
 		try {
-			gdbserverPortNumber = configuration
-					.getAttribute(
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_DEFAULT);
-		} catch (CoreException e) {
-		}
+			gdbserverPortNumber = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
+ 							  								 TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT));
+		} catch (CoreException e) {}
 		try {
-			portNumberMappedTo = configuration
-					.getAttribute(
-							IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
-							(String)null);
-		} catch (CoreException e) {
-		}
+			portNumberMappedTo = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
+			   		   		   								TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
+		} catch (CoreException e) {}
+
 		if (fGDBServerCommandText != null) fGDBServerCommandText.setText(gdbserverCommand);
 		if (fGDBServerPortNumberText != null) fGDBServerPortNumberText.setText(gdbserverPortNumber);
 		if (fGDBServerPortNumberMappedToText != null) fGDBServerPortNumberMappedToText.setText(portNumberMappedTo != null ? portNumberMappedTo : ""); //$NON-NLS-1$
@@ -106,15 +97,11 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 		super.performApply(configuration);
 		String str = fGDBServerCommandText != null ? fGDBServerCommandText.getText().trim() : null;
-		configuration.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, str);
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, str);
 		str = fGDBServerPortNumberText != null ? fGDBServerPortNumberText.getText().trim() : null;
-		configuration.setAttribute(
-				IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, str);
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, str);
 		str = fGDBServerPortNumberMappedToText != null ? fGDBServerPortNumberMappedToText.getText().trim() : null;
-		configuration.setAttribute(
-						IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
-						str != null && !"".equals(str) ? str : null); //$NON-NLS-1$
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO, str != null && !"".equals(str) ? str : null); //$NON-NLS-1$
 	}
 
 	protected void createGdbserverSettingsTab(TabFolder tabFolder) {
