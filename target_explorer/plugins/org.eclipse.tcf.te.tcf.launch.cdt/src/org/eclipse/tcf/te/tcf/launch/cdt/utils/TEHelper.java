@@ -17,11 +17,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -51,7 +53,6 @@ import org.eclipse.tcf.te.tcf.filesystem.core.services.FileTransferService;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
-import org.eclipse.tcf.te.tcf.launch.cdt.preferences.IPreferenceKeys;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.services.IPeerModelLookupService;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
@@ -312,19 +313,41 @@ public class TEHelper {
 	}
 
 	/**
-	 * Returns the preference value for the given key. The method
+	 * Returns the string preference value for the given key. The method
 	 * allows overwriting the preference value via a system property.
 	 *
+	 * @param key The preference key. Must not be <code>null</code>.
 	 * @return The preference value or <code>null</code> if the preference key does not exist.
 	 */
-	public static String getPreferenceValue(String key) {
+	public static String getStringPreferenceValue(String key) {
+		Assert.isNotNull(key);
+
 		// Try system properties first
 		String value = System.getProperty(key, null);
 		// If not set, try the preferences
 		if (value == null || "".equals(value)) { //$NON-NLS-1$
-			value = Activator.getScopedPreferences().getString(IPreferenceKeys.PREF_GDBSERVER_PORT);
+			value = Activator.getScopedPreferences().getString(key);
 		}
 		return value;
+	}
+
+	/**
+	 * Returns the list preference value for the given key. The method
+	 * allows overwriting the preference value via a system property.
+	 *
+	 * @param key The preference key. Must not be <code>null</code>.
+	 * @return The preference value or <code>null</code> if the preference key does not exist.
+	 */
+	public static List<String> getListPreferenceValue(String key) {
+		Assert.isNotNull(key);
+
+		List<String> list = null;
+		String value = getStringPreferenceValue(key);
+		if (value != null && !"".equals(value)) { //$NON-NLS-1$
+			list = Arrays.asList(value.split("\\s*,\\s*")); //$NON-NLS-1$
+		}
+
+		return list;
 	}
 
 }

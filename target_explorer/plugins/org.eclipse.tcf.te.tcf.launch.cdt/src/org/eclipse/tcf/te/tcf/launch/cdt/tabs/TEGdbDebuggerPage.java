@@ -59,11 +59,11 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 		super.setDefaults(configuration);
 		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
-								   TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_COMMAND));
+								   TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_COMMAND));
 		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
-						   		   TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT));
+						   		   TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT));
 		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
-				   		   		   TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
+				   		   		   TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
 	}
 
 	@Override
@@ -76,15 +76,15 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 		String portNumberMappedTo = null;
 		try {
 			gdbserverCommand = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND,
-							   							  TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_COMMAND));
+							   							  TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_COMMAND));
 		} catch (CoreException e) {}
 		try {
 			gdbserverPortNumber = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT,
- 							  								 TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT));
+ 							  								 TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT));
 		} catch (CoreException e) {}
 		try {
 			portNumberMappedTo = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
-			   		   		   								TEHelper.getPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
+			   		   		   								TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
 		} catch (CoreException e) {}
 
 		if (fGDBServerCommandText != null) fGDBServerCommandText.setText(gdbserverCommand);

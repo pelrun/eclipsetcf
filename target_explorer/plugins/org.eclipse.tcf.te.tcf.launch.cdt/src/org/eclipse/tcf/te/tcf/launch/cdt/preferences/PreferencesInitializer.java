@@ -37,8 +37,43 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT, "2345"); //$NON-NLS-1$
 
 		/**
+		 * Gdbserver (remote) port alternatives: N/A
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ALTERNATIVES, null);
+
+		/**
 		 * Gdbserver default (local) port: N/A
 		 */
-		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT, null);
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO, null);
+
+		/**
+		 * Gdbserver (local) port alternatives: N/A
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES, null);
+
+		/**
+		 * Gdbserver default command (attach): gdbserver
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH, "gdbserver"); //$NON-NLS-1$
+
+		/**
+		 * Gdbserver default (remote) port (attach): 2345
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH, "2345"); //$NON-NLS-1$
+
+		/**
+		 * Gdbserver (remote) port alternatives (attach): N/A
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_ALTERNATIVES, "2345"); //$NON-NLS-1$
+
+		/**
+		 * Gdbserver default (local) port (attach): N/A
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_MAPPED_TO, null);
+
+		/**
+		 * Gdbserver (local) port alternatives (attach): N/A
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_MAPPED_TO_ALTERNATIVES, null);
 	}
 }
