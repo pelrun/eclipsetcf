@@ -650,6 +650,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     private class InitialSelection implements Runnable {
         final TCFModelProxy proxy;
+        boolean launch_selected;
         boolean done;
         InitialSelection(TCFModelProxy proxy) {
             this.proxy = proxy;
@@ -662,7 +663,10 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 ArrayList<TCFNodeExecContext> nodes = new ArrayList<TCFNodeExecContext>();
                 if (!searchSuspendedThreads(launch_node.getFilteredChildren(), nodes)) return;
                 if (nodes.size() == 0) {
-                    setDebugViewSelectionForProxy(proxy, launch_node, SELECT_INITIAL);
+                    if (!launch_selected) {
+                        setDebugViewSelectionForProxy(proxy, launch_node, SELECT_INITIAL);
+                        launch_selected = true;
+                    }
                     // No usable selection. Re-run when a context is suspended.
                     return;
                 }
@@ -1784,8 +1788,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             reason.equals(IRunControl.REASON_CONTAINER) ||
             delay_stack_update_until_last_step && launch.getContextActionsCount(node.id) != 0;
         if (proxy.getAutoExpandNode(node, user_request)) proxy.expand(node);
-        if (initial_selection != null && !reason.equals(SELECT_INITIAL)) initial_selection = null;
         if (reason.equals(IRunControl.REASON_USER_REQUEST) || reason.equals(TCFModel.SELECT_ADDED)) return false;
+        if (initial_selection != null && !reason.equals(SELECT_INITIAL)) initial_selection = null;
         proxy.setSelection(node);
         return true;
     }
