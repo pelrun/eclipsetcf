@@ -149,7 +149,6 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		ProcessLauncher launcher = null;
 
 		final AtomicBoolean gdbserverLaunchRetry = new AtomicBoolean(false);
-//		final AtomicBoolean portRangeExceeded = new AtomicBoolean(false);
 		final AtomicInteger indexAlternatives = new AtomicInteger(0);
 
 		do {
@@ -163,7 +162,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 			String commandArguments = ""; //$NON-NLS-1$
 			if (isAttachLaunch) {
-				commandArguments = "--attach :" + gdbserverPortNumber.get() + " " + remotePID; //$NON-NLS-1$ //$NON-NLS-2$
+				commandArguments = "--once --attach :" + gdbserverPortNumber.get() + " " + remotePID; //$NON-NLS-1$ //$NON-NLS-2$
 				monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_attaching_program);
 			} else {
 				commandArguments = ":" + gdbserverPortNumber.get() + " " + TEHelper.spaceEscapify(remoteExePath); //$NON-NLS-1$ //$NON-NLS-2$
