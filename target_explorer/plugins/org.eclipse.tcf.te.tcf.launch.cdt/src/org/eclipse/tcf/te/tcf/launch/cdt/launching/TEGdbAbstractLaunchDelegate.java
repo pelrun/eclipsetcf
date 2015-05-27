@@ -141,10 +141,6 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		final List<String> gdbserverPortNumberAlternatives = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_ALTERNATIVES, TEHelper.getListPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_ALTERNATIVES : IPreferenceKeys.PREF_GDBSERVER_PORT_ALTERNATIVES));
 		final List<String> gdbserverPortNumberMappedToAlternatives = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES, TEHelper.getListPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_MAPPED_TO_ALTERNATIVES : IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES));
 
-// For quick testing.
-//		final List<String> gdbserverPortNumberAlternatives = new ArrayList<String>(Arrays.asList(new String[] { "49152", "49153", "49154", "49155", "49156" })); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-//		final List<String> gdbserverPortNumberMappedToAlternatives = new ArrayList<String>(Arrays.asList(new String[] { "49652", "49653", "49654", "49655", "49656" })); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-
 		// Remember the originally configured port number and mapped to port number
 		final String origGdbserverPortNumber = gdbserverPortNumber.get();
 		final String origGdbserverPortNumberMappedTo = gdbserverPortNumberMappedTo.get();
