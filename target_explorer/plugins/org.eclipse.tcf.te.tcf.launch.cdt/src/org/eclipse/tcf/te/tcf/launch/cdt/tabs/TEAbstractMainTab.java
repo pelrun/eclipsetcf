@@ -41,6 +41,7 @@ import org.eclipse.tcf.te.tcf.launch.cdt.controls.TCFPeerSelector;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.ui.controls.validator.NumberVerifyListener;
 
 /**
  * Abstract custom main tab implementation.
@@ -54,11 +55,13 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	private static final String REMOTE_PROG_TEXT_ERROR = Messages.RemoteCMainTab_ErrorNoProgram;
 	private static final String CONNECTION_TEXT_ERROR = Messages.RemoteCMainTab_ErrorNoConnection;
 	private static final String PRE_RUN_LABEL_TEXT = Messages.RemoteCMainTab_Prerun;
+	private static final String PID_LABEL_TEXT = Messages.RemoteCMainTab_Pid;
 
-	protected Button remoteBrowseButton;
 	protected TCFPeerSelector peerSelector;
 	protected Label remoteProgLabel;
 	protected Text remoteProgText;
+	protected Button remoteBrowseButton;
+	protected boolean remoteProgVisible = true;
 	protected Button skipDownloadButton;
 	protected boolean skipDownloadButtonVisible = true;
 
@@ -70,8 +73,14 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	private Label preRunLabel;
 	private boolean preRunVisible = true;
 
+	private Label pidLabel;
+	private Text pidText;
+	private boolean pidVisible = false;
+
 	public static final int NO_DOWNLOAD_GROUP = 2 << 8;
 	public static final int NO_PRERUN_GROUP = 4 << 8;
+	public static final int NO_REMOTE_PATH = 8 << 8;
+	public static final int PID_GROUP = 16 << 8;
 
 	/**
 	 * Constructor
@@ -96,6 +105,12 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		if ((flags & NO_PRERUN_GROUP) != 0) {
 			preRunVisible = false;
 		}
+		if ((flags & NO_REMOTE_PATH) != 0) {
+			remoteProgVisible = false;
+		}
+		if ((flags & PID_GROUP) != 0) {
+			pidVisible = true;
+		}
 	}
 
 	@Override
@@ -106,7 +121,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		createVerticalSpacer(comp, 1);
 		createRemoteConnectionGroup(comp);
 		/* The remote binary location and skip download option */
-		createVerticalSpacer(comp, 1);
+		if (remoteProgVisible || preRunVisible || pidVisible) createVerticalSpacer(comp, 1);
 		createTargetExePathGroup(comp);
 		if (skipDownloadButtonVisible) createDownloadOption(comp);
 
@@ -137,7 +152,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 				setErrorMessage(CONNECTION_TEXT_ERROR);
 				retVal = false;
 			}
-			if (retVal && remoteProgValidation) {
+			if (retVal && remoteProgValidation && remoteProgVisible) {
 				String name = remoteProgText.getText().trim();
 				if (name.length() == 0) {
 					setErrorMessage(REMOTE_PROG_TEXT_ERROR);
@@ -166,6 +181,8 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	 * createTargetExePath This creates the remote path user-editable textfield on the Main Tab.
 	 */
 	protected void createTargetExePathGroup(Composite parent) {
+		if (!remoteProgVisible && !preRunVisible) return;
+
 		Composite mainComp = new Composite(parent, SWT.NONE);
 		GridLayout mainLayout = new GridLayout();
 		mainLayout.numColumns = 2;
@@ -175,39 +192,63 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		mainComp.setLayoutData(gd);
 
-		remoteProgLabel = new Label(mainComp, SWT.NONE);
-		remoteProgLabel.setText(REMOTE_PROG_LABEL_TEXT);
-		gd = new GridData();
-		gd.horizontalSpan = 2;
-		remoteProgLabel.setLayoutData(gd);
+		if (remoteProgVisible) {
+			remoteProgLabel = new Label(mainComp, SWT.NONE);
+			remoteProgLabel.setText(REMOTE_PROG_LABEL_TEXT);
+			gd = new GridData();
+			gd.horizontalSpan = 2;
+			remoteProgLabel.setLayoutData(gd);
 
-		remoteProgText = new Text(mainComp, SWT.SINGLE | SWT.BORDER);
-		gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = 1;
-		remoteProgText.setLayoutData(gd);
-		remoteProgText.addModifyListener(new ModifyListener() {
+			remoteProgText = new Text(mainComp, SWT.SINGLE | SWT.BORDER);
+			gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 1;
+			remoteProgText.setLayoutData(gd);
+			remoteProgText.addModifyListener(new ModifyListener() {
 
-			@SuppressWarnings("synthetic-access")
-			@Override
-			public void modifyText(ModifyEvent evt) {
-				if (remoteProgTextFireNotification) {
-					setLocalPathFromRemotePath();
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void modifyText(ModifyEvent evt) {
+					if (remoteProgTextFireNotification) {
+						setLocalPathFromRemotePath();
+					}
+					updateLaunchConfigurationDialog();
 				}
-				updateLaunchConfigurationDialog();
-			}
-		});
-		remoteProgTextFireNotification = true;
+			});
+			remoteProgTextFireNotification = true;
 
-		remoteBrowseButton = createPushButton(mainComp, Messages.RemoteCMainTab_Remote_Path_Browse_Button, null);
-		remoteBrowseButton.addSelectionListener(new SelectionAdapter() {
+			remoteBrowseButton = createPushButton(mainComp, Messages.RemoteCMainTab_Remote_Path_Browse_Button, null);
+			remoteBrowseButton.addSelectionListener(new SelectionAdapter() {
 
-			@SuppressWarnings("synthetic-access")
-			@Override
-			public void widgetSelected(SelectionEvent evt) {
-				handleRemoteBrowseSelected();
-				updateLaunchConfigurationDialog();
-			}
-		});
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					handleRemoteBrowseSelected();
+					updateLaunchConfigurationDialog();
+				}
+			});
+		}
+
+		if (pidVisible) {
+			pidLabel = new Label(mainComp, SWT.NONE);
+			pidLabel.setText(PID_LABEL_TEXT);
+			gd = new GridData();
+			gd.horizontalSpan = 2;
+			pidLabel.setLayoutData(gd);
+
+			pidText = new Text(mainComp, SWT.SINGLE | SWT.BORDER);
+			gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 2;
+			pidText.setLayoutData(gd);
+			pidText.addModifyListener(new ModifyListener() {
+
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void modifyText(ModifyEvent evt) {
+					updateLaunchConfigurationDialog();
+				}
+			});
+			pidText.addVerifyListener(new NumberVerifyListener());
+		}
 
 		if (preRunVisible) {
 			// Commands to run before execution
@@ -230,6 +271,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 				}
 			});
 		}
+
 	}
 
 	/*
@@ -274,28 +316,37 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	}
 
 	protected void updateTargetProgFromConfig(ILaunchConfiguration config) {
-		String targetPath = null;
-		try {
-			targetPath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH_DEFAULT);
-		}
-		catch (CoreException e) {
-			// Ignore
+		if (remoteProgText != null) {
+			String targetPath = ""; //$NON-NLS-1$
+			try {
+				targetPath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
+			}
+			catch (CoreException e) { /* ignored on purpose */ }
+
+			boolean prevRemoteProgTextFireNotification = remoteProgTextFireNotification;
+			remoteProgTextFireNotification = false;
+			remoteProgText.setText(targetPath);
+			remoteProgTextFireNotification = prevRemoteProgTextFireNotification;
 		}
 
-		boolean prevRemoteProgTextFireNotification = remoteProgTextFireNotification;
-		remoteProgTextFireNotification = false;
-		remoteProgText.setText(targetPath);
-		remoteProgTextFireNotification = prevRemoteProgTextFireNotification;
+		if (pidText != null) {
+			String pid = ""; //$NON-NLS-1$
+			try {
+				pid = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PID, ""); //$NON-NLS-1$
+			}
+			catch (CoreException e) { /* ignored on purpose */ }
+
+			pidText.setText(pid);
+		}
 
 		if (preRunText != null) {
-			String prelaunchCmd = null;
+			String prelaunchCmd = ""; //$NON-NLS-1$
 			try {
 				prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
 			}
-			catch (CoreException e) {
-				// Ignore
-			}
-			if (prelaunchCmd != null) preRunText.setText(prelaunchCmd);
+			catch (CoreException e) { /* ignored on purpose */ }
+
+			preRunText.setText(prelaunchCmd);
 		}
 	}
 
@@ -305,9 +356,8 @@ public abstract class TEAbstractMainTab extends CMainTab {
 			try {
 				downloadToTarget = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT);
 			}
-			catch (CoreException e) {
-				// Ignore for now
-			}
+			catch (CoreException e) { /* ignored on purpose */ }
+
 			skipDownloadButton.setSelection(downloadToTarget);
 		}
 	}
@@ -319,7 +369,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	private void setRemotePathFromLocalPath() {
 		String programName = fProgText.getText().trim();
 
-		if (programName != null && !"".equals(programName)) { //$NON-NLS-1$
+		if (programName != null && !"".equals(programName) && remoteProgText != null) { //$NON-NLS-1$
 			IPeerNode connection = peerSelector.getPeerNode();
 			if (connection != null) {
 				IPathMapResolverService svc = ServiceManager.getInstance().getService(connection, IPathMapResolverService.class);
@@ -410,12 +460,20 @@ public abstract class TEAbstractMainTab extends CMainTab {
 
 		String currentSelection = peerSelector.getPeerId();
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, currentSelection != null ? currentSelection : null);
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, remoteProgText.getText());
+		if (remoteProgText != null) {
+			String value = remoteProgText.getText();
+			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, !"".equals(value.trim()) ? value.trim() : (String)null); //$NON-NLS-1$
+		}
+		if (pidText != null) {
+			String value = pidText.getText();
+			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PID, !"".equals(value.trim()) ? value.trim() : (String)null); //$NON-NLS-1$
+		}
 		if (skipDownloadButton != null) {
 			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, skipDownloadButton.getSelection());
 		}
 		if (preRunText != null) {
-			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, preRunText.getText());
+			String value = preRunText.getText();
+			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, !"".equals(value.trim()) ? value.trim() : (String)null); //$NON-NLS-1$
 		}
 		super.performApply(config);
 	}
@@ -423,10 +481,11 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy config) {
 		super.setDefaults(config);
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, EMPTY_STRING);
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH_DEFAULT);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_CONNECTION, (String)null);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, (String)null);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PID, (String)null);
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT);
-		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, EMPTY_STRING);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, (String)null);
 	}
 
 }

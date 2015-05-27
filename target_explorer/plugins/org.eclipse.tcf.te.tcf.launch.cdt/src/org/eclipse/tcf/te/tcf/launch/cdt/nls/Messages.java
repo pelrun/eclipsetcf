@@ -36,6 +36,7 @@ public class Messages extends NLS {
 	public static String RemoteCMainTab_SkipDownload;
 	public static String RemoteCMainTab_ErrorNoProgram;
 	public static String RemoteCMainTab_ErrorNoConnection;
+	public static String RemoteCMainTab_Pid;
 
 	public static String TEHelper_executing;
 	public static String TEHelper_connection_not_found;

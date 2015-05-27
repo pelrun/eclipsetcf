@@ -39,7 +39,6 @@ public interface IRemoteTEConfigurationConstants {
 
 	public static final String ATTR_PRERUN_COMMANDS = DebugPlugin.getUniqueIdentifier() + ".ATTR_PRERUN_CMDS"; //$NON-NLS-1$
 
-	public static final String ATTR_REMOTE_PATH_DEFAULT = ""; //$NON-NLS-1$
 	public static final boolean ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT = false;
 
 

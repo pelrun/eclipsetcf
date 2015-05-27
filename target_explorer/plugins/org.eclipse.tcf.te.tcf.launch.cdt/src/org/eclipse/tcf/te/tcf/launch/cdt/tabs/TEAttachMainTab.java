@@ -21,7 +21,7 @@ public class TEAttachMainTab extends TEAbstractMainTab {
      * Constructor
      */
     public TEAttachMainTab() {
-    	super(CMainTab.DONT_CHECK_PROGRAM | NO_DOWNLOAD_GROUP | NO_PRERUN_GROUP);
+    	super(CMainTab.DONT_CHECK_PROGRAM | PID_GROUP | NO_DOWNLOAD_GROUP | NO_PRERUN_GROUP);
     }
 
 	@Override
