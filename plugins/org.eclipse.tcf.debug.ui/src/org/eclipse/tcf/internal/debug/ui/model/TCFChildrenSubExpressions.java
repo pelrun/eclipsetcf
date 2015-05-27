@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,12 +10,17 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.model;
 
+import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.tcf.debug.ui.ITCFPrettyExpressionProvider;
+import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.services.IExpressions;
+import org.eclipse.tcf.services.IExpressions.Value;
 import org.eclipse.tcf.services.ISymbols;
+import org.eclipse.tcf.services.ISymbols.Symbol;
 import org.eclipse.tcf.util.TCFDataCache;
 
 public class TCFChildrenSubExpressions extends TCFChildren {
@@ -116,18 +121,36 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                         map.put(n.id, n);
                     }
                     break;
-                case variant_part:
+                case variant:
                     if (!findFields(sym_data, map, deref)) return false;
                     break;
-                case variant:
-                    TCFDataCache<Map<String,Object>> sym_loc_cache = node.model.getSymbolLocationCache(id);
-                    if (!sym_loc_cache.validate()) {
-                        pending = sym_loc_cache;
-                        continue;
+                case variant_part:
+                    if (node.model.isFilterVariantsByDiscriminant()) {
+                        // find discriminant by offset
+                        String discr_id = null;
+                        int offset = sym_data.getOffset();
+                        for (String id2 : children) {
+                            if (id.equals(id2)) continue;
+                            TCFDataCache<ISymbols.Symbol> discr_sym_cache = node.model.getSymbolInfoCache(id2);
+                            if (!discr_sym_cache.validate()) {
+                                pending = discr_sym_cache;
+                                continue;
+                            }
+                            Symbol discr_sym_data = discr_sym_cache.getData();
+                            if (discr_sym_data == null) continue;
+                            if (discr_sym_data.getSymbolClass() == ISymbols.SymbolClass.variant_part) continue;
+                            if (discr_sym_data.getOffset() == offset) {
+                                discr_id = id2;
+                                break;
+                            }
+                        }
+                        if (discr_id == null) continue;
+                        // filter variants by discriminant value
+                        if (!filterVariants(sym_data, map, discr_id, deref)) return false;
                     }
-                    // Map<String,Object> sym_loc_data = sym_loc_cache.getData();
-                    // TODO: filter out fields according to discriminant info
-                    if (!findFields(sym_data, map, deref)) return false;
+                    else {
+                        if (!findFields(sym_data, map, deref)) return false;
+                    }
                     break;
                 default:
                     break;
@@ -137,6 +160,84 @@ public class TCFChildrenSubExpressions extends TCFChildren {
         if (pending == null) return true;
         pending.wait(this);
         return false;
+    }
+
+    private boolean filterVariants(ISymbols.Symbol type, Map<String,TCFNode> map, String discr_id, boolean deref) {
+        TCFNodeExpression discr_expr = getField(discr_id, deref);
+        TCFDataCache<Value> discr_value_cache = discr_expr.getValue();
+        if (!discr_value_cache.validate(this)) return false;
+        Value discr_value = discr_value_cache.getData();
+        if (discr_value == null) return true;
+        BigInteger discr = TCFNumberFormat.toBigInteger(discr_value.getValue(), discr_value.isBigEndian(), false);
+        TCFDataCache<String[]> children_cache = node.model.getSymbolChildrenCache(type.getID());
+        if (children_cache == null) return true;
+        if (!children_cache.validate(this)) return false;
+        String[] children = children_cache.getData();
+        if (children == null) return true;
+        TCFDataCache<?> pending = null;
+        ISymbols.Symbol variant_sym_data = null;
+        ISymbols.Symbol default_sym_data = null;
+        for (String id : children) {
+            TCFDataCache<ISymbols.Symbol> sym_cache = node.model.getSymbolInfoCache(id);
+            if (!sym_cache.validate()) {
+                pending = sym_cache;
+            }
+            else {
+                ISymbols.Symbol sym_data = sym_cache.getData();
+                if (sym_data == null) continue;
+                switch (sym_data.getSymbolClass()) {
+                case variant:
+                    TCFDataCache<Map<String,Object>> sym_loc_cache = node.model.getSymbolLocationCache(id);
+                    if (!sym_loc_cache.validate()) {
+                        pending = sym_loc_cache;
+                        continue;
+                    }
+                    Map<String,Object> sym_loc_data = sym_loc_cache.getData();
+                    Object discr_info = sym_loc_data.get("Discriminant");
+                    if (discr_info instanceof List) {
+                        List<?> values = (List<?>) discr_info;
+                        for (Object value : values) {
+                            if (value instanceof Number) {
+                                BigInteger val = JSON.toBigInteger((Number) value);
+                                if (discr.equals(val)) {
+                                    variant_sym_data = sym_data;
+                                    break;
+                                }
+                            }
+                            else if (value instanceof Map) {
+                                Map<?,?> range = (Map<?,?>) value;
+                                Object x = range.get("X");
+                                Object y = range.get("Y");
+                                if (!(x instanceof Number) || !(y instanceof Number)) continue;
+                                BigInteger lower = JSON.toBigInteger((Number) x);
+                                BigInteger upper = JSON.toBigInteger((Number) y);
+                                if (discr.compareTo(lower) >= 0 && discr.compareTo(upper) <= 0) {
+                                    variant_sym_data = sym_data;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else if (discr_info == null) {
+                        default_sym_data = sym_data;
+                    }
+                    break;
+                default:
+                    assert false : "Unexpected symbol class: " + sym_data.getSymbolClass();
+                    break;
+                }
+            }
+            if (variant_sym_data != null) break;
+        }
+        if (pending != null) {
+            pending.wait(this);
+            return false;
+        }
+        if (variant_sym_data == null) variant_sym_data = default_sym_data;
+        if (variant_sym_data != null) {
+            if (!findFields(variant_sym_data, map, deref)) return false;
+        }
+        return true;
     }
 
     private TCFNodeExpression findReg(String reg_id) {

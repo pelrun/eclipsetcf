@@ -641,6 +641,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
     void onPreferencesChanged() {
         type_name.reset();
+        children.reset();
         postAllChangedDelta();
     }
 

@@ -377,6 +377,16 @@
                id="org.eclipse.ui.commands.toggleState">
          </state>
       </command>
+      <command
+            categoryId="org.eclipse.tcf.debug.ui.commands"
+            defaultHandler="org.eclipse.tcf.internal.debug.ui.commands.ToggleFilterVariantsHandler"
+            id="org.eclipse.tcf.debug.ui.commands.toggleFilterVariants"
+            name="%filterVariants.command.name">
+         <state
+               class="org.eclipse.ui.handlers.RegistryToggleState"
+               id="org.eclipse.ui.commands.toggleState">
+         </state>
+      </command>
    </extension>
 
    <extension point="org.eclipse.ui.handlers">
@@ -553,7 +563,21 @@
                   commandId="org.eclipse.tcf.debug.ui.commands.toggleQualifiedTypeNames"
                   style="toggle">
             </command>
-
+         </menu>
+         <menu
+               label="%ada.menu.label"
+               id="org.eclipse.tcf.debug.ui.commands.filter.variants.variables">
+            <visibleWhen checkEnabled="false">
+               <with variable="activeContexts">
+                  <iterate ifEmpty="false" operator="or">
+                     <equals value="org.eclipse.tcf.debug.ui.debugging"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+            <command
+                  commandId="org.eclipse.tcf.debug.ui.commands.toggleFilterVariants"
+                  style="toggle">
+            </command>
          </menu>
       </menuContribution>
       <!-- Expressions View -->
@@ -602,6 +626,21 @@
             </visibleWhen>
             <command
                   commandId="org.eclipse.tcf.debug.ui.commands.toggleQualifiedTypeNames"
+                  style="toggle">
+            </command>
+         </menu>
+         <menu
+               label="%ada.menu.label"
+               id="org.eclipse.tcf.debug.ui.commands.filter.variants.expressions">
+            <visibleWhen checkEnabled="false">
+               <with variable="activeContexts">
+                  <iterate ifEmpty="false" operator="or">
+                     <equals value="org.eclipse.tcf.debug.ui.debugging"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+            <command
+                  commandId="org.eclipse.tcf.debug.ui.commands.toggleFilterVariants"
                   style="toggle">
             </command>
          </menu>

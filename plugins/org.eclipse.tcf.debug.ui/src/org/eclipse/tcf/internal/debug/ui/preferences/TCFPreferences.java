@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,7 +30,8 @@ public class TCFPreferences {
         PREF_AUTO_CHILDREN_LIST_UPDATES = "AutoChildrenListUpdates",
         PREF_DELAY_CHILDREN_LIST_UPDATES = "DelayChildrenListUpdates",
         PREF_FULL_ERROR_REPORTS = "FullErrorReports",
-        PREF_SHOW_QUALIFIED_TYPE_NAMES = "ShowQualifiedTypeNames";
+        PREF_SHOW_QUALIFIED_TYPE_NAMES = "ShowQualifiedTypeNames",
+        PREF_FILTER_VARIANTS_BY_DISCRIMINANT = "FilterVariantsByDiscriminant";
 
     public static IPreferenceStore getPreferenceStore() {
         return Activator.getDefault().getPreferenceStore();

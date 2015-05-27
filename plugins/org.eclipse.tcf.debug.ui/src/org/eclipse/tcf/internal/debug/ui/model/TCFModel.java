@@ -235,6 +235,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private boolean auto_children_list_updates;
     private boolean show_full_error_reports;
     private boolean qualified_type_names_enabled;
+    private boolean filter_variants_by_discriminant;
 
     private final Map<String,String> action_results = new HashMap<String,String>();
     private final HashMap<String,TCFAction> active_actions = new HashMap<String,TCFAction>();
@@ -730,7 +731,10 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             delay_children_list_updates = prefs_store.getBoolean(TCFPreferences.PREF_DELAY_CHILDREN_LIST_UPDATES);
             show_full_error_reports = prefs_store.getBoolean(TCFPreferences.PREF_FULL_ERROR_REPORTS);
             qualified_type_names_enabled = prefs_store.getBoolean(TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES);
-            final boolean affectsExpressionsOnly = event != null && TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES.equals(event.getProperty());
+            filter_variants_by_discriminant = prefs_store.getBoolean(TCFPreferences.PREF_FILTER_VARIANTS_BY_DISCRIMINANT);
+            final boolean affectsExpressionsOnly = event != null && (
+                    TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES.equals(event.getProperty()) ||
+                    TCFPreferences.PREF_FILTER_VARIANTS_BY_DISCRIMINANT.equals(event.getProperty()));
             Protocol.invokeLater(new Runnable() {
                 public void run() {
                     for (TCFNode n : id2node.values()) {
@@ -2283,6 +2287,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public boolean isShowQualifiedTypeNamesEnabled() {
         return qualified_type_names_enabled;
+    }
+
+    /**
+     * @return whether to filter variant fields by discriminant value
+     */
+    public boolean isFilterVariantsByDiscriminant() {
+        return filter_variants_by_discriminant;
     }
 
     /*-------------------- Profiling/tracing interface -------------------------------- */
