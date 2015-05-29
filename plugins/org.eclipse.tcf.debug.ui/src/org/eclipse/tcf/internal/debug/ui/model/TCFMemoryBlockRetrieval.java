@@ -138,15 +138,17 @@ class TCFMemoryBlockRetrieval implements IMemoryBlockRetrievalExtension {
                         @Override
                         public void doneCreate(IToken token, Exception error, IExpressions.Expression context) {
                             if (disposed) {
-                                IExpressions exps = channel.getRemoteService(IExpressions.class);
-                                exps.dispose(context.getID(), new IExpressions.DoneDispose() {
-                                    @Override
-                                    public void doneDispose(IToken token, Exception error) {
-                                        if (error == null) return;
-                                        if (channel.getState() != IChannel.STATE_OPEN) return;
-                                        Activator.log("Error disposing remote expression evaluator", error);
-                                    }
-                                });
+                                if (context != null) {
+                                    IExpressions exps = channel.getRemoteService(IExpressions.class);
+                                    exps.dispose(context.getID(), new IExpressions.DoneDispose() {
+                                        @Override
+                                        public void doneDispose(IToken token, Exception error) {
+                                            if (error == null) return;
+                                            if (channel.getState() != IChannel.STATE_OPEN) return;
+                                            Activator.log("Error disposing remote expression evaluator", error);
+                                        }
+                                    });
+                                }
                                 return;
                             }
                             set(token, error, context);
