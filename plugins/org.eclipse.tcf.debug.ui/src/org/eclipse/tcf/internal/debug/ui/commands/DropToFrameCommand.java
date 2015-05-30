@@ -12,24 +12,19 @@ package org.eclipse.tcf.internal.debug.ui.commands;
 
 import java.util.Map;
 
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.commands.IDebugCommandRequest;
 import org.eclipse.debug.core.commands.IDropToFrameHandler;
 import org.eclipse.debug.core.commands.IEnabledStateRequest;
-import org.eclipse.tcf.internal.debug.actions.TCFActionStepOut;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
-import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
 import org.eclipse.tcf.internal.debug.ui.model.TCFRunnable;
-import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.services.IBreakpoints;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
-import org.eclipse.tcf.services.IStackTrace.StackTraceContext;
 import org.eclipse.tcf.util.TCFDataCache;
 
 /**
@@ -37,65 +32,10 @@ import org.eclipse.tcf.util.TCFDataCache;
  */
 public class DropToFrameCommand implements IDropToFrameHandler {
 
-    private static class StepStateMachine extends TCFActionStepOut {
-
-        private final IDebugCommandRequest monitor;
-        private final Runnable done;
-        private final TCFNodeExecContext node;
-        private final TCFNodeStackFrame frame;
-
-        StepStateMachine(TCFModel model, IDebugCommandRequest monitor,
-                IRunControl.RunControlContext ctx, TCFNodeStackFrame frame, Runnable done) {
-            super(model.getLaunch(), ctx, false);
-            this.monitor = monitor;
-            this.done = done;
-            this.frame = frame;
-            this.node = (TCFNodeExecContext)frame.getParent();
-        }
-
-        @Override
-        protected TCFDataCache<TCFContextState> getContextState() {
-            return node.getState();
-        }
-
-        @Override
-        protected TCFDataCache<StackTraceContext> getStackFrame() {
-            return frame.getStackTraceContext();
-        }
-
-        @Override
-        protected int getStackFrameIndex() {
-            return frame.getFrameNo();
-        }
-
-        @Override
-        protected TCFDataCache<?> getStackTrace() {
-            return node.getStackTrace();
-        }
-
-        protected void exit(Throwable error) {
-            exit(error, "Drop To Frame");
-        }
-
-        @Override
-        protected void exit(Throwable error, String reason) {
-            if (exited) return;
-            super.exit(error, reason);
-            if (error != null && node.getChannel().getState() == IChannel.STATE_OPEN) {
-                monitor.setStatus(new Status(IStatus.ERROR,
-                        Activator.PLUGIN_ID, 0, "Cannot drop to frame: " + error.getLocalizedMessage(), error));
-            }
-            if (aborted) {
-                monitor.setStatus(Status.CANCEL_STATUS);
-            }
-            done.run();
-        }
-    }
-
     private final TCFModel model;
 
-    public DropToFrameCommand(TCFModel tcfModel) {
-        model = tcfModel;
+    public DropToFrameCommand(TCFModel model) {
+        this.model = model;
     }
 
     public void canExecute(final IEnabledStateRequest request) {
@@ -107,15 +47,15 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     done();
                     return;
                 }
-                TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
-                TCFNodeExecContext exeNode = (TCFNodeExecContext) frameNode.getParent();
-                if (!exeNode.getStackTrace().validate(this)) return;
-                if (frameNode.getFrameNo() < 1) {
+                TCFNodeStackFrame frame_node = (TCFNodeStackFrame)elements[0];
+                TCFNodeExecContext exe_node = (TCFNodeExecContext)frame_node.getParent();
+                if (!exe_node.getStackTrace().validate(this)) return;
+                if (frame_node.getFrameNo() < 1) {
                     request.setEnabled(false);
                     done();
                     return;
                 }
-                TCFDataCache<IRunControl.RunControlContext> ctx_cache = exeNode.getRunContext();
+                TCFDataCache<IRunControl.RunControlContext> ctx_cache = exe_node.getRunContext();
                 if (!ctx_cache.validate(this)) {
                     return;
                 }
@@ -131,7 +71,7 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     done();
                     return;
                 }
-                TCFDataCache<TCFContextState> state_cache = exeNode.getState();
+                TCFDataCache<TCFContextState> state_cache = exe_node.getState();
                 if (!state_cache.validate(this)) {
                     return;
                 }
@@ -159,18 +99,18 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     done();
                     return;
                 }
-                final TCFNodeStackFrame frameNode = (TCFNodeStackFrame) elements[0];
-                TCFNodeExecContext exeNode = (TCFNodeExecContext) frameNode.getParent();
-                if (!exeNode.getStackTrace().validate(this)) return;
-                int frameNo = frameNode.getFrameNo();
+                final TCFNodeStackFrame frame_node = (TCFNodeStackFrame)elements[0];
+                TCFNodeExecContext exe_node = (TCFNodeExecContext)frame_node.getParent();
+                if (!exe_node.getStackTrace().validate(this)) return;
+                int frameNo = frame_node.getFrameNo();
                 if (frameNo < 1) {
                     request.setStatus(Status.CANCEL_STATUS);
                     done();
                     return;
                 }
-                TCFDataCache<IRunControl.RunControlContext> ctx_cache = exeNode.getRunContext();
+                TCFDataCache<IRunControl.RunControlContext> ctx_cache = exe_node.getRunContext();
                 if (!ctx_cache.validate(this)) return;
-                TCFDataCache<TCFContextState> state_cache = exeNode.getState();
+                TCFDataCache<TCFContextState> state_cache = exe_node.getState();
                 if (!state_cache.validate(this)) return;
                 TCFContextState state_data = state_cache.getData();
                 if (state_data == null || !state_data.is_suspended) {
@@ -178,11 +118,11 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     done();
                     return;
                 }
-                Map<String, TCFNode> stack = exeNode.getStackTrace().getData();
+                Map<String, TCFNode> stack = exe_node.getStackTrace().getData();
                 for (TCFNode node : stack.values()) {
                     TCFNodeStackFrame frame_to_step_out = (TCFNodeStackFrame) node;
                     if (frame_to_step_out.getFrameNo() == frameNo - 1) {
-                        new StepStateMachine(model, request, ctx_cache.getData(), frame_to_step_out, new Runnable() {
+                        new ActionStepOut(exe_node, false, frame_to_step_out, request, new Runnable() {
                             public void run() {
                                 request.done();
                             }

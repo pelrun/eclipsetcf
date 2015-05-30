@@ -32,10 +32,9 @@ public class ToggleFilterVariantsHandler extends AbstractHandler implements IEle
         return null;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
+    @SuppressWarnings("rawtypes")
     public void updateElement(UIElement element, Map parameters) {
         element.setChecked(TCFPreferences.getPreferenceStore().getBoolean(TCFPreferences.PREF_FILTER_VARIANTS_BY_DISCRIMINANT));
     }
-
 }

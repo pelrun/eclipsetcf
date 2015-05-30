@@ -8,16 +8,25 @@
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.internal.debug.actions;
+package org.eclipse.tcf.internal.debug.ui.commands;
 
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.commands.IDebugCommandRequest;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
-import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
+import org.eclipse.tcf.internal.debug.ui.Activator;
+import org.eclipse.tcf.internal.debug.ui.model.TCFChildrenStackTrace;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
@@ -28,20 +37,20 @@ import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
 import org.eclipse.tcf.util.TCFDataCache;
 
-@Deprecated
-public abstract class TCFActionStepOver extends TCFAction implements IRunControl.RunControlListener {
+public class ActionStepOver extends TCFAction implements IRunControl.RunControlListener {
 
+    protected final TCFNodeExecContext node;
+    private final IDebugCommandRequest monitor;
+    private final Runnable done;
     private boolean step_line;
     private boolean step_back;
-    private final IRunControl rc = launch.getService(IRunControl.class);
-    private final IBreakpoints bps = launch.getService(IBreakpoints.class);
+    private final IRunControl rc;
+    private final IBreakpoints bps;
 
-    private IRunControl.RunControlContext ctx;
-    private TCFDataCache<TCFContextState> state;
-    private TCFDataCache<TCFSourceRef> line_info;
     private TCFSourceRef source_ref;
     private BigInteger pc0;
     private BigInteger pc1;
+    private BigInteger fp;
     private int step_cnt;
     private Map<String,Object> bp;
     private boolean second_step_back;
@@ -49,18 +58,17 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
 
     protected boolean exited;
 
-    public TCFActionStepOver(TCFLaunch launch, IRunControl.RunControlContext ctx, boolean step_line, boolean step_back) {
-        super(launch, ctx.getID());
-        this.ctx = ctx;
+    public ActionStepOver(TCFNodeExecContext node, boolean step_line, boolean step_back,
+            IDebugCommandRequest monitor, Runnable done) {
+        super(node.getModel().getLaunch(), node.getID());
+        this.node = node;
         this.step_line = step_line;
         this.step_back = step_back;
+        this.monitor = monitor;
+        this.done = done;
+        rc = launch.getService(IRunControl.class);
+        bps = launch.getService(IBreakpoints.class);
     }
-
-    protected abstract TCFDataCache<TCFContextState> getContextState();
-    protected abstract TCFDataCache<TCFSourceRef> getLineInfo();
-    protected abstract TCFDataCache<?> getStackTrace();
-    protected abstract TCFDataCache<IStackTrace.StackTraceContext> getStackFrame();
-    protected abstract int getStackFrameIndex();
 
     public void run() {
         if (exited) return;
@@ -90,45 +98,44 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
             exit(null);
             return;
         }
-        if (state == null) {
-            rc.addListener(this);
-            state = getContextState();
-            if (state == null) {
-                exit(new Exception("Invalid context ID"));
-                return;
-            }
+        TCFDataCache<TCFContextState> state_cache = node.getState();
+        if (state_cache == null) {
+            exit(new Exception("Invalid context ID"));
+            return;
         }
-        if (!state.validate(this)) return;
-        if (state.getData() == null || !state.getData().is_suspended) {
-            Throwable error = state.getError();
+        if (!state_cache.validate(this)) return;
+        if (state_cache.getData() == null || !state_cache.getData().is_suspended) {
+            Throwable error = state_cache.getError();
             if (error == null) error = new Exception("Context is not suspended");
             exit(error);
             return;
         }
-        if (step_cnt > 0) {
-            boolean ok = false;
-            TCFContextState state_data = state.getData();
-            if (IRunControl.REASON_STEP.equals(state_data.suspend_reason) || isMyBreakpoint(state_data)) {
-                ok = true;
-            }
-            else if (IRunControl.REASON_BREAKPOINT.equals(state_data.suspend_reason) && pc0 != null && pc1 != null) {
-                BigInteger x = new BigInteger(state_data.suspend_pc);
-                ok = x.compareTo(pc0) >= 0 && x.compareTo(pc1) < 0;
-            }
-            if (!ok) {
+        if (step_cnt == 0) {
+            rc.addListener(this);
+        }
+        else {
+            TCFContextState state_data = state_cache.getData();
+            if (!IRunControl.REASON_STEP.equals(state_data.suspend_reason) && !isMyBreakpoint(state_data)) {
                 exit(null, state_data.suspend_reason);
                 return;
             }
         }
+        TCFDataCache<IRunControl.RunControlContext> ctx_cache = node.getRunContext();
+        if (!ctx_cache.validate(this)) return;
+        IRunControl.RunControlContext ctx_data = ctx_cache.getData();
+        if (ctx_data == null) {
+            exit(ctx_cache.getError());
+            return;
+        }
         int mode = 0;
         if (!step_line) mode = step_back ? IRunControl.RM_REVERSE_STEP_OVER : IRunControl.RM_STEP_OVER;
         else mode = step_back ? IRunControl.RM_REVERSE_STEP_OVER_LINE : IRunControl.RM_STEP_OVER_LINE;
-        if (ctx.canResume(mode)) {
+        if (ctx_data.canResume(mode)) {
             if (step_cnt > 0) {
                 exit(null);
                 return;
             }
-            ctx.resume(mode, 1, new IRunControl.DoneCommand() {
+            ctx_data.resume(mode, 1, new IRunControl.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) exit(error);
                 }
@@ -136,10 +143,11 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
             step_cnt++;
             return;
         }
-        TCFDataCache<?> stack_trace = getStackTrace();
+        TCFChildrenStackTrace stack_trace = node.getStackTrace();
         if (!stack_trace.validate(this)) return;
+        TCFNodeStackFrame frame_node = stack_trace.getTopFrame();
         if (step_line && source_ref == null) {
-            line_info = getLineInfo();
+            TCFDataCache<TCFSourceRef> line_info = frame_node.getLineInfo();
             if (!line_info.validate(this)) return;
             TCFSourceRef ref = line_info.getData();
             if (ref == null) {
@@ -153,11 +161,46 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
             }
             setSourceRef(ref);
         }
-        int fno = getStackFrameIndex();
-        if (fno > 0) {
+        TCFDataCache<IStackTrace.StackTraceContext> frame_cache = frame_node.getStackTraceContext();
+        if (!frame_cache.validate(this)) return;
+        IStackTrace.StackTraceContext frame_data = frame_cache.getData();
+        int frame_pos = 0;
+        if (step_cnt == 0) {
+            if (frame_data != null) {
+                fp = JSON.toBigInteger(frame_data.getFrameAddress());
+            }
+            if (fp == null) {
+                exit(new Exception("Unknown frame address"));
+                return;
+            }
+        }
+        else if (frame_data != null && fp.equals(JSON.toBigInteger(frame_data.getFrameAddress()))) {
+            frame_pos = 0;
+        }
+        else {
+            frame_pos = -1;
+            for (TCFNode n : stack_trace.getData().values()) {
+                TCFDataCache<IStackTrace.StackTraceContext> cache = ((TCFNodeStackFrame)n).getStackTraceContext();
+                if (!cache.validate(this)) return;
+                IStackTrace.StackTraceContext data = cache.getData();
+                if (data != null && fp.equals(JSON.toBigInteger(data.getFrameAddress()))) {
+                    frame_pos = +1;
+                    break;
+                }
+            }
+        }
+        if (bp != null) {
+            bps.remove(new String[]{ (String)bp.get(IBreakpoints.PROP_ID) }, new IBreakpoints.DoneCommand() {
+                public void doneCommand(IToken token, Exception error) {
+                    if (error != null) exit(error);
+                }
+            });
+            bp = null;
+        }
+        if (frame_pos > 0) {
             mode = step_back ? IRunControl.RM_REVERSE_STEP_OUT : IRunControl.RM_STEP_OUT;
-            if (ctx.canResume(mode)) {
-                ctx.resume(mode, 1, new IRunControl.DoneCommand() {
+            if (ctx_data.canResume(mode)) {
+                ctx_data.resume(mode, 1, new IRunControl.DoneCommand() {
                     public void doneCommand(IToken token, Exception error) {
                         if (error != null) exit(error);
                     }
@@ -165,32 +208,29 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
                 return;
             }
             mode = step_back ? IRunControl.RM_REVERSE_RESUME : IRunControl.RM_RESUME;
-            if (bps != null && ctx.canResume(mode)) {
-                if (bp == null) {
-                    TCFDataCache<IStackTrace.StackTraceContext> frame = getStackFrame();
-                    if (!frame.validate(this)) return;
-                    Number addr = frame.getData().getInstructionAddress();
-                    if (addr == null) {
-                        exit(new Exception("Unknown PC address"));
-                        return;
-                    }
-                    if (step_back) {
-                        BigInteger n = JSON.toBigInteger(addr);
-                        addr = n.subtract(BigInteger.valueOf(1));
-                    }
-                    String id = STEP_BREAKPOINT_PREFIX + ctx.getID();
-                    bp = new HashMap<String,Object>();
-                    bp.put(IBreakpoints.PROP_ID, id);
-                    bp.put(IBreakpoints.PROP_LOCATION, addr.toString());
-                    bp.put(IBreakpoints.PROP_CONDITION, "$thread==\"" + ctx.getID() + "\"");
-                    bp.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
-                    bps.add(bp, new IBreakpoints.DoneCommand() {
-                        public void doneCommand(IToken token, Exception error) {
-                            if (error != null) exit(error);
-                        }
-                    });
+            if (bps != null && ctx_data.canResume(mode)) {
+                Number addr = null;
+                if (frame_data != null) addr = frame_data.getReturnAddress();
+                if (addr == null) {
+                    exit(new Exception("Unknown return address"));
+                    return;
                 }
-                ctx.resume(mode, 1, new IRunControl.DoneCommand() {
+                if (step_back) {
+                    BigInteger n = JSON.toBigInteger(addr);
+                    addr = n.subtract(BigInteger.valueOf(1));
+                }
+                String id = STEP_BREAKPOINT_PREFIX + ctx_data.getID();
+                bp = new HashMap<String,Object>();
+                bp.put(IBreakpoints.PROP_ID, id);
+                bp.put(IBreakpoints.PROP_LOCATION, addr.toString());
+                bp.put(IBreakpoints.PROP_CONDITION, "$thread==\"" + ctx_data.getID() + "\"");
+                bp.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
+                bps.add(bp, new IBreakpoints.DoneCommand() {
+                    public void doneCommand(IToken token, Exception error) {
+                        if (error != null) exit(error);
+                    }
+                });
+                ctx_data.resume(mode, 1, new IRunControl.DoneCommand() {
                     public void doneCommand(IToken token, Exception error) {
                         if (error != null) exit(error);
                     }
@@ -201,26 +241,19 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
             exit(new Exception("Step over is not supported"));
             return;
         }
-        if (bp != null) {
-            bps.remove(new String[]{ (String)bp.get(IBreakpoints.PROP_ID) }, new IBreakpoints.DoneCommand() {
-                public void doneCommand(IToken token, Exception error) {
-                    if (error != null) exit(error);
-                }
-            });
-            bp = null;
-        }
-        BigInteger pc = new BigInteger(state.getData().suspend_pc);
+        BigInteger pc = new BigInteger(state_cache.getData().suspend_pc);
         if (step_cnt > 0) {
-            if (pc0 == null && pc1 == null || state.getData().suspend_pc == null) {
+            if (pc == null || pc0 == null || pc1 == null) {
                 exit(null);
                 return;
             }
             assert step_line;
             if (pc.compareTo(pc0) < 0 || pc.compareTo(pc1) >= 0) {
+                TCFDataCache<TCFSourceRef> line_info = frame_node.getLineInfo();
                 if (!line_info.validate(this)) return;
                 TCFSourceRef ref = line_info.getData();
                 if (ref == null || ref.area == null) {
-                    if (fno < 0 && (stack_trace.getError() == null || step_cnt >= 10)) {
+                    if (frame_pos < 0 && (stack_trace.getError() == null || step_cnt >= 10)) {
                         exit(stack_trace.getError());
                         return;
                     }
@@ -250,8 +283,8 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
         }
         step_cnt++;
         mode = step_back ? IRunControl.RM_REVERSE_STEP_OVER : IRunControl.RM_STEP_OVER;
-        if (ctx.canResume(mode)) {
-            ctx.resume(mode, 1, new IRunControl.DoneCommand() {
+        if (ctx_data.canResume(mode)) {
+            ctx_data.resume(mode, 1, new IRunControl.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) exit(error);
                 }
@@ -259,13 +292,13 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
             return;
         }
         mode = step_back ? IRunControl.RM_REVERSE_STEP_INTO_RANGE : IRunControl.RM_STEP_INTO_RANGE;
-        if (ctx.canResume(mode) &&
+        if (ctx_data.canResume(mode) &&
                 pc != null && pc0 != null && pc1 != null &&
                 pc.compareTo(pc0) >= 0 && pc.compareTo(pc1) < 0) {
             HashMap<String,Object> args = new HashMap<String,Object>();
             args.put(IRunControl.RP_RANGE_START, pc0);
             args.put(IRunControl.RP_RANGE_END, pc1);
-            ctx.resume(mode, 1, args, new IRunControl.DoneCommand() {
+            ctx_data.resume(mode, 1, args, new IRunControl.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) exit(error);
                 }
@@ -273,8 +306,8 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
             return;
         }
         mode = step_back ? IRunControl.RM_REVERSE_STEP_INTO : IRunControl.RM_STEP_INTO;
-        if (ctx.canResume(mode)) {
-            ctx.resume(mode, 1, new IRunControl.DoneCommand() {
+        if (ctx_data.canResume(mode)) {
+            ctx_data.resume(mode, 1, new IRunControl.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) exit(error);
                 }
@@ -285,7 +318,13 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
     }
 
     protected void exit(Throwable error) {
+        if (exited) return;
         exit(error, "Step Over");
+        if (error != null && node.getChannel().getState() == IChannel.STATE_OPEN) {
+            monitor.setStatus(new Status(IStatus.ERROR,
+                    Activator.PLUGIN_ID, 0, "Cannot step: " + error.getLocalizedMessage(), error));
+        }
+        done.run();
     }
 
     protected void exit(Throwable error, String reason) {
@@ -319,18 +358,15 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
     }
 
     public void contextChanged(RunControlContext[] contexts) {
-        for (RunControlContext c : contexts) {
-            if (c.getID().equals(ctx.getID())) ctx = c;
-        }
     }
 
     public void contextException(String context, String msg) {
-        if (context.equals(ctx.getID())) exit(new Exception(msg));
+        if (context.equals(node.getID())) exit(new Exception(msg));
     }
 
     public void contextRemoved(String[] context_ids) {
         for (String context : context_ids) {
-            if (context.equals(ctx.getID())) exit(null);
+            if (context.equals(node.getID())) exit(null);
         }
     }
 
@@ -338,7 +374,7 @@ public abstract class TCFActionStepOver extends TCFAction implements IRunControl
     }
 
     public void contextSuspended(String context, String pc, String reason, Map<String, Object> params) {
-        if (!context.equals(ctx.getID())) return;
+        if (!context.equals(node.getID())) return;
         Protocol.invokeLater(this);
     }
 

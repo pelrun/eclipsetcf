@@ -8,15 +8,23 @@
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.internal.debug.actions;
+package org.eclipse.tcf.internal.debug.ui.commands;
 
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.commands.IDebugCommandRequest;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
-import org.eclipse.tcf.internal.debug.model.TCFLaunch;
+import org.eclipse.tcf.internal.debug.ui.Activator;
+import org.eclipse.tcf.internal.debug.ui.model.TCFChildrenStackTrace;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
@@ -26,30 +34,32 @@ import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
 import org.eclipse.tcf.util.TCFDataCache;
 
-@Deprecated
-public abstract class TCFActionStepOut extends TCFAction implements IRunControl.RunControlListener {
+public class ActionStepOut extends TCFAction implements IRunControl.RunControlListener {
 
+    protected final TCFNodeExecContext node;
+    private final IDebugCommandRequest monitor;
+    private final Runnable done;
     private final boolean step_back;
-    private final IRunControl rc = launch.getService(IRunControl.class);
-    private final IBreakpoints bps = launch.getService(IBreakpoints.class);
+    private final TCFNodeStackFrame drop_to_frame;
+    private final IRunControl rc;
+    private final IBreakpoints bps;
 
-    private IRunControl.RunControlContext ctx;
-    private TCFDataCache<TCFContextState> state;
     private int step_cnt;
     private Map<String,Object> bp;
 
     protected boolean exited;
 
-    public TCFActionStepOut(TCFLaunch launch, IRunControl.RunControlContext ctx, boolean step_back) {
-        super(launch, ctx.getID());
-        this.ctx = ctx;
+    public ActionStepOut(TCFNodeExecContext node, boolean step_back, TCFNodeStackFrame drop_to_frame,
+            IDebugCommandRequest monitor, Runnable done) {
+        super(node.getModel().getLaunch(), node.getID());
+        this.node = node;
         this.step_back = step_back;
+        this.drop_to_frame = drop_to_frame;
+        this.monitor = monitor;
+        this.done = done;
+        rc = launch.getService(IRunControl.class);
+        bps = launch.getService(IBreakpoints.class);
     }
-
-    protected abstract TCFDataCache<TCFContextState> getContextState();
-    protected abstract TCFDataCache<?> getStackTrace();
-    protected abstract TCFDataCache<IStackTrace.StackTraceContext> getStackFrame();
-    protected abstract int getStackFrameIndex();
 
     public void run() {
         if (exited) return;
@@ -66,13 +76,10 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
             exit(null);
             return;
         }
+        TCFDataCache<TCFContextState> state = node.getState();
         if (state == null) {
-            rc.addListener(this);
-            state = getContextState();
-            if (state == null) {
-                exit(new Exception("Invalid context ID"));
-                return;
-            }
+            exit(new Exception("Invalid context ID"));
+            return;
         }
         if (!state.validate(this)) return;
         if (state.getData() == null || !state.getData().is_suspended) {
@@ -81,13 +88,23 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
             exit(error);
             return;
         }
+        if (step_cnt == 0) {
+            rc.addListener(this);
+        }
+        TCFDataCache<IRunControl.RunControlContext> ctx_cache = node.getRunContext();
+        if (!ctx_cache.validate(this)) return;
+        IRunControl.RunControlContext ctx_data = ctx_cache.getData();
+        if (ctx_data == null) {
+            exit(ctx_cache.getError());
+            return;
+        }
         int mode = step_back ? IRunControl.RM_REVERSE_STEP_OUT : IRunControl.RM_STEP_OUT;
-        if (ctx.canResume(mode)) {
+        if (drop_to_frame == null && ctx_data.canResume(mode)) {
             if (step_cnt > 0) {
                 exit(null);
                 return;
             }
-            ctx.resume(mode, 1, new IRunControl.DoneCommand() {
+            ctx_data.resume(mode, 1, new IRunControl.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) exit(error);
                 }
@@ -95,22 +112,28 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
             step_cnt++;
             return;
         }
-        TCFDataCache<?> stack_trace = getStackTrace();
+        TCFChildrenStackTrace stack_trace = node.getStackTrace();
         if (!stack_trace.validate(this)) return;
-        int frame_index = getStackFrameIndex();
         if (step_cnt > 0) {
             TCFContextState state_data = state.getData();
-            boolean ok = isMyBreakpoint(state_data) || IRunControl.REASON_STEP.equals(state_data.suspend_reason);
-            if (!ok) exit(null, state_data.suspend_reason);
-            else if (frame_index < 0) exit(null);
-            if (exited) return;
+            if (isMyBreakpoint(state_data)) {
+                exit(null);
+                return;
+            }
+            exit(null, state_data.suspend_reason);
+            return;
         }
-        if (bps != null && ctx.canResume(step_back ? IRunControl.RM_REVERSE_RESUME : IRunControl.RM_RESUME)) {
+        if (bps != null && ctx_data.canResume(step_back ? IRunControl.RM_REVERSE_RESUME : IRunControl.RM_RESUME)) {
             if (bp == null) {
-                TCFDataCache<IStackTrace.StackTraceContext> frame = getStackFrame();
-                if (!frame.validate(this)) return;
-                Number addr = null;
-                if (frame.getData() != null) addr = frame.getData().getReturnAddress();
+                TCFDataCache<IStackTrace.StackTraceContext> frame_cache =
+                        (drop_to_frame != null ? drop_to_frame : stack_trace.getTopFrame()).getStackTraceContext();
+                if (!frame_cache.validate(this)) return;
+                IStackTrace.StackTraceContext frame_data = frame_cache.getData();
+                if (frame_data == null) {
+                    exit(frame_cache.getError());
+                    return;
+                }
+                Number addr = frame_data.getReturnAddress();
                 if (addr == null) {
                     exit(new Exception("Unknown stack frame return address"));
                     return;
@@ -119,11 +142,11 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
                     BigInteger n = JSON.toBigInteger(addr);
                     addr = n.subtract(BigInteger.valueOf(1));
                 }
-                String id = STEP_BREAKPOINT_PREFIX + ctx.getID();
+                String id = STEP_BREAKPOINT_PREFIX + ctx_data.getID();
                 bp = new HashMap<String,Object>();
                 bp.put(IBreakpoints.PROP_ID, id);
                 bp.put(IBreakpoints.PROP_LOCATION, addr.toString());
-                bp.put(IBreakpoints.PROP_CONDITION, "$thread==\"" + ctx.getID() + "\"");
+                bp.put(IBreakpoints.PROP_CONDITION, "$thread==\"" + ctx_data.getID() + "\"");
                 bp.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
                 bps.add(bp, new IBreakpoints.DoneCommand() {
                     public void doneCommand(IToken token, Exception error) {
@@ -131,7 +154,7 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
                     }
                 });
             }
-            ctx.resume(step_back ? IRunControl.RM_REVERSE_RESUME : IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
+            ctx_data.resume(step_back ? IRunControl.RM_REVERSE_RESUME : IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
                 public void doneCommand(IToken token, Exception error) {
                     if (error != null) exit(error);
                 }
@@ -143,7 +166,13 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
     }
 
     protected void exit(Throwable error) {
+        if (exited) return;
         exit(error, "Step Out");
+        if (error != null && node.getChannel().getState() == IChannel.STATE_OPEN) {
+            monitor.setStatus(new Status(IStatus.ERROR,
+                    Activator.PLUGIN_ID, 0, "Cannot step: " + error.getLocalizedMessage(), error));
+        }
+        done.run();
     }
 
     protected void exit(Throwable error, String reason) {
@@ -177,18 +206,15 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
     }
 
     public void contextChanged(RunControlContext[] contexts) {
-        for (RunControlContext c : contexts) {
-            if (c.getID().equals(ctx.getID())) ctx = c;
-        }
     }
 
     public void contextException(String context, String msg) {
-        if (context.equals(ctx.getID())) exit(new Exception(msg));
+        if (context.equals(node.getID())) exit(new Exception(msg));
     }
 
     public void contextRemoved(String[] context_ids) {
         for (String context : context_ids) {
-            if (context.equals(ctx.getID())) exit(null);
+            if (context.equals(node.getID())) exit(null);
         }
     }
 
@@ -196,7 +222,7 @@ public abstract class TCFActionStepOut extends TCFAction implements IRunControl.
     }
 
     public void contextSuspended(String context, String pc, String reason, Map<String,Object> params) {
-        if (!context.equals(ctx.getID())) return;
+        if (!context.equals(node.getID())) return;
         Protocol.invokeLater(this);
     }
 

@@ -10,74 +10,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.commands;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.commands.IDebugCommandRequest;
-import org.eclipse.tcf.internal.debug.actions.TCFActionStepOut;
-import org.eclipse.tcf.internal.debug.model.TCFContextState;
-import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
-import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
-import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.services.IBreakpoints;
 import org.eclipse.tcf.services.IRunControl;
-import org.eclipse.tcf.services.IStackTrace.StackTraceContext;
-import org.eclipse.tcf.util.TCFDataCache;
 
 public class BackReturnCommand extends StepCommand {
-
-    private static class StepStateMachine extends TCFActionStepOut {
-
-        private final IDebugCommandRequest monitor;
-        private final Runnable done;
-        private final TCFNodeExecContext node;
-        private TCFNodeStackFrame frame;
-
-        StepStateMachine(TCFModel model, IDebugCommandRequest monitor,
-                IRunControl.RunControlContext ctx, Runnable done) {
-            super(model.getLaunch(), ctx, true);
-            this.monitor = monitor;
-            this.done = done;
-            node = (TCFNodeExecContext)model.getNode(ctx.getID());
-        }
-
-        @Override
-        protected TCFDataCache<TCFContextState> getContextState() {
-            if (node == null) return null;
-            return node.getState();
-        }
-
-        @Override
-        protected TCFDataCache<StackTraceContext> getStackFrame() {
-            if (frame == null) frame = node.getStackTrace().getTopFrame();
-            if (frame == null) return null;
-            return frame.getStackTraceContext();
-        }
-
-        @Override
-        protected int getStackFrameIndex() {
-            if (frame == null) frame = node.getStackTrace().getTopFrame();
-            if (frame == null) return 0;
-            return frame.getFrameNo();
-        }
-
-        @Override
-        protected TCFDataCache<?> getStackTrace() {
-            return node.getStackTrace();
-        }
-
-        @Override
-        protected void exit(Throwable error) {
-            if (exited) return;
-            super.exit(error);
-            if (error != null && node.getChannel().getState() == IChannel.STATE_OPEN) {
-                monitor.setStatus(new Status(IStatus.ERROR,
-                        Activator.PLUGIN_ID, 0, "Cannot step: " + error.getLocalizedMessage(), error));
-            }
-            done.run();
-        }
-    }
 
     public BackReturnCommand(TCFModel model) {
         super(model);
@@ -93,8 +32,10 @@ public class BackReturnCommand extends StepCommand {
     }
 
     @Override
-    protected void execute(final IDebugCommandRequest monitor, final IRunControl.RunControlContext ctx,
+    protected void execute(final IDebugCommandRequest monitor,
+            final IRunControl.RunControlContext ctx,
             boolean src_step, final Runnable done) {
-        new StepStateMachine(model, monitor, ctx, done);
+        TCFNodeExecContext node = (TCFNodeExecContext)model.getNode(ctx.getID());
+        new ActionStepOut(node, true, null, monitor, done);
     }
 }
