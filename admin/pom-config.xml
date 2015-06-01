@@ -61,7 +61,7 @@
 		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0milestones</terminal-site>
         <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/1.1.1</ptp-remote-site>
 		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20150519210750/repository/</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150519210750/repository/</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
 
