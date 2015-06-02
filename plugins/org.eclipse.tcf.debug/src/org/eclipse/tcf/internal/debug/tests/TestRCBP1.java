@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1420,12 +1420,14 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             assert !sc.get_state_pending;
             assert !sc.ok_to_resume;
             sc.ok_to_resume = true;
+            int cnt = 1;
             int rm = IRunControl.RM_RESUME;
             if (isMyBreakpoint(sc)) {
                 rm = rnd.nextInt(6);
                 if (!ctx.canResume(rm)) rm = IRunControl.RM_RESUME;
+                if (rm != IRunControl.RM_RESUME) cnt = rnd.nextInt(5) + 1;
             }
-            test_rc.resume(id, rm);
+            test_rc.resume(id, rm, cnt);
         }
     }
 

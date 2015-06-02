@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -204,7 +204,7 @@ class RunControl {
             Set<String> ids = new HashSet<String>(s);
             ids.addAll(suspended_ctx_ids);
             String[] arr = ids.toArray(new String[ids.size()]);
-            resume(arr[rnd.nextInt(arr.length)], IRunControl.RM_RESUME);
+            resume(arr[rnd.nextInt(arr.length)], IRunControl.RM_RESUME, 1);
         }
     }
 
@@ -236,7 +236,7 @@ class RunControl {
         return true;
     }
 
-    void resume(final String id, final int mode) {
+    void resume(final String id, final int mode, final int cnt) {
         if (!test_suite.canResume(id)) return;
         assert !sync_pending;
         sync_pending = true;
@@ -290,18 +290,26 @@ class RunControl {
                         }
                     }
                     else {
-                        IRunControl.RunControlContext ctx = ctx_map.get(id);
+                        final IRunControl.RunControlContext ctx = ctx_map.get(id);
                         if (ctx != null) {
                             pending_resume_ids.add(id);
-                            if (enable_trace) System.out.println("" + channel_id + " resume " + mode + " " + id);
-                            resume_cmds.put(id, ctx.resume(mode, 1, new IRunControl.DoneCommand() {
+                            if (enable_trace) System.out.println("" + channel_id + " resume " + mode + " " + cnt + " " + id);
+                            resume_cmds.put(id, ctx.resume(mode, cnt, new IRunControl.DoneCommand() {
+                                int retry = 0;
                                 public void doneCommand(IToken token, Exception error) {
                                     assert resume_cmds.get(id) == token;
                                     resume_cmds.remove(id);
                                     if (enable_trace) System.out.println("" + channel_id + " done resume " + error);
                                     if (error != null) {
-                                        pending_resume_ids.remove(id);
-                                        if (suspended_ctx_ids.contains(id)) exit(error);
+                                        if (retry == 0 && cnt > 1 && suspended_ctx_ids.contains(id) && pending_resume_ids.contains(id)) {
+                                            // Older agent that does not support resume count
+                                            resume_cmds.put(id, ctx.resume(mode, 1, this));
+                                            retry++;
+                                        }
+                                        else {
+                                            pending_resume_ids.remove(id);
+                                            if (suspended_ctx_ids.contains(id)) exit(error);
+                                        }
                                     }
                                     else if (pending_resume_ids.contains(id)) {
                                         exit(new Exception("Missing contextResumed event"));
@@ -323,7 +331,7 @@ class RunControl {
                         test_id.equals(ctx.getCreatorID())) {
                     String thread_id = ctx.getID();
                     test_suite.getCanceledTests().put(thread_id, test_id);
-                    resume(thread_id, IRunControl.RM_RESUME);
+                    resume(thread_id, IRunControl.RM_RESUME, 1);
                 }
             }
         }
