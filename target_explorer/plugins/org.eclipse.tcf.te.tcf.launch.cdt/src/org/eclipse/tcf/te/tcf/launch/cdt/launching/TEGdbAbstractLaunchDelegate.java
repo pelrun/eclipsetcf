@@ -11,6 +11,7 @@ package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,25 +19,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
+import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.DsfExecutor;
 import org.eclipse.cdt.dsf.concurrent.DsfRunnable;
-import org.eclipse.cdt.dsf.concurrent.ImmediateDataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor;
+import org.eclipse.cdt.dsf.concurrent.Query;
+import org.eclipse.cdt.dsf.datamodel.IDMContext;
 import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
+import org.eclipse.cdt.dsf.gdb.service.IGDBProcesses;
 import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
-import org.eclipse.cdt.dsf.mi.service.IMICommandControl;
-import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 import org.eclipse.cdt.dsf.service.DsfServicesTracker;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -162,7 +165,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 			String commandArguments = ""; //$NON-NLS-1$
 			if (isAttachLaunch) {
-				commandArguments = "--once --attach :" + gdbserverPortNumber.get() + " " + remotePID; //$NON-NLS-1$ //$NON-NLS-2$
+				commandArguments = "--once --multi :" + gdbserverPortNumber.get(); //$NON-NLS-1$
 				monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_attaching_program);
 			} else {
 				commandArguments = ":" + gdbserverPortNumber.get() + " " + TEHelper.spaceEscapify(remoteExePath); //$NON-NLS-1$ //$NON-NLS-2$
@@ -323,33 +326,49 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 		// Determine if the launch is an attach launch
 		final boolean isAttachLaunch = ICDTLaunchConfigurationConstants.ID_LAUNCH_C_ATTACH.equals(config.getType().getIdentifier());
-		if (!isAttachLaunch) return;
+		if (!isAttachLaunch)
+			return;
 
-		final IPath exePath = checkBinaryDetails(config);
+        boolean ok = false;
+		try {
+			if (!(l instanceof GdbLaunch))
+				throw new DebugException(new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), "Unexpected launch: " + l.getClass().getName())); //$NON-NLS-1$
 
-	    if (l instanceof GdbLaunch && exePath != null) {
-	    	final GdbLaunch launch = (GdbLaunch) l;
-	    	final DsfExecutor executor = launch.getDsfExecutor();
+			final IPath exePath = checkBinaryDetails(config);
+			if (exePath == null)
+				throw new DebugException(new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), "No executable specified")); //$NON-NLS-1$
 
-	    	executor.execute(new DsfRunnable() {
-	    		@Override
-	    		public void run() {
-	    	        DsfServicesTracker tracker = new DsfServicesTracker(Activator.getDefault().getBundle().getBundleContext(), launch.getSession().getId());
+			final GdbLaunch launch = (GdbLaunch) l;
+			final DsfExecutor executor = launch.getDsfExecutor();
+			final String pid = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PID, "0"); //$NON-NLS-1$
+			Query<IDMContext> query = new Query<IDMContext>() {
+				@Override
+                protected void execute(DataRequestMonitor<IDMContext> rm) {
+					DsfServicesTracker tracker = new DsfServicesTracker(Activator.getDefault().getBundle().getBundleContext(), launch.getSession().getId());
+					try {
+						IGDBProcesses gdbProcesses = tracker.getService(IGDBProcesses.class);
+						IGDBControl commandControl = tracker.getService(IGDBControl.class);
+						gdbProcesses.attachDebuggerToProcess(
+										gdbProcesses.createProcessContext(commandControl.getContext(), pid),
+										exePath.toString(),
+										rm);
 
-	    	        try {
-	    	        	IGDBControl commandControl = tracker.getService(IGDBControl.class);
-	    	        	CommandFactory commandFactory = tracker.getService(IMICommandControl.class).getCommandFactory();
-
-	    	        	commandControl.queueCommand(
-	    	        					commandFactory.createMIFileSymbolFile(commandControl.getContext(), exePath.toString()),
-	    	        					new ImmediateDataRequestMonitor<MIInfo>());
-	    	        } finally {
-	    	        	tracker.dispose();
-	    	        }
-	    		}
-	    	});
-
-	    }
+					} finally {
+						tracker.dispose();
+					}
+				}
+			};
+			executor.execute(query);
+			if (query.get() != null)
+				ok = true;
+        } catch (InterruptedException e) {
+        } catch (ExecutionException e) {
+			throw new DebugException(new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), "Cannot attach to process", e)); //$NON-NLS-1$
+        } finally {
+			if (!ok) {
+                cleanupLaunch();
+            }
+        }
 	}
 
 	/**
