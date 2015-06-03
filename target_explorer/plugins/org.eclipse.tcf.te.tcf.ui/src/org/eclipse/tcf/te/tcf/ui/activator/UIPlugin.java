@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -265,6 +265,8 @@ public class UIPlugin extends AbstractUIPlugin {
 		registry.put(ImageConsts.BUSY_OVR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "gold_ovr.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.GOLD_OVR, ImageDescriptor.createFromURL(url));
+		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "warning_ovr.gif"); //$NON-NLS-1$
+		registry.put(ImageConsts.WARNING_OVR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "green_ovr.gif"); //$NON-NLS-1$
 		registry.put(ImageConsts.GREEN_OVR, ImageDescriptor.createFromURL(url));
 		url = UIPlugin.getDefault().getBundle().getEntry(ImageConsts.IMAGE_DIR_ROOT + ImageConsts.IMAGE_DIR_OVR + "grey_ovr.gif"); //$NON-NLS-1$
