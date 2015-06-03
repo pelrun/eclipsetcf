@@ -1907,7 +1907,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         // Use MemoryMap service to generate "memory map changed" event.
         // The event invalidates any cached symbols info.
         if (srv_memory_map == null) return;
-        if (rnd.nextInt(11) != 0) return;
+        if (rnd.nextInt(101) != 0) return;
         ArrayList<MemoryRegion> l = null;
         String process_id = test_context.getProcessID();
         if (mem_map != null) l = mem_map.get(process_id);

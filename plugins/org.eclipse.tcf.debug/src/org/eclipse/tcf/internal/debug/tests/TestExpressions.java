@@ -928,7 +928,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         // Use MemoryMap service to generate "memory map changed" event.
         // The event invalidates any cached symbols info.
         if (srv_memory_map == null) return;
-        if (rnd.nextInt(11) != 0) return;
+        if (rnd.nextInt(101) != 0) return;
         ArrayList<MemoryRegion> l = null;
         if (mem_map != null) l = mem_map.get(process_id);
         if (l == null) l = new ArrayList<MemoryRegion>();
