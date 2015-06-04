@@ -69,6 +69,9 @@ public interface ILineNumbers extends IService {
             this.epilogue_begin = epilogue_begin;
         }
 
+        /**
+         * @since 1.3
+         */
         public CodeArea(Map<String,Object> area, CodeArea prev) {
             this(getString(area, "Dir", prev != null ? prev.directory : null),
             getString(area, "File", prev != null ? prev.file : null),

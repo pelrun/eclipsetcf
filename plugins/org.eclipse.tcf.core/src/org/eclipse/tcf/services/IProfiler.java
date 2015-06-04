@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Xilinx, Inc. and others.
+ * Copyright (c) 2013, 2015 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -93,11 +93,13 @@ public interface IProfiler extends IService {
      * @param ctx - a context ID.
      * @param done - command result call back object.
      * @return - pending command handle.
+     * @since 1.3
      */
     IToken getCapabilities(String ctx, DoneGetCapabilities done);
 
     /**
      * Call back interface for 'getCapabilities' command.
+     * @since 1.3
      */
     interface DoneGetCapabilities {
         /**

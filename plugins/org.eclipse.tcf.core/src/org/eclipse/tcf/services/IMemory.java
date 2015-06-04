@@ -42,7 +42,9 @@ public interface IMemory extends IService {
         PROP_NAME = "Name",                     /** String, name of the context, can be used for UI purposes */
         PROP_START_BOUND = "StartBound",        /** Number, lowest address (inclusive) which is valid for the context */
         PROP_END_BOUND = "EndBound",            /** Number, highest address (inclusive) which is valid for the context */
-        PROP_ACCESS_TYPES = "AccessTypes",      /** Array of String, the access types allowed for this context */
+        PROP_ACCESS_TYPES = "AccessTypes";      /** Array of String, the access types allowed for this context */ 
+        /** @since 1.3*/
+    static final String
         PROP_ADDRESSABLE_UNIT_SIZE = "AddressableUnitSize", /** Number, addressable unit size in number of bytes */
         PROP_DEFAULT_WORD_SIZE = "DefaultWordSize"; /** Number, default word size in number of bytes */
 
@@ -132,6 +134,9 @@ public interface IMemory extends IService {
      */
     final static int MODE_VERIFY = 0x2;
 
+    /**
+     * @noimplement This interface is not intended to be implemented by clients.
+     */
     interface MemoryContext {
 
         /**
@@ -194,6 +199,7 @@ public interface IMemory extends IService {
          * The addressable size indicates the minimum number of bytes that
          * can be retrieved as a single unit.
          * @return addressable unit size in bytes.
+         * @since 1.3
          */
         int getAddressableUnitSize();
 
@@ -202,6 +208,7 @@ public interface IMemory extends IService {
          * The size is supposed to be used as the default memory view word representation.
          * Returns zero is word size is unknown.
          * @return word size in bytes.
+         * @since 1.3
          */
         int getDefaultWordSize();
 

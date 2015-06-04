@@ -68,6 +68,9 @@ public abstract class StreamChannel extends AbstractChannel {
         for (byte b : buf) put(b & 0xff);
     }
 
+    /**
+     * @since 1.3
+     */
     protected void put(byte[] buf, int pos, int len) throws IOException {
         /* Default implementation - it is expected to be overridden */
         int end = pos + len;

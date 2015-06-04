@@ -195,6 +195,7 @@ public interface IStackTrace extends IService {
 
     /**
      * StackTraceContext represents stack trace objects - stacks and stack frames.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     interface StackTraceContext {
 

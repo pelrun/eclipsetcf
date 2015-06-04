@@ -1167,6 +1167,7 @@ public abstract class AbstractChannel implements IChannel {
      * @param pos
      * @param len
      * @throws IOException
+     * @since 1.3
      */
     protected void write(byte[] buf, int pos, int len) throws IOException {
         assert Thread.currentThread() == out_thread;

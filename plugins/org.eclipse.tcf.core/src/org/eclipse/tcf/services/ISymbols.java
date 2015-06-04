@@ -36,7 +36,9 @@ public interface ISymbols extends IService {
         comp_unit,              // compilation unit
         block,                  // lexical block
         namespace,              // C++ namespace
+        /** @since 1.3 */
         variant_part,           // a variant part of a structure
+        /** @since 1.3 */
         variant                 // a member of a variant part of a structure
     }
 
@@ -51,6 +53,7 @@ public interface ISymbols extends IService {
         enumeration,            // enumeration type.
         function,               // function type.
         member_pointer,         // pointer to member type
+        /** @since 1.3 */
         complex                 // complex float
     }
 
@@ -80,13 +83,16 @@ public interface ISymbols extends IService {
         SYM_FLAG_ENUM_TYPE      = 0x00400000,
         SYM_FLAG_STRUCT_TYPE    = 0x00800000,
         SYM_FLAG_STRING_TYPE    = 0x01000000,
-        SYM_FLAG_INHERITANCE    = 0x02000000,
+        SYM_FLAG_INHERITANCE    = 0x02000000;
+    /** @since 1.3 */
+    static final int
         SYM_FLAG_BOOL_TYPE      = 0x04000000,
         SYM_FLAG_INDIRECT       = 0x08000000,
         SYM_FLAG_RVALUE         = 0x10000000;
 
     /**
      * Symbol context interface.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     interface Symbol {
         /**
@@ -194,6 +200,7 @@ public interface ISymbols extends IService {
         /**
          * If symbol is an array type - return array stride in bits.
          * @return stride in bits.
+         * @since 1.3
          */
         Number getBitStride();
 
@@ -265,15 +272,17 @@ public interface ISymbols extends IService {
         PROP_LENGTH = "Length",
         PROP_LOWER_BOUND = "LowerBound",
         PROP_UPPER_BOUND = "UpperBound",
-        PROP_BIT_STRIDE = "BitStride",
-        PROP_BINARY_SCALE = "BinaryScale",
-        PROP_DECIMAL_SCALE = "DecimalScale",
         PROP_OFFSET = "Offset",
         PROP_ADDRESS = "Address",
         PROP_VALUE = "Value",
         PROP_BIG_ENDIAN = "BigEndian",
         PROP_REGISTER = "Register",
         PROP_FLAGS = "Flags";
+    /** @since 1.3 */
+    static final String
+        PROP_BIT_STRIDE = "BitStride",
+        PROP_BINARY_SCALE = "BinaryScale",
+        PROP_DECIMAL_SCALE = "DecimalScale";
 
     /**
      * Symbol context properties update policies.

@@ -135,6 +135,7 @@ public interface IExpressions extends IService {
     /**
      * Value represents result of expression evaluation.
      * Note that same expression can be evaluated multiple times with different results.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     interface Value {
 
@@ -163,6 +164,7 @@ public interface IExpressions extends IService {
          * which value is unknown or optimized away,
          * even though the value it would point to is known.
          * @return true if the value is implicit pointer.
+         * @since 1.3
          */
         boolean isImplicitPointer();
 
@@ -204,12 +206,14 @@ public interface IExpressions extends IService {
         VAL_CLASS = "Class",
         VAL_TYPE = "Type",
         VAL_BIG_ENDIAN = "BigEndian",
+        VAL_REGISTER = "Register",
+        VAL_SYMBOL = "Symbol",
+        VAL_ADDRESS = "Address";
+    /** @since 1.3 */
+    static final String
         VAL_BINARY_SCALE = "BinaryScale",
         VAL_DECIMAL_SCALE = "DecimalScale",
         VAL_IMPLICIT_POINTER = "ImplicitPointer",
-        VAL_REGISTER = "Register",
-        VAL_SYMBOL = "Symbol",
-        VAL_ADDRESS = "Address",
         VAL_PIECES = "Pieces";
 
     /**

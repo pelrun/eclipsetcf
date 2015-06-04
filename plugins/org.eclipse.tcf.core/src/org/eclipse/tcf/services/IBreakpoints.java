@@ -67,7 +67,9 @@ public interface IBreakpoints extends IService {
         PROP_EVENT_TYPE = "EventType",            // String
         PROP_EVENT_ARGS = "EventArgs",            // String or Object
         PROP_CLIENT_DATA = "ClientData",          // Object
-        PROP_ACTION = "Action",                   // String - expression or script
+        PROP_ACTION = "Action";                   // String - expression or script
+    /** @since 1.3 */
+    static final String
         PROP_SKIP_PROLOGUE = "SkipPrologue";      // Boolean
 
     /**
@@ -127,13 +129,15 @@ public interface IBreakpoints extends IService {
      */
     static final String
         INSTANCE_ERROR = "Error",               // String
-        INSTANCE_CONDITION_ERROR = "ConditionError", // String
         INSTANCE_CONTEXT = "LocationContext",   // String
         INSTANCE_ADDRESS = "Address",           // Number
         INSTANCE_SIZE = "Size",                 // Number
         INSTANCE_TYPE = "BreakpointType",       // String
         INSTANCE_MEMORY_CONTEXT = "MemoryContext",// String
         INSTANCE_HIT_COUNT = "HitCount";         // Number
+    /** @since 1.3 */
+    static final String
+        INSTANCE_CONDITION_ERROR = "ConditionError"; // String
 
     /**
      * Breakpoint service capabilities.
@@ -153,7 +157,9 @@ public interface IBreakpoints extends IService {
         CAPABILITY_TEMPORARY = "Temporary",             // Boolean
         CAPABILITY_IGNORE_COUNT = "IgnoreCount",        // Boolean
         CAPABILITY_ACCESS_MODE = "AccessMode",          // Number
-        CAPABILITY_CLIENT_DATA = "ClientData",          // Boolean
+        CAPABILITY_CLIENT_DATA = "ClientData";          // Boolean
+    /** @since 1.3 */
+    static final String
         CAPABILITY_SKIP_PROLOGUE = "SkipPrologue";      // Boolean
 
     /**

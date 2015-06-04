@@ -78,8 +78,10 @@ public interface IRunControl extends IService {
         /** Context ID of a symbols group that contains the context.
          * Members of a symbols group share same symbol reader configuration settings,
          * like user defined memory map entries and source lookup info */
-        PROP_SYMBOLS_GROUP = "SymbolsGroup",
+        PROP_SYMBOLS_GROUP = "SymbolsGroup";
 
+    /** @since 1.3 */
+    static final String
         /** Array of String, the access types allowed for this context
          * when accessing context registers.
          */
@@ -230,6 +232,7 @@ public interface IRunControl extends IService {
 
     /**
      * Values of "RegAccessTypes".
+     * @since 1.3
      */
     static final String
         REG_ACCESS_RD_RUNNING = "rd-running",       /** Context supports reading registers while running */
@@ -373,6 +376,7 @@ public interface IRunControl extends IService {
      * all services. In other words, all services access same hierarchy of contexts,
      * with same IDs, however, each service accesses its own subset of context's
      * attributes and functionality, which is relevant to that service.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     interface RunControlContext {
 
@@ -510,6 +514,7 @@ public interface IRunControl extends IService {
         /**
          * Get the register access types allowed for this context.
          * @return collection of access type names.
+         * @since 1.3
          */
         Collection<String> getRegAccessTypes();
 
