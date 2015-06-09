@@ -298,7 +298,7 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 							public void run() {
 								finalJob.run(monitor);
 							}
-						}, "Open channel to " + job.getName()); //$NON-NLS-1$
+						}, job.getName());
 						thread.start();
 					}
 					else {
