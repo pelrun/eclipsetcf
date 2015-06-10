@@ -67,7 +67,9 @@ public class DebugServicesLaunchesListener implements ILaunchesListener2 {
 
 		for (ILaunch launch : launches) {
 			try {
-				if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH)) {
+				if (launch.getLaunchConfiguration() != null && launch.getLaunchConfiguration().getType() != null
+						&& launch.getLaunchConfiguration().getType().getIdentifier() != null
+						&& launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH)) {
 					IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
 					if (contexts != null && contexts.length == 1 && contexts[0] != null) {
 						contexts[0].fireChangeEvent("dbgLaunchedState", null, null); //$NON-NLS-1$
