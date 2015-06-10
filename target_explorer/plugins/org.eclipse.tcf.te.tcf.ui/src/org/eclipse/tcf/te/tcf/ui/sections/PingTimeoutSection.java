@@ -122,7 +122,12 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 
 		String value = SWTControlUtil.getText(verbosity);
 		if (value != null && !"".equals(value)) { //$NON-NLS-1$
-			attributes.setProperty(IPeerProperties.PROP_PING_TIMEOUT, value);
+			int timeout = -1;
+			try {
+				timeout = Integer.decode(value).intValue();
+			} catch (NumberFormatException e) { /* ignored on purpose */ }
+
+			attributes.setProperty(IPeerProperties.PROP_PING_TIMEOUT, timeout != -1 && timeout != defaultPingTimeout ? value : Integer.toString(defaultPingTimeout));
 		}
 	}
 
