@@ -553,10 +553,10 @@
       </menuContribution>
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.launch">
          <command
-               commandId="org.eclipse.tcf.te.ui.terminals.command.launch"
-               helpContextId="org.eclipse.tcf.te.ui.terminals.command_Launch"
+               commandId="org.eclipse.tm.terminal.view.ui.command.launch"
+               helpContextId="org.eclipse.tm.terminal.view.ui.command_Launch"
                icon="platform:/plugin/org.eclipse.ui.console/icons/full/eview16/console_view.gif"
-               id="org.eclipse.tcf.te.ui.terminals.commands.launch"
+               id="org.eclipse.tcf.te.tcf.ui.commands.launch"
                label="%command.launch.label"
                mnemonic="%command.launch.mnemonic"
                style="push"
