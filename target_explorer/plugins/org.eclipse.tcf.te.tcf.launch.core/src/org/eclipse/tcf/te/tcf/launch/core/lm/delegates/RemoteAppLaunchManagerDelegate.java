@@ -204,7 +204,7 @@ public class RemoteAppLaunchManagerDelegate extends DefaultLaunchManagerDelegate
 		for (Object selection : prjContext.getSelections()) {
 			if (selection instanceof IPath) {
 				IPath path = (IPath)selection;
-				IFileTransferItem transfer = new FileTransferItem(path, new Path("/tmp/")); //$NON-NLS-1$
+				IFileTransferItem transfer = new FileTransferItem(path, "/tmp/"); //$NON-NLS-1$
 				if (!transfers.contains(transfer)) {
 					transfers.add(transfer);
 				}
