@@ -35,6 +35,8 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 	/* default */ Text verbosity;
 	/* default */ Label verbosityLabel;
 
+	private final int defaultPingTimeout;
+
 	/**
 	 * Constructor.
 	 *
@@ -42,7 +44,12 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 	 * @param parent The parent composite. Must not be <code>null</code>.
 	 */
 	public PingTimeoutSection(IManagedForm form, Composite parent) {
+		this(form, parent, 2);
+	}
+
+	public PingTimeoutSection(IManagedForm form, Composite parent, int defaultPingTimeout) {
 		super(form, parent, SWT.NONE);
+		this.defaultPingTimeout = defaultPingTimeout >= 0 ? defaultPingTimeout : 2;
 		createClient(getSection(), form.getToolkit());
 	}
 
@@ -95,11 +102,11 @@ public class PingTimeoutSection extends AbstractSection implements IDataExchange
 
 		if (verbosity != null) {
 			int timeout = attributes.getIntProperty(IPeerProperties.PROP_PING_TIMEOUT);
-			if (timeout >= 0) {
-				SWTControlUtil.setText(verbosity, timeout+""); //$NON-NLS-1$
+			if (timeout >= 0 && timeout != defaultPingTimeout) {
+				SWTControlUtil.setText(verbosity, Integer.toString(timeout));
 			}
 			else {
-				SWTControlUtil.setText(verbosity, "2"); //$NON-NLS-1$
+				SWTControlUtil.setText(verbosity, Integer.toString(defaultPingTimeout));
 			}
 		}
 	}
