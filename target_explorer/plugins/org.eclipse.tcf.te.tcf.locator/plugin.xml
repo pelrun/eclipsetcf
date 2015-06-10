@@ -283,9 +283,7 @@
             	<parameter name="stateOnCancel" value="disconnected"/>
             	<parameter name="stateOnError" value="disconnected"/>
             </reference>
-            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep">
-            	<parameter name="noTimeout" value="true"/>
-            </reference>
+            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyNoTimeoutStepGroup"/>
             <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="connected">
             	<parameter name="state" value="connected"/>
             </reference>
@@ -310,6 +308,15 @@
             id="org.eclipse.tcf.te.tcf.locator.waitForReadyStepGroup">
          <references>
             <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"/>
+         </references>
+      </stepGroup>
+
+      <stepGroup
+            id="org.eclipse.tcf.te.tcf.locator.waitForReadyNoTimeoutStepGroup">
+         <references>
+            <reference id="org.eclipse.tcf.te.tcf.locator.waitForReadyStep">
+               <parameter name="noTimeout" value="true"/>
+            </reference>
          </references>
       </stepGroup>
 

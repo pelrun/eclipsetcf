@@ -93,7 +93,7 @@
          <references>
             <reference
                   id="org.eclipse.tcf.te.tcf.filesystem.core.initializeModelStep"
-                  insertAfter="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"/>
+                  insertAfter="org.eclipse.tcf.te.tcf.locator.waitForReadyNoTimeoutStepGroup"/>
          </references>
       </stepGroup>
       

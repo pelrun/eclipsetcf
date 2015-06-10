@@ -145,7 +145,7 @@
          <references>
             <reference
                   id="org.eclipse.tcf.te.tcf.processes.core.initializeModelStep"
-                  insertAfter="org.eclipse.tcf.te.tcf.locator.waitForReadyStep"/>
+                  insertAfter="org.eclipse.tcf.te.tcf.locator.waitForReadyNoTimeoutStepGroup"/>
          </references>
       </stepGroup>
       
