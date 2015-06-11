@@ -38,6 +38,9 @@ public class SourceLookupEditorPage extends AbstractTcfLaunchTabContainerEditorP
 		private final AbstractTcfLaunchTabContainerEditorPage editorPage;
 		private IPropertyChangeListener listener;
 
+		// Set the flag to true if the page is initializing
+		private boolean isInitializing = false;
+
 		/**
          * Constructor
          *
@@ -104,8 +107,10 @@ public class SourceLookupEditorPage extends AbstractTcfLaunchTabContainerEditorP
 		@Override
 		protected void updateLaunchConfigurationDialog() {
 			super.updateLaunchConfigurationDialog();
-			performApply(getLaunchConfig(editorPage.getPeerModel(editorPage.getEditorInput())));
-			editorPage.checkLaunchConfigDirty();
+			if (!isInitializing) {
+				performApply(getLaunchConfig(editorPage.getPeerModel(editorPage.getEditorInput())));
+				editorPage.checkLaunchConfigDirty();
+			}
 		}
 
 		/* (non-Javadoc)
@@ -114,7 +119,9 @@ public class SourceLookupEditorPage extends AbstractTcfLaunchTabContainerEditorP
 		@Override
 		public void initializeFrom(ILaunchConfiguration configuration) {
 			boolean oldDirty = editorPage.getEditor().isDirty() || editorPage.checkLaunchConfigDirty();
+			isInitializing = true;
 			super.initializeFrom(configuration);
+			isInitializing = false;
 			if (!oldDirty && editorPage.checkLaunchConfigDirty()) {
 				editorPage.extractData();
 			}
