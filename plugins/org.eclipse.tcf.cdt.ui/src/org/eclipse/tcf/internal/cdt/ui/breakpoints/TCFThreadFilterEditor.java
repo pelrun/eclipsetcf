@@ -150,11 +150,9 @@ public class TCFThreadFilterEditor {
          * default. When a container is unchecked, uncheck all its threads.
          */
         private void checkContext(Context ctx, boolean checked) {
-            if (ctx.fIsContainer) {
-                Object[] threads = fContentProvider.getChildren(ctx);
-                for (int i = 0; i < threads.length; i++) {
-                    checkContext((Context) threads[i], checked);
-                }
+            Object[] threads = fContentProvider.getChildren(ctx);
+            for (int i = 0; i < threads.length; i++) {
+                checkContext((Context) threads[i], checked);
             }
             checkThread(ctx, checked);
         }
@@ -237,7 +235,7 @@ public class TCFThreadFilterEditor {
                    {
                        filteredList.add(obj);
                        fFilteredContexts.add(obj);
-                   } else if (context.fIsContainer) {
+                   } else {
                        Object[] childArray = getChildren(obj);
                        if (childArray != null && childArray.length != 0) {
                            filteredList.add(obj);
