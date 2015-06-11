@@ -42,7 +42,7 @@ public interface IMemory extends IService {
         PROP_NAME = "Name",                     /** String, name of the context, can be used for UI purposes */
         PROP_START_BOUND = "StartBound",        /** Number, lowest address (inclusive) which is valid for the context */
         PROP_END_BOUND = "EndBound",            /** Number, highest address (inclusive) which is valid for the context */
-        PROP_ACCESS_TYPES = "AccessTypes";      /** Array of String, the access types allowed for this context */ 
+        PROP_ACCESS_TYPES = "AccessTypes";      /** Array of String, the access types allowed for this context */
         /** @since 1.3*/
     static final String
         PROP_ADDRESSABLE_UNIT_SIZE = "AddressableUnitSize", /** Number, addressable unit size in number of bytes */

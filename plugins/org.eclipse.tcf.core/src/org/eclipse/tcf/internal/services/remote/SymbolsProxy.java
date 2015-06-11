@@ -149,8 +149,7 @@ public class SymbolsProxy implements ISymbols {
 
         public boolean isBigEndian() {
             Boolean b = (Boolean)props.get(PROP_BIG_ENDIAN);
-            if (b != null) b.booleanValue();
-            return (getFlags() & SYM_FLAG_BIG_ENDIAN) != 0;
+            return b != null && b.booleanValue();
         }
 
         public String getRegisterID() {

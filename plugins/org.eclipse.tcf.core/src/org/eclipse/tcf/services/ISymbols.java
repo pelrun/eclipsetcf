@@ -224,7 +224,11 @@ public interface ISymbols extends IService {
 
         /**
          * Get symbol values endianness.
-         * @return true if symbol is big-endian.
+         * Only valid when getValue() != null.
+         * Note: this is endianness of byte array returned by getValue() method,
+         * and it can be different from endianness of the symbol itself,
+         * which is reported by SYM_FLAG_BIG_ENDIAN/SYM_FLAG_LITTLE_ENDIAN.
+         * @return true if symbol value is big-endian.
          */
         boolean isBigEndian();
 

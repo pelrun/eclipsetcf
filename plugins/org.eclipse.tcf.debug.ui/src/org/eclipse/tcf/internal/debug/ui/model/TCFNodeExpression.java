@@ -466,25 +466,20 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         if (!type_children_cache.validate(this)) return false;
                         String[] type_children_data = type_children_cache.getData();
                         if (type_children_data == null) break;
+                        BigInteger value_int = TCFNumberFormat.toBigInteger(
+                                value_data.getValue(), value_data.isBigEndian(), false);
                         for (String const_id : type_children_data) {
                             TCFDataCache<ISymbols.Symbol> const_cache = model.getSymbolInfoCache(const_id);
                             if (!const_cache.validate(this)) return false;
                             ISymbols.Symbol const_data = const_cache.getData();
-                            if (const_data != null && const_data.getName() != null) {
-                                byte[] const_bytes = const_data.getValue();
-                                if (const_bytes != null) {
-                                    boolean ok = true;
-                                    byte[] data = value_data.getValue();
-                                    for (int i = 0; ok && i < data.length; i++) {
-                                        if (i < const_bytes.length) ok = const_bytes[i] == data[i];
-                                        else ok = data[i] == 0;
-                                    }
-                                    if (ok && const_data.getName() != null) {
-                                        StyledStringBuffer bf = new StyledStringBuffer();
-                                        bf.append(const_data.getName());
-                                        set(null, null, bf);
-                                        return true;
-                                    }
+                            if (const_data != null && const_data.getName() != null && const_data.getValue() != null) {
+                                BigInteger const_int = TCFNumberFormat.toBigInteger(
+                                        const_data.getValue(), const_data.isBigEndian(), false);
+                                if (value_int.equals(const_int)) {
+                                    StyledStringBuffer bf = new StyledStringBuffer();
+                                    bf.append(const_data.getName());
+                                    set(null, null, bf);
+                                    return true;
                                 }
                             }
                         }
