@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.tcf.te.feature"
       label="%featureName"
-      version="1.3.1.qualifier"
+      version="1.4.0.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.tcf.te"
       license-feature="org.eclipse.license"
@@ -41,21 +41,21 @@
       <import plugin="org.eclipse.help" version="3.6.0" match="greaterOrEqual"/>
       <import feature="org.eclipse.cdt.platform" version="8.3.0" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.feature" version="4.0.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.runtime" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.runtime.stepper" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.runtime.services" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.runtime.persistence" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.runtime.model" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.core.cdt" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.runtime.concurrent" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.runtime.statushandler" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.launch.core" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.ui.controls" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.ui.forms" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.ui.swt" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.ui.views" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.ui" version="1.3.1" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.te.core" version="1.3.1" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.stepper" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.services" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.persistence" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.model" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.core.cdt" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.concurrent" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.runtime.statushandler" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.launch.core" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.controls" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.forms" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.swt" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui.views" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.ui" version="1.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.te.core" version="1.4.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
