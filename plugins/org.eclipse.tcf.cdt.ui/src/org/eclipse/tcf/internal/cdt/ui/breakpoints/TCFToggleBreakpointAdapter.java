@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -76,16 +76,41 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
                 null);
     }
 
-    static Map<String, Object> getDefaultAttributes ( IWorkbenchPart part, final String toggleType) {
+    static boolean isLineOffsetLimitEnabled() {
+        return Platform.getPreferencesService().getBoolean(
+                Activator.PLUGIN_ID,
+                PreferenceConstants.PREF_LINE_OFFSET_LIMIT_ENABLED,
+                false,
+                null);
+    }
+
+    static String getLineOffsetLimit() {
+        return Platform.getPreferencesService().getString(
+                Activator.PLUGIN_ID,
+                PreferenceConstants.PREF_LINE_OFFSET_LIMIT,
+                "0",
+                null);
+    }
+
+    static Map<String, Object> getDefaultAttributes(IWorkbenchPart part, final String toggleType) {
         Map<String, Object> attributes = new TreeMap<String, Object>();
-        if ( part != null ) {
+        if (part != null) {
             Object obj = getDebugContext(part).getFirstElement();
-            if ( obj instanceof TCFNode || obj instanceof TCFLaunch ) {
-                if ( toggleType.length() != 0) {
-                    attributes.clear();
-                    if (isDefaultBPContextQueryEnabled() == true) {
+            if (obj instanceof TCFNode || obj instanceof TCFLaunch) {
+                if (toggleType.length() != 0) {
+                    if (isDefaultBPContextQueryEnabled()) {
                         String query = getDefaultBPContextQuery();
                         attributes.put(TCFBreakpointsModel.ATTR_CONTEXT_QUERY, query);
+                    }
+                    if (isLineOffsetLimitEnabled()) {
+                        BigInteger n = null;
+                        try {
+                            n = new BigInteger(getLineOffsetLimit());
+                        }
+                        catch (Exception x) {
+                            n = BigInteger.ZERO;
+                        }
+                        attributes.put(TCFBreakpointsModel.ATTR_LINE_OFFSET, n.intValue());
                     }
                 }
             }
@@ -181,7 +206,8 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
     public void toggleLineBreakpoints( IWorkbenchPart part, ISelection selection ) throws CoreException {
         if (part instanceof IDisassemblyPart) {
             fDisassemblyToggleDelegate.toggleLineBreakpoints(part, selection);
-        } else {
+        }
+        else {
             super.toggleLineBreakpoints(part, selection);
         }
     }
@@ -191,7 +217,8 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
     public boolean canToggleLineBreakpoints( IWorkbenchPart part, ISelection selection ) {
         if (part instanceof IDisassemblyPart) {
             return fDisassemblyToggleDelegate.canToggleLineBreakpoints(part, selection);
-        } else {
+        }
+        else {
             return super.canToggleLineBreakpoints(part, selection);
         }
     }
@@ -201,7 +228,8 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
     public void toggleBreakpoints( IWorkbenchPart part, ISelection selection ) throws CoreException {
         if (part instanceof IDisassemblyPart) {
             fDisassemblyToggleDelegate.toggleBreakpoints(part, selection);
-        } else {
+        }
+        else {
             super.toggleBreakpoints(part, selection);
         }
     }
@@ -211,7 +239,8 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
     public boolean canToggleBreakpoints( IWorkbenchPart part, ISelection selection ) {
         if (part instanceof IDisassemblyPart) {
             return fDisassemblyToggleDelegate.canToggleBreakpoints(part, selection);
-        } else {
+        }
+        else {
             return super.canToggleBreakpoints(part, selection);
         }
     }
@@ -221,7 +250,8 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
     public void toggleBreakpointsWithEvent(IWorkbenchPart part, ISelection selection, Event event) throws CoreException {
         if (part instanceof IDisassemblyPart) {
             fDisassemblyToggleDelegate.toggleBreakpointsWithEvent(part, selection, event);
-        } else {
+        }
+        else {
             super.toggleBreakpointsWithEvent(part, selection, event);
         }
     }
@@ -231,7 +261,8 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
     public void createLineBreakpointsInteractive(IWorkbenchPart part, ISelection selection) throws CoreException {
         if (part instanceof IDisassemblyPart) {
             fDisassemblyToggleDelegate.createLineBreakpointsInteractive(part, selection);
-        } else {
+        }
+        else {
             super.createLineBreakpointsInteractive(part, selection);
         }
     }
@@ -241,7 +272,8 @@ public class TCFToggleBreakpointAdapter extends AbstractToggleBreakpointAdapter 
     public boolean canCreateLineBreakpointsInteractive(IWorkbenchPart part, ISelection selection) {
         if (part instanceof IDisassemblyPart) {
             return fDisassemblyToggleDelegate.canCreateLineBreakpointsInteractive(part, selection);
-        } else {
+        }
+        else {
             return super.canCreateLineBreakpointsInteractive(part, selection);
         }
     }

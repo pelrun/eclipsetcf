@@ -71,6 +71,10 @@ public interface IBreakpoints extends IService {
     /** @since 1.3 */
     static final String
         PROP_SKIP_PROLOGUE = "SkipPrologue";      // Boolean
+    /** @since 1.4 */
+    static final String
+        PROP_LINE_OFFSET = "LineOffset";          // Number - max number of lines breakpoint is allowed
+                                                  // to be moved in case of inexact line info match
 
     /**
      * @deprecated

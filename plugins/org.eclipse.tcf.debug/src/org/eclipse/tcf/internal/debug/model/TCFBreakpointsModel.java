@@ -79,6 +79,7 @@ public class TCFBreakpointsModel {
         ATTR_EXE_PATHS     = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_EXECUTABLE_PATHS,
         ATTR_STOP_GROUP    = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_STOP_GROUP,
         ATTR_CONTEXT_QUERY = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CONTEXT_QUERY,
+        ATTR_LINE_OFFSET   = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_LINE_OFFSET,
         ATTR_EVENT_TYPE    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_id",
         ATTR_EVENT_ARGS    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_arg",
         ATTR_TYPE          = "org.eclipse.cdt.debug.core.breakpointType",

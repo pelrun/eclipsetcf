@@ -645,7 +645,13 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                                 BigInteger a0 = JSON.toBigInteger(area.start_address);
                                 BigInteger a1 = JSON.toBigInteger(area.end_address);
                                 if (n0.compareTo(a0) >= 0 && n0.compareTo(a1) < 0) {
-                                    if (ref_data.area == null || area.start_line < ref_data.area.start_line) {
+                                    boolean add = true;
+                                    if (ref_data.area != null) {
+                                        BigInteger b0 = JSON.toBigInteger(ref_data.area.start_address);
+                                        BigInteger b1 = JSON.toBigInteger(ref_data.area.end_address);
+                                        add = a1.subtract(a0).compareTo(b1.subtract(b0)) < 0;
+                                    }
+                                    if (add) {
                                         if (area.start_address != a0 || area.end_address != a1) {
                                             area = new ILineNumbers.CodeArea(area.directory, area.file,
                                                     area.start_line, area.start_column,
