@@ -35,6 +35,10 @@
         <td>0.1
         <td>2008-01-10
         <td>Initial contribution
+    <tr>
+        <td>1.4
+        <td>2015-06-15
+        <td>Added context properties "Exe" and "ExeType"
 </table>
 
 <h2><a name='Overview'>Overview</a></h2>
@@ -237,6 +241,12 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;c
 
     <li><code><b><font face="Courier New" size=2 color=#333399>"Policy" : <i>&lt;int&gt;</i></font></b></code>
     - scheduling policy.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Exe" : <i>&lt;string&gt;</i></font></b></code>
+    - full path to executable file of a process (since 1.4).
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ExeType" : <i>&lt;int&gt;</i></font></b></code>
+    - executable type: 0 = user process, 1 = kernel thread, 2 = access denied (since 1.4).
 </ul>
 
 <h3><a name='CmdGetChildren'>Get Children</a></h3>
@@ -273,7 +283,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
 C &bull; <i>&lt;token&gt;</i> &bull; SysMonitor &bull; getCommandLine &bull; <i>&lt;string: context ID&gt;</i> &bull;
 </font></b></pre>
 
-<p>The command requests a list of progess command line arguments.</p>
+<p>The command requests a list of process command line arguments.</p>
 
 <p>Reply:</p>
 
@@ -296,7 +306,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
 C &bull; <i>&lt;token&gt;</i> &bull; SysMonitor &bull; getEnvironment &bull; <i>&lt;string: context ID&gt;</i> &bull;
 </font></b></pre>
 
-<p>The command requests a list of progess environment variables.</p>
+<p>The command requests a list of process environment variables.</p>
 
 <p>Reply:</p>
 
