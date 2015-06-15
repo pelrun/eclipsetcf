@@ -523,10 +523,20 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private final IRegisters.RegistersListener reg_listener = new IRegisters.RegistersListener() {
 
         public void contextChanged() {
+            LinkedList<TCFNode> regs = new LinkedList<TCFNode>();
             for (TCFNode node : id2node.values()) {
                 if (node instanceof TCFNodeExecContext) {
                     ((TCFNodeExecContext)node).onRegistersChanged();
                 }
+                if (node instanceof TCFNodeRegister) {
+                    assert !node.isDisposed();
+                    regs.add(node);
+                }
+            }
+            // Must dispose all register nodes, because a register
+            // can move to a different parent
+            for (TCFNode node : regs) {
+                if (!node.isDisposed()) node.dispose();
             }
         }
 

@@ -1627,6 +1627,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
 
     void onRegistersChanged() {
         children_stack.onRegistersChanged();
+        children_regs.onRegistersChanged();
         postContentChangedDelta();
     }
 
