@@ -16,6 +16,7 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.tcf.te.ui.controls.nls.Messages;
 
@@ -45,11 +46,12 @@ public abstract class AbstractDecoratedDialogPageControl extends BaseDialogPageC
 	 * the given control. The method is called after the control has been created.
 	 *
 	 * @param control The control. Must not be <code>null</code>.
+	 * @param parent The SWT composite within which the decoration should be rendered. Must not be <code>null</code>.
 	 * @return The control decoration object instance.
 	 */
-	public ControlDecoration doCreateControlDecoration(Control control) {
+	public ControlDecoration doCreateControlDecoration(Control control, Composite parent) {
 		Assert.isNotNull(control);
-		controlDecoration = new ControlDecoration(control, doGetControlDecorationPosition());
+		controlDecoration = new ControlDecoration(control, doGetControlDecorationPosition(), parent);
 		return controlDecoration;
 	}
 

@@ -1316,7 +1316,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 			// configured. Otherwise, the layout data for the edit field may
 			// not be configured correctly.
 			if (!isHideEditFieldControlDecoration()) {
-				ControlDecoration controlDecoration = doCreateControlDecoration(editFieldControl);
+				ControlDecoration controlDecoration = doCreateControlDecoration(editFieldControl, parent);
 				Assert.isNotNull(controlDecoration);
 				configureControlDecoration(controlDecoration);
 			}

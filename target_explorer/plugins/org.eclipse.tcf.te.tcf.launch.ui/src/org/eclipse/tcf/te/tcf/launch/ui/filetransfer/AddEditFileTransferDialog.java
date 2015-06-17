@@ -154,7 +154,7 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 		host.setAdjustBackgroundColor(true);
 		host.setParentControlIsInnerPanel(true);
 		host.setupPanel(panel);
-		host.doCreateControlDecoration(host.getEditFieldControl());
+		host.doCreateControlDecoration(host.getEditFieldControl(), panel);
 
 		// Create the section sub controls
 		target = new BaseEditBrowseTextControl(null) {
@@ -186,7 +186,7 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 		target.setAdjustBackgroundColor(true);
 		target.setParentControlIsInnerPanel(true);
 		target.setupPanel(panel);
-		target.doCreateControlDecoration(target.getEditFieldControl());
+		target.doCreateControlDecoration(target.getEditFieldControl(), panel);
 
 		spacer = new Label(panel, SWT.NONE);
 		spacer = new Label(panel, SWT.NONE);
@@ -204,7 +204,7 @@ public class AddEditFileTransferDialog extends CustomTitleAreaDialog {
 		options.setAdjustBackgroundColor(true);
 		options.setParentControlIsInnerPanel(true);
 		options.setupPanel(panel);
-		options.doCreateControlDecoration(target.getEditFieldControl());
+		options.doCreateControlDecoration(target.getEditFieldControl(), panel);
 
 		applyDialogFont(panel);
 	}

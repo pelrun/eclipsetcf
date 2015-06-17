@@ -612,7 +612,7 @@ public abstract class AbstractContextSelectorControl extends AbstractDecoratedDi
 				fireSelectionChanged();
 			}
 		});
-		doCreateControlDecoration(viewer.getTree());
+		doCreateControlDecoration(viewer.getTree(), viewer.getTree().getParent());
 	}
 
 	/**

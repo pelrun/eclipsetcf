@@ -125,7 +125,7 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 		processImage.setParentControlIsInnerPanel(true);
 		processImage.setFormToolkit(toolkit);
 		processImage.setupPanel(client);
-		processImage.doCreateControlDecoration(processImage.getEditFieldControl());
+		processImage.doCreateControlDecoration(processImage.getEditFieldControl(), client);
 
 		processArguments = new BaseEditBrowseTextControl(null) {
 			@Override
