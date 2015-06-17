@@ -215,7 +215,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 						if (gdbServerOutput.toString().contains("Address already in use.")) { //$NON-NLS-1$
 							// If we have still alternatives, then retry the gdbserver launch
 							// with an alternative port
-							if (!gdbserverPortNumberAlternatives.isEmpty()) {
+							if (gdbserverPortNumberAlternatives != null && !gdbserverPortNumberAlternatives.isEmpty()) {
 								String newPort = null;
 								String newPortMappedTo = null;
 
