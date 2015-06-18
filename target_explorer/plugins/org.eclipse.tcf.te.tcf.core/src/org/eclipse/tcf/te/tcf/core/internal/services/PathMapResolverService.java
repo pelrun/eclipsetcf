@@ -47,11 +47,12 @@ public class PathMapResolverService extends AbstractService implements IPathMapR
 		}
 		String dst = rule.getDestination();
 		if (dst == null || dst.length() == 0) return null;
+		String dstSlash = dst.replaceAll("\\\\", "/"); //$NON-NLS-1$ //$NON-NLS-2$
 		int l = srcSlash.length();
 		if (dst.endsWith("/") && l < fnmSlash.length() && fnmSlash.charAt(l) == '/') l++; //$NON-NLS-1$
-
-		String fnmMapped = dst + fnmSlash.substring(l);
-		return fnmMapped.replaceAll("\\\\", "/"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (srcSlash.endsWith("/") && !dstSlash.endsWith("/")) dstSlash += "/"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		String fnmMapped = dstSlash + fnmSlash.substring(l);
+		return fnmMapped;
 	}
 
 	/* (non-Javadoc)
