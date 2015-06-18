@@ -256,7 +256,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					applyPathMap(context, false, false, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
-							if (status != null && Platform.inDebugMode()) {
+							if (status != null && !status.isOK() && Platform.inDebugMode()) {
 								Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
 							}
 						}
@@ -295,8 +295,17 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			if (config != null) {
 				populatePathMapRulesList(config, rulesList);
 
+				// If the original rule has an ID set, create a copy of the rule
+				// but without the ID property
+				PathMapRule r = rule;
+				if (r.getID() != null) {
+					Map<String, Object> props = new HashMap<String, Object>(r.getProperties());
+					props.remove(IPathMap.PROP_ID);
+					r = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
+				}
+
 				// Remove the given rule from the list of present
-				if (rulesList.remove(rule)) {
+				if (rulesList.remove(r)) {
 					// Update the launch configuration
 					updateLaunchConfiguration(config, rulesList);
 
@@ -304,7 +313,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					applyPathMap(context, true, true, new Callback() {
 						@Override
 						protected void internalDone(Object caller, IStatus status) {
-							if (status != null && Platform.inDebugMode()) {
+							if (status != null && !status.isOK() && Platform.inDebugMode()) {
 								Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
 							}
 						}
