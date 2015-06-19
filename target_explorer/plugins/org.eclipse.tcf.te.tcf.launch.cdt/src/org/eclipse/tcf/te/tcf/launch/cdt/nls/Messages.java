@@ -55,6 +55,7 @@ public class Messages extends NLS {
 	public static String TEGdbAbstractLaunchDelegate_gdbserverFailedToStartErrorMessage;
 	public static String TEGdbAbstractLaunchDelegate_gdbserverFailedToStartErrorWithDetails;
 	public static String TEGdbAbstractLaunchDelegate_error_addressInUse;
+	public static String TEGdbAbstractLaunchDelegate_error_nosuchfileordirectory;
 
 	static {
 		// initialize resource bundle

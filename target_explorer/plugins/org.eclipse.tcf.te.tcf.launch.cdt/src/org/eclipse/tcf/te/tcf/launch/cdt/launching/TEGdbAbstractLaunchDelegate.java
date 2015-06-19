@@ -427,6 +427,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 		// Get the launch configuration from the launch
 		final ILaunchConfiguration lc = launch.getLaunchConfiguration();
+		final boolean isAttachLaunch = ICDTLaunchConfigurationConstants.ID_LAUNCH_C_ATTACH.equals(lc.getType().getIdentifier());
 
 		String d = details;
 		if (d != null && !"".equals(d)) { //$NON-NLS-1$
@@ -445,6 +446,12 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 					String address = host + (port != null ? ":" + port : ""); //$NON-NLS-1$ //$NON-NLS-2$
 					d = NLS.bind(Messages.TEGdbAbstractLaunchDelegate_error_addressInUse, address);
+				}
+				// Rewrite "No such file or directory" error.
+				else if (d.contains("No such file or directory")) { //$NON-NLS-1$
+					// Get gdbserver path
+					String gdbserverCommand = lc.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, TEHelper.getStringPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_COMMAND_ATTACH : IPreferenceKeys.PREF_GDBSERVER_COMMAND));
+					d = NLS.bind(Messages.TEGdbAbstractLaunchDelegate_error_nosuchfileordirectory, gdbserverCommand);
 				}
 			}
 		}
