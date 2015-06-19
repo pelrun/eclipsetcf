@@ -60,7 +60,7 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate {
 			String arguments = getProgramArguments(config);
 			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
 
-			TEHelper.launchCmd(peer, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
+			TEHelper.launchCmd(peer, null, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
 			new TERunProcess(launch, remoteExePath, arguments, renderProcessLabel(exePath.toOSString()), peer, new SubProgressMonitor(monitor, 20));
 		}
 	}

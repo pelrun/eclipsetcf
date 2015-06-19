@@ -173,7 +173,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 				String arguments = getProgramArguments(config);
 				String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
 
-				TEHelper.launchCmd(peer, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
+				TEHelper.launchCmd(peer, null, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
 
 				if (arguments != null && !arguments.equals("")) { //$NON-NLS-1$
 					commandArguments += " " + arguments; //$NON-NLS-1$
@@ -249,7 +249,11 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 				}
 			};
 
-			launcher = TEHelper.launchCmd(peer, gdbserverCommand, commandArguments, listener, new SubProgressMonitor(monitor, 3), callback);
+			String peerName = null;
+			if (remotePID != null) {
+				peerName = peer.getName() + ", PID " + remotePID; //$NON-NLS-1$
+			}
+			launcher = TEHelper.launchCmd(peer, peerName, gdbserverCommand, commandArguments, listener, new SubProgressMonitor(monitor, 3), callback);
 
 			// Now wait until gdbserver is up and running on the remote host
 			while (!gdbServerReady.get() && !gdbServerExited.get()) {
