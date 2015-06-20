@@ -200,11 +200,12 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			public void run() {
 				if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 					if (processContext != null && processContext.canTerminate()) {
+						final IProcesses.ProcessContext finProcessContext = processContext;
 						// Try to terminate the process the usual way first (sending SIGTERM)
-						processContext.terminate(new IProcesses.DoneCommand() {
+						finProcessContext.terminate(new IProcesses.DoneCommand() {
 							@Override
 							public void doneCommand(IToken token, Exception error) {
-								onTerminateDone(processContext, error);
+								onTerminateDone(finProcessContext, error);
 							}
 						});
 					}
