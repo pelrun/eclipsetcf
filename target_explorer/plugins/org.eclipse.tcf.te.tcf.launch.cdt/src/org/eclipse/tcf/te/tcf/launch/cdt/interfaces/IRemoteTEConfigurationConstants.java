@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.interfaces;
 
+import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.debug.core.DebugPlugin;
 
 public interface IRemoteTEConfigurationConstants {
@@ -21,6 +22,7 @@ public interface IRemoteTEConfigurationConstants {
 	public static final String ATTR_GDBSERVER_PORT = DebugPlugin.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT"; //$NON-NLS-1$
 	public static final String ATTR_GDBSERVER_PORT_MAPPED_TO = DebugPlugin.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT_MAPPED_TO"; //$NON-NLS-1$
 	public static final String ATTR_GDBSERVER_COMMAND = DebugPlugin.getUniqueIdentifier() + ".ATTR_GDBSERVER_COMMAND"; //$NON-NLS-1$
+	public static final String ATTR_GDB_INIT = IGDBLaunchConfigurationConstants.ATTR_GDB_INIT + "_NEW"; //$NON-NLS-1$
 	public static final String ATTR_GDBSERVER_PORT_ALTERNATIVES = DebugPlugin.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT_ALTERNATIVES"; //$NON-NLS-1$
 	public static final String ATTR_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES = DebugPlugin.getUniqueIdentifier() + ".ATTR_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES"; //$NON-NLS-1$
 

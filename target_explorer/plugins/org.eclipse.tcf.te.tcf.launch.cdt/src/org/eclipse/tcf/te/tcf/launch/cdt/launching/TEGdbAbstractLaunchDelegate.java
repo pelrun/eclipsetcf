@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
+import org.eclipse.cdt.debug.internal.core.DebugStringVariableSubstitutor;
 import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.DsfExecutor;
 import org.eclipse.cdt.dsf.concurrent.DsfRunnable;
@@ -61,6 +63,7 @@ import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 /**
  * Abstract launch delegate implementation handling launching the gdbserver via TCF/TE.
  */
+@SuppressWarnings("restriction")
 public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 	/**
@@ -91,7 +94,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 	/* (non-Javadoc)
 	 * @see org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate#launch(org.eclipse.debug.core.ILaunchConfiguration, java.lang.String, org.eclipse.debug.core.ILaunch, org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	@Override
+    @Override
 	public void launch(ILaunchConfiguration config, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		// If not of the expected type --> return immediately
 		if (!(launch instanceof GdbLaunch)) return;
@@ -143,6 +146,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		final String gdbserverCommand = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_COMMAND, TEHelper.getStringPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_COMMAND_ATTACH : IPreferenceKeys.PREF_GDBSERVER_COMMAND));
 		final List<String> gdbserverPortNumberAlternatives = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_ALTERNATIVES, TEHelper.getListPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_ALTERNATIVES : IPreferenceKeys.PREF_GDBSERVER_PORT_ALTERNATIVES));
 		final List<String> gdbserverPortNumberMappedToAlternatives = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES, TEHelper.getListPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_MAPPED_TO_ALTERNATIVES : IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO_ALTERNATIVES));
+		final String gdbinitFile = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDB_INIT, (String)null);
 
 		// Remember the originally configured port number and mapped to port number
 		final String origGdbserverPortNumber = gdbserverPortNumber.get();
@@ -303,9 +307,19 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		if (origGdbserverPortNumberMappedTo != null && !origGdbserverPortNumberMappedTo.equals(gdbserverPortNumberMappedTo.get())) {
 			wc.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO, gdbserverPortNumberMappedTo.get());
 		}
+
 		wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_REMOTE_TCP, true);
 		wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_HOST, TEHelper.getCurrentConnection(config).getPeer().getAttributes().get(IPeer.ATTR_IP_HOST));
 		wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_PORT, gdbserverPortNumberMappedTo.get() == null || "".equals(gdbserverPortNumberMappedTo.get()) ? gdbserverPortNumber.get() : gdbserverPortNumberMappedTo.get()); //$NON-NLS-1$
+
+		// Expand GDB initialization file location (if set)
+		if (gdbinitFile != null) {
+			String projectName = config.getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_NAME, (String)null);
+			String expanded = new DebugStringVariableSubstitutor(projectName).performStringSubstitution(gdbinitFile);
+			File f = new File(expanded);
+			wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_GDB_INIT, f.canRead() && f.isFile() ? f.getAbsolutePath() : null);
+		}
+
 		wc.doSave();
 		try {
 			super.launch(config, mode, launch, monitor);

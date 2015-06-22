@@ -32,6 +32,11 @@ public class PreferencesInitializer extends AbstractPreferenceInitializer {
 		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_COMMAND, "gdbserver"); //$NON-NLS-1$
 
 		/**
+		 * GDB initialization file: ${system_property:user.home}/.gdbinit
+		 */
+		store.putDefaultString(IPreferenceKeys.PREF_GDB_INIT, "${system_property:user.home}/.gdbinit"); //$NON-NLS-1$
+
+		/**
 		 * Gdbserver default (remote) port: 2345
 		 */
 		store.putDefaultString(IPreferenceKeys.PREF_GDBSERVER_PORT, "2345"); //$NON-NLS-1$

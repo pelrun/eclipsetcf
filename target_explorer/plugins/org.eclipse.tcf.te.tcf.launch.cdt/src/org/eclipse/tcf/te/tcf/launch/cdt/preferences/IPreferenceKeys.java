@@ -27,6 +27,11 @@ public interface IPreferenceKeys {
 	public static final String PREF_GDBSERVER_COMMAND = PREFIX + ".gdbserver.command"; //$NON-NLS-1$
 
 	/**
+	 * The default GDB initialization file (String).
+	 */
+	public static final String PREF_GDB_INIT = PREFIX + ".gdbserver.init"; //$NON-NLS-1$
+
+	/**
 	 * The default (remote) gdbserver port (String).
 	 */
 	public static final String PREF_GDBSERVER_PORT = PREFIX + ".gdbserver.port"; //$NON-NLS-1$

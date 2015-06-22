@@ -15,6 +15,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.cdt.dsf.gdb.internal.ui.launching.GdbDebuggerPage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -64,6 +67,8 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 						   		   TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT));
 		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
 				   		   		   TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDB_INIT,
+						   TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDB_INIT));
 	}
 
 	@Override
@@ -72,6 +77,7 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 		super.initializeFrom(configuration);
 
 		String gdbserverCommand = null;
+		String gdbinitFile = null;
 		String gdbserverPortNumber = null;
 		String portNumberMappedTo = null;
 		try {
@@ -86,12 +92,20 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 			portNumberMappedTo = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO,
 			   		   		   								TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO));
 		} catch (CoreException e) {}
+		try {
+			gdbinitFile = configuration.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDB_INIT,
+							   					     TEHelper.getStringPreferenceValue(IPreferenceKeys.PREF_GDB_INIT));
+		} catch (CoreException e) {}
+
 
 		if (fGDBServerCommandText != null) fGDBServerCommandText.setText(gdbserverCommand);
 		if (fGDBServerPortNumberText != null) fGDBServerPortNumberText.setText(gdbserverPortNumber);
 		if (fGDBServerPortNumberMappedToText != null) fGDBServerPortNumberMappedToText.setText(portNumberMappedTo != null ? portNumberMappedTo : ""); //$NON-NLS-1$
+		if (fGDBInitText != null && gdbinitFile != null && !"".equals(gdbinitFile)) fGDBInitText.setText(gdbinitFile); //$NON-NLS-1$
 		setInitializing(false);
 	}
+
+	private final static Pattern VARIABLE = Pattern.compile("\\$\\{[^\\}]+\\}"); //$NON-NLS-1$
 
 	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
@@ -102,6 +116,22 @@ public class TEGdbDebuggerPage extends GdbDebuggerPage {
 		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, str);
 		str = fGDBServerPortNumberMappedToText != null ? fGDBServerPortNumberMappedToText.getText().trim() : null;
 		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO, str != null && !"".equals(str) ? str : null); //$NON-NLS-1$
+
+		// Get the content of the GDB initialization file entry field
+		str = fGDBInitText != null ? fGDBInitText.getText().trim() : null;
+		if (str != null) {
+			boolean hasVariables = false;
+			Matcher matcher = VARIABLE.matcher(str);
+			while (matcher.find()) {
+				String var = matcher.group();
+				if (!"".equals(var)) { //$NON-NLS-1$
+					hasVariables = true;
+					break;
+				}
+			}
+			if (!hasVariables) str = null;
+		}
+		configuration.setAttribute(IRemoteTEConfigurationConstants.ATTR_GDB_INIT, str);
 	}
 
 	protected void createGdbserverSettingsTab(TabFolder tabFolder) {
