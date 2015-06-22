@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,11 +11,13 @@ package org.eclipse.tcf.te.tcf.launch.core.delegates;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.launch.core.lm.interfaces.ICommonLaunchAttributes;
 import org.eclipse.tcf.util.TCFTask;
+import org.osgi.framework.Bundle;
 
 /**
  * Default tcf launch configuration delegate implementation.
@@ -36,6 +38,9 @@ import org.eclipse.tcf.util.TCFTask;
  */
 public class LaunchConfigurationDelegate extends org.eclipse.tcf.te.launch.core.delegates.LaunchConfigurationDelegate {
 
+	static Boolean is_headless;
+	static boolean ui_activation_done;
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.launch.core.delegates.LaunchConfigurationDelegate#getLaunch(org.eclipse.debug.core.ILaunchConfiguration, java.lang.String)
 	 */
@@ -45,6 +50,23 @@ public class LaunchConfigurationDelegate extends org.eclipse.tcf.te.launch.core.
 			int cnt;
 			@Override
 			public void run() {
+				// see also TCFLaunchDelegate.getLaunch()
+				if (is_headless == null) {
+					Bundle b = Platform.getBundle("org.eclipse.ui.workbench"); //$NON-NLS-1$
+					is_headless = new Boolean(b == null || b.getState() != Bundle.ACTIVE);
+				}
+
+				if (!Boolean.TRUE.equals(is_headless) && !ui_activation_done) {
+					/* Make sure UI bundle is activated and is listening for launch events */
+					try {
+						Bundle bundle = Platform.getBundle("org.eclipse.tcf.debug.ui"); //$NON-NLS-1$
+						bundle.start(Bundle.START_TRANSIENT);
+					}
+					catch (Throwable x) {
+						Protocol.log("TCF debugger UI startup error", x); //$NON-NLS-1$
+					}
+					ui_activation_done = true;
+				}
 				// Need to delay at least one dispatch cycle to work around
 				// a possible racing between thread that calls getLaunch() and
 				// the process of activation of other TCF plug-ins.
@@ -64,10 +86,10 @@ public class LaunchConfigurationDelegate extends org.eclipse.tcf.te.launch.core.
 	@Override
 	protected void onLaunchFinished(ILaunch launch, IStatus status) {
 		super.onLaunchFinished(launch, status);
-	    if (launch instanceof Launch) {
-	    	if (((Launch)launch).getCallback() != null) {
-	    		((Launch)launch).getCallback().done(launch, status);
-	    	}
-	    }
+		if (launch instanceof Launch) {
+			if (((Launch)launch).getCallback() != null) {
+				((Launch)launch).getCallback().done(launch, status);
+			}
+		}
 	}
 }
