@@ -11,7 +11,6 @@ package org.eclipse.tcf.te.tcf.processes.core.model.runtime;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
@@ -168,14 +167,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 			return refreshableCtxAdapter;
 		}
 		if (IPeerNode.class.isAssignableFrom(adapter) || IConnectable.class.isAssignableFrom(adapter)) {
-			final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
-			Protocol.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					peerNode.set(getPeerNode());
-				}
-			});
-			return peerNode.get();
+			return getPeerNode();
 		}
 
 		return super.getAdapter(adapter);
@@ -203,8 +195,7 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerModel()
 	 */
 	@Override
-	public IPeerNode getPeerNode() {
-		Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
+	public final IPeerNode getPeerNode() {
 		return peerNode;
 	}
 

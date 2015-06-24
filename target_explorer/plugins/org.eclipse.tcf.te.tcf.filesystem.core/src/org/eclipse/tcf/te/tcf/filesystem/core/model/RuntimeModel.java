@@ -14,7 +14,6 @@ import static org.eclipse.tcf.te.tcf.locator.model.ModelManager.getPeerModel;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.IChannel;
@@ -80,24 +79,39 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
 		return new Delegate();
 	}
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.runtime.properties.PropertiesContainer#checkThreadAccess()
+     */
 	@Override
     protected boolean checkThreadAccess() {
         return Protocol.isDispatchThread();
     }
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelOpened()
+	 */
     @Override
     public void onChannelOpened() {
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#congestionLevel(int)
+     */
     @Override
     public void congestionLevel(int level) {
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.protocol.IChannel.IChannelListener#onChannelClosed(java.lang.Throwable)
+     */
     @Override
     public void onChannelClosed(Throwable error) {
     	ModelManager.disposeRuntimeModel(fPeerNode);
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#dispose()
+     */
     @Override
     public void dispose() {
         Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
@@ -105,13 +119,18 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
         fRoot.setContent(new FSTreeNode[0], false);
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#isDisposed()
+     */
     @Override
     public boolean isDisposed() {
         Assert.isTrue(checkThreadAccess(), "Illegal Thread Access"); //$NON-NLS-1$
         return fFileSystem == null;
     }
 
-
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#getService(java.lang.Class)
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <V extends IModelService> V getService(Class<V> serviceInterface) {
@@ -119,38 +138,46 @@ public final class RuntimeModel extends ContainerModelNode implements IRuntimeMo
         return (V)getAdapter(serviceInterface);
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel#getDelegate()
+     */
     @Override
 	public Delegate getDelegate() {
     	return fDelegate;
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.runtime.properties.PropertiesContainer#getAdapter(java.lang.Class)
+     */
     @Override
     public Object getAdapter(Class adapter) {
         if (IPeerNode.class.isAssignableFrom(adapter) || IConnectable.class.isAssignableFrom(adapter)) {
-            final AtomicReference<IPeerNode> peerNode = new AtomicReference<IPeerNode>();
-            Protocol.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    peerNode.set(getPeerNode());
-                }
-            });
-            return peerNode.get();
+        	return getPeerNode();
         }
 
         return super.getAdapter(adapter);
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#setFactory(org.eclipse.tcf.te.runtime.model.interfaces.factory.IFactory)
+     */
     @Override
     public void setFactory(IFactory factory) {
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.model.interfaces.IModel#getFactory()
+     */
     @Override
     public IFactory getFactory() {
         return Factory.getInstance();
     }
 
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider#getPeerNode()
+     */
     @Override
-    public IPeerNode getPeerNode() {
+    public final IPeerNode getPeerNode() {
         return fPeerNode;
     }
 
