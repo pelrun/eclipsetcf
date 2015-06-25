@@ -22,13 +22,22 @@ import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.ContentTypeHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.model.CacheState;
 
 /**
- * The property tester of an FSTreeNode. The properties include "isFile"
- * if it is a file node, "isDirectory" if it is a directory, "isBinaryFile"
- * if it is a binary file, "isReadable" if it is readable, "isWritable" if
- * it is writable, "isExecutable" if it is executable, "isRoot" if it is a
- * root directory, "isWindows" if it is a windows file node, "isReadOnly"
- * if it is read only, "isHidden" if it is hidden, "getCacheState" to
- * get a node's state.
+ * The property tester of an FSTreeNode.
+ * <p>
+ * The properties include
+ * <ul>
+ * <li>"isFile" if it is a file node,</li>
+ * <li>"isDirectory" if it is a directory,</li>
+ * <li>"isBinaryFile" if it is a binary file,</li>
+ * <li>"isReadable" if it is readable,</li>
+ * <li>"isWritable" if it is writable,</li>
+ * <li>"isExecutable" if it is executable,</li>
+ * <li>"isRoot" if it is a root directory,</li>
+ * <li>"isWindows" if it is a windows file node,</li>
+ * <li>"isReadOnly" if it is read only,</li>
+ * <li>"isHidden" if it is hidden,</li>
+ * <li>"getCacheState" to get a node's state.</li>
+ * </ul>
  * <p>
  * "testParent" is a property by which the parent or even the grand parent
  * of a node can be tested. The arguments is a recursive list of the above
