@@ -141,7 +141,7 @@ public class FSGeneralSearchable extends AbstractSearchable {
 		Composite compOptions = new Composite(group, SWT.NONE);
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		compOptions.setLayoutData(data);
-		compOptions.setLayout(new GridLayout(2, true));
+		compOptions.setLayout(new GridLayout(3, true));
 
 		// Case sensitive
 		fBtnCase = new Button(compOptions, SWT.CHECK);
@@ -296,6 +296,6 @@ public class FSGeneralSearchable extends AbstractSearchable {
 	 */
 	@Override
     public Point getPreferredSize() {
-	    return new Point(400, rootNode.isWindowsNode() ? 200 : 180);
+	    return new Point(470, rootNode.isWindowsNode() ? 240 : 220);
     }
 }
