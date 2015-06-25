@@ -236,8 +236,6 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
     	if (fType == Type.ROOT) {
     		if (isWindowsNode() && name.charAt(name.length()-1) != separator) {
     			return name.substring(0, name.length()-1) + separator;
-    		} else if (name.charAt(0) != separator) {
-    			return separator + name;
     		}
             return name;
     	}
