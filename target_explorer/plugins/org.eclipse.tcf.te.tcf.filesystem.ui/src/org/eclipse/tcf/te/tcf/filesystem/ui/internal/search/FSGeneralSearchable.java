@@ -87,8 +87,7 @@ public class FSGeneralSearchable extends AbstractSearchable {
 	public void createCommonPart(TreeViewerSearchDialog dialog, Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
 		GridLayout glayout = new GridLayout(3, false);
-		glayout.marginHeight = 0;
-		glayout.marginWidth = 0;
+		glayout.marginHeight = 0; glayout.marginWidth = 0;
 		composite.setLayout(glayout);
 		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -142,7 +141,7 @@ public class FSGeneralSearchable extends AbstractSearchable {
 		Composite compOptions = new Composite(group, SWT.NONE);
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		compOptions.setLayoutData(data);
-		compOptions.setLayout(new GridLayout(3, true));
+		compOptions.setLayout(new GridLayout(2, true));
 
 		// Case sensitive
 		fBtnCase = new Button(compOptions, SWT.CHECK);
