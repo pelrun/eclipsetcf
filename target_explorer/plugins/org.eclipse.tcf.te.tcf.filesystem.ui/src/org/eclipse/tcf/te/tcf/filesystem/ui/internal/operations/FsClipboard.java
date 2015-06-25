@@ -11,66 +11,145 @@ package org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations;
 
 import java.beans.PropertyChangeEvent;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.core.utils.PropertyChangeProvider;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
+import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * The clip board to which copy or cut files/folders.
  */
 public class FsClipboard extends PropertyChangeProvider {
-	// The constants to define the current operation type of the clip board.
-	private static final int NONE = -1;
-	private static final int CUT = 0;
-	private static final int COPY = 1;
-	// The operation type, CUT, COPY or NONE.
-	private int operation;
-	// The currently selected files/folders.
-	private List<IFSTreeNode> files;
 
-	private Clipboard clipboard;
+	/* default */ static class FsClipboardContent {
+		// The constants to define the current operation type of the clip board.
+		public static final int CUT = 0;
+		public static final int COPY = 1;
+
+		// The operation type, CUT, COPY or NONE.
+		public final int operation;
+		// The currently selected files/folders.
+		public final List<IFSTreeNode> files;
+
+		/**
+         * Constructor
+         */
+        public FsClipboardContent(int operation, List<IFSTreeNode> files) {
+        	Assert.isTrue(operation == CUT || operation == COPY);
+        	this.operation = operation;
+        	Assert.isNotNull(files);
+        	this.files = files;
+        }
+	}
+
+	/* default */ final Clipboard clipboard;
 
 	/**
 	 * Create a clip board instance.
 	 */
 	public FsClipboard() {
 		clipboard = new Clipboard(PlatformUI.getWorkbench().getDisplay());
-		operation = NONE;
 	}
 
 	public boolean isCutOp() {
-		return operation == CUT;
+		final AtomicReference<Object> object = new AtomicReference<Object>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				object.set(clipboard.getContents(FsClipboardTransfer.getInstance()));
+			}
+		};
+
+		exec(runnable);
+
+		FsClipboardContent content = (FsClipboardContent) object.get();
+
+		return content != null && content.operation == FsClipboardContent.CUT;
 	}
 
 	public boolean isCopyOp() {
-		return operation == COPY;
+		final AtomicReference<Object> object = new AtomicReference<Object>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				object.set(clipboard.getContents(FsClipboardTransfer.getInstance()));
+			}
+		};
+
+		exec(runnable);
+
+		FsClipboardContent content = (FsClipboardContent) object.get();
+
+		return content != null && content.operation == FsClipboardContent.COPY;
 	}
 
 	public boolean isEmpty() {
-		return operation == NONE && (files == null || files.isEmpty());
+		final AtomicReference<Object> object = new AtomicReference<Object>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				object.set(clipboard.getContents(FsClipboardTransfer.getInstance()));
+			}
+		};
+
+		exec(runnable);
+
+		FsClipboardContent content = (FsClipboardContent) object.get();
+
+		return content == null || content.files.isEmpty();
 	}
 
 	/**
 	 * Get the currently selected files/folders to operated.
 	 */
 	public List<IFSTreeNode> getFiles() {
-		return files;
+		final AtomicReference<Object> object = new AtomicReference<Object>();
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				object.set(clipboard.getContents(FsClipboardTransfer.getInstance()));
+			}
+		};
+
+		exec(runnable);
+
+		FsClipboardContent content = (FsClipboardContent) object.get();
+
+		return content.files;
 	}
 
 	/**
 	 * Cut the specified files/folders to the clip board.
 	 */
 	public void cutFiles(List<IFSTreeNode> files) {
-		operation = CUT;
-		this.files = files;
-		PropertyChangeEvent event = new PropertyChangeEvent(this, "cut", null, null); //$NON-NLS-1$
-		firePropertyChange(event);
+		Assert.isNotNull(files);
 
-		clearSystemClipboard();
+		final FsClipboardContent content = new FsClipboardContent(FsClipboardContent.CUT, files);
+		final FsClipboardTransfer transfer = FsClipboardTransfer.getInstance();
+		transfer.setContent(content);
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				clipboard.setContents(new Object[] { content }, new Transfer[] { transfer });
+
+				PropertyChangeEvent event = new PropertyChangeEvent(this, "cut", null, null); //$NON-NLS-1$
+				firePropertyChange(event);
+			}
+		};
+
+		exec(runnable);
 	}
 
 	/**
@@ -79,70 +158,79 @@ public class FsClipboard extends PropertyChangeProvider {
 	 * @param files The file/folder nodes.
 	 */
 	public void copyFiles(List<IFSTreeNode> files) {
-		operation = COPY;
-		this.files = files;
-		PropertyChangeEvent event = new PropertyChangeEvent(this, "copy", null, null); //$NON-NLS-1$
-		firePropertyChange(event);
+		Assert.isNotNull(files);
 
-		clearSystemClipboard();
+		final FsClipboardContent content = new FsClipboardContent(FsClipboardContent.COPY, files);
+		final FsClipboardTransfer transfer = FsClipboardTransfer.getInstance();
+		transfer.setContent(content);
+
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				clipboard.setContents(new Object[] { content }, new Transfer[] { transfer });
+
+				PropertyChangeEvent event = new PropertyChangeEvent(this, "copy", null, null); //$NON-NLS-1$
+				firePropertyChange(event);
+			}
+		};
+
+		exec(runnable);
 	}
 
 	/**
 	 * Clear the clip board.
 	 */
 	public void clear() {
-		operation = NONE;
-		this.files = null;
-		PropertyChangeEvent event = new PropertyChangeEvent(this, "clear", null, null); //$NON-NLS-1$
-		firePropertyChange(event);
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				clipboard.clearContents();
 
-		clearSystemClipboard();
+				PropertyChangeEvent event = new PropertyChangeEvent(this, "clear", null, null); //$NON-NLS-1$
+				firePropertyChange(event);
+			}
+		};
+
+		exec(runnable);
 	}
 
 	/**
-	 * Make sure the system clip board is cleared in a UI thread.
+	 * Executes the given runnable in the UI thread synchronously.
+	 *
+	 * @param runnable The runnable. Must not be <code>null</code>.
 	 */
-	void clearSystemClipboard() {
+	private void exec(Runnable runnable) {
+		Assert.isNotNull(runnable);
+
 		if (Display.getCurrent() != null) {
-			clipboard.clearContents();
-		}
-		else {
-			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable(){
-				@Override
-                public void run() {
-					clearSystemClipboard();
-                }});
+			runnable.run();
+		} else {
+			DisplayUtil.safeSyncExec(runnable);
 		}
 	}
 
 	/**
-	 * Dispose the clipboard.
+	 * Dispose the clip board.
 	 */
     public void dispose() {
-		if(Display.getCurrent() != null) {
-			if (!clipboard.isDisposed()) {
-				try {
-					clipboard.dispose();
-				}
-				catch (SWTException e) {
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (!clipboard.isDisposed()) {
+					try { clipboard.dispose(); } catch (SWTException e) {}
 				}
 			}
-		}
-		else {
-			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable(){
-				@Override
-                public void run() {
-					dispose();
-                }});
-		}
+		};
+
+		exec(runnable);
 	}
 
 	/**
-	 * Get the system clipboard.
+	 * Get the system clip board.
 	 *
-	 * @return The system clipboard.
+	 * @return The system clip board.
 	 */
-	public Clipboard getSystemClipboard() {
+	public final Clipboard getSystemClipboard() {
 		return clipboard;
 	}
 }

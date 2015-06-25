@@ -254,4 +254,5 @@ public class Messages extends NLS {
 	public static String ContentProvider_notConnected;
 	public static String UiExecutor_errorRunningOperation;
 
+	public static String FsClipboardTransfer_errorMessage;
 }
