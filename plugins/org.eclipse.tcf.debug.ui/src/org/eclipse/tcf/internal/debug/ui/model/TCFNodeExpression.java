@@ -2130,9 +2130,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                 }
                                 else if (!node.script.equals(value)) {
                                     IExpressionManager m = DebugPlugin.getDefault().getExpressionManager();
-                                    for (final IExpression e : m.getExpressions()) {
-                                        if (node.script.equals(e.getExpressionText())) m.removeExpression(e);
-                                    }
+                                    m.removeExpression(node.platform_expression);
                                     IExpression e = m.newWatchExpression((String)value);
                                     m.addExpression(e);
                                 }
