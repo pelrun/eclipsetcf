@@ -165,11 +165,12 @@ public class OpRefresh extends AbstractOperation {
 						Delegate delegate = node.getRuntimeModel().getDelegate();
 						List<FSTreeNode> nodes = new ArrayList<FSTreeNode>(entries.length);
 						for (DirEntry entry : entries) {
-							if (delegate.filterRoot(entry))
+							if (delegate.filterRoot(entry)) {
 								nodes.add(new FSTreeNode(node, entry.filename, true, entry.attrs));
+							}
 						}
 						node.setContent(nodes.toArray(new FSTreeNode[nodes.size()]), false);
-						for (FSTreeNode node : nodes) {
+						for (FSTreeNode node : node.getChildren()) {
 							if (fRecursive || node.isFile()) {
 								fWork.addFirst(node);
 							}
@@ -235,7 +236,7 @@ public class OpRefresh extends AbstractOperation {
 							nodes[i++] = new FSTreeNode(node, entry.filename, false, entry.attrs);
 						}
 						node.setContent(nodes, false);
-						for (FSTreeNode node : nodes) {
+						for (FSTreeNode node : node.getChildren()) {
 							if (fRecursive || node.isFile()) {
 								fWork.addFirst(node);
 							}

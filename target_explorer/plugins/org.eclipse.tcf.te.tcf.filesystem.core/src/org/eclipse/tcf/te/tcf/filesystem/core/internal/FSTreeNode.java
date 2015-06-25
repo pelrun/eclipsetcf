@@ -559,6 +559,10 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 	}
 
 	public void setContent(FSTreeNode[] children, boolean notify) {
+		setContent(children, notify, true);
+	}
+
+	public void setContent(FSTreeNode[] children, boolean notify, boolean updateRefreshTime) {
 		final Comparator<FSTreeNode> comparator = getComparator();
 		Arrays.sort(children, comparator);
 		if (fChildren != null) {
@@ -579,7 +583,7 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 				}
 			}
 		}
-		fRefreshTime = System.currentTimeMillis();
+		if (updateRefreshTime) fRefreshTime = System.currentTimeMillis();
 		setChildren(children, notify);
 	}
 
