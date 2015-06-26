@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,7 @@ import org.eclipse.tcf.services.IProcesses.ProcessContext;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
+import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessStateChangeEvent;
 
@@ -58,12 +59,19 @@ public class TERunProcess extends PlatformObject implements IProcess,
 		EventManager.getInstance().addEventListener(this,
 				ProcessStateChangeEvent.class);
 		try {
-			prLauncher = TEHelper.launchCmd(peer, remoteExePath, arguments,
+			prLauncher = TEHelper.launchCmd(peer, null, remoteExePath, arguments,
 					null, monitor, new Callback());
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Activator.getDefault().getLog().log(
+					new Status(IStatus.ERROR, Activator.getUniqueIdentifier(),
+							"Error launching remote process: "+prName, e)); //$NON-NLS-1$
+			String reason = e.getMessage();
+			if (reason == null)
+				reason = "Unknown Reason"; //$NON-NLS-1$
+			prName += " (Failed to start: " + reason + ')'; //$NON-NLS-1$
 		}
+		if (prLauncher == null)
+			fireTerminateEvent();
 	}
 
 	@Override
@@ -93,12 +101,12 @@ public class TERunProcess extends PlatformObject implements IProcess,
 
 	@Override
     public boolean canTerminate() {
-		return !terminated;
+		return prLauncher != null && !terminated;
 	}
 
 	@Override
     public boolean isTerminated() {
-		return terminated;
+		return prLauncher == null || terminated;
 	}
 
 	@Override
