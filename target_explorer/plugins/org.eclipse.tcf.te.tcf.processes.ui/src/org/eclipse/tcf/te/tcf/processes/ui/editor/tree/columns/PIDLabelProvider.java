@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,10 +9,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.editor.tree.columns;
 
+import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IPendingOperationNode;
@@ -39,12 +42,18 @@ public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 			final IProcessContextNode node = (IProcessContextNode)element;
 
 			final AtomicLong pid = new AtomicLong();
+			final AtomicReference<BigInteger> pidBI = new AtomicReference<BigInteger>();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
-					if (node.getSysMonitorContext() != null)
+					if (node.getSysMonitorContext() != null) {
 						pid.set(node.getSysMonitorContext().getPID());
+						if(pid.get() < 0) {
+							Object o = node.getSysMonitorContext().getProperties().get(ISysMonitor.PROP_PID);
+							if (o instanceof BigInteger) pidBI.set((BigInteger) o);
+						}
+					}
 				}
 			};
 
@@ -52,6 +61,9 @@ public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 			Protocol.invokeAndWait(runnable);
 
 			String id = pid.get() >= 0 ? Long.toString(pid.get()) : ""; //$NON-NLS-1$
+			if( pidBI.get() != null && pidBI.get().signum() >= 0 ) {
+				id = pidBI.get().toString();
+			}
 			if (id.startsWith("P")) id = id.substring(1); //$NON-NLS-1$
 
 			IPeerNode peerNode = (IPeerNode)node.getAdapter(IPeerNode.class);
