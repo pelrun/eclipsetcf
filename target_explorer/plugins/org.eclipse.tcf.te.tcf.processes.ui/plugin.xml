@@ -226,6 +226,7 @@
                      <and>
                         <instanceof value="org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode"/>
                         <adapt type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
+                           <test property="org.eclipse.tcf.te.tcf.locator.hasRemoteService" value="RunControl"/>
                            <test
                                  forcePluginActivation="true"
                                  property="org.eclipse.tcf.te.runtime.services.hasService"
