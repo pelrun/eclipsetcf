@@ -91,6 +91,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	/* default */ IStreams svcStreams;
 	// The remote process context
 	/* default */ IProcesses.ProcessContext processContext;
+	// Whether SIGTERM has already been sent
+	/* default */ boolean sigTermSent;
 
 	// The callback instance
 	private ICallback callback;
@@ -201,13 +203,24 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
 					if (processContext != null && processContext.canTerminate()) {
 						final IProcesses.ProcessContext finProcessContext = processContext;
-						// Try to terminate the process the usual way first (sending SIGTERM)
-						finProcessContext.terminate(new IProcesses.DoneCommand() {
-							@Override
-							public void doneCommand(IToken token, Exception error) {
-								onTerminateDone(finProcessContext, error);
-							}
-						});
+						if (!sigTermSent) {
+							sigTermSent = true;
+							// Try to terminate the process the usual way first (sending SIGTERM)
+							finProcessContext.terminate(new IProcesses.DoneCommand() {
+								@Override
+								public void doneCommand(IToken token, Exception error) {
+									onTerminateDone(finProcessContext, error);
+								}
+							});
+						} else {
+							// Terminate the process the hard way (sending SIGKILL)
+							getSvcProcesses().signal(processContext.getID(), 9, new IProcesses.DoneCommand() {
+								@Override
+								public void doneCommand(IToken token, Exception error) {
+									onTerminateDone(finProcessContext, error);
+								}
+							});
+						}
 					}
 				}
 			}
@@ -255,84 +268,6 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 			// Dispose the launcher directly
 			dispose();
-		}
-		// No error from terminate, this does not mean that the process went down
-		// really -> SIGTERM might have been ignored from the process!
-		else {
-			final IProcesses.ProcessContext finContext = context;
-			// Let's see if we can still get information about the context
-			getSvcProcesses().getContext(context.getID(), new IProcesses.DoneGetContext() {
-				@Override
-				public void doneGetContext(IToken token, Exception error, ProcessContext context) {
-					// In case there is no error and we do get back an process context,
-					// the process must be still running, having ignored the SIGTERM.
-					if (error == null && context != null && context.getID().equals(finContext.getID())) {
-						// Let's send a SIGHUP next.
-						getSvcProcesses().signal(context.getID(), 15, new IProcesses.DoneCommand() {
-							@Override
-							public void doneCommand(IToken token, Exception error) {
-								onSignalSIGHUPDone(finContext, error);
-							}
-						});
-					}
-				}
-			});
-		}
-	}
-
-	/**
-	 * Check if the process context died after sending SIGHUP.
-	 * <p>
-	 * Called from {@link #onTerminateDone(IProcesses.ProcessContext, Exception)}.
-	 *
-	 * @param context The process context. Must not be <code>null</code>.
-	 * @param error The exception in case sending the signal returned with an error or <code>null</code>.
-	 */
-	protected void onSignalSIGHUPDone(IProcesses.ProcessContext context, Exception error) {
-		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
-		Assert.isNotNull(context);
-
-		// If the terminate of the remote process context failed, give a warning to the user
-		if (error != null) {
-			String message = NLS.bind(Messages.ProcessLauncher_error_processSendSignalFailed, "SIGHUP(15)", context.getName()); //$NON-NLS-1$
-			message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, StatusHelper.unwrapErrorReport(error.getLocalizedMessage()));
-
-			IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(), message, error);
-			Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-
-			// Dispose the launcher directly
-			dispose();
-		}
-		// No error from terminate, this does not mean that the process went down
-		// really -> SIGTERM might have been ignored from the process!
-		else {
-			final IProcesses.ProcessContext finContext = context;
-			// Let's see if we can still get information about the context
-			getSvcProcesses().getContext(context.getID(), new IProcesses.DoneGetContext() {
-				@Override
-				public void doneGetContext(IToken token, Exception error, ProcessContext context) {
-					// In case there is no error and we do get back an process context,
-					// the process must be still running, having ignored the SIGHUP.
-					if (error == null && context != null && context.getID().equals(finContext.getID())) {
-						// Finally send a SIGKILL.
-						getSvcProcesses().signal(context.getID(), 9, new IProcesses.DoneCommand() {
-							@Override
-							public void doneCommand(IToken token, Exception error) {
-								if (error != null) {
-									String message = NLS.bind(Messages.ProcessLauncher_error_processSendSignalFailed, "SIGKILL(15)", finContext.getName()); //$NON-NLS-1$
-									message += NLS.bind(Messages.ProcessLauncher_error_possibleCause, StatusHelper.unwrapErrorReport(error.getLocalizedMessage()));
-
-									IStatus status = new Status(IStatus.WARNING, CoreBundleActivator.getUniqueIdentifier(), message, error);
-									Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(status);
-
-									// Dispose the launcher
-									dispose();
-								}
-							}
-						});
-					}
-				}
-			});
 		}
 	}
 
@@ -951,6 +886,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				@Override
 				public void doneStart(IToken token, Exception error, ProcessContext process) {
 					activeToken = null;
+					sigTermSent = false;
 					if (error != null) {
 						// Construct the error message to show to the user
 						String message = NLS.bind(getProcessLaunchFailedMessageTemplate(),

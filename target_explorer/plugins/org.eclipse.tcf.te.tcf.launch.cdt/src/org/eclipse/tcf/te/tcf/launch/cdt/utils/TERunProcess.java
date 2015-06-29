@@ -55,7 +55,6 @@ public class TERunProcess extends PlatformObject implements IProcess,
 		prName = remoteExePath;
 		terminated = false;
 		launch.addProcess(this);
-		fireCreationEvent();
 		EventManager.getInstance().addEventListener(this,
 				ProcessStateChangeEvent.class);
 		try {
@@ -70,8 +69,7 @@ public class TERunProcess extends PlatformObject implements IProcess,
 				reason = "Unknown Reason"; //$NON-NLS-1$
 			prName += " (Failed to start: " + reason + ')'; //$NON-NLS-1$
 		}
-		if (prLauncher == null)
-			fireTerminateEvent();
+		fireCreationEvent();
 	}
 
 	@Override
@@ -113,8 +111,6 @@ public class TERunProcess extends PlatformObject implements IProcess,
     public void terminate() throws DebugException {
 		if (!isTerminated()) {
 			prLauncher.terminate();
-			terminated = true;
-			fireTerminateEvent();
 		}
 	}
 
@@ -167,7 +163,8 @@ public class TERunProcess extends PlatformObject implements IProcess,
 			if (pscEvent.getEventId().equals(
 					ProcessStateChangeEvent.EVENT_PROCESS_CREATED)) {
 				if ((pscEvent.getSource() instanceof ProcessContext)) {
-					context = (ProcessContext) pscEvent.getSource();
+					if (prLauncher != null && prLauncher.getAdapter(ProcessContext.class) == pscEvent.getSource())
+						context = (ProcessContext) pscEvent.getSource();
 				}
 			} else if (pscEvent.getEventId().equals(
 					ProcessStateChangeEvent.EVENT_PROCESS_TERMINATED)) {
