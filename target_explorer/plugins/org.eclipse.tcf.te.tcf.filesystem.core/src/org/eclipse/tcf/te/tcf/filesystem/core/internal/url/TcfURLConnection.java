@@ -83,16 +83,19 @@ public class TcfURLConnection extends URLConnection {
 	 * @param url
 	 *            The URL of the resource.
 	 */
-	public TcfURLConnection(final URL url) {
+	public TcfURLConnection(final URL url) throws IOException {
 		super(url);
-		// The peerId is stored as the host name in URL. See TcfURLStreamHandlerService#parseURL for details.
 		String peerId = url.getHost();
 		Assert.isNotNull(peerId);
 		peer = findPeer(peerId);
-		if(peer == null) {
-			throw new IllegalArgumentException(NLS.bind(Messages.TcfURLConnection_NoPeerFound, peerId));
+		if (peer == null) {
+			throw new IOException(NLS.bind(Messages.TcfURLConnection_NoPeerFound, peerId));
 		}
-		path = url.getPath();
+		String p = url.getPath();
+		if (!p.startsWith("/")) { //$NON-NLS-1$
+			throw new IOException(Messages.TcfURLConnection_relativePath);
+		}
+		path = p.substring(1);
 		// Set default timeout.
 		setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
 		setOpenTimeout(DEFAULT_OPEN_TIMEOUT);

@@ -272,14 +272,13 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
      */
     @Override
 	public URL getLocationURL() {
-        try {
-            String id = getPeerNode().getPeerId();
-            String path = getLocation(true);
-            return new URL(TcfURLConnection.PROTOCOL_SCHEMA, id, path);
+    	try {
+    		URI uri = getLocationURI();
+			return uri == null ? null : uri.toURL();
         } catch (MalformedURLException e) {
-            assert false;
-            return null;
+        	CorePlugin.logError("Cannot create tcf url", e); //$NON-NLS-1$
         }
+		return null;
     }
 
     /**
@@ -293,10 +292,9 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
         try {
             String id = getPeerNode().getPeerId();
             String path = getLocation('/', true);
-            return new URI(TcfURLConnection.PROTOCOL_SCHEMA, id, path, null);
-        }
-        catch (URISyntaxException e) {
-            assert false;
+            return new URI(TcfURLConnection.PROTOCOL_SCHEMA, id, "/" + path, null); //$NON-NLS-1$
+        } catch (URISyntaxException e) {
+        	CorePlugin.logError("Cannot create tcf uri", e); //$NON-NLS-1$
             return null;
         }
     }
@@ -603,7 +601,7 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 	public void setAttributes(FileAttrs attrs, boolean notify) {
 	    FileAttrs oldAttrs = fAttributes;
 	    fAttributes = attrs;
-	    if (attrs.isFile())
+	    if (attrs != null && attrs.isFile())
 	    	fRefreshTime = System.currentTimeMillis();
 	    if (notify) {
 	    	notifyChange("attributes", oldAttrs, attrs); //$NON-NLS-1$

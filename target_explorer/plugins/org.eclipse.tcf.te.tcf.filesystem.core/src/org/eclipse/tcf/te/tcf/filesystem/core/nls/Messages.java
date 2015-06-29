@@ -65,6 +65,7 @@ public class Messages extends NLS {
 	public static String TcfURLConnection_NoFileHandleReturned;
 	public static String TcfURLConnection_NoPeerFound;
 	public static String TcfURLConnection_NoSuchTcfAgent;
+	public static String TcfURLConnection_relativePath;
 
 	public static String OpDelete_Deleting;
 	public static String OpDelete_error_delete;

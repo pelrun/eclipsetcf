@@ -13,8 +13,10 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.url.TcfURLConnection;
@@ -98,6 +100,10 @@ public class CorePlugin extends Plugin {
 	 */
 	public static String getUniqueIdentifier() {
 		return PLUGIN_ID;
+	}
+
+	public static void logError(String msg, Throwable cause) {
+		getDefault().getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, msg, cause));
 	}
 
 
