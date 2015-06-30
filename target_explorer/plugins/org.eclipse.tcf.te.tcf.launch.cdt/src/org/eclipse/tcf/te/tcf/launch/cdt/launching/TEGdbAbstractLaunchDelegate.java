@@ -172,7 +172,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 				commandArguments = "--once --multi :" + gdbserverPortNumber.get(); //$NON-NLS-1$
 				monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_attaching_program);
 			} else {
-				commandArguments = ":" + gdbserverPortNumber.get() + " " + TEHelper.spaceEscapify(remoteExePath); //$NON-NLS-1$ //$NON-NLS-2$
+				commandArguments = "--once :" + gdbserverPortNumber.get() + " " + TEHelper.spaceEscapify(remoteExePath); //$NON-NLS-1$ //$NON-NLS-2$
 
 				String arguments = getProgramArguments(config);
 				String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$

@@ -551,7 +551,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				// Copy the terminal properties
 				props.put(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_LOCAL_ECHO)));
 				props.put(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR, properties.getStringProperty(ITerminalsConnectorConstants.PROP_LINE_SEPARATOR));
-				props.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.valueOf(properties.getBooleanProperty(ITerminalsConnectorConstants.PROP_FORCE_NEW)));
+				// Always create a new console for the process
+				props.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.TRUE);
 
 				// By default, a launched process cannot be reconnected once terminated.
 				boolean noReconnect = true;
