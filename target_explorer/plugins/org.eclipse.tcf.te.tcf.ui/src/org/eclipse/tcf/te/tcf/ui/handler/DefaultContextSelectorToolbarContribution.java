@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -27,12 +28,16 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -75,6 +80,7 @@ public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowCo
 implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
 	private Composite panel = null;
+	private Composite labelPanel = null;
 	private Label image = null;
 	private Label text = null;
 	private Button button = null;
@@ -85,6 +91,9 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	private Menu menu = null;
 
 	private boolean clickRunning = false;
+
+	private final RGB lightYellowRgb = new RGB(255, 250, 150); // Warning background color
+	/* default */ Color lightYellowColor = null;
 
 	/**
 	 * Constructor.
@@ -120,7 +129,19 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 		layout.marginHeight = 1; layout.marginWidth = 1;
 		panel.setLayout(layout);
 
-		Composite labelPanel = new Composite(panel, SWT.BORDER);
+		// Create the warning background color
+		Assert.isNotNull(lightYellowColor);
+		lightYellowColor = new Color(PlatformUI.getWorkbench().getDisplay(), lightYellowRgb);
+		// Add a dispose listener to the panel to also dispose the color resource
+		panel.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				lightYellowColor.dispose();
+				lightYellowColor = null;
+			}
+		});
+
+		labelPanel = new Composite(panel, SWT.BORDER);
 		labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
 		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		labelPanel.setLayoutData(layoutData);
@@ -268,6 +289,9 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				else if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
 					Map<String,String> warnings = CommonUtils.getPeerWarnings(peerNode);
 					if (warnings != null && !warnings.isEmpty()) {
+						// Change background color to the warning color
+						labelPanel.setBackground(lightYellowColor);
+
 						tooltip = !fullName.equals(name) ? fullName : ""; //$NON-NLS-1$
 						for (String warning : warnings.values()) {
 							if (tooltip.trim().length() > 0) {
@@ -276,6 +300,12 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	                        tooltip += warning;
                         }
 					}
+					else {
+						labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
+					}
+				}
+				else {
+					labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
 				}
 
 				image.setToolTipText(tooltip);
@@ -290,6 +320,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				image.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
 				text.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
 				button.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
+
+				labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
 			}
 		}
 	}
