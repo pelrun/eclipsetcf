@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -130,7 +129,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 		panel.setLayout(layout);
 
 		// Create the warning background color
-		Assert.isNotNull(lightYellowColor);
 		lightYellowColor = new Color(PlatformUI.getWorkbench().getDisplay(), lightYellowRgb);
 		// Add a dispose listener to the panel to also dispose the color resource
 		panel.addDisposeListener(new DisposeListener() {
