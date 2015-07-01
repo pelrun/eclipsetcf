@@ -14,6 +14,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ISysMonitor;
 import org.eclipse.tcf.te.runtime.services.ServiceUtils;
@@ -27,7 +32,25 @@ import org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime.AbstractLabelProvid
 /**
  * The label provider for the tree column "PID".
  */
-public class PIDLabelProvider extends AbstractLabelProviderDelegate {
+public class PIDLabelProvider extends AbstractLabelProviderDelegate implements IFontProvider {
+
+	Font pidFont = null;
+
+	public PIDLabelProvider() {
+		super();
+		FontData fd = new FontData("Courier New", 10, SWT.NORMAL); //$NON-NLS-1$
+		pidFont = new Font(Display.getCurrent(), fd );
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.BaseLabelProvider#dispose()
+	 */
+	@Override
+	public void dispose() {
+		super.dispose();
+
+		if (pidFont != null) pidFont.dispose();
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getText(java.lang.Object)
@@ -74,4 +97,12 @@ public class PIDLabelProvider extends AbstractLabelProviderDelegate {
 
         return ""; //$NON-NLS-1$
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IFontProvider#getFont(java.lang.Object)
+	 */
+    @Override
+    public Font getFont(Object element) {
+	    return pidFont;
+    }
 }
