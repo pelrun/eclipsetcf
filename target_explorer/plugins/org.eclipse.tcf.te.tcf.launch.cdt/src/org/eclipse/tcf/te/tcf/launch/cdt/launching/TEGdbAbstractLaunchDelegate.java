@@ -12,6 +12,7 @@ package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -45,9 +46,11 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
+import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.services.ServiceUtils;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
@@ -140,6 +143,12 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 			}
 		}
 
+		// Perform prelaunch command
+		if (!isAttachLaunch) {
+			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
+			TEHelper.launchCmd(peer, null, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
+		}
+
 		// Launch gdbserver on target
 		final AtomicReference<String> gdbserverPortNumber = new AtomicReference<String>(config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT, TEHelper.getStringPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH : IPreferenceKeys.PREF_GDBSERVER_PORT)));
 		final AtomicReference<String> gdbserverPortNumberMappedTo = new AtomicReference<String>(config.getAttribute(IRemoteTEConfigurationConstants.ATTR_GDBSERVER_PORT_MAPPED_TO, TEHelper.getStringPreferenceValue(isAttachLaunch ? IPreferenceKeys.PREF_GDBSERVER_PORT_ATTACH_MAPPED_TO : IPreferenceKeys.PREF_GDBSERVER_PORT_MAPPED_TO)));
@@ -168,6 +177,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 			final Object lock = new Object();
 
 			String commandArguments = ""; //$NON-NLS-1$
+			Map<String,String> commandEnv = null;
 			if (isAttachLaunch) {
 				commandArguments = "--once --multi :" + gdbserverPortNumber.get(); //$NON-NLS-1$
 				monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_attaching_program);
@@ -175,9 +185,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 				commandArguments = "--once :" + gdbserverPortNumber.get() + " " + TEHelper.spaceEscapify(remoteExePath); //$NON-NLS-1$ //$NON-NLS-2$
 
 				String arguments = getProgramArguments(config);
-				String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
-
-				TEHelper.launchCmd(peer, null, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
+				commandEnv = config.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES, (Map<String,String>)null);
 
 				if (arguments != null && !arguments.equals("")) { //$NON-NLS-1$
 					commandArguments += " " + arguments; //$NON-NLS-1$
@@ -204,7 +212,6 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 			};
 
 			StreamsDataReceiver.Listener listener = new StreamsDataReceiver.Listener() {
-
 				@Override
 				public void dataReceived(String data) {
 					gdbServerOutput.append(data);
@@ -249,7 +256,6 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 							lock.notifyAll();
 						}
 					}
-
 				}
 			};
 
@@ -257,7 +263,9 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 			if (remotePID != null) {
 				peerName = peer.getName() + ", PID " + remotePID; //$NON-NLS-1$
 			}
-			launcher = TEHelper.launchCmd(peer, peerName, gdbserverCommand, commandArguments, listener, new SubProgressMonitor(monitor, 3), callback);
+
+			String[] argv = StringUtil.tokenize(gdbserverCommand + ' ' + commandArguments, 0, false);
+			launcher = TEHelper.launchCmdWithEnv(peer, peerName, argv[0], argv, commandEnv, listener, new SubProgressMonitor(monitor, 3), callback);
 
 			// Now wait until gdbserver is up and running on the remote host
 			while (!gdbServerReady.get() && !gdbServerExited.get()) {
@@ -391,10 +399,11 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 	/**
 	 * Shutdown the GDB debug session.
+	 * This method always throws a CoreException and does not return.
 	 *
 	 * @param launch The GDB launch. Must not be <code>null</code>.
 	 * @param details Error message, may be <code>null</code>
-	 * @throws CoreException If the GDB debug session shutdown failed.
+	 * @throws CoreException Always throws a CoreException
 	 */
 	protected void shutdownSession(final GdbLaunch launch, final String details, final ProcessLauncher launcher) throws CoreException {
 		Assert.isNotNull(launch);

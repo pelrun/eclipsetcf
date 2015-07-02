@@ -172,25 +172,33 @@ public class TEHelper {
 
 	public static ProcessLauncher launchCmd(final IPeer peer, String peerName, String command, Listener listener, SubProgressMonitor monitor, ICallback callback) throws CoreException {
 		if (command != null && !command.trim().equals("")) { //$NON-NLS-1$
-			String[] args = StringUtil.tokenize(command, 0, true);
+			String[] args = StringUtil.tokenize(command, 0, false);
 			if (args.length > 0) {
 				String cmd = args[0];
 				String[] arguments = null;
 				if (args.length > 1) {
 					arguments = Arrays.copyOfRange(args, 1, args.length);
 				}
-				return launchCmd(peer, peerName, cmd, arguments, listener, monitor, callback);
+				return launchCmdWithEnv(peer, peerName, cmd, arguments, null, listener, monitor, callback);
 			}
 		}
 		return null;
 	}
 
 	public static ProcessLauncher launchCmd(final IPeer peer, String peerName, String remoteCommandPath, String arguments, Listener listener, SubProgressMonitor monitor, ICallback callback) throws CoreException {
-		String[] args = arguments != null && !"".equals(arguments.trim()) ? StringUtil.tokenize(arguments, 0, true) : null; //$NON-NLS-1$
-		return launchCmd(peer, peerName, remoteCommandPath, args, listener, monitor, callback);
+		return launchCmdWithEnv(peer, peerName, remoteCommandPath, arguments, null, listener, monitor, callback);
 	}
 
 	public static ProcessLauncher launchCmd(final IPeer peer, String peerName, String remoteCommandPath, String[] args, Listener listener, SubProgressMonitor monitor, ICallback callback) throws CoreException {
+		return launchCmdWithEnv(peer, peerName, remoteCommandPath, args, null, listener, monitor, callback);
+	}
+
+	public static ProcessLauncher launchCmdWithEnv(final IPeer peer, String peerName, String remoteCommandPath, String arguments, Map<String, String> env, Listener listener, SubProgressMonitor monitor, ICallback callback) throws CoreException {
+		String[] args = arguments != null && !"".equals(arguments.trim()) ? StringUtil.tokenize(arguments, 0, true) : null; //$NON-NLS-1$
+		return launchCmdWithEnv(peer, peerName, remoteCommandPath, args, env, listener, monitor, callback);
+	}
+
+	public static ProcessLauncher launchCmdWithEnv(final IPeer peer, String peerName, String remoteCommandPath, String[] args, Map<String, String> env, Listener listener, SubProgressMonitor monitor, ICallback callback) throws CoreException {
 		if (remoteCommandPath != null && !remoteCommandPath.trim().equals("")) { //$NON-NLS-1$
 			monitor.beginTask(NLS.bind(Messages.TEHelper_executing, remoteCommandPath, args), 10);
 
@@ -228,6 +236,7 @@ public class TEHelper {
 
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_PATH, spaceEscapify(remoteCommandPath));
 			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ARGS, args);
+			launchAttributes.put(IProcessLauncher.PROP_PROCESS_ENV, env);
 
 			launchAttributes.put(ITerminalsConnectorConstants.PROP_LOCAL_ECHO, Boolean.FALSE);
 

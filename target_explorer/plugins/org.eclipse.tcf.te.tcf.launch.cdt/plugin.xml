@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 Copyright (c) 2006, 2015 PalmSource, Inc. and others
-All rights reserved. This program and the accompanying materials 
-are made available under the terms of the Eclipse Public License v1.0 
-which accompanies this distribution, and is available at 
-http://www.eclipse.org/legal/epl-v10.html 
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the Eclipse Public License v1.0
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/epl-v10.html
 
-Contributors: 
-Ewa Matejska     (PalmSource)      - initial API and implementation 
-Martin Oberhuber (Wind River)      - fix 158529: Migrate docs to HTML / TOC format 
+Contributors:
+Ewa Matejska     (PalmSource)      - initial API and implementation
+Martin Oberhuber (Wind River)      - fix 158529: Migrate docs to HTML / TOC format
 Anna Dushistova  (Mentor Graphics) - [314659] added launch delegate for dsf
 Anna Dushistova  (Mentor Graphics) - code restructuring
 Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
@@ -25,7 +25,7 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             delegateDescription="%tedsfLaunchDelegate.description"
             sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
             sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer">
-      </launchDelegate>      
+      </launchDelegate>
       <launchDelegate
             id="org.eclipse.tcf.te.remotecdt.run"
             type="org.eclipse.cdt.launch.remoteApplicationLaunchType"
@@ -43,10 +43,10 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             delegateDescription="%teattachLaunchDelegate.description"
             sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
             sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer">
-      </launchDelegate>      
-           
+      </launchDelegate>
+
    </extension>
-   
+
    <extension point="org.eclipse.debug.ui.launchConfigurationTabs">
       <!-- Remote Application (Run) -->
       <tab
@@ -55,8 +55,8 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             name="Main"
             class="org.eclipse.tcf.te.tcf.launch.cdt.tabs.TEApplicationMainTab">
          <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.run"/>
-      </tab>         
-      <tab 
+      </tab>
+      <tab
             id="org.eclipse.tcf.te.remotecdt.run.argumentsTab"
             group="org.eclipse.cdt.launch.remoteApplicationRunLaunchTabGroup"
             name="Arguments"
@@ -81,7 +81,7 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             class="org.eclipse.tcf.te.tcf.launch.cdt.tabs.TEApplicationMainTab">
          <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
       </tab>
-      <tab 
+      <tab
             id="org.eclipse.tcf.te.remotecdt.debug.argumentsTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="Arguments"
@@ -103,16 +103,24 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             name="Source"
             class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab">
         <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
-        <placement after="org.eclipse.tcf.te.remotecdt.debug.debuggerTab"/>        
-      </tab>         
+        <placement after="org.eclipse.tcf.te.remotecdt.debug.debuggerTab"/>
+      </tab>
       <tab
             id="org.eclipse.tcf.te.remotecdt.debug.commonTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="Common"
             class="org.eclipse.debug.ui.CommonTab">
         <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
-        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>                
-      </tab>         
+        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
+      </tab>
+      <tab
+            id="org.eclipse.tcf.te.remotecdt.debug.environmentTab"
+            group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
+            name="Environment"
+            class="org.eclipse.tcf.te.tcf.launch.cdt.tabs.TEEnvironmentTab">
+        <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
+        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
+      </tab>
 
       <!-- Attach Launch -->
       <tab
