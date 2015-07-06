@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014-2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -24,6 +24,9 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -76,7 +79,9 @@ import org.eclipse.ui.services.IServiceLocator;
  * Configurations control implementation.
  */
 public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution
-implements IWorkbenchContribution, IEventListener, IPeerModelListener {
+implements IWorkbenchContribution, IEventListener, IPeerModelListener, IPropertyChangeListener {
+
+	private static final String WARNING_BACKGROUND_FG_COLOR_NAME = "org.eclipse.ui.themes.matchColors.toolbarWarningBackground"; //$NON-NLS-1$
 
 	private Composite panel = null;
 	private Composite labelPanel = null;
@@ -93,12 +98,16 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 
 	private final RGB lightYellowRgb = new RGB(255, 250, 150); // Warning background color
 	/* default */ Color lightYellowColor = null;
+	private enum PanelStyle {DEFAULT,WARNING} // Color styles
+	/* default */ Color warningBackgroundColor = null;
 
 	/**
 	 * Constructor.
 	 */
 	public DefaultContextSelectorToolbarContribution() {
 		this("org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution"); //$NON-NLS-1$
+		PlatformUI.getPreferenceStore().addPropertyChangeListener(this);
+		JFaceResources.getColorRegistry().addListener(this);
 	}
 
 	/**
@@ -108,6 +117,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	 */
 	public DefaultContextSelectorToolbarContribution(String id) {
 		super(id);
+		PlatformUI.getPreferenceStore().addPropertyChangeListener(this);
+		JFaceResources.getColorRegistry().addListener(this);
 	}
 
 	/* (non-Javadoc)
@@ -138,6 +149,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				lightYellowColor = null;
 			}
 		});
+
+		initThemeColors();
 
 		labelPanel = new Composite(panel, SWT.BORDER);
 		labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
@@ -203,6 +216,15 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 		return panel;
 	}
 
+    private void initThemeColors() {
+	    // Get colors from Theme preferences
+		warningBackgroundColor = JFaceResources.getColorRegistry().get(WARNING_BACKGROUND_FG_COLOR_NAME);
+		if (warningBackgroundColor == null) {
+			JFaceResources.getColorRegistry().put(WARNING_BACKGROUND_FG_COLOR_NAME, lightYellowRgb);
+			warningBackgroundColor = JFaceResources.getColorRegistry().get(WARNING_BACKGROUND_FG_COLOR_NAME);
+		}
+    }
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.action.ContributionItem#dispose()
 	 */
@@ -261,6 +283,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 					return;
 				}
 			}
+			changePanelStyle(PanelStyle.DEFAULT);
 
 			if (peerNode != null) {
 			    DelegatingLabelProvider labelProvider = new DelegatingLabelProvider();
@@ -287,8 +310,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				else if (peerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
 					Map<String,String> warnings = CommonUtils.getPeerWarnings(peerNode);
 					if (warnings != null && !warnings.isEmpty()) {
-						// Change background color to the warning color
-						labelPanel.setBackground(lightYellowColor);
+						changePanelStyle(PanelStyle.WARNING);
 
 						tooltip = !fullName.equals(name) ? fullName : ""; //$NON-NLS-1$
 						for (String warning : warnings.values()) {
@@ -298,12 +320,11 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	                        tooltip += warning;
                         }
 					}
-					else {
-						labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
-					}
 				}
-				else {
-					labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
+				else if (peerNode.getConnectState() == IConnectable.STATE_CONNECTION_LOST ||
+								 peerNode.getConnectState() == IConnectable.STATE_CONNECTION_RECOVERING ||
+								 peerNode.getConnectState() == IConnectable.STATE_UNKNOWN) {
+					changePanelStyle(PanelStyle.WARNING);
 				}
 
 				image.setToolTipText(tooltip);
@@ -318,11 +339,27 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 				image.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
 				text.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
 				button.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
-
-				labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
 			}
 		}
 	}
+
+	/**
+	 * Switches between themes.
+	 * 	- Default: when there aren't issues with the connection.
+	 *  - Warning: when there is some kind of warning. The background turns yellow.
+	 * @param pStyle
+	 */
+	private void changePanelStyle(PanelStyle pStyle) {
+		if (text != null && labelPanel != null) {
+			if (pStyle.equals(PanelStyle.DEFAULT)) {
+				labelPanel.setBackground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_WHITE));
+				text.setForeground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_BLACK));
+			} else if (pStyle.equals(PanelStyle.WARNING)) {
+				labelPanel.setBackground(warningBackgroundColor);
+				text.setForeground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_BLACK));
+			}
+		}
+    }
 
 	protected void onButtonClick() {
 		if (!clickRunning) {
@@ -481,5 +518,14 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener {
 	 */
     @Override
     public void modelDisposed(IPeerModel model) {
+    }
+
+	@Override
+    public void propertyChange(PropertyChangeEvent event) {
+		String property= event.getProperty();
+		if (property.equals(WARNING_BACKGROUND_FG_COLOR_NAME)) {
+			initThemeColors();
+			update();
+		}
     }
 }

@@ -1180,5 +1180,13 @@
          <hiddenMenuItem id="org.eclipse.tcf.te.tcf.ui.main.menu.system"/>
       </perspectiveExtension>
    </extension>
+   
+<!-- Themes contributions -->
+	<extension point="org.eclipse.ui.themes">
+		<themeElementCategory label="%toolbar.label" id="org.eclipse.ui.themes.presentation" />
+		<colorDefinition label="%matchColors.toolbarWarningBackground.label" categoryId="org.eclipse.ui.themes.presentation" value="255,250,150" id="org.eclipse.ui.themes.matchColors.toolbarWarningBackground">
+	  		<description>%matchColors.toolbarWarningBackground.description</description> 
+	  	</colorDefinition>
+	</extension>
 
 </plugin>
