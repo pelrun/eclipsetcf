@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IProcesses.ProcessContext;
+import org.eclipse.tcf.services.ISysMonitor;
+import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNodeProperties;
 
@@ -33,9 +36,14 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 				Runnable runnable = new Runnable() {
 					@Override
 					public void run() {
-						if (node.getProcessContext() != null) {
-							isAttached.set(node.getProcessContext().isAttached());
-						}
+						ProcessContext pc = node.getProcessContext();
+						SysMonitorContext sc = node.getSysMonitorContext();
+						boolean attached = false;
+						if (pc != null)
+							attached = pc.isAttached();
+						if (!attached && sc != null)
+							attached = sc.getTracerPID() > 0 || "t".equals(sc.getState()); //$NON-NLS-1$
+						isAttached.set(attached);
 					}
 				};
 				if (Protocol.isDispatchThread()) runnable.run();
@@ -54,7 +62,13 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 								Boolean value = (Boolean)node.getProcessContext().getProperties().get("CanAttach"); //$NON-NLS-1$
 								canAttach.set(value != null && value.booleanValue());
 							} else {
-								canAttach.set(true);
+								SysMonitorContext sc = node.getSysMonitorContext();
+								if (sc != null && sc.getProperties().containsKey(ISysMonitor.PROP_EXETYPE)) {
+									Object exeType = sc.getProperties().get(ISysMonitor.PROP_EXETYPE);
+									canAttach.set(!Integer.valueOf(ISysMonitor.EXETYPE_KERNEL).equals(exeType));
+								} else {
+									canAttach.set(true);
+								}
 							}
 						}
 					}

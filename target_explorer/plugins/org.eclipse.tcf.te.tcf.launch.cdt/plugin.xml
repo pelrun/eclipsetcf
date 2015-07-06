@@ -106,20 +106,20 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
         <placement after="org.eclipse.tcf.te.remotecdt.debug.debuggerTab"/>
       </tab>
       <tab
-            id="org.eclipse.tcf.te.remotecdt.debug.commonTab"
-            group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
-            name="Common"
-            class="org.eclipse.debug.ui.CommonTab">
-        <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
-        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
-      </tab>
-      <tab
             id="org.eclipse.tcf.te.remotecdt.debug.environmentTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="Environment"
             class="org.eclipse.tcf.te.tcf.launch.cdt.tabs.TEEnvironmentTab">
         <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
         <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
+      </tab>
+      <tab
+            id="org.eclipse.tcf.te.remotecdt.debug.commonTab"
+            group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
+            name="Common"
+            class="org.eclipse.debug.ui.CommonTab">
+        <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.debug"/>
+        <placement after="org.eclipse.debug.ui.environmentTab"/>
       </tab>
 
       <!-- Attach Launch -->

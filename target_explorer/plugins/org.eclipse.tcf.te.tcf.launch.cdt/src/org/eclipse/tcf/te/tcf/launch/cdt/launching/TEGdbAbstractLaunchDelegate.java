@@ -69,6 +69,8 @@ import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 @SuppressWarnings("restriction")
 public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
+	private String fCurrentGdbServerPort;
+
 	/**
 	 * Constructor
 	 */
@@ -168,6 +170,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 		final AtomicInteger indexAlternatives = new AtomicInteger(0);
 
 		do {
+			fCurrentGdbServerPort = gdbserverPortNumber.get();
 			gdbserverLaunchRetry.set(false);
 
 			final AtomicBoolean gdbServerStarted = new AtomicBoolean(false);
@@ -465,7 +468,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 				if (d.contains("Address already in use.")) { //$NON-NLS-1$
 					// Get host and port
 					String host = lc.getAttribute(IGDBLaunchConfigurationConstants.ATTR_HOST, (String)null);
-					String port = lc.getAttribute(IGDBLaunchConfigurationConstants.ATTR_PORT, (String)null);
+					String port = fCurrentGdbServerPort;
 
 					String address = host + (port != null ? ":" + port : ""); //$NON-NLS-1$ //$NON-NLS-2$
 					d = NLS.bind(Messages.TEGdbAbstractLaunchDelegate_error_addressInUse, address);

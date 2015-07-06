@@ -80,6 +80,13 @@ public class ProcessContextNode extends ContainerModelNode implements IProcessCo
 			name = null;
 		}
 
+		if (name != null && sContext != null && sContext.getProperties().containsKey(ISysMonitor.PROP_EXETYPE)) {
+			// in case of a kernel thread, use process context name
+			Object exeType = sContext.getProperties().get(ISysMonitor.PROP_EXETYPE);
+			if (Integer.valueOf(ISysMonitor.EXETYPE_KERNEL).equals(exeType))
+				return name;
+		}
+
 		// Take the last part of the image name if available
 		String file = sContext != null ? sContext.getFile() : null;
 		if (file != null && !"".equals(file)) { //$NON-NLS-1$

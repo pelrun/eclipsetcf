@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -16,6 +16,8 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.ISysMonitor;
+import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.IProcessContextNode;
 
 /**
@@ -45,7 +47,10 @@ public class SingleThreadFilter extends ViewerFilter {
 					if (parent.getChildren().length == 1) {
 						if (parent.getSysMonitorContext() != null && child.getSysMonitorContext() != null &&
 										parent.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
-							if (parent.getName() != null) {
+							SysMonitorContext smc = parent.getSysMonitorContext();
+							if (Integer.valueOf(ISysMonitor.EXETYPE_KERNEL).equals(smc.getProperties().get(ISysMonitor.PROP_EXETYPE))) {
+								selected.set(false);
+							} else if (parent.getName() != null) {
 								selected.set(!parent.getName().equals(child.getName()));
 							}
 							else if (child.getName() != null) {

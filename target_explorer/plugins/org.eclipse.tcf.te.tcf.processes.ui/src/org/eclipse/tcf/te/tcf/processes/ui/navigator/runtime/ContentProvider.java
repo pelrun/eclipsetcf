@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -21,6 +21,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.ISysMonitor;
+import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
@@ -260,7 +262,10 @@ public class ContentProvider implements ITreeContentProvider {
 							IProcessContextNode child = (IProcessContextNode)children[0];
 							if (child != null && context.getSysMonitorContext() != null && child.getSysMonitorContext() != null &&
 											context.getSysMonitorContext().getPID() == child.getSysMonitorContext().getPID()) {
-								if (context.getName() != null) {
+								SysMonitorContext smc = context.getSysMonitorContext();
+								if (Integer.valueOf(ISysMonitor.EXETYPE_KERNEL).equals(smc.getProperties().get(ISysMonitor.PROP_EXETYPE))) {
+									selected.set(false);
+								} else if (context.getName() != null) {
 									selected.set(!context.getName().equals(child.getName()));
 								}
 								else if (child.getName() != null) {

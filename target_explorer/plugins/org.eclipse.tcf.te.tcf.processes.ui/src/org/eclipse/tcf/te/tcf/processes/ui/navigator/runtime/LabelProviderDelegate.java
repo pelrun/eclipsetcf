@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,11 +9,14 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.navigator.runtime;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.ISysMonitor;
+import org.eclipse.tcf.services.ISysMonitor.SysMonitorContext;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.services.interfaces.delegates.ILabelProviderDelegate;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -84,19 +87,29 @@ public class LabelProviderDelegate extends AbstractLabelProviderDelegate impleme
 		} else if (element instanceof IProcessContextNode) {
 			Image image = null;
 
-			final AtomicReference<IModelNode> parent = new AtomicReference<IModelNode>();
+			final AtomicBoolean isThread = new AtomicBoolean();
 
 			Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
 					IProcessContextNode node = ((IProcessContextNode)element);
-					parent.set(node.getParent());
+					boolean thread = false;
+					if (node.getParent() instanceof IRuntimeModel) {
+						// test for kernel thread
+						SysMonitorContext smc = node.getSysMonitorContext();
+						if (smc != null && Integer.valueOf(ISysMonitor.EXETYPE_KERNEL).equals(smc.getProperties().get(ISysMonitor.PROP_EXETYPE))) {
+							thread = true;
+						}
+					} else {
+						thread = true;
+					}
+					isThread.set(thread);
 				}
 			};
 			if (Protocol.isDispatchThread()) runnable.run();
 			else Protocol.invokeAndWait(runnable);
 
-			image = UIPlugin.getImage(parent.get() instanceof IRuntimeModel ? ImageConsts.OBJ_Process : ImageConsts.OBJ_Thread);
+			image = UIPlugin.getImage(isThread.get()? ImageConsts.OBJ_Thread : ImageConsts.OBJ_Process);
 
 			return image;
 		}
