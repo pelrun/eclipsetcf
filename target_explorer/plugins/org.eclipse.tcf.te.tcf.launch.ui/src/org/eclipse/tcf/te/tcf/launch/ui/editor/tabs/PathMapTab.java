@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -35,6 +35,7 @@ import org.eclipse.tcf.te.tcf.launch.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.launch.ui.editor.AbstractTcfLaunchTabContainerEditorPage;
 import org.eclipse.tcf.te.tcf.launch.ui.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
+import org.eclipse.tcf.te.ui.jface.tooltips.ClippedCellToolTip;
 import org.eclipse.tcf.te.ui.swt.SWTControlUtil;
 
 /**
@@ -187,6 +188,8 @@ public class PathMapTab extends TCFPathMapTab {
 	protected void configureTableViewer(CheckboxTableViewer viewer) {
 		Assert.isNotNull(viewer);
 	    super.configureTableViewer(viewer);
+
+	    ClippedCellToolTip.enableFor(viewer);
 
 	    // Add a filter filtering out the generated mappings if "Show all" is not checked
 	    viewer.addFilter(new ViewerFilter() {
