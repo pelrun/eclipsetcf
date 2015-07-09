@@ -71,6 +71,7 @@ public class TCFOperationChildStores extends TCFFileStoreOperation<IFileStore[]>
 					@Override
 					public void doneOpen(IToken token, FileSystemException error, IFileHandle handle) {
 						if (error != null && (path.length() == 0 || path.equals("/"))) { //$NON-NLS-1$
+							getFileStore().setIsArtificialRoot();
 							readRoots();
 						} else if (!shallAbort(error)) {
 							setFileHandle(handle);

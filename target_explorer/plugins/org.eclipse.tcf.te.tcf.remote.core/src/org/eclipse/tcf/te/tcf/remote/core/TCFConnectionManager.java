@@ -10,19 +10,17 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.remote.core;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.remote.core.AbstractRemoteConnectionManager;
 import org.eclipse.remote.core.IRemoteConnection;
+import org.eclipse.remote.core.IRemoteConnectionType;
 import org.eclipse.remote.core.IRemoteConnectionWorkingCopy;
 import org.eclipse.remote.core.exception.RemoteConnectionException;
 import org.eclipse.tcf.protocol.Protocol;
@@ -36,18 +34,39 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProperties;
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
+import org.eclipse.tcf.te.tcf.remote.core.activator.CoreBundleActivator;
 
-public class TCFConnectionManager extends AbstractRemoteConnectionManager implements IPeerModelListener, IEventListener {
+public class TCFConnectionManager implements IPeerModelListener, IEventListener {
+
+	public static final TCFConnectionManager INSTANCE = new TCFConnectionManager();
+
 	private final Map<String, TCFConnection> fConnections = Collections.synchronizedMap(new HashMap<String, TCFConnection>());
+	private IRemoteConnectionType fConnectionType;
 	private int fInitialized = 0;
 
-	public TCFConnectionManager(TCFRemoteServices services) {
-		super(services);
+	public TCFConnection mapConnection(IRemoteConnection rc) {
+		if (rc == null)
+			return null;
+		if (!rc.getConnectionType().getId().equals(TCFConnection.CONNECTION_TYPE_ID))
+			return null;
+
+		synchronized(fConnections) {
+			String name = rc.getName();
+			TCFConnection result = fConnections.get(name);
+			if (result == null) {
+				result = new TCFConnection(rc);
+				fConnections.put(name, result);
+			}
+			return result;
+		}
 	}
 
-	@Override
-	protected TCFRemoteServices getRemoteServices() {
-	    return (TCFRemoteServices) super.getRemoteServices();
+	public void setConnectionType(IRemoteConnectionType connectionType) {
+		synchronized(fConnections) {
+			fConnectionType = connectionType;
+			initialize();
+			syncConnections();
+		}
 	}
 
 	public void initialize() {
@@ -69,24 +88,65 @@ public class TCFConnectionManager extends AbstractRemoteConnectionManager implem
 						for (IPeerNode peerNode : peerModel.getPeerNodes()) {
 							String name = peerNode.getPeer().getName();
 							TCFConnection connection = fConnections.get(name);
-							if (connection != null) {
-								connection.setPeerNode(peerNode);
+							if (connection == null) {
+								fConnections.put(name, new TCFConnection(peerNode));
 							} else {
-								fConnections.put(name, new TCFConnection(getRemoteServices(), peerNode));
+								connection.setPeerNode(peerNode);
 							}
 						}
-						for (Iterator<TCFConnection> it = fConnections.values().iterator(); it.hasNext(); ) {
-							TCFConnection conn = it.next();
-							if (conn.getPeerNode() == null)
-								it.remove();
-						}
 						fInitialized = 2;
+						syncConnections();
 						fConnections.notifyAll();
 					}
 				}
+
 			});
 		}
     }
+
+	void syncConnections() {
+		if (fConnectionType != null && fInitialized == 2) {
+			// Remove all connections without a peer
+			for (IRemoteConnection rc : new ArrayList<IRemoteConnection>(fConnectionType.getConnections())) {
+				String name = rc.getName();
+				TCFConnection connection = fConnections.get(name);
+				if (connection == null || connection.getPeerNode() == null) {
+					try {
+						fConnectionType.removeConnection(rc);
+					} catch (RemoteConnectionException e) {
+						CoreBundleActivator.logError("Cannot remove remote connection.", e); //$NON-NLS-1$
+					}
+					fConnections.remove(name);
+				}
+			}
+			// Add connections with peers
+			for (Iterator<TCFConnection> it = fConnections.values().iterator(); it.hasNext(); ) {
+				TCFConnection connection = it.next();
+				IPeerNode peerNode = connection.getPeerNode();
+				if (peerNode == null) {
+					it.remove();
+				} else {
+					addRemoteConnection(connection);
+				}
+			}
+		}
+	}
+
+	private void addRemoteConnection(TCFConnection connection) {
+		if (fConnectionType == null)
+			return;
+
+		String name = connection.getName();
+		if (fConnectionType.getConnection(name) == null) {
+			try {
+				IRemoteConnectionWorkingCopy wc = fConnectionType.newConnection(name);
+				IRemoteConnection rc = wc.save();
+				connection.setRemoteConnection(rc);
+			} catch (RemoteConnectionException e) {
+				CoreBundleActivator.logError("Cannot add remote connection.", e); //$NON-NLS-1$
+			}
+		}
+	}
 
 	public void waitForInitialization(IProgressMonitor monitor) {
 		synchronized (fConnections) {
@@ -113,14 +173,27 @@ public class TCFConnectionManager extends AbstractRemoteConnectionManager implem
 		String name = peerNode.getPeer().getName();
 		if (added) {
 			synchronized (fConnections) {
-				if (!fConnections.containsKey(name)) {
-					fConnections.put(name, new TCFConnection(getRemoteServices(), peerNode));
+				TCFConnection connection = fConnections.get(name);
+				if (connection != null) {
+					connection.setPeerNode(peerNode);
+				} else {
+					connection = new TCFConnection(peerNode);
+					fConnections.put(name, connection);
 				}
+				addRemoteConnection(connection);
 			}
 		} else {
 			TCFConnection connection = fConnections.remove(name);
 			if (connection != null) {
 				connection.setConnectedTCF(false);
+				IRemoteConnection rc = connection.getRemoteConnection();
+				if (rc != null) {
+					try {
+						rc.getConnectionType().removeConnection(rc);
+					} catch (RemoteConnectionException e) {
+						CoreBundleActivator.logError("Cannot remove remote connection.", e); //$NON-NLS-1$
+					}
+				}
 			}
 		}
     }
@@ -143,43 +216,6 @@ public class TCFConnectionManager extends AbstractRemoteConnectionManager implem
 		    	 connection.setConnectedTCF(connected);
 			}
 		}
-	}
-
-	@Override
-	public IRemoteConnection getConnection(String name) {
-		synchronized (fConnections) {
-			TCFConnection connection = fConnections.get(name);
-			if (connection == null && fInitialized < 2) {
-				connection = new TCFConnection(getRemoteServices(), name);
-				fConnections.put(name, connection);
-			}
-		}
-		return fConnections.get(name);
-	}
-
-	@Override
-	public IRemoteConnection getConnection(URI uri) {
-		String connName = TCFEclipseFileSystem.getConnectionNameFor(uri);
-		if (connName != null) {
-			return getConnection(connName);
-		}
-		return null;
-	}
-
-	@Override
-	public List<IRemoteConnection> getConnections() {
-		synchronized (fConnections) {
-			return new ArrayList<IRemoteConnection>(fConnections.values());
-		}
-	}
-
-	@Override
-	public IRemoteConnectionWorkingCopy newConnection(String name) throws RemoteConnectionException {
-		throw new RemoteConnectionException(Messages.TCFConnectionManager_errorNoCreateConnection);
-	}
-
-	@Override
-	public void removeConnection(IRemoteConnection conn) {
 	}
 
 	void open(IPeerNode peerNode, IProgressMonitor monitor) throws RemoteConnectionException {
@@ -213,4 +249,9 @@ public class TCFConnectionManager extends AbstractRemoteConnectionManager implem
 			throw new RemoteConnectionException(Messages.TCFConnectionManager_errorCannotConnect, status != null ? status.getException() : null);
 		}
     }
+
+	void close(IPeerNode peerNode) {
+		peerNode.changeConnectState(IConnectable.ACTION_DISCONNECT, new Callback(), null);
+    }
+
 }

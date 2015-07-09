@@ -2,20 +2,25 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.eclipse.remote.ui.remoteUIServices">
-      <remoteUIServices
-            class="org.eclipse.tcf.te.tcf.remote.ui.TCFUIServicesFactory"
-            id="org.eclipse.tcf.te.tcf.remote.core.TCFService"
-            name="TCF">
-      </remoteUIServices>
-   </extension>
-   <extension
          point="org.eclipse.ui.ide.filesystemSupport">
       <filesystemContributor
             class="org.eclipse.tcf.te.tcf.remote.ui.TCFFileSystemContributor"
             label="TCF"
             scheme="tcf">
       </filesystemContributor>
+   </extension>
+   <extension
+         point="org.eclipse.remote.core.remoteServices">
+      <connectionTypeService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.ui.TCFUIServicesFactory"
+            service="org.eclipse.remote.ui.IRemoteUIFileService">
+      </connectionTypeService>
+      <connectionTypeService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.ui.TCFUIServicesFactory"
+            service="org.eclipse.remote.ui.IRemoteUIConnectionService">
+      </connectionTypeService>
    </extension>
 
 </plugin>

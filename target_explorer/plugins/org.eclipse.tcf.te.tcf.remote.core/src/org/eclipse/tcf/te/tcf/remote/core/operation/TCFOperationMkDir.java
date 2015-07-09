@@ -74,12 +74,12 @@ public final class TCFOperationMkDir extends TCFFileStoreOperation<Object> {
 								if (error != null) {
 									callback.doneMkDir(token, error);
 								} else {
-			    					fs.mkdir(fileStore.getPath().toString(), null, callback);
+			    					fs.mkdir(fileStore.getPath(), null, callback);
 								}
 							}
 						});
     			    } else {
-    					fs.mkdir(fileStore.getPath().toString(), null, callback);
+    					fs.mkdir(fileStore.getPath(), null, callback);
     				}
     			}
     		}

@@ -22,13 +22,11 @@ import org.eclipse.core.filesystem.provider.FileInfo;
 import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.remote.core.IRemoteConnection;
+import org.eclipse.remote.core.IRemoteConnectionType;
+import org.eclipse.remote.core.IRemoteServicesManager;
+import org.eclipse.remote.internal.core.RemotePath;
 import org.eclipse.tcf.services.IFileSystem.FileAttrs;
 import org.eclipse.tcf.te.tcf.remote.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationChildStores;
@@ -40,39 +38,75 @@ import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationOpenOutputStream
 import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationPutInfo;
 
 public final class TCFFileStore extends FileStore {
+	public static final String SCHEME = "tcf"; //$NON-NLS-1$
+	public static final String NOSLASH_MARKER = "/./"; //$NON-NLS-1$
+
+	public static String addNoSlashMarker(String path) {
+		if (path.length() > 0 && path.charAt(0) != '/')
+			return NOSLASH_MARKER + path;
+		return path;
+	}
+
+	public static String stripNoSlashMarker(String path) {
+		if (path.startsWith(NOSLASH_MARKER))
+			return path.substring(NOSLASH_MARKER.length());
+		return path;
+	}
+
+	public static URI toURI(TCFConnection connection, String path) {
+		try {
+			return new URI(SCHEME, connection.getName(), addNoSlashMarker(path), null, null);
+		} catch (URISyntaxException e) {
+			return null;
+		}
+	}
+
+	public static String toPath(URI uri) {
+		return stripNoSlashMarker(uri.getPath());
+	}
+
+
+	public static TCFConnection toConnection(URI uri) {
+		IRemoteServicesManager rsm = CoreBundleActivator.getService(IRemoteServicesManager.class);
+		if (rsm == null)
+			return null;
+
+		IRemoteConnectionType ct = rsm.getConnectionType(uri);
+		if (ct == null)
+			return null;
+
+		String peerName = uri.getAuthority();
+		if (peerName == null)
+			return null;
+
+		return TCFConnectionManager.INSTANCE.mapConnection(ct.getConnection(peerName));
+	}
+
 
 	public static IFileStore getInstance(URI uri) {
-		IRemoteConnection connection = TCFEclipseFileSystem.getConnection(uri);
-		if (connection instanceof TCFConnection)
-			return new TCFFileStore((TCFConnection) connection, uri, null);
-
-		return EFS.getNullFileSystem().getStore(new Path(uri.getPath()));
+		TCFConnection connection = toConnection(uri);
+		String path = toPath(uri);
+		if (connection != null) {
+			return new TCFFileStore(connection, path, null);
+		}
+		return EFS.getNullFileSystem().getStore(RemotePath.forPosix(path));
 	}
 
-	public static IFileStore getInstance(TCFConnection connection, String path, TCFFileStore parent) {
-		try {
-	        URI uri = TCFEclipseFileSystem.getURIFor(connection, path);
-			return new TCFFileStore(connection, uri, parent);
-        } catch (URISyntaxException e) {
-        	Platform.getLog(CoreBundleActivator.getContext().getBundle()).log(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), Messages.TCFFileManager_errorFileStoreForPath, e));
-        }
-		return EFS.getNullFileSystem().getStore(new Path(path));
-	}
-
-	private final URI fURI;
 	private final TCFConnection fConnection;
+	private final String fPath;
 	private FileAttrs fAttributes;
-	private IFileStore fParent;
+	private TCFFileStore fParent;
+	private boolean fArtificialRoot;
 
-	private TCFFileStore(TCFConnection connection, URI uri, TCFFileStore parent) {
-		fURI = uri;
+	TCFFileStore(TCFConnection connection, String path, TCFFileStore parent) {
+		fPath = path;
 		fConnection = connection;
 		fParent = parent;
 	}
 
 	@Override
 	public URI toURI() {
-		return fURI;
+		return toURI(fConnection, fPath);
 	}
 
 	public TCFConnection getConnection() {
@@ -80,7 +114,7 @@ public final class TCFFileStore extends FileStore {
 	}
 
 	public String getPath() {
-		return fURI.getPath();
+		return fPath;
 	}
 
 	public void setAttributes(FileAttrs attrs) {
@@ -93,17 +127,28 @@ public final class TCFFileStore extends FileStore {
 
 	@Override
 	public IFileStore getChild(String name) {
-		String path = getPath() + '/' + name;
-		path = path.replaceAll("/+", "/"); //$NON-NLS-1$ //$NON-NLS-2$
-		if (path.length() > 1 && path.endsWith("/")) //$NON-NLS-1$
-			path = path.substring(0, path.length()-1);
-		return getInstance(fConnection, path, this);
+		// Remove trailing slash
+		if (name.length() > 1 && name.endsWith("/")) //$NON-NLS-1$
+			name = name.substring(0, name.length()-1);
+
+		String path;
+		if (fArtificialRoot) {
+			path = name;
+		} else if (fPath.endsWith("/")) { //$NON-NLS-1$
+			path = fPath + name;
+		} else {
+			path = fPath + "/" + name; //$NON-NLS-1$
+		}
+		return new TCFFileStore(fConnection, path, this);
 	}
 
 	@Override
 	public String getName() {
 		String path = getPath();
-		int idx = path.lastIndexOf('/');
+		if (fParent == null || fParent.fArtificialRoot)
+			return path;
+
+		int idx = path.lastIndexOf('/', path.length()-2);
 		if (idx > 0)
 			return path.substring(idx + 1);
 		return path;
@@ -114,12 +159,11 @@ public final class TCFFileStore extends FileStore {
 		if (fParent != null)
 			return fParent;
 
-		String path = getPath();
-		int idx = path.lastIndexOf('/');
+		int idx = fPath.lastIndexOf('/');
 		if (idx < 1)
 			return null;
 
-		fParent = getInstance(fConnection, path.substring(0, idx-1), null);
+		fParent = new TCFFileStore(fConnection, fPath.substring(0, idx-1), null);
 		return fParent;
 	}
 
@@ -199,5 +243,9 @@ public final class TCFFileStore extends FileStore {
         } catch (OperationCanceledException e) {
         	return null;
         }
+	}
+
+	public void setIsArtificialRoot() {
+		fArtificialRoot = true;
 	}
 }

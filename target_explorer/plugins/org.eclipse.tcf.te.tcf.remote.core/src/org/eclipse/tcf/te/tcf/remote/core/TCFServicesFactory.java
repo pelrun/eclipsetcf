@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2015 Wind River Systems, Inc.
+ * Copyright (c) 2015 Wind River Systems, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,13 +10,31 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.remote.core;
 
-import org.eclipse.remote.core.IRemoteServices;
-import org.eclipse.remote.core.IRemoteServicesDescriptor;
-import org.eclipse.remote.core.IRemoteServicesFactory;
+import org.eclipse.remote.core.IRemoteConnection;
+import org.eclipse.remote.core.IRemoteConnectionType;
+import org.eclipse.remote.core.IRemoteProcess;
 
-public class TCFServicesFactory implements IRemoteServicesFactory {
+public class TCFServicesFactory implements IRemoteConnectionType.Service.Factory,
+		IRemoteConnection.Service.Factory, IRemoteProcess.Service.Factory {
+
 	@Override
-    public IRemoteServices getServices(IRemoteServicesDescriptor descriptor) {
-		return new TCFRemoteServices(descriptor);
+	public <T extends IRemoteConnectionType.Service> T getService(IRemoteConnectionType connectionType, Class<T> service) {
+		if (service.isAssignableFrom(TCFRemoteConnectionType.class)) {
+			return service.cast(new TCFRemoteConnectionType(connectionType));
+		}
+		return null;
+	}
+
+	@Override
+	public <T extends IRemoteConnection.Service> T getService(IRemoteConnection remoteConnection, Class<T> service) {
+		if (service.isAssignableFrom(TCFConnection.class)) {
+			return service.cast(TCFConnectionManager.INSTANCE.mapConnection(remoteConnection));
+		}
+		return null;
+	}
+
+	@Override
+	public <T extends IRemoteProcess.Service> T getService(IRemoteProcess remoteProcess, Class<T> service) {
+		return remoteProcess.getService(service);
 	}
 }

@@ -8,19 +8,26 @@
  * Contributors:
  *    Markus Schorn - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tcf.te.tcf.remote.ui;
+package org.eclipse.tcf.te.tcf.remote.core;
 
+import org.eclipse.remote.core.IRemoteConnectionProviderService;
 import org.eclipse.remote.core.IRemoteConnectionType;
-import org.eclipse.remote.core.IRemoteConnectionType.Service;
 
-public class TCFUIServicesFactory implements IRemoteConnectionType.Service.Factory {
+public class TCFRemoteConnectionType implements IRemoteConnectionProviderService {
+	private final IRemoteConnectionType fConnectionType;
+
+	public TCFRemoteConnectionType(IRemoteConnectionType type) {
+		fConnectionType = type;
+	}
 
 	@Override
-	public <T extends Service> T getService(IRemoteConnectionType connectionType, Class<T> service) {
-		if (service.isAssignableFrom(TCFUIFileService.class))
-			return service.cast(new TCFUIFileService(connectionType));
-		if (service.isAssignableFrom(TCFUIConnectionService.class))
-			return service.cast(new TCFUIConnectionService(connectionType));
-		return null;
+	public IRemoteConnectionType getConnectionType() {
+		return fConnectionType;
 	}
+
+	@Override
+	public void init() {
+		TCFConnectionManager.INSTANCE.setConnectionType(fConnectionType);
+	}
+
 }

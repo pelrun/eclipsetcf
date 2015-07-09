@@ -12,11 +12,14 @@ package org.eclipse.tcf.te.tcf.remote.ui.activator;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  * The activator class controls the plug-in life cycle
  */
 public class UIPlugin extends AbstractUIPlugin {
+	private static final String PLUGIN_ID = "org.eclipse.tcf.te.tcf.remote.ui"; //$NON-NLS-1$
+
 	// The shared instance
 	private static UIPlugin plugin;
 
@@ -39,28 +42,26 @@ public class UIPlugin extends AbstractUIPlugin {
 	 * Convenience method which returns the unique identifier of this plugin.
 	 */
 	public static String getUniqueIdentifier() {
-		if (getDefault() != null && getDefault().getBundle() != null) {
-			return getDefault().getBundle().getSymbolicName();
-		}
-		return "org.eclipse.tcf.te.tcf.remote.ui"; //$NON-NLS-1$
+		return PLUGIN_ID;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
-	 */
 	@Override
     public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
-	 */
 	@Override
     public void stop(BundleContext context) throws Exception {
 		plugin = null;
 		super.stop(context);
 	}
 
+	public static <T> T getService(Class<T> service) {
+		if (plugin == null)
+			return null;
+		BundleContext context = plugin.getBundle().getBundleContext();
+		ServiceReference<T> ref = context.getServiceReference(service);
+		return ref != null ? context.getService(ref) : null;
+	}
 }

@@ -10,16 +10,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.remote.core;
 
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.unmodifiableMap;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -28,45 +25,67 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.remote.core.IRemoteConnection;
-import org.eclipse.remote.core.IRemoteConnectionChangeEvent;
-import org.eclipse.remote.core.IRemoteConnectionChangeListener;
-import org.eclipse.remote.core.IRemoteConnectionWorkingCopy;
-import org.eclipse.remote.core.IRemoteFileManager;
-import org.eclipse.remote.core.IRemoteProcess;
+import org.eclipse.remote.core.IRemoteConnectionControlService;
+import org.eclipse.remote.core.IRemoteConnectionHostService;
+import org.eclipse.remote.core.IRemoteConnectionPropertyService;
+import org.eclipse.remote.core.IRemoteFileService;
 import org.eclipse.remote.core.IRemoteProcessBuilder;
+import org.eclipse.remote.core.IRemoteProcessService;
+import org.eclipse.remote.core.RemoteConnectionChangeEvent;
 import org.eclipse.remote.core.exception.RemoteConnectionException;
+import org.eclipse.remote.internal.core.RemotePath;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.remote.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.remote.core.operation.TCFOperationGetEnvironment;
 
-public class TCFConnection extends TCFConnectionBase {
+public class TCFConnection implements
+		IRemoteConnectionHostService,
+		IRemoteConnectionPropertyService,
+		IRemoteProcessService,
+		IRemoteConnectionControlService,
+		IRemoteFileService {
 
-	private static enum EState {OPEN, CLOSED_TCF, CLOSED_REMOTE_SERVICES}
+	public static final String CONNECTION_TYPE_ID = "org.eclipse.tcf.te.tcf.remote"; //$NON-NLS-1$
 
-	private final String fName;
+	private IRemoteConnection fRemoteConnection;
     private volatile IPeerNode fPeerNode;
-	private final List<IRemoteConnectionChangeListener> fListeners = new ArrayList<IRemoteConnectionChangeListener>();
 
-	private volatile EState fState;
-	private Map<String, String> fAttributes;
+	private volatile boolean fOpen;
 	private Map<String, String> fEnvironment;
+	private String fWorkingDirectory = "/"; //$NON-NLS-1$
+	private String fBaseDirectory = ""; //$NON-NLS-1$
 
-	public TCFConnection(TCFRemoteServices tcfServices, IPeerNode peerNode) {
-    	super(tcfServices);
-    	fName = peerNode.getName();
+	public TCFConnection(IPeerNode peerNode) {
     	fPeerNode = peerNode;
-    	fState = peerNode.getConnectState() == IConnectable.STATE_CONNECTED ? EState.OPEN : EState.CLOSED_TCF;
+    	fOpen = peerNode.getConnectState() == IConnectable.STATE_CONNECTED;
     }
 
-    public TCFConnection(TCFRemoteServices tcfServices, String name) {
-    	super(tcfServices);
-    	fName = name;
-    	fState = EState.CLOSED_TCF;
-    }
+	public TCFConnection(IRemoteConnection rc) {
+		fRemoteConnection = rc;
+		fOpen = false;
+	}
 
-	public void setPeerNode(IPeerNode peerNode) {
+	public String getName() {
+		if (fPeerNode != null)
+			return fPeerNode.getName();
+		return fRemoteConnection.getName();
+	}
+
+	@Override
+	public IRemoteConnection getRemoteConnection() {
+		return fRemoteConnection;
+	}
+
+	void setRemoteConnection(IRemoteConnection remoteConnection) {
+		fRemoteConnection = remoteConnection;
+	}
+
+	void setPeerNode(IPeerNode peerNode) {
+		if (fPeerNode == peerNode)
+			return;
+
 		fPeerNode = peerNode;
 		setConnectedTCF(peerNode.getConnectState() == IConnectable.STATE_CONNECTED);
 	}
@@ -75,32 +94,85 @@ public class TCFConnection extends TCFConnectionBase {
 	    return fPeerNode;
 	}
 
+	// IRemoteConnectionHostService
 	@Override
-	public String getAddress() {
+	public String getHostname() {
 		if (fPeerNode == null)
 			return "0.0.0.0"; //$NON-NLS-1$
 
-		return fPeerNode.getPeer().getAttributes().get(IPeer.ATTR_IP_HOST);
+		return getPeerProperty(IPeer.ATTR_IP_HOST);
+	}
+
+	private String getPeerProperty(String key) {
+		return fPeerNode.getPeer().getAttributes().get(key);
 	}
 
 	@Override
-	public Map<String, String> getAttributes() {
-		if (fPeerNode == null)
-			return emptyMap();
-
-		if (fAttributes == null) {
-			Map<String, String> attributes = new HashMap<String, String>();
-			attributes.put(OS_NAME_PROPERTY, fPeerNode.getPeer().getOSName());
-			fAttributes = unmodifiableMap(attributes);
+	public int getPort() {
+		if (fPeerNode != null) {
+			try {
+				return Integer.parseInt(getPeerProperty(IPeer.ATTR_IP_PORT));
+			} catch (Exception e) {
+			}
 		}
-		return fAttributes;
+		return 0;
 	}
 
 	@Override
-	public IRemoteProcess getCommandShell(int flags) throws IOException {
-		throw new IOException(Messages.TCFConnection_errorNoCommandShell);
+	public int getTimeout() {
+		return 60;
 	}
 
+	@Override
+	public boolean useLoginShell() {
+		return false;
+	}
+
+	@Override
+	public String getUsername() {
+		if (fPeerNode == null)
+			return ""; //$NON-NLS-1$
+		return getPeerProperty(IPeer.ATTR_USER_NAME);
+	}
+
+	@Override
+	public void setHostname(String hostname) {}
+
+	@Override
+	public void setPassphrase(String passphrase) {}
+
+	@Override
+	public void setPassword(String password) {}
+
+	@Override
+	public void setPort(int port) {}
+
+	@Override
+	public void setTimeout(int timeout) {}
+
+	@Override
+	public void setUseLoginShell(boolean useLogingShell) {}
+
+	@Override
+	public void setUsePassword(boolean usePassword) {}
+
+	@Override
+	public void setUsername(String username) {}
+
+	// IRemoteConnectionPropertyService
+	@Override
+	public String getProperty(String key) {
+		if (fPeerNode == null)
+			return null;
+
+		if (IRemoteConnection.OS_NAME_PROPERTY.equals(key)) {
+			return getPeerProperty(IPeer.ATTR_OS_NAME);
+		}
+
+		return null;
+	}
+
+	// IRemoteProcessService
 	@Override
 	public Map<String, String> getEnv() {
 		if (fEnvironment == null && fPeerNode != null) {
@@ -115,105 +187,90 @@ public class TCFConnection extends TCFConnectionBase {
 	}
 
 	@Override
-	public IRemoteFileManager getFileManager() {
-		return new TCFFileManager(this);
-	}
-
-	@Override
-	public String getName() {
-		return fName;
-	}
-
-	@Override
-	public int getPort() {
-		if (fPeerNode == null)
-			return 0;
-
-		try {
-			return Integer.parseInt(fPeerNode.getPeer().getAttributes().get(IPeer.ATTR_IP_PORT));
-		} catch (Exception e) {
-			return 0;
-		}
+	public String getEnv(String name) {
+		Map<String, String> map = getEnv();
+		if (map != null)
+			return map.get(name);
+		return null;
 	}
 
 	@Override
 	public IRemoteProcessBuilder getProcessBuilder(List<String> command) {
+		if (!isOpen())
+			return null;
+
 		return new TCFProcessBuilder(this, command);
 	}
 
 	@Override
 	public IRemoteProcessBuilder getProcessBuilder(String... command) {
+		if (!isOpen())
+			return null;
+
 		return new TCFProcessBuilder(this, command);
 	}
 
+
 	@Override
-	public String getUsername() {
-		if (fPeerNode == null)
-			return null;
-		return fPeerNode.getPeer().getAttributes().get(IPeer.ATTR_USER_NAME);
+	public String getWorkingDirectory() {
+		return fWorkingDirectory;
 	}
 
 	@Override
-	public IRemoteConnectionWorkingCopy getWorkingCopy() {
-		return new TCFConnectionWorkingCopy(this);
+	public void setWorkingDirectory(String path) {
+		fWorkingDirectory = path;
 	}
 
+    // IRemoteConnectionControlService
 	@Override
 	public boolean isOpen() {
-		return fState == EState.OPEN;
+		return fOpen;
 	}
 
 	@Override
 	public void open(IProgressMonitor monitor) throws RemoteConnectionException {
 		if (fPeerNode == null) {
-			getRemoteServices().getConnectionManager().waitForInitialization(monitor);
+			TCFConnectionManager.INSTANCE.waitForInitialization(monitor);
 		}
-		boolean notify = false;
-		boolean performOpen = false;
+		boolean open = false;
 		synchronized (this) {
-			if (fState != EState.OPEN) {
-				if (fPeerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
-					fState = EState.OPEN;
-					notify = true;
-				} else {
-					fState = EState.CLOSED_TCF;
-					performOpen = true;
-				}
+			if (fOpen)
+				return;
+
+			if (fPeerNode.getConnectState() == IConnectable.STATE_CONNECTED) {
+				fOpen = open = true;
 			}
 		}
-		if (notify) {
-			fireConnectionChangeEvent(IRemoteConnectionChangeEvent.CONNECTION_OPENED);
-		} else if (performOpen) {
-			getRemoteServices().getConnectionManager().open(fPeerNode, monitor);
+		if (open) {
+			fireConnectionChangeEvent(RemoteConnectionChangeEvent.CONNECTION_OPENED);
+		} else {
+			TCFConnectionManager.INSTANCE.open(fPeerNode, monitor);
 		}
 	}
 
 	@Override
 	public void close() {
-		boolean notify = false;
 		synchronized (this) {
-			if (fState == EState.OPEN) {
-				fState = EState.CLOSED_REMOTE_SERVICES;
-				notify = true;
-			}
+			if (!fOpen)
+				return;
+			fOpen = false;
 		}
-		if (notify) {
-			fireConnectionChangeEvent(IRemoteConnectionChangeEvent.CONNECTION_CLOSED);
-		}
+		fireConnectionChangeEvent(RemoteConnectionChangeEvent.CONNECTION_CLOSED);
+		TCFConnectionManager.INSTANCE.close(fPeerNode);
 	}
 
 	void setConnectedTCF(boolean connected) {
 		int notify = -1;
 		synchronized (this) {
 			if (connected) {
-				if (fState == EState.CLOSED_TCF) {
-					fState = EState.OPEN;
-					notify = IRemoteConnectionChangeEvent.CONNECTION_OPENED;
+				if (!fOpen) {
+					fOpen = true;
+					notify = RemoteConnectionChangeEvent.CONNECTION_OPENED;
 				}
 			} else {
-				if (fState == EState.OPEN) {
-					fState = EState.CLOSED_TCF;
-					notify = IRemoteConnectionChangeEvent.CONNECTION_CLOSED;
+				if (fOpen) {
+					fOpen = false;
+					notify = RemoteConnectionChangeEvent.CONNECTION_CLOSED;
 				}
 			}
 		}
@@ -222,51 +279,56 @@ public class TCFConnection extends TCFConnectionBase {
 		}
     }
 
+	private void fireConnectionChangeEvent(final int type) {
+		final IRemoteConnection rc = fRemoteConnection;
+		if (rc == null)
+			return;
 
-	@Override
-	public void addConnectionChangeListener(IRemoteConnectionChangeListener listener) {
-		synchronized (fListeners) {
-			if (!fListeners.contains(listener))
-				fListeners.add(listener);
-		}
-	}
-
-	@Override
-	public void removeConnectionChangeListener(IRemoteConnectionChangeListener listener) {
-		synchronized (fListeners) {
-			fListeners.remove(listener);
-		}
-	}
-
-	private IRemoteConnectionChangeListener[] getListeners() {
-		synchronized (fListeners) {
-			return fListeners.toArray(new IRemoteConnectionChangeListener[fListeners.size()]);
-		}
-	}
-
-	@Override
-	public void fireConnectionChangeEvent(final int type) {
-		final IRemoteConnection connection = this;
 		new Job(Messages.TCFConnection_notifyListeners) {
-			@SuppressWarnings("synthetic-access")
             @Override
 			protected IStatus run(IProgressMonitor monitor) {
-				IRemoteConnectionChangeEvent event = new IRemoteConnectionChangeEvent() {
-					@Override
-					public IRemoteConnection getConnection() {
-						return connection;
-					}
-
-					@Override
-					public int getType() {
-						return type;
-					}
-				};
-				for (Object listener : getListeners()) {
-					((IRemoteConnectionChangeListener) listener).connectionChanged(event);
-				}
+				rc.fireConnectionChangeEvent(type);
 				return Status.OK_STATUS;
 			}
 		}.schedule();
+	}
+
+	// IRemoteFileService
+	@Override
+	public String getBaseDirectory() {
+		return fBaseDirectory;
+	}
+
+	@Override
+	public String getDirectorySeparator() {
+		return "/"; //$NON-NLS-1$
+	}
+
+	@Override
+	public IFileStore getResource(String path) {
+		return new TCFFileStore(this, RemotePath.forPosix(path).toString(), null);
+	}
+
+	@Override
+	public void setBaseDirectory(String path) {
+		fBaseDirectory = path;
+	}
+
+	@Override
+	public String toPath(URI uri) {
+		return TCFFileStore.toPath(uri);
+	}
+
+	@Override
+	public URI toURI(String path) {
+		return toURI(RemotePath.forPosix(path));
+	}
+
+	@Override
+	public URI toURI(IPath path) {
+		if (!path.isAbsolute() && fBaseDirectory != null && fBaseDirectory.length() > 0) {
+			path = RemotePath.forPosix(fBaseDirectory).append(path);
+		}
+		return TCFFileStore.toURI(this, path.toString());
 	}
 }

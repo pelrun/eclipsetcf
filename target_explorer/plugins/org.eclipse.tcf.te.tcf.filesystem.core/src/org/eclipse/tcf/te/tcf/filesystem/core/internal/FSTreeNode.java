@@ -87,6 +87,21 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 		}
 	};
 
+	public static final String NOSLASH_MARKER = "/./"; //$NON-NLS-1$
+
+	public static String addNoSlashMarker(String path) {
+		if (path.length() > 0 && path.charAt(0) != '/')
+			return NOSLASH_MARKER + path;
+		return path;
+	}
+
+	public static String stripNoSlashMarker(String path) {
+		if (path.startsWith(NOSLASH_MARKER))
+			return path.substring(NOSLASH_MARKER.length());
+		return path;
+	}
+
+
 
 	private FSTreeNode fParent;
 	private String fName;
@@ -140,10 +155,10 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 
     @Override
     public Object getAdapter(Class adapter) {
-		if(IViewerInput.class.equals(adapter)) {
-			return getPeerNode().getAdapter(IViewerInput.class);
+		if (IViewerInput.class.equals(adapter)) {
+			return getPeerNode().getAdapter(adapter);
 		}
-		if(IPropertyChangeProvider.class.equals(adapter)) {
+		if (IPropertyChangeProvider.class.equals(adapter)) {
 			return getPeerNode().getAdapter(adapter);
 		}
 	    return super.getAdapter(adapter);
@@ -263,7 +278,7 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 
     /**
      * Get the URL of the file or folder. The URL's format is created in the
-     * following way: tcf:/<TCF_AGENT_ID>/remote/path/to/the/resource... See
+     * following way: tcf:/<peerName>/remote/path/to/the/resource... See
      * {@link TcfURLConnection#TcfURLConnection(URL)}
      *
      * @see TcfURLStreamHandlerService#parseURL(URL, String, int, int)
@@ -283,16 +298,16 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 
     /**
      * Get the URI of the file or folder. The URI's format is created in the
-     * following way: tcf:/<TCF_AGENT_ID>/remote/path/to/the/resource...
+     * following way: tcf:/<peerName>/remote/path/to/the/resource...
      *
      * @return The URI of the file/folder.
      */
     @Override
 	public URI getLocationURI() {
         try {
-            String id = getPeerNode().getPeerId();
+            String name = getPeerNode().getName();
             String path = getLocation('/', true);
-            return new URI(TcfURLConnection.PROTOCOL_SCHEMA, id, "/" + path, null); //$NON-NLS-1$
+            return new URI(TcfURLConnection.PROTOCOL_SCHEMA, name, addNoSlashMarker(path), null);
         } catch (URISyntaxException e) {
         	CorePlugin.logError("Cannot create tcf uri", e); //$NON-NLS-1$
             return null;

@@ -10,14 +10,19 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.remote.core.activator;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  * The activator class controls the plug-in life cycle
  */
 public class CoreBundleActivator implements BundleActivator {
 
+	private static final String PLUGIN_ID = "org.eclipes.tcf.te.tcf.remote.core"; //$NON-NLS-1$
 	// The bundle context
 	private static BundleContext context;
 	// The shared instance
@@ -45,10 +50,7 @@ public class CoreBundleActivator implements BundleActivator {
 	 * Convenience method which returns the unique identifier of this plugin.
 	 */
 	public static String getUniqueIdentifier() {
-		if (getContext() != null && getContext().getBundle() != null) {
-			return getContext().getBundle().getSymbolicName();
-		}
-		return "org.eclipes.tcf.te.tcf.remote.core"; //$NON-NLS-1$
+		return PLUGIN_ID;
 	}
 
 	/* (non-Javadoc)
@@ -69,8 +71,13 @@ public class CoreBundleActivator implements BundleActivator {
 		plugin = null;
 	}
 
-//	public static void logError(String msg, Throwable th) {
-//		Platform.getLog(Platform.getBundle(ID)).log(new Status(IStatus.ERROR, ID, msg, th));
-//    }
+	public static <T> T getService(Class<T> service) {
+		ServiceReference<T> ref = context.getServiceReference(service);
+		return ref != null ? context.getService(ref) : null;
+	}
+
+	public static void logError(String msg, Throwable th) {
+		Platform.getLog(Platform.getBundle(PLUGIN_ID)).log(new Status(IStatus.ERROR, PLUGIN_ID, msg, th));
+    }
 
 }

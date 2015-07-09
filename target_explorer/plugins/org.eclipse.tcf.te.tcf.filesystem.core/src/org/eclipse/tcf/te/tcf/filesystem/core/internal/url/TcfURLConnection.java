@@ -29,6 +29,7 @@ import org.eclipse.tcf.services.IFileSystem.DoneOpen;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 import org.eclipse.tcf.te.tcf.core.Tcf;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.exceptions.TCFChannelException;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 import org.eclipse.tcf.te.tcf.filesystem.core.services.Operation;
@@ -75,7 +76,7 @@ public class TcfURLConnection extends URLConnection {
 
 	/**
 	 * Create a TCF URL Connection using the specified url. The format of this
-	 * URL should be: tcf:/<TCF_AGENT_ID>/remote/path/to/the/resource... The
+	 * URL should be: tcf:/<peerName>/remote/path/to/the/resource... The
 	 * stream protocol schema is designed in this way in order to retrieve the
 	 * agent peer ID without knowing the structure of a TCF peer id.
 	 *
@@ -85,17 +86,13 @@ public class TcfURLConnection extends URLConnection {
 	 */
 	public TcfURLConnection(final URL url) throws IOException {
 		super(url);
-		String peerId = url.getHost();
-		Assert.isNotNull(peerId);
-		peer = findPeer(peerId);
+		String peerName = url.getHost();
+		Assert.isNotNull(peerName);
+		peer = findPeer(peerName);
 		if (peer == null) {
-			throw new IOException(NLS.bind(Messages.TcfURLConnection_NoPeerFound, peerId));
+			throw new IOException(NLS.bind(Messages.TcfURLConnection_NoPeerFound, peerName));
 		}
-		String p = url.getPath();
-		if (!p.startsWith("/")) { //$NON-NLS-1$
-			throw new IOException(Messages.TcfURLConnection_relativePath);
-		}
-		path = p.substring(1);
+		path = FSTreeNode.stripNoSlashMarker(url.getPath());
 		// Set default timeout.
 		setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
 		setOpenTimeout(DEFAULT_OPEN_TIMEOUT);
@@ -109,8 +106,8 @@ public class TcfURLConnection extends URLConnection {
 	 * @param peerId The target peer's ID.
 	 * @return The peer with this ID or null if not found.
 	 */
-    private IPeer findPeer(final String peerId) {
-    	Assert.isNotNull(peerId);
+    private IPeer findPeer(final String peerName) {
+    	Assert.isNotNull(peerName);
 
     	final AtomicReference<IPeer> peer = new AtomicReference<IPeer>();
 
@@ -118,10 +115,11 @@ public class TcfURLConnection extends URLConnection {
 
 			@Override
 			public void run() {
-				IPeer p = Protocol.getLocator().getPeers().get(peerId);
+				IPeer p = Protocol.getLocator().getPeers().get(peerName);
 				if (p == null) {
-					IPeerNode peerNode = ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelById(peerId);
-					if (peerNode != null) p = peerNode.getPeer();
+					IPeerNode[] peerNode = ModelManager.getPeerModel().getService(IPeerModelLookupService.class).lkupPeerModelByName(peerName);
+					if (peerNode != null && peerNode.length > 0)
+						p = peerNode[0].getPeer();
 				}
 				peer.set(p);
 			}

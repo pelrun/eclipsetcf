@@ -23,7 +23,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.remote.core.AbstractRemoteProcessBuilder;
-import org.eclipse.remote.core.IRemoteFileManager;
 import org.eclipse.remote.core.IRemoteProcess;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -37,7 +36,7 @@ public class TCFProcessBuilder extends AbstractRemoteProcessBuilder {
 	private Map<String, String> fEnv;
 
 	public TCFProcessBuilder(TCFConnection connection, List<String> command) {
-		super(command);
+		super(connection.getRemoteConnection(), command);
 		fConnection = connection;
 	}
 
@@ -49,11 +48,8 @@ public class TCFProcessBuilder extends AbstractRemoteProcessBuilder {
 	public IFileStore directory() {
 		IFileStore dir = super.directory();
 		if (dir == null) {
-			IRemoteFileManager fileMgr = fConnection.getFileManager();
-			if (fileMgr != null) {
-				dir = fileMgr.getResource(fConnection.getWorkingDirectory());
-				directory(dir);
-			}
+			dir = fConnection.getResource(fConnection.getWorkingDirectory());
+			directory(dir);
 		}
 		return dir;
 	}
@@ -79,7 +75,7 @@ public class TCFProcessBuilder extends AbstractRemoteProcessBuilder {
 		IFileStore dirStore = super.directory();
 		String dir;
 		if (dirStore instanceof TCFFileStore) {
-			dir = ((TCFFileStore) dirStore).getPath().toString();
+			dir = ((TCFFileStore) dirStore).getPath();
 		} else {
 			dir = ""; //$NON-NLS-1$
 		}
@@ -110,7 +106,7 @@ public class TCFProcessBuilder extends AbstractRemoteProcessBuilder {
 			}
 		};
 
-		TCFProcess remoteProcess = new TCFProcess(launcher);
+		TCFProcess remoteProcess = new TCFProcess(this, launcher);
 		boolean ok = false;
 		try {
 			new TCFOperationStartProcess(fConnection.getPeerNode().getPeer(),

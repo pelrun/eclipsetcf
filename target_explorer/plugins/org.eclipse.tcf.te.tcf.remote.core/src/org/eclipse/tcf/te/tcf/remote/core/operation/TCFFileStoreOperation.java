@@ -39,7 +39,7 @@ public abstract class TCFFileStoreOperation<T> extends TCFOperation<T> {
         }
 
 	protected final String getPath() {
-		return fFileStore.getPath().toString();
+		return fFileStore.getPath();
 	}
 
 	protected final IPeerNode getPeerNode() {
@@ -79,7 +79,7 @@ public abstract class TCFFileStoreOperation<T> extends TCFOperation<T> {
 		if (attrs != null) {
 			doneStat.doneStat(null, null, attrs);
 		} else {
-			fileSystem.stat(fileStore.getPath().toString(), doneStat);
+			fileSystem.stat(fileStore.getPath(), doneStat);
 		}
 	}
 }

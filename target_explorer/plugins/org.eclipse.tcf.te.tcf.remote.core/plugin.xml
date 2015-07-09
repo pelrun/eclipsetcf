@@ -1,14 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
-         point="org.eclipse.remote.core.remoteServices">
-      <remoteServices
-            class="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
-            id="org.eclipse.tcf.te.tcf.remote.core.TCFService"
+   <extension point="org.eclipse.remote.core.remoteServices">
+      <connectionType
+            canAdd="false"
+            canEdit="false"
+            canRemove="false"
+            id="org.eclipse.tcf.te.tcf.remote"
             name="TCF"
             scheme="tcf">
-      </remoteServices>
+      </connectionType>
+   
+      <connectionTypeService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            service="org.eclipse.remote.core.IRemoteConnectionProviderService">
+      </connectionTypeService>
+      
+      <connectionService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            service="org.eclipse.remote.core.IRemoteConnectionControlService">
+      </connectionService>
+      <connectionService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            service="org.eclipse.remote.core.IRemoteConnectionPropertyService">
+      </connectionService>
+      <connectionService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            service="org.eclipse.remote.core.IRemoteProcessService">
+      </connectionService>
+      <connectionService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            service="org.eclipse.remote.core.IRemoteFileService">
+      </connectionService>
+      <connectionService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            service="org.eclipse.remote.core.IRemoteConnectionHostService">
+      </connectionService>
+      
+      <processService
+            connectionTypeId="org.eclipse.tcf.te.tcf.remote"
+            factory="org.eclipse.tcf.te.tcf.remote.core.TCFServicesFactory"
+            service="org.eclipse.remote.core.IRemoteProcessControlService">
+      </processService>
    </extension>
    <extension point="org.eclipse.core.filesystem.filesystems"
          id="org.eclipse.tcf.te.tcf.remote.core.filesystem">

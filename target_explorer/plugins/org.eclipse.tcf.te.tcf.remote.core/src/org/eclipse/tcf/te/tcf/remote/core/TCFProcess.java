@@ -17,14 +17,17 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.EventObject;
 
-import org.eclipse.remote.core.AbstractRemoteProcess;
+import org.eclipse.remote.core.IRemoteConnection;
+import org.eclipse.remote.core.IRemoteProcess;
+import org.eclipse.remote.core.IRemoteProcessBuilder;
+import org.eclipse.remote.core.IRemoteProcessControlService;
 import org.eclipse.tcf.services.IProcesses.ProcessContext;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.events.IEventListener;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessLauncher;
 import org.eclipse.tcf.te.tcf.processes.core.launcher.ProcessStateChangeEvent;
 
-public class TCFProcess extends AbstractRemoteProcess implements IEventListener {
+public class TCFProcess implements IRemoteProcess, IRemoteProcessControlService, IEventListener {
 	private InputStream fStdout;
 	private InputStream fStderr;
 	private OutputStream fStdin;
@@ -35,6 +38,7 @@ public class TCFProcess extends AbstractRemoteProcess implements IEventListener 
 	private final ProcessLauncher fLauncher;
 	private int fExitValue;
 	private boolean fCompleted;
+	private IRemoteProcessBuilder fBuilder;
 
 	private class StreamForwarder implements Runnable {
 		private final static int BUF_SIZE = 8192;
@@ -76,9 +80,37 @@ public class TCFProcess extends AbstractRemoteProcess implements IEventListener 
 		}
 	}
 
-	public TCFProcess(ProcessLauncher launcher) {
+	public TCFProcess(TCFProcessBuilder builder, ProcessLauncher launcher) {
+		fBuilder = builder;
 		fLauncher = launcher;
 		EventManager.getInstance().addEventListener(this, ProcessStateChangeEvent.class);
+	}
+
+	@Override
+	public IRemoteProcessBuilder getProcessBuilder() {
+		return fBuilder;
+	}
+
+	@Override
+	public IRemoteConnection getRemoteConnection() {
+		return fBuilder.getRemoteConnection();
+	}
+
+	@Override
+	public IRemoteProcess getRemoteProcess() {
+		return this;
+	}
+
+	@Override
+	public <T extends Service> T getService(Class<T> service) {
+		if (service.isAssignableFrom(TCFProcess.class))
+			return service.cast(this);
+		return null;
+	}
+
+	@Override
+	public <T extends Service> boolean hasService(Class<T> service) {
+		return service.isAssignableFrom(TCFProcess.class);
 	}
 
 	public void connectStreams(TCFProcessStreams streams, boolean redirectStderr) throws IOException {
@@ -180,4 +212,6 @@ public class TCFProcess extends AbstractRemoteProcess implements IEventListener 
 			}
 		}
 	}
+
+
 }

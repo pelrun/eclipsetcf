@@ -11,41 +11,14 @@
 package org.eclipse.tcf.te.tcf.remote.core;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.remote.core.IRemoteConnection;
-import org.eclipse.remote.core.IRemoteServices;
-import org.eclipse.remote.core.RemoteServices;
 
 public class TCFEclipseFileSystem extends FileSystem {
 
-	public static final String SCHEME = "tcf"; //$NON-NLS-1$
-
-	public static String getConnectionNameFor(URI uri) {
-		return uri.getAuthority();
-	}
-
-	public static URI getURIFor(TCFConnection connection, String path) throws URISyntaxException {
-		return new URI(SCHEME, connection.getName(), path, null, null);
-	}
-
-	public static IRemoteConnection getConnection(URI uri) {
-		if (!SCHEME.equals(uri.getScheme()))
-			return null;
-		String peerName = uri.getAuthority();
-		if (peerName == null)
-			return null;
-
-		IRemoteServices trs = RemoteServices.getRemoteServices(TCFRemoteServices.TCF_ID);
-		if (trs == null)
-			return null;
-
-		return trs.getConnectionManager().getConnection(peerName);
-	}
 
 	public TCFEclipseFileSystem() {
 		super();

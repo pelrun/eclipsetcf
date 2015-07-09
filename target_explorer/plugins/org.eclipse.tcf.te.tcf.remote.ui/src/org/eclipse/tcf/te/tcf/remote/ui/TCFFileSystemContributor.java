@@ -11,25 +11,19 @@
 package org.eclipse.tcf.te.tcf.remote.ui;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.osgi.util.NLS;
-import org.eclipse.remote.core.IRemoteConnection;
+import org.eclipse.remote.core.IRemoteConnectionType;
 import org.eclipse.remote.core.IRemotePreferenceConstants;
-import org.eclipse.remote.core.IRemoteServices;
-import org.eclipse.remote.core.RemoteServices;
-import org.eclipse.remote.ui.IRemoteUIFileManager;
-import org.eclipse.remote.ui.IRemoteUIServices;
-import org.eclipse.remote.ui.RemoteUIServices;
+import org.eclipse.remote.core.IRemoteServicesManager;
+import org.eclipse.remote.internal.core.RemotePath;
+import org.eclipse.remote.ui.IRemoteUIFileService;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.tcf.remote.core.TCFConnection;
-import org.eclipse.tcf.te.tcf.remote.core.TCFEclipseFileSystem;
-import org.eclipse.tcf.te.tcf.remote.core.TCFRemoteServices;
+import org.eclipse.tcf.te.tcf.remote.core.TCFConnectionManager;
+import org.eclipse.tcf.te.tcf.remote.core.TCFFileStore;
 import org.eclipse.tcf.te.tcf.remote.ui.activator.UIPlugin;
 import org.eclipse.tcf.te.tcf.remote.ui.nls.Messages;
 import org.eclipse.ui.ide.fileSystem.FileSystemContributor;
@@ -39,23 +33,24 @@ public class TCFFileSystemContributor extends FileSystemContributor {
 
 	@Override
 	public URI browseFileSystem(String initialPath, Shell shell) {
-		IRemoteServices services = RemoteServices.getRemoteServices(TCFRemoteServices.TCF_ID);
-		IRemoteUIServices uiServices = RemoteUIServices.getRemoteUIServices(services);
-		IRemoteUIFileManager uiFileMgr = uiServices.getUIFileManager();
+		IRemoteServicesManager manager = UIPlugin.getService(IRemoteServicesManager.class);
+		if (manager == null)
+			return null;
+		IRemoteConnectionType connectionType = manager.getConnectionType(TCFConnection.CONNECTION_TYPE_ID);
+		if (connectionType == null)
+			return null;
+
+		IRemoteUIFileService uiFileMgr = connectionType.getService(IRemoteUIFileService.class);
+
 		uiFileMgr.showConnections(true);
-		String original = setPreferredService(TCFRemoteServices.TCF_ID);
+		String original = setPreferredService(TCFConnection.CONNECTION_TYPE_ID);
 		try {
 			String path = uiFileMgr.browseDirectory(shell, Messages.TCFFileSystemContributor_browseFileSystem_title, initialPath, 0);
 			if (path != null) {
-				IRemoteConnection conn = uiFileMgr.getConnection();
-				if (conn instanceof TCFConnection) {
-					TCFConnection tcfConn = (TCFConnection) conn;
-					try {
-						return TCFEclipseFileSystem.getURIFor(tcfConn, path);
-					} catch (URISyntaxException e) {
-						Platform.getLog(UIPlugin.getDefault().getBundle()).log(
-										new Status(IStatus.ERROR, UIPlugin.getUniqueIdentifier(), NLS.bind(Messages.TCFFileSystemContributor_errorCreateURIForPath, conn.getName(), path), e));
-					}
+				path = workaroundBug472329(path);
+				TCFConnection conn = TCFConnectionManager.INSTANCE.mapConnection(uiFileMgr.getConnection());
+				if (conn != null) {
+					return TCFFileStore.toURI(conn, path);
 				}
 			}
 		} finally {
@@ -64,9 +59,13 @@ public class TCFFileSystemContributor extends FileSystemContributor {
 		return null;
 	}
 
+	private String workaroundBug472329(String path) {
+		return TCFFileStore.stripNoSlashMarker(path);
+	}
+
 	private String setPreferredService(String id) {
 		IEclipsePreferences node = InstanceScope.INSTANCE.getNode(REMOTE_CORE_PLUGIN_ID);
-		String key = IRemotePreferenceConstants.PREF_REMOTE_SERVICES_ID;
+		String key = IRemotePreferenceConstants.PREF_CONNECTION_TYPE_ID;
 		String old = node.get(key, null);
 		if (id == null) {
 			node.remove(key);
@@ -78,11 +77,6 @@ public class TCFFileSystemContributor extends FileSystemContributor {
 
 	@Override
 	public URI getURI(String string) {
-		try {
-			return new URI(string);
-		} catch (URISyntaxException e) {
-			// Ignore
-		}
-		return null;
+		return URIUtil.toURI(RemotePath.forPosix(string).toString());
 	}
 }
