@@ -1675,6 +1675,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 bf.append(toNumberString(10, type_class, data, offs, size, big_endian, null, null), StyledStringBuffer.MONOSPACED);
             }
             else {
+                bf.append("0x", StyledStringBuffer.MONOSPACED);
                 bf.append(toNumberString(16, type_class, data, offs, size, big_endian, null, null), StyledStringBuffer.MONOSPACED);
             }
             return true;
