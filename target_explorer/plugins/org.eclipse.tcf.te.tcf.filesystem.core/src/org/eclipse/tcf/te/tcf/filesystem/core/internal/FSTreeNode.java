@@ -307,7 +307,7 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
         try {
             String name = getPeerNode().getName();
             String path = getLocation('/', true);
-            return new URI(TcfURLConnection.PROTOCOL_SCHEMA, name, addNoSlashMarker(path), null);
+            return new URI(TcfURLConnection.PROTOCOL_SCHEMA, name, addNoSlashMarker(path), null, null);
         } catch (URISyntaxException e) {
         	CorePlugin.logError("Cannot create tcf uri", e); //$NON-NLS-1$
             return null;
