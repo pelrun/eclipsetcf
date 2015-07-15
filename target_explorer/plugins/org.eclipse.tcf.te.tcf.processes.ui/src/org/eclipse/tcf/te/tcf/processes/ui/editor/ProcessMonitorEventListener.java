@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -29,6 +29,7 @@ import org.eclipse.tcf.te.tcf.processes.core.model.interfaces.runtime.IRuntimeMo
 import org.eclipse.tcf.te.ui.events.AbstractEventListener;
 import org.eclipse.tcf.te.ui.swt.DisplayUtil;
 import org.eclipse.tcf.te.ui.trees.TreeControl;
+import org.eclipse.ui.views.properties.PropertySheet;
 
 /**
  * Process monitor page event listener implementation.
@@ -113,6 +114,11 @@ public class ProcessMonitorEventListener extends AbstractEventListener {
 							treeControl.getViewer().refresh();
 						}
 					}
+				}
+
+				// PropertySheet reloaded
+				else if (source instanceof PropertySheet) {
+					treeControl.getParentPart().setFocus();
 				}
 			}
 		}
