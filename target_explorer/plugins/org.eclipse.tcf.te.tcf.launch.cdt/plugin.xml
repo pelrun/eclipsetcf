@@ -62,7 +62,15 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             name="Arguments"
             class="org.eclipse.cdt.dsf.gdb.internal.ui.launching.CArgumentsTab">
          <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.run"/>
-         <placement after="org.eclipse.tcf.te.remotecdt.run.mainTab"/>
+         <placement after="org.eclipse.tcf.te.remotecdt.debug.mainTab"/>
+      </tab>
+      <tab
+            id="org.eclipse.tcf.te.remotecdt.run.environmentTab"
+            group="org.eclipse.cdt.launch.remoteApplicationRunLaunchTabGroup"
+            name="Environment"
+            class="org.eclipse.tcf.te.tcf.launch.cdt.tabs.TEEnvironmentTab">
+        <associatedDelegate delegate="org.eclipse.tcf.te.remotecdt.run"/>
+        <placement after="org.eclipse.cdt.dsf.gdb.launch.argumentsTab"/>
       </tab>
       <tab
             id="org.eclipse.tcf.te.remotecdt.CommonTab"

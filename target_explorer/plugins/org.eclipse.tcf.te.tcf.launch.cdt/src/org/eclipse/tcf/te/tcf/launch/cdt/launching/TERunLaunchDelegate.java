@@ -10,6 +10,7 @@
 package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.debug.core.CDebugUtils;
@@ -22,6 +23,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.runtime.callback.Callback;
@@ -59,9 +61,10 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate {
 			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_starting_debugger);
 			String arguments = getProgramArguments(config);
 			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
+			Map<String,String> env = config.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES, (Map<String,String>)null);
 
 			TEHelper.launchCmd(peer, null, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
-			new TERunProcess(launch, remoteExePath, arguments, renderProcessLabel(exePath.toOSString()), peer, new SubProgressMonitor(monitor, 20));
+			new TERunProcess(launch, remoteExePath, arguments, env, renderProcessLabel(exePath.toOSString()), peer, new SubProgressMonitor(monitor, 20));
 		}
 	}
 

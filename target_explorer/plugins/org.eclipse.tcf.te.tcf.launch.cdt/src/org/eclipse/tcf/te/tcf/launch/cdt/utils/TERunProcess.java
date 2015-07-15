@@ -13,6 +13,7 @@
 package org.eclipse.tcf.te.tcf.launch.cdt.utils;
 
 import java.util.EventObject;
+import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -49,7 +50,12 @@ public class TERunProcess extends PlatformObject implements IProcess,
 	private int exitValue;
 
 	public TERunProcess(ILaunch launch, String remoteExePath, String arguments,
-			String label, IPeer peer, SubProgressMonitor monitor) {
+					String label, IPeer peer, SubProgressMonitor monitor) {
+		this(launch, remoteExePath, arguments, null, label, peer, monitor);
+	}
+
+	public TERunProcess(ILaunch launch, String remoteExePath, String arguments,
+			Map<String, String> env, String label, IPeer peer, SubProgressMonitor monitor) {
 		this.launch = launch;
 		// initializeAttributes(attributes);
 		prName = remoteExePath;
@@ -58,8 +64,8 @@ public class TERunProcess extends PlatformObject implements IProcess,
 		EventManager.getInstance().addEventListener(this,
 				ProcessStateChangeEvent.class);
 		try {
-			prLauncher = TEHelper.launchCmd(peer, null, remoteExePath, arguments,
-					null, monitor, new Callback());
+			prLauncher = TEHelper.launchCmdWithEnv(peer, null, remoteExePath, arguments,
+					env, null, monitor, new Callback());
 		} catch (CoreException e) {
 			Activator.getDefault().getLog().log(
 					new Status(IStatus.ERROR, Activator.getUniqueIdentifier(),
