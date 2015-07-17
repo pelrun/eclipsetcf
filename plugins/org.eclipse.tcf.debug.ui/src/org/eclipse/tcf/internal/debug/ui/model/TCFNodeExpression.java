@@ -500,6 +500,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     if (type.getSize() != 1) return false;
                     if (type.getProperties().get(ISymbols.PROP_BINARY_SCALE) != null) return false;
                     if (type.getProperties().get(ISymbols.PROP_DECIMAL_SCALE) != null) return false;
+                    if (type.getFlag(ISymbols.SYM_FLAG_ARTIFICIAL)) return false;
                     String id = type.getTypeID();
                     if (id == null || id.equals(type.getID())) break;
                     TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(id);
