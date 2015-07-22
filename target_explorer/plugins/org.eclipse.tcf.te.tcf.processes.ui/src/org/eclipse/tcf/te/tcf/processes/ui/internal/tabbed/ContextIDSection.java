@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -8,6 +8,8 @@
  * Wind River Systems - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.processes.ui.internal.tabbed;
+
+import java.math.BigInteger;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.custom.CLabel;
@@ -115,6 +117,10 @@ public class ContextIDSection extends BaseTitledSection {
 		this.pgrpText.setText(context == null ? "" : (context.getPGRP() >= 0 ? "" + context.getPGRP() : "")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		String value = context != null && context.getPID() >= 0 ? Long.toString(context.getPID()) : ""; //$NON-NLS-1$
+		if (value==null || value.length()==0) { // BigInteger conversion
+			Object o = context.getProperties().get("PID"); //$NON-NLS-1$
+			if (o instanceof BigInteger) value = o.toString();
+		}
 		String value2 = delegate != null ? delegate.getText(node, "PID", value) : null; //$NON-NLS-1$
 		SWTControlUtil.setText(pidText, value2 != null ? value2 : value);
 
