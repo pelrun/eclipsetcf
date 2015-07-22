@@ -62,6 +62,7 @@ public class Messages extends NLS {
 	public static String OpCreateFile_error_create;
 	public static String OpCreateFolder_error_createFolder;
 
+	public static String TcfURLConnection_errorInvalidURL;
 	public static String TcfURLConnection_NoFileHandleReturned;
 	public static String TcfURLConnection_NoPeerFound;
 	public static String TcfURLConnection_NoSuchTcfAgent;

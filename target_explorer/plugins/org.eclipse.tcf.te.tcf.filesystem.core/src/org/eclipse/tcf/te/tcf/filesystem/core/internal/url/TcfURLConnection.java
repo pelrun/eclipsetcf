@@ -13,6 +13,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.atomic.AtomicReference;
@@ -86,18 +88,23 @@ public class TcfURLConnection extends URLConnection {
 	 */
 	public TcfURLConnection(final URL url) throws IOException {
 		super(url);
-		String peerName = url.getHost();
-		Assert.isNotNull(peerName);
-		peer = findPeer(peerName);
-		if (peer == null) {
-			throw new IOException(NLS.bind(Messages.TcfURLConnection_NoPeerFound, peerName));
+		try {
+			URI uri = url.toURI();
+			String peerName = uri.getAuthority();
+			Assert.isNotNull(peerName);
+			peer = findPeer(peerName);
+			if (peer == null) {
+				throw new IOException(NLS.bind(Messages.TcfURLConnection_NoPeerFound, peerName));
+			}
+			path = FSTreeNode.stripNoSlashMarker(uri.getPath());
+			// Set default timeout.
+			setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
+			setOpenTimeout(DEFAULT_OPEN_TIMEOUT);
+			setReadTimeout(DEFAULT_READ_TIMEOUT);
+			setCloseTimeout(DEFAULT_CLOSE_TIMEOUT);
+		} catch (URISyntaxException e) {
+			throw new IOException(Messages.TcfURLConnection_errorInvalidURL + url.toString(), e);
 		}
-		path = FSTreeNode.stripNoSlashMarker(url.getPath());
-		// Set default timeout.
-		setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
-		setOpenTimeout(DEFAULT_OPEN_TIMEOUT);
-		setReadTimeout(DEFAULT_READ_TIMEOUT);
-		setCloseTimeout(DEFAULT_CLOSE_TIMEOUT);
 	}
 
 	/**
