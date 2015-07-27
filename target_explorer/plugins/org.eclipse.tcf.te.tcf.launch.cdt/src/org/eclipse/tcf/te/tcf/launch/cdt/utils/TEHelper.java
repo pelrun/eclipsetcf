@@ -194,7 +194,7 @@ public class TEHelper {
 	}
 
 	public static ProcessLauncher launchCmdWithEnv(final IPeer peer, String peerName, String remoteCommandPath, String arguments, Map<String, String> env, Listener listener, SubProgressMonitor monitor, ICallback callback) throws CoreException {
-		String[] args = arguments != null && !"".equals(arguments.trim()) ? StringUtil.tokenize(arguments, 0, true) : null; //$NON-NLS-1$
+		String[] args = arguments != null && !"".equals(arguments.trim()) ? StringUtil.tokenize(arguments, 0, false) : null; //$NON-NLS-1$
 		return launchCmdWithEnv(peer, peerName, remoteCommandPath, args, env, listener, monitor, callback);
 	}
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 - 2015 MontaVista Software, LLC. and others. All rights reserved.
+ * Copyright (c) 2013, 2015 MontaVista Software, LLC. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -10,13 +10,15 @@
 package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.util.Date;
 import java.util.Map;
 
 import org.eclipse.cdt.core.model.ICProject;
-import org.eclipse.cdt.debug.core.CDebugUtils;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.gdb.launching.LaunchUtils;
-import org.eclipse.cdt.launch.AbstractCLaunchDelegate;
+import org.eclipse.cdt.launch.AbstractCLaunchDelegate2;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,7 +35,11 @@ import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 import org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper;
 import org.eclipse.tcf.te.tcf.launch.cdt.utils.TERunProcess;
 
-public class TERunLaunchDelegate extends AbstractCLaunchDelegate {
+public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
+
+	public TERunLaunchDelegate() {
+		super(false);
+	}
 
 	@SuppressWarnings("unused")
 	@Override
@@ -70,7 +76,7 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate {
 
 	protected IPath checkBinaryDetails(final ILaunchConfiguration config) throws CoreException {
 		// First verify we are dealing with a proper project.
-		ICProject project = CDebugUtils.verifyCProject(config);
+		ICProject project = verifyCProject(config);
 		// Now verify we know the program to debug.
 		IPath exePath = LaunchUtils.verifyProgramPath(config, project);
 		// Finally, make sure the program is a proper binary.
@@ -78,8 +84,18 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate {
 		return exePath;
 	}
 
+	protected String getProgramArguments(ILaunchConfiguration config) throws CoreException {
+		return org.eclipse.cdt.launch.LaunchUtils.getProgramArguments(config);
+	}
+
+	protected String renderProcessLabel(String commandLine) {
+		String format = "{0} ({1})"; //$NON-NLS-1$
+		String timestamp = DateFormat.getInstance().format(new Date(System.currentTimeMillis()));
+		return MessageFormat.format(format, new Object[]{commandLine, timestamp});
+	}
+
 	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.launch.AbstractCLaunchDelegate#getPluginID()
+	 * @see org.eclipse.cdt.launch.AbstractCLaunchDelegate2#getPluginID()
 	 */
 	@Override
 	protected String getPluginID() {
