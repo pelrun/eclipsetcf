@@ -57,6 +57,15 @@ public class Messages extends NLS {
 	public static String TEGdbAbstractLaunchDelegate_error_addressInUse;
 	public static String TEGdbAbstractLaunchDelegate_error_nosuchfileordirectory;
 
+	public static String GdbPreferencePage_label;
+	public static String GdbPreferencePage_portList_label;
+	public static String GdbPreferencePage_mappedToPortList_label;
+	public static String GdbPreferencePage_appLaunchGroup_label;
+	public static String GdbPreferencePage_attachLaunchGroup_label;
+	public static String GdbPreferencePage_portList_error;
+	public static String GdbPreferencePage_portList_error_portList;
+	public static String GdbPreferencePage_portList_error_mappedToPortList;
+
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

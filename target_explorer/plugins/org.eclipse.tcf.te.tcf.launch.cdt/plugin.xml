@@ -171,5 +171,15 @@ Anna Dushistova  (MontaVista)      - adapted from org.eclipse.cdt.launch.remote
             class="org.eclipse.tcf.te.tcf.launch.cdt.preferences.PreferencesInitializer">
       </initializer>
    </extension>
+   
+<!-- Preference page contributions -->
+   <extension point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.eclipse.tcf.te.ui.preferences.general"
+            class="org.eclipse.tcf.te.tcf.launch.cdt.preferences.GdbPreferencePage"
+            id="org.eclipse.tcf.te.tcf.launch.cdt.preferences.gdb"
+            name="%preference.page.name">
+      </page>
+   </extension>
 
 </plugin>
