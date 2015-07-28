@@ -454,10 +454,19 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             if (is_char == null) return false;
                             if (is_char) {
                                 byte[] data = value_data.getValue();
-                                StyledStringBuffer bf = new StyledStringBuffer();
-                                bf.append(toASCIIString(data, 0, data.length, '\''), StyledStringBuffer.MONOSPACED);
-                                set(null, null, bf);
-                                return true;
+                                if (data.length > 0) {
+                                    if (data.length > 1) {
+                                        BigInteger value_int = TCFNumberFormat.toBigInteger(
+                                                data, value_data.isBigEndian(), false);
+                                        if (value_int.compareTo(BigInteger.valueOf(0x80)) >= 0) break;
+                                        data = new byte[1];
+                                        data[0] = value_int.byteValue();
+                                    }
+                                    StyledStringBuffer bf = new StyledStringBuffer();
+                                    bf.append(toASCIIString(data, 0, 1, '\''), StyledStringBuffer.MONOSPACED);
+                                    set(null, null, bf);
+                                    return true;
+                                }
                             }
                         }
                         break;
