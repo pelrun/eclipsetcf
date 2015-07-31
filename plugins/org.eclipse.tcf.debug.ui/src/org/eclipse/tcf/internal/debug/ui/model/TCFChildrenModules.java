@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,12 +36,14 @@ public class TCFChildrenModules extends TCFChildren {
         TCFDataCache<MemoryRegion[]> map_cache = exe.getMemoryMap();
         if (!map_cache.validate(this)) return false;
         MemoryRegion[] map = map_cache.getData();
-        Map<String, TCFNode> data = new HashMap<String, TCFNode>();
+        Map<String,TCFNode> data = new HashMap<String,TCFNode>();
         if (map != null) {
+            int cnt = 0;
             for (int index = 0; index < map.length; index++) {
                 String id = exe.id + ".Module-" + index;
                 TCFNodeModule module = (TCFNodeModule)node.model.getNode(id);
                 if (module == null) module = new TCFNodeModule(exe, id, index);
+                module.setSortPosition(cnt++);
                 data.put(id, module);
             }
         }

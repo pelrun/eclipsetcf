@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,7 @@ import org.eclipse.tcf.util.TCFDataCache;
 public class TCFNodeModule extends TCFNode implements IDetailsProvider {
 
     private final TCFData<MemoryRegion> region;
+    private int sort_pos;
 
     protected TCFNodeModule(final TCFNodeExecContext parent, String id, final int index) {
         super(parent, id);
@@ -51,6 +52,10 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
 
     public TCFDataCache<MemoryRegion> getRegion() {
         return region;
+    }
+
+    void setSortPosition(int sort_pos) {
+        this.sort_pos = sort_pos;
     }
 
     void onMemoryMapChanged() {
@@ -180,5 +185,13 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
         if ((flags & IMemoryMap.FLAG_EXECUTE) != 0) flagsLabel.append('x');
         else flagsLabel.append('-');
         return flagsLabel.toString();
+    }
+
+    @Override
+    public int compareTo(TCFNode n) {
+        TCFNodeModule e = (TCFNodeModule)n;
+        if (sort_pos < e.sort_pos) return -1;
+        if (sort_pos > e.sort_pos) return +1;
+        return 0;
     }
 }
