@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -230,6 +230,7 @@ public class Messages extends NLS {
 	public static String DefaultContextSelectorToolbarContribution_tooltip_new;
 	public static String DefaultContextSelectorToolbarContribution_label_new;
 	public static String DefaultContextSelectorToolbarContribution_tooltip_button;
+	public static String DefaultContextSelectorToolbarContribution_tooltip_warningFix;
 
 	public static String DefaultContextActionsToolbarContribution_tooltip_button;
 	public static String DefaultContextActionsToolbarContribution_tooltip_button_disabled;

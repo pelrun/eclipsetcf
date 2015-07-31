@@ -13,8 +13,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EventObject;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.runtime.Platform;
@@ -34,9 +38,11 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
@@ -45,8 +51,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
@@ -70,6 +78,9 @@ import org.eclipse.tcf.te.ui.views.handler.OpenEditorHandler;
 import org.eclipse.tcf.te.ui.views.navigator.DelegatingLabelProvider;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.events.IHyperlinkListener;
+import org.eclipse.ui.forms.widgets.FormText;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
@@ -79,15 +90,24 @@ import org.eclipse.ui.services.IServiceLocator;
  * Configurations control implementation.
  */
 public class DefaultContextSelectorToolbarContribution extends WorkbenchWindowControlContribution
-implements IWorkbenchContribution, IEventListener, IPeerModelListener, IPropertyChangeListener {
+implements IWorkbenchContribution, IEventListener, IPeerModelListener, IPropertyChangeListener, IHyperlinkListener{
 
 	private static final String WARNING_BACKGROUND_FG_COLOR_NAME = "org.eclipse.ui.themes.matchColors.toolbarWarningBackground"; //$NON-NLS-1$
+
+	private static final int CUSTOM_TOOLTIP_TIMER_TIME = 400; // Milliseconds
+	private static final int CURSOR_HEIGHT = 20; // px
+	private static final int CUSTOM_TOOLTIP_MAX_WIDTH = 320; // px
 
 	private Composite panel = null;
 	private Composite labelPanel = null;
 	private Label image = null;
 	private Label text = null;
 	private Button button = null;
+
+	/* default */ Shell customTooltipShell = null;
+	/* default */ Composite customTooltipComposite = null;
+	/* default */ FormText customTooltipText = null;
+	/* default */ Timer customTooltipTimer = null;
 
 	IServiceLocator serviceLocator = null;
 
@@ -100,6 +120,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 	/* default */ Color lightYellowColor = null;
 	private enum PanelStyle {DEFAULT,WARNING} // Color styles
 	/* default */ Color warningBackgroundColor = null;
+
+	/* default */ Boolean signatureValid;
 
 	/**
 	 * Constructor.
@@ -177,6 +199,39 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 				onButtonClick();
 			}
 		});
+
+		// Customized tooltip
+		Display display = PlatformUI.getWorkbench().getDisplay();
+		customTooltipShell = new Shell(display, SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
+		customTooltipShell.setBackground(lightYellowColor);
+		customTooltipShell.setLayout(new GridLayout());
+		customTooltipShell.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+		customTooltipComposite = new Composite(customTooltipShell, SWT.NONE);
+
+		customTooltipComposite.setLayout(new GridLayout());
+        customTooltipComposite.setBackground(lightYellowColor);
+
+        customTooltipText = new FormText(customTooltipComposite, SWT.NO_FOCUS);
+        customTooltipText.setBackground(lightYellowColor);
+        customTooltipText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        customTooltipText.addHyperlinkListener(this);
+        customTooltipText.addMouseTrackListener(new MouseTrackListener() {
+			@Override
+			public void mouseHover(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExit(MouseEvent e) {
+				startTooltipTimer();
+			}
+
+			@Override
+			public void mouseEnter(MouseEvent e) {
+				stopTooltipTimer();
+			}
+		});
+
 		text = new Label(labelPanel, SWT.NONE);
 		layoutData = new GridData(SWT.FILL, SWT.CENTER, true, true);
 		layoutData.minimumWidth = SWTControlUtil.convertWidthInCharsToPixels(text, 25);
@@ -193,6 +248,22 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 					return;
 				}
 				onButtonClick();
+			}
+		});
+
+		text.addMouseTrackListener(new MouseTrackListener() {
+			@Override
+			public void mouseHover(MouseEvent e) {
+				showTooltip(e);
+			}
+
+			@Override
+			public void mouseExit(MouseEvent e) {
+				startTooltipTimer();
+			}
+
+			@Override
+			public void mouseEnter(MouseEvent e) {
 			}
 		});
 
@@ -235,15 +306,24 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 	    EventManager.getInstance().removeEventListener(this);
 	    ModelManager.getPeerModel().removeListener(this);
 
+	    customTooltipShell.dispose();
+	    customTooltipText.dispose();
+		customTooltipComposite.dispose();
+		stopTooltipTimer();
+
 	    image.dispose();
 	    text.dispose();
 	    if (menuMgr != null) menuMgr.dispose();
 
 	    image = null;
 	    text = null;
+	    customTooltipShell = null;
+	    customTooltipText = null;
+		customTooltipComposite = null;
+		customTooltipTimer = null;
 	}
 
-	private IPeerNode[] getPeerNodesSorted() {
+	protected IPeerNode[] getPeerNodesSorted() {
 		IPeerNode[] peerNodes = ModelManager.getPeerModel().getPeerNodes();
 		List<IPeerNode> visiblePeerNodes = new ArrayList<IPeerNode>();
 		for (IPeerNode peerNode : peerNodes) {
@@ -328,8 +408,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 				}
 
 				image.setToolTipText(tooltip);
-				text.setToolTipText(tooltip);
-
 				button.setToolTipText(tooltipMessage);
 			}
 			else {
@@ -337,7 +415,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 				text.setText(Messages.DefaultContextSelectorToolbarContribution_label_new);
 
 				image.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
-				text.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
 				button.setToolTipText(Messages.DefaultContextSelectorToolbarContribution_tooltip_new);
 			}
 		}
@@ -528,4 +605,178 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 			update();
 		}
     }
+
+	@Override
+	public void linkEntered(HyperlinkEvent e) {
+	}
+
+	@Override
+	public void linkExited(HyperlinkEvent e) {
+	}
+
+	@Override
+	public void linkActivated(HyperlinkEvent e) {
+		if (e.widget instanceof FormText) {
+			// Process event id
+			// e.g. fixConnection=20b476ca-9804-40ae-ae58-ecebc36ffa74
+			String selectedNodeId = null;
+			if (e.data != null) {
+				String[] splitStr = e.data.toString().split("="); //$NON-NLS-1$
+				if (splitStr.length == 2) {
+					selectedNodeId = splitStr[1];
+				}
+			}
+
+			IPeerNode selectedNode = getPeerNodeById(selectedNodeId);
+			if (selectedNode != null) {
+				OpenEditorHandler.openEditorOnSelection(getWorkbenchWindow(), new StructuredSelection(selectedNode));
+				stopTooltipTimer();
+				hideCustomTooltip();
+			}
+		}
+	}
+
+	/* default */ IPeerNode getPeerNodeById(String id) {
+		IPeerNode[] peerNodes = ModelManager.getPeerModel().getPeerNodes();
+
+		if (peerNodes!=null) {
+			for(IPeerNode pNode:peerNodes) {
+				if (pNode.getPeerId().equals(id)) {
+					return pNode;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Calculates the position where the tooltip should be, considering
+	 * the current cursos position.
+	 * @param e
+	 * @return
+	 */
+	/* default */ Point calculateTooltipPosition(MouseEvent e) {
+		Point p = new Point(0, 0);
+
+		if (e.widget instanceof Control) {
+	        p = ((Control) e.widget).toDisplay(e.x, e.y);
+	        p.y += CURSOR_HEIGHT;
+	    }
+
+		return p;
+	}
+
+	/**
+	 * Counts how many time the substring <code>sub</code> appears in the
+	 * string <code>str</code>.
+	 * @param str
+	 * @param sub
+	 * @return
+	 */
+	/* default */ int countMatches(String str, String sub) {
+		int lastIndex = 0;
+	    int count = 0;
+
+		while (lastIndex != -1) {
+			lastIndex = str.indexOf(sub, lastIndex);
+			if (lastIndex != -1) {
+				count++;
+				lastIndex += sub.length();
+			}
+		}
+
+		return count;
+	}
+
+	/* default */ void startTooltipTimer() {
+		if (customTooltipShell != null) {
+			if (customTooltipTimer!=null) {
+				customTooltipTimer.cancel();
+				customTooltipTimer.purge();
+			}
+
+			customTooltipTimer = new Timer();
+			customTooltipTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					hideCustomTooltip();
+				}
+			}, CUSTOM_TOOLTIP_TIMER_TIME);
+		}
+	}
+
+	/* default */ void stopTooltipTimer() {
+		if (customTooltipTimer!=null) {
+			customTooltipTimer.cancel();
+			customTooltipTimer.purge();
+		}
+	}
+
+	/* default */ void hideCustomTooltip() {
+		if (customTooltipShell!=null && PlatformUI.getWorkbench()!=null && PlatformUI.getWorkbench().getDisplay()!=null) {
+			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+			    @Override
+				public void run() {
+			    	customTooltipShell.setVisible(false);
+			    }
+			});
+		}
+	}
+
+	/* default */ void showTooltip(MouseEvent e) {
+		if (customTooltipShell != null) {
+			stopTooltipTimer();
+
+			GC gc = new GC(customTooltipText);
+			int nLines = 0; // Number of text lines
+			int maxLineWidth = 0; // Width of the widest line
+			StringBuilder tooltipStringBuilder = new StringBuilder();
+
+			tooltipStringBuilder.append("<form>"); //$NON-NLS-1$
+			// Get list of warnings
+			IPeerNode[] peerNodes = getPeerNodesSorted();
+			for(IPeerNode pNode:peerNodes) {
+				Map<String,String> warningsMap = CommonUtils.getPeerWarnings(pNode);
+				if (warningsMap != null) {
+					Iterator<Entry<String, String>> warningsMapIterator = warningsMap.entrySet().iterator();
+				    while (warningsMapIterator.hasNext()) {
+				    	String warningStr = warningsMapIterator.next().getValue();
+				    	tooltipStringBuilder.append("<p>"); //$NON-NLS-1$
+				    	tooltipStringBuilder.append(warningStr);
+				    	tooltipStringBuilder.append("</p>"); //$NON-NLS-1$
+				    	tooltipStringBuilder.append("<p><a href=\"fixConnection="); //$NON-NLS-1$
+				    	tooltipStringBuilder.append(pNode.getPeerId());
+				    	tooltipStringBuilder.append("\">"); //$NON-NLS-1$
+				    	tooltipStringBuilder.append(Messages.DefaultContextSelectorToolbarContribution_tooltip_warningFix);
+				    	tooltipStringBuilder.append("</a></p><br/><br/>"); //$NON-NLS-1$
+
+				    	// Calculate text lines used by the text
+				    	int textWidth = gc.stringExtent(warningStr).x;
+				    	nLines += (textWidth/CUSTOM_TOOLTIP_MAX_WIDTH) + 1;
+				    	nLines += countMatches(warningStr, "\n"); //$NON-NLS-1$
+				    	nLines += 3; // Link and separators
+				    	if (textWidth > maxLineWidth) {
+				    		maxLineWidth = textWidth;
+				    	}
+				    }
+				}
+			}
+			tooltipStringBuilder.append("</form>"); //$NON-NLS-1$
+
+			if (nLines > 0) {
+				customTooltipText.setText(tooltipStringBuilder.toString().replaceAll("(\r\n|\n)", "<br />"), true, false); //$NON-NLS-1$ //$NON-NLS-2$
+
+				// Resize tooltip
+				if (maxLineWidth > CUSTOM_TOOLTIP_MAX_WIDTH) {
+					maxLineWidth = CUSTOM_TOOLTIP_MAX_WIDTH;
+				}
+				int textHeightCalc = gc.stringExtent(tooltipStringBuilder.toString()).y;
+				customTooltipShell.setSize(maxLineWidth, textHeightCalc*nLines);
+				customTooltipComposite.setSize(maxLineWidth, textHeightCalc*nLines);
+				customTooltipShell.setLocation(calculateTooltipPosition(e));
+				customTooltipShell.setVisible(true);
+			}
+		}
+	}
 }
