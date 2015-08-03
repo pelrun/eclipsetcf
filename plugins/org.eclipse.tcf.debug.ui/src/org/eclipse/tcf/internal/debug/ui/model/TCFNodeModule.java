@@ -156,11 +156,44 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
                 }
             }
             String section = r.getSectionName();
+            Number offset = r.getOffset();
             if (section != null) bf.append("File section: ", SWT.BOLD).append(section).append('\n');
-            else bf.append("File offset: ", SWT.BOLD).append(toHexString(r.getOffset()), StyledStringBuffer.MONOSPACED).append('\n');
+            if (offset != null) bf.append("File offset: ", SWT.BOLD).append(toHexString(offset), StyledStringBuffer.MONOSPACED).append('\n');
         }
-        bf.append("Address: ", SWT.BOLD).append(toHexString(r.getAddress()), StyledStringBuffer.MONOSPACED).append('\n');
-        bf.append("Size: ", SWT.BOLD).append(toHexString(r.getSize()), StyledStringBuffer.MONOSPACED).append('\n');
+        Number addr = r.getAddress();
+        Number size = r.getSize();
+        if (addr != null) bf.append("Address: ", SWT.BOLD).append(toHexString(addr), StyledStringBuffer.MONOSPACED).append('\n');
+        if (size != null) bf.append("Size: ", SWT.BOLD).append(toHexString(size), StyledStringBuffer.MONOSPACED).append('\n');
+        @SuppressWarnings("unchecked")
+        Map<String,Object> kernel_module = (Map<String,Object>)r.getProperties().get(IMemoryMap.PROP_KERNEL_MODULE);
+        if (kernel_module != null) {
+            int cnt = 0;
+            Number init = (Number)kernel_module.get("Init");
+            Number core = (Number)kernel_module.get("Core");
+            Number init_size = (Number)kernel_module.get("InitSize");
+            Number core_size = (Number)kernel_module.get("CoreSize");
+            bf.append("Kernel module: ", SWT.BOLD);
+            if (init != null) {
+                bf.append("init addr ", SWT.BOLD).append(toHexString(init), StyledStringBuffer.MONOSPACED);
+                cnt++;
+            }
+            if (init_size != null) {
+                if (cnt > 0) bf.append(", ");
+                bf.append("init size ", SWT.BOLD).append(toHexString(init_size), StyledStringBuffer.MONOSPACED);
+                cnt++;
+            }
+            if (core != null) {
+                if (cnt > 0) bf.append(", ");
+                bf.append("core addr ", SWT.BOLD).append(toHexString(core), StyledStringBuffer.MONOSPACED);
+                cnt++;
+            }
+            if (core_size != null) {
+                if (cnt > 0) bf.append(", ");
+                bf.append("core size ", SWT.BOLD).append(toHexString(core_size), StyledStringBuffer.MONOSPACED);
+                cnt++;
+            }
+            bf.append('\n');
+        }
         bf.append("Flags: ", SWT.BOLD).append(getFlagsLabel(r.getFlags())).append('\n');
         return true;
     }
