@@ -203,17 +203,18 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 		// Customized tooltip
 		Display display = PlatformUI.getWorkbench().getDisplay();
 		customTooltipShell = new Shell(display, SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
-		customTooltipShell.setBackground(lightYellowColor);
-		customTooltipShell.setLayout(new GridLayout());
+		GridLayout customTooltipShellLayout = new GridLayout();
+		customTooltipShellLayout.marginWidth = 0; customTooltipShellLayout.marginHeight = 0;
+		customTooltipShellLayout.verticalSpacing = 0; customTooltipShellLayout.horizontalSpacing = 0;
+		customTooltipShell.setLayout(customTooltipShellLayout);
 		customTooltipShell.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		customTooltipComposite = new Composite(customTooltipShell, SWT.NONE);
-
 		customTooltipComposite.setLayout(new GridLayout());
-        customTooltipComposite.setBackground(lightYellowColor);
+        customTooltipComposite.setBackground(warningBackgroundColor);
 
         customTooltipText = new FormText(customTooltipComposite, SWT.NO_FOCUS);
-        customTooltipText.setBackground(lightYellowColor);
+        customTooltipText.setBackground(warningBackgroundColor);
         customTooltipText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         customTooltipText.addHyperlinkListener(this);
         customTooltipText.addMouseTrackListener(new MouseTrackListener() {
@@ -434,6 +435,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 			} else if (pStyle.equals(PanelStyle.WARNING)) {
 				labelPanel.setBackground(warningBackgroundColor);
 				text.setForeground(PlatformUI.getWorkbench().getDisplay().getSystemColor(SWT.COLOR_BLACK));
+				customTooltipComposite.setBackground(warningBackgroundColor);
+				customTooltipText.setBackground(warningBackgroundColor);
 			}
 		}
     }
