@@ -34,8 +34,6 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
@@ -46,6 +44,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -117,7 +116,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 	private boolean clickRunning = false;
 
 	private final RGB lightYellowRgb = new RGB(255, 250, 150); // Warning background color
-	/* default */ Color lightYellowColor = null;
 	private enum PanelStyle {DEFAULT,WARNING} // Color styles
 	/* default */ Color warningBackgroundColor = null;
 
@@ -160,17 +158,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = 1; layout.marginWidth = 1;
 		panel.setLayout(layout);
-
-		// Create the warning background color
-		lightYellowColor = new Color(PlatformUI.getWorkbench().getDisplay(), lightYellowRgb);
-		// Add a dispose listener to the panel to also dispose the color resource
-		panel.addDisposeListener(new DisposeListener() {
-			@Override
-			public void widgetDisposed(DisposeEvent e) {
-				lightYellowColor.dispose();
-				lightYellowColor = null;
-			}
-		});
 
 		initThemeColors();
 
@@ -655,7 +642,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 
 	/**
 	 * Calculates the position where the tooltip should be, considering
-	 * the current cursos position.
+	 * the current cursor position.
 	 * @param e
 	 * @return
 	 */
@@ -664,6 +651,15 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 
 		if (e.widget instanceof Control) {
 	        p = ((Control) e.widget).toDisplay(e.x, e.y);
+	        Point shellSize = customTooltipShell.getSize();
+	        Rectangle screenBounds = ((Control) e.widget).getDisplay().getBounds();
+	        // Keeps the tooltip inside the screen bounds
+	        if (p.x + shellSize.x > screenBounds.width) {
+	        	p.x -= (p.x + shellSize.x - screenBounds.width);
+	        	if (p.x < 0) {
+	        		p.x = 0;
+	        	}
+	        }
 	        p.y += CURSOR_HEIGHT;
 	    }
 
@@ -721,7 +717,9 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
 			    @Override
 				public void run() {
-			    	customTooltipShell.setVisible(false);
+			    	if (customTooltipShell!=null) {
+			    		customTooltipShell.setVisible(false);
+			    	}
 			    }
 			});
 		}
