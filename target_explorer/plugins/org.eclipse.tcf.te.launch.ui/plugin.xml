@@ -108,7 +108,10 @@
             labelProvider="org.eclipse.tcf.te.launch.ui.viewer.LaunchTreeLabelProvider"
             priority="lower">
          <triggerPoints>
-            <instanceof value="org.eclipse.core.resources.IProject"/>
+         	<and>
+            	<instanceof value="org.eclipse.core.resources.IProject"/>
+            	<test property="org.eclipse.core.resources.open" value="true"/>
+            </and>
          </triggerPoints>
          <possibleChildren>
             <instanceof value="java.lang.Object"/>
