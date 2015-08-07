@@ -32,6 +32,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryState;
 import org.eclipse.tcf.te.runtime.model.interfaces.contexts.IAsyncRefreshableCtx.QueryType;
 import org.eclipse.tcf.te.runtime.services.ServiceUtils;
+import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.async.CallbackInvocationDelegate;
 import org.eclipse.tcf.te.tcf.core.model.interfaces.services.IModelChannelService;
 import org.eclipse.tcf.te.tcf.core.model.services.AbstractModelService;
@@ -1003,7 +1004,14 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 						callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
 					}
 				} else {
-					callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+					if (StatusHelper.unwrapErrorReport(error.getLocalizedMessage()).equals("Invalid context")) { //$NON-NLS-1$
+						// OK, the context got invalid during the query. Mark the
+						// context as invalid and return with OK to keep the refresh going
+						container.setProperty(IProcessContextNodeProperties.PROPERTY_INVALID_CTX, true);
+						callback.done(RuntimeModelRefreshService.this, Status.OK_STATUS);
+					} else {
+						callback.done(RuntimeModelRefreshService.this, new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), error.getLocalizedMessage(), error));
+					}
 				}
 			}
 		});

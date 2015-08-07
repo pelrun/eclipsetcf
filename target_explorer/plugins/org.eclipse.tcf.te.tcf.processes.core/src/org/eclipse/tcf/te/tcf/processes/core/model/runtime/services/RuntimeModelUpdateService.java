@@ -158,6 +158,11 @@ public class RuntimeModelUpdateService extends AbstractModelService<IRuntimeMode
 		for (IProcessContextNode candidate : newChildren) {
 			String id = candidate.getStringProperty(IProcessContextNodeProperties.PROPERTY_ID);
 			if (id == null) continue;
+			// If the context node got invalid while refreshing the tree, skip the
+			// context. The context will be removed from the tree as a result, if
+			// the context had been added to the tree before. If the context was not
+			// in the tree before, it will not be added at all.
+			if (candidate.isProperty(IProcessContextNodeProperties.PROPERTY_INVALID_CTX, true)) continue;
 			// Find the old process context node
 			IProcessContextNode oldNode = findInList(id, oldChildren);
 			if (oldNode != null) {

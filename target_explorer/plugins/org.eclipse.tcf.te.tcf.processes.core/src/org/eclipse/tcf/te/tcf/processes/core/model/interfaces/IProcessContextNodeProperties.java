@@ -46,4 +46,9 @@ public interface IProcessContextNodeProperties {
 	 * The property data is a <code>List&lt;Map&lt;String, Object&gt;&gt;</code>.
 	 */
 	public static final String PROPERTY_PARAMETER_LIST = "parameterList"; //$NON-NLS-1$
+
+	/**
+	 * Property is set if the context becomes invalid during a refresh.
+	 */
+	public static final String PROPERTY_INVALID_CTX = "invalidCtx"; //$NON-NLS-1$
 }
