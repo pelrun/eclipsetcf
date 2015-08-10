@@ -235,8 +235,16 @@ public interface IRunControl extends IService {
      * @since 1.3
      */
     static final String
-        REG_ACCESS_RD_RUNNING = "rd-running",       /** Context supports reading registers while running */
-        REG_ACCESS_WR_RUNNUNG = "wr-running";       /** Context supports writing registers while running */
+        REG_ACCESS_RD_RUNNING = "rd-running",   /** Context supports reading registers while running */
+        REG_ACCESS_WR_RUNNUNG = "wr-running";   /** Context supports writing registers while running */
+
+    /**
+     * Values of "RegAccessTypes".
+     * @since 1.4
+     */
+    static final String
+        REG_ACCESS_RD_STOP = "rd-stop",         /** Debugger should stop the context to read registers */
+        REG_ACCESS_WR_STOP = "wr-stop";         /** Debugger should stop the context to write registers */
 
     /* Optional parameters of context state -------------------------------- */
 

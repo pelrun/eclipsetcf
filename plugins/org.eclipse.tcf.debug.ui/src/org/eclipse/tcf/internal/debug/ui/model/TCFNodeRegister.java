@@ -236,7 +236,9 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             IRunControl.RunControlContext ctx_data = ctx_cache.getData();
             if (ctx_data != null && ctx_data.hasState()) {
                 Collection<String> access_types = ctx_data.getRegAccessTypes();
-                if (access_types == null || !access_types.contains(IRunControl.REG_ACCESS_RD_RUNNING)) {
+                if (access_types == null ||
+                        !(access_types.contains(IRunControl.REG_ACCESS_RD_RUNNING) ||
+                                access_types.contains(IRunControl.REG_ACCESS_RD_STOP))) {
                     TCFDataCache<TCFContextState> state_cache = exe.getState();
                     if (!state_cache.validate(done)) return null;
                     TCFContextState state_data = state_cache.getData();
