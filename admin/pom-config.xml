@@ -57,8 +57,8 @@
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
         <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
-		<tm-site>http://download.eclipse.org/tm/updates/4.0milestones</tm-site>
-		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0milestones</terminal-site>
+		<tm-site>http://download.eclipse.org/tm/updates/4.0</tm-site>
+		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
         <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.0.0</ptp-remote-site>
 		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150519210750/repository/</orbit-site>
