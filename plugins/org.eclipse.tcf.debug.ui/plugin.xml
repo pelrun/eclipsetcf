@@ -104,6 +104,7 @@
                <with variable="selection">
                   <count value="1"/>
                   <iterate>
+                     <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                      <test
                         forcePluginActivation="true"
                         property="org.eclipse.tcf.launch.isExecutable"/>
