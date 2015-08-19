@@ -752,7 +752,7 @@
             primaryId="org.eclipse.debug.ui.rendering.hexint"
             renderingIds="org.eclipse.debug.ui.rendering.hexint,org.eclipse.debug.ui.rendering.signedint,org.eclipse.debug.ui.rendering.unsignedint,org.eclipse.debug.ui.rendering.ascii,org.eclipse.debug.ui.rendering.raw_memory">
          <enablement>
-            <instanceof value="org.eclipse.tcf.internal.debug.ui.model.TCFMemoryBlockRetrieval$MemoryBlock"/>
+            <instanceof value="org.eclipse.tcf.internal.debug.ui.model.TCFMemoryBlock"/>
          </enablement>
       </renderingBindings>
    </extension>

@@ -143,7 +143,7 @@ public class TCFModelManager {
                     }
                 }
             }
-            TCFMemoryBlockRetrieval.onWorkbenchShutdown();
+            TCFMemoryBlock.onWorkbenchShutdown();
             return true;
         }
 

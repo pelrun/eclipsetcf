@@ -501,7 +501,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                 return true;
             }
         };
-        TCFMemoryBlockRetrieval.onMemoryNodeCreated(this);
+        TCFMemoryBlock.onMemoryNodeCreated(this);
         updateTerminal();
     }
 

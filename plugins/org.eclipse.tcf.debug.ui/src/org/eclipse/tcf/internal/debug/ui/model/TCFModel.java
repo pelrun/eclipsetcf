@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IExpressionManager;
 import org.eclipse.debug.core.IExpressionsListener;
@@ -37,6 +38,8 @@ import org.eclipse.debug.core.commands.ISuspendHandler;
 import org.eclipse.debug.core.commands.ITerminateHandler;
 import org.eclipse.debug.core.model.IDebugModelProvider;
 import org.eclipse.debug.core.model.IExpression;
+import org.eclipse.debug.core.model.IMemoryBlock;
+import org.eclipse.debug.core.model.IMemoryBlockExtension;
 import org.eclipse.debug.core.model.IMemoryBlockRetrieval;
 import org.eclipse.debug.core.model.IMemoryBlockRetrievalExtension;
 import org.eclipse.debug.core.model.ISourceLocator;
@@ -246,26 +249,36 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     private final Map<Class<?>,Object> adapters = new HashMap<Class<?>,Object>();
 
-    private class MemoryBlocksUpdate extends TCFDataCache<Map<String,TCFMemoryBlockRetrieval>> {
+    private final List<TCFMemoryBlock> mem_blocks = new ArrayList<TCFMemoryBlock>();
+    private final Map<String,IMemoryBlockRetrievalExtension> mem_retrieval = new HashMap<String,IMemoryBlockRetrievalExtension>();
+    private final IMemoryBlockRetrievalExtension mem_not_supported = new IMemoryBlockRetrievalExtension() {
+        @Override
+        public boolean supportsStorageRetrieval() {
+            return false;
+        }
+        @Override
+        public IMemoryBlock getMemoryBlock(long startAddress, long length) throws DebugException {
+            return null;
+        }
+
+        @Override
+        public IMemoryBlockExtension getExtendedMemoryBlock(String expression, Object context) throws DebugException {
+            return null;
+        }
+    };
+
+
+    private class MemoryBlocksUpdate implements Runnable {
 
         final Set<String> changeset = new HashSet<String>();
         final Set<String> suspended = new HashSet<String>();
 
-        MemoryBlocksUpdate(IChannel channel) {
-            super(channel);
-            Protocol.invokeLater(new Runnable() {
-                public void run() {
-                    if (!validate(this)) return;
-                    Map<String,TCFMemoryBlockRetrieval> map = getData();
-                    if (map != null) { // map can be null if, for example, the channel was closed
-                        for (TCFMemoryBlockRetrieval r : map.values()) {
-                            r.onMemoryChanged(suspended.contains(r.getMemoryID()));
-                        }
-                    }
-                    launch.removePendingClient(mem_blocks_update);
-                    mem_blocks_update = null;
-                }
-            });
+        MemoryBlocksUpdate() {
+            mem_blocks_update = this;
+            Protocol.invokeLater(this);
+            if (wait_for_views_update_after_step) {
+                launch.addPendingClient(this);
+            }
         }
 
         void add(String id, boolean suspended) {
@@ -273,39 +286,34 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             if (suspended) this.suspended.add(id);
         }
 
-        public boolean startDataRetrieval() {
-            // Map changed contexts to memory nodes, and then to memory block retrieval objects
-            Map<String,TCFMemoryBlockRetrieval> map = new HashMap<String,TCFMemoryBlockRetrieval>();
-            for (String id : changeset) {
-                if (map.get(id) != null) continue;
-                TCFNode node = id2node.get(id);
-                if (node == null) {
-                    if (!createNode(id, this)) return false;
-                    if (isValid()) {
-                        Activator.log("Cannot create debug model node", getError());
-                        reset();
-                        continue;
-                    }
-                    node = id2node.get(id);
-                }
-                if (node instanceof TCFNodeExecContext) {
-                    TCFDataCache<TCFNodeExecContext> c = ((TCFNodeExecContext)node).getMemoryNode();
-                    if (!c.validate(this)) return false;
-                    node = c.getData();
-                    if (node == null) continue;
-                    TCFMemoryBlockRetrieval r = mem_retrieval.get(node.id);
-                    if (r != null) {
-                        map.put(node.id, r);
-                        if (suspended.contains(id)) suspended.add(node.id);
+        public void run() {
+            assert mem_blocks_update == this;
+            if (channel.getState() == IChannel.STATE_OPEN && mem_blocks.size() > 0) {
+                // Map changed contexts to memory nodes, and then to memory block objects
+                Set<TCFMemoryBlock> set = new HashSet<TCFMemoryBlock>();
+                for (String id : changeset) {
+                    if (!createNode(id, this)) return;
+                    TCFNode node = id2node.get(id);
+                    if (node instanceof TCFNodeExecContext) {
+                        TCFDataCache<TCFNodeExecContext> c = ((TCFNodeExecContext)node).getMemoryNode();
+                        if (!c.validate(this)) return;
+                        node = c.getData();
+                        if (node == null) continue;
+                        for (TCFMemoryBlock b : mem_blocks) {
+                            if (b.getMemoryID().equals(node.id)) {
+                                if (suspended.contains(id)) suspended.add(node.id);
+                                set.add(b);
+                            }
+                        }
                     }
                 }
+                for (TCFMemoryBlock b : set) b.onMemoryChanged(suspended.contains(b.getMemoryID()));
             }
-            set(null, null, map);
-            return true;
+            launch.removePendingClient(this);
+            mem_blocks_update = null;
         }
     }
 
-    private final Map<String,TCFMemoryBlockRetrieval> mem_retrieval = new HashMap<String,TCFMemoryBlockRetrieval>();
     private MemoryBlocksUpdate mem_blocks_update;
 
     private final Map<String,String> cast_to_type_map = new HashMap<String,String>();
@@ -798,7 +806,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             }
         }
         view_request_listeners = l.size() > 0 ? l : null;
-        TCFMemoryBlockRetrieval.onModelCreated(this);
+        TCFMemoryBlock.onModelCreated(this);
     }
 
     /**
@@ -830,11 +838,12 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                             TCFNodeExecContext ctx = cache.getData();
                             if (!ctx.getMemoryContext().validate(this)) return;
                             if (ctx.getMemoryContext().getError() == null) {
-                                o = getMemoryBlockRetrieval(ctx);
+                                o = getMemoryBlockRetrieval(ctx.id);
                             }
                         }
                     }
-                    assert o == null || adapter.isInstance(o);
+                    if (o == null) o = mem_not_supported;
+                    assert adapter.isInstance(o);
                     done(o);
                 }
             }.getE();
@@ -842,11 +851,53 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         return null;
     }
 
-    TCFMemoryBlockRetrieval getMemoryBlockRetrieval(TCFNodeExecContext node) {
-        TCFMemoryBlockRetrieval r = mem_retrieval.get(node.id);
+    TCFMemoryBlock getMemoryBlock(String id, String expression, long length) {
+        assert Protocol.isDispatchThread();
+        IMemoryBlockRetrievalExtension r = getMemoryBlockRetrieval(id);
+        TCFMemoryBlock b = new TCFMemoryBlock(this, r, id, expression, length);
+        mem_blocks.add(b);
+        return b;
+    }
+
+    private IMemoryBlockRetrievalExtension getMemoryBlockRetrieval(final String id) {
+        /*
+         * Note: platform uses MemoryBlockRetrieval objects to link memory blocks with selection in the Debug view.
+         * We need to maintain 1 to 1 mapping between memory context IDs and MemoryBlockRetrieval objects.
+         */
+        assert Protocol.isDispatchThread();
+        IMemoryBlockRetrievalExtension r = mem_retrieval.get(id);
         if (r == null) {
-            r = new TCFMemoryBlockRetrieval(node);
-            mem_retrieval.put(node.id, r);
+            r = new IMemoryBlockRetrievalExtension() {
+                @Override
+                public IMemoryBlockExtension getExtendedMemoryBlock(final String expression, Object context) throws DebugException {
+                    final IMemoryBlockRetrieval r = this;
+                    return new TCFDebugTask<IMemoryBlockExtension>() {
+                        @Override
+                        public void run() {
+                            TCFMemoryBlock b = new TCFMemoryBlock(TCFModel.this, r, id, expression, -1);
+                            mem_blocks.add(b);
+                            done(b);
+                        }
+                    }.getD();
+                }
+                @Override
+                public IMemoryBlock getMemoryBlock(final long address, final long length) throws DebugException {
+                    final IMemoryBlockRetrieval r = this;
+                    return new TCFDebugTask<IMemoryBlock>() {
+                        @Override
+                        public void run() {
+                            TCFMemoryBlock b = new TCFMemoryBlock(TCFModel.this, r, id, "0x" + Long.toHexString(address), length);
+                            mem_blocks.add(b);
+                            done(b);
+                        }
+                    }.getD();
+                }
+                @Override
+                public boolean supportsStorageRetrieval() {
+                    return true;
+                }
+            };
+            mem_retrieval.put(id, r);
         }
         return r;
     }
@@ -912,12 +963,12 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             launch_node = null;
         }
         // Dispose memory monitors
-        for (TCFMemoryBlockRetrieval r : mem_retrieval.values()) r.dispose();
+        TCFMemoryBlock.onModelDisconnected(this);
         mem_retrieval.clear();
+        mem_blocks.clear();
         // Refresh the Debug view - cannot be done through ModelProxy since it is disposed
         refreshLaunchView();
         assert id2node.size() == 0;
-        TCFMemoryBlockRetrieval.onModelDisconnected(this);
     }
 
     void onProcessOutput(String ctx_id, int stream_id, byte[] data) {
@@ -988,13 +1039,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 }
             }
         }
-        if (mem_retrieval.size() == 0) return;
-        if (mem_blocks_update == null) {
-            mem_blocks_update = new MemoryBlocksUpdate(channel);
-            if (wait_for_views_update_after_step) {
-                launch.addPendingClient(mem_blocks_update);
-            }
-        }
+        if (mem_blocks_update == null) new MemoryBlocksUpdate();
         mem_blocks_update.add(id, context_suspended);
     }
 
@@ -1210,9 +1255,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     void removeNode(String id) {
         assert id != null;
         assert Protocol.isDispatchThread();
+        for (TCFMemoryBlock b : mem_blocks) b.onContextExited(id);
         id2node.remove(id);
-        TCFMemoryBlockRetrieval r = mem_retrieval.remove(id);
-        if (r != null) r.dispose();
     }
 
     void flushAllCaches() {
@@ -1225,7 +1269,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 participant.sourceContainersChanged(d);
             }
         }
-        for (TCFMemoryBlockRetrieval b : mem_retrieval.values()) b.flushAllCaches();
+        for (TCFMemoryBlock b : mem_blocks) b.flushAllCaches();
         for (TCFNode n : id2node.values()) n.flushAllCaches();
         launch_node.flushAllCaches();
     }
