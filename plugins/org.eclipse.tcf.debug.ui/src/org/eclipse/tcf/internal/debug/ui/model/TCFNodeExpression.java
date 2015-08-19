@@ -715,6 +715,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     void onRegisterValueChanged() {
+        prev_value = null;
         value.reset();
         type.reset();
         type_name.reset();
@@ -726,6 +727,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     void onMemoryChanged() {
+        prev_value = null;
         value.reset();
         type.reset();
         type_name.reset();
@@ -2034,6 +2036,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
                             done(node.is_empty || node.script != null);
                             return;
+                        }
+                        TCFNode n = node.getRootExpression().parent;
+                        if (n instanceof TCFNodeStackFrame) {
+                            TCFNodeExecContext exe = (TCFNodeExecContext)n.parent;
+                            TCFDataCache<TCFContextState> state_cache = exe.getState();
+                            if (!state_cache.validate(this)) return;
+                            TCFContextState state_data = state_cache.getData();
+                            if (state_data == null || !state_data.is_suspended) {
+                                done(Boolean.FALSE);
+                                return;
+                            }
                         }
                         if (!node.is_empty && node.enabled) {
                             if (!node.rem_expression.validate(this)) return;
