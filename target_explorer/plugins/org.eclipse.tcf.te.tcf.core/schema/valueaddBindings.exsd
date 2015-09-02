@@ -8,8 +8,7 @@
       <documentation>
          This extension point is used to declare the value-add bindings.
 &lt;p&gt;
-&lt;b&gt;Note:&lt;/b&gt; For the enablement expression evaluation, the default variable and &lt;b&gt;peer&lt;/b&gt; is set to the peer the
-value-add is evaluated for.
+&lt;b&gt;Note:&lt;/b&gt; For the enablement expression evaluation, the default variable and the &quot;&lt;b&gt;peer&lt;/b&gt;&quot; variable is set to the peer the value-add is evaluated for. The &quot;&lt;b&gt;org.eclipse.core.runtime.Platform&lt;/b&gt;&quot; variable is also set. Other variables may not be available in the evaluation context.
       </documentation>
    </annotation>
 
