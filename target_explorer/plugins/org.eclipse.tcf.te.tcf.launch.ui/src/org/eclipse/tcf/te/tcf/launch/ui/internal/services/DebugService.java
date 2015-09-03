@@ -113,7 +113,7 @@ public class DebugService extends AbstractService implements IDebugService {
 						if (config != null) {
 							ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
 							for (ILaunch launch : launches) {
-								if (launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && !launch.isTerminated()) {
+								if (launch.getLaunchConfiguration() != null && launch.getLaunchConfiguration().getType().getIdentifier().equals(ILaunchTypes.ATTACH) && !launch.isTerminated()) {
 									IModelNode[] contexts = LaunchContextsPersistenceDelegate.getLaunchContexts(launch.getLaunchConfiguration());
 									if (contexts != null && contexts.length == 1 && contexts[0].equals(context)) {
 										callback.setProperty("launch", launch); //$NON-NLS-1$
