@@ -9,7 +9,7 @@
     <h1>TCF Agent Porting Guide</h1>
 
     <p>
-        Copyright (c) 2009 Wind River Systems, Inc. Made available under the EPL v1.0
+        Copyright (c) 2009, 2015 Wind River Systems, Inc. and others. Made available under the EPL v1.0
     </p>
     <p>
         Direct comments, questions to the <a href="https://dev.eclipse.org/mailman/listinfo/tcf-dev">tcf-dev@eclipse.org</a> mailing list
@@ -85,33 +85,33 @@
     </p>
 
     <p>
-        Header file <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/config.h'>config.h</a> contains macro definitions that control agent configuration.
-        All C files in the agent code include <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/config.h'>config.h</a> before other header files.
+        Header file <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/config.h'>tcf/config.h</a> contains macro definitions that control agent configuration.
+        All C files in the agent code include <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/config.h'>tcf/config.h</a> before other header files.
         Individual services or features can be enabled or disabled by changing definitions in the file.
         Also, macro values can be overwritten by using -D option in C compiler command line.
-        Agent <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/Makefile'>Makefile</a> contains additional logic that makes it even more convenient to build different agent configurations.
+        Agent <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/Makefile'>Makefile</a> contains additional logic that makes it even more convenient to build different agent configurations.
     </p>
 
     <p>
         It should be much easier to port the agent if you don't need all TCF services.
         For example, for RSE integration you only need File System, System Monitor and Processes services,
-        so you can disable all other services by editing <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/config.h'>config.h</a>.
+        so you can disable all other services by editing <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/config.h'>tcf/config.h</a>.
     </p>
 
     <p>
         It is better to create a separate directory with alternative versions of
-        <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/config.h'>config.h</a>,
-        <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/context.h'>context.h,</a>
-        <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/context.c'>context.c,</a>
-        <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/Makefile'>Makefile,</a>
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/config.h'>tcf/config.h</a>,
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/context.h'>tcf/framework/context.h,</a>
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/context.c'>tcf/framework/context.c,</a>
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/Makefile'>Makefile,</a>
         etc., instead of editing original files.
         The idea is that Makefile will search that directory first, and if a file not found there, it will search original agent sources.
-        See <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/examples/org.eclipse.tm.tcf.examples.daytime.agent'>examples/org.eclipse.tm.tcf.examples.daytime.agent</a>
+        See <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/examples/daytime/readme.txt'>org.eclipse.tcf.agent/examples/daytime/readme.txt</a>
         for an example of a custom TCF agent.
-        Of course, if changes are generic enough to be useful for other ports, then it is better to change code in the main directory.
-    </p>
-
-    <p>
+		Another example is the <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/server'>tcf server</a>
+		(also known as value-add) which builds the agent C code in a different configuration for running on the host.
+	</p><p>
+		Of course, if changes are generic enough to be useful for other ports, then it is better to change code in the main directory.
         Please, consider contributing your changes of the source code back to eclipse.org.
     </p>
 
@@ -129,6 +129,14 @@
     <p>
         When it is not possible or not feasible to use portable POSIX APIs, the agent code contains conditional compilation statements that
         use well known macros like WIN32, __CYGWIN__, __MINGW32__, etc. Such places might require editing when porting to a new OS.
+		Global system dependencies are encapsulated in the
+		<a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/system'>org.eclipse.tcf.agent/agent/system</a>
+		subdirectories, and pulled in conditionally by the build system. Beyond that, individual services may need to be enabled
+		or disabled based on the OS. For example, see the conditionals in
+		<a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/sysmon.c'>agent/tcf/services/sysmon.c</a>,
+		which implements the 
+		<a href='http://git.eclipse.org/c/tcf/org.eclipse.tcf.git/plain/docs/TCF%20Service%20-%20System%20Monitor.html'>System Monitor service<a/>.
+		Since many services are optional for an initial port of the TCF Agent, it is often sufficient to look only at a subset of services.
     </p>
 
     <h2>
@@ -136,7 +144,10 @@
     </h2>
 
     <p>
-                Searching TCF agent source code for __i386__ is a good way to find all places where the source code depends on CPU type.
+		Most of the CPU dependencies are encapsulated in the
+		<a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/machine'>org.eclipse.tcf.agent/agent/machine</a>
+		subdirectories, and pulled in conditionally by the build system. Beyond that,
+        searching TCF agent source code for __i386__ is a good way to find all places where the source code depends on CPU type.
         </p>
 
         <p>
@@ -146,7 +157,7 @@
     <dl>
         <dt>
             <b>
-                <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/context.c'>context.c</a>
+                <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/context.c'>tcf/framework/context.c</a>
             </b>
         </dt>
         <dd>
@@ -156,7 +167,7 @@
         </dd>
         <dt>
             <b>
-                <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/dwarfexpr.c'>dwarfexpr.c</a>
+                <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/dwarfexpr.c'>tcf/services/dwarfexpr.c</a>
             </b>
         </dt>
         <dd>
@@ -172,7 +183,7 @@
         </dd>
         <dt>
             <b>
-                <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/registers.c'>registers.c</a>
+                <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/registers.c'>tcf/services/registers.c</a>
             </b>
         </dt>
         <dd>
@@ -182,7 +193,7 @@
         </dd>
         <dt>
             <b>
-                <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/stacktrace.c'>stacktrace.c</a>
+                <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/stacktrace.c'>tcf/services/stacktrace.c</a>
             </b>
         </dt>
         <dd>
@@ -225,8 +236,8 @@
 
     <p>
         Support for a completely new file format would require to develop alternative versions of symbols_xxx.c and linenumbers_xxx.c files.
-        See <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/symbols_elf.c'>symbols_elf.c</a>
-        and <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/linenumbers_elf.c'>linenumbers_elf.c</a>
+        See <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/symbols_elf.c'>tcf/services/symbols_elf.c</a>
+        and <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/linenumbers_elf.c'>tcf/services/linenumbers_elf.c</a>
         as example implementation of the services.
     </p>
 
@@ -253,14 +264,14 @@
     </p>
 
         <p>
-            Files <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/channel_tcp.h'>channel_tcp.h</a>
-        and <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/channel_tcp.c'>channel_tcp.c</a> provide support for TCP/IP transport.
+            Files <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/channel_tcp.h'>tcf/framework/channel_tcp.h</a>
+        and <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/channel_tcp.c'>tcf/framework/channel_tcp.c</a> provide support for TCP/IP transport.
         To support another protocol one would need to develop similar code using TCP support as an example.
         </p>
 
         <p>
         Adding new transport would also require to modify functions channel_server() and channel_connect() in
-        <a href='http://dev.eclipse.org/svnroot/dsdp/org.eclipse.tm.tcf/trunk/agent/channel.c'>channel.c</a>.
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/channel.c'>tcf/framework/channel.c</a>.
         </p>
 </body>
 </HTML>
