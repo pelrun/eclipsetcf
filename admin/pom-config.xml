@@ -61,7 +61,7 @@
 		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
         <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.0.0</ptp-remote-site>
 		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150519210750/repository/</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150821153341/repository</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
 
@@ -154,14 +154,24 @@
             </properties>
 		</profile>
 
-
 	    <profile>
 		    <!-- Eclipse 4.5 (Mars), CDT 8.7.0 (Mars) -->
 		    <id>mars</id>
 			
 			<properties>
-		        <platform-site>http://download.eclipse.org/eclipse/updates/4.5milestones</platform-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/builds/mars/milestones</cdt-site>
+		        <platform-site>http://download.eclipse.org/eclipse/updates/4.5</platform-site>
+                <cdt-site>http://download.eclipse.org/tools/cdt/releases/8.7</cdt-site>
+            </properties>
+			
+		</profile>
+
+	    <profile>
+		    <!-- Eclipse 4.6 (Neon), CDT 9.0.0 (Neon) -->
+		    <id>neon</id>
+			
+			<properties>
+		        <platform-site>http://download.eclipse.org/eclipse/updates/4.6milestones</platform-site>
+                <cdt-site>http://download.eclipse.org/tools/cdt/builds/neon/milestones</cdt-site>
             </properties>
 			
 		</profile>
