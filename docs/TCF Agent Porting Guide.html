@@ -108,10 +108,12 @@
         The idea is that Makefile will search that directory first, and if a file not found there, it will search original agent sources.
         See <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/examples/daytime/readme.txt'>org.eclipse.tcf.agent/examples/daytime/readme.txt</a>
         for an example of a custom TCF agent.
-		Another example is the <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/server'>tcf server</a>
-		(also known as value-add) which builds the agent C code in a different configuration for running on the host.
-	</p><p>
-		Of course, if changes are generic enough to be useful for other ports, then it is better to change code in the main directory.
+        Another example is the <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/server'>tcf server</a>
+        (also known as value-add) which builds the agent C code in a different configuration for running on the host.
+    </p>
+
+    <p>
+        Of course, if changes are generic enough to be useful for other ports, then it is better to change code in the main directory.
         Please, consider contributing your changes of the source code back to eclipse.org.
     </p>
 
@@ -129,14 +131,14 @@
     <p>
         When it is not possible or not feasible to use portable POSIX APIs, the agent code contains conditional compilation statements that
         use well known macros like WIN32, __CYGWIN__, __MINGW32__, etc. Such places might require editing when porting to a new OS.
-		Global system dependencies are encapsulated in the
-		<a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/system'>org.eclipse.tcf.agent/agent/system</a>
-		subdirectories, and pulled in conditionally by the build system. Beyond that, individual services may need to be enabled
-		or disabled based on the OS. For example, see the conditionals in
-		<a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/sysmon.c'>agent/tcf/services/sysmon.c</a>,
-		which implements the 
-		<a href='http://git.eclipse.org/c/tcf/org.eclipse.tcf.git/plain/docs/TCF%20Service%20-%20System%20Monitor.html'>System Monitor service<a/>.
-		Since many services are optional for an initial port of the TCF Agent, it is often sufficient to look only at a subset of services.
+        Global system dependencies are encapsulated in the
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/system'>org.eclipse.tcf.agent/agent/system</a>
+        subdirectories, and pulled in conditionally by the build system. Beyond that, individual services may need to be enabled
+        or disabled based on the OS. For example, see the conditionals in
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/services/sysmon.c'>agent/tcf/services/sysmon.c</a>,
+        which implements the
+        <a href='http://git.eclipse.org/c/tcf/org.eclipse.tcf.git/plain/docs/TCF%20Service%20-%20System%20Monitor.html'>System Monitor service<a/>.
+        Since many services are optional for an initial port of the TCF Agent, it is often sufficient to look only at a subset of services.
     </p>
 
     <h2>
@@ -144,15 +146,15 @@
     </h2>
 
     <p>
-		Most of the CPU dependencies are encapsulated in the
-		<a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/machine'>org.eclipse.tcf.agent/agent/machine</a>
-		subdirectories, and pulled in conditionally by the build system. Beyond that,
+        Most of the CPU dependencies are encapsulated in the
+        <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/machine'>org.eclipse.tcf.agent/agent/machine</a>
+        subdirectories, and pulled in conditionally by the build system. Beyond that,
         searching TCF agent source code for __i386__ is a good way to find all places where the source code depends on CPU type.
-        </p>
+    </p>
 
-        <p>
-                There are several files in the code that might need changes in order to support a new CPU type:
-        </p>
+    <p>
+        There are several files in the code that might need changes in order to support a new CPU type:
+    </p>
 
     <dl>
         <dt>
@@ -247,11 +249,11 @@
 
     <p>
         For source level debugging TCF agent needs to understand debug data format.
-                Debug data is usually reside in a section of an executable file, so the file format should be supported, see <a href='#NewExeFile'>Adding Support For a New Executable File Format</a>.
-                At this time the agent supports <a href='http://en.wikipedia.org/wiki/DWARF'>DWARF</a> and
-                <a href='http://en.wikipedia.org/wiki/Portable_Executable'>PE (Portable Executable)</a> debug data formats.
-                <a href='http://en.wikipedia.org/wiki/DWARF'>DWARF</a> support is implemented as part of the agent source code,
-                and <a href='http://en.wikipedia.org/wiki/Portable_Executable'>PE</a> data is accessed using DBGHELP.DLL, which is included in Windows operating system.
+        Debug data is usually reside in a section of an executable file, so the file format should be supported, see <a href='#NewExeFile'>Adding Support For a New Executable File Format</a>.
+        At this time the agent supports <a href='http://en.wikipedia.org/wiki/DWARF'>DWARF</a> and
+        <a href='http://en.wikipedia.org/wiki/Portable_Executable'>PE (Portable Executable)</a> debug data formats.
+        <a href='http://en.wikipedia.org/wiki/DWARF'>DWARF</a> support is implemented as part of the agent source code,
+        and <a href='http://en.wikipedia.org/wiki/Portable_Executable'>PE</a> data is accessed using DBGHELP.DLL, which is included in Windows operating system.
     </p>
 
     <h2>
@@ -263,15 +265,15 @@
         The agent code can be easily modified to support other transport protocols, like UDP, USB, etc.
     </p>
 
-        <p>
-            Files <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/channel_tcp.h'>tcf/framework/channel_tcp.h</a>
+    <p>
+        Files <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/channel_tcp.h'>tcf/framework/channel_tcp.h</a>
         and <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/channel_tcp.c'>tcf/framework/channel_tcp.c</a> provide support for TCP/IP transport.
         To support another protocol one would need to develop similar code using TCP support as an example.
-        </p>
+    </p>
 
-        <p>
+    <p>
         Adding new transport would also require to modify functions channel_server() and channel_connect() in
         <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git/tree/agent/tcf/framework/channel.c'>tcf/framework/channel.c</a>.
-        </p>
+    </p>
 </body>
 </HTML>
