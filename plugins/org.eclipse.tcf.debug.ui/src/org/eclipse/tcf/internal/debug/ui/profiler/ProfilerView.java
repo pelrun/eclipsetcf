@@ -604,7 +604,7 @@ public class ProfilerView extends ViewPart {
                         status.setText("Cannot upload profiling data: " + error_msg);
                     }
                     else {
-                        status.setText("Profiler runnning. " + sample_count + " samples");
+                        status.setText("Profiler running. " + sample_count + " samples");
                     }
                 }
             });
@@ -1119,11 +1119,12 @@ public class ProfilerView extends ViewPart {
 
     private String toPercent(float x) {
         float f = x * 100 / sample_count;
-        if (f >= 100) return "100";
-        if (f >= 10) return String.format("%.1f", f);
-        if (f >= 1) return String.format("%.2f", f);
         String s = String.format("%.3f", f);
-        if (s.charAt(0) == '0') s = s.substring(1);
+        int l = s.indexOf('.');
+        if (l >= 3) s = "100";
+        else if (l >= 2) s = s.substring(0, 4);
+        else if (s.charAt(0) == '0') s = s.substring(1);
+        else s = s.substring(0, 4);
         return s;
     }
 
