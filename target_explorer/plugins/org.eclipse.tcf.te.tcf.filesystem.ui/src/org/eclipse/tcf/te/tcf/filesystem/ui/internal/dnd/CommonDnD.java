@@ -192,16 +192,20 @@ public class CommonDnD implements IConfirmCallback {
 	public boolean validateFilesDrop(Object target, int operation, TransferData transferType) {
 		FileTransfer transfer = FileTransfer.getInstance();
 		String[] elements = (String[]) transfer.nativeToJava(transferType);
-		if (elements.length > 0) {
-			boolean moving = (operation & DND.DROP_MOVE) != 0;
-			boolean copying = (operation & DND.DROP_COPY) != 0;
-			IFSTreeNode hovered = (IFSTreeNode) target;
-			if (hovered.isFile() && copying) {
-				hovered = hovered.getParent();
-			}
-			return hovered.isDirectory() && hovered.isWritable() && (moving || copying);
+		if (elements == null) {
+			// see ResourceDropAdapterAssistant:validateDrop
+			// source names will be null on Linux. Use empty names to do
+			// destination validation.
+			// Fixes bug 29778
+			elements = new String[0];
 		}
-		return false;
+		boolean moving = (operation & DND.DROP_MOVE) != 0;
+		boolean copying = (operation & DND.DROP_COPY) != 0;
+		IFSTreeNode hovered = (IFSTreeNode) target;
+		if (hovered.isFile() && copying) {
+			hovered = hovered.getParent();
+		}
+		return hovered.isDirectory() && hovered.isWritable() && (moving || copying);
 	}
 
 	/**
