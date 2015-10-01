@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -177,6 +177,55 @@ public final class CommonUtils {
 			}
 		});
 		peerNode.fireChangeEvent(IPeerNodeProperties.PROPERTY_WARNINGS, null, null);
+		return changed.get();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static String getPeerWarningOrigin(final IPeerNode peerNode, final String warningKey) {
+		final AtomicReference<Object> warningOrigins = new AtomicReference<Object>();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				warningOrigins.set(peerNode.getProperty(IPeerNodeProperties.PROPERTY_WARNING_ORIGINS));
+			}
+		});
+
+		if (warningOrigins.get() != null && warningOrigins.get() instanceof Map<?,?>) {
+			return ((Map<String,String>)warningOrigins.get()).get(warningKey);
+		}
+		return null;
+	}
+
+	public static boolean setPeerWarningOrigin(final IPeerNode peerNode, final String warningKey, final String value) {
+		final AtomicBoolean changed = new AtomicBoolean();
+		Protocol.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				@SuppressWarnings("unchecked")
+				Map<String,String> warningsOrigins = (Map<String,String>)peerNode.getProperty(IPeerNodeProperties.PROPERTY_WARNING_ORIGINS);
+                if (warningsOrigins == null) {
+                	if (value == null) {
+                		return;
+                	}
+                	warningsOrigins = new HashMap<String,String>();
+                }
+            	if (value != null) {
+            		changed.set(!value.equals(warningsOrigins.get(warningKey)));
+            		warningsOrigins.put(warningKey, value);
+            	}
+            	else {
+            		changed.set(warningsOrigins.get(warningKey) != null);
+            		warningsOrigins.remove(warningKey);
+            		if (warningsOrigins.isEmpty()) {
+            			warningsOrigins = null;
+            		}
+            	}
+            	peerNode.setChangeEventsEnabled(false);
+                peerNode.setProperty(IPeerNodeProperties.PROPERTY_WARNING_ORIGINS, warningsOrigins);
+            	peerNode.setChangeEventsEnabled(true);
+			}
+		});
+		peerNode.fireChangeEvent(IPeerNodeProperties.PROPERTY_WARNING_ORIGINS, null, null);
 		return changed.get();
 	}
 }

@@ -63,6 +63,11 @@ public interface IPeerNodeProperties {
 	public static final String PROPERTY_WARNINGS = "Warnings"; //$NON-NLS-1$
 
 	/**
+	 * Property: Contains for warnings origins (Map<String,String)
+	 */
+	public static final String PROPERTY_WARNING_ORIGINS = "WarningOrigins"; //$NON-NLS-1$
+
+	/**
 	 * Property: Exit error if any simulator or other started process died during connect.
 	 */
 	public static final String PROP_EXIT_ERROR = "ExitError"; //$NON-NLS-1$
