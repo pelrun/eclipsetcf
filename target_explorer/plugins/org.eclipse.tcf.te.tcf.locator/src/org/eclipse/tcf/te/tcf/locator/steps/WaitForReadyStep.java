@@ -67,7 +67,8 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 	@Override
 	public void execute(final IStepContext context, final IPropertiesContainer data, final IFullQualifiedId fullQualifiedId, final IProgressMonitor monitor, final ICallback callback) {
 		final IPeerNode peerNode = getActivePeerModelContext(context, data, fullQualifiedId);
-		String param = getParameters().get(PARAMETER_NO_TIMEOUT);
+		String param = System.getProperty(getClass().getSimpleName() + "_" + PARAMETER_NO_TIMEOUT); //$NON-NLS-1$
+		if (param == null) param = getParameters().get(PARAMETER_NO_TIMEOUT);
 		boolean paramBool = false;
 		if (param != null) {
 			try {
