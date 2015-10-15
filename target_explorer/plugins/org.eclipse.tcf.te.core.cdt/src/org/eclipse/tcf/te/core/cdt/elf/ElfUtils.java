@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,9 +11,12 @@ package org.eclipse.tcf.te.core.cdt.elf;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.cdt.utils.elf.Elf;
 import org.eclipse.cdt.utils.elf.Elf.ELFhdr;
+import org.eclipse.cdt.utils.elf.Elf.Symbol;
 
 /**
  * Provides ELF file utilities.
@@ -93,5 +96,41 @@ public final class ElfUtils {
 			}
 		}
 		return elfclass;
+	}
+
+	/**
+	 * Returns a list with the entry point names in this file.
+	 * 
+	 * @param file The file representation of the physical file to get the entry points.
+	 * Must not be <code>null</code>.
+	 * @return
+	 */
+	public static String[] getEntryPoints(File file) throws IOException {
+		String[] entryPoints = null;
+		if (file!=null) {
+			Elf elfFile = null;
+			try {
+				elfFile = new Elf(file.getAbsolutePath());
+				elfFile.loadSymbols();
+
+				Symbol[] symbols = elfFile.getSymbols();
+				if (symbols != null) {
+					List<String> entryPointList = new ArrayList<String>();
+					for(Symbol s:symbols) {
+						if (s.st_type() == Elf.Symbol.STT_FUNC) {
+							entryPointList.add(s.toString());
+						}
+					}
+					entryPoints = entryPointList.toArray(new String[entryPointList.size()]);
+				}
+			}
+			finally {
+				if (elfFile != null) {
+					elfFile.dispose();
+				}
+				elfFile = null;
+			}
+		}
+		return entryPoints;
 	}
 }
