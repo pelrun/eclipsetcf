@@ -678,7 +678,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         public void run() {
             if (done) return;
             if (initial_selection != this) return;
-            if (launch_node != null) {
+            if (launch_node != null && !proxy.isDisposed()) {
                 ArrayList<TCFNodeExecContext> nodes = new ArrayList<TCFNodeExecContext>();
                 if (!searchSuspendedThreads(launch_node.getFilteredChildren(), nodes)) return;
                 if (nodes.size() == 0) {
