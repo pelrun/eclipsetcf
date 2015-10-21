@@ -9,8 +9,10 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.ui.dialogs;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
@@ -88,6 +90,7 @@ public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	// The nodes that are being moved.
 	private List<IFSTreeNode> movedNodes;
 	private final int mode;
+	private final Set<String> fDisabledFilters = new HashSet<String>();
 
 	public static final int MODE_ALL = 0;
 	public static final int MODE_ALL_WARNING_NOT_WRITABLE = 1;
@@ -162,10 +165,21 @@ public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 		FilterDescriptor[] filterDescriptors = ViewerStateManager.getInstance().getFilterDescriptors(IFSConstants.ID_TREE_VIEWER_FS, input);
 		Assert.isNotNull(filterDescriptors);
 		for (FilterDescriptor descriptor : filterDescriptors) {
-			if (descriptor.isEnabled()) {
+			if (descriptor.isEnabled() && !fDisabledFilters.contains(descriptor.getId())) {
 				addFilter(descriptor.getFilter());
 			}
 		}
+	}
+
+	/**
+	 * Disable the filter with given ID.
+	 * <p>
+	 * <strong>Note:</strong> Must be called before {@link #setInput}.
+	 * </p>
+	 * @param filterId  the filter ID
+	 */
+	public final void disableFilter(String filterId) {
+		fDisabledFilters.add(filterId);
 	}
 
 	/**
