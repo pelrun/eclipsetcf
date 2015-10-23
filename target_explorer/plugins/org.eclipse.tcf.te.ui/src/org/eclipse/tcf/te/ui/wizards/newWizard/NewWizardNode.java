@@ -149,7 +149,7 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
 	 * Instead of referring to the internal <code>org.eclipse.ui.internal.util.Util</code> class,
 	 * copy the <code>getAdapter</code> method here, so it can work with every platform.
 	 */
-	private final <T> T getAdapter(Object sourceObject, Class<T> adapterType) {
+    private final <T> T getAdapter(Object sourceObject, Class<T> adapterType) {
     	Assert.isNotNull(adapterType);
         if (sourceObject == null) {
             return null;
@@ -170,7 +170,8 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
         }
 
         if (!(sourceObject instanceof PlatformObject)) {
-			T result = Platform.getAdapterManager().getAdapter(sourceObject, adapterType);
+        	@SuppressWarnings("cast")
+			T result = (T) Platform.getAdapterManager().getAdapter(sourceObject, adapterType);
             if (result != null) {
                 return result;
             }
