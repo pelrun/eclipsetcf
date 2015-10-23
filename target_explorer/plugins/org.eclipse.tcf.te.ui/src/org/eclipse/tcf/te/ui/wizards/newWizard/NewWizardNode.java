@@ -11,7 +11,10 @@ package org.eclipse.tcf.te.ui.wizards.newWizard;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizard;
@@ -22,13 +25,11 @@ import org.eclipse.tcf.te.ui.nls.Messages;
 import org.eclipse.tcf.te.ui.wizards.interfaces.INewTargetWizard;
 import org.eclipse.ui.IPluginContribution;
 import org.eclipse.ui.IWorkbenchWizard;
-import org.eclipse.ui.internal.util.Util;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 
 /**
  * New wizard node implementation.
  */
-@SuppressWarnings("restriction")
 /* default */ class NewWizardNode implements IWizardNode, IPluginContribution {
 	// The associated wizard descriptor
 	private final IWizardDescriptor descriptor;
@@ -72,7 +73,7 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
 	 */
 	@Override
 	public String getLocalId() {
-    	IPluginContribution contribution = (IPluginContribution)Util.getAdapter(descriptor, IPluginContribution.class);
+    	IPluginContribution contribution = getAdapter(descriptor, IPluginContribution.class);
 		if (contribution != null) {
 			return contribution.getLocalId();
 		}
@@ -84,7 +85,7 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
 	 */
 	@Override
 	public String getPluginId() {
-       	IPluginContribution contribution = (IPluginContribution) Util.getAdapter(descriptor, IPluginContribution.class);
+       	IPluginContribution contribution = getAdapter(descriptor, IPluginContribution.class);
 		if (contribution != null) {
 			return contribution.getPluginId();
 		}
@@ -141,4 +142,40 @@ import org.eclipse.ui.wizards.IWizardDescriptor;
 
 		return wizard;
 	}
+
+	/**
+	 * Bug# 480444: NoSuchMethodError with Neon M3
+	 *
+	 * Instead of referring to the internal <code>org.eclipse.ui.internal.util.Util</code> class,
+	 * copy the <code>getAdapter</code> method here, so it can work with every platform.
+	 */
+	private final <T> T getAdapter(Object sourceObject, Class<T> adapterType) {
+    	Assert.isNotNull(adapterType);
+        if (sourceObject == null) {
+            return null;
+        }
+        if (adapterType.isInstance(sourceObject)) {
+			return adapterType.cast(sourceObject);
+        }
+
+        if (sourceObject instanceof IAdaptable) {
+            IAdaptable adaptable = (IAdaptable) sourceObject;
+
+			T result = adaptable.getAdapter(adapterType);
+            if (result != null) {
+                // Sanity-check
+                Assert.isTrue(adapterType.isInstance(result));
+                return result;
+            }
+        }
+
+        if (!(sourceObject instanceof PlatformObject)) {
+			T result = Platform.getAdapterManager().getAdapter(sourceObject, adapterType);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return null;
+    }
 }
