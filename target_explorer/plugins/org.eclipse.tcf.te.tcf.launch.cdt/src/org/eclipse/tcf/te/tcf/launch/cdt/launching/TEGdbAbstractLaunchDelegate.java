@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -28,15 +29,17 @@ import org.eclipse.cdt.dsf.concurrent.DsfRunnable;
 import org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.Query;
 import org.eclipse.cdt.dsf.datamodel.IDMContext;
-import org.eclipse.cdt.dsf.debug.service.command.IEventListener;
+import org.eclipse.cdt.dsf.debug.service.command.ICommandListener;
+import org.eclipse.cdt.dsf.debug.service.command.ICommandResult;
+import org.eclipse.cdt.dsf.debug.service.command.ICommandToken;
 import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
 import org.eclipse.cdt.dsf.gdb.service.IGDBBackend;
 import org.eclipse.cdt.dsf.gdb.service.IGDBProcesses;
 import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIOOBRecord;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIOutput;
+import org.eclipse.cdt.dsf.mi.service.IMIBackend;
+import org.eclipse.cdt.dsf.mi.service.command.commands.MIGDBExit;
 import org.eclipse.cdt.dsf.service.DsfServicesTracker;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.core.runtime.Assert;
@@ -409,8 +412,8 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 	/**
 	 * On Windows, if gdb was started as part of a batch script, the script does not exit silently
-	 * if it has been interrupted before. Therefore we listen for the "Terminate batch job (Y/N)?"
-	 * prompt to terminate the script by force instead.
+	 * if it has been interrupted before. Therefore we listen for the completion of the -gdb-exit command
+	 * and terminate the backend by force if necessary.
 	 *
 	 * @param launch
 	 */
@@ -424,17 +427,27 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 					try {
 						final IGDBBackend backend = tracker.getService(IGDBBackend.class);
 						final IGDBControl commandControl = tracker.getService(IGDBControl.class);
-						commandControl.addEventListener(new IEventListener() {
+						commandControl.addCommandListener(new ICommandListener() {
 							@Override
-							public void eventReceived(Object output) {
-								if (output instanceof MIOutput) {
-									MIOOBRecord[] oobs = ((MIOutput) output).getMIOOBRecords();
-									if (oobs != null && oobs.length > 0) {
-										String out = oobs[0].toString();
-										if (out.contains("Terminate batch job (Y/N)?")) { //$NON-NLS-1$
-											backend.destroy();
+							public void commandSent(ICommandToken token) {
+							}
+							@Override
+							public void commandRemoved(ICommandToken token) {
+							}
+							@Override
+							public void commandQueued(ICommandToken token) {
+							}
+							@Override
+							public void commandDone(ICommandToken token, ICommandResult result) {
+								if (token.getCommand() instanceof MIGDBExit) {
+									s.getExecutor().schedule(new Callable<Object>() {
+										@Override
+										public Object call() throws Exception {
+											if (commandControl.isActive() && backend.getState() != IMIBackend.State.TERMINATED)
+												backend.destroy();
+											return null;
 										}
-									}
+									}, 500, TimeUnit.MILLISECONDS);
 								}
 							}
 						});
