@@ -28,12 +28,17 @@ import org.eclipse.cdt.dsf.concurrent.DsfRunnable;
 import org.eclipse.cdt.dsf.concurrent.ImmediateRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.Query;
 import org.eclipse.cdt.dsf.datamodel.IDMContext;
+import org.eclipse.cdt.dsf.debug.service.command.IEventListener;
 import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
+import org.eclipse.cdt.dsf.gdb.service.IGDBBackend;
 import org.eclipse.cdt.dsf.gdb.service.IGDBProcesses;
 import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
+import org.eclipse.cdt.dsf.mi.service.command.output.MIOOBRecord;
+import org.eclipse.cdt.dsf.mi.service.command.output.MIOutput;
 import org.eclipse.cdt.dsf.service.DsfServicesTracker;
+import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -53,6 +58,7 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.te.core.utils.text.StringUtil;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.services.ServiceUtils;
+import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IGdbserverLaunchHandlerDelegate;
@@ -352,6 +358,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
     @Override
 	protected void launchDebugSession(ILaunchConfiguration config, ILaunch l, IProgressMonitor monitor) throws CoreException {
 	    super.launchDebugSession(config, l, monitor);
+	    addWindowsBatchJobTerminator(l);
 
 		// Determine if the launch is an attach launch
 		final boolean isAttachLaunch = ICDTLaunchConfigurationConstants.ID_LAUNCH_C_ATTACH.equals(config.getType().getIdentifier());
@@ -398,6 +405,45 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
                 cleanupLaunch();
             }
         }
+	}
+
+	/**
+	 * On Windows, if gdb was started as part of a batch script, the script does not exit silently
+	 * if it has been interrupted before. Therefore we listen for the "Terminate batch job (Y/N)?"
+	 * prompt to terminate the script by force instead.
+	 *
+	 * @param launch
+	 */
+	private void addWindowsBatchJobTerminator(ILaunch launch) {
+		if (Host.isWindowsHost() && launch instanceof GdbLaunch) {
+			final DsfSession s = ((GdbLaunch) launch).getSession();
+			s.getExecutor().execute(new Runnable() {
+				@Override
+				public void run() {
+					DsfServicesTracker tracker = new DsfServicesTracker(Activator.getDefault().getBundle().getBundleContext(), s.getId());
+					try {
+						final IGDBBackend backend = tracker.getService(IGDBBackend.class);
+						final IGDBControl commandControl = tracker.getService(IGDBControl.class);
+						commandControl.addEventListener(new IEventListener() {
+							@Override
+							public void eventReceived(Object output) {
+								if (output instanceof MIOutput) {
+									MIOOBRecord[] oobs = ((MIOutput) output).getMIOOBRecords();
+									if (oobs != null && oobs.length > 0) {
+										String out = oobs[0].toString();
+										if (out.contains("Terminate batch job (Y/N)?")) { //$NON-NLS-1$
+											backend.destroy();
+										}
+									}
+								}
+							}
+						});
+					} finally {
+						tracker.dispose();
+					}
+				}
+			});
+		}
 	}
 
 	/**
