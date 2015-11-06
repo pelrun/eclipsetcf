@@ -1120,32 +1120,34 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		return processesListener;
 	}
 
-	@SuppressWarnings("unchecked")
+	/* (non-Javadoc)
+	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
+	 */
 	@Override
-	public <T> T getAdapter(Class<T> adapter) {
+	public Object getAdapter(Class adapter) {
 		if (adapter.isAssignableFrom(IProcesses.ProcessesListener.class)) {
-			return (T) processesListener;
+			return processesListener;
 		}
 		else if (adapter.isAssignableFrom(IStreams.StreamsListener.class)) {
-			return (T) streamsListener;
+			return streamsListener;
 		}
 		else if (adapter.isAssignableFrom(IStreams.class)) {
-			return (T) svcStreams;
+			return svcStreams;
 		}
 		else if (adapter.isAssignableFrom(IProcesses.class)) {
-			return (T) svcProcesses;
+			return svcProcesses;
 		}
 		else if (adapter.isAssignableFrom(IChannel.class)) {
-			return (T) channel;
+			return channel;
 		}
 		else if (adapter.isAssignableFrom(IPropertiesContainer.class)) {
-			return (T) properties;
+			return properties;
 		}
 		else if (adapter.isAssignableFrom(IProcesses.ProcessContext.class)) {
-			return (T) processContext;
+			return processContext;
 		}
 		else if (adapter.isAssignableFrom(this.getClass())) {
-			return (T) this;
+			return this;
 		}
 
 
