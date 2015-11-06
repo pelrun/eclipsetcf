@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -162,6 +162,17 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 		 * @param callback The callback to invoke if the runnable stopped.
 		 */
 		public final synchronized void stop(ICallback callback) {
+			onEOF(callback);
+			// Mark the runnable as stopped
+			stopped = true;
+		}
+
+		/**
+		 * Notify callback on EOF.
+		 *
+		 * @param callback The callback to invoke on EOF
+		 */
+		public final synchronized void onEOF(ICallback callback) {
 			// If the runnable is stopped already, invoke the callback directly
 			if (stopped) {
 				if (callback != null) callback.done(this, Status.OK_STATUS);
@@ -170,8 +181,6 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 
 			// Store the callback instance
 			this.callback = callback;
-			// Mark the runnable as stopped
-			stopped = true;
 		}
 
 		/**
@@ -408,6 +417,17 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 		 * @param callback The callback to invoke if the runnable stopped.
 		 */
 		public final synchronized void stop(ICallback callback) {
+			onEOF(callback);
+			// Mark the runnable as stopped
+			stopped = true;
+		}
+
+		/**
+		 * Notify callback on EOF.
+		 *
+		 * @param callback The callback to invoke on EOF
+		 */
+		public final synchronized void onEOF(ICallback callback) {
 			// If the runnable is stopped already, invoke the callback directly
 			if (stopped) {
 				if (callback != null) callback.done(this, Status.OK_STATUS);
@@ -416,8 +436,6 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 
 			// Store the callback instance
 			this.callback = callback;
-			// Mark the runnable as stopped
-			stopped = true;
 		}
 
 		/**
@@ -593,7 +611,7 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 	 */
 	@Override
 	public void dispose() {
-		dispose(null);
+		dispose(false, null);
 	}
 
 	/**
@@ -602,6 +620,25 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 	 * @param callback The callback to invoke if the dispose finished or <code>null</code>.
 	 */
 	public void dispose(final ICallback callback) {
+		dispose(false, callback);
+	}
+
+	/**
+	 * Dispose the streams listener instance only on EOF.
+	 * This allows to keep reading streams after the process has exited.
+	 *
+	 * @param callback The callback to invoke if the dispose finished or <code>null</code>.
+	 */
+	void disposeOnEOF(final ICallback callback) {
+		dispose(true, callback);
+	}
+
+	/**
+	 * Dispose the streams listener instance.
+	 * @param onEof dispose as soon as all streams have seen EOF
+	 * @param callback The callback to invoke if the dispose finished or <code>null</code>.
+	 */
+	private void dispose(boolean onEof, final ICallback callback) {
 		// Store a final reference to the streams listener instance
 		final IChannelManager.IStreamsListener finStreamsListener = this;
 
@@ -636,14 +673,21 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 			}
 		}, new CallbackInvocationDelegate());
 
-		// Loop all runnable's and force them to stop
+		// Loop all runnable's and attach our callback
 		synchronized (runnables) {
 			for (Runnable runnable : runnables) {
+				AsyncCallbackCollector.SimpleCollectorCallback cb = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
 				if (runnable instanceof StreamReaderRunnable) {
-					((StreamReaderRunnable)runnable).stop(new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+					if (onEof)
+						((StreamReaderRunnable)runnable).onEOF(cb);
+					else
+						((StreamReaderRunnable)runnable).stop(cb);
 				}
-				if (runnable instanceof StreamWriterRunnable) {
-					((StreamWriterRunnable)runnable).stop(new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+				else if (runnable instanceof StreamWriterRunnable) {
+					if (onEof)
+						((StreamWriterRunnable)runnable).onEOF(cb);
+					else
+						((StreamWriterRunnable)runnable).stop(cb);
 				}
 			}
 			runnables.clear();

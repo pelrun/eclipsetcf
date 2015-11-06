@@ -14,6 +14,7 @@ package org.eclipse.tcf.te.tcf.remote.core;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessStreamsProxy;
 
@@ -26,7 +27,6 @@ public class TCFProcessStreams implements IProcessStreamsProxy {
 	@Override
 	public void connectOutputStreamMonitor(InputStream stream) {
 		fRemoteStdout = stream;
-
 	}
 
 	@Override
@@ -41,6 +41,8 @@ public class TCFProcessStreams implements IProcessStreamsProxy {
 
 	@Override
 	public void dispose(ICallback callback) {
+		if (callback != null)
+			callback.done(this, Status.OK_STATUS);
 	}
 
 	public InputStream getStdout() {

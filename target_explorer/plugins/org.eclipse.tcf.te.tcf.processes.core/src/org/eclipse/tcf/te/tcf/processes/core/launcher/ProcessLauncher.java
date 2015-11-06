@@ -107,6 +107,9 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	// The streams proxy instance
 	private IProcessStreamsProxy streamsProxy = null;
 
+	// The output stream connected to process stdin
+	private OutputStream stdinStream;
+
 	// The active token.
 	IToken activeToken = null;
 
@@ -162,7 +165,12 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		if (streamsListener != null) {
 			// Dispose the streams listener
 			if (streamsListener instanceof ProcessStreamsListener) {
-				((ProcessStreamsListener)streamsListener).dispose(new AsyncCallbackCollector.SimpleCollectorCallback(collector));
+				AsyncCallbackCollector.SimpleCollectorCallback cb = new AsyncCallbackCollector.SimpleCollectorCallback(collector);
+				// if process was terminated explicitly dispose immediately, else wait for EOF
+				if (sigTermSent)
+					((ProcessStreamsListener)streamsListener).dispose(cb);
+				else
+					((ProcessStreamsListener)streamsListener).disposeOnEOF(cb);
 			}
 			streamsListener = null;
 		}
@@ -185,6 +193,18 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			streamsProxy.dispose(new AsyncCallbackCollector.SimpleCollectorCallback(collector));
 			streamsProxy = null;
 		}
+
+		// Close stdin
+		if (stdinStream != null) {
+			try {
+				stdinStream.close();
+			}
+			catch (IOException e) {
+				// unlikely: ignore exception on close
+			}
+			stdinStream = null;
+		}
+
 		// Mark the collector initialization as done
 		collector.initDone();
 
@@ -512,7 +532,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		// The streams got subscribed, check what we need to do with them
 		if (streamsProxy != null) {
 			// Publish the streams to the supplied proxy
-			streamsProxy.connectInputStreamMonitor(connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
+			streamsProxy.connectInputStreamMonitor(stdinStream = connectRemoteOutputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDIN_ID }));
 			// Create and store the streams the terminal will see as stdout
 			streamsProxy.connectOutputStreamMonitor(connectRemoteInputStream(getStreamsListener(), new String[] { IProcesses.PROP_STDOUT_ID }, null));
 			// Create and store the streams the terminal will see as stderr
@@ -1100,34 +1120,32 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		return processesListener;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
-	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public Object getAdapter(Class adapter) {
+	public <T> T getAdapter(Class<T> adapter) {
 		if (adapter.isAssignableFrom(IProcesses.ProcessesListener.class)) {
-			return processesListener;
+			return (T) processesListener;
 		}
 		else if (adapter.isAssignableFrom(IStreams.StreamsListener.class)) {
-			return streamsListener;
+			return (T) streamsListener;
 		}
 		else if (adapter.isAssignableFrom(IStreams.class)) {
-			return svcStreams;
+			return (T) svcStreams;
 		}
 		else if (adapter.isAssignableFrom(IProcesses.class)) {
-			return svcProcesses;
+			return (T) svcProcesses;
 		}
 		else if (adapter.isAssignableFrom(IChannel.class)) {
-			return channel;
+			return (T) channel;
 		}
 		else if (adapter.isAssignableFrom(IPropertiesContainer.class)) {
-			return properties;
+			return (T) properties;
 		}
 		else if (adapter.isAssignableFrom(IProcesses.ProcessContext.class)) {
-			return processContext;
+			return (T) processContext;
 		}
 		else if (adapter.isAssignableFrom(this.getClass())) {
-			return this;
+			return (T) this;
 		}
 
 
