@@ -639,12 +639,15 @@ public class LocatorService implements ILocator {
                 InetAddress address = ia.getAddress();
                 InetAddress broadcast = ia.getBroadcast();
 
-                if (network_prefix_len == 0 && address instanceof Inet4Address) {
-                    // Java 1.6.0 on Linux returns network prefix == 0 for loop-back interface
-                    byte[] buf = address.getAddress();
-                    if (buf[0] == 127) {
-                        network_prefix_len = 8;
-                        if (broadcast == null) broadcast = address;
+                if (address instanceof Inet4Address) {
+                    if (network_prefix_len == 0) {
+                        // Java 1.6.0 on Linux returns network prefix == 0 for loop-back interface
+                        byte[] buf = address.getAddress();
+                        if (buf[0] == 127) network_prefix_len = 8;
+                    }
+                    if (broadcast == null) {
+                        // Java 1.7.0 on Linux returns broadcast == null for loop-back interface
+                        broadcast = address;
                     }
                 }
 
