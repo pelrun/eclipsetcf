@@ -36,6 +36,7 @@ import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
@@ -568,7 +569,12 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                     boolean found;
                     public void run() {
                         if (viewer instanceof IInternalTreeModelViewer) {
-                            found = ((IInternalTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
+                            try {
+                                found = ((IInternalTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
+                            } catch (SWTException e) {
+                                // viewer is already disposed
+                                return;
+                            }
                         }
                         Protocol.invokeLater(new Runnable() {
                             public void run() {
