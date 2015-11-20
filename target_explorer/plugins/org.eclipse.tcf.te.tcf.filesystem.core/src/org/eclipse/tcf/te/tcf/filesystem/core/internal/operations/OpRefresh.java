@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IFileSystem;
@@ -159,23 +160,25 @@ public class OpRefresh extends AbstractOperation {
 			fs.roots(new DoneRoots() {
 				@Override
 				public void doneRoots(IToken token, FileSystemException error, DirEntry[] entries) {
-					if (error != null) {
-						result.setError(format(Messages.OpRefresh_errorGetRoots, node.getRuntimeModel().getName()), error);
-					} else if (!result.checkCancelled()) {
-						Delegate delegate = node.getRuntimeModel().getDelegate();
-						List<FSTreeNode> nodes = new ArrayList<FSTreeNode>(entries.length);
-						for (DirEntry entry : entries) {
-							if (delegate.filterRoot(entry)) {
-								nodes.add(new FSTreeNode(node, entry.filename, true, entry.attrs));
-							}
-						}
-						node.setContent(nodes.toArray(new FSTreeNode[nodes.size()]), false);
-						for (FSTreeNode node : node.getChildren()) {
-							if (fRecursive || node.isFile()) {
-								fWork.addFirst(node);
-							}
-						}
-						result.setDone(null);
+					if (node.getRuntimeModel().getChannel() == null || node.getRuntimeModel().getChannel().getState() != IChannel.STATE_CLOSED) {
+        					if (error != null) {
+        						result.setError(format(Messages.OpRefresh_errorGetRoots, node.getRuntimeModel().getName()), error);
+        					} else if (!result.checkCancelled()) {
+        						Delegate delegate = node.getRuntimeModel().getDelegate();
+        						List<FSTreeNode> nodes = new ArrayList<FSTreeNode>(entries.length);
+        						for (DirEntry entry : entries) {
+        							if (delegate.filterRoot(entry)) {
+        								nodes.add(new FSTreeNode(node, entry.filename, true, entry.attrs));
+        							}
+        						}
+        						node.setContent(nodes.toArray(new FSTreeNode[nodes.size()]), false);
+        						for (FSTreeNode node : node.getChildren()) {
+        							if (fRecursive || node.isFile()) {
+        								fWork.addFirst(node);
+        							}
+        						}
+        						result.setDone(null);
+        					}
 					}
 				}
 			});
