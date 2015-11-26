@@ -741,8 +741,20 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 				Map<String,String> warningsMap = CommonUtils.getPeerWarnings(pNode);
 				if (warningsMap != null) {
 					Iterator<Entry<String, String>> warningsMapIterator = warningsMap.entrySet().iterator();
+					List<String> currentModulesDisplayed = new ArrayList<String>(); // To avoid duplicated warnings
 				    while (warningsMapIterator.hasNext()) {
-				    	String warningStr = warningsMapIterator.next().getValue();
+				    	Entry<String, String> warningsMapEntry = warningsMapIterator.next();
+
+				    	// Check duplicated warnings
+				    	String warningOrigin = CommonUtils.getPeerWarningOrigin(pNode, warningsMapEntry.getKey());
+				    	if (warningOrigin != null) {
+					    	if (currentModulesDisplayed.contains(warningOrigin)) {
+					    		continue;
+					    	}
+					    	currentModulesDisplayed.add(warningOrigin);
+				    	}
+
+				    	String warningStr = warningsMapEntry.getValue();
 				    	tooltipStringBuilder.append("<p>"); //$NON-NLS-1$
 				    	tooltipStringBuilder.append(warningStr);
 				    	tooltipStringBuilder.append("</p>"); //$NON-NLS-1$
