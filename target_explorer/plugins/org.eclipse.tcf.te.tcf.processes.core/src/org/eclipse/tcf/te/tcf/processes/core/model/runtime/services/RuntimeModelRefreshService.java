@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -469,7 +469,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 							protected void internalDone(Object caller, IStatus status) {
 								// More nodes to process?
 								int newIndex = index + 1;
-								if (newIndex < nodes.length) {
+								if (newIndex < nodes.length && status.isOK()) {
 									doAutoRefresh(model, nodes, newIndex, collector);
 								}
 								// Remove the outer callback from the collector
@@ -488,7 +488,7 @@ public class RuntimeModelRefreshService extends AbstractModelService<IRuntimeMod
 							childCollector.initDone();
 						} else {
 							// Invoke the inner callback right away
-							innerCallback.done(this, Status.OK_STATUS);
+							innerCallback.done(this, status);
 						}
 					}
 				};
