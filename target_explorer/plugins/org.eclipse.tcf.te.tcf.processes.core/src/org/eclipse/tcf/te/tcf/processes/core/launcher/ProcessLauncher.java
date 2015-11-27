@@ -95,7 +95,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	/* default */ boolean sigTermSent;
 
 	// The callback instance
-	private ICallback callback;
+	ICallback callback;
 
 	// The streams listener instance
 	private IChannelManager.IStreamsListener streamsListener = null;
@@ -112,6 +112,7 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 
 	// The active token.
 	IToken activeToken = null;
+	private boolean processExited;
 
 	/**
 	 * Message ID for error message in case the process launch failed.
@@ -138,6 +139,8 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 */
 	@Override
 	public void dispose() {
+		Assert.isTrue(callback == null || callback.isDone(), "Must not dispose during launch"); //$NON-NLS-1$
+
 		// Unlink the process context
 		processContext = null;
 
@@ -300,19 +303,14 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 		Assert.isNotNull(properties);
 
 		// Normalize the callback
-		if (callback == null) {
-			this.callback = new Callback() {
-				/* (non-Javadoc)
-				 * @see org.eclipse.tcf.te.runtime.callback.Callback#internalDone(java.lang.Object, org.eclipse.core.runtime.IStatus)
-				 */
-				@Override
-				public void internalDone(Object caller, IStatus status) {
-				}
-			};
-		}
-		else {
-			this.callback = callback;
-		}
+		this.callback = new Callback() {
+			@Override
+			public void internalDone(Object caller, IStatus status) {
+				if (callback != null)
+					callback.setResult(getResult());
+				doneLaunch(callback, status);
+			}
+		};
 
 		// Remember the process properties
 		this.properties = properties;
@@ -370,6 +368,14 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 				}
 			});
 		}
+	}
+
+	protected void doneLaunch(ICallback callback, IStatus status) {
+		if (callback != null)
+			callback.done(this, status);
+		// process exited during launch - dispose now
+		if (processExited)
+			dispose();
 	}
 
 	protected void onChannelOpenDone(final IPeer peer) {
@@ -1017,16 +1023,15 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	 * @param result The result object or <code>null</code>.
 	 */
 	protected void invokeCallback(IStatus status, Object result) {
-		// Dispose the process launcher if we report an error
-		if (status.getSeverity() == IStatus.ERROR) {
-			dispose();
-		}
-
 		// Invoke the callback
 		ICallback callback = getCallback();
 		if (callback != null) {
 			callback.setResult(result);
 			callback.done(this, status);
+		}
+		// Dispose the process launcher if we report an error
+		if (status.getSeverity() == IStatus.ERROR) {
+			dispose();
 		}
 	}
 
@@ -1172,5 +1177,12 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			result.append(element);
 		}
 		return result.toString();
+	}
+
+	void processExited() {
+		processExited = true;
+		// dispose unless process launch is still in progress
+		if (callback.isDone())
+			dispose();
 	}
 }

@@ -435,7 +435,8 @@ public class ProcessStreamsListener implements IChannelManager.IStreamsListener,
 			}
 
 			// Store the callback instance
-			this.callback = callback;
+			if (callback != null)
+				this.callback = callback;
 		}
 
 		/**

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -14,11 +14,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.services.IProcesses.ProcessesListener;
+import org.eclipse.tcf.te.runtime.events.EventManager;
+import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.launcher.IProcessContextAwareListener;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.tracing.ITraceIds;
-import org.eclipse.tcf.te.runtime.events.EventManager;
-import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 
 /**
  * Remote process processes listener implementation.
@@ -111,8 +111,8 @@ public class ProcessProcessesListener implements ProcessesListener, IProcessCont
 			// Send a notification
 			ProcessStateChangeEvent event = createRemoteProcessStateChangeEvent(context, exitCode);
 			EventManager.getInstance().fireEvent(event);
-			// Dispose the parent remote process launcher
-			getParent().dispose();
+			// Notify the parent remote process launcher
+			getParent().processExited();
 		}
 	}
 

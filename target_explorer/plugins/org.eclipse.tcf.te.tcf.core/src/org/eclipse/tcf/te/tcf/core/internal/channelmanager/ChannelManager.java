@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -780,8 +780,6 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
 							finProxy.removeListener(listener);
 							if (finProxy.isEmpty()) finProxies.remove(finProxy);
 			    			if (finProxies.isEmpty()) streamProxies.remove(channel);
-						} else {
-							finProxy.addListener(listener);
 						}
 						done.doneSubscribeStream(error);
 					}
@@ -829,25 +827,27 @@ public class ChannelManager extends PlatformObject implements IChannelManager {
     		proxy.removeListener(listener);
     		// Are there remaining proxied listeners for this stream type?
     		if (proxy.isEmpty()) {
+    			// Remove from proxy list
+				proxies.remove(proxy);
+				if (proxies.isEmpty()) streamProxies.remove(channel);
     			// Unregister the stream type
         		IStreams service = channel.getRemoteService(IStreams.class);
         		if (service != null) {
-        			final StreamListenerProxy finProxy = proxy;
-        			final List<StreamListenerProxy> finProxies = proxies;
-
         			// Unsubscribe
         			service.unsubscribe(streamType, proxy, new IStreams.DoneUnsubscribe() {
 						@Override
 						public void doneUnsubscribe(IToken token, Exception error) {
-							finProxies.remove(finProxy);
-							if (finProxies.isEmpty()) streamProxies.remove(channel);
 							done.doneUnsubscribeStream(error);
 						}
 					});
         		} else {
         			done.doneUnsubscribeStream(new Exception(Messages.ChannelManager_stream_missing_service_message));
         		}
+    		} else {
+				done.doneUnsubscribeStream(null);
     		}
+    	} else {
+			done.doneUnsubscribeStream(null);
     	}
     }
 
