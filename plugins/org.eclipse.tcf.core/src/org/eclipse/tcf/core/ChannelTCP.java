@@ -96,11 +96,11 @@ public class ChannelTCP extends StreamChannel {
         socket.setReuseAddress(on);
     }
 
-    public void setReceiveBufferSize(int size) throws SocketException{
+    public void setReceiveBufferSize(int size) throws SocketException {
         socket.setReceiveBufferSize(size);
     }
 
-    public void setSendBufferSize(int size) throws SocketException{
+    public void setSendBufferSize(int size) throws SocketException {
         socket.setSendBufferSize(size);
     }
 
@@ -197,7 +197,11 @@ public class ChannelTCP extends StreamChannel {
         closed = true;
         if (started) {
             socket.close();
-            out.close();
+            /* 
+             * We should not write anything to the stream here, just close it.
+             * So, don't call out.close(), because it calls out.flush().
+             * The socket output stream is already closed by socket.close().
+             */
             inp.close();
         }
     }
