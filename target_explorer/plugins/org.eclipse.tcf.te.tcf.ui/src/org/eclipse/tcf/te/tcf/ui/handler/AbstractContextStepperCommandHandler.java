@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2015 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -66,7 +66,11 @@ public abstract class AbstractContextStepperCommandHandler extends AbstractStepp
 				if (stepperOpService instanceof IStepperOperationService && ((IStepperOperationService)stepperOpService).isHandledOperation(context, operation)) {
 					String groupId = ((IStepperOperationService)stepperOpService).getStepGroupId(context, operation);
 					if (groupId != null) {
-						String history = HistoryManager.getInstance().getFirst(groupId + "@" + context.getPeerId()); //$NON-NLS-1$
+						String historyId = getHistoryId(event);
+						if (historyId == null) {
+							historyId = groupId + "@" + context.getPeerId(); //$NON-NLS-1$
+						}
+						String history = HistoryManager.getInstance().getFirst(historyId);
 						if (history != null) {
 							return DataHelper.decodePropertiesContainer(history);
 						}
@@ -76,6 +80,10 @@ public abstract class AbstractContextStepperCommandHandler extends AbstractStepp
 		}
 
 		return getDefaultData();
+	}
+
+	protected String getHistoryId(ExecutionEvent event) {
+		return null;
 	}
 
 	protected IPropertiesContainer getDefaultData() {
