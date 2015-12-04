@@ -26,9 +26,16 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
  */
 public interface IRuntimeModel extends IModel, IPeerNodeProvider {
 
+	public static final int PERMISSIONS_MODE_DEFAULT = 0;
+	public static final int PERMISSIONS_MODE_USE_ALWAYS_OWNER = 1;
+	public static final int PERMISSIONS_MODE_ALWAYS_WRITABLE = 2;
+
 	static class Delegate {
 		public boolean filterRoot(DirEntry entry) {
 			return true;
+		}
+		public int getCheckPermissionsMode() {
+			return PERMISSIONS_MODE_DEFAULT;
 		}
 	}
 

@@ -243,4 +243,9 @@ class FSTreeNodeWorkingCopy extends FSTreeNodeBase implements IFSTreeNodeWorking
 	public int getGID() {
 		return fOriginal.getGID();
 	}
+
+	@Override
+	protected boolean checkPermission(int user, int group, int other) {
+		return fOriginal.checkPermission(user, group, other);
+	}
 }

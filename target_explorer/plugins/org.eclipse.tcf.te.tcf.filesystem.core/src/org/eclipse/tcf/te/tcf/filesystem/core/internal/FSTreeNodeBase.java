@@ -26,6 +26,7 @@ public abstract class FSTreeNodeBase extends PlatformObject implements IFSTreeNo
 
 	protected abstract int getWin32Attrs();
 	protected abstract int getPermissions();
+	protected abstract boolean checkPermission(int user, int group, int other);
 
 	@Override
     public final boolean getWin32Attr(int attribute) {
@@ -62,21 +63,6 @@ public abstract class FSTreeNodeBase extends PlatformObject implements IFSTreeNo
 	public final boolean isExecutable() {
     	return checkPermission(IFileSystem.S_IXUSR, IFileSystem.S_IXGRP, IFileSystem.S_IXOTH);
 	}
-
-    private boolean checkPermission(int user, int group, int other) {
-        IUserAccount account = getUserAccount();
-        int permissions = getPermissions();
-        if (account != null && permissions != 0) {
-            if (getUID() == account.getEUID()) {
-                return getPermission(user);
-            }
-            if (getGID() == account.getEGID()) {
-                return getPermission(group);
-            }
-            return getPermission(other);
-        }
-        return false;
-    }
 
 	@Override
 	public final boolean isAgentOwner() {

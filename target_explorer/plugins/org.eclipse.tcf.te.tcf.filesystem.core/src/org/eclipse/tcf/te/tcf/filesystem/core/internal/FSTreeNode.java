@@ -42,6 +42,8 @@ import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.IResultOperation;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNodeWorkingCopy;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
+import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IUserAccount;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopy;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCopyLocal;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.operations.OpCreateFile;
@@ -674,5 +676,28 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
 	@Override
 	public boolean isRevealOnConnect() {
 		return CorePlugin.getDefault().isRevealOnConnect(getLocation(true));
+	}
+
+	@Override
+	protected boolean checkPermission(int user, int group, int other) {
+		int permissionsMode = fRuntimeModel.getDelegate().getCheckPermissionsMode();
+		if (IRuntimeModel.PERMISSIONS_MODE_ALWAYS_WRITABLE == permissionsMode) {
+			return true;
+		} else if (IRuntimeModel.PERMISSIONS_MODE_USE_ALWAYS_OWNER == permissionsMode) {
+			return getPermission(user);
+		}
+
+		IUserAccount account = getUserAccount();
+        int permissions = getPermissions();
+        if (account != null && permissions != 0) {
+            if (getUID() == account.getEUID()) {
+                return getPermission(user);
+            }
+            if (getGID() == account.getEGID()) {
+                return getPermission(group);
+            }
+            return getPermission(other);
+        }
+        return false;
 	}
 }
