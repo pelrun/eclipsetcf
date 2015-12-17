@@ -171,18 +171,8 @@
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.6milestones</platform-site>
-		        <platform-releases-site>http://download.eclipse.org/releases/neon</platform-releases-site>
                 <cdt-site>http://download.eclipse.org/tools/cdt/builds/neon/milestones</cdt-site>
             </properties>
-
-           	<repositories>
-                <repository>
-                    <id>platform-releases</id>
-                    <url>${platform-releases-site}</url>
-                    <layout>p2</layout>
-                </repository>
-           	</repositories>
-			
 		</profile>
     </profiles>
 	
