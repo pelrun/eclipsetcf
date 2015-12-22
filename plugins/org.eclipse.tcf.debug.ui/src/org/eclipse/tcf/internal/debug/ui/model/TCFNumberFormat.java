@@ -75,8 +75,11 @@ public class TCFNumberFormat {
 
     public static byte[] toByteArray(String s, int radix, boolean fp, int size, boolean signed, boolean big_endian) throws Exception {
         byte[] bf = null;
+        boolean sign_extention = false;
         if (!fp) {
-            bf = new BigInteger(s, radix).toByteArray();
+            BigInteger n = new BigInteger(s, radix);
+            sign_extention =  n.signum() < 0;
+            bf = n.toByteArray();
         }
         else if (size == 4) {
             int n = Float.floatToIntBits(Float.parseFloat(s));
@@ -184,9 +187,8 @@ public class TCFNumberFormat {
             throw new Exception("Unsupported floating point format");
         }
         byte[] rs = new byte[size];
-        if (signed && rs.length > bf.length && (bf[0] & 0x80) != 0) {
-            // Sign extension
-            for (int i = 0; i < rs.length; i++) rs[i] = (byte)0xff;
+        if (rs.length > bf.length && sign_extention) {
+            for (int i = bf.length; i < rs.length; i++) rs[i] = (byte)0xff;
         }
         for (int i = 0; i < bf.length; i++) {
             // i == 0 -> least significant byte
