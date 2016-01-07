@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,12 +10,16 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.model.CModelException;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.IBinary;
 import org.eclipse.cdt.core.model.ICElement;
 import org.eclipse.cdt.core.model.ICProject;
+import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.launch.LaunchUtils;
 import org.eclipse.cdt.ui.CElementLabelProvider;
@@ -224,6 +228,16 @@ public class TCFLaunchContext implements ITCFLaunchContext {
         ICProjectDescription projDes = CCorePlugin.getDefault().getProjectDescription(project);
         if (projDes == null) return null;
         return projDes.getActiveConfiguration().getId();
+    }
+
+    public Map<String,String> getBuildConfigIDs(IProject project) {
+        ICProjectDescription projDes = CCorePlugin.getDefault().getProjectDescription(project);
+        if (projDes == null) return null;
+        ICConfigurationDescription[] configurations = projDes.getConfigurations();
+        if (configurations == null) return null;
+        Map<String,String> map = new LinkedHashMap<String,String>();
+        for (ICConfigurationDescription c : configurations) map.put(c.getId(), c.getName());
+        return map;
     }
 
     /**

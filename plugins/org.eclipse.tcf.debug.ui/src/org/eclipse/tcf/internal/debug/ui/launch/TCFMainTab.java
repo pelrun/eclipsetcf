@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.debug.ui.launch;
 
 import java.io.File;
+import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -29,27 +30,36 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.debug.ui.ITCFLaunchContext;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 
 public class TCFMainTab extends AbstractLaunchConfigurationTab {
+
+    private static final String LAUNCHING_PREFERENCE_PAGE_ID = "org.eclipse.debug.ui.LaunchingPreferencePage"; //$NON-NLS-1$
 
     private Text project_text;
     private Text local_program_text;
     private Text remote_program_text;
     private Text working_dir_text;
+    private Button disable_build;
+    private Button workspace_build;
     private Button default_dir_button;
     private Button attach_children_button;
     private Button stop_at_entry_button;
@@ -57,6 +67,8 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
     private Button disconnect_on_ctx_exit;
     private Button terminal_button;
     private Button filter_button;
+    private Combo build_config_combo;
+    private Link workpsace_link;
     private Exception init_error;
 
     public void createControl(Composite parent) {
@@ -70,6 +82,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         createHeader(comp);
         createVerticalSpacer(comp, 1);
         createProjectGroup(comp);
+        createBuildGroup(comp);
         createApplicationGroup(comp);
         createWorkingDirGroup(comp);
         createVerticalSpacer(comp, 1);
@@ -102,6 +115,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         project_text.setLayoutData(gd);
         project_text.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent evt) {
+                updateBuildConfigCombo(false, null);
                 updateLaunchConfigurationDialog();
             }
         });
@@ -112,6 +126,69 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
             @Override
             public void widgetSelected(SelectionEvent evt) {
                 handleProjectButtonSelected();
+                updateLaunchConfigurationDialog();
+            }
+        });
+    }
+
+    private void createBuildGroup(Composite parent) {
+        final Shell shell = parent.getShell();
+        Group group = new Group(parent, SWT.NONE);
+        GridLayout layout = new GridLayout(3, false);
+        group.setLayout(layout);
+        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        group.setText("Build (if required) before launching");
+        createBuildConfigCombo(group, layout.numColumns);
+        disable_build = new Button(group, SWT.RADIO);
+        disable_build.setText("Disable auto build");
+        disable_build.setToolTipText("Requires manually building project before launching");
+        disable_build.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent evt) {
+                updateLaunchConfigurationDialog();
+            }
+        });
+        workspace_build = new Button(group, SWT.RADIO);
+        workspace_build.setText("Use workspace settings");
+        workspace_build.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent evt) {
+                updateLaunchConfigurationDialog();
+            }
+        });
+        workpsace_link = new Link(group, SWT.NONE);
+        workpsace_link.setText("<a>Configure Workspace Settings...</a>");
+        workpsace_link.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                PreferencesUtil.createPreferenceDialogOn(
+                        shell,
+                        LAUNCHING_PREFERENCE_PAGE_ID,
+                        null,
+                        null).open();
+            }
+        });
+    }
+
+    protected void createBuildConfigCombo(Composite parent, int colspan) {
+        Composite comp = new Composite(parent, SWT.NONE);
+        GridLayout layout = new GridLayout(2, false);
+        comp.setLayout(layout);
+        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = colspan;
+        comp.setLayoutData(gd);
+        Label label = new Label(comp, SWT.NONE);
+        label.setText("Build configuration:");
+        build_config_combo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
+        build_config_combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        build_config_combo.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updateLaunchConfigurationDialog();
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
                 updateLaunchConfigurationDialog();
             }
         });
@@ -221,12 +298,6 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         });
     }
 
-    @Override
-    protected void updateLaunchConfigurationDialog() {
-        super.updateLaunchConfigurationDialog();
-        working_dir_text.setEnabled(!default_dir_button.getSelection());
-    }
-
     private void createOptionButtons(Composite parent, int col_span) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout terminal_layout = new GridLayout();
@@ -293,11 +364,46 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         filter_button.setEnabled(true);
     }
 
+    @Override
+    protected void updateLaunchConfigurationDialog() {
+        super.updateLaunchConfigurationDialog();
+        working_dir_text.setEnabled(!default_dir_button.getSelection());
+    }
+
+    protected void updateBuildConfigCombo(boolean auto, String selection) {
+        int selection_index = auto ? 1 : 0;
+        build_config_combo.removeAll();
+        build_config_combo.add("Use Active");
+        build_config_combo.add("Select Automatically");
+        IProject project = getProject();
+        if (project != null) {
+            ITCFLaunchContext launch_context = TCFLaunchContext.getLaunchContext(project);
+            if (launch_context != null) {
+                Map<String,String> map = launch_context.getBuildConfigIDs(project);
+                if (map != null) {
+                    int cnt = 2;
+                    for (String id : map.keySet()) {
+                        build_config_combo.add(map.get(id));
+                        if (id.equals(selection)) selection_index = cnt;
+                        build_config_combo.setData(Integer.toString(cnt++), id);
+                    }
+                }
+            }
+        }
+        build_config_combo.select(selection_index);
+    }
+
     public void initializeFrom(ILaunchConfiguration config) {
         setErrorMessage(null);
         setMessage(null);
         try {
             project_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_PROJECT_NAME, ""));
+            boolean auto = config.getAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_AUTO, false);
+            updateBuildConfigCombo(auto, config.getAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_ID, (String)null));
+            int build = TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_USE_WORKSPACE_SETTING;
+            build = config.getAttribute(TCFLaunchDelegate.ATTR_BUILD_BEFORE_LAUNCH, build);
+            disable_build.setSelection(build == TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_DISABLED);
+            workspace_build.setSelection(build == TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_USE_WORKSPACE_SETTING);
             local_program_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE, ""));
             remote_program_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, ""));
             working_dir_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_WORKING_DIRECTORY, ""));
@@ -325,6 +431,23 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
 
     public void performApply(ILaunchConfigurationWorkingCopy config) {
         config.setAttribute(TCFLaunchDelegate.ATTR_PROJECT_NAME, project_text.getText());
+        int config_index = build_config_combo.getSelectionIndex();
+        if (config_index == 0) {
+            config.removeAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_ID);
+            config.removeAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_AUTO);
+        }
+        else if (config_index == 1) {
+            config.removeAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_ID);
+            config.setAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_AUTO, true);
+        }
+        else {
+            String config_id = (String)build_config_combo.getData(Integer.toString(config_index));
+            config.setAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_ID, config_id);
+            config.removeAttribute(TCFLaunchDelegate.ATTR_PROJECT_BUILD_CONFIG_AUTO);
+        }
+        int build = TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_USE_WORKSPACE_SETTING;
+        if (disable_build.getSelection()) build = TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_DISABLED;
+        config.setAttribute(TCFLaunchDelegate.ATTR_BUILD_BEFORE_LAUNCH, build);
         config.setAttribute(TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE, local_program_text.getText());
         config.setAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, remote_program_text.getText());
         if (default_dir_button.getSelection()) {

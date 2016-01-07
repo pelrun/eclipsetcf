@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
+import org.eclipse.tcf.debug.ITCFLaunchProjectBuilder;
 import org.eclipse.tcf.internal.debug.Activator;
 import org.eclipse.tcf.internal.debug.model.ITCFConstants;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
@@ -52,6 +53,9 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
     public static final String
         ATTR_PEER_ID = ITCFConstants.ID_TCF_DEBUG_MODEL + ".PeerID",
         ATTR_PROJECT_NAME = ITCFConstants.ID_TCF_DEBUG_MODEL + ".ProjectName",
+        ATTR_BUILD_BEFORE_LAUNCH = ITCFConstants.ID_TCF_DEBUG_MODEL + ".BuildBeforeLaunch",
+        ATTR_PROJECT_BUILD_CONFIG_ID = ITCFConstants.ID_TCF_DEBUG_MODEL + ".ProjectBuildConfigID",
+        ATTR_PROJECT_BUILD_CONFIG_AUTO = ITCFConstants.ID_TCF_DEBUG_MODEL + ".ProjectBuildConfigAuto",
         ATTR_LOCAL_PROGRAM_FILE = ITCFConstants.ID_TCF_DEBUG_MODEL + ".LocalProgramFile",
         ATTR_REMOTE_PROGRAM_FILE = ITCFConstants.ID_TCF_DEBUG_MODEL + ".ProgramFile",
         ATTR_COPY_TO_REMOTE_FILE = ITCFConstants.ID_TCF_DEBUG_MODEL + ".CopyToRemote",
@@ -72,6 +76,10 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         ATTR_MEMORY_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".MemoryMap",
         ATTR_ATTACH_PATH = ITCFConstants.ID_TCF_DEBUG_MODEL + ".Attach",
         ATTR_USE_CONTEXT_FILTER = ITCFConstants.ID_TCF_DEBUG_MODEL + ".UseContextFilter";
+
+    public static final int
+        BUILD_BEFORE_LAUNCH_USE_WORKSPACE_SETTING = 0,
+        BUILD_BEFORE_LAUNCH_DISABLED = 1;
 
     public static final String
         FILES_CONTEXT_FULL_NAME = "Context",
@@ -237,7 +245,8 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         Element root = null;
         try {
             root = DebugPlugin.parseDocument(s);
-        } catch (CoreException e) {
+        }
+        catch (CoreException e) {
             // The memento does not represent a XML string
         }
         if (root == null) return;
@@ -328,6 +337,26 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
             program_path = project.getFile(program_name).getLocation();
         }
         return program_path.toOSString();
+    }
+
+    @Override
+    protected IProject[] getBuildOrder(ILaunchConfiguration configuration, String mode) throws CoreException {
+        ITCFLaunchProjectBuilder builder = TCFLaunchProjectBuilder.getLaunchProjectBuilder(configuration);
+        if (builder != null) return builder.getBuildOrder(configuration, mode);
+        String name = configuration.getAttribute(ATTR_PROJECT_NAME, "");
+        if (name.length() == 0) return null;
+        IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(name);
+        if (project == null) return null;
+        return new IProject[]{ project };
+    }
+
+    @Override
+    public boolean buildForLaunch(ILaunchConfiguration configuration, String mode, IProgressMonitor monitor) throws CoreException {
+        int build = configuration.getAttribute(ATTR_BUILD_BEFORE_LAUNCH, BUILD_BEFORE_LAUNCH_USE_WORKSPACE_SETTING);
+        if (build == BUILD_BEFORE_LAUNCH_DISABLED) return false;
+        ITCFLaunchProjectBuilder builder = TCFLaunchProjectBuilder.getLaunchProjectBuilder(configuration);
+        if (builder != null) return builder.buildForLaunch(configuration, mode, monitor);
+        return super.buildForLaunch(configuration, mode, monitor);
     }
 
     /**
