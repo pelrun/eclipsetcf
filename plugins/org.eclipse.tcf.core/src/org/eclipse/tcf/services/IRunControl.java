@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -86,6 +86,22 @@ public interface IRunControl extends IService {
          * when accessing context registers.
          */
         PROP_REG_ACCESS_TYPES = "RegAccessTypes";
+
+    /**
+     * Values of "RegAccessTypes".
+     * @since 1.3
+     */
+    static final String
+        REG_ACCESS_RD_RUNNING = "rd-running",   /** Context supports reading registers while running */
+        REG_ACCESS_WR_RUNNUNG = "wr-running";   /** Context supports writing registers while running */
+
+    /**
+     * Values of "RegAccessTypes".
+     * @since 1.4
+     */
+    static final String
+        REG_ACCESS_RD_STOP = "rd-stop",         /** Debugger should stop the context to read registers */
+        REG_ACCESS_WR_STOP = "wr-stop";         /** Debugger should stop the context to write registers */
 
     /**
      * Context resume modes.
@@ -230,22 +246,6 @@ public interface IRunControl extends IService {
         REASON_ERROR = "Error";
 
 
-    /**
-     * Values of "RegAccessTypes".
-     * @since 1.3
-     */
-    static final String
-        REG_ACCESS_RD_RUNNING = "rd-running",   /** Context supports reading registers while running */
-        REG_ACCESS_WR_RUNNUNG = "wr-running";   /** Context supports writing registers while running */
-
-    /**
-     * Values of "RegAccessTypes".
-     * @since 1.4
-     */
-    static final String
-        REG_ACCESS_RD_STOP = "rd-stop",         /** Debugger should stop the context to read registers */
-        REG_ACCESS_WR_STOP = "wr-stop";         /** Debugger should stop the context to write registers */
-
     /* Optional parameters of context state -------------------------------- */
 
     /**
@@ -330,6 +330,13 @@ public interface IRunControl extends IService {
      * Integer - ending address of step range, exclusive.
      */
     static final String RP_RANGE_END = "RangeEnd";
+
+    /**
+     * Resume command parameter:
+     * Boolean - allow to stop in a hidden code during stepping.
+     * @since 1.4
+     */
+    static final String RP_STEP_INTO_HIDDEN = "StepIntoHidden";
 
 
     /* Commands ------------------------------------------------------------ */

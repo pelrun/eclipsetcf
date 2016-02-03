@@ -46,6 +46,10 @@
         <td>1.1
         <td>2012-05-30
         <td>TCF release 1.0
+    <tr>
+        <td>1.2
+        <td>2016-02-03
+        <td>TCF release 1.4
 </table>
 
 <h2><a name='Overview'>Overview</a></h2>
@@ -164,6 +168,15 @@ contextChanged event to notify changes in context data.</p>
     - Context ID of a symbols group that contains the context.
     Members of a symbols group share same symbol reader configuration settings,
     like user defined memory map entries and source lookup info
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"RegAccessTypes" : <i>&lt;array of string&gt;</i></font></b></code>
+    - the access types allowed for this context when accessing context registers
+      <ul>
+        <li>"rd-running" - context supports reading registers, clients are not required to stop the context for register access</li>
+        <li>"wr-running" - context supports writing registers, clients are not required to stop the context for register access</li>
+        <li>"rd-stop" - context supports reading registers, clients should stop the context for register access</li>
+        <li>"wr-stop" - context supports writing registers, clients should stop the context for register access</li>
+      </ul>
 </ul>
 
 <h3><a name='CmdGetChildren'>Get Children</a></h3>
@@ -343,6 +356,10 @@ to context's children. Only contexts with HasState = true can be resumed.</p>
         <code><b><font face="Courier New" size=2 color=#333399>"RangeEnd" : <i>&lt;number&gt;</i></b></font></code>
         ending address of step range, exclusive.
     </li>
+    <li>
+        <code><b><font face="Courier New" size=2 color=#333399>"StepIntoHidden" : <i>&lt;boolean&gt;</i></b></font></code>
+        allow to stop in a hidden code during stepping.
+    </li>
 </ul>
 
 <p>Result message:</p>
@@ -407,8 +424,21 @@ Definition of state properties depends on a target. Predefined properties are:</
          - IDs of breakpoints that were triggered by the context
     <li><code><b><font face="Courier New" size=2 color=#333399>"PCError" : <i>&lt;object&gt;</i></b></font></code>
          - error report that describes a reason why program counter of the context is not available
+    <li><code><b><font face="Courier New" size=2 color=#333399>"StepError" : <i>&lt;object&gt;</i></b></font></code>
+         - error report if last stepping operation failed to reach its destination
+    <li><code><b><font face="Courier New" size=2 color=#333399>"FuncCall" : <i>&lt;boolean&gt;</i></b></font></code>
+         - true if the context is stopped by a function call injection
     <li><code><b><font face="Courier New" size=2 color=#333399>"Reversing" : <i>&lt;boolean&gt;</i></b></font></code>
          - true if the context is running in reverse
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Context" : <i>&lt;string&gt;</i></b></font></code>
+         - name of a context that owns this context;
+         human readable string to be used to decorate context presentation in UI
+    <li><code><b><font face="Courier New" size=2 color=#333399>"CPU" : <i>&lt;string&gt;</i></b></font></code>
+         - name of CPU that is executing the context;
+         human readable string to be used to decorate context presentation in UI
+    <li><code><b><font face="Courier New" size=2 color=#333399>"StateName" : <i>&lt;string&gt;</i></b></font></code>
+         - name of current state if other than "Running", for example: "Sleeping", "Reset", "No Clock", "Zombie";
+         human readable string to be used to decorate context presentation in UI
 </ul>
 
 <h3><a name='CmdTerminate'>Terminate</a></h3>
@@ -462,7 +492,9 @@ E &bull; RunControl &bull; containerSuspended &bull; <i>&lt;string: context ID&g
 
 E &bull; RunControl &bull; containerResumed &bull; <i>&lt;array of context IDs&gt;</i> &bull;
 
-<i>&lt;array of context data&gt;</i>
+E &bull; RunControl &bull; contextStateChanged &bull; <i>&lt;string: context IDs&gt;</i> &bull;
+
+  <i>&lt;array of context data&gt;</i>
     &rArr; null
     &rArr; [ <i>&lt;context data list&gt;</i> ]
 
@@ -500,6 +532,10 @@ E &bull; RunControl &bull; containerResumed &bull; <i>&lt;array of context IDs&g
         <dd>is sent when target simultaneously resumes multiple threads in a container (process,
         core, etc.). Message contains full list of all contexts that were resumed
         simultaneously. No separate contextResumed events are sent for contexts in the list.
+    <dt><b>contextStateChanged</b>
+        <dd>is sent when context state changes and the context is not and was not in suspended state.
+        Changes to and from suspended state should be reported by other events:
+        contextSuspended, contextResumed, containerSuspended, containerResumed.
 </dl>
 
 <h2><a name='API'>API</a></h2>
@@ -525,7 +561,17 @@ E &bull; RunControl &bull; containerResumed &bull; <i>&lt;array of context IDs&g
         PROP_CAN_DETACH = "CanDetach",
         PROP_RC_GROUP = "RCGroup",
         PROP_BP_GROUP = "BPGroup",
-        PROP_SYMBOLS_GROUP = "SymbolsGroup";
+        PROP_SYMBOLS_GROUP = "SymbolsGroup",
+        PROP_REG_ACCESS_TYPES = "RegAccessTypes";
+
+    <font color=#3F5FBF>/**
+     * Values of "RegAccessTypes".
+     */</font>
+    <font color=#7F0055>static final</font> String
+        REG_ACCESS_RD_RUNNING = "rd-running",
+        REG_ACCESS_WR_RUNNUNG = "wr-running",
+        REG_ACCESS_RD_STOP = "rd-stop",
+        REG_ACCESS_WR_STOP = "wr-stop";
 
     <font color=#3F5FBF>/**
      * Context resume modes.
@@ -575,14 +621,20 @@ E &bull; RunControl &bull; containerResumed &bull; <i>&lt;array of context IDs&g
         STATE_SIGNAL_DESCRIPTION = "SignalDescription",
         STATE_BREAKPOINT_IDS = "BPs",
         STATE_PC_ERROR = "PCError",
-        STATE_REVERSING = "Reversing";
+        STATE_STEP_ERROR = "StepError",
+        STATE_FUNC_CALL = "FuncCall",
+        STATE_REVERSING = "Reversing",
+        STATE_CONTEXT = "Context",
+        STATE_CPU = "CPU",
+        STATE_NAME = "StateName";
 
     <font color=#3F5FBF>/**
      * Optional parameters of resume command.
      */</font>
     <font color=#7F0055>static final</font> String
         RP_RANGE_START = "RangeStart",
-        RP_RANGE_END = "RangeEnd";
+        RP_RANGE_END = "RangeEnd",
+        RP_STEP_INTO_HIDDEN = "StepIntoHidden";
 
     <font color=#3F5FBF>/**
      * Retrieve context info for given context ID.
@@ -769,6 +821,12 @@ E &bull; RunControl &bull; containerResumed &bull; <i>&lt;array of context IDs&g
         String getSymbolsGroup();
 
         <font color=#3F5FBF>/**
+         * Get the register access types allowed for this context.
+         * <font color=#7F9FBF>@return</font> collection of access type names.
+         */</font>
+        Collection&lt;String&gt; getRegAccessTypes();
+
+        <font color=#3F5FBF>/**
          * Send a command to retrieve current state of a context.
          * <font color=#7F9FBF>@param</font> done - command result call back object.
          * <font color=#7F9FBF>@return</font> pending command handle, PROP_CAN_DETACH be used to cancel the command.
@@ -902,6 +960,14 @@ E &bull; RunControl &bull; containerResumed &bull; <i>&lt;array of context IDs&g
          * <font color=#7F9FBF>@param</font> msg - human readable description of the exception.
          */</font>
         <font color=#7F0055>void</font> contextException(String context, String msg);
+
+        <font color=#3F5FBF>/**
+         * Called when context state changes and the context is not and was not in suspended state.
+         * Changes to and from suspended state should be reported by other events:
+         * contextSuspended, contextResumed, containerSuspended, containerResumed.
+         * <font color=#7F9FBF>@param</font> context - ID of a context that changed state.
+         */</font>
+        <font color=#7F0055>void</font> contextStateChanged(String context)
     }
 }
 </pre>
