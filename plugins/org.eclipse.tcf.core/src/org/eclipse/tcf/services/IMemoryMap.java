@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,39 +27,40 @@ public interface IMemoryMap extends IService {
     /**
      * Memory region property names.
      */
-    static final String
-        /** String, memory region ID */
-        PROP_ID = "ID",
 
-        /** String, memory region context query, see IContextQuery */
-        PROP_CONTEXT_QUERY = "ContextQuery",
+    /** String, memory region ID */
+    static final String PROP_ID = "ID";
 
-        /** Number, region address in memory */
-        PROP_ADDRESS = "Addr",
+    /** String, memory region context query, see IContextQuery */
+    static final String PROP_CONTEXT_QUERY = "ContextQuery";
 
-        /** Number, region size */
-        PROP_SIZE = "Size",
+    /** Number, region address in memory */
+    static final String PROP_ADDRESS = "Addr";
 
-        /** Number, region offset in the file */
-        PROP_OFFSET = "Offs",
+    /** Number, region size */
+    static final String PROP_SIZE = "Size";
 
-        /** Boolean, true if the region represents BSS */
-        PROP_BSS = "BSS",
+    /** Number, region offset in the file */
+    static final String PROP_OFFSET = "Offs";
 
-        /** Object, Operating System Awareness properties */
-        PROP_OSA = "OSA",
+    /** Boolean, true if the region represents BSS */
+    static final String PROP_BSS = "BSS";
 
-        /** Object, kernel module properties */
-        PROP_KERNEL_MODULE = "KernelModule",
+    /** Object, Operating System Awareness properties */
+    static final String PROP_OSA = "OSA";
 
-        /** Number, region memory protection flags, see FLAG_* */
-        PROP_FLAGS = "Flags",
+    /** Object, kernel module properties
+     * @since 1.4 */
+    static final String PROP_KERNEL_MODULE = "KernelModule";
 
-        /** String, name of the file */
-        PROP_FILE_NAME = "FileName",
+    /** Number, region memory protection flags, see FLAG_* */
+    static final String PROP_FLAGS = "Flags";
 
-        /** String, name of the object file section */
-        PROP_SECTION_NAME = "SectionName";
+    /** String, name of the file */
+    static final String PROP_FILE_NAME = "FileName";
+
+    /** String, name of the object file section */
+    static final String PROP_SECTION_NAME = "SectionName";
 
     /**
      * Memory region flags.
