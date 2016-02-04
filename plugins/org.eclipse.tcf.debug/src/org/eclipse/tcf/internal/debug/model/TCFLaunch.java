@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ import org.eclipse.tcf.services.IDPrintf;
 import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
+import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
@@ -241,6 +243,54 @@ public class TCFLaunch extends Launch {
         }
 
         public void contextException(String context, String msg) {
+        }
+    };
+    
+    /**
+     * This PathMapListener applies the shared path map rules set by other clients in the same channel.
+     */
+    private final IPathMap.PathMapListener path_map_listener = new IPathMap.PathMapListener() {
+        @Override
+        public void changed() {
+            IPathMap path_map_service = getService(IPathMap.class);
+            if (path_map_service != null) {
+                path_map_service.get(new IPathMap.DoneGet() {
+                    @Override
+                    public void doneGet(IToken token, Exception error, PathMapRule[] map) {
+                        if (map != null) {
+                            if (host_path_map == null) {
+                                host_path_map = new ArrayList<IPathMap.PathMapRule>();
+                            }
+                            
+                            // Remove old path map rules
+                            List<IPathMap.PathMapRule> new_rules = Arrays.asList(map);
+                            for (IPathMap.PathMapRule rule:host_path_map) {
+                                if (!new_rules.contains(rule)) {
+                                    host_path_map.remove(rule);
+                                }
+                            }
+                            
+                            // Look for new shared path map rules
+                            List<IPathMap.PathMapRule> diff_rules = new ArrayList<IPathMap.PathMapRule>();
+                            for (IPathMap.PathMapRule rule:map) {
+                                if (Boolean.parseBoolean((String)rule.getProperties().get("Shared")) &&
+                                        !host_path_map.contains(rule) &&
+                                        !diff_rules.contains(rule)) {
+                                    diff_rules.add(rule);
+                                }
+                            }
+                            if (diff_rules.size() > 0) {
+                                host_path_map.addAll(diff_rules);
+                                applyPathMap(channel, diff_rules.toArray(new IPathMap.PathMapRule[0]), new IPathMap.DoneSet() {
+                                    public void doneSet(IToken token, Exception error) {
+                                        if (error != null) channel.terminate(error);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            }
         }
     };
 
@@ -1525,6 +1575,7 @@ public class TCFLaunch extends Launch {
                 public void onChannelOpened() {
                     try {
                         peer_name = getPeerName(getPeer());
+                        attachPathMapListener();
                         onConnected();
                     }
                     catch (Throwable x) {
@@ -1537,9 +1588,9 @@ public class TCFLaunch extends Launch {
 
                 public void onChannelClosed(Throwable error) {
                     channel.removeChannelListener(this);
+                    detachPathMapListener();
                     onDisconnected(error);
                 }
-
             });
             assert channel.getState() == IChannel.STATE_OPENING;
             if (launch_monitor != null) launch_monitor.subTask("Connecting to " + peer_name);
@@ -1773,5 +1824,21 @@ public class TCFLaunch extends Launch {
      */
     public Set<String> getContextFilter() {
         return context_filter;
+    }
+
+    private void attachPathMapListener() {
+        IPathMap path_map_service = getService(IPathMap.class);
+        if (path_map_service != null) {
+            path_map_service.addListener(path_map_listener);
+        }
+    }
+
+    private void detachPathMapListener() {
+        if (path_map_listener != null) {
+            IPathMap path_map_service = getService(IPathMap.class);
+            if (path_map_service != null) {
+                path_map_service.removeListener(path_map_listener);
+            }
+        }
     }
 }

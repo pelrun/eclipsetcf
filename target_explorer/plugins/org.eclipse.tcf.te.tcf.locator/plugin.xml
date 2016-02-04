@@ -210,6 +210,10 @@
             id="org.eclipse.tcf.te.tcf.locator.startPingTimerStep"
             class="org.eclipse.tcf.te.tcf.locator.steps.StartPingTimerStep"
             label="%StartPingTimerStep.name"/>
+      <step
+            id="org.eclipse.tcf.te.tcf.locator.removeExternalPathMapsStep"
+            class="org.eclipse.tcf.te.tcf.locator.steps.RemoveExternalPathMapsStep"
+            label="%RemoveExternalPathMapsStep.name"/>
    </extension>
 
 <!-- Step group contributions -->
@@ -253,6 +257,7 @@
             <reference id="org.eclipse.tcf.te.tcf.locator.stopDebuggerStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.shutDownStep"/>
             <reference id="org.eclipse.tcf.te.tcf.locator.stopSimulatorStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.locator.removeExternalPathMapsStep"/>
             <reference id="org.eclipse.tcf.te.core.setConnectStateStep" secondaryId="disconnected">
             	<parameter name="state" value="disconnected"/>
             </reference>

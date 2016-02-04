@@ -71,6 +71,42 @@ public interface IPathMapService extends IService {
 	public IPathMap.PathMapRule addPathMap(Object context, String source, String destination);
 
 	/**
+	 * Adds new path mapping rules to the configured (object) path mapping for the
+	 * given context.
+	 * <p>
+	 * The method will check the path mappings if path map rules given already exist. If
+	 * this is the case, the method will do nothing for them and it will add just the
+	 * new ones.
+	 *
+	 * <p>
+	 * The method auto applies the new path maps to an possibly open shared channel.
+	 * <p>
+	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
+	 *
+	 * @param context
+	 * @param rules
+	 */
+	public void addPathMap(Object context, IPathMap.PathMapRule[] rules);
+
+	/**
+	 * Adds new shared path mapping rules to the configured (object) path mapping for the
+	 * given context.
+	 * <p>
+	 * The method will check the path mappings if path map rules given already exist. If
+	 * this is the case, the method will do nothing for them and it will add just the
+	 * new ones.
+	 *
+	 * <p>
+	 * The method auto applies the new path map to an possibly open shared channel.
+	 * <p>
+	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
+	 *
+	 * @param context
+	 * @param rules
+	 */
+	public void addSharedPathMapRules(Object context, IPathMap.PathMapRule[] rules);
+
+	/**
 	 * Removes the given path mapping rule from the configured (object) path mappings
 	 * for the given context.
 	 * <p>
@@ -82,6 +118,30 @@ public interface IPathMapService extends IService {
 	 * @param rule The path map rule. Must not be <code>null</code>.
 	 */
 	public void removePathMap(Object context, IPathMap.PathMapRule rule);
+
+	/**
+	 * Removes the given path mapping rules from the configured (object) path mappings
+	 * for the given context.
+	 * <p>
+	 * The method auto applies the new path maps to an possibly open shared channel.
+	 * <p>
+	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
+	 *
+	 * @param context
+	 * @param rules
+	 */
+	public void removePathMap(Object context, IPathMap.PathMapRule[] rules);
+
+	/**
+	 * Removes all the shared path map rules for the given context.
+	 * <p>
+	 * The method auto applies the new path map to an possibly open shared channel.
+	 * <p>
+	 * <b>Note:</b> This method must be called from outside the TCF event dispatch thread.
+	 *
+	 * @param context
+	 */
+	public void cleanSharedPathMapRules(Object context);
 
 	/**
 	 * Apply the configured (object) path mappings to the given context.

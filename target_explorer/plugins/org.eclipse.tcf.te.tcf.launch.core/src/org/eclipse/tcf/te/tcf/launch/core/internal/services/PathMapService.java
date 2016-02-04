@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -62,6 +62,9 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
 public class PathMapService extends AbstractService implements IPathMapService {
 	// Lock to handle multi thread access
 	private final Lock lock = new ReentrantLock();
+
+	// Contains a list of the shared Path Map rules for each context
+	private final Map<String, List<IPathMap.PathMapRule>> sharedPathMapRules = new HashMap<String, List<IPathMap.PathMapRule>>();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#generateSourcePathMappings(java.lang.Object)
@@ -206,17 +209,39 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		return rules;
 	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#addPathMap(java.lang.Object, java.lang.String, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#addSharedPathMapRules(java.lang.Object, org.eclipse.tcf.services.IPathMap.PathMapRule[])
      */
-    @Override
-    public PathMapRule addPathMap(Object context, String source, String destination) {
-    	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+	@Override
+	public void addSharedPathMapRules(Object context, PathMapRule[] rules) {
 		Assert.isNotNull(context);
-		Assert.isNotNull(source);
-		Assert.isNotNull(destination);
+		Assert.isNotNull(rules);
 
-		PathMapRule rule = null;
+		if (context instanceof IPeer) {
+			List<IPathMap.PathMapRule> rulesToAdd = new ArrayList<IPathMap.PathMapRule>();
+			for (PathMapRule rule:rules) {
+				Map<String, Object> props = new LinkedHashMap<String, Object>();
+				props.put(IPathMap.PROP_SOURCE, rule.getSource());
+				props.put(IPathMap.PROP_DESTINATION, rule.getDestination());
+				rulesToAdd.add(new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props));
+			}
+			sharedPathMapRules.put(((IPeer)context).getID(), rulesToAdd);
+			addPathMap(context, rules);
+		}
+	}
+
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#addPathMap(java.lang.Object, org.eclipse.tcf.services.IPathMap.PathMapRule[])
+     */
+	@Override
+	public void addPathMap(Object context, IPathMap.PathMapRule[] rules) {
+		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+		Assert.isNotNull(context);
+		Assert.isNotNull(rules);
+
+		List<PathMapRule> rulesWithoutMatching = new ArrayList<PathMapRule>();
 
 		try {
 			// Acquire the lock before accessing the path mappings
@@ -234,20 +259,27 @@ public class PathMapService extends AbstractService implements IPathMapService {
 				populatePathMapRulesList(config, rulesList);
 
 				// Find an existing path map rule for the given source and destination
-				for (PathMapRule candidate : rulesList) {
-					if (source.equals(candidate.getSource()) && destination.equals(candidate.getDestination())) {
-						rule = candidate;
-						break;
+				for (PathMapRule r:rules) {
+					PathMapRule matchingRule = null;
+					for (PathMapRule candidate : rulesList) {
+						if (r.getSource().equals(candidate.getSource()) && r.getDestination().equals(candidate.getDestination())) {
+							matchingRule = candidate;
+							break;
+						}
+					}
+					if (matchingRule == null) {
+						rulesWithoutMatching.add(r);
 					}
 				}
 
-				// If not matching path map rule exist, create a new one
-				if (rule == null) {
-					Map<String, Object> props = new LinkedHashMap<String, Object>();
-					props.put(IPathMap.PROP_SOURCE, source);
-					props.put(IPathMap.PROP_DESTINATION, destination);
-					rule = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
-					rulesList.add(rule);
+				// Add new path map rules
+				if (rulesWithoutMatching.size() > 0) {
+					for (PathMapRule rule:rulesWithoutMatching) {
+						Map<String, Object> props = new LinkedHashMap<String, Object>();
+						props.put(IPathMap.PROP_SOURCE, rule.getSource());
+						props.put(IPathMap.PROP_DESTINATION, rule.getDestination());
+						rulesList.add(new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props));
+					}
 
 					// Update the launch configuration
 					updateLaunchConfiguration(config, rulesList);
@@ -267,18 +299,32 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			// Release the lock
 			lock.unlock();
 		}
+	}
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#addPathMap(java.lang.Object, java.lang.String, java.lang.String)
+     */
+    @Override
+    public PathMapRule addPathMap(Object context, String source, String destination) {
+    	Map<String, Object> props = new LinkedHashMap<String, Object>();
+		props.put(IPathMap.PROP_SOURCE, source);
+		props.put(IPathMap.PROP_DESTINATION, destination);
+		org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule rule = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
+
+		addPathMap(context, new PathMapRule[] {rule});
 
 		return rule;
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#removePathMap(java.lang.Object, org.eclipse.tcf.services.IPathMap.PathMapRule)
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#removePathMap(java.lang.Object, org.eclipse.tcf.services.IPathMap.PathMapRule[])
      */
-    @Override
-    public void removePathMap(final Object context, final PathMapRule rule) {
-    	Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
+	@Override
+	public void removePathMap(Object context, IPathMap.PathMapRule[] rules) {
+		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
-		Assert.isNotNull(rule);
+		Assert.isNotNull(rules);
 
 		try {
 			// Acquire the lock before accessing the path mappings
@@ -297,15 +343,18 @@ public class PathMapService extends AbstractService implements IPathMapService {
 
 				// If the original rule has an ID set, create a copy of the rule
 				// but without the ID property
-				PathMapRule r = rule;
-				if (r.getID() != null) {
-					Map<String, Object> props = new HashMap<String, Object>(r.getProperties());
-					props.remove(IPathMap.PROP_ID);
-					r = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
+				List<PathMapRule> rulesToRemove = new ArrayList<PathMapRule>();
+				for (PathMapRule rule:rules) {
+					if (rule.getID() != null) {
+						Map<String, Object> props = new HashMap<String, Object>(rule.getProperties());
+						props.remove(IPathMap.PROP_ID);
+						rule = new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props);
+					}
+					rulesToRemove.add(rule);
 				}
 
 				// Remove the given rule from the list of present
-				if (rulesList.remove(r)) {
+				if (rulesList.removeAll(rulesToRemove)) {
 					// Update the launch configuration
 					updateLaunchConfiguration(config, rulesList);
 
@@ -324,7 +373,32 @@ public class PathMapService extends AbstractService implements IPathMapService {
 			// Release the lock
 			lock.unlock();
 		}
+	}
+
+    /* (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#removePathMap(java.lang.Object, org.eclipse.tcf.services.IPathMap.PathMapRule)
+     */
+    @Override
+    public void removePathMap(final Object context, final PathMapRule rule) {
+    	removePathMap(context, new PathMapRule[]{rule});
     }
+
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#cleanSharedPathMapRules()
+     */
+	@Override
+	public void cleanSharedPathMapRules(Object context) {
+		Assert.isNotNull(context);
+
+		if (context instanceof IPeer) {
+			List<PathMapRule> pathMapRulesToRemove = sharedPathMapRules.get(((IPeer)context).getID());
+			if (pathMapRulesToRemove != null) {
+				removePathMap(context, pathMapRulesToRemove.toArray(new IPathMap.PathMapRule[0]));
+			}
+			sharedPathMapRules.remove(((IPeer)context).getID());
+		}
+	}
 
     /**
      * Populate the given path map rules list from the given launch configuration.

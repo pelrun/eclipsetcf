@@ -77,6 +77,11 @@
             id="org.eclipse.tcf.te.tcf.core.channelmanager.calculateLogNameStep"
             class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.CalculateLogNameStep"
             label="%CalculateLogNameStep.name"/>
+            
+      <step
+      		id="org.eclipse.tcf.te.tcf.core.channelmanager.attachPathMapsListenerStep"
+      		class="org.eclipse.tcf.te.tcf.core.internal.channelmanager.steps.AttachPathMapsListenerStep"
+      		label="%AttachPathMapsListenerStep.name"/>
    </extension>
 
 <!-- Step contributions -->
@@ -88,6 +93,7 @@
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.chainPeersStepGroup"/>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.initializeLoggingStep"/>
             <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.applyPathMapsStep"/>
+            <reference id="org.eclipse.tcf.te.tcf.core.channelmanager.attachPathMapsListenerStep"/>
          </references>      	
       </stepGroup>
       <stepGroup id="org.eclipse.tcf.te.tcf.core.channelmanager.launchValueAddsStepGroup"
