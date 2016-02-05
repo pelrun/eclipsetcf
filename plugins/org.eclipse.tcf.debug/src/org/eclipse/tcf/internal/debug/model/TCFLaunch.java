@@ -15,7 +15,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,7 +47,6 @@ import org.eclipse.tcf.services.IDPrintf;
 import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
-import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
@@ -168,7 +166,7 @@ public class TCFLaunch extends Launch {
     private final LinkedList<LaunchStep> launch_steps = new LinkedList<LaunchStep>();
     private final LinkedList<String> redirection_path = new LinkedList<String>();
 
-    private List<IPathMap.PathMapRule> host_path_map;
+    private List<IPathMap.PathMapRule> host_path_map = new ArrayList<IPathMap.PathMapRule>();
     private TCFDataCache<IPathMap.PathMapRule[]> target_path_map;
 
     private HashMap<String,IStorage> target_path_mapping_cache = new HashMap<String,IStorage>();
@@ -246,54 +244,6 @@ public class TCFLaunch extends Launch {
         }
     };
     
-    /**
-     * This PathMapListener applies the shared path map rules set by other clients in the same channel.
-     */
-    private final IPathMap.PathMapListener path_map_listener = new IPathMap.PathMapListener() {
-        @Override
-        public void changed() {
-            IPathMap path_map_service = getService(IPathMap.class);
-            if (path_map_service != null) {
-                path_map_service.get(new IPathMap.DoneGet() {
-                    @Override
-                    public void doneGet(IToken token, Exception error, PathMapRule[] map) {
-                        if (map != null) {
-                            if (host_path_map == null) {
-                                host_path_map = new ArrayList<IPathMap.PathMapRule>();
-                            }
-                            
-                            // Remove old path map rules
-                            List<IPathMap.PathMapRule> new_rules = Arrays.asList(map);
-                            for (IPathMap.PathMapRule rule:host_path_map) {
-                                if (!new_rules.contains(rule)) {
-                                    host_path_map.remove(rule);
-                                }
-                            }
-                            
-                            // Look for new shared path map rules
-                            List<IPathMap.PathMapRule> diff_rules = new ArrayList<IPathMap.PathMapRule>();
-                            for (IPathMap.PathMapRule rule:map) {
-                                if (Boolean.parseBoolean((String)rule.getProperties().get("Shared")) &&
-                                        !host_path_map.contains(rule) &&
-                                        !diff_rules.contains(rule)) {
-                                    diff_rules.add(rule);
-                                }
-                            }
-                            if (diff_rules.size() > 0) {
-                                host_path_map.addAll(diff_rules);
-                                applyPathMap(channel, diff_rules.toArray(new IPathMap.PathMapRule[0]), new IPathMap.DoneSet() {
-                                    public void doneSet(IToken token, Exception error) {
-                                        if (error != null) channel.terminate(error);
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    };
-
     private static LaunchListener[] getListeners() {
         if (listeners_array != null) return listeners_array;
         return listeners_array = listeners.toArray(new LaunchListener[listeners.size()]);
@@ -365,7 +315,8 @@ public class TCFLaunch extends Launch {
                 new LaunchStep() {
                     @Override
                     void start() throws Exception {
-                        downloadPathMaps(cfg, this);
+                        readPathMapConfiguration(cfg);
+                        applyPathMap(this);
                     }
                 };
             }
@@ -637,55 +588,33 @@ public class TCFLaunch extends Launch {
         host_path_map.addAll(TCFLaunchDelegate.parsePathMapAttribute(s));
         s = cfg.getAttribute(ILaunchConfiguration.ATTR_SOURCE_LOCATOR_MEMENTO, "");
         host_path_map.addAll(TCFLaunchDelegate.parseSourceLocatorMemento(s));
-        readCustomPathMapConfiguration(channel, cfg, host_path_map);
-        int cnt = 0;
-        String id = getClientID();
-        if (id != null) {
-            for (IPathMap.PathMapRule r : host_path_map) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++);
-        }
     }
 
     /**
-     * Returns the client ID to use to mark the path map rules managed by this client.
-     *
+     * Returns the TCF client ID of this instance of Eclipse.
      * @return The client ID.
      */
-    protected String getClientID() {
+    public String getClientID() {
         return Activator.getClientID();
     }
 
     /**
-     * Add custom path map rules to the host path map before applying the path map.
-     *
-     * @param channel The channel. Must not be <code>null</code>.
-     * @param cfg The launch configuration. Must not be <code>null</code>.
-     * @param host_path_map The host path map. Must not be <code>null</code>.
+     * Apply the path map to this launch channel.
+     * @param done The done to invoke.
      */
-    protected void readCustomPathMapConfiguration(IChannel channel, ILaunchConfiguration cfg, List<IPathMap.PathMapRule> host_path_map) {
-        // Default implementation do nothing
-    }
-
-    private void downloadPathMaps(ILaunchConfiguration cfg, final Runnable done) throws Exception {
-        readPathMapConfiguration(cfg);
-        applyPathMap(channel, host_path_map.toArray(new IPathMap.PathMapRule[host_path_map.size()]), new IPathMap.DoneSet() {
+    protected void applyPathMap(final Runnable done) {
+        IPathMap path_map_service = getService(IPathMap.class);
+        if (path_map_service == null) {
+            if (done != null) done.run();
+            return;
+        }
+        path_map_service.set(host_path_map.toArray(new IPathMap.PathMapRule[host_path_map.size()]), new IPathMap.DoneSet() {
             @Override
             public void doneSet(IToken token, Exception error) {
                 if (error != null) channel.terminate(error);
-                else done.run();
+                else if (done != null) done.run();
             }
         });
-    }
-
-    /**
-     * Apply the path map to the given channel.
-     *
-     * @param channel The channel. Must not be <code>null</code>.
-     * @param map The path map. Must not be <code>null</code>.
-     * @param done The done to invoke. Must not be <code>null</code>.
-     */
-    protected void applyPathMap(final IChannel channel, final IPathMap.PathMapRule[] map, final IPathMap.DoneSet done) {
-        IPathMap path_map_service = getService(IPathMap.class);
-        path_map_service.set(map, done);
     }
 
     private String[] toArgsArray(String file, String cmd) {
@@ -1144,23 +1073,17 @@ public class TCFLaunch extends Launch {
     public void launchConfigurationChanged(final ILaunchConfiguration cfg) {
         super.launchConfigurationChanged(cfg);
         if (!cfg.equals(getLaunchConfiguration())) return;
-        if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
+        if (channel != null && channel.getState() == IChannel.STATE_OPEN && !connecting) {
             new TCFTask<Boolean>(channel) {
                 public void run() {
                     try {
                         if (update_memory_maps != null) update_memory_maps.run();
-                        if (host_path_map != null) {
-                            readPathMapConfiguration(cfg);
-                            applyPathMap(channel, host_path_map.toArray(new IPathMap.PathMapRule[host_path_map.size()]), new IPathMap.DoneSet() {
-                                public void doneSet(IToken token, Exception error) {
-                                    if (error != null) channel.terminate(error);
-                                    done(false);
-                                }
-                            });
-                        }
-                        else {
-                            done(true);
-                        }
+                        readPathMapConfiguration(cfg);
+                        applyPathMap(new Runnable() {
+                            public void run() {
+                                done(false);
+                            }
+                        });
                     }
                     catch (Throwable x) {
                         channel.terminate(x);
@@ -1575,7 +1498,6 @@ public class TCFLaunch extends Launch {
                 public void onChannelOpened() {
                     try {
                         peer_name = getPeerName(getPeer());
-                        attachPathMapListener();
                         onConnected();
                     }
                     catch (Throwable x) {
@@ -1588,7 +1510,6 @@ public class TCFLaunch extends Launch {
 
                 public void onChannelClosed(Throwable error) {
                     channel.removeChannelListener(this);
-                    detachPathMapListener();
                     onDisconnected(error);
                 }
             });
@@ -1824,21 +1745,5 @@ public class TCFLaunch extends Launch {
      */
     public Set<String> getContextFilter() {
         return context_filter;
-    }
-
-    private void attachPathMapListener() {
-        IPathMap path_map_service = getService(IPathMap.class);
-        if (path_map_service != null) {
-            path_map_service.addListener(path_map_listener);
-        }
-    }
-
-    private void detachPathMapListener() {
-        if (path_map_listener != null) {
-            IPathMap path_map_service = getService(IPathMap.class);
-            if (path_map_service != null) {
-                path_map_service.removeListener(path_map_listener);
-            }
-        }
     }
 }

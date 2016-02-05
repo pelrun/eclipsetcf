@@ -9,7 +9,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.delegates;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,6 @@ import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IPathMap;
-import org.eclipse.tcf.services.IPathMap.DoneSet;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
@@ -64,6 +65,48 @@ public final class Launch extends TCFLaunch {
 		}
 	};
 
+    /**
+     * This PathMapListener applies the shared path map rules set by other clients in the same channel.
+     */
+    private final IPathMap.PathMapListener path_map_listener = new IPathMap.PathMapListener() {
+        @Override
+        public void changed() {
+            IPathMap path_map_service = getService(IPathMap.class);
+            if (path_map_service != null) {
+                path_map_service.get(new IPathMap.DoneGet() {
+                    @Override
+                    public void doneGet(IToken token, Exception error, PathMapRule[] map) {
+                        if (map != null) {
+                    		List<PathMapRule> host_path_map = getHostPathMap();
+
+                            // Remove old path map rules
+                            List<IPathMap.PathMapRule> new_rules = Arrays.asList(map);
+                            for (IPathMap.PathMapRule rule:host_path_map) {
+                                if (!new_rules.contains(rule)) {
+                                    host_path_map.remove(rule);
+                                }
+                            }
+
+                            // Look for new shared path map rules
+                            List<IPathMap.PathMapRule> diff_rules = new ArrayList<IPathMap.PathMapRule>();
+                            for (IPathMap.PathMapRule rule:map) {
+                                if (Boolean.parseBoolean((String)rule.getProperties().get("Shared")) &&
+                                        !host_path_map.contains(rule) &&
+                                        !diff_rules.contains(rule)) {
+                                    diff_rules.add(rule);
+                                }
+                            }
+                            if (diff_rules.size() > 0) {
+                                host_path_map.addAll(diff_rules);
+                                applyPathMap(null);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    };
+
 	/**
 	 * Constructor.
 	 *
@@ -72,6 +115,7 @@ public final class Launch extends TCFLaunch {
 	 */
 	public Launch(ILaunchConfiguration configuration, String mode) {
 		super(configuration, mode);
+		addListener();
 	}
 
 	public void setCallback(ICallback callback) {
@@ -163,32 +207,31 @@ public final class Launch extends TCFLaunch {
 	    return node != null ? node.getName() : super.getPeerName(peer);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#readCustomPathMapConfiguration(org.eclipse.tcf.protocol.IChannel, org.eclipse.debug.core.ILaunchConfiguration, java.util.List)
-	 */
-	@Override
-	protected void readCustomPathMapConfiguration(IChannel channel, ILaunchConfiguration cfg, List<PathMapRule> host_path_map) {
-		Assert.isNotNull(channel);
-		Assert.isNotNull(cfg);
-		Assert.isNotNull(host_path_map);
-
+	private Collection<PathMapRule> readCustomPathMapConfiguration() {
 		IPeerNode node = (IPeerNode)properties.getProperty("node"); //$NON-NLS-1$
-		IPeer peer = node != null ? node.getPeer() : channel.getRemotePeer();
+		IPeer peer = node != null ? node.getPeer() : getChannel().getRemotePeer();
+		ArrayList<PathMapRule> list = new ArrayList<PathMapRule>();
 
         IPathMapGeneratorService generator = ServiceManager.getInstance().getService(peer, IPathMapGeneratorService.class);
         if (generator != null) {
         	PathMapRule[] generatedRules = generator.getPathMap(peer);
         	if (generatedRules != null && generatedRules.length > 0) {
-        		host_path_map.addAll(Arrays.asList(generatedRules));
+        		for (PathMapRule rule : generatedRules) list.add(rule);
         	}
         }
+        return list;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#applyPathMap(org.eclipse.tcf.protocol.IChannel, org.eclipse.tcf.services.IPathMap.PathMapRule[], org.eclipse.tcf.services.IPathMap.DoneSet)
-	 */
 	@Override
-	protected void applyPathMap(final IChannel channel, final PathMapRule[] configuredMap, final DoneSet done) {
+	protected void applyPathMap(final Runnable done) {
+
+		final List<PathMapRule> configuredMap = getHostPathMap();
+		configuredMap.addAll(readCustomPathMapConfiguration());
+
+        int cnt = 0;
+        String id = getClientID();
+        for (IPathMap.PathMapRule r : configuredMap) r.getProperties().put(IPathMap.PROP_ID, id + "/" + cnt++);
+
 		// Get the client ID
 		final String clientID = getClientID();
 		// If we have a client ID, we can identify path map rules set by other clients
@@ -201,27 +244,62 @@ public final class Launch extends TCFLaunch {
 					@Override
 					public void doneGet(IToken token, Exception error, PathMapRule[] map) {
 						// Merge the path maps
-						List<PathMapRule> rules = PathMapService.mergePathMaps(clientID, map, configuredMap);
+						List<PathMapRule> rules = PathMapService.mergePathMaps(clientID, map,
+										configuredMap.toArray(new IPathMap.PathMapRule[configuredMap.size()]));
 
 						// If the merged path map differs from the agent side path map, apply the map
 						if (PathMapService.isDifferent(rules, map)) {
 							// Apply the path map
-							PathMapService.set(rules, svc, false, done);
-						} else {
-							done.doneSet(null, null);
+							PathMapService.set(rules, svc, false, new IPathMap.DoneSet() {
+								@Override
+								public void doneSet(IToken token, Exception error) {
+					                if (error != null) getChannel().terminate(error);
+					                else if (done != null) done.run();
+								}
+							});
+						} else if (done != null) {
+							done.run();
 						}
 					}
 				});
 
-			} else {
-				done.doneSet(null, null);
+			} else if (done != null) {
+				done.run();
 			}
 		} else {
-			super.applyPathMap(channel, configuredMap, done);
+			super.applyPathMap(done);
 		}
 	}
 
-	/* (non-Javadoc)
+    private void addListener() {
+		addListener(new LaunchListener() {
+			@Override
+			public void onCreated(TCFLaunch launch) {
+			}
+			@Override
+			public void onConnected(TCFLaunch launch) {
+		        IPathMap path_map_service = getService(IPathMap.class);
+		        if (path_map_service != null) {
+		            path_map_service.addListener(path_map_listener);
+		        }
+			}
+			@Override
+			public void onDisconnected(TCFLaunch launch) {
+	            IPathMap path_map_service = getService(IPathMap.class);
+	            if (path_map_service != null) {
+	                path_map_service.removeListener(path_map_listener);
+	            }
+			}
+			@Override
+			public void onProcessOutput(TCFLaunch launch, String process_id, int stream_id, byte[] data) {
+			}
+			@Override
+			public void onProcessStreamError(TCFLaunch launch, String process_id, int stream_id, Exception error, int lost_size) {
+			}
+		});
+    }
+
+    /* (non-Javadoc)
 	 * @see org.eclipse.debug.core.Launch#getAdapter(java.lang.Class)
 	 */
 	@Override
