@@ -980,11 +980,12 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         if (test_done) return;
         IRunControl.RunControlContext ctx = test_rc.getContext(context);
         if (ctx != null) {
+            if (test_ctx_id == null) return;
             String p = ctx.getParentID();
             String c = ctx.getCreatorID();
             if (!test_ctx_id.equals(c) && !test_ctx_id.equals(p)) return;
+            exit(new Exception("Context exception: " + msg));
         }
-        exit(new Exception("Context exception: " + msg));
     }
 
     public void contextRemoved(String[] context_ids) {
