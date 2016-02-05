@@ -938,7 +938,7 @@ public class MemoryMapWidget {
                     }
                     TCFDataCache<TCFNodeExecContext> mem_cache = model.searchMemoryContext(selected_mem_map_node);
                     if (mem_cache == null) {
-                        error(new Exception("Context does not provide memory access")); //$NON-NLS-1$
+                        done(null);
                         return;
                     }
                     if (!mem_cache.validate(this)) return;
