@@ -243,7 +243,7 @@ public class TCFLaunch extends Launch {
         public void contextException(String context, String msg) {
         }
     };
-    
+
     private static LaunchListener[] getListeners() {
         if (listeners_array != null) return listeners_array;
         return listeners_array = listeners.toArray(new LaunchListener[listeners.size()]);
