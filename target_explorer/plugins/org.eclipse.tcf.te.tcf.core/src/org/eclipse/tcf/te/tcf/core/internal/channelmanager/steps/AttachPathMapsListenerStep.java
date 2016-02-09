@@ -82,7 +82,14 @@ public class AttachPathMapsListenerStep extends AbstractPeerStep {
 											public void run() {
 												final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
 												if (service != null) {
-													List<PathMapRule> existingRules = Arrays.asList(service.getPathMap(peer));
+													// Update path map rules comparing existing and new ones
+													PathMapRule[] existingRulesArray = service.getPathMap(peer);
+													List<PathMapRule> existingRules;
+													if (existingRulesArray != null) {
+														existingRules = Arrays.asList(existingRulesArray);
+													} else {
+														existingRules = new ArrayList<IPathMap.PathMapRule>();
+													}
 													List<PathMapRule> newRules = Arrays.asList(map);
 													List<PathMapRule> diffRules = new ArrayList<IPathMap.PathMapRule>();
 
@@ -93,7 +100,6 @@ public class AttachPathMapsListenerStep extends AbstractPeerStep {
 															diffRules.add(rule);
 														}
 													}
-
 													if (diffRules.size() > 0) {
 														service.removePathMap(peer, diffRules.toArray(new IPathMap.PathMapRule[0]));
 														diffRules.clear();
@@ -107,7 +113,6 @@ public class AttachPathMapsListenerStep extends AbstractPeerStep {
 															diffRules.add(rule);
 														}
 													}
-
 													if (diffRules.size() > 0) {
 														service.addSharedPathMapRules(peer, diffRules.toArray(new IPathMap.PathMapRule[0]));
 														diffRules.clear();
