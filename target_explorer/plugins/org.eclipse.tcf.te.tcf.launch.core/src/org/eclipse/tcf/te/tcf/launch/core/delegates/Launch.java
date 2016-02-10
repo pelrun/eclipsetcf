@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -10,7 +10,6 @@
 package org.eclipse.tcf.te.tcf.launch.core.delegates;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -65,48 +64,6 @@ public final class Launch extends TCFLaunch {
 		}
 	};
 
-    /**
-     * This PathMapListener applies the shared path map rules set by other clients in the same channel.
-     */
-    private final IPathMap.PathMapListener path_map_listener = new IPathMap.PathMapListener() {
-        @Override
-        public void changed() {
-            IPathMap path_map_service = getService(IPathMap.class);
-            if (path_map_service != null) {
-                path_map_service.get(new IPathMap.DoneGet() {
-                    @Override
-                    public void doneGet(IToken token, Exception error, PathMapRule[] map) {
-                        if (map != null) {
-                    		List<PathMapRule> host_path_map = getHostPathMap();
-
-                            // Remove old path map rules
-                            List<IPathMap.PathMapRule> new_rules = Arrays.asList(map);
-                            for (IPathMap.PathMapRule rule:host_path_map) {
-                                if (!new_rules.contains(rule)) {
-                                    host_path_map.remove(rule);
-                                }
-                            }
-
-                            // Look for new shared path map rules
-                            List<IPathMap.PathMapRule> diff_rules = new ArrayList<IPathMap.PathMapRule>();
-                            for (IPathMap.PathMapRule rule:map) {
-                                if (Boolean.parseBoolean((String)rule.getProperties().get("Shared")) &&
-                                        !host_path_map.contains(rule) &&
-                                        !diff_rules.contains(rule)) {
-                                    diff_rules.add(rule);
-                                }
-                            }
-                            if (diff_rules.size() > 0) {
-                                host_path_map.addAll(diff_rules);
-                                applyPathMap(null);
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    };
-
 	/**
 	 * Constructor.
 	 *
@@ -115,7 +72,6 @@ public final class Launch extends TCFLaunch {
 	 */
 	public Launch(ILaunchConfiguration configuration, String mode) {
 		super(configuration, mode);
-		addListener();
 	}
 
 	public void setCallback(ICallback callback) {
@@ -270,34 +226,6 @@ public final class Launch extends TCFLaunch {
 			super.applyPathMap(done);
 		}
 	}
-
-    private void addListener() {
-		addListener(new LaunchListener() {
-			@Override
-			public void onCreated(TCFLaunch launch) {
-			}
-			@Override
-			public void onConnected(TCFLaunch launch) {
-		        IPathMap path_map_service = getService(IPathMap.class);
-		        if (path_map_service != null) {
-		            path_map_service.addListener(path_map_listener);
-		        }
-			}
-			@Override
-			public void onDisconnected(TCFLaunch launch) {
-	            IPathMap path_map_service = getService(IPathMap.class);
-	            if (path_map_service != null) {
-	                path_map_service.removeListener(path_map_listener);
-	            }
-			}
-			@Override
-			public void onProcessOutput(TCFLaunch launch, String process_id, int stream_id, byte[] data) {
-			}
-			@Override
-			public void onProcessStreamError(TCFLaunch launch, String process_id, int stream_id, Exception error, int lost_size) {
-			}
-		});
-    }
 
     /* (non-Javadoc)
 	 * @see org.eclipse.debug.core.Launch#getAdapter(java.lang.Class)
