@@ -226,7 +226,14 @@ public class PathMapService extends AbstractService implements IPathMapService {
 				props.put(IPathMap.PROP_DESTINATION, rule.getDestination());
 				rulesToAdd.add(new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props));
 			}
-			sharedPathMapRules.put(((IPeer)context).getID(), rulesToAdd);
+
+			// Store new shared path map rules
+			List<PathMapRule> currentSharedPMRules = sharedPathMapRules.get(((IPeer)context).getID());
+			if (currentSharedPMRules == null) {
+				currentSharedPMRules = new ArrayList<IPathMap.PathMapRule>();
+			}
+			currentSharedPMRules.addAll(rulesToAdd);
+			sharedPathMapRules.put(((IPeer)context).getID(), currentSharedPMRules);
 			addPathMap(context, rules);
 		}
 	}

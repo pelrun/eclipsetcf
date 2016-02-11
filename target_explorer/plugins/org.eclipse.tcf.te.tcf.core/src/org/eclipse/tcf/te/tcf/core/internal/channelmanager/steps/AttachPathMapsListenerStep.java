@@ -90,7 +90,12 @@ public class AttachPathMapsListenerStep extends AbstractPeerStep {
 													} else {
 														existingRules = new ArrayList<IPathMap.PathMapRule>();
 													}
-													List<PathMapRule> newRules = Arrays.asList(map);
+													List<PathMapRule> newRules;
+													if (map != null) {
+														newRules = Arrays.asList(map);
+													} else {
+														newRules = new ArrayList<IPathMap.PathMapRule>();
+													}
 													List<PathMapRule> diffRules = new ArrayList<IPathMap.PathMapRule>();
 
 													// Remove old shared path maps
