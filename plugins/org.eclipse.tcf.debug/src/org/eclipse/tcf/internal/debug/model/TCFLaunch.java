@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.Launch;
@@ -1093,6 +1094,20 @@ public class TCFLaunch extends Launch {
             }.getE();
             // TODO: update signal masks when launch configuration changes
         }
+    }
+
+    @Override
+    public void launchRemoved(ILaunch launch) {
+        if (this != launch) return;
+        super.launchRemoved(launch);
+        Protocol.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                if (channel != null && channel.getState() != IChannel.STATE_CLOSED) {
+                    channel.close();
+                }
+            }
+        });
     }
 
     /**
