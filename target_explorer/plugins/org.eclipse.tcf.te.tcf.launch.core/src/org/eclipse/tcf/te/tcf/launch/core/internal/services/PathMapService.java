@@ -60,6 +60,8 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNodeProvider;
  */
 @SuppressWarnings("restriction")
 public class PathMapService extends AbstractService implements IPathMapService {
+	private final static String PATH_MAP_PROP_SHARED = "Shared"; //$NON-NLS-1$
+
 	// Lock to handle multi thread access
 	private final Lock lock = new ReentrantLock();
 
@@ -224,6 +226,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 				Map<String, Object> props = new LinkedHashMap<String, Object>();
 				props.put(IPathMap.PROP_SOURCE, rule.getSource());
 				props.put(IPathMap.PROP_DESTINATION, rule.getDestination());
+				props.put(PATH_MAP_PROP_SHARED, rule.getProperties().get(PATH_MAP_PROP_SHARED));
 				rulesToAdd.add(new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props));
 			}
 
@@ -285,6 +288,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 						Map<String, Object> props = new LinkedHashMap<String, Object>();
 						props.put(IPathMap.PROP_SOURCE, rule.getSource());
 						props.put(IPathMap.PROP_DESTINATION, rule.getDestination());
+						props.put(PATH_MAP_PROP_SHARED, rule.getProperties().get(PATH_MAP_PROP_SHARED));
 						rulesList.add(new org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate.PathMapRule(props));
 					}
 
@@ -685,7 +689,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
 		Iterator<PathMapRule> iter = map.iterator();
 		while (iter.hasNext()) {
 			PathMapRule rule = iter.next();
-			if ("agent".equalsIgnoreCase(rule.getID())) { //$NON-NLS-1$
+			if ("agent".equalsIgnoreCase(rule.getID()) || Boolean.parseBoolean((String) rule.getProperties().get(PATH_MAP_PROP_SHARED))) { //$NON-NLS-1$
 				iter.remove();
 			}
 		}
