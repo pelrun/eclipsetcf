@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Xilinx, Inc. and others.
+ * Copyright (c) 2015, 2016 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -328,7 +328,7 @@ class StepIntoSelectionLocation {
             IASTName astName = (IASTName) declName;
             IBinding binding = astName.resolveBinding();
             if (binding != null) {
-                ITranslationUnit tu = IndexUI.getTranslationUnit(project, astName);
+                ITranslationUnit tu = getTranslationUnit(astName);
                 if (tu != null) {
                     IASTFileLocation loc = astName.getFileLocation();
                     IRegion region = new Region(loc.getNodeOffset(), loc.getNodeLength());
@@ -454,4 +454,13 @@ class StepIntoSelectionLocation {
     boolean isValid() {
         return request != null && request.getStatus() == null && text_file != null && text_line > 0;
     }
+
+    /**
+     * @see IndexUI#getTranslationUnit(IASTName)
+     */
+    private static ITranslationUnit getTranslationUnit(IASTName name) {
+        IASTTranslationUnit astTranslationUnit = name.getTranslationUnit();
+        return astTranslationUnit == null ? null : astTranslationUnit.getOriginatingTranslationUnit();
+    }
+
 }
