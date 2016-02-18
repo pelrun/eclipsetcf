@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -693,22 +693,24 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 			title.append(processPath.toString());
 		}
 
-		// Get the peer name
-		final AtomicReference<String> peerName = new AtomicReference<String>(getProperties().getStringProperty(IProcessLauncher.PROP_CONNECTION_NAME));
-		if (peerName.get() == null) {
-			// Query the peer from the open channel
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					if (channel != null) {
-						peerName.set(channel.getRemotePeer().getName());
-					}
-				}
-			};
-
-			if (Protocol.isDispatchThread()) runnable.run();
-			else Protocol.invokeAndWait(runnable);
+		// In case, the path is empty, append the connection name
+		if (title.length() == 0 && properties.getStringProperty(IProcessLauncher.PROP_CONNECTION_NAME) != null) {
+			title.append(properties.getStringProperty(IProcessLauncher.PROP_CONNECTION_NAME));
 		}
+
+		// Query the peer from the open channel
+		final AtomicReference<String> peerName = new AtomicReference<String>();
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (channel != null) {
+					peerName.set(channel.getRemotePeer().getName());
+				}
+			}
+		};
+
+		if (Protocol.isDispatchThread()) runnable.run();
+		else Protocol.invokeAndWait(runnable);
 
 		if (peerName.get() != null) {
 			title.append(" [").append(peerName.get()).append("]"); //$NON-NLS-1$ //$NON-NLS-2$
