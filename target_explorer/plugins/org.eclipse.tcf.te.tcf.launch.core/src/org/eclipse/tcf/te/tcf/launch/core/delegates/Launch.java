@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -28,6 +29,8 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.services.IPathMap.PathMapRule;
+import org.eclipse.tcf.te.runtime.callback.Callback;
+import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
@@ -36,6 +39,7 @@ import org.eclipse.tcf.te.runtime.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.core.Tcf;
 import org.eclipse.tcf.te.tcf.core.interfaces.IChannelManager;
 import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapGeneratorService;
+import org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService;
 import org.eclipse.tcf.te.tcf.launch.core.internal.services.PathMapService;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 
@@ -240,5 +244,38 @@ public final class Launch extends TCFLaunch {
 		Platform.getAdapterManager().loadAdapter(this, adapter.getName());
 
 		return super.getAdapter(adapter);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.tcf.internal.debug.model.TCFLaunch#launchConfigurationChanged(org.eclipse.debug.core.ILaunchConfiguration)
+	 */
+	@Override
+	public void launchConfigurationChanged(ILaunchConfiguration cfg) {
+		super.launchConfigurationChanged(cfg);
+
+		// Apply Path Map changes
+		Protocol.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if (getChannel() != null) {
+					final IPeer peer = getPeer();
+					if (peer != null) {
+						final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
+						if (service != null) {
+							ExecutorsUtil.execute(new Runnable() {
+								@Override
+								public void run() {
+									service.applyPathMap(peer, false, true, new Callback() {
+										@Override
+										protected void internalDone(Object caller, IStatus status) {
+										}
+									});
+								}
+							});
+						}
+					}
+				}
+			}
+		});
 	}
 }
