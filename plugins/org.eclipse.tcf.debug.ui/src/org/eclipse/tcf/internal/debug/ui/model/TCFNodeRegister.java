@@ -701,12 +701,12 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             original_value = null;
             final TCFNodeRegister node = (TCFNodeRegister)element;
             try {
-                return original_value = new TCFTask<String>() {
+                original_value = new TCFTask<String>() {
                     public void run() {
                         if (!node.context.validate(this)) return;
                         IRegisters.RegistersContext ctx = node.context.getData();
                         if (!ctx.isReadable()) {
-                            done("0");
+                            done("");
                             return;
                         }
                         if (!node.value.validate(this)) return;
@@ -723,6 +723,12 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                         done(null);
                     }
                 }.get(1, TimeUnit.SECONDS);
+                if ("".equals(original_value)) {
+                    /* Write only register */
+                    original_value = null;
+                    return "0";
+                }
+                return original_value;
             }
             catch (Exception e) {
                 return null;
