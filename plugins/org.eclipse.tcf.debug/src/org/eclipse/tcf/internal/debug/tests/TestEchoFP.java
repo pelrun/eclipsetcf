@@ -25,6 +25,9 @@ class TestEchoFP implements ITCFTest, IDiagnostics.DoneEchoFP {
     private final LinkedList<BigDecimal> msgs = new LinkedList<BigDecimal>();
     private final Random rnd = new Random();
 
+    private static final int MAX_COUNT = 0x800;
+    private static final int MAX_TIME_MS = 4000;
+
     private int count = 0;
     private long start_time;
 
@@ -39,7 +42,7 @@ class TestEchoFP implements ITCFTest, IDiagnostics.DoneEchoFP {
         }
         else {
             start_time = System.currentTimeMillis();
-            for (int i = 0; i < 32; i++) sendMessage();
+            for (int i = 0; i < 100; i++) sendMessage();
         }
     }
 
@@ -51,7 +54,13 @@ class TestEchoFP implements ITCFTest, IDiagnostics.DoneEchoFP {
     }
 
     private boolean cmp(double x, double y) {
-        return (float)x == (float)y;
+        if ((float)x == (float)y) return true;
+        if (x == 0) return false;
+        // EchoFP test failed: 7.21866475E+21 != 7.218664750000001E+21
+        // (float)x = 7.2186645E21
+        // (float)y = 7.218665E21
+        double d = Math.abs((x - y) / x);
+        return d < 1.0e-12;
     }
 
     public void doneEchoFP(IToken token, Throwable error, BigDecimal b) {
@@ -63,11 +72,11 @@ class TestEchoFP implements ITCFTest, IDiagnostics.DoneEchoFP {
         else if (!cmp(s.doubleValue(), b.doubleValue())) {
             test_suite.done(this, new Exception("EchoFP test failed: " + s + " != " + b));
         }
-        else if (count < 0x800) {
+        else if (count < MAX_COUNT) {
             sendMessage();
-            // Don't run the test much longer then 4 seconds
-            if (count % 0x10 == 0 && System.currentTimeMillis() - start_time >= 4000) {
-                count = 0x800;
+            // Don't run the test longer then MAX_TIME_MS ms
+            if (count % 0x40 == 0 && System.currentTimeMillis() - start_time >= MAX_TIME_MS) {
+                count = MAX_COUNT;
             }
         }
         else if (msgs.isEmpty()) {
