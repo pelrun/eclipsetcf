@@ -400,6 +400,7 @@ public class PathMapService extends AbstractService implements IPathMapService {
      */
 	@Override
 	public void cleanSharedPathMapRules(Object context) {
+		Assert.isTrue(!Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(context);
 
 		if (context instanceof IPeer) {
@@ -708,4 +709,32 @@ public class PathMapService extends AbstractService implements IPathMapService {
     public String getClientID() {
         return org.eclipse.tcf.internal.debug.Activator.getClientID();
     }
+
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.tcf.te.tcf.core.interfaces.IPathMapService#getSharedPathMapRules(java.lang.Object)
+     */
+
+	@Override
+	public PathMapRule[] getSharedPathMapRules(Object context) {
+		Assert.isNotNull(context);
+
+		PathMapRule[] rules = null;
+		try {
+			// Acquire the lock before accessing the shared path mappings
+			lock.lock();
+
+			if (sharedPathMapRules != null ) {
+				List<PathMapRule> sharedRules = sharedPathMapRules.get(((IPeer)context).getID());
+				if (sharedRules != null && sharedRules.size() > 0) {
+					rules = sharedRules.toArray(new IPathMap.PathMapRule[sharedRules.size()]);
+				}
+			}
+		} finally {
+			// Release the lock
+			lock.unlock();
+		}
+
+		return rules;
+	}
 }

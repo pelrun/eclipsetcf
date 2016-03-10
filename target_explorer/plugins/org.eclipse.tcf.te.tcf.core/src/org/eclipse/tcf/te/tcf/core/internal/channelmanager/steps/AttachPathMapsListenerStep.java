@@ -82,8 +82,8 @@ public class AttachPathMapsListenerStep extends AbstractPeerStep {
 											public void run() {
 												final IPathMapService service = ServiceManager.getInstance().getService(peer, IPathMapService.class);
 												if (service != null) {
-													// Update path map rules comparing existing and new ones
-													PathMapRule[] existingRulesArray = service.getPathMap(peer);
+													// Update shared path map rules comparing existing and new ones
+													PathMapRule[] existingRulesArray = service.getSharedPathMapRules(peer);
 													List<PathMapRule> existingRules;
 													if (existingRulesArray != null) {
 														existingRules = Arrays.asList(existingRulesArray);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -50,6 +50,15 @@ public interface IPathMapService extends IService {
 	 */
 	public IPathMap.PathMapRule[] getPathMap(Object context);
 
+	/**
+	 * Returns the configured shared path mapping rules for the given context.
+	 * <p>
+	 * 
+	 * @param context The context. Must not be <code>null</code>.
+	 * @return The configured shared path map or <code>null</code>.
+	 */
+	public IPathMap.PathMapRule[] getSharedPathMapRules(Object context);
+	
 	/**
 	 * Adds a new path mapping rule to the configured (object) path mapping for the
 	 * given context.
