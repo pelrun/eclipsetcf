@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.services.remote;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -106,6 +107,26 @@ public class DiagnosticsProxy implements IDiagnostics {
                     }
                 }
                 done.doneEchoFP(token, error, n);
+            }
+        }.token;
+    }
+
+    public IToken echoINT(int t, BigInteger n, final DoneEchoINT done) {
+        return new Command(channel, this, "echoINT", new Object[]{ t, n }) {
+            @Override
+            public void done(Exception error, Object[] args) {
+                BigInteger n = null;
+                if (error == null) {
+                    assert args.length == 1;
+                    Number x = (Number)args[0];
+                    if (x instanceof BigInteger) {
+                        n = (BigInteger)x;
+                    }
+                    else {
+                        n = new BigInteger(x.toString());
+                    }
+                }
+                done.doneEchoINT(token, error, n);
             }
         }.token;
     }

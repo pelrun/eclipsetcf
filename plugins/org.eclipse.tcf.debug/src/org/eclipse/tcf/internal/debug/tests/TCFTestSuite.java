@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -71,6 +71,14 @@ public class TCFTestSuite {
                 listener.progress("Running Echo FP Test...", count_done++, count_total);
                 for (IChannel channel : channels) {
                     active_tests.put(new TestEchoFP(TCFTestSuite.this, channel), channel);
+                }
+            }
+        });
+        pending_tests.add(new Runnable() {
+            public void run() {
+                listener.progress("Running Echo INT Test...", count_done++, count_total);
+                for (IChannel channel : channels) {
+                    active_tests.put(new TestEchoINT(TCFTestSuite.this, channel), channel);
                 }
             }
         });

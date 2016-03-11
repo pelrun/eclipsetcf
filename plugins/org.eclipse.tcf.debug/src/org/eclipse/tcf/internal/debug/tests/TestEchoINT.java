@@ -6,23 +6,24 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Wind River Systems - initial API and implementation
+ *     Xilinx - initial API and implementation
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.tests;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.Random;
 
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IErrorReport;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IDiagnostics;
 
-class TestEchoFP implements ITCFTest, IDiagnostics.DoneEchoFP {
+class TestEchoINT implements ITCFTest, IDiagnostics.DoneEchoINT {
 
     private final TCFTestSuite test_suite;
     private final IDiagnostics diag;
-    private final LinkedList<BigDecimal> msgs = new LinkedList<BigDecimal>();
+    private final LinkedList<BigInteger> msgs = new LinkedList<BigInteger>();
     private final Random rnd = new Random();
 
     private static final int MAX_COUNT = 0x1000;
@@ -31,7 +32,7 @@ class TestEchoFP implements ITCFTest, IDiagnostics.DoneEchoFP {
     private int count = 0;
     private long start_time;
 
-    TestEchoFP(TCFTestSuite test_suite, IChannel channel) {
+    TestEchoINT(TCFTestSuite test_suite, IChannel channel) {
         this.test_suite = test_suite;
         diag = channel.getRemoteService(IDiagnostics.class);
     }
@@ -47,30 +48,55 @@ class TestEchoFP implements ITCFTest, IDiagnostics.DoneEchoFP {
     }
 
     private void sendMessage() {
-        BigDecimal n = BigDecimal.valueOf(rnd.nextInt(), rnd.nextInt(61) - 30);
+        int t = 0;
+        BigInteger n = null;
+        switch (count) {
+        case 0: n = new BigInteger("-2147483648"); break;
+        case 1: n = new BigInteger("2147483647"); break;
+        case 2: t = 2; n = new BigInteger("-9223372036854775808"); break;
+        case 3: t = 2; n = new BigInteger("9223372036854775807"); break;
+        }
+        if (n == null) {
+            byte[] buf = null;
+            t = rnd.nextInt() & 3;
+            switch (t) {
+            case 0:
+                n = BigInteger.valueOf(rnd.nextInt());
+                break;
+            case 1:
+                buf = new byte[4];
+                rnd.nextBytes(buf);
+                n = new BigInteger(1, buf);
+                break;
+            case 2:
+                buf = new byte[8];
+                rnd.nextBytes(buf);
+                buf[0] = (byte)(buf[0] & 0x7f);
+                n = new BigInteger(rnd.nextBoolean() ? 1 : -1, buf);
+                break;
+            case 3:
+                buf = new byte[8];
+                rnd.nextBytes(buf);
+                n = new BigInteger(1, buf);
+                break;
+            }
+        }
         msgs.add(n);
-        diag.echoFP(n, this);
+        diag.echoINT(t, n, this);
         count++;
     }
 
-    private boolean cmp(double x, double y) {
-        if ((float)x == (float)y) return true;
-        if (x == 0) return false;
-        // EchoFP test failed: 7.21866475E+21 != 7.218664750000001E+21
-        // (float)x = 7.2186645E21
-        // (float)y = 7.218665E21
-        double d = Math.abs((x - y) / x);
-        return d < 1.0e-12;
-    }
-
-    public void doneEchoFP(IToken token, Throwable error, BigDecimal b) {
-        BigDecimal s = msgs.removeFirst();
+    public void doneEchoINT(IToken token, Throwable error, BigInteger b) {
+        BigInteger s = msgs.removeFirst();
         if (!test_suite.isActive(this)) return;
-        if (error != null) {
+        if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
+            test_suite.done(this, null);
+        }
+        else if (error != null) {
             test_suite.done(this, error);
         }
-        else if (!cmp(s.doubleValue(), b.doubleValue())) {
-            test_suite.done(this, new Exception("EchoFP test failed: " + s + " != " + b));
+        else if (!s.equals(b)) {
+            test_suite.done(this, new Exception("EchoINT test failed: " + s + " != " + b));
         }
         else if (count < MAX_COUNT) {
             sendMessage();

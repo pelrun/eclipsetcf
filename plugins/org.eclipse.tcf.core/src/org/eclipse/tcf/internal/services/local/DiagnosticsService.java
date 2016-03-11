@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.services.local;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Map;
 
 import org.eclipse.tcf.internal.core.Token;
@@ -47,6 +48,11 @@ public class DiagnosticsService implements IDiagnostics {
             else if (name.equals("echoFP")) {
                 if (args.length != 1) throw new Exception("Invalid number of arguments");
                 Number n = (Number)args[0];
+                channel.sendResult(token, JSON.toJSONSequence(new Object[]{ n }));
+            }
+            else if (name.equals("echoINT")) {
+                if (args.length != 2) throw new Exception("Invalid number of arguments");
+                Number n = (Number)args[1];
                 channel.sendResult(token, JSON.toJSONSequence(new Object[]{ n }));
             }
             else if (name.equals("echoERR")) {
@@ -89,6 +95,16 @@ public class DiagnosticsService implements IDiagnostics {
         Protocol.invokeLater(new Runnable() {
             public void run() {
                 done.doneEchoFP(token, null, n);
+            }
+        });
+        return token;
+    }
+
+    public IToken echoINT(int t, final BigInteger n, final DoneEchoINT done) {
+        final IToken token = new Token();
+        Protocol.invokeLater(new Runnable() {
+            public void run() {
+                done.doneEchoINT(token, null, n);
             }
         });
         return token;

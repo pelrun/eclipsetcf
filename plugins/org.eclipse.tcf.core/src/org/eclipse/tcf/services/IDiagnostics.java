@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.services;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.eclipse.tcf.protocol.IService;
 import org.eclipse.tcf.protocol.IToken;
@@ -71,6 +72,36 @@ public interface IDiagnostics extends IService {
          * @param n - same number as the command argument.
          */
         void doneEchoFP(IToken token, Throwable error, BigDecimal n);
+    }
+
+    /**
+     * 'echoINT' command result returns same integer number that was given as command argument.
+     * The command is used to test communication channel ability to transmit arbitrary integer numbers in
+     * both directions.
+     * @param t - number type:
+     *   0 - signed, up to 32 bits
+     *   1 - unsigned, up to 32 bits
+     *   2 - signed, up to 64 bits
+     *   3 - unsigned, up to 64 bits
+     * @param n - the number.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     * @since 1.4
+     */
+    IToken echoINT(int t, BigInteger n, DoneEchoINT done);
+
+    /**
+     * Call back interface for 'echoINT' command.
+     * @since 1.4
+     */
+    interface DoneEchoINT {
+        /**
+         * Called when 'echoINT' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param n - same number as the command argument.
+         */
+        void doneEchoINT(IToken token, Throwable error, BigInteger n);
     }
 
     /**

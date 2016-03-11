@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,28 +28,28 @@ class TestEchoERR implements ITCFTest, IDiagnostics.DoneEchoERR {
     private final IDiagnostics diag;
 
     private final Number[] numbers = {
-            1,
-            4,
-            // new BigDecimal("0.5") - fails, representation depends on locale
+        1,
+        4,
+        // new BigDecimal("0.5") - fails, representation depends on locale
     };
 
     private final String[] strings = {
-            "",
-            "abc",
-            "a\u1134c",
-            "a\u0003c",
+        "",
+        "abc",
+        "a\u1134c",
+        "a\u0003c",
     };
 
     private final String[] formats = {
-            "",
-            "{0}",
-            "{0,number}",
-            "{0,number,integer}",
-            "{0,number,percent}",
-            "{1}",
-            "{0} abcde {1}",
-            "{1} '' {0}",
-            "{1} 'abcde{}' {1}",
+        "",
+        "{0}",
+        "{0,number}",
+        "{0,number,integer}",
+        "{0,number,percent}",
+        "{1}",
+        "{0} abcde {1}",
+        "{1} '' {0}",
+        "{1} 'abcde{}' {1}",
     };
 
     private final LinkedList<ErrorReport> list = new LinkedList<ErrorReport>();
