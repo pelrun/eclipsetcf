@@ -4,8 +4,6 @@
 <project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,core/org.eclipse.cdt.core"/>
 <project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,core/org.eclipse.cdt.ui"/>
 <project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,debug/org.eclipse.cdt.debug.core"/>
-<project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,debug/org.eclipse.cdt.debug.mi.core"/>
-<project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,debug/org.eclipse.cdt.debug.mi.ui"/>
 <project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,debug/org.eclipse.cdt.debug.ui"/>
 <project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,debug/org.eclipse.cdt.gdb"/>
 <project reference="1.0,http://git.eclipse.org/gitroot/cdt/org.eclipse.cdt.git,master,dsf-gdb/org.eclipse.cdt.dsf.gdb"/>
@@ -225,8 +223,6 @@
 <workingSets editPageId="org.eclipse.ui.resourceWorkingSetPage" id="1385720913364_10" label="TCF Dependencies" name="TCF Dependencies">
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.cdt.core" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.cdt.debug.core" type="4"/>
-<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.cdt.debug.mi.core" type="4"/>
-<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.cdt.debug.mi.ui" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.cdt.debug.ui" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.cdt.dsf" type="4"/>
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/org.eclipse.cdt.dsf.gdb" type="4"/>
