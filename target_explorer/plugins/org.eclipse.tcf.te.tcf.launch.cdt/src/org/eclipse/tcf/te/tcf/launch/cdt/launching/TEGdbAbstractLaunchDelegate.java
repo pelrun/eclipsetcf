@@ -405,9 +405,41 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 			throw new DebugException(new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), "Cannot attach to process", e)); //$NON-NLS-1$
         } finally {
 			if (!ok) {
-                cleanupLaunch();
+                cleanupLaunchLocal(l);
             }
         }
+	}
+
+	/**
+	 * @deprecated While waiting for TCF to drop support for CDT < 9.0 we need this method copied
+	 *             from CDT 9.0. Once support for old CDT is removed this should become simply
+	 *             super.cleanupLaunch(ILaunch).
+	 */
+	@Deprecated
+	protected void cleanupLaunchLocal(ILaunch launch) throws DebugException {
+		if (launch instanceof GdbLaunch) {
+			final GdbLaunch gdbLaunch = (GdbLaunch)launch;
+            Query<Object> launchShutdownQuery = new Query<Object>() {
+                @Override
+                protected void execute(DataRequestMonitor<Object> rm) {
+                    gdbLaunch.shutdownSession(rm);
+                }
+            };
+
+            gdbLaunch.getSession().getExecutor().execute(launchShutdownQuery);
+
+            // wait for the shutdown to finish.
+            // The Query.get() method is a synchronous call which blocks until the
+            // query completes.
+            try {
+                launchShutdownQuery.get();
+            } catch (InterruptedException e) {
+                throw new DebugException( new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), DebugException.INTERNAL_ERROR, "InterruptedException while shutting down debugger launch " + launch, e)); //$NON-NLS-1$
+            } catch (ExecutionException e) {
+                throw new DebugException(new Status(IStatus.ERROR, Activator.getUniqueIdentifier(), DebugException.REQUEST_FAILED, "Error in shutting down debugger launch " + launch, e)); //$NON-NLS-1$
+            }
+		}
+
 	}
 
 	/**
