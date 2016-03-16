@@ -135,9 +135,10 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;string: data&gt;</i> &bull; <i>&lt;e
 </font></b></pre>
 
 <ul>
-    <li><dt><code><b>data</b></code> <dd>BASE64 encoded bytes that were read from the stream.
+    <li><dt><code><b>data</b></code> <dd>Data bytes that were read from the stream. By default, data is BASE64 encoded.
+    Peers can send unencoded binary data if both implement ZeroCopy service.
     <li><dt><code><b>lost size</b></code> <dd>Number of bytes that were lost because of buffer overflow.
-             -1 means unknown number of bytes were lost. if both 'lost_size' and 'data.length' are non-zero then lost bytes are considered
+         -1 means unknown number of bytes were lost. if both 'lost_size' and 'data.length' are non-zero then lost bytes are considered
          located right before read bytes.
     <li><dt><code><b>EOS</b></code> <dd>true if end of stream was reached.
 </ul>
@@ -150,8 +151,9 @@ C &bull; <i>&lt;token&gt;</i> &bull; Streams &bull; write &bull; <i>&lt;string: 
 
 <ul>
     <li><dt><code><b>stream ID</b></code> <dd>ID of stream that will receive the data.
-    <li><dt><code><b>size</b></code> <dd>Number of bytes to write. Length of <code><b>data</b></code> must match the size.
-    <li><dt><code><b>data</b></code> <dd>BASE64 encoded bytes that will be written to the stream.
+    <li><dt><code><b>size</b></code> <dd>Number of bytes to write. Length of unencoded <code><b>data</b></code> must match the size.
+    <li><dt><code><b>data</b></code> <dd>Data bytes that will be written to the stream. By default, data is BASE64 encoded.
+    Peers can send unencoded binary data if both implement ZeroCopy service.
 </ul>
 
 <p>The command writes data to a stream. If stream buffer is full, the command will wait until space is available.
