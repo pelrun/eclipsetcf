@@ -64,11 +64,15 @@ public class DefaultContextActionsCommandHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// Get the position of the ToolItem
-		Event eventTrigger = (Event) event.getTrigger();
-		ToolItem toolItem = (ToolItem) eventTrigger.widget;
-		Rectangle bounds = toolItem.getBounds();
-		if ( bounds != null ) {
-			menuLocation = toolItem.getParent().toDisplay(bounds.x, bounds.y + bounds.height);
+		if (event.getTrigger() instanceof Event) {
+			Event eventTrigger = (Event) event.getTrigger();
+			if (eventTrigger.widget instanceof ToolItem) {
+				ToolItem toolItem = (ToolItem) eventTrigger.widget;
+				Rectangle bounds = toolItem.getBounds();
+				if ( bounds != null ) {
+					menuLocation = toolItem.getParent().toDisplay(bounds.x, bounds.y + bounds.height);
+				}
+			}
 		}
 
 		fMenuCreator.createMenu();
