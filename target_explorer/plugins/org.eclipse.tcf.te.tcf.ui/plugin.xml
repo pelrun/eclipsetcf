@@ -638,10 +638,17 @@
       </menuContribution>
 
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.toolbar?after=group.actions">
-         <control
-               class="org.eclipse.tcf.te.tcf.ui.handler.DefaultContextActionsToolbarContribution"
-               id="org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution">
-         </control>
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution"
+               style="pulldown"
+               icon="icons/obj16/targets_view.gif"
+               tooltip="%command.defaultContextActions.tooltip">
+         </command>
+      </menuContribution>
+      
+      <menuContribution
+            locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution"
+            class="org.eclipse.tcf.te.tcf.ui.handler.DefaultContextActionsMenuContribution">
       </menuContribution>
 
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution?after=group.history">
@@ -819,6 +826,12 @@
             helpContextId="org.eclipse.tcf.te.tcf.ui.command_HistoryLast"
             name="%command.historyLast.label">
       </command>
+      <command
+            id="org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            name="%command.defaultContextActions.label"
+            description="%command.defaultContextActions.tooltip">
+   	  </command>
    </extension>
 
 <!-- Command shortcuts -->
@@ -1136,6 +1149,16 @@
                </and>
             </with>
          </enabledWhen>
+      </handler>
+      
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.DefaultContextActionsToolbarContribution"
+            class="org.eclipse.tcf.te.tcf.ui.handler.DefaultContextActionsCommandHandler">
+            <activeWhen>
+            	<with variable="defaultContextSelection">
+					<instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+				</with>
+            </activeWhen>
       </handler>
    </extension>
    
