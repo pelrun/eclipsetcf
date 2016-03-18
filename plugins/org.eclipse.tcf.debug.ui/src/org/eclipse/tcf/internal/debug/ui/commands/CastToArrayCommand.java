@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.ICastToType;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExpression;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.util.TCFDataCache;
@@ -71,6 +72,10 @@ public class CastToArrayCommand extends AbstractActionDelegate {
 
         public void run() {
             cur_length = null;
+            if (node instanceof TCFNodeExpression && !((TCFNodeExpression)node).isEnabled()) {
+                done(null);
+                return;
+            }
             String cast = node.getModel().getCastToType(node.getID());
             if (cast != null) {
                 if (cast.endsWith("]")) {
@@ -82,6 +87,7 @@ public class CastToArrayCommand extends AbstractActionDelegate {
                     }
                 }
                 done(null);
+                return;
             }
             TCFDataCache<ISymbols.Symbol> type_cache = ((ICastToType)node).getType();
             if (!type_cache.validate(this)) return;

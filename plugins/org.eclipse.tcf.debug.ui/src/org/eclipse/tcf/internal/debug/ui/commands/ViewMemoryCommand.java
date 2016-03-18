@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -74,7 +74,7 @@ public class ViewMemoryCommand extends AbstractActionDelegate {
                         TCFNode mem_node = node;
                         BigInteger addr = null;
                         long size = -1;
-                        if (node instanceof TCFNodeExpression) {
+                        if (node instanceof TCFNodeExpression && ((TCFNodeExpression)node).isEnabled()) {
                             TCFDataCache<IExpressions.Value> val_cache = ((TCFNodeExpression)node).getValue();
                             if (!val_cache.validate(on_value_changed)) {
                                 /* Don't wait until the value is evaluated -

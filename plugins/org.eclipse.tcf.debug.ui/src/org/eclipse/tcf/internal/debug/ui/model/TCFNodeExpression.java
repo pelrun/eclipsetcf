@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -817,6 +817,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         if (this.enabled == enabled) return;
         this.enabled = enabled;
         postAllChangedDelta();
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     /**
