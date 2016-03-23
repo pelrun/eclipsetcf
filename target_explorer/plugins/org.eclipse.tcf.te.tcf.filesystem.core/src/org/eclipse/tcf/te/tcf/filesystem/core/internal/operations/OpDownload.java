@@ -86,7 +86,7 @@ public class OpDownload extends AbstractOperation {
 
 		BufferedInputStream input = null;
 
-		TcfURLConnection connection = (TcfURLConnection) source.getLocationURL().openConnection();
+		TcfURLConnection connection = (TcfURLConnection) source.getLocationURL(false).openConnection();
 		try {
 			if (digest != null) {
 				input = new BufferedInputStream(new DigestInputStream(connection.getInputStream(), digest));

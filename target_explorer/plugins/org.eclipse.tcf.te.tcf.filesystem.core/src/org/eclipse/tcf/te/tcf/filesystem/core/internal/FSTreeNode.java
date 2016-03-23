@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -289,14 +289,30 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
      */
     @Override
 	public URL getLocationURL() {
+    	return getLocationURL(true);
+    }
+
+    /**
+     * Get the URL of the file or folder. The URL's format is created in the
+     * following way: tcf:/<peerName>/remote/path/to/the/resource... See
+     * {@link TcfURLConnection#TcfURLConnection(URL)}
+     * @param encodeName whether or not the URL has to be encoded.
+     *
+     * @see TcfURLStreamHandlerService#parseURL(URL, String, int, int)
+     * @see #getLocationURI()
+     * @return The URL of the file/folder.
+     */
+	public URL getLocationURL(boolean encodeName) {
     	try {
-    		URI uri = getLocationURI();
+    		URI uri = getLocationURI(encodeName);
 			return uri == null ? null : uri.toURL();
         } catch (MalformedURLException e) {
         	CorePlugin.logError("Cannot create tcf url", e); //$NON-NLS-1$
         }
 		return null;
     }
+
+
 
     /**
      * Get the URI of the file or folder. The URI's format is created in the
@@ -306,9 +322,20 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
      */
     @Override
 	public URI getLocationURI() {
+        return getLocationURI(true);
+    }
+
+    /**
+     * Get the URI of the file or folder. The URI's format is created in the
+     * following way: tcf:/<peerName>/remote/path/to/the/resource...
+     * @param encodeName whether or not the URL has to be encoded.
+     *
+     * @return The URI of the file/folder.
+     */
+	public URI getLocationURI(boolean encodeName) {
         try {
             String name = getPeerNode().getName();
-            String path = getLocation('/', true);
+            String path = getLocation('/', encodeName);
             return new URI(TcfURLConnection.PROTOCOL_SCHEMA, name, addNoSlashMarker(path), null, null);
         } catch (URISyntaxException e) {
         	CorePlugin.logError("Cannot create tcf uri", e); //$NON-NLS-1$
