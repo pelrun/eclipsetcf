@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,8 +28,7 @@ public class ErrorReport extends Exception implements IErrorReport {
         if (caused_by != null) {
             Map<String,Object> map = (Map<String,Object>)caused_by;
             StringBuffer bf = new StringBuffer();
-            bf.append("TCF error report:");
-            bf.append('\n');
+            bf.append("TCF error report:\n");
             Command.appendErrorProps(bf, map);
             initCause(new ErrorReport(bf.toString(), map));
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -200,39 +200,39 @@ public abstract class Command implements IChannel.ICommandListener {
         Number alt_code = (Number)map.get(IErrorReport.ERROR_ALT_CODE);
         String alt_org = (String)map.get(IErrorReport.ERROR_ALT_ORG);
         if (time != null) {
-            bf.append('\n');
-            bf.append("Time: ");
+            bf.append("  Time: ");
             bf.append(timestamp_format.format(new Date(time.longValue())));
+            bf.append('\n');
         }
         if (severity != null) {
-            bf.append('\n');
-            bf.append("Severity: ");
+            bf.append("  Severity: ");
             switch (severity.intValue()) {
             case IErrorReport.SEVERITY_ERROR: bf.append("Error"); break;
             case IErrorReport.SEVERITY_FATAL: bf.append("Fatal"); break;
             case IErrorReport.SEVERITY_WARNING: bf.append("Warning"); break;
             default: bf.append("Unknown"); break;
             }
+            bf.append('\n');
         }
-        bf.append('\n');
-        bf.append("Error text: ");
+        bf.append("  Error text: ");
         bf.append(toErrorString(map));
         bf.append('\n');
-        bf.append("Error code: ");
+        bf.append("  Error code: ");
         bf.append(code);
+        bf.append('\n');
         if (service != null) {
-            bf.append('\n');
-            bf.append("Service: ");
+            bf.append("  Service: ");
             bf.append(service);
+            bf.append('\n');
         }
         if (alt_code != null) {
-            bf.append('\n');
-            bf.append("Alt code: ");
+            bf.append("  Alt code: ");
             bf.append(alt_code);
+            bf.append('\n');
             if (alt_org != null) {
-                bf.append('\n');
-                bf.append("Alt org: ");
+                bf.append("  Alt org: ");
                 bf.append(alt_org);
+                bf.append('\n');
             }
         }
     }
@@ -246,11 +246,11 @@ public abstract class Command implements IChannel.ICommandListener {
         if (data == null) return null;
         Map<String,Object> map = (Map<String,Object>)data;
         StringBuffer bf = new StringBuffer();
-        bf.append("TCF error report:");
-        bf.append('\n');
+        bf.append("TCF error report:\n");
         if (include_command_text) {
-            bf.append("Command: ");
+            bf.append("  Command: ");
             bf.append(getCommandString(0));
+            bf.append('\n');
         }
         appendErrorProps(bf, map);
         return new ErrorReport(bf.toString(), map);
