@@ -178,16 +178,15 @@
                 <cdt-launchbar-site>http://download.eclipse.org/tools/cdt/launchbar/neon.m6</cdt-launchbar-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.1milestones</terminal-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20160308060251/repository</orbit-site>
-				
-				<repositories>
-			        <repository>
-			            <id>cdt-launchbar</id>
-			            <url>${cdt-launchbar-site}</url>
-			            <layout>p2</layout>
-			        </repository>	
-				</repositories>
-				
             </properties>
+
+			<repositories>
+		        <repository>
+		            <id>cdt-launchbar</id>
+		            <url>${cdt-launchbar-site}</url>
+		            <layout>p2</layout>
+		        </repository>	
+			</repositories>
 		</profile>
     </profiles>
 	
