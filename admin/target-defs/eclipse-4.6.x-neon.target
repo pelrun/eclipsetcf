@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.6.x (Neon)" sequenceNumber="78">
+<?pde version="3.8"?><target name="Eclipse 4.6.x (Neon)" sequenceNumber="83">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.apache.log4j.source" version="1.2.15.v201012070815"/>
@@ -19,16 +19,12 @@
 <repository location="http://download.eclipse.org/cbi/updates/license"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.cdt.sdk.feature.group" version="8.8.0.201512141104"/>
-<repository location="http://download.eclipse.org/tools/cdt/builds/neon/milestones"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="gnu.io.rxtx.sdk.feature.group" version="2.1.7.4_v20071016-417C7DP1Bh_eEaQJBrHBHg"/>
 <repository location="http://archive.eclipse.org/tm/updates/rxtx"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.sdk.ide" version="4.6.0.I20151209-2300"/>
-<unit id="org.eclipse.test.feature.group" version="3.7.100.v20151106-1314"/>
+<unit id="org.eclipse.sdk.ide" version="4.6.0.I20160317-0200"/>
+<unit id="org.eclipse.test.feature.group" version="3.7.100.v20160315-2119"/>
 <repository location="http://download.eclipse.org/eclipse/updates/4.6milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
@@ -45,14 +41,22 @@
 <unit id="org.apache.commons.net.source" version="3.2.0.v201305141515"/>
 <unit id="com.google.gson.source" version="2.2.4.v201311231704"/>
 <unit id="org.apache.commons.net" version="3.2.0.v201305141515"/>
-<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20150821153341/repository"/>
+<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/S20160308060251/repository"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.pde.feature.group" version="3.12.0.v20151029-1349"/>
-<unit id="org.eclipse.emf.sdk.feature.group" version="2.12.0.v20151109-0426"/>
-<unit id="org.eclipse.egit.feature.group" version="4.2.0.201511101648-m1"/>
-<unit id="org.eclipse.jgit.feature.group" version="4.2.0.201511101648-m1"/>
+<unit id="org.eclipse.pde.feature.group" version="3.12.0.v20160128-2000"/>
+<unit id="org.eclipse.emf.sdk.feature.group" version="2.12.0.v20160201-0859"/>
+<unit id="org.eclipse.egit.feature.group" version="4.2.0.201601211800-r"/>
+<unit id="org.eclipse.jgit.feature.group" version="4.2.0.201601211800-r"/>
 <repository location="http://download.eclipse.org/releases/neon"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.cdt.sdk.feature.group" version="9.0.0.201603221804"/>
+<repository location="http://download.eclipse.org/tools/cdt/builds/neon/milestones"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.launchbar.feature.group" version="2.0.0.201603160402"/>
+<repository location="http://download.eclipse.org/tools/cdt/launchbar/neon.m6"/>
 </location>
 </locations>
 </target>
