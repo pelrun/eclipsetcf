@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.core.internal.services;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import org.eclipse.cdt.debug.core.sourcelookup.MappingSourceContainer;
 import org.eclipse.cdt.debug.internal.core.sourcelookup.MapEntrySourceContainer;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -91,7 +93,27 @@ public class PathMapService extends AbstractService implements IPathMapService {
 					MapEntrySourceContainer[] mappings = new MapEntrySourceContainer[generatedRules.length];
 					int i = 0;
 					for (PathMapRule pathMapRule : generatedRules) {
-                        mappings[i++] = new MapEntrySourceContainer(new Path(pathMapRule.getSource()), new Path(pathMapRule.getDestination()));
+						// CDT 9.0 changes constructor of MapEntrySourceCounter
+						MapEntrySourceContainer mapping = null;
+
+						Class<MapEntrySourceContainer> clazz = MapEntrySourceContainer.class;
+						try {
+							Constructor<MapEntrySourceContainer> c = clazz.getConstructor(IPath.class, IPath.class);
+							c.setAccessible(true);
+							mapping = c.newInstance(new Path(pathMapRule.getSource()), new Path(pathMapRule.getDestination()));
+						} catch (NoSuchMethodException e) {
+							try {
+								Constructor<MapEntrySourceContainer> c = clazz.getConstructor(String.class, IPath.class);
+								c.setAccessible(true);
+								mapping = c.newInstance(pathMapRule.getSource(), new Path(pathMapRule.getDestination()));
+							}
+							catch (Exception e2) { /* ignored on purpose */ }
+						}
+						catch (Exception e) { /* ignored on purpose */ }
+
+						if (mapping != null) {
+							mappings[i++] = mapping;
+						}
                     }
 					try {
 						config = addSourceMappingToLaunchConfig(config, mappings);
