@@ -61,7 +61,7 @@
 		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
         <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.0.0</ptp-remote-site>
 		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20130118183705/repository</orbit-site>
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository</orbit-site>
 		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
   	</properties>
 
@@ -141,7 +141,6 @@
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.3</platform-site>
-		        <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20140114142710/repository</orbit-site>
             </properties>
 		</profile>
 
@@ -152,7 +151,6 @@
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.4</platform-site>
                 <cdt-site>http://download.eclipse.org/tools/cdt/releases/8.4</cdt-site>
-                <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository</orbit-site>
             </properties>
 		</profile>
 
