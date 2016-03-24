@@ -220,6 +220,23 @@ class TCFMemoryBlock extends PlatformObject implements IMemoryBlockExtension, IM
                 });
                 return false;
             }
+            @Override
+            public void reset() {
+                if (isValid() && getData() != null) {
+                    if (channel.getState() == IChannel.STATE_OPEN) {
+                        IExpressions exps = channel.getRemoteService(IExpressions.class);
+                        exps.dispose(remote_expression.getData().getID(), new IExpressions.DoneDispose() {
+                            @Override
+                            public void doneDispose(IToken token, Exception error) {
+                                if (error == null) return;
+                                if (channel.getState() != IChannel.STATE_OPEN) return;
+                                Activator.log("Error disposing remote expression evaluator", error);
+                            }
+                        });
+                    }
+                }
+                super.reset();
+            }
         };
         expression_value = new TCFDataCache<IExpressions.Value>(channel) {
             @Override
@@ -227,7 +244,7 @@ class TCFMemoryBlock extends PlatformObject implements IMemoryBlockExtension, IM
                 if (!remote_expression.validate(this)) return false;
                 final IExpressions.Expression ctx = remote_expression.getData();
                 if (ctx == null) {
-                    set(null, null, null);
+                    set(null, remote_expression.getError(), null);
                     return true;
                 }
                 IExpressions exps = launch.getService(IExpressions.class);
@@ -641,6 +658,8 @@ class TCFMemoryBlock extends PlatformObject implements IMemoryBlockExtension, IM
 
     void onMemoryChanged(boolean suspended) {
         assert Protocol.isDispatchThread();
+        remote_expression.reset();
+        expression_value.reset();
         if (suspended) mem_prev = mem_last;
         mem_data = null;
         synchronized (model_proxies) {
@@ -653,22 +672,8 @@ class TCFMemoryBlock extends PlatformObject implements IMemoryBlockExtension, IM
     void onContextExited(String id) {
         assert Protocol.isDispatchThread();
         if (!id.equals(ctx_id)) return;
+        remote_expression.reset();
         expression_value.reset();
-        if (remote_expression.isValid() && remote_expression.getData() != null) {
-            final IChannel channel = model.getChannel();
-            if (channel.getState() == IChannel.STATE_OPEN) {
-                IExpressions exps = channel.getRemoteService(IExpressions.class);
-                exps.dispose(remote_expression.getData().getID(), new IExpressions.DoneDispose() {
-                    @Override
-                    public void doneDispose(IToken token, Exception error) {
-                        if (error == null) return;
-                        if (channel.getState() != IChannel.STATE_OPEN) return;
-                        Activator.log("Error disposing remote expression evaluator", error);
-                    }
-                });
-            }
-            remote_expression.reset();
-        }
     }
 
     /************************** Persistence ***************************************************/
