@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2015, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,6 +11,8 @@ package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 
 import java.io.File;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.dsf.gdb.internal.ui.launching.CMainTab;
@@ -22,6 +24,7 @@ import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.window.Window;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -56,6 +59,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	private static final String CONNECTION_TEXT_ERROR = Messages.RemoteCMainTab_ErrorNoConnection;
 	private static final String PRE_RUN_LABEL_TEXT = Messages.RemoteCMainTab_Prerun;
 	private static final String PID_LABEL_TEXT = Messages.RemoteCMainTab_Pid;
+	private static final String REMOTE_PROG_SYMBOLIC_TEXT_ERROR = Messages.RemoteCMainTab_ErrorSymbolicLink;
 
 	protected TCFPeerSelector peerSelector;
 	protected Label remoteProgLabel;
@@ -159,6 +163,12 @@ public abstract class TEAbstractMainTab extends CMainTab {
 					retVal = false;
 				}
 			}
+		} else {
+			try {
+				if ( Files.isSymbolicLink(Paths.get(fProgText.getText())) ) {
+					setErrorMessage(NLS.bind(REMOTE_PROG_SYMBOLIC_TEXT_ERROR, Files.readSymbolicLink(Paths.get(fProgText.getText()))));
+				}
+			} catch (Exception e) { /* Omitted on purpose */ }
 		}
 		return retVal;
 	}
@@ -423,12 +433,21 @@ public abstract class TEAbstractMainTab extends CMainTab {
 				IPathMapResolverService svc = ServiceManager.getInstance().getService(connection, IPathMapResolverService.class);
 				if (svc != null) {
 					String programName = svc.findHostPath(connection, remoteName);
-					if (programName != null) {
-						boolean prevProgTextFireNotification = progTextFireNotification;
-						progTextFireNotification = false;
-						fProgText.setText(programName);
-						progTextFireNotification = prevProgTextFireNotification;
+					if (programName == null) {
+						// If there is no match, try to use the parent directory
+						String programParent = svc.findHostPath(connection, Path.fromPortableString(remoteName).removeLastSegments(1).toPortableString());
+						if (programParent != null) {
+							programName = new File(programParent, Path.fromPortableString(remoteName).lastSegment()).toString();
+						}
+						else {
+							programName = ""; //$NON-NLS-1$
+						}
 					}
+
+					boolean prevProgTextFireNotification = progTextFireNotification;
+					progTextFireNotification = false;
+					fProgText.setText(programName);
+					progTextFireNotification = prevProgTextFireNotification;
 				}
 			}
 		}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2006, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,6 +36,7 @@ public class Messages extends NLS {
 	public static String RemoteCMainTab_SkipDownload;
 	public static String RemoteCMainTab_ErrorNoProgram;
 	public static String RemoteCMainTab_ErrorNoConnection;
+	public static String RemoteCMainTab_ErrorSymbolicLink;
 	public static String RemoteCMainTab_Pid;
 
 	public static String TEHelper_executing;
