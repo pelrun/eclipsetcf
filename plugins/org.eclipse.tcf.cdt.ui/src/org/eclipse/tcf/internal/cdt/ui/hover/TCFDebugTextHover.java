@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,6 +21,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHoverExtension2;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildren;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildrenStackTrace;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
@@ -44,6 +45,9 @@ import org.eclipse.tcf.util.TCFTask;
  */
 public class TCFDebugTextHover extends AbstractDebugTextHover implements ITextHoverExtension2 {
 
+    private TCFNode node;
+    private boolean running;
+
     @Override
     public IInformationControlCreator getHoverControlCreator() {
         if (useExpressionExplorer()) {
@@ -66,25 +70,91 @@ public class TCFDebugTextHover extends AbstractDebugTextHover implements ITextHo
         return true;
     }
 
-    public Object getHoverInfo2(ITextViewer textViewer, IRegion hoverRegion) {
-        if (!useExpressionExplorer()) return getHoverInfo(textViewer, hoverRegion);
-        final TCFNodeStackFrame activeFrame = getActiveFrame();
-        if (activeFrame == null) return null;
-        final String text = getExpressionText(textViewer, hoverRegion);
+    private boolean getNode(TCFNode selection, Runnable done) {
+        node = null;
+        running = false;
+        TCFNodeStackFrame frame = null;
+        TCFNodeExecContext exe = null;
+        if (selection instanceof TCFNodeStackFrame) {
+            frame = (TCFNodeStackFrame)selection;
+            exe = (TCFNodeExecContext)frame.getParent();
+        }
+        else if (selection instanceof TCFNodeExecContext) {
+            exe = (TCFNodeExecContext)selection;
+        }
+        else {
+            return true;
+        }
+        TCFDataCache<TCFContextState> state_cache = exe.getState();
+        if (!state_cache.validate(done)) return false;
+        TCFContextState state_data = state_cache.getData();
+        if (state_data == null || !state_data.is_suspended) {
+            if (exe.getModel().getHoverWhileRunning()) {
+                running = true;
+                node = exe;
+            }
+        }
+        else {
+            if (frame == null) {
+                TCFChildrenStackTrace stack = exe.getStackTrace();
+                if (!stack.validate(done)) return false;
+                frame = stack.getTopFrame();
+            }
+            if (frame != null && !frame.isEmulated()) node = frame;
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean canEvaluate() {
+        IAdaptable context = getSelectionAdaptable();
+        if (context == null) return false;
+        final TCFNode selection = context.getAdapter(TCFNode.class);
+        if (selection == null) return false;
+        try {
+            return new TCFTask<Boolean>(selection.getChannel()) {
+                public void run() {
+                    if (!getNode(selection, this)) return;
+                    done(node != null);
+                }
+            }.get();
+        }
+        catch (Exception x) {
+            // Problem in Eclipse 3.7:
+            // TextViewerHoverManager calls Thread.interrupt(),
+            // but it fails to handle InterruptedException.
+            // We have to catch and ignore the exception.
+        }
+        return false;
+    }
+
+    public Object getHoverInfo2(ITextViewer viewer, IRegion region) {
+        if (!useExpressionExplorer()) return getHoverInfo(viewer, region);
+        IAdaptable context = getSelectionAdaptable();
+        if (context == null) return null;
+        final TCFNode selection = context.getAdapter(TCFNode.class);
+        if (selection == null) return null;
+        final String text = getExpressionText(viewer, region);
         if (text == null || text.length() == 0) return null;
         try {
-            return new TCFTask<TCFNode>(activeFrame.getChannel()) {
+            return new TCFTask<Object>(selection.getChannel()) {
                 public void run() {
-                    TCFNode evalContext = activeFrame.isEmulated() ? activeFrame.getParent() : activeFrame;
-                    TCFChildren cache = evalContext.getModel().getHoverExpressionCache(evalContext, text);
-                    if (!cache.validate(this)) return;
-                    Map<String,TCFNode> nodes = cache.getData();
-                    if (nodes != null) {
-                        for (TCFNode node : nodes.values()) {
-                            TCFDataCache<IExpressions.Value> value = ((TCFNodeExpression)node).getValue();
-                            if (!value.validate(this)) return;
-                            if (value.getData() != null) {
-                                done(node.getParent());
+                    if (!getNode(selection, this)) return;
+                    if (node != null) {
+                        TCFChildren cache = node.getModel().getHoverExpressionCache(node, text);
+                        if (!cache.validate(this)) return;
+                        Map<String,TCFNode> nodes = cache.getData();
+                        if (nodes != null) {
+                            boolean ok = false;
+                            for (TCFNode n : nodes.values()) {
+                                TCFNodeExpression expr = (TCFNodeExpression)n;
+                                if (running) expr.update(this);
+                                TCFDataCache<IExpressions.Value> value = expr.getValue();
+                                if (!value.validate(this)) return;
+                                if (value.getData() != null) ok = true;
+                            }
+                            if (ok) {
+                                done(node);
                                 return;
                             }
                         }
@@ -103,52 +173,24 @@ public class TCFDebugTextHover extends AbstractDebugTextHover implements ITextHo
     }
 
     @Override
-    protected boolean canEvaluate() {
-        return getActiveFrame() != null;
-    }
-
-    private TCFNodeStackFrame getActiveFrame() {
-        IAdaptable context = getSelectionAdaptable();
-        if (context instanceof TCFNodeStackFrame) return (TCFNodeStackFrame) context;
-        if (context instanceof TCFNodeExecContext) {
-            try {
-                final TCFNodeExecContext exe = (TCFNodeExecContext) context;
-                return new TCFTask<TCFNodeStackFrame>(exe.getChannel()) {
-                    public void run() {
-                        TCFChildrenStackTrace stack = exe.getStackTrace();
-                        if (!stack.validate(this)) return;
-                        done(stack.getTopFrame());
-                    }
-                }.get();
-            }
-            catch (Exception x) {
-                // Problem in Eclipse 3.7:
-                // TextViewerHoverManager calls Thread.interrupt(),
-                // but it fails to handle InterruptedException.
-                // We have to catch and ignore the exception.
-                return null;
-            }
-        }
-        return null;
-    }
-
-    @Override
     protected String evaluateExpression(final String expression) {
-        final TCFNodeStackFrame activeFrame = getActiveFrame();
-        if (activeFrame == null) return null;
-        final IChannel channel = activeFrame.getChannel();
+        IAdaptable context = getSelectionAdaptable();
+        if (context == null) return null;
+        final TCFNode selection = context.getAdapter(TCFNode.class);
+        if (selection == null) return null;
+        final IChannel channel = selection.getChannel();
         return new TCFTask<String>(channel) {
             public void run() {
-                final IExpressions exprSvc = channel.getRemoteService(IExpressions.class);
-                if (exprSvc != null) {
-                    TCFNode evalContext = activeFrame.isEmulated() ? activeFrame.getParent() : activeFrame;
-                    exprSvc.create(evalContext.getID(), null, expression, new DoneCreate() {
+                final IExpressions service = channel.getRemoteService(IExpressions.class);
+                if (!getNode(selection, this)) return;
+                if (service != null && node != null) {
+                    service.create(node.getID(), null, expression, new DoneCreate() {
                         public void doneCreate(IToken token, Exception error, final Expression context) {
                             if (error == null) {
-                                exprSvc.evaluate(context.getID(), new DoneEvaluate() {
+                                service.evaluate(context.getID(), new DoneEvaluate() {
                                     public void doneEvaluate(IToken token, Exception error, Value value) {
                                         done(error == null && value != null ? getValueText(value) : null);
-                                        exprSvc.dispose(context.getID(), new DoneDispose() {
+                                        service.dispose(context.getID(), new DoneDispose() {
                                             public void doneDispose(IToken token, Exception error) {
                                                 // no-op
                                             }

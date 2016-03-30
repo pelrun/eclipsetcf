@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -237,6 +237,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private boolean delay_children_list_updates;
     private boolean auto_children_list_updates;
     private boolean show_full_error_reports;
+    private boolean hover_while_running;
     private boolean qualified_type_names_enabled;
     private boolean filter_variants_by_discriminant;
 
@@ -748,6 +749,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             auto_children_list_updates = prefs_store.getBoolean(TCFPreferences.PREF_AUTO_CHILDREN_LIST_UPDATES);
             delay_children_list_updates = prefs_store.getBoolean(TCFPreferences.PREF_DELAY_CHILDREN_LIST_UPDATES);
             show_full_error_reports = prefs_store.getBoolean(TCFPreferences.PREF_FULL_ERROR_REPORTS);
+            hover_while_running = prefs_store.getBoolean(TCFPreferences.PREF_HOVER_WHILE_RUNNING);
             qualified_type_names_enabled = prefs_store.getBoolean(TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES);
             filter_variants_by_discriminant = prefs_store.getBoolean(TCFPreferences.PREF_FILTER_VARIANTS_BY_DISCRIMINANT);
             final boolean affectsExpressionsOnly = event != null && (
@@ -1097,6 +1099,10 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     public boolean getShowFullErrorReports() {
         return show_full_error_reports;
+    }
+
+    public boolean getHoverWhileRunning() {
+        return hover_while_running;
     }
 
     void onProxyInstalled(TCFModelProxy mp) {

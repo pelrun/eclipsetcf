@@ -85,6 +85,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private byte[] parent_value;
     private String remote_expression_id;
     private IExpression platform_expression;
+    private Object update_generation;
 
     private static int expr_cnt;
 
@@ -699,7 +700,22 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         }
     }
 
+    public void update(Object generation) {
+        if (update_generation == generation) return;
+        prev_value = null;
+        update_generation = generation;
+        if (rem_expression.isValid() && rem_expression.getError() != null) rem_expression.reset();
+        type.reset();
+        type_name.reset();
+        value.reset();
+        string.reset();
+        for (ITCFPrettyExpressionProvider p : TCFPrettyExpressionProvider.getProviders()) p.cancel(this);
+        children.onSuspended(false);
+        resetBaseText();
+    }
+
     void onSuspended(boolean func_call) {
+        update_generation = null;
         if (!func_call) {
             prev_value = next_value;
             type.reset();
