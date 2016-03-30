@@ -109,7 +109,7 @@ public class TCFDebugTextHover extends AbstractDebugTextHover implements ITextHo
     protected boolean canEvaluate() {
         IAdaptable context = getSelectionAdaptable();
         if (context == null) return false;
-        final TCFNode selection = context.getAdapter(TCFNode.class);
+        final TCFNode selection = (TCFNode)context.getAdapter(TCFNode.class);
         if (selection == null) return false;
         try {
             return new TCFTask<Boolean>(selection.getChannel()) {
@@ -132,7 +132,7 @@ public class TCFDebugTextHover extends AbstractDebugTextHover implements ITextHo
         if (!useExpressionExplorer()) return getHoverInfo(viewer, region);
         IAdaptable context = getSelectionAdaptable();
         if (context == null) return null;
-        final TCFNode selection = context.getAdapter(TCFNode.class);
+        final TCFNode selection = (TCFNode)context.getAdapter(TCFNode.class);
         if (selection == null) return null;
         final String text = getExpressionText(viewer, region);
         if (text == null || text.length() == 0) return null;
@@ -176,7 +176,7 @@ public class TCFDebugTextHover extends AbstractDebugTextHover implements ITextHo
     protected String evaluateExpression(final String expression) {
         IAdaptable context = getSelectionAdaptable();
         if (context == null) return null;
-        final TCFNode selection = context.getAdapter(TCFNode.class);
+        final TCFNode selection = (TCFNode)context.getAdapter(TCFNode.class);
         if (selection == null) return null;
         final IChannel channel = selection.getChannel();
         return new TCFTask<String>(channel) {
