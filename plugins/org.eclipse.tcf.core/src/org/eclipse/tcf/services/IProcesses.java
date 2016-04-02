@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ package org.eclipse.tcf.services;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.tcf.protocol.IService;
 import org.eclipse.tcf.protocol.IToken;
@@ -221,11 +222,13 @@ public interface IProcesses extends IService {
      * If context is not attached the command will return an error.
      * @param done - call back interface called when operation is completed.
      * @return pending command handle, can be used to cancel the command.
+     * TODO: deprecated - cannot support more than 32 signals
      */
     IToken getSignalMask(String context_id, DoneGetSignalMask done);
 
     /**
      * Call-back interface to be called when "getSignalMask" command is complete.
+     * TODO: deprecated - cannot support more than 32 signals
      */
     interface DoneGetSignalMask {
         /**
@@ -239,6 +242,32 @@ public interface IProcesses extends IService {
     }
 
     /**
+     * Get process or thread signal mask.
+     * Signal indices in the mask control how signals should be handled by debug agent.
+     * When new context is created it inherits the mask from its parent.
+     * If context is not attached the command will return an error.
+     * @param done - call back interface called when operation is completed.
+     * @return pending command handle, can be used to cancel the command.
+     * @since 1.4
+     */
+    IToken getSignalMask(String context_id, DoneGetSignalMaskSets done);
+
+    /**
+     * Call-back interface to be called when "getSignalMask" command is complete.
+     * @since 1.4
+     */
+    interface DoneGetSignalMaskSets {
+        /**
+         * @param token - command handle.
+         * @param dont_stop - set of signals that should suspend execution of the context.
+         * @param dont_pass - set of signals that should not be delivered to the context.
+         * @param pending - set of signals that are generated but not delivered yet.
+         * Note: "pending" is meaningful only if the context is suspended.
+         */
+        void doneGetSignalMask(IToken token, Exception error, Set<Integer> dont_stop, Set<Integer> dont_pass, Set<Integer> pending);
+    }
+
+    /**
      * Set process or thread signal mask.
      * Bits in the mask control how signals should be handled by debug agent.
      * If context is not attached the command will return an error.
@@ -247,8 +276,22 @@ public interface IProcesses extends IService {
      * @param dont_pass - bit-set of signals that should not be delivered to the context.
      * @param done - call back interface called when operation is completed.
      * @return pending command handle, can be used to cancel the command.
+     * TODO: deprecated - cannot support more than 32 signals
      */
     IToken setSignalMask(String context_id, int dont_stop, int dont_pass, DoneCommand done);
+
+    /**
+     * Set process or thread signal mask.
+     * Signal indices in the mask control how signals should be handled by debug agent.
+     * If context is not attached the command will return an error.
+     * @param dont_stop - set of signals that should not suspend execution of the context.
+     * By default, debugger suspends a context before it receives a signal.
+     * @param dont_pass - set of signals that should not be delivered to the context.
+     * @param done - call back interface called when operation is completed.
+     * @return pending command handle, can be used to cancel the command.
+     * @since 1.4
+     */
+    IToken setSignalMask(String context_id, Set<Integer> dont_stop, Set<Integer> dont_pass, DoneCommand done);
 
     /**
      * Send a signal to a process or thread.

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -392,17 +392,18 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     set(null, signal_list.getError(), null);
                     return true;
                 }
-                command = prs.getSignalMask(id, new IProcesses.DoneGetSignalMask() {
-                    public void doneGetSignalMask(IToken token, Exception error, int dont_stop, int dont_pass, int pending) {
+                command = prs.getSignalMask(id, new IProcesses.DoneGetSignalMaskSets() {
+                    public void doneGetSignalMask(IToken token, Exception error,
+                            Set<Integer> dont_stop, Set<Integer> dont_pass, Set<Integer> pending) {
                         int n = 0;
                         SignalMask[] list = new SignalMask[sigs.size()];
                         for (Map<String,Object> m : sigs) {
                             SignalMask s = list[n++] = new SignalMask();
                             s.props = m;
-                            int mask = 1 << s.getIndex().intValue();
-                            s.dont_stop = (dont_stop & mask) != 0;
-                            s.dont_pass = (dont_pass & mask) != 0;
-                            s.pending = (pending & mask) != 0;
+                            int i = s.getIndex().intValue();
+                            s.dont_stop = dont_stop.contains(i);
+                            s.dont_pass = dont_pass.contains(i);
+                            s.pending = pending.contains(i);
                         }
                         set(token, error, list);
                     }

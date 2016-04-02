@@ -813,10 +813,8 @@ public class TCFLaunch extends Launch {
             final boolean stop_at_entry = cfg.getAttribute(TCFLaunchDelegate.ATTR_STOP_AT_ENTRY, true);
             final boolean stop_at_main = cfg.getAttribute(TCFLaunchDelegate.ATTR_STOP_AT_MAIN, true);
             final boolean use_terminal = cfg.getAttribute(TCFLaunchDelegate.ATTR_USE_TERMINAL, true);
-            final String dont_stop = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, "");
-            final String dont_pass = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, "");
-            final int no_stop = dont_stop.length() > 0 ? Integer.parseInt(dont_stop, 16) : 0;
-            final int no_pass = dont_pass.length() > 0 ? Integer.parseInt(dont_pass, 16) : 0;
+            final Set<Integer> dont_stop = TCFLaunchDelegate.readSigSet(cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, ""));
+            final Set<Integer> dont_pass = TCFLaunchDelegate.readSigSet(cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, ""));
             final IProcessesV1 ps_v1 = channel.getRemoteService(IProcessesV1.class);
             // Start the process
             new LaunchStep() {
@@ -868,8 +866,8 @@ public class TCFLaunch extends Launch {
                             params.put(IProcessesV1.START_ATTACH_CHILDREN, attach_children);
                             params.put(IProcessesV1.START_STOP_AT_ENTRY, stop_at_entry);
                             params.put(IProcessesV1.START_STOP_AT_MAIN, stop_at_main);
-                            if (dont_stop.length() > 0) params.put(IProcessesV1.START_SIG_DONT_STOP, no_stop);
-                            if (dont_pass.length() > 0) params.put(IProcessesV1.START_SIG_DONT_PASS, no_pass);
+                            if (dont_stop.size() > 0) params.put(IProcessesV1.START_SIG_DONT_STOP, dont_stop);
+                            if (dont_pass.size() > 0) params.put(IProcessesV1.START_SIG_DONT_PASS, dont_pass);
                         }
                         if (use_terminal) params.put(IProcessesV1.START_USE_TERMINAL, true);
                         ps_v1.start(dir, file, args_arr, process_env, params, done);
@@ -897,7 +895,7 @@ public class TCFLaunch extends Launch {
                     }
                 };
                 // Set process signal masks
-                if (ps_v1 == null && (no_stop != 0 || no_pass != 0)) {
+                if (ps_v1 == null && (dont_stop.size() > 0 || dont_pass.size() > 0)) {
                     new LaunchStep() {
                         @Override
                         void start() {
@@ -909,14 +907,14 @@ public class TCFLaunch extends Launch {
                                     else if (cmds.size() == 0) done();
                                 }
                             };
-                            cmds.add(ps.setSignalMask(process.getID(), no_stop, no_pass, done_set_mask));
+                            cmds.add(ps.setSignalMask(process.getID(), dont_stop, dont_pass, done_set_mask));
                             final IRunControl rc = channel.getRemoteService(IRunControl.class);
                             if (rc != null) {
                                 final IRunControl.DoneGetChildren done_get_children = new IRunControl.DoneGetChildren() {
                                     public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                                         if (context_ids != null) {
                                             for (String id : context_ids) {
-                                                cmds.add(ps.setSignalMask(id, no_stop, no_pass, done_set_mask));
+                                                cmds.add(ps.setSignalMask(id, dont_stop, dont_pass, done_set_mask));
                                                 cmds.add(rc.getChildren(id, this));
                                             }
                                         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,7 +13,9 @@ package org.eclipse.tcf.internal.services.remote;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.protocol.IChannel;
@@ -249,7 +251,41 @@ public class ProcessesProxy implements IProcesses {
         }.token;
     }
 
+    public IToken getSignalMask(String context_id, final DoneGetSignalMaskSets done) {
+        return new Command(channel, ProcessesProxy.this,
+                "getSignalMask", new Object[]{ context_id }) {
+            @Override
+            public void done(Exception error, Object[] args) {
+                Set<Integer> dont_stop = null;
+                Set<Integer> dont_pass = null;
+                Set<Integer> pending = null;
+                if (error == null) {
+                    assert args.length == 4;
+                    error = toError(args[0]);
+                    dont_stop = toSigSet(args[1]);
+                    dont_pass = toSigSet(args[2]);
+                    pending = toSigSet(args[3]);
+                }
+                done.doneGetSignalMask(token, error, dont_stop, dont_pass, pending);
+            }
+        }.token;
+    }
+
     public IToken setSignalMask(String context_id, int dont_stop, int dont_pass, final DoneCommand done) {
+        return new Command(channel, ProcessesProxy.this,
+                "setSignalMask", new Object[]{ context_id, dont_stop, dont_pass }) {
+            @Override
+            public void done(Exception error, Object[] args) {
+                if (error == null) {
+                    assert args.length == 1;
+                    error = toError(args[0]);
+                }
+                done.doneCommand(token, error);
+            }
+        }.token;
+    }
+
+    public IToken setSignalMask(String context_id, Set<Integer> dont_stop, Set<Integer> dont_pass, final DoneCommand done) {
         return new Command(channel, ProcessesProxy.this,
                 "setSignalMask", new Object[]{ context_id, dont_stop, dont_pass }) {
             @Override
@@ -311,5 +347,21 @@ public class ProcessesProxy implements IProcesses {
     private static Collection<Map<String,Object>> toSignalList(Object o) {
         if (o == null) return null;
         return (Collection<Map<String,Object>>)o;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Set<Integer> toSigSet(Object o) {
+        Set<Integer> set = new HashSet<Integer>();
+        if (o instanceof Number) {
+            long n = ((Number)o).longValue();
+            for (int i = 0; i < 64; i++) {
+                if ((n & (1l << i)) != 0) set.add(i);
+            }
+        }
+        else if (o != null) {
+            Collection<Number> c = (Collection<Number>)o;
+            for (Number n : c) set.add(n.intValue());
+        }
+        return set;
     }
 }

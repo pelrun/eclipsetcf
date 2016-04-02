@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,11 +15,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -55,6 +57,8 @@ import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
 
 class SignalsDialog extends Dialog {
+
+    private static final String SETTINGS_SECTION = SignalsDialog.class.getCanonicalName();
 
     private static final int
         SIZING_TABLE_WIDTH = 800,
@@ -144,7 +148,7 @@ class SignalsDialog extends Dialog {
             switch (column) {
             case 0:
                 long n = s.getCode().longValue();
-                if (n < 32) return Long.toString(n);
+                if (n < 256) return Long.toString(n);
                 String q = Long.toHexString(n);
                 if (q.length() < 8) q = "00000000".substring(q.length()) + q;
                 return "0x" + q;
@@ -166,6 +170,19 @@ class SignalsDialog extends Dialog {
         model = node.getModel();
         channel = node.getChannel();
         selection = node;
+    }
+
+    @Override
+    protected boolean isResizable() {
+        return true;
+    }
+
+    @Override
+    protected IDialogSettings getDialogBoundsSettings() {
+        IDialogSettings settings = Activator.getDefault().getDialogSettings();
+        IDialogSettings section = settings.getSection(SETTINGS_SECTION);
+        if (section != null) return section;
+        return settings.addNewSection(SETTINGS_SECTION);
     }
 
     @Override
@@ -291,15 +308,13 @@ class SignalsDialog extends Dialog {
                     }
                     else {
                         int i = 0;
-                        int no_stop = 0;
-                        int no_pass = 0;
+                        Set<Integer> no_stop = new HashSet<Integer>();
+                        Set<Integer> no_pass = new HashSet<Integer>();
                         Signal[] arr = new Signal[sigs.size()];
                         try {
                             ILaunchConfiguration cfg = launch.getLaunchConfiguration();
-                            String dont_stop = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, "");
-                            String dont_pass = cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, "");
-                            if (dont_stop.length() > 0) no_stop = Integer.parseInt(dont_stop, 16);
-                            if (dont_pass.length() > 0) no_pass = Integer.parseInt(dont_pass, 16);
+                            no_stop = TCFLaunchDelegate.readSigSet(cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, ""));
+                            no_pass = TCFLaunchDelegate.readSigSet(cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, ""));
                         }
                         catch (Exception x) {
                             Activator.log("Invalid launch cofiguration attribute", x);
@@ -308,8 +323,8 @@ class SignalsDialog extends Dialog {
                             Signal s = arr[i++] = new Signal(m);
                             Number num = s.getIndex();
                             int j = num == null ? 0 : 1 << num.intValue();
-                            s.setDontStop((no_stop & j) != 0);
-                            s.setDontPass((no_pass & j) != 0);
+                            s.setDontStop(no_stop.contains(j));
+                            s.setDontPass(no_pass.contains(j));
                         }
                         done(arr);
                     }
@@ -344,25 +359,25 @@ class SignalsDialog extends Dialog {
     protected void okPressed() {
         try {
             boolean set_mask = false;
-            int dont_stop_set = 0;
-            int dont_pass_set = 0;
+            Set<Integer> dont_stop_set = new HashSet<Integer>();
+            Set<Integer> dont_pass_set = new HashSet<Integer>();
             final LinkedList<Number> send_list = new LinkedList<Number>();
             for (Signal s : cur_signals) {
                 Number index = s.getIndex();
                 Signal x = org_signals.get(index);
                 if (!set_mask) set_mask = x == null || x.isDontStop() != s.isDontStop() || x.isDontPass() != s.isDontPass();
-                if (s.isDontStop()) dont_stop_set |= 1 << index.intValue();
-                if (s.isDontPass()) dont_pass_set |= 1 << index.intValue();
+                if (s.isDontStop()) dont_stop_set.add(index.intValue());
+                if (s.isDontPass()) dont_pass_set.add(index.intValue());
                 if ((x == null || !x.isPending()) && s.isPending()) send_list.add(s.getCode());
             }
             if (set_mask) {
                 TCFLaunch launch = model.getLaunch();
                 ILaunchConfigurationWorkingCopy cfg = launch.getLaunchConfiguration().getWorkingCopy();
-                cfg.setAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, Integer.toHexString(dont_stop_set));
-                cfg.setAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, Integer.toHexString(dont_pass_set));
+                cfg.setAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, TCFLaunchDelegate.writeSigSet(dont_stop_set));
+                cfg.setAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, TCFLaunchDelegate.writeSigSet(dont_pass_set));
                 cfg.doSave();
-                final int dont_stop = dont_stop_set;
-                final int dont_pass = dont_pass_set;
+                final Set<Integer> dont_stop = dont_stop_set;
+                final Set<Integer> dont_pass = dont_pass_set;
                 new TCFTask<Boolean>(channel) {
                     final HashSet<IToken> cmds = new HashSet<IToken>();
                     final LinkedList<TCFNodeExecContext> nodes = new LinkedList<TCFNodeExecContext>();

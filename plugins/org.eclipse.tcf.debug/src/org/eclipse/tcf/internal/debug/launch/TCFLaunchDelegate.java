@@ -14,8 +14,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -337,6 +339,51 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
             program_path = project.getFile(program_name).getLocation();
         }
         return program_path.toOSString();
+    }
+
+    /**
+     * Utility function for parsing ATTR_SIGNALS_DONT_STOP and ATTR_SIGNALS_DONT_PASS
+     */
+    public static Set<Integer> readSigSet(String s) {
+        Set<Integer> set = new HashSet<Integer>();
+        int l = s.length();
+        int i = 0;
+        while (i < l && s.charAt(i) == ' ') i++;
+        if (i < l && s.charAt(i) == '[') {
+            for (;;) {
+                i++;
+                int n = 0;
+                while (i < l && s.charAt(i) == ' ') i++;
+                if (i >= l || s.charAt(i) < '0' || s.charAt(i) > '9') break;
+                while (i < l && s.charAt(i) >= '0' && s.charAt(i) <= '9') {
+                    n = n * 10 + (s.charAt(i++) - '0');
+                }
+                set.add(n);
+                while (i < l && s.charAt(i) == ' ') i++;
+                if (i >= l || s.charAt(i) != ',') break;
+            }
+        }
+        else if (i < l) {
+            int n = Integer.parseInt(s, 16);
+            for (int m = 0; m < 31; m++) {
+                if ((n & (1 << m)) != 0) set.add(m);
+            }
+        }
+        return set;
+    }
+
+    /**
+     * Utility function for setting ATTR_SIGNALS_DONT_STOP and ATTR_SIGNALS_DONT_PASS
+     */
+    public static String writeSigSet(Set<Integer> s) {
+        StringBuffer buf = new StringBuffer();
+        buf.append('[');
+        for (int n : s) {
+            if (buf.length() > 1) buf.append(',');
+            buf.append(n);
+        }
+        buf.append(']');
+        return buf.toString();
     }
 
     @Override
